@@ -1545,10 +1545,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!hasErrors) {
       Code code;
       if (hasCode) {
-        if (options.emitLocalVarInfo && node.function != null) {
-          // Leave the scope which was entered in _setupInitialContext.
-          asm.localVariableTable
-              .leaveScope(asm.offset, node.function.fileEndOffset);
+        if (options.emitLocalVarInfo) {
+          // Leave the scopes which were entered in _genPrologue and
+          // _setupInitialContext.
+          asm.localVariableTable.leaveAllScopes(
+              asm.offset,
+              node.function != null
+                  ? node.function.fileEndOffset
+                  : node.fileEndOffset);
         }
 
         List<int> parameterFlags = null;
@@ -1690,6 +1694,35 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.bind(done);
     }
 
+    // Open initial scope before the first CheckStack, as VM might
+    // need to know context level.
+    if (options.emitLocalVarInfo && function != null) {
+      asm.localVariableTable.enterScope(
+          asm.offset,
+          isClosure ? locals.contextLevelAtEntry : locals.currentContextLevel,
+          function.fileOffset);
+      if (locals.hasContextVar) {
+        asm.localVariableTable
+            .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
+      }
+      if (locals.hasReceiver) {
+        _declareLocalVariable(locals.receiverVar, function.fileOffset);
+      }
+      for (var v in function.positionalParameters) {
+        if (!locals.isCaptured(v)) {
+          _declareLocalVariable(v, function.fileOffset);
+        }
+      }
+      for (var v in locals.sortedNamedParameters) {
+        if (!locals.isCaptured(v)) {
+          _declareLocalVariable(v, function.fileOffset);
+        }
+      }
+      if (locals.hasFunctionTypeArgsVar) {
+        _declareLocalVariable(locals.functionTypeArgsVar, function.fileOffset);
+      }
+    }
+
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
     // Also, simdbc doesn't support arguments descriptor SpecialDbcRegister as
@@ -1760,26 +1793,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _setupInitialContext(FunctionNode function) {
     _allocateContextIfNeeded();
 
-    if (options.emitLocalVarInfo && function != null) {
-      // Open scope after allocating context.
+    if (options.emitLocalVarInfo && locals.currentContextSize > 0) {
+      // Open a new scope after allocating context.
       asm.localVariableTable.enterScope(
           asm.offset, locals.currentContextLevel, function.fileOffset);
-      if (locals.hasContextVar) {
-        asm.localVariableTable
-            .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
-      }
-      if (locals.hasReceiver) {
-        _declareLocalVariable(locals.receiverVar, function.fileOffset);
-      }
-      for (var v in function.positionalParameters) {
-        _declareLocalVariable(v, function.fileOffset);
-      }
-      for (var v in locals.sortedNamedParameters) {
-        _declareLocalVariable(v, function.fileOffset);
-      }
-      if (locals.hasFunctionTypeArgsVar) {
-        _declareLocalVariable(locals.functionTypeArgsVar, function.fileOffset);
-      }
     }
 
     if (locals.hasCapturedParameters) {
@@ -1824,6 +1841,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _copyParamIfCaptured(VariableDeclaration variable) {
     if (locals.isCaptured(variable)) {
+      if (options.emitLocalVarInfo) {
+        _declareLocalVariable(variable, enclosingFunction.fileOffset);
+      }
       _genPushContextForVariable(variable);
       asm.emitPush(locals.getOriginalParamSlotIndex(variable));
       _genStoreVar(variable);
@@ -2190,8 +2210,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     if (options.emitLocalVarInfo) {
-      // Leave the scope which was entered in _setupInitialContext.
-      asm.localVariableTable.leaveScope(asm.offset, function.fileEndOffset);
+      // Leave the scopes which were entered in _genPrologue and
+      // _setupInitialContext.
+      asm.localVariableTable.leaveAllScopes(asm.offset, function.fileEndOffset);
     }
 
     cp.addEndClosureFunctionScope();
