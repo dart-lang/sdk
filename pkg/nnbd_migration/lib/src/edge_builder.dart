@@ -2127,10 +2127,48 @@ mixin _AssignmentChecker {
       return;
     }
     if (destinationType.isDartAsyncFutureOr) {
+      var s1 = destination.typeArguments[0];
+      if (sourceType.isDartAsyncFutureOr) {
+        // This is a special case not in the subtyping spec.  The subtyping spec
+        // covers this case by expanding the LHS first, which is fine but
+        // leads to redundant edges (which might be confusing for users)
+        // if T0 is FutureOr<S0> then:
+        // - T0 <: T1 iff Future<S0> <: T1 and S0 <: T1
+        // Since T1 is FutureOr<S1>, this is equivalent to:
+        // - T0 <: T1 iff (Future<S0> <: Future<S1> or Future<S0> <: S1) and
+        //                (S0 <: Future<S1> or S0 <: S1)
+        // Which is equivalent to:
+        // - T0 <: T1 iff (S0 <: S1 or Future<S0> <: S1) and
+        //                (S0 <: Future<S1> or S0 <: S1)
+        // Which is equivalent to (distributing the "and"):
+        // - T0 <: T1 iff (S0 <: S1 and (S0 <: Future<S1> or S0 <: S1)) or
+        //                (Future<S0> <: S1 and (S0 <: Future<S1> or S0 <: S1))
+        // Which is equivalent to (distributing the "and"s):
+        // - T0 <: T1 iff (S0 <: S1 and S0 <: Future<S1>) or
+        //                (S0 <: S1 and S0 <: S1) or
+        //                (Future<S0> <: S1 and S0 <: Future<S1>) or
+        //                (Future<S0> <: S1 and S0 <: S1)
+        // If S0 <: S1, the relation is satisfied.  Otherwise the only term that
+        // matters is (Future<S0> <: S1 and S0 <: Future<S1>), so this is
+        // equivalent to:
+        // - T0 <: T1 iff S0 <: S1 or (Future<S0> <: S1 and S0 <: Future<S1>)
+        // Let's consider whether there are any cases where the RHS of this "or"
+        // can be satisfied but not the LHS.  That is, assume that
+        // Future<S0> <: S1 and S0 <: Future<S1> hold, but not S0 <: S1.  S1
+        // must not be a top type (otherwise S0 <: S1 would hold), so the only
+        // way Future<S0> <: S1 can hold is if S1 is Future<A> or FutureOr<A>
+        // for some A.  In either case, Future<S1> simplifies to Future<A>, so
+        // we know that S0 <: Future<A>.  Also, in either case, Future<A> <: S1.
+        // Combining these, we have that S0 <: S1, contradicting our assumption.
+        // So the RHS of the "or" is redundant, and we can simplify to:
+        // - S0 <: S1.
+        var s0 = source.typeArguments[0];
+        _checkAssignment(origin, source: s0, destination: s1, hard: false);
+        return;
+      }
       // (From the subtyping spec):
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
       // - either T0 <: Future<S1>
-      var s1 = destination.typeArguments[0];
       if (_typeSystem.isSubtypeOf(
           sourceType, _typeProvider.futureType.instantiate([s1.type]))) {
         // E.g. FutureOr<int> = (... as Future<int>)

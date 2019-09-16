@@ -173,6 +173,14 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
   }
 
+  void test_future_or_to_future_or() {
+    var t1 = futureOr(int_());
+    var t2 = futureOr(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
   test_generic_to_dynamic() {
     var t = list(object());
     assign(t, dynamic_);
