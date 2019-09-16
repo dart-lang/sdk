@@ -1293,25 +1293,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (arguments.length == 1 && op == '==') {
       final Constant right = arguments[0];
 
-      // [DoubleConstant] uses [identical] to determine equality, so we need two
-      // special cases:
-      // Two NaNs are always unequal even if [identical] returns `true`.
-      if (isNaN(receiver) || isNaN(right)) {
-        return falseConstant;
-      }
-
-      // Two zero values are always equal regardless of sign.
-      if (isZero(receiver)) {
-        return makeBoolConstant(isZero(right));
-      }
-
       if (receiver is NullConstant ||
           receiver is BoolConstant ||
           receiver is IntConstant ||
           receiver is DoubleConstant ||
           receiver is StringConstant ||
           right is NullConstant) {
-        return makeBoolConstant(receiver == right);
+        // [DoubleConstant] uses [identical] to determine equality, so we need
+        // to take the special cases into account.
+        return doubleSpecialCases(receiver, right) ??
+            makeBoolConstant(receiver == right);
       } else {
         return report(
             node,
@@ -1829,16 +1820,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         final Constant right = positionals[1];
 
         if (targetingJavaScript) {
-          // In JavaScript, we lower [identical] to `===`, so any comparison
-          // against NaN yields `false`.
-          if (isNaN(left) || isNaN(right)) {
-            return falseConstant;
-          }
-
-          // In JavaScript, `-0.0 === 0.0`.
-          if (isZero(left)) {
-            return makeBoolConstant(isZero(right));
-          }
+          // In JavaScript, we lower [identical] to `===`, so we need to take
+          // the double special cases into account.
+          return doubleSpecialCases(left, right) ??
+              makeBoolConstant(identical(left, right));
         }
 
         // Since we canonicalize constants during the evaluation, we can use
@@ -1948,12 +1933,16 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   // Helper methods:
 
-  bool isZero(Constant value) =>
-      (value is IntConstant && value.value == 0) ||
-      (value is JavaScriptIntConstant && value.bigIntValue == BigInt.zero) ||
-      (value is DoubleConstant && value.value == 0);
-
-  bool isNaN(Constant value) => value is DoubleConstant && value.value.isNaN;
+  /// If both constants are DoubleConstant whose values would give different
+  /// results from == and [identical], return the result of ==. Otherwise
+  /// return null.
+  Constant doubleSpecialCases(Constant a, Constant b) {
+    if (a is DoubleConstant && b is DoubleConstant) {
+      if (a.value.isNaN && b.value.isNaN) return falseConstant;
+      if (a.value == 0.0 && b.value == 0.0) return trueConstant;
+    }
+    return null;
+  }
 
   bool hasPrimitiveEqual(Constant constant) {
     // TODO(askesc, fishythefish): Make sure the correct class is inferred
