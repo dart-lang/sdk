@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -97,8 +99,10 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   final String _contents;
 
   String _enclosingFilePath = '';
+  FeatureSet _enclosingUnitFeatureSet;
   Element _enclosingElement;
   ClassElement _enclosingClassElement;
+  InterfaceType _enclosingClassThisType;
   KytheVName _enclosingVName;
   KytheVName _enclosingFileVName;
   KytheVName _enclosingClassVName;
@@ -339,6 +343,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
   @override
   visitCompilationUnit(CompilationUnit node) {
     _enclosingFilePath = _getPath(resourceProvider, node.declaredElement);
+    _enclosingUnitFeatureSet = node.featureSet;
     return _withEnclosingElement(node.declaredElement, () {
       addFact(_enclosingFileVName, schema.NODE_KIND_FACT,
           _encode(schema.FILE_KIND));
@@ -692,7 +697,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
 
       // override edges
       var overriddenList = _inheritanceManager.getOverridden(
-        _enclosingClassElement.type,
+        _enclosingClassThisType,
         new Name(
           _enclosingClassElement.library.source.uri,
           node.declaredElement.name,
@@ -1080,6 +1085,17 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
         _enclosingClassElement = element;
         _enclosingClassVName = _enclosingVName =
             _vNameFromElement(_enclosingClassElement, schema.RECORD_KIND);
+        _enclosingClassThisType = element.instantiate(
+          typeArguments: element.typeParameters.map((t) {
+            return t.instantiate(
+              nullabilitySuffix:
+                  _enclosingUnitFeatureSet.isEnabled(Feature.non_nullable)
+                      ? NullabilitySuffix.none
+                      : NullabilitySuffix.star,
+            );
+          }).toList(),
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
       } else if (element is MethodElement ||
           element is FunctionElement ||
           element is ConstructorElement) {

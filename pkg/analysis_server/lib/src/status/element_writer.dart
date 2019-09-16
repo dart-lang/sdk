@@ -148,9 +148,6 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
     if (element is PropertyInducingElement) {
       properties['isStatic'] = element.isStatic;
     }
-    if (element is TypeDefiningElement) {
-      properties['type'] = element.type;
-    }
     if (element is TypeParameterElement) {
       properties['bound'] = element.bound;
     }

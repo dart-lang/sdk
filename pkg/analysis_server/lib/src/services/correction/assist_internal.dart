@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -1603,12 +1604,11 @@ class AssistProcessor extends BaseProcessor {
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
-    var stateType = stateClass.type.instantiate([widgetClassElement.type]);
 
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeType(statefulWidgetClass.type);
+        builder.writeReference(statefulWidgetClass);
       });
 
       int replaceOffset = 0;
@@ -1679,6 +1679,16 @@ class AssistProcessor extends BaseProcessor {
 
       // Create the State subclass.
       builder.addInsertion(widgetClass.end, (builder) {
+        var stateType = stateClass.instantiate(
+          typeArguments: [
+            widgetClassElement.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+          ],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+
         builder.writeln();
         builder.writeln();
         builder.writeClassDeclaration(stateName, superclass: stateType,
@@ -1885,7 +1895,7 @@ class AssistProcessor extends BaseProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeType(streamBuilderElement.type);
+        builder.writeReference(streamBuilderElement);
 
         builder.write('<');
         builder.addSimpleLinkedEdit('type', 'Object');
@@ -1981,7 +1991,7 @@ class AssistProcessor extends BaseProcessor {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {
-          builder.writeType(parentClassElement.type);
+          builder.writeReference(parentClassElement);
         }
         builder.write('(');
         if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
@@ -2056,7 +2066,7 @@ class AssistProcessor extends BaseProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addReplacement(selectedRange, (DartEditBuilder builder) {
-          builder.writeType(parentClassElement.type);
+          builder.writeReference(parentClassElement);
           builder.write('(');
 
           String indentOld = utils.getLinePrefix(firstWidget.offset);
@@ -2066,7 +2076,7 @@ class AssistProcessor extends BaseProcessor {
           builder.write(eol);
           builder.write(indentNew1);
           builder.write('children: <');
-          builder.writeType(widgetClassElement.type);
+          builder.writeReference(widgetClassElement);
           builder.write('>[');
           builder.write(eol);
 

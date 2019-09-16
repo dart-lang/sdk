@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -192,7 +193,13 @@ class FixProcessor extends BaseProcessor {
           workspace: context.workspace,
         );
 
-  DartType get coreTypeBool => _getCoreType('bool');
+  DartType get coreTypeBool => context.resolveResult.typeProvider.boolType;
+
+  FeatureSet get _featureSet {
+    return unit.featureSet;
+  }
+
+  bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
   Future<List<Fix>> compute() async {
     node = new NodeLocator2(errorOffset).searchWithin(unit);
@@ -1637,7 +1644,14 @@ class FixProcessor extends BaseProcessor {
           builder.write('const ');
           builder.write(className);
           builder.write('({');
-          builder.writeType(keyClass.type);
+          builder.writeType(
+            keyClass.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: _isNonNullable
+                  ? NullabilitySuffix.question
+                  : NullabilitySuffix.star,
+            ),
+          );
           builder.write(' key');
 
           List<String> childrenFields = [];
@@ -4584,23 +4598,6 @@ class FixProcessor extends BaseProcessor {
     }
     buffer.write('(...)');
     return buffer.toString();
-  }
-
-  /**
-   * Returns the [DartType] with given name from the `dart:core` library.
-   */
-  DartType _getCoreType(String name) {
-    List<LibraryElement> libraries = unitLibraryElement.importedLibraries;
-    for (LibraryElement library in libraries) {
-      if (library.isDartCore) {
-        ClassElement classElement = library.getType(name);
-        if (classElement != null) {
-          return classElement.type;
-        }
-        return null;
-      }
-    }
-    return null;
   }
 
   /// Return the extension declaration for the given [element].

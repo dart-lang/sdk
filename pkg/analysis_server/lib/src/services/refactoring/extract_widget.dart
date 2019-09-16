@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceRange;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -83,6 +85,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   String get refactoringName {
     return 'Extract Widget';
   }
+
+  FeatureSet get _featureSet {
+    return resolveResult.unit.featureSet;
+  }
+
+  bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
@@ -406,7 +414,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       builder.writeln();
       builder.writeClassDeclaration(
         name,
-        superclass: classStatelessWidget.type,
+        superclass: classStatelessWidget.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
         membersWriter: () {
           // Add the constructor.
           builder.write('  ');
@@ -418,7 +429,15 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add the required `key` parameter.
               builder.write('    ');
-              builder.writeParameter('key', type: classKey.type);
+              builder.writeParameter(
+                'key',
+                type: classKey.instantiate(
+                  typeArguments: const [],
+                  nullabilitySuffix: _isNonNullable
+                      ? NullabilitySuffix.question
+                      : NullabilitySuffix.star,
+                ),
+              );
               builder.writeln(',');
 
               // Add parameters for fields, local, and method parameters.
@@ -471,9 +490,18 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           builder.write('  ');
           builder.writeFunctionDeclaration(
             'build',
-            returnType: classWidget.type,
+            returnType: classWidget.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
             parameterWriter: () {
-              builder.writeParameter('context', type: classBuildContext.type);
+              builder.writeParameter(
+                'context',
+                type: classBuildContext.instantiate(
+                  typeArguments: const [],
+                  nullabilitySuffix: NullabilitySuffix.none,
+                ),
+              );
             },
             bodyWriter: () {
               if (_expression != null) {

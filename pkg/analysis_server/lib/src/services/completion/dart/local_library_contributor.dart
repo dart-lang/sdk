@@ -8,9 +8,11 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 import '../../../protocol_server.dart'
@@ -47,21 +49,21 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     if (optype.includeTypeNameSuggestions) {
       // if includeTypeNameSuggestions, then use the filter
       int relevance = optype.typeNameSuggestionsFilter(
-          element.type, DART_RELEVANCE_DEFAULT);
+          _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
       if (relevance != null) {
         addSuggestion(element, prefix: prefix, relevance: relevance);
       }
     }
     if (optype.includeConstructorSuggestions) {
       int relevance = optype.returnValueSuggestionsFilter(
-          element.type, DART_RELEVANCE_DEFAULT);
+          _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
       _addConstructorSuggestions(element, relevance);
     }
     if (optype.includeReturnValueSuggestions) {
       if (element.isEnum) {
         String enumName = element.displayName;
         int relevance = optype.returnValueSuggestionsFilter(
-            element.type, DART_RELEVANCE_DEFAULT);
+            _instantiateClassElement(element), DART_RELEVANCE_DEFAULT);
         for (var field in element.fields) {
           if (field.isEnumConstant) {
             addSuggestion(field,
@@ -186,6 +188,26 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         suggestions.add(suggestion);
       }
     }
+  }
+
+  InterfaceType _instantiateClassElement(ClassElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var typeProvider = request.libraryElement.context.typeProvider;
+      typeArguments = typeParameters.map((t) {
+        return typeProvider.dynamicType;
+      }).toList();
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
 

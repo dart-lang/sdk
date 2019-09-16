@@ -52,12 +52,9 @@ class TypeHierarchyComputer {
    * Returns the computed type hierarchy, maybe `null`.
    */
   Future<List<TypeHierarchyItem>> compute() async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     if (_pivotClass != null) {
-      InterfaceType type = _pivotClass.type;
-      _createSuperItem(type);
-      await _createSubclasses(_items[0], 0, type);
+      _createSuperItem(_pivotClass, null);
+      await _createSubclasses(_items[0], 0, _pivotClass);
       return _items;
     }
     return null;
@@ -68,19 +65,15 @@ class TypeHierarchyComputer {
    */
   List<TypeHierarchyItem> computeSuper() {
     if (_pivotClass != null) {
-      InterfaceType type = _pivotClass.type;
-      _createSuperItem(type);
+      _createSuperItem(_pivotClass, null);
       return _items;
     }
     return null;
   }
 
   Future _createSubclasses(
-      TypeHierarchyItem item, int itemId, InterfaceType type) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    Set<ClassElement> subElements =
-        await getDirectSubClasses(_searchEngine, type.element);
+      TypeHierarchyItem item, int itemId, ClassElement classElement) async {
+    var subElements = await getDirectSubClasses(_searchEngine, classElement);
     List<int> subItemIds = <int>[];
     for (ClassElement subElement in subElements) {
       // check for recursion
@@ -110,14 +103,14 @@ class TypeHierarchyComputer {
     for (int subItemId in subItemIds) {
       TypeHierarchyItem subItem = _items[subItemId];
       ClassElement subItemElement = _itemClassElements[subItemId];
-      InterfaceType subType = subItemElement.type;
-      await _createSubclasses(subItem, subItemId, subType);
+      await _createSubclasses(subItem, subItemId, subItemElement);
     }
   }
 
-  int _createSuperItem(InterfaceType type) {
+  int _createSuperItem(
+      ClassElement classElement, List<DartType> typeArguments) {
     // check for recursion
-    TypeHierarchyItem item = _elementItemMap[type.element];
+    TypeHierarchyItem item = _elementItemMap[classElement];
     if (item != null) {
       return _items.indexOf(item);
     }
@@ -125,10 +118,10 @@ class TypeHierarchyComputer {
     int itemId;
     {
       String displayName = null;
-      if (type.typeArguments.isNotEmpty) {
-        displayName = type.toString();
+      if (typeArguments != null && typeArguments.isNotEmpty) {
+        displayName =
+            classElement.displayName + '<' + typeArguments.join(', ') + '>';
       }
-      ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = new TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
@@ -141,19 +134,22 @@ class TypeHierarchyComputer {
     }
     // superclass
     {
-      InterfaceType superType = type.superclass;
+      InterfaceType superType = classElement.supertype;
       if (superType != null) {
-        item.superclass = _createSuperItem(superType);
+        item.superclass = _createSuperItem(
+          superType.element,
+          superType.typeArguments,
+        );
       }
     }
     // mixins
-    type.mixins.forEach((InterfaceType type) {
-      int id = _createSuperItem(type);
+    classElement.mixins.forEach((InterfaceType type) {
+      int id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
     });
     // interfaces
-    type.interfaces.forEach((InterfaceType type) {
-      int id = _createSuperItem(type);
+    classElement.interfaces.forEach((InterfaceType type) {
+      int id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
     });
     // done
