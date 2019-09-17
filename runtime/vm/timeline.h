@@ -53,7 +53,7 @@ class Zone;
   V(Embedder, "dart:embedder")                                                 \
   V(GC, "dart:gc")                                                             \
   V(Isolate, "dart:isolate")                                                   \
-  V(Profiler, "dart:profiler")                                                 \
+  V(Developer, "dart:developer")                                               \
   V(VM, "dart:vm")
 
 // A stream of timeline events. A stream has a name and can be enabled or
