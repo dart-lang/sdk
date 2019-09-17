@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
-import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -111,32 +110,6 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
 
   factory _SingleNullabilityFix(Source source,
       PotentialModification potentialModification, LineInfo lineInfo) {
-    // TODO(paulberry): once everything is migrated into the analysis server,
-    // the migration engine can just create SingleNullabilityFix objects
-    // directly and set their kind appropriately; we won't need to translate the
-    // kinds using a bunch of `is` checks.
-    NullabilityFixDescription desc;
-    if (potentialModification is ExpressionChecks) {
-      desc = NullabilityFixDescription.checkExpression;
-    } else if (potentialModification is PotentiallyAddQuestionSuffix) {
-      desc = NullabilityFixDescription.makeTypeNullable(
-          potentialModification.type.toString());
-    } else if (potentialModification is ConditionalModification) {
-      desc = potentialModification.discard.keepFalse
-          ? NullabilityFixDescription.discardThen
-          : NullabilityFixDescription.discardElse;
-    } else if (potentialModification is PotentiallyAddImport) {
-      desc =
-          NullabilityFixDescription.addImport(potentialModification.importPath);
-    } else if (potentialModification is PotentiallyAddRequired) {
-      desc = NullabilityFixDescription.addRequired(
-          potentialModification.className,
-          potentialModification.methodName,
-          potentialModification.parameterName);
-    } else {
-      throw new UnimplementedError('TODO(paulberry)');
-    }
-
     Location location;
 
     if (potentialModification.modifications.isNotEmpty) {
@@ -151,7 +124,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
       );
     }
 
-    return _SingleNullabilityFix._(source, desc, location: location);
+    return _SingleNullabilityFix._(source, potentialModification.description,
+        location: location);
   }
 
   _SingleNullabilityFix._(this.source, this.description, {Location location})

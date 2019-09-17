@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
@@ -42,6 +43,11 @@ class ConditionalModification extends PotentialModification {
 
   ConditionalModification._(this.offset, this.end, this.isStatement,
       this.discard, this.condition, this.thenStatement, this.elseStatement);
+
+  @override
+  NullabilityFixDescription get description => discard.keepFalse
+      ? NullabilityFixDescription.discardThen
+      : NullabilityFixDescription.discardElse;
 
   @override
   bool get isEmpty => discard.keepTrue && discard.keepFalse;
@@ -101,6 +107,10 @@ class PotentiallyAddImport extends PotentialModification {
   }
 
   @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.addImport(importPath);
+
+  @override
   bool get isEmpty {
     for (PotentialModification usage in _usages) {
       if (!usage.isEmpty) {
@@ -128,6 +138,10 @@ class PotentiallyAddQuestionSuffix extends PotentialModification {
   final int _offset;
 
   PotentiallyAddQuestionSuffix(this.node, this.type, this._offset);
+
+  @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.makeTypeNullable(type.toString());
 
   @override
   bool get isEmpty => !node.isNullable;
@@ -160,6 +174,11 @@ class PotentiallyAddRequired extends PotentialModification {
       this.methodName, this.parameterName);
 
   @override
+  NullabilityFixDescription get description =>
+      NullabilityFixDescription.addRequired(
+          className, methodName, parameterName);
+
+  @override
   bool get isEmpty => _node.isNullable;
 
   @override
@@ -170,6 +189,9 @@ class PotentiallyAddRequired extends PotentialModification {
 /// Interface used by data structures representing potential modifications to
 /// the code being migrated.
 abstract class PotentialModification {
+  /// Gets a [NullabilityFixDescription] describing this modification.
+  NullabilityFixDescription get description;
+
   bool get isEmpty;
 
   /// Gets the individual migrations that need to be done, considering the
