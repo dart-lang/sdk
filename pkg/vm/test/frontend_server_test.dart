@@ -28,7 +28,7 @@ Future<int> main() async {
     final CompilerInterface compiler = new _MockedCompiler();
 
     test('train with mocked compiler completes', () async {
-      await starter(<String>['--train'], compiler: compiler);
+      await starter(<String>['--train', 'foo.dart'], compiler: compiler);
     });
   });
 

@@ -29,6 +29,7 @@ kernel_application_snapshot("kernel-service_snapshot") {
   ]
   training_args = [
     "--train",
+
     # Force triple-slashes both on Windows and otherwise.
     # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
     # Without the ', "/"' part, on Linux it would get four slashes.
@@ -62,6 +63,7 @@ application_snapshot("frontend_server") {
     "--train",
     "--sdk-root=$sdk_root/",
     "--platform=$sdk_root/vm_platform_strong.dill",
+    rebase_path(main_dart),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }

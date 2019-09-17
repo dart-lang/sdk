@@ -902,6 +902,11 @@ Future<int> starter(
   }
 
   if (options['train']) {
+    if (options.rest.isEmpty) {
+      throw Exception('Must specify input.dart');
+    }
+
+    final String input = options.rest[0];
     final String sdkRoot = options['sdk-root'];
     final String platform = options['platform'];
     final Directory temp =
@@ -920,8 +925,7 @@ Future<int> starter(
       compiler ??=
           new FrontendCompiler(output, printerFactory: binaryPrinterFactory);
 
-      await compiler.compile(Platform.script.toFilePath(), options,
-          generator: generator);
+      await compiler.compile(input, options, generator: generator);
       compiler.acceptLastDelta();
       await compiler.recompileDelta();
       compiler.acceptLastDelta();
