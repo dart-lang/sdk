@@ -3621,43 +3621,47 @@ class FixProcessor extends BaseProcessor {
     if (!(declaration is VariableDeclaration && declaration.name == node)) {
       return;
     }
-
     Element element = (declaration as VariableDeclaration).declaredElement;
-    if (element is LocalElement) {
-      final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
-      final references = findLocalElementReferences(functionBody, element);
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        for (var reference in references) {
-          final node = reference.thisOrAncestorMatching((node) =>
-              node is VariableDeclaration || node is AssignmentExpression);
-          var sourceRange;
-          if (node is VariableDeclaration) {
-            VariableDeclarationList parent = node.parent;
-            if (parent.variables.length == 1) {
-              sourceRange = range.node(parent.parent);
-            } else {
-              sourceRange =
-                  range.endEnd(node.beginToken.previous, node.endToken.next);
-            }
-          } else if (node is AssignmentExpression) {
-            // todo (pq): consider node.parent is! ExpressionStatement to handle
-            // assignments in parens, etc.
-            if (node.parent is ArgumentList) {
-              sourceRange =
-                  range.endStart(node.beginToken.previous, node.operator.next);
-            } else {
-              sourceRange = range.node(node.parent);
-            }
-          } else {
-            return;
-          }
-          builder.addDeletion(utils.getLinesRange(sourceRange));
-        }
-      });
-      _addFixFromBuilder(
-          changeBuilder, DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE);
+    if (element is! LocalElement) {
+      return;
     }
+
+    final sourceRanges = <SourceRange>[];
+
+    final functionBody = declaration.thisOrAncestorOfType<FunctionBody>();
+    final references = findLocalElementReferences(functionBody, element);
+    for (var reference in references) {
+      final node = reference.thisOrAncestorMatching((node) =>
+          node is VariableDeclaration || node is AssignmentExpression);
+      var sourceRange;
+      if (node is VariableDeclaration) {
+        VariableDeclarationList parent = node.parent;
+        if (parent.variables.length == 1) {
+          sourceRange = utils.getLinesRange(range.node(parent.parent));
+        } else {
+          sourceRange = range.nodeInList(parent.variables, node);
+        }
+      } else if (node is AssignmentExpression) {
+        // todo (pq): consider node.parent is! ExpressionStatement to handle
+        // assignments in parens, etc.
+        if (node.parent is ArgumentList) {
+          sourceRange = range.startStart(node, node.operator.next);
+        } else {
+          sourceRange = utils.getLinesRange(range.node(node.parent));
+        }
+      } else {
+        return;
+      }
+      sourceRanges.add(sourceRange);
+    }
+
+    final changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      for (var sourceRange in sourceRanges) {
+        builder.addDeletion(sourceRange);
+      }
+    });
+    _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_LOCAL_VARIABLE);
   }
 
   Future<void> _addFix_renameToCamelCase() async {

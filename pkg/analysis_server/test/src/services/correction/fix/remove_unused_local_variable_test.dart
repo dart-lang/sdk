@@ -34,6 +34,38 @@ main() {
 ''');
   }
 
+  test_inArgumentList2() async {
+    await resolveTestUnit(r'''
+main() {
+  var v = 1;
+  f(v = 1, 2);
+}
+void f(a, b) { }
+''');
+    await assertHasFix(r'''
+main() {
+  f(1, 2);
+}
+void f(a, b) { }
+''');
+  }
+
+  test_inArgumentList3() async {
+    await resolveTestUnit(r'''
+main() {
+  var v = 1;
+  f(v = 1, v = 2);
+}
+void f(a, b) { }
+''');
+    await assertHasFix(r'''
+main() {
+  f(1, 2);
+}
+void f(a, b) { }
+''');
+  }
+
   test_inDeclarationList() async {
     await resolveTestUnit(r'''
 main() {
@@ -46,6 +78,21 @@ main() {
 main() {
   var v2 = 3;
   print(v2);
+}
+''');
+  }
+
+  test_inDeclarationList2() async {
+    await resolveTestUnit(r'''
+main() {
+  var v = 1, v2 = 3;
+  print(v);
+}
+''');
+    await assertHasFix(r'''
+main() {
+  var v = 1;
+  print(v);
 }
 ''');
   }
