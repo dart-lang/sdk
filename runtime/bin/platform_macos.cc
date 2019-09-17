@@ -251,6 +251,10 @@ const char* Platform::ResolveExecutablePath() {
   return canon_path;
 }
 
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  return -1;
+}
+
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();
