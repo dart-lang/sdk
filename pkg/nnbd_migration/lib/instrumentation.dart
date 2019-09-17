@@ -149,7 +149,8 @@ abstract class NullabilityMigrationInstrumentation {
   ///
   /// [node] is the AST node having implicit type arguments; it may be a
   /// constructor redirection, function expression invocation, method
-  /// invocation, instance creation expression, or list/map/set literal.
+  /// invocation, instance creation expression, list/map/set literal, or type
+  /// annotation.
   void implicitTypeArguments(
       Source source, AstNode node, Iterable<DecoratedTypeInfo> types);
 

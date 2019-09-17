@@ -86,14 +86,21 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType exceptionType = node.exceptionType?.accept(this);
     if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
-      exceptionType ??= _dynamicType;
+      if (exceptionType == null) {
+        exceptionType = _dynamicType;
+        instrumentation?.implicitType(
+            source, node.exceptionParameter, exceptionType);
+      }
       _variables.recordDecoratedElementType(
           node.exceptionParameter.staticElement, exceptionType);
     }
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
+      var stackTraceType = _nonNullableStackTraceType;
       _variables.recordDecoratedElementType(
-          node.stackTraceParameter.staticElement, _nonNullableStackTraceType);
+          node.stackTraceParameter.staticElement, stackTraceType);
+      instrumentation?.implicitType(
+          source, node.stackTraceParameter, stackTraceType);
     }
     node.stackTraceParameter?.accept(this);
     node.body?.accept(this);
@@ -516,6 +523,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // implicit return type.
       decoratedReturnType = _createDecoratedTypeForClass(
           declaredElement.enclosingElement, parameters.parent);
+      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
     } else {
       // Inferred return type.
       decoratedReturnType = DecoratedType.forImplicitType(
