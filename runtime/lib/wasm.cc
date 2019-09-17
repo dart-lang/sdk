@@ -16,15 +16,17 @@
 
 namespace dart {
 
-static void ThrowIfFailed(wasmer_result_t status) {
-  if (status == wasmer_result_t::WASMER_OK) return;
-  int len = wasmer_last_error_length();
-  auto error = std::unique_ptr<char[]>(new char[len]);
-  int read_len = wasmer_last_error_message(error.get(), len);
-  ASSERT(read_len == len);
+static void ThrowWasmerError() {
   TransitionNativeToVM transition(Thread::Current());
-  Exceptions::ThrowArgumentError(
-      String::Handle(String::NewFormatted("Wasmer error: %s", error.get())));
+  String& error = String::Handle();
+  {
+    int len = wasmer_last_error_length();
+    auto raw_error = std::unique_ptr<char[]>(new char[len]);
+    int read_len = wasmer_last_error_message(raw_error.get(), len);
+    ASSERT(read_len == len);
+    error = String::NewFormatted("Wasmer error: %s", raw_error.get());
+  }
+  Exceptions::ThrowArgumentError(error);
 }
 
 template <typename T>
@@ -181,11 +183,10 @@ class WasmFunction {
     return dart_ret == _ret;
   }
 
-  wasmer_value_t Call(const wasmer_value_t* params) {
-    wasmer_value_t result;
-    ThrowIfFailed(wasmer_export_func_call(_fn, params, _args.length(), &result,
-                                          IsVoid() ? 0 : 1));
-    return result;
+  bool Call(const wasmer_value_t* params, wasmer_value_t* result) {
+    return wasmer_export_func_call(_fn, params, _args.length(), result,
+                                   IsVoid() ? 0 : 1) ==
+           wasmer_result_t::WASMER_OK;
   }
 
   void Print(std::ostream& o, const char* name) const {
@@ -226,10 +227,15 @@ class WasmFunction {
 
 class WasmInstance {
  public:
-  explicit WasmInstance(wasmer_module_t* module, WasmImports* imports) {
+  WasmInstance() : _instance(nullptr), _exports(nullptr) {}
+
+  bool Instantiate(wasmer_module_t* module, WasmImports* imports) {
     // Instantiate module.
-    ThrowIfFailed(wasmer_module_instantiate(
-        module, &_instance, imports->RawImports(), imports->NumImports()));
+    if (wasmer_module_instantiate(module, &_instance, imports->RawImports(),
+                                  imports->NumImports()) !=
+        wasmer_result_t::WASMER_OK) {
+      return false;
+    }
 
     // Load all functions.
     wasmer_instance_exports(_instance, &_exports);
@@ -237,9 +243,13 @@ class WasmInstance {
     for (intptr_t i = 0; i < num_exports; ++i) {
       wasmer_export_t* exp = wasmer_exports_get(_exports, i);
       if (wasmer_export_kind(exp) == wasmer_import_export_kind::WASM_FUNCTION) {
-        AddFunction(exp);
+        if (!AddFunction(exp)) {
+          return false;
+        }
       }
     }
+
+    return true;
   }
 
   ~WasmInstance() {
@@ -248,25 +258,31 @@ class WasmInstance {
       delete[] kv->key;
       delete kv->value;
     }
-    wasmer_exports_destroy(_exports);
-    wasmer_instance_destroy(_instance);
+    if (_exports != nullptr) {
+      wasmer_exports_destroy(_exports);
+    }
+    if (_instance != nullptr) {
+      wasmer_instance_destroy(_instance);
+    }
   }
 
   WasmFunction* GetFunction(const char* name,
                             const MallocGrowableArray<classid_t>& dart_args,
-                            classid_t dart_ret) {
+                            classid_t dart_ret,
+                            String* error) {
     WasmFunction* fn = _functions.LookupValue(name);
     if (fn == nullptr) {
-      Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
+      *error = String::NewFormatted(
           "Couldn't find a function called %s in the WASM module's exports",
-          name)));
+          name);
       return nullptr;
     }
     if (!fn->SignatureMatches(dart_args, dart_ret)) {
       std::stringstream sig;
       fn->Print(sig, name);
-      Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
-          "Function signature doesn't match: %s", sig.str().c_str())));
+      *error = String::NewFormatted("Function signature doesn't match: %s",
+                                    sig.str().c_str());
+      return nullptr;
     }
     return fn;
   }
@@ -301,21 +317,33 @@ class WasmInstance {
     return 0;
   }
 
-  void AddFunction(wasmer_export_t* exp) {
+  bool AddFunction(wasmer_export_t* exp) {
     const wasmer_export_func_t* fn = wasmer_export_to_func(exp);
 
     uint32_t num_rets;
-    ThrowIfFailed(wasmer_export_func_returns_arity(fn, &num_rets));
+    if (wasmer_export_func_returns_arity(fn, &num_rets) !=
+        wasmer_result_t::WASMER_OK) {
+      return false;
+    }
     ASSERT(num_rets <= 1);
     wasmer_value_tag wasm_ret;
-    ThrowIfFailed(wasmer_export_func_returns(fn, &wasm_ret, num_rets));
+    if (wasmer_export_func_returns(fn, &wasm_ret, num_rets) !=
+        wasmer_result_t::WASMER_OK) {
+      return false;
+    }
     classid_t ret = num_rets == 0 ? kWasmVoidCid : ToDartType(wasm_ret);
 
     uint32_t num_args;
-    ThrowIfFailed(wasmer_export_func_params_arity(fn, &num_args));
+    if (wasmer_export_func_params_arity(fn, &num_args) !=
+        wasmer_result_t::WASMER_OK) {
+      return false;
+    }
     auto wasm_args =
         std::unique_ptr<wasmer_value_tag[]>(new wasmer_value_tag[num_args]);
-    ThrowIfFailed(wasmer_export_func_params(fn, wasm_args.get(), num_args));
+    if (wasmer_export_func_params(fn, wasm_args.get(), num_args) !=
+        wasmer_result_t::WASMER_OK) {
+      return false;
+    }
     MallocGrowableArray<classid_t> args;
     for (intptr_t i = 0; i < num_args; ++i) {
       args.Add(ToDartType(wasm_args[i]));
@@ -329,6 +357,7 @@ class WasmInstance {
     name[name_bytes.bytes_len] = '\0';
 
     _functions.Insert({name, new WasmFunction(std::move(args), ret, fn)});
+    return true;
   }
 
   DISALLOW_COPY_AND_ASSIGN(WasmInstance);
@@ -353,7 +382,11 @@ DEFINE_NATIVE_ENTRY(Wasm_initModule, 0, 2) {
   wasmer_module_t* module;
   {
     TransitionVMToNative transition(thread);
-    ThrowIfFailed(wasmer_compile(&module, data_copy.get(), len));
+    if (wasmer_compile(&module, data_copy.get(), len) !=
+        wasmer_result_t::WASMER_OK) {
+      data_copy.reset();
+      ThrowWasmerError();
+    }
   }
 
   mod_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(module));
@@ -436,7 +469,9 @@ DEFINE_NATIVE_ENTRY(Wasm_initMemory, 0, 3) {
     descriptor.max.has_some = true;
     descriptor.max.some = max_size;
   }
-  ThrowIfFailed(wasmer_memory_new(&memory, descriptor));
+  if (wasmer_memory_new(&memory, descriptor) != wasmer_result_t::WASMER_OK) {
+    ThrowWasmerError();
+  }
   mem_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(memory));
   FinalizablePersistentHandle::New(thread->isolate(), mem_wrap, memory,
                                    FinalizeWasmMemory, init_size);
@@ -451,7 +486,10 @@ DEFINE_NATIVE_ENTRY(Wasm_growMemory, 0, 2) {
 
   wasmer_memory_t* memory =
       reinterpret_cast<wasmer_memory_t*>(mem_wrap.GetNativeField(0));
-  ThrowIfFailed(wasmer_memory_grow(memory, delta.AsInt64Value()));
+  if (wasmer_memory_grow(memory, delta.AsInt64Value()) !=
+      wasmer_result_t::WASMER_OK) {
+    ThrowWasmerError();
+  }
   return WasmMemoryToExternalTypedData(memory);
 }
 
@@ -469,10 +507,17 @@ DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
   WasmImports* imports =
       reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
 
-  WasmInstance* inst;
+  WasmInstance* inst = nullptr;
   {
     TransitionVMToNative transition(thread);
-    inst = new WasmInstance(module, imports);
+    inst = new WasmInstance();
+    if (!inst->Instantiate(module, imports)) {
+      delete inst;
+      inst = nullptr;
+    }
+  }
+  if (inst == nullptr) {
+    ThrowWasmerError();
   }
 
   inst_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(inst));
@@ -495,17 +540,27 @@ DEFINE_NATIVE_ENTRY(Wasm_initFunction, 0, 4) {
   WasmInstance* inst =
       reinterpret_cast<WasmInstance*>(inst_wrap.GetNativeField(0));
 
-  Function& sig = Function::Handle(fn_type.signature());
-  Array& args = Array::Handle(sig.parameter_types());
-  MallocGrowableArray<classid_t> dart_args;
-  for (intptr_t i = sig.NumImplicitParameters(); i < args.Length(); ++i) {
-    dart_args.Add(
-        AbstractType::Cast(Object::Handle(args.At(i))).type_class_id());
-  }
-  classid_t dart_ret = AbstractType::Handle(sig.result_type()).type_class_id();
+  WasmFunction* fn;
+  String& error = String::Handle(zone);
 
-  std::unique_ptr<char[]> name_raw = ToUTF8(name);
-  WasmFunction* fn = inst->GetFunction(name_raw.get(), dart_args, dart_ret);
+  {
+    Function& sig = Function::Handle(fn_type.signature());
+    Array& args = Array::Handle(sig.parameter_types());
+    MallocGrowableArray<classid_t> dart_args;
+    for (intptr_t i = sig.NumImplicitParameters(); i < args.Length(); ++i) {
+      dart_args.Add(
+          AbstractType::Cast(Object::Handle(args.At(i))).type_class_id());
+    }
+    classid_t dart_ret =
+        AbstractType::Handle(sig.result_type()).type_class_id();
+
+    std::unique_ptr<char[]> name_raw = ToUTF8(name);
+    fn = inst->GetFunction(name_raw.get(), dart_args, dart_ret, &error);
+  }
+
+  if (fn == nullptr) {
+    Exceptions::ThrowArgumentError(error);
+  }
 
   fn_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(fn));
   // Don't need a finalizer because WasmFunctions are owned their WasmInstance.
@@ -535,6 +590,7 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
   for (intptr_t i = 0; i < args.Length(); ++i) {
     if (!ToWasmValue(Number::Cast(Object::Handle(args.At(i))), fn->args()[i],
                      &params[i])) {
+      params.reset();
       Exceptions::ThrowArgumentError(String::Handle(
           String::NewFormatted("Arg %" Pd " is the wrong type.", i)));
     }
@@ -542,8 +598,11 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
 
   wasmer_value_t ret;
   {
-    TransitionVMToNative transition(Thread::Current());
-    ret = fn->Call(params.get());
+    TransitionVMToNative transition(thread);
+    if (!fn->Call(params.get(), &ret)) {
+      params.reset();
+      ThrowWasmerError();
+    }
   }
   return fn->IsVoid() ? Object::null() : ToDartObject(ret);
 }
