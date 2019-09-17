@@ -693,8 +693,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     } else if (target is ExtensionOverride) {
       if (node.isCascaded) {
-        // TODO(brianwilkerson) Report this error and decide how to recover.
-        throw new UnsupportedError('cascaded extension override');
+        // Report this error and recover by treating it like a non-cascade.
+        _resolver.errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+            node.operator);
       }
       ExtensionElement element = target.extensionName.staticElement;
       SimpleIdentifier propertyName = node.propertyName;

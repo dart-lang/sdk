@@ -1518,6 +1518,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITH_CASCADE =
+      const CompileTimeErrorCode(
+          'EXTENSION_OVERRIDE_WITH_CASCADE',
+          "Extension overrides have no value so they can't be used as the "
+              "target of a cascade expression.",
+          correction: "Try using '.' instead of '..'.");
+
+  /**
+   * No parameters.
+   */
   // #### Description
   //
   // The analyzer produces this diagnostic when an extension override is found

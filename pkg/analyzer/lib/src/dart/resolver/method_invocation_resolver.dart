@@ -411,8 +411,9 @@ class MethodInvocationResolver {
     }
 
     if (node.isCascaded) {
-      // TODO(brianwilkerson) Report this error and decide how to recover.
-      throw new UnsupportedError('cascaded extension override');
+      // Report this error and recover by treating it like a non-cascade.
+      _resolver.errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, node.operator);
     }
 
     nameNode.staticElement = member;
