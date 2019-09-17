@@ -166,7 +166,7 @@ mixin EdgeTester {
       fail('Found multiple edges $source -> $destination');
     } else {
       var edge = edges[0];
-      expect(edge.hard, hard);
+      expect(edge.isHard, hard);
       expect(edge.guards, unorderedEquals(guards));
       return edge;
     }

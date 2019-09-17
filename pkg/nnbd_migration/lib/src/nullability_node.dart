@@ -30,7 +30,7 @@ class NullabilityEdge implements EdgeInfo {
   Iterable<NullabilityNode> get guards => sources.skip(1);
 
   @override
-  bool get hard => _kind != _NullabilityEdgeKind.soft;
+  bool get isHard => _kind != _NullabilityEdgeKind.soft;
 
   @override
   bool get isSatisfied {
@@ -206,7 +206,7 @@ class NullabilityGraph {
         var suffixes = <Object>[];
         if (edge.isUnion) {
           suffixes.add('union');
-        } else if (edge.hard) {
+        } else if (edge.isHard) {
           suffixes.add('hard');
         }
         suffixes.addAll(edge.guards);
@@ -279,7 +279,7 @@ class NullabilityGraph {
     _pendingEdges.addAll(never._upstreamEdges);
     while (_pendingEdges.isNotEmpty) {
       var edge = _pendingEdges.removeLast();
-      if (!edge.hard) continue;
+      if (!edge.isHard) continue;
       var node = edge.primarySource;
       if (node is NullabilityNodeMutable &&
           node._state == NullabilityState.undetermined) {

@@ -58,7 +58,7 @@ abstract class EdgeInfo {
   /// are associated with unconditional control flow, and thus allow information
   /// about non-nullability to be propagated "upstream" through the nullability
   /// graph.
-  bool get hard;
+  bool get isHard;
 
   /// A boolean indicating whether the graph edge is "satisfied".  At its heart,
   /// the nullability propagation algorithm is an effort to satisfy graph edges
@@ -78,7 +78,7 @@ abstract class EdgeInfo {
   /// corresponding type formal bound on a generic function type in an
   /// overriding class).
   ///
-  /// Union edges are always [hard].
+  /// The [isHard] property is always true for union edges.
   bool get isUnion;
 
   /// Information about the graph node that this edge "points away from".
