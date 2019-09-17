@@ -1931,6 +1931,15 @@ RawError* Object::Init(Isolate* isolate,
     }
     object_store->set_bootstrap_library(ObjectStore::kWasm, lib);
 
+#define REGISTER_WASM_TYPE(clazz)                                              \
+  cls = Class::New<Instance>(k##clazz##Cid, isolate);                          \
+  cls.set_num_type_arguments(0);                                               \
+  cls.set_is_prefinalized();                                                   \
+  pending_classes.Add(cls);                                                    \
+  RegisterClass(cls, Symbols::clazz(), lib);
+    CLASS_LIST_WASM(REGISTER_WASM_TYPE);
+#undef REGISTER_WASM_TYPE
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -2024,6 +2033,11 @@ RawError* Object::Init(Isolate* isolate,
   cls = Class::New<Instance>(kFfi##clazz##Cid, isolate);
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
 #undef REGISTER_FFI_CLASS
+
+#define REGISTER_WASM_CLASS(clazz)                                             \
+  cls = Class::New<Instance>(k##clazz##Cid, isolate);
+    CLASS_LIST_WASM(REGISTER_WASM_CLASS);
+#undef REGISTER_WASM_CLASS
 
     cls = Class::New<Instance>(kFfiNativeFunctionCid, isolate);
 

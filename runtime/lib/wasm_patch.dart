@@ -7,6 +7,26 @@ import "dart:nativewrappers" show NativeFieldWrapperClass1;
 import 'dart:typed_data';
 
 @patch
+@pragma("vm:entry-point")
+class Int32 {}
+
+@patch
+@pragma("vm:entry-point")
+class Int64 {}
+
+@patch
+@pragma("vm:entry-point")
+class Float {}
+
+@patch
+@pragma("vm:entry-point")
+class Double {}
+
+@patch
+@pragma("vm:entry-point")
+class Void {}
+
+@patch
 class WasmModule {
   @patch
   factory WasmModule(Uint8List data) {

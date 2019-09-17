@@ -46,22 +46,22 @@ static bool ToWasmValue(const Number& value,
                         classid_t type,
                         wasmer_value_t* out) {
   switch (type) {
-    case kFfiInt32Cid:
+    case kWasmInt32Cid:
       if (!value.IsInteger()) return false;
       out->tag = wasmer_value_tag::WASM_I32;
       out->value.I32 = Integer::Cast(value).AsInt64Value();
       return true;
-    case kFfiInt64Cid:
+    case kWasmInt64Cid:
       if (!value.IsInteger()) return false;
       out->tag = wasmer_value_tag::WASM_I64;
       out->value.I64 = Integer::Cast(value).AsInt64Value();
       return true;
-    case kFfiFloatCid:
+    case kWasmFloatCid:
       if (!value.IsDouble()) return false;
       out->tag = wasmer_value_tag::WASM_F32;
       out->value.F32 = Double::Cast(value).value();
       return true;
-    case kFfiDoubleCid:
+    case kWasmDoubleCid:
       if (!value.IsDouble()) return false;
       out->tag = wasmer_value_tag::WASM_F64;
       out->value.F64 = Double::Cast(value).value();
@@ -137,7 +137,7 @@ class WasmMemory {
 
 class WasmImports {
  public:
-  WasmImports(std::unique_ptr<char[]> module_name)
+  explicit WasmImports(std::unique_ptr<char[]> module_name)
       : _module_name(std::move(module_name)) {}
 
   ~WasmImports() {
@@ -195,7 +195,7 @@ class WasmFunction {
                classid_t ret,
                const wasmer_export_func_t* fn)
       : _args(std::move(args)), _ret(ret), _fn(fn) {}
-  bool IsVoid() const { return _ret == kFfiVoidCid; }
+  bool IsVoid() const { return _ret == kWasmVoidCid; }
   const MallocGrowableArray<classid_t>& args() const { return _args; }
 
   bool SignatureMatches(const MallocGrowableArray<classid_t>& dart_args,
@@ -219,11 +219,11 @@ class WasmFunction {
   }
 
   void Print(std::ostream& o, const char* name) const {
-    PrintFfiType(o, _ret);
+    PrintDartType(o, _ret);
     o << ' ' << name << '(';
     for (intptr_t i = 0; i < _args.length(); ++i) {
       if (i > 0) o << ", ";
-      PrintFfiType(o, _args[i]);
+      PrintDartType(o, _args[i]);
     }
     o << ')';
   }
@@ -233,21 +233,21 @@ class WasmFunction {
   const classid_t _ret;
   const wasmer_export_func_t* _fn;
 
-  static void PrintFfiType(std::ostream& o, classid_t type) {
+  static void PrintDartType(std::ostream& o, classid_t type) {
     switch (type) {
-      case kFfiInt32Cid:
+      case kWasmInt32Cid:
         o << "i32";
         break;
-      case kFfiInt64Cid:
+      case kWasmInt64Cid:
         o << "i64";
         break;
-      case kFfiFloatCid:
+      case kWasmFloatCid:
         o << "f32";
         break;
-      case kFfiDoubleCid:
+      case kWasmDoubleCid:
         o << "f64";
         break;
-      case kFfiVoidCid:
+      case kWasmVoidCid:
         o << "void";
         break;
     }
@@ -317,16 +317,16 @@ class WasmInstance {
   wasmer_exports_t* _exports;
   MallocDirectChainedHashMap<CStringKeyValueTrait<WasmFunction*>> _functions;
 
-  static classid_t ToFfiType(wasmer_value_tag wasm_type) {
+  static classid_t ToDartType(wasmer_value_tag wasm_type) {
     switch (wasm_type) {
       case wasmer_value_tag::WASM_I32:
-        return kFfiInt32Cid;
+        return kWasmInt32Cid;
       case wasmer_value_tag::WASM_I64:
-        return kFfiInt64Cid;
+        return kWasmInt64Cid;
       case wasmer_value_tag::WASM_F32:
-        return kFfiFloatCid;
+        return kWasmFloatCid;
       case wasmer_value_tag::WASM_F64:
-        return kFfiDoubleCid;
+        return kWasmDoubleCid;
     }
     FATAL("Unknown WASM type");
     return 0;
@@ -340,7 +340,7 @@ class WasmInstance {
     ASSERT(num_rets <= 1);
     wasmer_value_tag wasm_ret;
     ThrowIfFailed(wasmer_export_func_returns(fn, &wasm_ret, num_rets));
-    classid_t ret = num_rets == 0 ? kFfiVoidCid : ToFfiType(wasm_ret);
+    classid_t ret = num_rets == 0 ? kWasmVoidCid : ToDartType(wasm_ret);
 
     uint32_t num_args;
     ThrowIfFailed(wasmer_export_func_params_arity(fn, &num_args));
@@ -349,7 +349,7 @@ class WasmInstance {
     ThrowIfFailed(wasmer_export_func_params(fn, wasm_args.get(), num_args));
     MallocGrowableArray<classid_t> args;
     for (intptr_t i = 0; i < num_args; ++i) {
-      args.Add(ToFfiType(wasm_args[i]));
+      args.Add(ToDartType(wasm_args[i]));
     }
 
     wasmer_byte_array name_bytes = wasmer_export_name(exp);

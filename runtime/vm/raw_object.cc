@@ -320,6 +320,13 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
         break;
       }
 #undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz) case k##clazz##Cid:
+      CLASS_LIST_WASM(RAW_VISITPOINTERS) {
+        // These wasm types do not have any fields or type arguments.
+        size = HeapSize();
+        break;
+      }
+#undef RAW_VISITPOINTERS
     case kFreeListElement: {
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);

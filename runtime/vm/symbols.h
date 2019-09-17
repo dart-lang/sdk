@@ -284,6 +284,11 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(WasmInt32, "Int32")                                                        \
+  V(WasmInt64, "Int64")                                                        \
+  V(WasmFloat, "Float")                                                        \
+  V(WasmDouble, "Double")                                                      \
+  V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
   V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
   V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \

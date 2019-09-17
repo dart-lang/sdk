@@ -131,6 +131,13 @@ namespace dart {
   V(DynamicLibrary)                                                            \
   V(Struct)
 
+#define CLASS_LIST_WASM(V)                                                     \
+  V(WasmInt32)                                                                 \
+  V(WasmInt64)                                                                 \
+  V(WasmFloat)                                                                 \
+  V(WasmDouble)                                                                \
+  V(WasmVoid)
+
 #define DART_CLASS_LIST_TYPED_DATA(V)                                          \
   V(Int8)                                                                      \
   V(Uint8)                                                                     \
@@ -180,6 +187,10 @@ enum ClassId {
 // clang-format off
 #define DEFINE_OBJECT_KIND(clazz) kFfi##clazz##Cid,
   CLASS_LIST_FFI(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz) k##clazz##Cid,
+  CLASS_LIST_WASM(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
