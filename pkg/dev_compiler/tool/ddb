@@ -25,7 +25,7 @@ void main(List<String> args) async {
   }
 
   // Parse flags.
-  var parser = new ArgParser()
+  var parser = ArgParser()
     ..addFlag('help', abbr: 'h', help: 'Display this message.')
     ..addFlag('kernel',
         abbr: 'k', help: 'Compile with the new kernel-based front end.')
@@ -59,7 +59,7 @@ void main(List<String> args) async {
         defaultsTo: 'all');
 
   var options = parser.parse(args);
-  if (options['help']) {
+  if (options['help'] as bool) {
     printUsage();
     print('Available options:');
     print(parser.usage);
@@ -134,7 +134,7 @@ void main(List<String> args) async {
   bool chrome = false;
   bool node = false;
   bool d8 = false;
-  switch (options['runtime']) {
+  switch (options['runtime'] as String) {
     case 'node':
       node = true;
       mod = 'common';
@@ -219,7 +219,7 @@ void main(List<String> args) async {
 </script>
 ''';
       var htmlFile = p.setExtension(entry, '.html');
-      new File(htmlFile).writeAsStringSync(html);
+      File(htmlFile).writeAsStringSync(html);
       var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
       result = Process.runSync(chromeBinary, [
@@ -251,7 +251,7 @@ try {
 }
 ''';
       var nodeFile = p.setExtension(entry, '.run.js');
-      new File(nodeFile).writeAsStringSync(runjs);
+      File(nodeFile).writeAsStringSync(runjs);
       var nodeBinary = binary ?? 'node';
       result = Process.runSync(
           nodeBinary, ['--inspect=localhost:$port', nodeFile],
@@ -278,7 +278,7 @@ try {
 }
 ''';
       var d8File = p.setExtension(entry, '.d8.js');
-      new File(d8File).writeAsStringSync(runjs);
+      File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
       result = Process.runSync(d8Binary, ['--module', d8File]);
     }
@@ -294,5 +294,5 @@ String get _d8executable {
   } else if (Platform.isMacOS) {
     return p.join('third_party', 'd8', 'macos', 'd8');
   }
-  throw new UnsupportedError('Unsupported platform.');
+  throw UnsupportedError('Unsupported platform.');
 }
