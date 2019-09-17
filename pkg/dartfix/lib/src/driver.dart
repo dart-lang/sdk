@@ -16,6 +16,7 @@ import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
@@ -126,6 +127,14 @@ class Driver {
     }
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
+    }
+    String dir = options.outputDir;
+    if (dir != null) {
+      if (!path.isAbsolute(dir)) {
+        dir = path.absolute(dir);
+      }
+      dir = path.canonicalize(dir);
+      params.outputDir = dir;
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());
