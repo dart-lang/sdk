@@ -11430,8 +11430,10 @@ static RawObject* EvaluateCompiledExpressionHelper(
     const String& klass,
     const Array& arguments,
     const TypeArguments& type_arguments) {
+  Zone* zone = Thread::Current()->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const String& error_str = String::Handle(
+      zone,
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
@@ -11440,36 +11442,51 @@ static RawObject* EvaluateCompiledExpressionHelper(
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
-        String::New("Kernel isolate returned ill-formed kernel.")));
+        zone, String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
   kernel::KernelLoader loader(kernel_pgm.get(),
                               /*uri_to_source_table=*/nullptr);
-  const Object& result = Object::Handle(
-      loader.LoadExpressionEvaluationFunction(library_url, klass));
+  auto& result = Object::Handle(
+      zone, loader.LoadExpressionEvaluationFunction(library_url, klass));
   kernel_pgm.reset();
 
   if (result.IsError()) return result.raw();
 
-  const Function& callee = Function::Cast(result);
+  const auto& callee = Function::CheckedHandle(zone, result.raw());
 
   // type_arguments is null if all type arguments are dynamic.
   if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
-    return DartEntry::InvokeFunction(callee, arguments);
+    result = DartEntry::InvokeFunction(callee, arguments);
+  } else {
+    intptr_t num_type_args = type_arguments.Length();
+    Array& real_arguments =
+        Array::Handle(zone, Array::New(arguments.Length() + 1));
+    real_arguments.SetAt(0, type_arguments);
+    Object& arg = Object::Handle(zone);
+    for (intptr_t i = 0; i < arguments.Length(); ++i) {
+      arg = arguments.At(i);
+      real_arguments.SetAt(i + 1, arg);
+    }
+
+    const Array& args_desc = Array::Handle(
+        zone, ArgumentsDescriptor::New(num_type_args, arguments.Length()));
+    result = DartEntry::InvokeFunction(callee, real_arguments, args_desc);
   }
 
-  intptr_t num_type_args = type_arguments.Length();
-  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
-  real_arguments.SetAt(0, type_arguments);
-  Object& arg = Object::Handle();
-  for (intptr_t i = 0; i < arguments.Length(); ++i) {
-    arg = arguments.At(i);
-    real_arguments.SetAt(i + 1, arg);
+  if (callee.is_declared_in_bytecode()) {
+    // Expression evaluation binary expires immediately after evaluation is
+    // finished. However, hot reload may still find corresponding
+    // KernelProgramInfo object in the heap and it would try to patch it.
+    // To prevent accessing stale kernel binary in ResetObjectTable, bytecode
+    // component of the callee's KernelProgramInfo is reset here.
+    const auto& script = Script::Handle(zone, callee.script());
+    const auto& info =
+        KernelProgramInfo::Handle(zone, script.kernel_program_info());
+    info.set_bytecode_component(Object::null_array());
   }
 
-  const Array& args_desc = Array::Handle(
-      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
-  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
+  return result.raw();
 #endif
 }
 
