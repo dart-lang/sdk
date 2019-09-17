@@ -29,6 +29,9 @@ bool _authCodesDisabled;
 // Should the HTTP server run in devmode?
 @pragma("vm:entry-point")
 bool _originCheckDisabled;
+// Location of file to output VM service connection info.
+@pragma("vm:entry-point")
+String _serviceInfoFilename;
 @pragma("vm:entry-point")
 bool _isWindows = false;
 @pragma("vm:entry-point")
@@ -48,8 +51,8 @@ _lazyServerBoot() {
   // Lazily create service.
   var service = new VMService();
   // Lazily create server.
-  server =
-      new Server(service, _ip, _port, _originCheckDisabled, _authCodesDisabled);
+  server = new Server(service, _ip, _port, _originCheckDisabled,
+      _authCodesDisabled, _serviceInfoFilename);
 }
 
 Future cleanupCallback() async {

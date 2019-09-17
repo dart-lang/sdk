@@ -148,6 +148,7 @@ class Server {
   final int _port;
   final bool _originCheckDisabled;
   final bool _authCodesDisabled;
+  final String _serviceInfoFilename;
   HttpServer _server;
   bool get running => _server != null;
 
@@ -165,7 +166,7 @@ class Server {
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
   // would have to be written into the hub alongside the port number.
   Server(this._service, this._ip, this._port, this._originCheckDisabled,
-      bool authCodesDisabled)
+      bool authCodesDisabled, this._serviceInfoFilename)
       : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
   bool _isAllowedOrigin(String origin) {
@@ -369,6 +370,14 @@ class Server {
     client.onRequest(message); // exception free, no need to try catch
   }
 
+  Future<void> _dumpServiceInfoToFile() async {
+    final serviceInfo = <String, dynamic>{
+      'uri': serverAddress.toString(),
+    };
+    final file = File(_serviceInfoFilename);
+    file.writeAsString(json.encode(serviceInfo));
+  }
+
   Future startup() async {
     if (_server != null) {
       // Already running.
@@ -425,6 +434,9 @@ class Server {
       String path = "$tmp/dart.services/${_server.port}";
       serverPrint("Creating $path");
       new File(path)..createSync(recursive: true);
+    }
+    if (_serviceInfoFilename != null && _serviceInfoFilename.isNotEmpty) {
+      _dumpServiceInfoToFile();
     }
     // Server is up and running.
     _notifyServerState(serverAddress.toString());
