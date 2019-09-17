@@ -138,14 +138,10 @@ abstract class TestRunner {
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
-    if (mode.endsWith('debug-dbc32')) return 'DebugSIMDBC';
-    if (mode.endsWith('debug-dbc64')) return 'DebugSIMDBC64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
-    if (mode.endsWith('dbc32')) return 'ReleaseSIMDBC';
-    if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
 
@@ -701,11 +697,6 @@ class DartFuzzTestSession {
 
   // Modes not used on cluster runs because they have outstanding issues.
   static const List<String> nonClusterModes = [
-    // Deprecated.
-    'jit-debug-dbc32',
-    'jit-debug-dbc64',
-    'jit-dbc32',
-    'jit-dbc64',
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',
