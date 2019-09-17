@@ -194,7 +194,7 @@ mixin EdgeTester {
     var edges = getEdges(x, y);
     for (var edge in edges) {
       if (edge.isUnion) {
-        expect(edge.sources, hasLength(1));
+        expect(edge.upstreamNodes, hasLength(1));
         return;
       }
     }
@@ -213,7 +213,7 @@ mixin EdgeTester {
     return graph
         .getAllEdges()
         .where((e) =>
-            sourceMatcher.matches(e.primarySource) &&
+            sourceMatcher.matches(e.sourceNode) &&
             destinationMatcher.matches(e.destinationNode))
         .toList();
   }

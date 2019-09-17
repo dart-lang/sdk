@@ -357,7 +357,7 @@ class EdgeBuilderTest extends EdgeBuilderTestBase {
     if (node == never) return;
 
     for (var edge in getEdges(anyNode, node)) {
-      expect(edge.primarySource, never);
+      expect(edge.sourceNode, never);
     }
   }
 
@@ -2488,7 +2488,7 @@ C<int> f(List<int> x) => C(x);
 ''');
     var edge = assertEdge(anyNode, decoratedTypeAnnotation('int> f').node,
         hard: false);
-    var inferredTypeArgument = edge.primarySource;
+    var inferredTypeArgument = edge.sourceNode;
     assertEdge(
         decoratedTypeAnnotation('int> x').node,
         substitutionNode(
@@ -2752,7 +2752,7 @@ List<String> f() {
     expect(returnTypeEdges.length, 1);
     final returnTypeEdge = returnTypeEdges.single;
 
-    final listArgType = returnTypeEdge.primarySource;
+    final listArgType = returnTypeEdge.sourceNode;
     assertNoUpstreamNullability(listArgType);
   }
 
@@ -2769,7 +2769,7 @@ List<String> f() {
     expect(returnTypeEdges.length, 1);
     final returnTypeEdge = returnTypeEdges.single;
 
-    final listArgType = returnTypeEdge.primarySource;
+    final listArgType = returnTypeEdge.sourceNode;
     assertEdge(always, listArgType, hard: false);
   }
 
@@ -3108,7 +3108,7 @@ int g() => (f<int>(1));
 ''');
     var check_i = checkExpression('(f<int>(1))');
     var nullable_f_t = decoratedTypeAnnotation('int>').node;
-    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.primarySource
+    var nullable_f_t_or_nullable_t = check_i.checks.edges.single.sourceNode
         as NullabilityNodeForSubstitution;
     var nullable_t = decoratedTypeAnnotation('T f').node;
     expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
@@ -4497,9 +4497,9 @@ Map<String, int> f() {
 
     assertNoUpstreamNullability(mapNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, keyNode, hard: false).primarySource);
+        assertEdge(anyNode, keyNode, hard: false).sourceNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).primarySource);
+        assertEdge(anyNode, valueNode, hard: false).sourceNode);
   }
 
   test_setOrMapLiteral_map_noTypeArgument_nullableKey() async {
@@ -4513,10 +4513,10 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).primarySource,
+    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).sourceNode,
         hard: false);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).primarySource);
+        assertEdge(anyNode, valueNode, hard: false).sourceNode);
   }
 
   test_setOrMapLiteral_map_noTypeArgument_nullableKeyAndValue() async {
@@ -4530,10 +4530,9 @@ Map<String, int> f() {
     var mapNode = decoratedTypeAnnotation('Map').node;
 
     assertNoUpstreamNullability(mapNode);
-    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).primarySource,
+    assertEdge(always, assertEdge(anyNode, keyNode, hard: false).sourceNode,
         hard: false);
-    assertEdge(
-        always, assertEdge(anyNode, valueNode, hard: false).primarySource,
+    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 
@@ -4549,9 +4548,8 @@ Map<String, int> f() {
 
     assertNoUpstreamNullability(mapNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, keyNode, hard: false).primarySource);
-    assertEdge(
-        always, assertEdge(anyNode, valueNode, hard: false).primarySource,
+        assertEdge(anyNode, keyNode, hard: false).sourceNode);
+    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 
@@ -4620,7 +4618,7 @@ Set<String> f() {
 
     assertNoUpstreamNullability(setNode);
     assertNoUpstreamNullability(
-        assertEdge(anyNode, valueNode, hard: false).primarySource);
+        assertEdge(anyNode, valueNode, hard: false).sourceNode);
   }
 
   test_setOrMapLiteral_set_noTypeArgument_nullableElement() async {
@@ -4633,8 +4631,7 @@ Set<String> f() {
     var setNode = decoratedTypeAnnotation('Set').node;
 
     assertNoUpstreamNullability(setNode);
-    assertEdge(
-        always, assertEdge(anyNode, valueNode, hard: false).primarySource,
+    assertEdge(always, assertEdge(anyNode, valueNode, hard: false).sourceNode,
         hard: false);
   }
 

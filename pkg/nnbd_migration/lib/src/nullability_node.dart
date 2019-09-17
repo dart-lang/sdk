@@ -17,17 +17,17 @@ class NullabilityEdge implements EdgeInfo {
   @override
   final NullabilityNode destinationNode;
 
-  /// A set of source nodes.  By convention, the first node is the primary
-  /// source and the other nodes are "guards".  The destination node will only
-  /// need to be made nullable if all the source nodes are nullable.
-  final List<NullabilityNode> sources;
+  /// A set of upstream nodes.  By convention, the first node is the source node
+  /// and the other nodes are "guards".  The destination node will only need to
+  /// be made nullable if all the upstream nodes are nullable.
+  final List<NullabilityNode> upstreamNodes;
 
   final _NullabilityEdgeKind _kind;
 
-  NullabilityEdge._(this.destinationNode, this.sources, this._kind);
+  NullabilityEdge._(this.destinationNode, this.upstreamNodes, this._kind);
 
   @override
-  Iterable<NullabilityNode> get guards => sources.skip(1);
+  Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
 
   @override
   bool get isHard => _kind != _NullabilityEdgeKind.soft;
@@ -42,14 +42,14 @@ class NullabilityEdge implements EdgeInfo {
   bool get isUnion => _kind == _NullabilityEdgeKind.union;
 
   @override
-  NullabilityNode get primarySource => sources.first;
+  NullabilityNode get sourceNode => upstreamNodes.first;
 
-  /// Indicates whether all the sources of this edge are nullable (and thus
-  /// downstream nullability propagation should try to make the destination node
-  /// nullable, if possible).
+  /// Indicates whether all the upstream nodes of this edge are nullable (and
+  /// thus downstream nullability propagation should try to make the destination
+  /// node nullable, if possible).
   bool get _isTriggered {
-    for (var source in sources) {
-      if (!source.isNullable) return false;
+    for (var upstreamNode in upstreamNodes) {
+      if (!upstreamNode.isNullable) return false;
     }
     return true;
   }
@@ -70,7 +70,7 @@ class NullabilityEdge implements EdgeInfo {
     edgeDecorations.addAll(guards);
     var edgeDecoration =
         edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
-    return '$primarySource $edgeDecoration-> $destinationNode';
+    return '$sourceNode $edgeDecoration-> $destinationNode';
   }
 }
 
@@ -88,8 +88,8 @@ class NullabilityGraph {
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
   /// Set containing all [NullabilityNode]s that have been passed as the
-  /// `sourceNode` argument to [connect].
-  final _allSourceNodes = Set<NullabilityNode>.identity();
+  /// `upstreamNode` argument to [connect].
+  final _allUpstreamNodes = Set<NullabilityNode>.identity();
 
   /// Returns a [NullabilityNode] that is a priori nullable.
   ///
@@ -143,9 +143,9 @@ class NullabilityGraph {
   NullabilityEdge connect(NullabilityNode sourceNode,
       NullabilityNode destinationNode, EdgeOrigin origin,
       {bool hard: false, List<NullabilityNode> guards: const []}) {
-    var sources = [sourceNode]..addAll(guards);
+    var upstreamNodes = [sourceNode]..addAll(guards);
     var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
-    return _connect(sources, destinationNode, kind, origin);
+    return _connect(upstreamNodes, destinationNode, kind, origin);
   }
 
   /// Determine if [source] is in the code being migrated.
@@ -175,34 +175,34 @@ class NullabilityGraph {
   }
 
   NullabilityEdge _connect(
-      List<NullabilityNode> sources,
+      List<NullabilityNode> upstreamNodes,
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var edge = NullabilityEdge._(destinationNode, sources, kind);
+    var edge = NullabilityEdge._(destinationNode, upstreamNodes, kind);
     instrumentation?.graphEdge(edge, origin);
-    for (var source in sources) {
-      _connectDownstream(source, edge);
+    for (var upstreamNode in upstreamNodes) {
+      _connectDownstream(upstreamNode, edge);
     }
     destinationNode._upstreamEdges.add(edge);
     return edge;
   }
 
-  void _connectDownstream(NullabilityNode source, NullabilityEdge edge) {
-    _allSourceNodes.add(source);
-    source._downstreamEdges.add(edge);
-    if (source is _NullabilityNodeCompound) {
-      for (var component in source._components) {
+  void _connectDownstream(NullabilityNode upstreamNode, NullabilityEdge edge) {
+    _allUpstreamNodes.add(upstreamNode);
+    upstreamNode._downstreamEdges.add(edge);
+    if (upstreamNode is _NullabilityNodeCompound) {
+      for (var component in upstreamNode._components) {
         _connectDownstream(component, edge);
       }
     }
   }
 
   void _debugDump() {
-    for (var source in _allSourceNodes) {
-      var edges = source._downstreamEdges;
+    for (var upstreamNode in _allUpstreamNodes) {
+      var edges = upstreamNode._downstreamEdges;
       var destinations =
-          edges.where((edge) => edge.primarySource == source).map((edge) {
+          edges.where((edge) => edge.sourceNode == upstreamNode).map((edge) {
         var suffixes = <Object>[];
         if (edge.isUnion) {
           suffixes.add('union');
@@ -213,8 +213,8 @@ class NullabilityGraph {
         var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
         return '${edge.destinationNode}$suffix';
       });
-      var state = source._state;
-      print('$source ($state) -> ${destinations.join(', ')}');
+      var state = upstreamNode._state;
+      print('$upstreamNode ($state) -> ${destinations.join(', ')}');
     }
   }
 
@@ -225,9 +225,9 @@ class NullabilityGraph {
     while (_pendingEdges.isNotEmpty) {
       var edge = _pendingEdges.removeLast();
       if (!edge.isUnion) continue;
-      // Union edges always have exactly one source, so we don't need to check
-      // whether all sources are nullable.
-      assert(edge.sources.length == 1);
+      // Union edges always have exactly one upstream node, so we don't need to
+      // check whether all upstream nodes are nullable.
+      assert(edge.upstreamNodes.length == 1);
       var node = edge.destinationNode;
       if (node is NullabilityNodeMutable && !node.isNullable) {
         _unionedWithAlways.add(node);
@@ -280,7 +280,7 @@ class NullabilityGraph {
     while (_pendingEdges.isNotEmpty) {
       var edge = _pendingEdges.removeLast();
       if (!edge.isHard) continue;
-      var node = edge.primarySource;
+      var node = edge.sourceNode;
       if (node is NullabilityNodeMutable &&
           node._state == NullabilityState.undetermined) {
         _setState(_PropagationStep(
@@ -343,7 +343,7 @@ class NullabilityGraph {
     }
     while (pendingEdges.isNotEmpty) {
       var edge = pendingEdges.removeLast();
-      var node = edge.primarySource;
+      var node = edge.sourceNode;
       if (node is NullabilityNodeMutable) {
         var oldState = _setNullable(_PropagationStep(node,
             NullabilityState.exactNullable, StateChangeReason.exactUpstream,
@@ -406,11 +406,11 @@ class NullabilityGraphForTesting extends NullabilityGraph {
 
   @override
   NullabilityEdge _connect(
-      List<NullabilityNode> sources,
+      List<NullabilityNode> upstreamNodes,
       NullabilityNode destinationNode,
       _NullabilityEdgeKind kind,
       EdgeOrigin origin) {
-    var edge = super._connect(sources, destinationNode, kind, origin);
+    var edge = super._connect(upstreamNodes, destinationNode, kind, origin);
     _allEdges.add(edge);
     _edgeOrigins[edge] = origin;
     return edge;

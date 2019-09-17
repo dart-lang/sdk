@@ -64,14 +64,14 @@ abstract class EdgeInfo {
   /// the nullability propagation algorithm is an effort to satisfy graph edges
   /// in a way that corresponds to the user's intent.  A graph edge is
   /// considered satisfied if any of the following is true:
-  /// - Its [primarySource] is non-nullable.
+  /// - Its [sourceNode] is non-nullable.
   /// - One of its [guards] is non-nullable.
   /// - Its [destinationNode] is nullable.
   bool get isSatisfied;
 
   /// A boolean indicating whether the graph edge is a "union" edge.  Union
   /// edges are edges for which the nullability propagation algorithm tries to
-  /// ensure that both the [primarySource] and the [destinationNode] have the
+  /// ensure that both the [sourceNode] and the [destinationNode] have the
   /// same nullability.  Typically these are associated with situations where
   /// Dart language semantics require two types to be the same type (e.g. a type
   /// formal bound on a generic function type in a base class, and the
@@ -82,7 +82,7 @@ abstract class EdgeInfo {
   bool get isUnion;
 
   /// Information about the graph node that this edge "points away from".
-  NullabilityNodeInfo get primarySource;
+  NullabilityNodeInfo get sourceNode;
 }
 
 /// Information exposed to the migration client about the location in source
@@ -208,17 +208,17 @@ enum StateChangeReason {
   /// be nullable, so this node is being made nullable as well.
   union,
 
-  /// A hard or union edge exists whose primary source is this node, and whose
+  /// A hard or union edge exists whose source is this node, and whose
   /// destination is non-nullable, so this node is being made non-nullable as
   /// well.
   upstream,
 
-  /// An edge exists whose destination is this node, and whose primary source is
+  /// An edge exists whose destination is this node, and whose source is
   /// nullable, so this node is being made nullable as well.
   downstream,
 
-  /// An edge exists whose primary source is this node, and whose destination is
-  /// exact nullable, so this node is being made exact nullable as well.
+  /// An edge exists whose source is this node, and whose destination is exact
+  /// nullable, so this node is being made exact nullable as well.
   exactUpstream,
 
   /// A substitution node exists whose inner node points to this node, and the
