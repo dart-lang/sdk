@@ -34,6 +34,18 @@ static void Finalize(void* isolate_callback_data,
   delete reinterpret_cast<T*>(peer);
 }
 
+static void FinalizeWasmModule(void* isolate_callback_data,
+                               Dart_WeakPersistentHandle handle,
+                               void* module) {
+  wasmer_module_destroy(reinterpret_cast<wasmer_module_t*>(module));
+}
+
+static void FinalizeWasmMemory(void* isolate_callback_data,
+                               Dart_WeakPersistentHandle handle,
+                               void* memory) {
+  wasmer_memory_destroy(reinterpret_cast<wasmer_memory_t*>(memory));
+}
+
 static std::unique_ptr<char[]> ToUTF8(const String& str) {
   const intptr_t str_size = Utf8::Length(str);
   auto str_raw = std::unique_ptr<char[]>(new char[str_size + 1]);
@@ -87,53 +99,11 @@ static RawObject* ToDartObject(wasmer_value_t ret) {
   }
 }
 
-class WasmModule {
- public:
-  WasmModule(uint8_t* data, intptr_t len) {
-    ThrowIfFailed(wasmer_compile(&_module, data, len));
-  }
-
-  ~WasmModule() { wasmer_module_destroy(_module); }
-  wasmer_module_t* module() { return _module; }
-
- private:
-  wasmer_module_t* _module;
-
-  DISALLOW_COPY_AND_ASSIGN(WasmModule);
-};
-
-class WasmMemory {
- public:
-  WasmMemory(uint32_t init, int64_t max) {
-    wasmer_limits_t descriptor;
-    descriptor.min = init;
-    if (max < 0) {
-      descriptor.max.has_some = false;
-    } else {
-      descriptor.max.has_some = true;
-      descriptor.max.some = max;
-    }
-    ThrowIfFailed(wasmer_memory_new(&_memory, descriptor));
-  }
-
-  ~WasmMemory() { wasmer_memory_destroy(_memory); }
-  wasmer_memory_t* memory() { return _memory; }
-
-  void Grow(intptr_t delta) {
-    ThrowIfFailed(wasmer_memory_grow(_memory, delta));
-  }
-
-  RawExternalTypedData* ToExternalTypedData() {
-    uint8_t* data = wasmer_memory_data(_memory);
-    uint32_t size = wasmer_memory_data_length(_memory);
-    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, size);
-  }
-
- private:
-  wasmer_memory_t* _memory;
-
-  DISALLOW_COPY_AND_ASSIGN(WasmMemory);
-};
+RawExternalTypedData* WasmMemoryToExternalTypedData(wasmer_memory_t* memory) {
+  uint8_t* data = wasmer_memory_data(memory);
+  uint32_t size = wasmer_memory_data_length(memory);
+  return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, size);
+}
 
 class WasmImports {
  public:
@@ -152,9 +122,9 @@ class WasmImports {
   size_t NumImports() const { return _imports.length(); }
   wasmer_import_t* RawImports() { return _imports.data(); }
 
-  void AddMemory(std::unique_ptr<char[]> name, WasmMemory* memory) {
+  void AddMemory(std::unique_ptr<char[]> name, wasmer_memory_t* memory) {
     AddImport(std::move(name), wasmer_import_export_kind::WASM_MEMORY)->memory =
-        memory->memory();
+        memory;
   }
 
   void AddGlobal(std::unique_ptr<char[]> name,
@@ -256,11 +226,10 @@ class WasmFunction {
 
 class WasmInstance {
  public:
-  explicit WasmInstance(WasmModule* module, WasmImports* imports) {
+  explicit WasmInstance(wasmer_module_t* module, WasmImports* imports) {
     // Instantiate module.
-    ThrowIfFailed(wasmer_module_instantiate(module->module(), &_instance,
-                                            imports->RawImports(),
-                                            imports->NumImports()));
+    ThrowIfFailed(wasmer_module_instantiate(
+        module, &_instance, imports->RawImports(), imports->NumImports()));
 
     // Load all functions.
     wasmer_instance_exports(_instance, &_exports);
@@ -381,15 +350,15 @@ DEFINE_NATIVE_ENTRY(Wasm_initModule, 0, 2) {
     memcpy(data_copy.get(), data.DataAddr(0), len);  // NOLINT
   }
 
-  WasmModule* module;
+  wasmer_module_t* module;
   {
     TransitionVMToNative transition(thread);
-    module = new WasmModule(data_copy.get(), len);
+    ThrowIfFailed(wasmer_compile(&module, data_copy.get(), len));
   }
 
   mod_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(module));
   FinalizablePersistentHandle::New(thread->isolate(), mod_wrap, module,
-                                   Finalize<WasmModule>, sizeof(WasmModule));
+                                   FinalizeWasmModule, len);
 
   return Object::null();
 }
@@ -419,8 +388,8 @@ DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 3) {
 
   WasmImports* imports =
       reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
-  WasmMemory* memory =
-      reinterpret_cast<WasmMemory*>(mem_wrap.GetNativeField(0));
+  wasmer_memory_t* memory =
+      reinterpret_cast<wasmer_memory_t*>(mem_wrap.GetNativeField(0));
 
   imports->AddMemory(ToUTF8(name), memory);
 
@@ -455,13 +424,23 @@ DEFINE_NATIVE_ENTRY(Wasm_initMemory, 0, 3) {
   GET_NATIVE_ARGUMENT(Integer, max, arguments->NativeArgAt(2));
 
   ASSERT(mem_wrap.NumNativeFields() == 1);
+  const int64_t init_size = init.AsInt64Value();
+  const int64_t max_size = max.AsInt64Value();
 
-  WasmMemory* memory = new WasmMemory(init.AsInt64Value(),
-                                      max.IsNull() ? -1 : max.AsInt64Value());
+  wasmer_memory_t* memory;
+  wasmer_limits_t descriptor;
+  descriptor.min = init_size;
+  if (max_size < 0) {
+    descriptor.max.has_some = false;
+  } else {
+    descriptor.max.has_some = true;
+    descriptor.max.some = max_size;
+  }
+  ThrowIfFailed(wasmer_memory_new(&memory, descriptor));
   mem_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(memory));
   FinalizablePersistentHandle::New(thread->isolate(), mem_wrap, memory,
-                                   Finalize<WasmMemory>, sizeof(WasmMemory));
-  return memory->ToExternalTypedData();
+                                   FinalizeWasmMemory, init_size);
+  return WasmMemoryToExternalTypedData(memory);
 }
 
 DEFINE_NATIVE_ENTRY(Wasm_growMemory, 0, 2) {
@@ -470,10 +449,10 @@ DEFINE_NATIVE_ENTRY(Wasm_growMemory, 0, 2) {
 
   ASSERT(mem_wrap.NumNativeFields() == 1);
 
-  WasmMemory* memory =
-      reinterpret_cast<WasmMemory*>(mem_wrap.GetNativeField(0));
-  memory->Grow(delta.AsInt64Value());
-  return memory->ToExternalTypedData();
+  wasmer_memory_t* memory =
+      reinterpret_cast<wasmer_memory_t*>(mem_wrap.GetNativeField(0));
+  ThrowIfFailed(wasmer_memory_grow(memory, delta.AsInt64Value()));
+  return WasmMemoryToExternalTypedData(memory);
 }
 
 DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
@@ -485,8 +464,8 @@ DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
   ASSERT(mod_wrap.NumNativeFields() == 1);
   ASSERT(imp_wrap.NumNativeFields() == 1);
 
-  WasmModule* module =
-      reinterpret_cast<WasmModule*>(mod_wrap.GetNativeField(0));
+  wasmer_module_t* module =
+      reinterpret_cast<wasmer_module_t*>(mod_wrap.GetNativeField(0));
   WasmImports* imports =
       reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
 
