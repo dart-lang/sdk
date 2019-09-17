@@ -876,7 +876,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ AddImmediate(R1, -target::kWordSize);
   __ AddImmediate(R3, target::kWordSize);
   __ AddImmediateSetFlags(R2, R2, -target::ToRawSmi(1));
-  __ str(R7, Address(R3, -target::kWordSize));
+  __ StoreIntoObject(R0, Address(R3, -target::kWordSize), R7);
   __ b(&loop, GE);
   __ Bind(&loop_exit);
 }
