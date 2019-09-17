@@ -1499,10 +1499,25 @@ void Assembler::notl(Register reg) {
   EmitUint8(0xD0 | reg);
 }
 
+void Assembler::bsfl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBC);
+  EmitRegisterOperand(dst, src);
+}
+
 void Assembler::bsrl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xBD);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::popcntl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0xB8);
   EmitRegisterOperand(dst, src);
 }
 

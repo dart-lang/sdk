@@ -326,6 +326,51 @@ ASSEMBLER_TEST_RUN(Testb, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Bsf, assembler) {
+  __ movl(ECX, Immediate(12));
+  __ bsfl(EAX, ECX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Bsf, test) {
+  typedef int (*BsfCode)();
+  EXPECT_EQ(2, reinterpret_cast<BsfCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "mov ecx,0xc\n"
+      "bsf eax,ecx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Bsr, assembler) {
+  __ movl(ECX, Immediate(12));
+  __ bsrl(EAX, ECX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Bsr, test) {
+  typedef int (*BsrCode)();
+  EXPECT_EQ(3, reinterpret_cast<BsrCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "mov ecx,0xc\n"
+      "bsr eax,ecx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Popcnt, assembler) {
+  __ movl(ECX, Immediate(-1));
+  __ popcntl(EAX, ECX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Popcnt, test) {
+  typedef int (*PopcntCode)();
+  EXPECT_EQ(32, reinterpret_cast<PopcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "mov ecx,0x........\n"
+      "popcnt eax,ecx\n"
+      "ret\n");
+}
+
 struct JumpAddress {
   uword filler1;
   uword filler2;
