@@ -4810,15 +4810,20 @@ class ResolverVisitor extends ScopedVisitor {
         uninstantiatedType is FunctionType &&
         uninstantiatedType.typeFormals.isNotEmpty &&
         ts is Dart2TypeSystem) {
-      return ts.inferGenericFunctionOrType<FunctionType>(
-          uninstantiatedType,
-          const <ParameterElement>[],
-          const <DartType>[],
-          InferenceContext.getContext(inferenceNode),
-          downwards: true,
-          isConst: isConst,
-          errorReporter: errorReporter,
-          errorNode: errorNode);
+      var typeArguments = ts.inferGenericFunctionOrType(
+        typeParameters: uninstantiatedType.typeFormals,
+        parameters: const <ParameterElement>[],
+        declaredReturnType: uninstantiatedType.returnType,
+        argumentTypes: const <DartType>[],
+        contextReturnType: InferenceContext.getContext(inferenceNode),
+        downwards: true,
+        isConst: isConst,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+      );
+      if (typeArguments != null) {
+        return uninstantiatedType.instantiate(typeArguments);
+      }
     }
     return null;
   }
@@ -6295,24 +6300,29 @@ class TypeNameResolver {
   /// If the [node] is the type name in a redirected factory constructor,
   /// infer type arguments using the enclosing class declaration. Return `null`
   /// otherwise.
-  InterfaceTypeImpl _inferTypeArgumentsForRedirectedConstructor(
-      TypeName node, DartType type) {
+  List<DartType> _inferTypeArgumentsForRedirectedConstructor(
+      TypeName node, ClassElement typeElement) {
+    var typeElementImpl = AbstractClassElementImpl.getImpl(typeElement);
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
     TypeSystem ts = typeSystem;
     if (constructorName is ConstructorName &&
         enclosingConstructor is ConstructorDeclaration &&
         enclosingConstructor.redirectedConstructor == constructorName &&
-        type is InterfaceType &&
         ts is Dart2TypeSystem) {
       ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
-      ClassElement enclosingClassElement = enclosingClassNode.declaredElement;
-      if (enclosingClassElement == type.element) {
-        return type;
+      ClassElementImpl enclosingClassElement =
+          enclosingClassNode.declaredElement;
+      if (enclosingClassElement == typeElementImpl) {
+        return typeElementImpl.thisType.typeArguments;
       } else {
-        InterfaceType contextType = enclosingClassElement.type;
         return ts.inferGenericFunctionOrType(
-            type, const <ParameterElement>[], const <DartType>[], contextType);
+          typeParameters: typeElementImpl.typeParameters,
+          parameters: const [],
+          declaredReturnType: typeElementImpl.thisType,
+          argumentTypes: const [],
+          contextReturnType: enclosingClassElement.thisType,
+        );
       }
     }
     return null;
@@ -6422,11 +6432,9 @@ class TypeNameResolver {
     } else if (parameterCount == 0) {
       typeArguments = const <DartType>[];
     } else {
-      var redirectedType =
-          _inferTypeArgumentsForRedirectedConstructor(node, element.type);
-      if (redirectedType != null) {
-        typeArguments = redirectedType.typeArguments;
-      } else {
+      typeArguments =
+          _inferTypeArgumentsForRedirectedConstructor(node, element);
+      if (typeArguments == null) {
         var ts = typeSystem as Dart2TypeSystem;
         typeArguments = ts.instantiateTypeFormalsToBounds2(element);
       }

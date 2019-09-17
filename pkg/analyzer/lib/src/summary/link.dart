@@ -61,6 +61,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -84,6 +85,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:meta/meta.dart';
 
 final _typesWithImplicitArguments = new Expando();
 
@@ -486,6 +488,11 @@ abstract class ClassElementForLink
   @override
   String get name;
 
+  @override
+  InterfaceType get thisType {
+    return type;
+  }
+
   DartType get typeWithDefaultBounds => _typeWithDefaultBounds ??=
       enclosingElement.library._linker.typeSystem.instantiateToBounds(type);
 
@@ -539,6 +546,23 @@ abstract class ClassElementForLink
       }
     }
     return null;
+  }
+
+  @override
+  InterfaceType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (typeArguments.length != typeParameters.length) {
+      var ta = 'typeArguments.length (${typeArguments.length})';
+      var tp = 'typeParameters.length (${typeParameters.length})';
+      throw ArgumentError('$ta != $tp');
+    }
+    return InterfaceTypeImpl.explicit(
+      this,
+      typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /// Perform type inference and cycle detection on this class and

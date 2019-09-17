@@ -50,6 +50,9 @@ void _assertNotResynthesized(Object object) {
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends ElementImpl
     implements ClassElement {
+  /// The type defined by the class.
+  InterfaceType _thisType;
+
   /// A list containing all of the accessors (getters and setters) contained in
   /// this class.
   List<PropertyAccessorElement> _accessors;
@@ -117,6 +120,34 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
+
+  /// Return the type of `this` expression for this class.
+  ///
+  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
+  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
+  /// type parameters, and either `none` or `star` nullability suffix is used
+  /// for the type arguments, and the returned type depending on the
+  /// nullability status of the declaring library.
+  InterfaceType get thisType {
+    if (_thisType == null) {
+      var nullabilitySuffix = library.isNonNullableByDefault
+          ? NullabilitySuffix.none
+          : NullabilitySuffix.star;
+      List<DartType> typeArguments;
+      if (typeParameters.isNotEmpty) {
+        typeArguments = typeParameters.map<DartType>((t) {
+          return t.instantiate(nullabilitySuffix: nullabilitySuffix);
+        }).toList();
+      } else {
+        typeArguments = const <DartType>[];
+      }
+      return _thisType = instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    }
+    return _thisType;
+  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);

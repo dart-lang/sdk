@@ -1350,10 +1350,15 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         new NonExistingSource(
             '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
 
-    var typeArguments = typeSystem.inferGenericFunctionOrType2(
-        ft, ft.parameters, arguments, returnType,
-        errorReporter: reporter,
-        errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)));
+    var typeArguments = typeSystem.inferGenericFunctionOrType(
+      typeParameters: ft.typeFormals,
+      parameters: ft.parameters,
+      declaredReturnType: ft.returnType,
+      argumentTypes: arguments,
+      contextReturnType: returnType,
+      errorReporter: reporter,
+      errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)),
+    );
 
     if (expectError) {
       expect(listener.errors.map((e) => e.errorCode).toList(),
