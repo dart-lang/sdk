@@ -318,6 +318,8 @@ class DartFixKind {
       'REMOVE_UNUSED_CATCH_CLAUSE', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
       'REMOVE_UNUSED_CATCH_STACK', 50, "Remove unused stack trace variable");
+  static const REMOVE_UNUSED_ELEMENT =
+      const FixKind('REMOVE_UNUSED_ELEMENT', 50, "Remove unused element");
   static const REMOVE_UNUSED_FIELD =
       const FixKind('REMOVE_UNUSED_FIELD', 50, "Remove unused field");
   static const REMOVE_UNUSED_IMPORT = const FixKind(
