@@ -1454,7 +1454,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 void Environment::DropArguments(intptr_t argc) {
 #if defined(DEBUG)
   // Check that we are in the backend - register allocation has been run.
-  ASSERT(locations_ != NULL);
+  ASSERT((Length() == 0) || (locations_ != nullptr));
 
   // Check that we are only dropping a valid number of instructions from the
   // environment.
