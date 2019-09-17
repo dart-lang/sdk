@@ -618,11 +618,13 @@ abstract class VmServiceBase implements VmServiceConst {
         Logging.getLogger().logError("Response has invalid " + RESULT, e);
         return;
       }
-      String responseType;
-      try {
+      String responseType = "";
+      if (result.has(TYPE)) {
         responseType = result.get(TYPE).getAsString();
-      } catch (Exception e) {
-        Logging.getLogger().logError("Response missing " + TYPE, e);
+      }
+      // ServiceExtensionConsumers do not care about the response type.
+      else if (!(consumer instanceof ServiceExtensionConsumer)) {
+        Logging.getLogger().logError("Response missing " + TYPE + ": " + result.toString());
         return;
       }
       forwardResponse(consumer, responseType, result);
