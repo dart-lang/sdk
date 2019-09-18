@@ -4040,6 +4040,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<DartType> typeArguments = <DartType>[];
 
     if (options.experimentNewRti) {
+      closedWorld.registerExtractTypeArguments(cls);
       HInstruction instanceType =
           HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
       add(instanceType);

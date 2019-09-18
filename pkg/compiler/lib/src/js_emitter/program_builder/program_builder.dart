@@ -30,6 +30,7 @@ import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesEncoder;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../js_model/type_recipe.dart'
@@ -852,8 +853,12 @@ class ProgramBuilder {
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
         .union(_lateNamedTypeVariablesNewRti)) {
-      for (ClassEntity entity
-          in _classHierarchy.subtypesOf(typeVariable.element.typeDeclaration)) {
+      ClassEntity declaration = typeVariable.element.typeDeclaration;
+      Iterable<ClassEntity> subtypes =
+          newRti.mustCheckAllSubtypes(_closedWorld, declaration)
+              ? _classHierarchy.subtypesOf(declaration)
+              : _classHierarchy.subclassesOf(declaration);
+      for (ClassEntity entity in subtypes) {
         Class cls = _classes[entity];
         if (cls == null) continue;
         cls.namedTypeVariablesNewRti.add(typeVariable);
