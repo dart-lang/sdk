@@ -102,9 +102,6 @@ class ScopedMemBIO {
     return bio_;
   }
 
-  uint8_t* data() { return bytes_; }
-  intptr_t length() { return bytes_len_; }
-
  private:
   Dart_Handle object_;
   uint8_t* bytes_;
