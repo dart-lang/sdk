@@ -6303,7 +6303,6 @@ class TypeNameResolver {
   /// otherwise.
   List<DartType> _inferTypeArgumentsForRedirectedConstructor(
       TypeName node, ClassElement typeElement) {
-    var typeElementImpl = AbstractClassElementImpl.getImpl(typeElement);
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
     TypeSystem ts = typeSystem;
@@ -6312,15 +6311,14 @@ class TypeNameResolver {
         enclosingConstructor.redirectedConstructor == constructorName &&
         ts is Dart2TypeSystem) {
       ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
-      ClassElementImpl enclosingClassElement =
-          enclosingClassNode.declaredElement;
-      if (enclosingClassElement == typeElementImpl) {
-        return typeElementImpl.thisType.typeArguments;
+      var enclosingClassElement = enclosingClassNode.declaredElement;
+      if (enclosingClassElement == typeElement) {
+        return typeElement.thisType.typeArguments;
       } else {
         return ts.inferGenericFunctionOrType(
-          typeParameters: typeElementImpl.typeParameters,
+          typeParameters: typeElement.typeParameters,
           parameters: const [],
-          declaredReturnType: typeElementImpl.thisType,
+          declaredReturnType: typeElement.thisType,
           argumentTypes: const [],
           contextReturnType: enclosingClassElement.thisType,
         );

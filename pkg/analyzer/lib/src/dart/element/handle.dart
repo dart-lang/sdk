@@ -118,6 +118,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   InterfaceType get supertype => actualElement.supertype;
 
   @override
+  InterfaceType get thisType => actualElement.thisType;
+
+  @override
   InterfaceType get type => actualElement.type;
 
   @override

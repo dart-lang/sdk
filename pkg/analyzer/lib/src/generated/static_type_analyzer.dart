@@ -169,7 +169,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType inferListType(ListLiteral node, {bool downwards: false}) {
     DartType contextType = InferenceContext.getContext(node);
 
-    ClassElementImpl element = _typeProvider.listElement;
+    var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: _noneOrStarSuffix,
@@ -226,7 +226,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return null;
     }
 
-    ClassElementImpl element = _typeProvider.mapElement;
+    var element = _typeProvider.mapElement;
     var typeArguments =
         (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
       typeParameters: element.typeParameters,
@@ -250,7 +250,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return null;
     }
 
-    ClassElementImpl element = _typeProvider.setElement;
+    var element = _typeProvider.setElement;
     var typeArguments =
         (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
       typeParameters: element.typeParameters,
@@ -2114,7 +2114,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     DartType dynamicType = _typeProvider.dynamicType;
 
-    ClassElementImpl element = _typeProvider.mapElement;
+    var element = _typeProvider.mapElement;
     var typeParameters = element.typeParameters;
     var genericKeyType = typeParameters[0].instantiate(
       nullabilitySuffix: _noneOrStarSuffix,
@@ -2152,7 +2152,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       List<_InferredCollectionElementTypeInformation> inferredTypes) {
     DartType dynamicType = _typeProvider.dynamicType;
 
-    ClassElementImpl element = _typeProvider.setElement;
+    var element = _typeProvider.setElement;
     var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: _noneOrStarSuffix,

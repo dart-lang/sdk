@@ -121,13 +121,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
 
-  /// Return the type of `this` expression for this class.
-  ///
-  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
-  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
-  /// type parameters, and either `none` or `star` nullability suffix is used
-  /// for the type arguments, and the returned type depending on the
-  /// nullability status of the declaring library.
+  @override
   InterfaceType get thisType {
     if (_thisType == null) {
       var nullabilitySuffix = library.isNonNullableByDefault
