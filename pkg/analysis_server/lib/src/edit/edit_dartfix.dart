@@ -73,7 +73,7 @@ class EditDartFix
       }
     }
     for (DartFixInfo info in fixInfo) {
-      info.setup(this, listener);
+      info.setup(this, listener, params);
     }
 
     // Validate each included file and directory.

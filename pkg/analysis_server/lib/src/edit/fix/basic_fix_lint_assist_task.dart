@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
@@ -47,8 +48,8 @@ class BasicFixLintAssistTask extends FixLintTask {
     }
   }
 
-  static void preferForElementsToMapFromIterable(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferForElementsToMapFromIterable(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_for_elements_to_map_fromIterable'],
       new BasicFixLintAssistTask(
@@ -57,7 +58,9 @@ class BasicFixLintAssistTask extends FixLintTask {
   }
 
   static void preferIfElementsToConditionalExpressions(
-      DartFixRegistrar registrar, DartFixListener listener) {
+      DartFixRegistrar registrar,
+      DartFixListener listener,
+      EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_if_elements_to_conditional_expressions'],
       new BasicFixLintAssistTask(
@@ -65,8 +68,8 @@ class BasicFixLintAssistTask extends FixLintTask {
     );
   }
 
-  static void preferIntLiterals(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferIntLiterals(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_int_literals'],
       new BasicFixLintAssistTask(
@@ -74,8 +77,8 @@ class BasicFixLintAssistTask extends FixLintTask {
     );
   }
 
-  static void preferSpreadCollections(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferSpreadCollections(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_spread_collections'],
       new BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_SPREAD, listener),

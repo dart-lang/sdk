@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
@@ -15,8 +16,8 @@ class BasicFixLintErrorTask extends FixLintTask {
   BasicFixLintErrorTask(this.fixKind, DartFixListener listener)
       : super(listener);
 
-  static void nullClosures(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void nullClosures(DartFixRegistrar registrar, DartFixListener listener,
+      EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['null_closures'],
       new BasicFixLintErrorTask(
@@ -24,8 +25,8 @@ class BasicFixLintErrorTask extends FixLintTask {
     );
   }
 
-  static void preferEqualForDefaultValues(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferEqualForDefaultValues(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_equal_for_default_values'],
       new BasicFixLintErrorTask(
@@ -33,16 +34,16 @@ class BasicFixLintErrorTask extends FixLintTask {
     );
   }
 
-  static void preferIsEmpty(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferIsEmpty(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_is_empty'],
       new BasicFixLintErrorTask(DartFixKind.REPLACE_WITH_IS_EMPTY, listener),
     );
   }
 
-  static void preferIsNotEmpty(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferIsNotEmpty(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_is_not_empty'],
       new BasicFixLintErrorTask(
