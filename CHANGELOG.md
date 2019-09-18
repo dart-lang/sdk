@@ -20,6 +20,9 @@ main() { foo(() {}); }
 
 ### Core libraries
 
+* Default values of parameters of abstract methods are no longer available
+  via `dart:mirrors`.
+
 ### Dart VM
 
 ### Tools

@@ -571,7 +571,7 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
         type_translator_(this, active_class, /* finalize= */ true),
         constant_evaluator_(this, &type_translator_, active_class, nullptr) {}
 
-  RawObject* BuildParameterDescriptor(intptr_t kernel_offset);
+  RawObject* BuildParameterDescriptor(const Function& function);
 
  private:
   TypeTranslator type_translator_;
@@ -581,8 +581,8 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
 };
 
 RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
-    intptr_t kernel_offset) {
-  SetOffset(kernel_offset);
+    const Function& function) {
+  SetOffset(function.kernel_offset());
   ReadUntilFunctionNode();
   FunctionNodeHelper function_node_helper(this);
   function_node_helper.ReadUntilExcluding(
@@ -610,16 +610,18 @@ RawObject* ParameterDescriptorBuilder::BuildParameterDescriptor(
                            helper.IsFinal() ? Bool::True() : Bool::False());
 
     Tag tag = ReadTag();  // read (first part of) initializer.
-    if (tag == kSomething) {
+    if ((tag == kSomething) && !function.is_abstract()) {
       // this will (potentially) read the initializer, but reset the position.
       Instance& constant = Instance::ZoneHandle(
           zone_, constant_evaluator_.EvaluateExpression(ReaderOffset()));
-      SkipExpression();  // read (actual) initializer.
       param_descriptor.SetAt(entry_start + Parser::kParameterDefaultValueOffset,
                              constant);
     } else {
       param_descriptor.SetAt(entry_start + Parser::kParameterDefaultValueOffset,
                              Object::null_instance());
+    }
+    if (tag == kSomething) {
+      SkipExpression();  // read (actual) initializer.
     }
 
     if (FLAG_enable_mirrors && (helper.annotation_count_ > 0)) {
@@ -665,7 +667,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
         ExternalTypedData::Handle(zone, function.KernelData()),
         function.KernelDataProgramOffset(), &active_class);
 
-    return builder.BuildParameterDescriptor(function.kernel_offset());
+    return builder.BuildParameterDescriptor(function);
   } else {
     return Thread::Current()->StealStickyError();
   }
