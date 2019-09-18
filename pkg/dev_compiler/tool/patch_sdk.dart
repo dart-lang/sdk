@@ -34,11 +34,16 @@ void main(List<String> argv) {
     exit(1);
   }
 
+  var sdk = 'sdk';
+  if (argv.length > 3) {
+    sdk = argv[3];
+  }
+
   var selfModifyTime = File(self).lastModifiedSync().millisecondsSinceEpoch;
 
   var repoDir = argv[0];
   var patchDir = argv[1];
-  var sdkLibIn = p.join(repoDir, 'sdk', 'lib');
+  var sdkLibIn = p.join(repoDir, sdk, 'lib');
   var patchIn = p.join(patchDir, 'patch');
   var privateIn = p.join(patchDir, 'private');
   var sdkOut = p.join(argv[2], 'lib');

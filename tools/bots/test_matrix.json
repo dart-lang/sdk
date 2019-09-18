@@ -987,6 +987,18 @@
           ]
         },
         {
+          "name": "ddc analyzer modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_ddc_suite.dart",
+            "--configuration-name",
+            "dartdevc-${system}-release",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
           "name": "ddc kernel modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
