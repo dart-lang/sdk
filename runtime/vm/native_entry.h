@@ -35,15 +35,6 @@ class String;
 
 #define NATIVE_ENTRY_FUNCTION(name) BootstrapNatives::DN_##name
 
-#ifdef DEBUG
-#define SET_NATIVE_RETVAL(args, value)                                         \
-  RawObject* retval = value;                                                   \
-  ASSERT(retval->IsDartInstance());                                            \
-  arguments->SetReturnUnsafe(retval);
-#else
-#define SET_NATIVE_RETVAL(arguments, value) arguments->SetReturnUnsafe(value);
-#endif
-
 #define DEFINE_NATIVE_ENTRY(name, type_argument_count, argument_count)         \
   static RawObject* DN_Helper##name(Isolate* isolate, Thread* thread,          \
                                     Zone* zone, NativeArguments* arguments);   \
@@ -63,9 +54,15 @@ class String;
       Isolate* isolate = thread->isolate();                                    \
       TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
-      SET_NATIVE_RETVAL(                                                       \
-          arguments,                                                           \
-          DN_Helper##name(isolate, thread, zone.GetZone(), arguments));        \
+      /* Be careful holding return_value_unsafe without a handle here. */      \
+      /* A return of Object::sentinel means the return value has already */    \
+      /* been set. */                                                          \
+      RawObject* return_value_unsafe =                                         \
+          DN_Helper##name(isolate, thread, zone.GetZone(), arguments);         \
+      if (return_value_unsafe != Object::sentinel().raw()) {                   \
+        ASSERT(return_value_unsafe->IsDartInstance());                         \
+        arguments->SetReturnUnsafe(return_value_unsafe);                       \
+      }                                                                        \
       DEOPTIMIZE_ALOT;                                                         \
     }                                                                          \
     VERIFY_ON_TRANSITION;                                                      \

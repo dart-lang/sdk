@@ -942,6 +942,7 @@ examples
 exceeded
 except
 exception
+exceptional
 exceptions
 exclamation
 exclude

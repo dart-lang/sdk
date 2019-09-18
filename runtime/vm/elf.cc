@@ -82,8 +82,6 @@ static const intptr_t kElfDynamicTableEntrySize = 16;
 static const intptr_t kElfSymbolHashTableEntrySize = 4;
 #endif
 
-static const intptr_t kPageSize = 4096;
-
 class Section : public ZoneAllocated {
  public:
   Section() {}
@@ -115,23 +113,34 @@ class ProgramBits : public Section {
  public:
   ProgramBits(bool allocate,
               bool executable,
+              bool writable,
               const uint8_t* bytes,
-              intptr_t size) {
+              intptr_t filesz,
+              intptr_t memsz = -1) {
+    if (memsz == -1) memsz = filesz;
+
     section_type = SHT_PROGBITS;
     if (allocate) {
       section_flags = SHF_ALLOC;
       if (executable) section_flags |= SHF_EXECINSTR;
+      if (writable) section_flags |= SHF_WRITE;
 
       segment_type = PT_LOAD;
       segment_flags = PF_R;
       if (executable) segment_flags |= PF_X;
+      if (writable) segment_flags |= PF_W;
     }
 
     bytes_ = bytes;
-    file_size = memory_size = size;
+    file_size = filesz;
+    memory_size = memsz;
   }
 
-  void Write(Elf* stream) { stream->WriteBytes(bytes_, memory_size); }
+  void Write(Elf* stream) {
+    if (bytes_ != nullptr) {
+      stream->WriteBytes(bytes_, file_size);
+    }
+  }
 
   const uint8_t* bytes_;
 };
@@ -371,7 +380,7 @@ static const intptr_t kNumInvalidSections = 1;
 // Elf::segments_.
 static const intptr_t kNumImplicitSegments = 3;
 
-static const intptr_t kProgramTableSegmentSize = kPageSize;
+static const intptr_t kProgramTableSegmentSize = Elf::kPageSize;
 
 Elf::Elf(Zone* zone, StreamingWriteStream* stream)
     : zone_(zone), stream_(stream), memory_offset_(0) {
@@ -415,7 +424,7 @@ intptr_t Elf::NextMemoryOffset() {
 }
 
 intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
-  ProgramBits* image = new (zone_) ProgramBits(true, true, bytes, size);
+  ProgramBits* image = new (zone_) ProgramBits(true, true, false, bytes, size);
   image->section_name = shstrtab_->AddString(".text");
   AddSection(image);
   AddSegment(image);
@@ -434,8 +443,29 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   return symbol->offset;
 }
 
+intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
+  ProgramBits* image = new (zone_)
+      ProgramBits(true, false, true, nullptr, /*filesz=*/0, /*memsz=*/size);
+  image->section_name = shstrtab_->AddString(".bss");
+  AddSection(image);
+  AddSegment(image);
+
+  Symbol* symbol = new (zone_) Symbol();
+  symbol->cstr = name;
+  symbol->name = symstrtab_->AddString(name);
+  symbol->info = (STB_GLOBAL << 4) | STT_OBJECT;
+  symbol->section = image->section_index;
+  // For shared libraries, this is the offset from the DSO base. For static
+  // libraries, this is section relative.
+  symbol->offset = image->memory_offset;
+  symbol->size = size;
+  symtab_->AddSymbol(symbol);
+
+  return symbol->offset;
+}
+
 intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
-  ProgramBits* image = new (zone_) ProgramBits(true, false, bytes, size);
+  ProgramBits* image = new (zone_) ProgramBits(true, false, false, bytes, size);
   image->section_name = shstrtab_->AddString(".rodata");
   AddSection(image);
   AddSegment(image);
@@ -455,7 +485,8 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
 }
 
 void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
-  ProgramBits* image = new (zone_) ProgramBits(false, false, bytes, size);
+  ProgramBits* image =
+      new (zone_) ProgramBits(false, false, false, bytes, size);
   image->section_name = shstrtab_->AddString(name);
   AddSection(image);
 }

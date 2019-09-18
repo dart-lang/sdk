@@ -23,9 +23,12 @@ class Elf : public ZoneAllocated {
  public:
   Elf(Zone* zone, StreamingWriteStream* stream);
 
+  static const intptr_t kPageSize = 4096;
+
   intptr_t NextMemoryOffset();
   intptr_t AddText(const char* name, const uint8_t* bytes, intptr_t size);
   intptr_t AddROData(const char* name, const uint8_t* bytes, intptr_t size);
+  intptr_t AddBSSData(const char* name, intptr_t size);
   void AddDebug(const char* name, const uint8_t* bytes, intptr_t size);
 
   void Finalize();

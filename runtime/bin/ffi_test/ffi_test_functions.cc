@@ -759,7 +759,7 @@ DART_EXPORT int TestThrowExceptionDouble(double (*fn)()) {
 }
 
 DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
-  CHECK_EQ(fn(), reinterpret_cast<void*>(42));
+  CHECK_EQ(fn(), nullptr);
   return 0;
 }
 

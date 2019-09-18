@@ -837,7 +837,7 @@ class Assembler : public AssemblerBase {
                         Register temp);
 
   // Debugging and bringup support.
-  void Breakpoint() { int3(); }
+  void Breakpoint() override { int3(); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

@@ -381,7 +381,8 @@ namespace dart {
   V(Ffi_cast, 1)                                                               \
   V(Ffi_sizeOf, 0)                                                             \
   V(Ffi_asFunctionInternal, 1)                                                 \
-  V(Ffi_fromFunction, 2)                                                       \
+  V(Ffi_nativeCallbackFunction, 2)                                             \
+  V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \

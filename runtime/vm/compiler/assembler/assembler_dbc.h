@@ -43,6 +43,7 @@ class Assembler : public AssemblerBase {
   void MonomorphicCheckedEntryAOT() {}
 
   // Debugging and bringup support.
+  void Breakpoint() override { Stop("Breakpoint!"); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

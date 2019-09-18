@@ -305,7 +305,7 @@ class AssemblerBase : public StackResource {
         prologue_offset_(-1),
         has_single_entry_point_(true),
         object_pool_builder_(object_pool_builder) {}
-  virtual ~AssemblerBase() {}
+  virtual ~AssemblerBase();
 
   intptr_t CodeSize() const { return buffer_.Size(); }
 
@@ -319,6 +319,10 @@ class AssemblerBase : public StackResource {
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
+
+  virtual void Breakpoint() = 0;
+
+  intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
 
   void Unimplemented(const char* message);
   void Untested(const char* message);

@@ -172,6 +172,7 @@ class BytecodeFlowGraphBuilder {
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
   void BuildFfiAsFunction();
+  void BuildFfiNativeCallbackFunction();
   void BuildDebugStepCheck();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \

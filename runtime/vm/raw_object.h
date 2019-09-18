@@ -1528,7 +1528,9 @@ class RawPcDescriptors : public RawObject {
   V(OsrEntry, kRuntimeCall << 1)                                               \
   /* Call rewind target address. */                                            \
   V(Rewind, kOsrEntry << 1)                                                    \
-  V(Other, kRewind << 1)                                                       \
+  /* Target-word-size relocation. */                                           \
+  V(BSSRelocation, kRewind << 1)                                               \
+  V(Other, kBSSRelocation << 1)                                                \
   V(AnyKind, -1)
 
   enum Kind {
