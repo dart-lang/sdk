@@ -53,6 +53,18 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
         .convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
 
 class _StructuredCloneDart2Js extends _StructuredClone {
+  JSObject newJsObject() => JS('JSObject', '{}');
+
+  void forEachObjectKey(object, action(key, value)) {
+    for (final key
+        in JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', object)) {
+      action(key, JS('var', '#[#]', object, key));
+    }
+  }
+
+  void putIntoObject(object, key, value) =>
+      JS('void', '#[#] = #', object, key, value);
+
   newJsMap() => JS('var', '{}');
   putIntoMap(map, key, value) => JS('void', '#[#] = #', map, key, value);
   newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
