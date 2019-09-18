@@ -3043,6 +3043,27 @@ main() {
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38453')
+  test_unconditional_use_of_field_formal_param_does_not_create_hard_edge() async {
+    var content = '''
+class C {
+  int i;
+  int j;
+  C.one(this.i) : j = i + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  int j;
+  C.one(this.i) : j = i! + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
