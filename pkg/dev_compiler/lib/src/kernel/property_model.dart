@@ -161,6 +161,13 @@ class _LibraryVirtualFieldModel {
       if (_extensiblePrivateClasses.contains(class_)) return true;
     }
 
+    if (class_.constructors.any((c) => c.isConst)) {
+      // Always virtualize fields of a (might be) non-enum (see above) const
+      // class.  The way these are lowered by the CFE, they need to be
+      // writable from different modules even if overridden.
+      return true;
+    }
+
     // Otherwise, the field is effectively private and we only need to make it
     // virtual if it's overridden.
     return _overriddenPrivateFields.contains(field);
