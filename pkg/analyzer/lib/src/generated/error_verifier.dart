@@ -4781,9 +4781,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (!expectedType.isVoid && !fromType.isVoid) {
-      var checkWithType = (!_inAsync)
-          ? fromType
-          : _typeProvider.futureType.instantiate(<DartType>[fromType]);
+      var checkWithType =
+          !_inAsync ? fromType : _typeProvider.futureType2(fromType);
       if (_typeSystem.isAssignableTo(checkWithType, expectedType,
           featureSet: _featureSet)) {
         return;

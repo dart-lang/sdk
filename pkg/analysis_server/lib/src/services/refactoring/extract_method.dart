@@ -800,29 +800,28 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     TypeProvider typeProvider = await resolveResult.session.typeProvider;
-    InterfaceType futureType = typeProvider.futureType;
     if (_selectionFunctionExpression != null) {
       variableType = '';
       returnType = '';
     } else if (_returnType == null) {
       variableType = null;
       if (_hasAwait) {
-        returnType = _getTypeCode(futureType);
+        returnType = _getTypeCode(typeProvider.futureDynamicType);
       } else {
         returnType = 'void';
       }
     } else if (_returnType.isDynamic) {
       variableType = '';
       if (_hasAwait) {
-        returnType = _getTypeCode(futureType);
+        returnType = _getTypeCode(typeProvider.futureDynamicType);
       } else {
         returnType = '';
       }
     } else {
       variableType = _getTypeCode(_returnType);
       if (_hasAwait) {
-        if (_returnType.element != futureType.element) {
-          returnType = _getTypeCode(futureType.instantiate([_returnType]));
+        if (_returnType.element != typeProvider.futureElement) {
+          returnType = _getTypeCode(typeProvider.futureType2(_returnType));
         }
       } else {
         returnType = variableType;

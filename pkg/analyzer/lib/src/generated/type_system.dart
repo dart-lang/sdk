@@ -672,7 +672,7 @@ class Dart2TypeSystem extends TypeSystem {
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var t1Future = typeProvider.futureType.instantiate([t1TypeArg]);
+      var t1Future = typeProvider.futureType2(t1TypeArg);
       return isSubtypeOf(t1Future, t2) && isSubtypeOf(t1TypeArg, t2);
     }
 
@@ -680,7 +680,7 @@ class Dart2TypeSystem extends TypeSystem {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
-      var t2Future = typeProvider.futureType.instantiate([t2TypeArg]);
+      var t2Future = typeProvider.futureType2(t2TypeArg);
       return isSubtypeOf(t1, t2Future) || isSubtypeOf(t1, t2TypeArg);
     }
 
@@ -1533,14 +1533,14 @@ class GenericInferrer {
           //  GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
           if (t2.isDartAsyncFutureOr) {
             var t2TypeArg = t2.typeArguments[0];
-            return typeProvider.futureOrType
-                .instantiate([_getGreatestLowerBound(t1TypeArg, t2TypeArg)]);
+            return typeProvider
+                .futureOrType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
           }
           // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
           if (t2.isDartAsyncFuture) {
             var t2TypeArg = t2.typeArguments[0];
-            return typeProvider.futureType
-                .instantiate([_getGreatestLowerBound(t1TypeArg, t2TypeArg)]);
+            return typeProvider
+                .futureType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
           }
         }
         // GLB(FutureOr<A>, B) == GLB(A, B)
@@ -1719,7 +1719,7 @@ class GenericInferrer {
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var t1Future = typeProvider.futureType.instantiate([t1TypeArg]);
+      var t1Future = typeProvider.futureType2(t1TypeArg);
       return matchSubtype(t1Future, t2) && matchSubtype(t1TypeArg, t2);
     }
 
@@ -1727,7 +1727,7 @@ class GenericInferrer {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
-      var t2Future = typeProvider.futureType.instantiate([t2TypeArg]);
+      var t2Future = typeProvider.futureType2(t2TypeArg);
 
       // First we try matching `t1 <: Future<A>`.  If that succeeds *and*
       // records at least one constraint, then we proceed using that constraint.

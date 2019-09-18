@@ -351,21 +351,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase
   }
 
   void test_flatten_related_types() {
-    InterfaceType futureType = _typeProvider.futureType;
     InterfaceType intType = _typeProvider.intType;
     InterfaceType numType = _typeProvider.numType;
     // class A extends Future<int> implements Future<num> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', futureType.instantiate([intType]));
-    classA.interfaces = <InterfaceType>[
-      futureType.instantiate([numType])
-    ];
+        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(numType)];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', futureType.instantiate([numType]));
-    classB.interfaces = <InterfaceType>[
-      futureType.instantiate([intType])
-    ];
+        ElementFactory.classElement('B', _typeProvider.futureType2(numType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     expect(_flatten(interfaceType(classA)), intType);
     expect(_flatten(interfaceType(classB)), intType);
@@ -375,12 +370,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
-    InterfaceType futureIntType =
-        _typeProvider.futureType.instantiate([intType]);
+    InterfaceType futureIntType = _typeProvider.futureType2(intType);
     InterfaceType futureFutureDynamicType =
-        _typeProvider.futureType.instantiate([futureDynamicType]);
+        _typeProvider.futureType2(futureDynamicType);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.instantiate([futureIntType]);
+        _typeProvider.futureType2(futureIntType);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -396,21 +390,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase
   }
 
   void test_flatten_unrelated_types() {
-    InterfaceType futureType = _typeProvider.futureType;
     InterfaceType intType = _typeProvider.intType;
     InterfaceType stringType = _typeProvider.stringType;
     // class A extends Future<int> implements Future<String> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', futureType.instantiate([intType]));
-    classA.interfaces = <InterfaceType>[
-      futureType.instantiate([stringType])
-    ];
+        ElementFactory.classElement('A', _typeProvider.futureType2(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType2(stringType)];
     // class B extends Future<String> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', futureType.instantiate([stringType]));
-    classB.interfaces = <InterfaceType>[
-      futureType.instantiate([intType])
-    ];
+        ElementFactory.classElement('B', _typeProvider.futureType2(stringType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType2(intType)];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
     expect(_flatten(interfaceType(classA)), interfaceType(classA));
@@ -463,10 +452,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase
   void test_visitAwaitExpression_flattened() {
     // await e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[intType]);
+    InterfaceType futureIntType = _typeProvider.futureType2(intType);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
+        _typeProvider.futureType2(futureIntType);
     Expression node = AstTestFactory.awaitExpression(
         _resolvedVariable(futureFutureIntType, 'e'));
     expect(_analyze(node), same(futureIntType));
@@ -476,8 +464,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
   void test_visitAwaitExpression_simple() {
     // await e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[intType]);
+    InterfaceType futureIntType = _typeProvider.futureType2(intType);
     Expression node =
         AstTestFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
     expect(_analyze(node), same(intType));
@@ -659,21 +646,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     FunctionExpression node = _resolvedFunctionExpression(
         AstTestFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        _typeProvider.futureType
-            .instantiate(<DartType>[_typeProvider.dynamicType]),
-        null,
-        null,
-        null,
-        resultType);
+    _assertFunctionType(_typeProvider.futureType2(_typeProvider.dynamicType),
+        null, null, null, resultType);
     _listener.assertNoErrors();
   }
 
   void test_visitFunctionExpression_async_expression_flatten() {
     // () async => e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[intType]);
+    InterfaceType futureIntType = _typeProvider.futureType2(intType);
     Expression expression = _resolvedVariable(futureIntType, 'e');
     ExpressionFunctionBody body =
         AstTestFactory.expressionFunctionBody(expression);
@@ -681,23 +662,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     FunctionExpression node = _resolvedFunctionExpression(
         AstTestFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        _typeProvider.futureType
-            .instantiate(<DartType>[_typeProvider.dynamicType]),
-        null,
-        null,
-        null,
-        resultType);
+    _assertFunctionType(_typeProvider.futureType2(_typeProvider.dynamicType),
+        null, null, null, resultType);
     _listener.assertNoErrors();
   }
 
   void test_visitFunctionExpression_async_expression_flatten_twice() {
     // () async => e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
-    InterfaceType futureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[intType]);
+    InterfaceType futureIntType = _typeProvider.futureType2(intType);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
+        _typeProvider.futureType2(futureIntType);
     Expression expression = _resolvedVariable(futureFutureIntType, 'e');
     ExpressionFunctionBody body =
         AstTestFactory.expressionFunctionBody(expression);
@@ -705,13 +680,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     FunctionExpression node = _resolvedFunctionExpression(
         AstTestFactory.formalParameterList([]), body);
     DartType resultType = _analyze(node);
-    _assertFunctionType(
-        _typeProvider.futureType
-            .instantiate(<DartType>[_typeProvider.dynamicType]),
-        null,
-        null,
-        null,
-        resultType);
+    _assertFunctionType(_typeProvider.futureType2(_typeProvider.dynamicType),
+        null, null, null, resultType);
     _listener.assertNoErrors();
   }
 

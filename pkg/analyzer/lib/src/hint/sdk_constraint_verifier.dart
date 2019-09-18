@@ -246,7 +246,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     }
     Element element = node.staticElement;
     if (checkFutureAndStream &&
-        (element == _typeProvider.futureType.element ||
+        (element == _typeProvider.futureElement ||
             element == _typeProvider.streamType.element)) {
       for (LibraryElement importedLibrary
           in _containingLibrary.importedLibraries) {

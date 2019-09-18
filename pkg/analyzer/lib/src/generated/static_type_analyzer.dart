@@ -1363,8 +1363,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       if (type.isDartAsyncFutureOr) {
         type = (type as InterfaceType).typeArguments[0];
       }
-      DartType futureType = _typeProvider.futureType
-          .instantiate(<DartType>[_typeSystem.flatten(type)]);
+      DartType futureType =
+          _typeProvider.futureType2(_typeSystem.flatten(type));
       return _nonNullable(futureType);
     } else {
       return type;

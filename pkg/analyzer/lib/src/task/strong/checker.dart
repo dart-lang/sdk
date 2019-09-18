@@ -1004,10 +1004,10 @@ class CodeChecker extends RecursiveAstVisitor {
         expectedType = typeProvider.streamType;
       } else {
         // Future<T> -> FutureOr<T>
-        var typeArg = (type.element == typeProvider.futureType.element)
+        var typeArg = (type.element == typeProvider.futureElement)
             ? (type as InterfaceType).typeArguments[0]
             : typeProvider.dynamicType;
-        return typeProvider.futureOrType.instantiate([typeArg]);
+        return typeProvider.futureOrType2(typeArg);
       }
     } else {
       if (body.isGenerator) {
@@ -1128,7 +1128,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // In this case, we're more permissive than assignability.
     if (to.isDartAsyncFutureOr) {
       var to1 = (to as InterfaceType).typeArguments[0];
-      var to2 = typeProvider.futureType.instantiate([to1]);
+      var to2 = typeProvider.futureType2(to1);
       return _needsImplicitCast(expr, to1, from: from) == true ||
           _needsImplicitCast(expr, to2, from: from) == true;
     }

@@ -1154,9 +1154,9 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isMapOf = _assertions.isMapOf;
       _isFunction2Of = _assertions.isFunction2Of;
       _hasElementOf = _assertions.hasElementOf;
-      _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf =
-          _isInstantiationOf(_hasElementOf(typeProvider.futureOrType));
+          _isInstantiationOf(_hasElement(typeProvider.futureOrElement));
       _isFutureOfDynamic = _isFutureOf([_isDynamic]);
       _isFutureOfInt = _isFutureOf([_isInt]);
       _isFutureOfNull = _isFutureOf([_isNull]);

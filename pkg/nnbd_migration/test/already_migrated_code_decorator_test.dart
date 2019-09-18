@@ -52,7 +52,7 @@ class _AlreadyMigratedCodeDecoratorTest {
       DecoratedType decoratedType,
       NullabilityNode expectedNullability,
       void Function(DecoratedType) checkArgument) {
-    expect(decoratedType.type.element, typeProvider.futureOrType.element);
+    expect(decoratedType.type.element, typeProvider.futureOrElement);
     expect(decoratedType.node, expectedNullability);
     checkArgument(decoratedType.typeArguments[0]);
   }
@@ -216,7 +216,7 @@ class _AlreadyMigratedCodeDecoratorTest {
   }
 
   test_getImmediateSupertypes_future() {
-    var element = typeProvider.futureType.element;
+    var element = typeProvider.futureElement;
     var decoratedSupertypes =
         decorator.getImmediateSupertypes(element).toList();
     var typeParam = element.typeParameters[0];

@@ -58,7 +58,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
-  ClassElement get futureElement => typeProvider.futureType.element;
+  ClassElement get futureElement => typeProvider.futureElement;
 
   ClassElement get intElement => typeProvider.intType.element;
 

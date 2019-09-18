@@ -93,8 +93,7 @@ class AlreadyMigratedCodeDecorator {
     var type = class_.type;
     if (type.isDartAsyncFuture) {
       // Add FutureOr<T> as a supertype of Future<T>.
-      allSupertypes
-          .add(_typeProvider.futureOrType.instantiate(type.typeArguments));
+      allSupertypes.add(_typeProvider.futureOrType2(type.typeArguments.single));
     }
     return allSupertypes.map(decorate);
   }

@@ -73,12 +73,12 @@ abstract class AbstractTypeSystemTest {
   DartType get voidType => VoidTypeImpl.instance;
 
   DartType futureOrType(DartType T) {
-    var futureOrElement = typeProvider.futureOrType.element;
+    var futureOrElement = typeProvider.futureOrElement;
     return _interfaceType(futureOrElement, typeArguments: [T]);
   }
 
   DartType futureType(DartType T) {
-    var futureElement = typeProvider.futureType.element;
+    var futureElement = typeProvider.futureElement;
     return _interfaceType(futureElement, typeArguments: [T]);
   }
 
@@ -3448,7 +3448,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
+    var element = typeProvider.futureOrElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],
@@ -3457,7 +3457,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
+    var element = typeProvider.futureOrElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],
@@ -3466,7 +3466,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
+    var element = typeProvider.futureOrElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],

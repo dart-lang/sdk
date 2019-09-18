@@ -103,7 +103,7 @@ mixin ElementsTypesMixin {
   }
 
   DartType futureType(DartType T) {
-    var futureElement = typeProvider.futureType.element;
+    var futureElement = typeProvider.futureElement;
     return interfaceType(futureElement, typeArguments: [T]);
   }
 

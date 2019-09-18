@@ -2196,7 +2196,7 @@ mixin _AssignmentChecker {
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
       // - either T0 <: Future<S1>
       if (_typeSystem.isSubtypeOf(
-          sourceType, _typeProvider.futureType.instantiate([s1.type]))) {
+          sourceType, _typeProvider.futureType2(s1.type))) {
         // E.g. FutureOr<int> = (... as Future<int>)
         // This is handled by the InterfaceType logic below, since we treat
         // FutureOr as a supertype of Future.

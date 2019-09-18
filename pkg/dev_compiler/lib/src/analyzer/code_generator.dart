@@ -1003,10 +1003,10 @@ class CodeGenerator extends Object
       }
     }
     if (classElem.library.isDartAsync) {
-      if (classElem == types.futureOrType.element) {
+      if (classElem == types.futureOrElement) {
         var typeParamT = classElem.typeParameters[0].type;
         var typeT = _emitType(typeParamT);
-        var futureOfT = _emitType(types.futureType.instantiate([typeParamT]));
+        var futureOfT = _emitType(types.futureType2(typeParamT));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
               return #.is(o) || #.is(o);
@@ -2966,7 +2966,7 @@ class CodeGenerator extends Object
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn([]);
-    var dartAsync = types.futureType.element.library;
+    var dartAsync = types.futureElement.library;
     return js.call('#.async(#, #)',
         [emitLibraryName(dartAsync), _emitType(returnType), gen]);
   }
@@ -5866,7 +5866,7 @@ class CodeGenerator extends Object
       body.accept(finder);
       if (finder.hasYield) {
         var genFn = js_ast.Fun([], body, isGenerator: true);
-        var asyncLibrary = emitLibraryName(types.futureType.element.library);
+        var asyncLibrary = emitLibraryName(types.futureElement.library);
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
       }
@@ -6278,19 +6278,19 @@ class CodeGenerator extends Object
     }
     var type = functionType.returnType;
 
-    InterfaceType expectedType;
+    ClassElement expectedElement;
     if (element.isAsynchronous) {
       if (element.isGenerator) {
         // Stream<T> -> T
-        expectedType = types.streamType;
+        expectedElement = types.streamElement;
       } else {
         // Future<T> -> T
-        expectedType = types.futureType;
+        expectedElement = types.futureElement;
       }
     } else {
       if (element.isGenerator) {
         // Iterable<T> -> T
-        expectedType = types.iterableType;
+        expectedElement = types.iterableElement;
       } else {
         // T -> T
         return type;
@@ -6298,9 +6298,9 @@ class CodeGenerator extends Object
     }
     if (type.isDynamic) return type;
     if (type is InterfaceType &&
-        (type.element == expectedType.element ||
-            expectedType == types.futureType &&
-                type.element == types.futureOrType.element)) {
+        (type.element == expectedElement ||
+            expectedElement == types.futureElement &&
+                type.element == types.futureOrElement)) {
       return type.typeArguments[0];
     }
     // TODO(leafp): The above only handles the case where the return type

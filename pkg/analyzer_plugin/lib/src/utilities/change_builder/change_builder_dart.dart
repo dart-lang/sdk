@@ -1311,23 +1311,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   void replaceTypeWithFuture(
       TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
-    InterfaceType futureType = typeProvider.futureType;
     //
     // Check whether the type needs to be replaced.
     //
     DartType type = typeAnnotation?.type;
-    if (type == null ||
-        type.isDynamic ||
-        type is InterfaceType && type.element == futureType.element) {
+    if (type == null || type.isDynamic || type.isDartAsyncFuture) {
       return;
     }
-    // TODO(brianwilkerson) Unconditionally execute the body of the 'if' when
-    // Future<void> is fully supported.
-    if (!type.isVoid) {
-      futureType = futureType.instantiate(<DartType>[type]);
-    }
-    // prepare code for the types
+
     addReplacement(range.node(typeAnnotation), (EditBuilder builder) {
+      var futureType = typeProvider.futureType2(type);
       if (!(builder as DartEditBuilder).writeType(futureType)) {
         builder.write('void');
       }
