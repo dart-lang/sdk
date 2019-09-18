@@ -244,9 +244,9 @@ class FlowAnalysisHelper {
     return false;
   }
 
-  void loopVariable(DeclaredIdentifier loopVariable) {
-    if (loopVariable != null) {
-      flow.add(loopVariable.declaredElement, assigned: true);
+  void loopVariable(DeclaredIdentifier declaredVariable) {
+    if (declaredVariable != null) {
+      flow.add(declaredVariable.declaredElement, assigned: false);
     }
   }
 
@@ -427,6 +427,16 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       iterable.accept(this);
 
       assignedVariables.beginNode();
+      if (forLoopParts is ForEachPartsWithIdentifier) {
+        var element = forLoopParts.identifier.staticElement;
+        if (element is VariableElement) {
+          assignedVariables.write(element);
+        }
+      } else if (forLoopParts is ForEachPartsWithDeclaration) {
+        assignedVariables.write(forLoopParts.loopVariable.declaredElement);
+      } else {
+        throw new StateError('Unrecognized for loop parts');
+      }
       body.accept(this);
       assignedVariables.endNode(node);
     } else {

@@ -331,9 +331,22 @@ main() {
         h.declare(x, initialized: true);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
-        flow.forEach_bodyBegin({x});
+        flow.forEach_bodyBegin({x}, null);
         expect(flow.promotedType(x), isNull);
         flow.forEach_end();
+      });
+    });
+
+    test('forEach_bodyBegin() writes to loop variable', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: false);
+        expect(flow.isAssigned(x), false);
+        flow.forEach_bodyBegin({x}, x);
+        expect(flow.isAssigned(x), true);
+        flow.forEach_end();
+        expect(flow.isAssigned(x), false);
       });
     });
 
@@ -342,7 +355,7 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
-        flow.forEach_bodyBegin({});
+        flow.forEach_bodyBegin({}, null);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.forEach_end();

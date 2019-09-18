@@ -3850,18 +3850,19 @@ class ResolverVisitor extends ScopedVisitor {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
       DartType valueType;
+      Element identifierElement;
       if (forLoopParts is ForEachPartsWithDeclaration) {
         loopVariable = forLoopParts.loopVariable;
         valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
       } else if (forLoopParts is ForEachPartsWithIdentifier) {
         SimpleIdentifier identifier = forLoopParts.identifier;
         identifier?.accept(this);
-        Element element = identifier?.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
+        identifierElement = identifier?.staticElement;
+        if (identifierElement is VariableElement) {
+          valueType = identifierElement.type;
+        } else if (identifierElement is PropertyAccessorElement) {
+          if (identifierElement.parameters.isNotEmpty) {
+            valueType = identifierElement.parameters[0].type;
           }
         }
       }
@@ -3880,7 +3881,10 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
       _flowAnalysis?.flow?.forEach_bodyBegin(
-          _flowAnalysis.assignedVariables.writtenInNode(node));
+          _flowAnalysis.assignedVariables.writtenInNode(node),
+          identifierElement is VariableElement
+              ? identifierElement
+              : loopVariable.declaredElement);
       node.body?.accept(this);
       _flowAnalysis?.flow?.forEach_end();
 
@@ -3920,6 +3924,7 @@ class ResolverVisitor extends ScopedVisitor {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
       SimpleIdentifier identifier;
+      Element identifierElement;
       if (forLoopParts is ForEachPartsWithDeclaration) {
         loopVariable = forLoopParts.loopVariable;
       } else if (forLoopParts is ForEachPartsWithIdentifier) {
@@ -3933,12 +3938,12 @@ class ResolverVisitor extends ScopedVisitor {
         valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
       }
       if (identifier != null) {
-        Element element = identifier.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
+        identifierElement = identifier.staticElement;
+        if (identifierElement is VariableElement) {
+          valueType = identifierElement.type;
+        } else if (identifierElement is PropertyAccessorElement) {
+          if (identifierElement.parameters.isNotEmpty) {
+            valueType = identifierElement.parameters[0].type;
           }
         }
       }
@@ -3957,8 +3962,10 @@ class ResolverVisitor extends ScopedVisitor {
       loopVariable?.accept(this);
 
       _flowAnalysis?.flow?.forEach_bodyBegin(
-        _flowAnalysis.assignedVariables.writtenInNode(node),
-      );
+          _flowAnalysis.assignedVariables.writtenInNode(node),
+          identifierElement is VariableElement
+              ? identifierElement
+              : loopVariable.declaredElement);
 
       Statement body = node.body;
       if (body != null) {

@@ -1816,7 +1816,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
       }
       _checkExpressionNotNull(parts.iterable);
-      _flowAnalysis.forEach_bodyBegin(_assignedVariables.writtenInNode(node));
+      _flowAnalysis.forEach_bodyBegin(
+          _assignedVariables.writtenInNode(node), null);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new
