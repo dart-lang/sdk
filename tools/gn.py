@@ -408,9 +408,14 @@ def parse_args(args):
     other_group.add_argument(
         '--bytecode',
         '-b',
-        help='Include bytecode in the VMs platform dill',
-        default=False,
+        help='Use bytecode in Dart VM',
+        default=True,
         action="store_true")
+    other_group.add_argument(
+        '--no-bytecode',
+        help='Disable bytecode in Dart VM',
+        dest='bytecode',
+        action="store_false")
     other_group.add_argument(
         '--clang', help='Use Clang', default=True, action='store_true')
     other_group.add_argument(
