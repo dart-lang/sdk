@@ -313,6 +313,14 @@ Future<int> main() async {
       '--incremental',
     ];
 
+    Directory tempDir;
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync();
+    });
+    tearDown(() {
+      tempDir.delete(recursive: true);
+    });
+
     test('compile then accept', () async {
       final StreamController<List<int>> inputStreamController =
           new StreamController<List<int>>();
@@ -359,11 +367,13 @@ Future<int> main() async {
         binaryPrinterFactory: printerFactory,
       );
 
-      inputStreamController.add('compile file1.dart\n'.codeUnits);
+      final source = new File('${tempDir.path}/file1.dart');
+      inputStreamController.add('compile ${source.path}\n'.codeUnits);
       await receivedResult.first;
       inputStreamController.add('accept\n'.codeUnits);
       receivedResult = new ReceivePort();
-      inputStreamController.add('recompile def\nfile1.dart\ndef\n'.codeUnits);
+      inputStreamController
+          .add('recompile def\n${source.path}\ndef\n'.codeUnits);
       await receivedResult.first;
 
       inputStreamController.add('quit\n'.codeUnits);
@@ -989,9 +999,39 @@ true
         '--platform=${platformKernel.path}',
         '--output-dill=${dillFile.path}',
         '--gen-bytecode',
+        '--drop-ast',
         file.path,
       ];
       expect(await starter(args), 0);
+    });
+
+    test('compile with bytecode and produce deps file', () async {
+      var sourceFoo = new File('${tempDir.path}/foo.dart')..createSync();
+      sourceFoo.writeAsStringSync("import 'bar.dart'; main() { barfunc(); }\n");
+      var sourceBar = new File('${tempDir.path}/bar.dart')..createSync();
+      sourceBar.writeAsStringSync("barfunc() {}\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      var depFile = new File('${tempDir.path}/app.dill.d');
+      expect(depFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--depfile=${depFile.path}',
+        '--gen-bytecode',
+        '--drop-ast',
+        sourceFoo.path,
+      ];
+      expect(await starter(args), 0);
+      expect(depFile.existsSync(), true);
+      var depContents = depFile.readAsStringSync();
+      print(depContents);
+      var depContentsParsed = depContents.split(': ');
+      expect(path.basename(depContentsParsed[0]), path.basename(dillFile.path));
+      expect(depContentsParsed[1], contains(path.basename(sourceFoo.path)));
+      expect(depContentsParsed[1], contains(path.basename(sourceBar.path)));
     });
 
     test('compile "package:"-file', () async {

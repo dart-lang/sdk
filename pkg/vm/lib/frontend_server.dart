@@ -361,6 +361,7 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     Component component;
+    Iterable<Uri> compiledSources;
     if (options['incremental']) {
       _compilerOptions = compilerOptions;
       _bytecodeOptions = bytecodeOptions;
@@ -370,8 +371,11 @@ class FrontendCompiler implements CompilerInterface {
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
-      component = await _runWithPrintRedirection(() async =>
-          await _generateBytecodeIfNeeded(await _generator.compile()));
+      component = await _runWithPrintRedirection(() async {
+        final c = await _generator.compile();
+        compiledSources = c.uriToSource.keys;
+        return await _generateBytecodeIfNeeded(c);
+      });
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -380,7 +384,7 @@ class FrontendCompiler implements CompilerInterface {
           sdkRoot.resolve(platformKernelDill)
         ];
       }
-      component = await _runWithPrintRedirection(() => compileToKernel(
+      final results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
@@ -389,6 +393,8 @@ class FrontendCompiler implements CompilerInterface {
           bytecodeOptions: bytecodeOptions,
           dropAST: options['drop-ast'],
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
+      component = results.component;
+      compiledSources = results.compiledSources;
     }
     if (component != null) {
       if (transformer != null) {
@@ -399,12 +405,12 @@ class FrontendCompiler implements CompilerInterface {
           filterExternal: importDill != null);
 
       _outputStream.writeln(boundaryKey);
-      await _outputDependenciesDelta(component);
+      await _outputDependenciesDelta(compiledSources);
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
-        await writeDepfile(compilerOptions.fileSystem, component,
+        await writeDepfile(compilerOptions.fileSystem, compiledSources,
             _kernelBinaryFilename, depfile);
       }
 
@@ -430,9 +436,9 @@ class FrontendCompiler implements CompilerInterface {
     return component;
   }
 
-  void _outputDependenciesDelta(Component component) async {
+  void _outputDependenciesDelta(Iterable<Uri> compiledSources) async {
     Set<Uri> uris = new Set<Uri>();
-    for (Uri uri in component.uriToSource.keys) {
+    for (Uri uri in compiledSources) {
       // Skip empty or corelib dependencies.
       if (uri == null || uri.scheme == 'org-dartlang-sdk') continue;
       uris.add(uri);
@@ -557,10 +563,11 @@ class FrontendCompiler implements CompilerInterface {
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
+    final compiledSources = deltaProgram.uriToSource.keys;
     deltaProgram = await _generateBytecodeIfNeeded(deltaProgram);
     await writeDillFile(deltaProgram, _kernelBinaryFilename);
     _outputStream.writeln(boundaryKey);
-    await _outputDependenciesDelta(deltaProgram);
+    await _outputDependenciesDelta(compiledSources);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
