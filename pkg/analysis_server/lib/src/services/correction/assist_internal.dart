@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
@@ -61,6 +62,7 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposals_addTypeAnnotation();
     }
+    await _addProposal_addNotNullAssert();
     await _addProposal_assignToLocalVariable();
     await _addProposal_convertClassToMixin();
     await _addProposal_convertDocumentationIntoBlock();
@@ -223,6 +225,42 @@ class AssistProcessor extends BaseProcessor {
     change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(new Assist(kind, change));
+  }
+
+  Future<void> _addProposal_addNotNullAssert() async {
+    if (node is SimpleIdentifier) {
+      if (node.parent is FormalParameter) {
+        final exp = node.parent.thisOrAncestorMatching(
+            (node) => node is FunctionExpression || node is MethodDeclaration);
+        var body;
+        if (exp is FunctionExpression) {
+          body = exp.body;
+        } else if (exp is MethodDeclaration) {
+          body = exp.body;
+        }
+        if (body is BlockFunctionBody) {
+          final changeBuilder = _newDartChangeBuilder();
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            final id = (node as SimpleIdentifier).name;
+            final prefix = utils.getNodePrefix(exp);
+            final indent = utils.getIndent(1);
+            // todo (pq): follow-ups:
+            // 1. if the end token is on the same line as the body
+            // we should add an `eol` before the assert as well.
+            // 2. also, consider asking the block for the list of statements and
+            // adding the statement to the beginning of the list, special casing
+            // when there are no statements (or when there's a single statement
+            // and the whole block is on the same line).
+            final int offset = min(utils.getLineNext(body.beginToken.offset),
+                body.endToken.offset);
+            builder.addSimpleInsertion(
+                offset, '$prefix${indent}assert($id != null);$eol');
+            _addAssistFromBuilder(
+                changeBuilder, DartAssistKind.ADD_NOT_NULL_ASSERT);
+          });
+        }
+      }
+    }
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {
