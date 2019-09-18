@@ -78,12 +78,12 @@ class MirrorSystem {
 
   @patch
   static Symbol getSymbol(String name, [LibraryMirror library]) {
-    if ((library != null && library is! _LocalLibraryMirror) ||
+    if ((library != null && library is! _LibraryMirror) ||
         ((name.length > 0) && (name[0] == '_') && (library == null))) {
       throw new ArgumentError(library);
     }
     if (library != null) {
-      name = _mangleName(name, (library as _LocalLibraryMirror)._reflectee);
+      name = _mangleName(name, (library as _LibraryMirror)._reflectee);
     }
     return new internal.Symbol.unvalidated(name);
   }
