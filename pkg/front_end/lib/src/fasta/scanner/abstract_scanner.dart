@@ -73,6 +73,10 @@ abstract class AbstractScanner implements Scanner {
   /// and https://github.com/dart-lang/language/issues/60
   bool _enableTripleShift = false;
 
+  /// Experimental flag for enabling variance.
+  /// See https://github.com/dart-lang/language/issues/524
+  bool _enableVariance = false;
+
   /**
    * The string offset for the next token that will be created.
    *
@@ -139,6 +143,7 @@ abstract class AbstractScanner implements Scanner {
       _enableExtensionMethods = config.enableExtensionMethods;
       _enableNonNullable = config.enableNonNullable;
       _enableTripleShift = config.enableTripleShift;
+      _enableVariance = config.enableVariance;
     }
   }
 
@@ -1483,6 +1488,10 @@ abstract class AbstractScanner implements Scanner {
         (state.keyword == Keyword.LATE || state.keyword == Keyword.REQUIRED)) {
       return tokenizeIdentifier(next, start, allowDollar);
     }
+    if (!_enableVariance &&
+        (state.keyword == Keyword.OUT || state.keyword == Keyword.INOUT)) {
+      return tokenizeIdentifier(next, start, allowDollar);
+    }
     if (($A <= next && next <= $Z) ||
         ($0 <= next && next <= $9) ||
         identical(next, $_) ||
@@ -1907,13 +1916,19 @@ class ScannerConfiguration {
   /// and https://github.com/dart-lang/language/issues/60
   final bool enableTripleShift;
 
+  /// Experimental flag for enabling variance.
+  /// See https://github.com/dart-lang/language/issues/524
+  final bool enableVariance;
+
   const ScannerConfiguration({
     bool enableExtensionMethods,
     bool enableNonNullable,
     bool enableTripleShift,
+    bool enableVariance,
   })  : this.enableExtensionMethods = enableExtensionMethods ?? false,
         this.enableNonNullable = enableNonNullable ?? false,
-        this.enableTripleShift = enableTripleShift ?? false;
+        this.enableTripleShift = enableTripleShift ?? false,
+        this.enableVariance = enableVariance ?? false;
 }
 
 bool _isIdentifierChar(int next, bool allowDollar) {
