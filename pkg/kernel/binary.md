@@ -228,7 +228,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isExternal, isSynthetic, isNonNullableOptedIn);
+  Byte flags (isExternal, isSynthetic, isNonNullableByDefault);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;

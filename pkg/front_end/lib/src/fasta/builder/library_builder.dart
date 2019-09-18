@@ -4,7 +4,7 @@
 
 library fasta.library_builder;
 
-import 'package:kernel/ast.dart' show Library;
+import 'package:kernel/ast.dart' show Library, Nullability;
 
 import '../combinator.dart' show Combinator;
 
@@ -274,6 +274,23 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   // TODO(38287): Compute the predicate using the library version instead.
   bool get isNonNullableByDefault => loader.target.enableNonNullable;
+
+  Nullability get nullable {
+    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
+  }
+
+  Nullability get nonNullable {
+    return isNonNullableByDefault
+        ? Nullability.nonNullable
+        : Nullability.legacy;
+  }
+
+  Nullability nullableIfTrue(bool isNullable) {
+    if (isNonNullableByDefault) {
+      return isNullable ? Nullability.nullable : Nullability.nonNullable;
+    }
+    return Nullability.legacy;
+  }
 
   NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
     if (!isNonNullableByDefault) {

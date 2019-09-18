@@ -330,7 +330,7 @@ class Library extends NamedNode
 
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
-  static const int NonNullableOptedInFlag = 1 << 2;
+  static const int NonNullableByDefaultFlag = 1 << 2;
 
   int flags = 0;
 
@@ -355,11 +355,11 @@ class Library extends NamedNode
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
   }
 
-  bool get isNonNullableOptedIn => (flags & NonNullableOptedInFlag) != 0;
-  void set isNonNullableOptedIn(bool value) {
+  bool get isNonNullableByDefault => (flags & NonNullableByDefaultFlag) != 0;
+  void set isNonNullableByDefault(bool value) {
     flags = value
-        ? (flags | NonNullableOptedInFlag)
-        : (flags & ~NonNullableOptedInFlag);
+        ? (flags | NonNullableByDefaultFlag)
+        : (flags & ~NonNullableByDefaultFlag);
   }
 
   String name;
@@ -418,6 +418,23 @@ class Library extends NamedNode
     setParents(this.extensions, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+  }
+
+  Nullability get nullable {
+    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
+  }
+
+  Nullability get nonNullable {
+    return isNonNullableByDefault
+        ? Nullability.nonNullable
+        : Nullability.legacy;
+  }
+
+  Nullability nullableIfTrue(bool isNullable) {
+    if (isNonNullableByDefault) {
+      return isNullable ? Nullability.nullable : Nullability.nonNullable;
+    }
+    return Nullability.legacy;
   }
 
   /// Returns the top-level fields and procedures defined in this library.
