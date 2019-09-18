@@ -366,6 +366,9 @@ ASSEMBLER_TEST_GENERATE(Popcnt, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Popcnt, test) {
+  if (!HostCPUFeatures::popcnt_supported()) {
+    return;
+  }
   typedef int (*PopcntCode)();
   EXPECT_EQ(36, reinterpret_cast<PopcntCode>(test->entry())());
   EXPECT_DISASSEMBLY(
@@ -387,6 +390,9 @@ ASSEMBLER_TEST_GENERATE(Lzcnt, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Lzcnt, test) {
+  if (!HostCPUFeatures::abm_supported()) {
+    return;
+  }
   typedef int (*LzcntCode)();
   EXPECT_EQ(44, reinterpret_cast<LzcntCode>(test->entry())());
   EXPECT_DISASSEMBLY(

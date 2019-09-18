@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/cpu.h"
 #include "vm/os.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
@@ -626,6 +627,12 @@ ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
 }
 
 ASSEMBLER_TEST_RUN(Testb2, test) {
+  // TODO(ajcbik): split out popcount and lzcnt.
+  if (!HostCPUFeatures::popcnt_supported() ||
+      !HostCPUFeatures::abm_supported()) {
+    return;
+  }
+
   typedef int64_t (*Testb2Code)();
   EXPECT_EQ(42, reinterpret_cast<Testb2Code>(test->entry())());
   EXPECT_DISASSEMBLY(
