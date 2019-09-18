@@ -553,7 +553,7 @@ ASSEMBLER_TEST_RUN(Testb, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
-  Label done, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10;
+  Label done, ok1, ok2, ok3, ok4, ok5, ok6, ok7;
 
   __ movq(RAX, Immediate(0xffffefff));
   __ bsrq(RCX, RAX);
@@ -601,38 +601,11 @@ ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
   __ int3();
   __ Bind(&ok7);
 
-  __ movq(RAX, Immediate(-1));
-  __ popcntq(RCX, RAX);
-  __ cmpq(RCX, Immediate(64));
-  __ j(EQUAL, &ok8);
-  __ int3();
-  __ Bind(&ok8);
-
-  __ movq(RAX, Immediate(0xf));
-  __ popcntq(RCX, RAX);
-  __ cmpq(RCX, Immediate(4));
-  __ j(EQUAL, &ok9);
-  __ int3();
-  __ Bind(&ok9);
-
-  __ movq(RAX, Immediate(0x7fffeff0));
-  __ lzcntq(RCX, RAX);
-  __ cmpq(RCX, Immediate(33));
-  __ j(EQUAL, &ok10);
-  __ int3();
-  __ Bind(&ok10);
-
   __ movq(RAX, Immediate(42));
   __ ret();
 }
 
 ASSEMBLER_TEST_RUN(Testb2, test) {
-  // TODO(ajcbik): split out popcount and lzcnt.
-  if (!HostCPUFeatures::popcnt_supported() ||
-      !HostCPUFeatures::abm_supported()) {
-    return;
-  }
-
   typedef int64_t (*Testb2Code)();
   EXPECT_EQ(42, reinterpret_cast<Testb2Code>(test->entry())());
   EXPECT_DISASSEMBLY(
@@ -675,24 +648,6 @@ ASSEMBLER_TEST_RUN(Testb2, test) {
       "jz 0x................\n"
       "int3\n"
 
-      "movq rax,-1\n"
-      "popcntq rcx,rax\n"
-      "cmpq rcx,0x40\n"
-      "jz 0x................\n"
-      "int3\n"
-
-      "movl rax,0xf\n"
-      "popcntq rcx,rax\n"
-      "cmpq rcx,4\n"
-      "jz 0x................\n"
-      "int3\n"
-
-      "movl rax,0x........\n"
-      "lzcntq rcx,rax\n"
-      "cmpq rcx,0x21\n"
-      "jz 0x................\n"
-      "int3\n"
-
       "movl rax,0x2a\n"
       "ret\n");
 }
@@ -726,6 +681,54 @@ ASSEMBLER_TEST_RUN(Testb3, test) {
       "ret\n"
       "movl rax,0\n"
       "pop rcx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Popcnt, assembler) {
+  __ movq(RCX, Immediate(-1));
+  __ popcntq(RAX, RCX);
+  __ movq(RCX, Immediate(0xf));
+  __ popcntq(RCX, RCX);
+  __ addq(RAX, RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Popcnt, test) {
+  if (!HostCPUFeatures::popcnt_supported()) {
+    return;
+  }
+  typedef int64_t (*PopcntCode)();
+  EXPECT_EQ(68, reinterpret_cast<PopcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movq rcx,-1\n"
+      "popcntq rax,rcx\n"
+      "movl rcx,0xf\n"
+      "popcntq rcx,rcx\n"
+      "addq rax,rcx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Lzcnt, assembler) {
+  __ movq(RCX, Immediate(0x0f00));
+  __ lzcntq(RAX, RCX);
+  __ movq(RCX, Immediate(0x00f0));
+  __ lzcntq(RCX, RCX);
+  __ addq(RAX, RCX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Lzcnt, test) {
+  if (!HostCPUFeatures::abm_supported()) {
+    return;
+  }
+  typedef int64_t (*LzcntCode)();
+  EXPECT_EQ(108, reinterpret_cast<LzcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "movl rcx,0x...\n"
+      "lzcntq rax,rcx\n"
+      "movl rcx,0xf0\n"
+      "lzcntq rcx,rcx\n"
+      "addq rax,rcx\n"
       "ret\n");
 }
 
