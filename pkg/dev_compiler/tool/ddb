@@ -106,7 +106,7 @@ void main(List<String> args) async {
   var ddcPath = p.dirname(p.dirname(toolPath));
   var dartCheckoutPath = p.dirname(p.dirname(ddcPath));
 
-  ProcessResult runDdc(String command, List<String> args) {
+  Future<void> runDdc(String command, List<String> args) async {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
       args.insertAll(
@@ -116,18 +116,9 @@ void main(List<String> args) async {
       // Use built snapshot.
       command = p.join(dartSdk, 'bin', command);
     }
-    return Process.runSync(command, args);
-  }
-
-  /// Writes stdout and stderr from [result] to this process.
-  ///
-  /// Will exit with the exit code from [result] when it's not zero.
-  void echoResult(ProcessResult result) async {
-    stdout.write(result.stdout);
-    await stdout.flush();
-    stderr.write(result.stderr);
-    await stderr.flush();
-    if (result.exitCode != 0) exit(result.exitCode);
+    var process =
+        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
+    if (await process.exitCode != 0) exit(await process.exitCode);
   }
 
   String mod;
@@ -163,7 +154,6 @@ void main(List<String> args) async {
   ddcSdk = p.join(
       dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
 
-  ProcessResult result;
   if (compile) {
     var ddcArgs = [
       if (kernel) '--kernel',
@@ -181,8 +171,7 @@ void main(List<String> args) async {
       entry
     ];
 
-    result = runDdc('dartdevc', ddcArgs);
-    await echoResult(result);
+    await runDdc('dartdevc', ddcArgs);
   }
 
   if (run) {
@@ -222,13 +211,17 @@ void main(List<String> args) async {
       File(htmlFile).writeAsStringSync(html);
       var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
-      result = Process.runSync(chromeBinary, [
-        '--auto-open-devtools-for-tabs',
-        '--allow-file-access-from-files',
-        '--remote-debugging-port=$port',
-        '--user-data-dir=$tmp',
-        htmlFile
-      ]);
+      var process = await Process.start(
+          chromeBinary,
+          [
+            '--auto-open-devtools-for-tabs',
+            '--allow-file-access-from-files',
+            '--remote-debugging-port=$port',
+            '--user-data-dir=$tmp',
+            htmlFile
+          ],
+          mode: ProcessStartMode.inheritStdio);
+      if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (node) {
       var nodePath = '$sdkJsPath:$libRoot';
       var runjs = '''
@@ -253,9 +246,11 @@ try {
       var nodeFile = p.setExtension(entry, '.run.js');
       File(nodeFile).writeAsStringSync(runjs);
       var nodeBinary = binary ?? 'node';
-      result = Process.runSync(
+      var process = await Process.start(
           nodeBinary, ['--inspect=localhost:$port', nodeFile],
-          environment: {'NODE_PATH': nodePath});
+          environment: {'NODE_PATH': nodePath},
+          mode: ProcessStartMode.inheritStdio);
+      if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
       // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
       // to the SDK.
@@ -280,9 +275,10 @@ try {
       var d8File = p.setExtension(entry, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
-      result = Process.runSync(d8Binary, ['--module', d8File]);
+      var process = await Process.start(d8Binary, ['--module', d8File],
+          mode: ProcessStartMode.inheritStdio);
+      if (await process.exitCode != 0) exit(await process.exitCode);
     }
-    await echoResult(result);
   }
 }
 
