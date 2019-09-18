@@ -613,6 +613,13 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   const intptr_t num_type_params = reader_.ReadUInt();
   ASSERT(num_type_params > 0);
 
+  intptr_t offset;
+  if (!parameterized_class.IsNull()) {
+    offset = parameterized_class.NumTypeArguments() - num_type_params;
+  } else {
+    offset = parameterized_function.NumParentTypeParameters();
+  }
+
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
   //
@@ -628,6 +635,8 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     parameter = TypeParameter::New(
         parameterized_class, parameterized_function, i, name, bound,
         /* is_generic_covariant_impl = */ false, TokenPosition::kNoSource);
+    parameter.set_index(offset + i);
+    parameter.SetIsFinalized();
     type_parameters.SetTypeAt(i, parameter);
   }
 
@@ -1647,10 +1656,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
       } else {
         UNREACHABLE();
       }
-      AbstractType& type =
-          AbstractType::Handle(Z, type_parameters.TypeAt(index_in_parent));
-      // TODO(alexmarkov): skip type finalization
-      return ClassFinalizer::FinalizeType(*active_class_->klass, type);
+      return type_parameters.TypeAt(index_in_parent);
     }
     case kGenericType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
