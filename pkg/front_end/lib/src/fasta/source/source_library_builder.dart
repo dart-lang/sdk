@@ -1991,9 +1991,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
       TypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
+      NullabilityBuilder nullabilityBuilder,
       int charOffset) {
-    FunctionTypeBuilder builder =
-        new FunctionTypeBuilder(returnType, typeVariables, formals);
+    FunctionTypeBuilder builder = new FunctionTypeBuilder(
+        returnType, typeVariables, formals, nullabilityBuilder);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.

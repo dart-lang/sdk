@@ -35,6 +35,19 @@ class NullabilityBuilder {
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
+  factory NullabilityBuilder.fromNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.nullable:
+        return const NullabilityBuilder.nullable();
+      case Nullability.legacy:
+        return const NullabilityBuilder.legacy();
+      case Nullability.nonNullable:
+      case Nullability.neither:
+      default:
+        return const NullabilityBuilder.omitted();
+    }
+  }
+
   /// Used temporarily in the places that need proper handling of NNBD features.
   ///
   /// Over time the uses of [NullabilityBuilder.pendingImplementation] should be

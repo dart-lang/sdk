@@ -1388,7 +1388,11 @@ class OutlineBuilder extends StackListener {
     TypeBuilder returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
     push(library.addFunctionType(
-        returnType, typeVariables, formals, functionToken.charOffset));
+        returnType,
+        typeVariables,
+        formals,
+        library.computeNullabilityFromToken(questionMark != null),
+        functionToken.charOffset));
   }
 
   @override
@@ -1401,8 +1405,8 @@ class OutlineBuilder extends StackListener {
     if (!library.loader.target.enableNonNullable) {
       reportErrorIfNullableType(question);
     }
-    push(library.addFunctionType(
-        returnType, typeVariables, formals, formalsOffset));
+    push(library.addFunctionType(returnType, typeVariables, formals,
+        library.computeNullabilityFromToken(question != null), formalsOffset));
   }
 
   @override
@@ -1432,8 +1436,9 @@ class OutlineBuilder extends StackListener {
       library.beginNestedDeclaration(
           TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
-      functionType =
-          library.addFunctionType(returnType, null, formals, charOffset);
+      // TODO(dmitryas): Make sure that RHS of typedefs can't have '?'.
+      functionType = library.addFunctionType(returnType, null, formals,
+          const NullabilityBuilder.omitted(), charOffset);
     } else {
       Object type = pop();
       typeVariables = pop();

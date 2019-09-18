@@ -2835,7 +2835,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     UnresolvedType returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
-    UnresolvedType type = formals.toFunctionType(returnType, typeVariables);
+    UnresolvedType type = formals.toFunctionType(
+        returnType,
+        libraryBuilder.computeNullabilityFromToken(questionMark != null),
+        typeVariables);
     exitLocalScope();
     push(type);
   }
@@ -3056,7 +3059,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportErrorIfNullableType(question);
     }
-    UnresolvedType type = formals.toFunctionType(returnType, typeVariables);
+    UnresolvedType type = formals.toFunctionType(
+        returnType,
+        libraryBuilder.computeNullabilityFromToken(question != null),
+        typeVariables);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -4046,8 +4052,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.buildFunctionNode(libraryBuilder,
-        returnType, typeParameters, asyncModifier, body, token.charOffset);
+    FunctionNode function = formals.buildFunctionNode(
+        libraryBuilder,
+        returnType,
+        typeParameters,
+        asyncModifier,
+        body,
+        const NullabilityBuilder.pendingImplementation(),
+        token.charOffset);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -4128,8 +4140,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     exitFunction();
     List<TypeVariableBuilder> typeParameters = pop();
-    FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
-        typeParameters, asyncModifier, body, token.charOffset)
+    FunctionNode function = formals.buildFunctionNode(
+        libraryBuilder,
+        null,
+        typeParameters,
+        asyncModifier,
+        body,
+        const NullabilityBuilder.pendingImplementation(),
+        token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
     if (constantContext != ConstantContext.none) {
@@ -5545,9 +5563,12 @@ class FormalParameters {
       List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
+      NullabilityBuilder nullabilityBuilder,
       int fileEndOffset) {
     FunctionType type =
-        toFunctionType(returnType, typeParameters).builder.build(library);
+        toFunctionType(returnType, nullabilityBuilder, typeParameters)
+            .builder
+            .build(library);
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {
@@ -5573,11 +5594,12 @@ class FormalParameters {
       ..fileEndOffset = fileEndOffset;
   }
 
-  UnresolvedType toFunctionType(UnresolvedType returnType,
+  UnresolvedType toFunctionType(
+      UnresolvedType returnType, NullabilityBuilder nullabilityBuilder,
       [List<TypeVariableBuilder> typeParameters]) {
     return new UnresolvedType(
-        new FunctionTypeBuilder(
-            returnType?.builder, typeParameters, parameters),
+        new FunctionTypeBuilder(returnType?.builder, typeParameters, parameters,
+            nullabilityBuilder),
         charOffset,
         uri);
   }

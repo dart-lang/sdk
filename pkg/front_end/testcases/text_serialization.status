@@ -831,6 +831,7 @@ instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/function_types: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
