@@ -132,17 +132,17 @@ static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
 
 IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
                            void* embedder_data)
-    : source_(std::move(source)),
-      embedder_data_(embedder_data),
+    : embedder_data_(embedder_data),
+      isolates_rwlock_(new RwLock()),
+      isolates_(),
+      source_(std::move(source)),
       thread_registry_(new ThreadRegistry()),
-      safepoint_handler_(new SafepointHandler(this)),
-      isolates_monitor_(new Monitor()),
-      isolates_() {}
+      safepoint_handler_(new SafepointHandler(this)) {}
 
 IsolateGroup::~IsolateGroup() {}
 
 void IsolateGroup::RegisterIsolate(Isolate* isolate) {
-  MonitorLocker ml(isolates_monitor_.get());
+  WriteRwLocker wl(ThreadState::Current(), isolates_rwlock_.get());
   isolates_.Append(isolate);
   isolate_count_++;
 }
@@ -150,7 +150,7 @@ void IsolateGroup::RegisterIsolate(Isolate* isolate) {
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
   bool is_last_isolate = false;
   {
-    MonitorLocker ml(isolates_monitor_.get());
+    WriteRwLocker wl(ThreadState::Current(), isolates_rwlock_.get());
     isolates_.Remove(isolate);
     isolate_count_--;
     is_last_isolate = isolate_count_ == 0;
@@ -2224,6 +2224,30 @@ void Isolate::DisableIncrementalBarrier() {
   marking_stack_ = nullptr;
   deferred_marking_stack_ = nullptr;
   ASSERT(!Thread::Current()->is_marking());
+}
+
+void IsolateGroup::RunWithStoppedMutators(
+    std::function<void()> single_current_mutator,
+    std::function<void()> otherwise,
+    bool use_force_growth_in_otherwise) {
+  auto thread = Thread::Current();
+
+  ReadRwLocker wl(thread, isolates_rwlock_.get());
+  const bool only_one_isolate = isolates_.First() == isolates_.Last();
+  if (thread->IsMutatorThread() && only_one_isolate) {
+    single_current_mutator();
+  } else {
+    // We use the more strict safepoint operation scope here (which ensures that
+    // all other threads, including auxiliary threads are at a safepoint), even
+    // though we only need to ensure that the mutator threads are stopped.
+    if (use_force_growth_in_otherwise) {
+      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      otherwise();
+    } else {
+      SafepointOperationScope safepoint_scope(thread);
+      otherwise();
+    }
+  }
 }
 
 RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {

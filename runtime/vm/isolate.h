@@ -9,6 +9,7 @@
 #error "Should not include runtime"
 #endif
 
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -78,6 +79,7 @@ class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
 class ReversePcLookupCache;
+class RwLock;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
@@ -262,16 +264,36 @@ class IsolateGroup {
     library_tag_handler_ = handler;
   }
 
+  // Ensures mutators are stopped during execution of the provided function.
+  //
+  // If the current thread is the only mutator in the isolate group,
+  // [single_current_mutator] will be called. Otherwise [otherwise] will be
+  // called inside a [SafepointOperationsScope] (or
+  // [ForceGrowthSafepointOperationScope] if [use_force_growth_in_otherwise]
+  // is set).
+  //
+  // During the duration of this function, no new isolates can be added to the
+  // isolate group.
+  void RunWithStoppedMutators(std::function<void()> single_current_mutator,
+                              std::function<void()> otherwise,
+                              bool use_force_growth_in_otherwise = false);
+
+  void RunWithStoppedMutators(std::function<void()> function) {
+    RunWithStoppedMutators(function, function);
+  }
+
  private:
-  std::unique_ptr<IsolateGroupSource> source_;
   void* embedder_data_ = nullptr;
-  std::unique_ptr<ThreadRegistry> thread_registry_;
-  std::unique_ptr<SafepointHandler> safepoint_handler_;
-  std::unique_ptr<Monitor> isolates_monitor_;
+
+  std::unique_ptr<RwLock> isolates_rwlock_;
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+
+  std::unique_ptr<IsolateGroupSource> source_;
+  std::unique_ptr<ThreadRegistry> thread_registry_;
+  std::unique_ptr<SafepointHandler> safepoint_handler_;
 };
 
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {

@@ -646,25 +646,34 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
-        if (thread()->IsMutatorThread()) {
+
+        auto mutator_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-        } else {
-          // This part of compilation must be at a safepoint.
-          // Stop mutator thread before creating the instruction object and
-          // installing code.
-          // Mutator thread may not run code while we are creating the
-          // instruction object, since the creation of instruction object
-          // changes code page access permissions (makes them temporary not
-          // executable).
-          {
+        };
+        auto bg_compiler_fun = [&]() {
+          if (Compiler::IsBackgroundCompilation()) {
             CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            ForceGrowthSafepointOperationScope safepoint_scope(thread());
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            *result =
-                FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
-        }
+          *result =
+              FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+        };
+
+        // We have to ensure no mutators are running, because:
+        //
+        //   a) We allocate an instructions object, which might cause us to
+        //      temporarily flip page protections (RX -> RW -> RX).
+        //
+        //   b) We have to ensure the code generated does not violate
+        //      assumptions (e.g. CHA, field guards), the validation has to
+        //      happen while mutator is stopped.
+        //
+        //   b) We update the [Function] object with a new [Code] which
+        //      requires updating several pointers: We have to ensure all of
+        //      those writes are observed atomically.
+        //
+        thread()->isolate_group()->RunWithStoppedMutators(
+            mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
 
         // We notify code observers after finalizing the code in order to be
         // outside a [SafepointOperationScope].

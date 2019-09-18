@@ -176,7 +176,8 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
-  HierarchyInfo* hi = Thread::Current()->hierarchy_info();
+  auto thread = Thread::Current();
+  HierarchyInfo* hi = thread->hierarchy_info();
   ASSERT(hi != NULL);
 
   if (!hi->CanUseSubtypeRangeCheckFor(type) &&
@@ -195,8 +196,23 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   const auto pool_attachment = FLAG_use_bare_instructions
                                    ? Code::PoolAttachment::kNotAttachPool
                                    : Code::PoolAttachment::kAttachPool;
-  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
-      name, nullptr, &assembler, pool_attachment, false /* optimized */));
+
+  Code& code = Code::Handle(thread->zone());
+  auto install_code_fun = [&]() {
+    code = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                              /*optimized=*/false, /*stats=*/nullptr);
+  };
+
+  // We have to ensure no mutators are running, because:
+  //
+  //   a) We allocate an instructions object, which might cause us to
+  //      temporarily flip page protections from (RX -> RW -> RX).
+  //
+  thread->isolate_group()->RunWithStoppedMutators(
+      install_code_fun, install_code_fun, /*use_force_growth=*/true);
+
+  Code::NotifyCodeObservers(name, code, /*optimized=*/false);
+
   code.set_owner(type);
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
