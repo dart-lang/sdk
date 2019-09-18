@@ -234,8 +234,8 @@ class _AlreadyMigratedCodeDecoratorTest {
     var class_ = ElementFactory.classElement3(
       name: 'C',
       typeParameters: [t],
-      supertype: typeProvider.iterableType.instantiate(
-        [t.instantiate(nullabilitySuffix: NullabilitySuffix.star)],
+      supertype: typeProvider.iterableType2(
+        t.instantiate(nullabilitySuffix: NullabilitySuffix.star),
       ),
     );
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();

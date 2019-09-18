@@ -1134,7 +1134,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   AsserterBuilder<DartType, DartType> _isType;
 
   AsserterBuilder<Element, DartType> _hasElement;
-  AsserterBuilder<DartType, DartType> _hasElementOf;
 
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
@@ -1153,7 +1152,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isListOf = _assertions.isListOf;
       _isMapOf = _assertions.isMapOf;
       _isFunction2Of = _assertions.isFunction2Of;
-      _hasElementOf = _assertions.hasElementOf;
       _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf =
           _isInstantiationOf(_hasElement(typeProvider.futureOrElement));
@@ -1161,7 +1159,7 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isFutureOfInt = _isFutureOf([_isInt]);
       _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-      _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
+      _isStreamOf = _isInstantiationOf(_hasElement(typeProvider.streamElement));
     }
     return result;
   }

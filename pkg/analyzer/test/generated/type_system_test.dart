@@ -83,7 +83,7 @@ abstract class AbstractTypeSystemTest {
   }
 
   DartType iterableType(DartType T) {
-    var iterableElement = typeProvider.iterableType.element;
+    var iterableElement = typeProvider.iterableElement;
     return _interfaceType(iterableElement, typeArguments: [T]);
   }
 

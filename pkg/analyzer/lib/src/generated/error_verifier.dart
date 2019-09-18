@@ -2725,9 +2725,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (parent is ForElement) {
       awaitKeyword = parent.awaitKeyword;
     }
-    DartType loopType = awaitKeyword != null
-        ? _typeProvider.streamType
-        : _typeProvider.iterableType;
 
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopTypeName = awaitKeyword != null ? "Stream" : "Iterable";
@@ -2736,13 +2733,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-    DartType bestIterableType =
-        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+
+    ClassElement sequenceElement = awaitKeyword != null
+        ? _typeProvider.streamElement
+        : _typeProvider.iterableElement;
+
+    DartType bestIterableType;
+    if (iterableType is InterfaceTypeImpl) {
+      var sequenceType = iterableType.asInstanceOf(sequenceElement);
+      if (sequenceType != null) {
+        bestIterableType = sequenceType.typeArguments[0];
+      }
+    }
 
     // Allow it to be a supertype of Iterable<T> (basically just Object) and do
     // an implicit downcast to Iterable<dynamic>.
     if (bestIterableType == null) {
-      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
+      if (iterableType == _typeProvider.objectType) {
         bestIterableType = DynamicTypeImpl.instance;
       }
     }
@@ -5323,11 +5330,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (isYieldEach) {
       impliedReturnType = staticYieldedType;
     } else if (_enclosingFunction.isAsynchronous) {
-      impliedReturnType =
-          _typeProvider.streamType.instantiate(<DartType>[staticYieldedType]);
+      impliedReturnType = _typeProvider.streamType2(staticYieldedType);
     } else {
-      impliedReturnType =
-          _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
+      impliedReturnType = _typeProvider.iterableType2(staticYieldedType);
     }
     if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
         declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {

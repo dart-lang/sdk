@@ -1788,7 +1788,7 @@ class CodeGenerator extends Object
   }
 
   bool _implementsIterable(InterfaceType t) =>
-      t.interfaces.any((i) => i.element.type == types.iterableType);
+      t.interfaces.any((i) => i.element == types.iterableElement);
 
   /// Support for adapting dart:core Iterable to ES6 versions.
   ///

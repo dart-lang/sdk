@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -139,6 +140,14 @@ class CodeChecker extends RecursiveAstVisitor {
 
   bool get failure => _failure;
 
+  NullabilitySuffix get _noneOrStarSuffix {
+    return _nonNullableEnabled
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
+  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
+
   void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the
     // method invocation.
@@ -184,13 +193,12 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
       // to Iterable<dynamic>
-      DartType expressionCastType =
-          typeProvider.iterableType.instantiate([DynamicTypeImpl.instance]);
+      DartType expressionCastType = typeProvider.iterableDynamicType;
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
       var asIterableType = exprType is InterfaceTypeImpl
-          ? exprType.asInstanceOf(typeProvider.iterableType.element)
+          ? exprType.asInstanceOf(typeProvider.iterableElement)
           : null;
       var elementType =
           asIterableType == null ? null : asIterableType.typeArguments[0];
@@ -350,6 +358,7 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  // Check invocations
   /// Check constructor declaration to ensure correct super call placement.
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -373,7 +382,6 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  // Check invocations
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     // Check that defaults have the proper subtype.
@@ -997,11 +1005,11 @@ class CodeChecker extends RecursiveAstVisitor {
 
     var type = functionType.returnType;
 
-    InterfaceType expectedType = null;
+    ClassElement expectedElement = null;
     if (body.isAsynchronous) {
       if (body.isGenerator) {
         // Stream<T> -> T
-        expectedType = typeProvider.streamType;
+        expectedElement = typeProvider.streamElement;
       } else {
         // Future<T> -> FutureOr<T>
         var typeArg = (type.element == typeProvider.futureElement)
@@ -1012,7 +1020,7 @@ class CodeChecker extends RecursiveAstVisitor {
     } else {
       if (body.isGenerator) {
         // Iterable<T> -> T
-        expectedType = typeProvider.iterableType;
+        expectedElement = typeProvider.iterableElement;
       } else {
         // T -> T
         return type;
@@ -1021,7 +1029,10 @@ class CodeChecker extends RecursiveAstVisitor {
     if (yieldStar) {
       if (type.isDynamic) {
         // Ensure it's at least a Stream / Iterable.
-        return expectedType.instantiate([typeProvider.dynamicType]);
+        return expectedElement.instantiate(
+          typeArguments: [typeProvider.dynamicType],
+          nullabilitySuffix: _noneOrStarSuffix,
+        );
       } else {
         // Analyzer will provide a separate error if expected type
         // is not compatible with type.
@@ -1030,7 +1041,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     if (type.isDynamic) {
       return type;
-    } else if (type is InterfaceType && type.element == expectedType.element) {
+    } else if (type is InterfaceType && type.element == expectedElement) {
       return type.typeArguments[0];
     } else {
       // Malformed type - fallback on analyzer error.
@@ -1353,19 +1364,20 @@ class CodeChecker extends RecursiveAstVisitor {
           'Unexpected parent of ForEachParts: ${parent.runtimeType}');
     }
     // Find the element type of the sequence.
-    var sequenceInterface = awaitKeyword != null
-        ? typeProvider.streamType
-        : typeProvider.iterableType;
+    var sequenceElement = awaitKeyword != null
+        ? typeProvider.streamElement
+        : typeProvider.iterableElement;
     var iterableType = _getExpressionType(node.iterable);
-    var elementType =
-        _getInstanceTypeArgument(iterableType, sequenceInterface.element);
+    var elementType = _getInstanceTypeArgument(iterableType, sequenceElement);
 
     // If the sequence is not an Iterable (or Stream for await for) but is a
     // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
     // we'll do a separate cast of the dynamic element to the variable's type.
     if (elementType == null) {
-      var sequenceType =
-          sequenceInterface.instantiate([DynamicTypeImpl.instance]);
+      var sequenceType = sequenceElement.instantiate(
+        typeArguments: [typeProvider.dynamicType],
+        nullabilitySuffix: _noneOrStarSuffix,
+      );
 
       if (rules.isSubtypeOf(sequenceType, iterableType)) {
         _recordImplicitCast(node.iterable, sequenceType, from: iterableType);

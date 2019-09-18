@@ -247,7 +247,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     Element element = node.staticElement;
     if (checkFutureAndStream &&
         (element == _typeProvider.futureElement ||
-            element == _typeProvider.streamType.element)) {
+            element == _typeProvider.streamElement)) {
       for (LibraryElement importedLibrary
           in _containingLibrary.importedLibraries) {
         if (!importedLibrary.isDartCore) {

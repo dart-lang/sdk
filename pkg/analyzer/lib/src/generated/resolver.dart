@@ -3868,9 +3868,9 @@ class ResolverVisitor extends ScopedVisitor {
 
       if (valueType != null) {
         InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+            ? typeProvider.iterableType2(valueType)
+            : typeProvider.streamType2(valueType);
+        InferenceContext.setType(iterable, targetType);
       }
       //
       // We visit the iterator before the loop variable because the loop
@@ -3944,9 +3944,9 @@ class ResolverVisitor extends ScopedVisitor {
       }
       if (valueType != null) {
         InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+            ? typeProvider.iterableType2(valueType)
+            : typeProvider.streamType2(valueType);
+        InferenceContext.setType(iterable, targetType);
       }
       //
       // We visit the iterator before the loop variable because the loop variable
@@ -4172,8 +4172,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     if (listType != null) {
       DartType elementType = listType.typeArguments[0];
-      DartType iterableType =
-          typeProvider.iterableType.instantiate([elementType]);
+      DartType iterableType = typeProvider.iterableType2(elementType);
       _pushCollectionTypesDownToAll(node.elements,
           elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
@@ -4362,8 +4361,7 @@ class ResolverVisitor extends ScopedVisitor {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
         DartType elementType = literalType.typeArguments[0];
-        DartType iterableType =
-            typeProvider.iterableType.instantiate([elementType]);
+        DartType iterableType = typeProvider.iterableType2(elementType);
         _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
         if (!_uiAsCodeEnabled &&
@@ -4601,10 +4599,9 @@ class ResolverVisitor extends ScopedVisitor {
       if (node.star != null) {
         // If this is a yield*, then we wrap the element return type
         // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        InterfaceType wrapperType = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        type = wrapperType.instantiate(<DartType>[type]);
+        type = _enclosingFunction.isSynchronous
+            ? typeProvider.iterableType2(type)
+            : typeProvider.streamType2(type);
       }
       InferenceContext.setType(e, type);
     }
@@ -4615,12 +4612,12 @@ class ResolverVisitor extends ScopedVisitor {
       if (node.star != null) {
         // If this is a yield*, then we unwrap the element return type
         // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        InterfaceType wrapperType = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
         if (type is InterfaceType) {
+          ClassElement wrapperElement = _enclosingFunction.isSynchronous
+              ? typeProvider.iterableElement
+              : typeProvider.streamElement;
           var asInstanceType =
-              (type as InterfaceTypeImpl).asInstanceOf(wrapperType.element);
+              (type as InterfaceTypeImpl).asInstanceOf(wrapperElement);
           if (asInstanceType != null) {
             type = asInstanceType.typeArguments[0];
           }
@@ -4647,13 +4644,19 @@ class ResolverVisitor extends ScopedVisitor {
       if (isGenerator) {
         // If it's sync* we expect Iterable<T>
         // If it's async* we expect Stream<T>
-        InterfaceType rawType = isAsynchronous
-            ? typeProvider.streamType
-            : typeProvider.iterableType;
         // Match the types to instantiate the type arguments if possible
         List<DartType> targs = declaredType.typeArguments;
-        if (targs.length == 1 && rawType.instantiate(targs) == declaredType) {
-          return targs[0];
+        if (targs.length == 1) {
+          var arg = targs[0];
+          if (isAsynchronous) {
+            if (typeProvider.streamType2(arg) == declaredType) {
+              return arg;
+            }
+          } else {
+            if (typeProvider.iterableType2(arg) == declaredType) {
+              return arg;
+            }
+          }
         }
       }
       // async functions expect `Future<T> | T`
@@ -6699,6 +6702,7 @@ abstract class TypeProvider {
   InterfaceType get iterableObjectType;
 
   /// Return the type representing the built-in type 'Iterable'.
+  @Deprecated('Use iterableType2() instead.')
   InterfaceType get iterableType;
 
   /// Return the element representing the built-in class 'List'.
@@ -6752,6 +6756,7 @@ abstract class TypeProvider {
   ClassElement get streamElement;
 
   /// Return the type representing the built-in type 'Stream'.
+  @Deprecated('Use streamType2() instead.')
   InterfaceType get streamType;
 
   /// Return the type representing the built-in type 'String'.

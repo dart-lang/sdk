@@ -1191,8 +1191,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (_typeSystem.isSubtypeOf(
         spreadType, _typeProvider.iterableDynamicType)) {
       assert(_currentLiteralElementType != null);
-      final expectedType = _typeSystem.instantiateType(
-          _typeProvider.iterableType, [_currentLiteralElementType.type]);
+      final expectedType =
+          _typeProvider.iterableType2(_currentLiteralElementType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           _typeProvider, expectedType, _graph,
           typeArguments: [_currentLiteralElementType]);

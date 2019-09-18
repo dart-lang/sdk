@@ -1308,7 +1308,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.iterableObjectType)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableType.element);
+              .asInstanceOf(_typeProvider.iterableElement);
           return iterableType.typeArguments[0];
         }
       } else if (expressionType.isDynamic) {
@@ -1355,10 +1355,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   DartType _computeReturnTypeOfFunction(FunctionBody body, DartType type) {
     if (body.isGenerator) {
-      InterfaceType genericType = body.isAsynchronous
-          ? _typeProvider.streamType
-          : _typeProvider.iterableType;
-      return _nonNullable(genericType.instantiate(<DartType>[type]));
+      InterfaceType generatedType = body.isAsynchronous
+          ? _typeProvider.streamType2(type)
+          : _typeProvider.iterableType2(type);
+      return _nonNullable(generatedType);
     } else if (body.isAsynchronous) {
       if (type.isDartAsyncFutureOr) {
         type = (type as InterfaceType).typeArguments[0];
@@ -1561,7 +1561,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.iterableObjectType)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.iterableType.element);
+              .asInstanceOf(_typeProvider.iterableElement);
           return _InferredCollectionElementTypeInformation(
               elementType: iterableType.typeArguments[0],
               keyType: null,
@@ -1625,8 +1625,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         iterableType = iterableType.resolveToBound(_typeProvider.objectType);
 
         ClassElement iteratedElement = (awaitKeyword == null)
-            ? _typeProvider.iterableType.element
-            : _typeProvider.streamType.element;
+            ? _typeProvider.iterableElement
+            : _typeProvider.streamElement;
 
         InterfaceType iteratedType = iterableType is InterfaceTypeImpl
             ? iterableType.asInstanceOf(iteratedElement)
