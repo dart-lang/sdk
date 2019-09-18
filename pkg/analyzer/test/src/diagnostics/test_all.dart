@@ -269,6 +269,7 @@ import 'spread_expression_from_deferred_library_test.dart'
     as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
+import 'strict_raw_type_test.dart' as strict_raw_type;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'switch_expression_not_assignable_test.dart'
@@ -508,6 +509,7 @@ main() {
     set_element_type_not_assignable.main();
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
+    strict_raw_type.main();
     subtype_of_sealed_class.main();
     super_in_extension.main();
     switch_expression_not_assignable.main();
