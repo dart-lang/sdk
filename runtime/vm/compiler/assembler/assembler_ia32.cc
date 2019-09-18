@@ -1514,10 +1514,20 @@ void Assembler::bsrl(Register dst, Register src) {
 }
 
 void Assembler::popcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::popcnt_supported());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF3);
   EmitUint8(0x0F);
   EmitUint8(0xB8);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::lzcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::abm_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
   EmitRegisterOperand(dst, src);
 }
 

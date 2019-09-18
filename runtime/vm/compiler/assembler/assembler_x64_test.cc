@@ -552,7 +552,7 @@ ASSEMBLER_TEST_RUN(Testb, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
-  Label done, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8;
+  Label done, ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10;
 
   __ movq(RAX, Immediate(0xffffefff));
   __ bsrq(RCX, RAX);
@@ -607,6 +607,20 @@ ASSEMBLER_TEST_GENERATE(Testb2, assembler) {
   __ int3();
   __ Bind(&ok8);
 
+  __ movq(RAX, Immediate(0xf));
+  __ popcntq(RCX, RAX);
+  __ cmpq(RCX, Immediate(4));
+  __ j(EQUAL, &ok9);
+  __ int3();
+  __ Bind(&ok9);
+
+  __ movq(RAX, Immediate(0x7fffeff0));
+  __ lzcntq(RCX, RAX);
+  __ cmpq(RCX, Immediate(33));
+  __ j(EQUAL, &ok10);
+  __ int3();
+  __ Bind(&ok10);
+
   __ movq(RAX, Immediate(42));
   __ ret();
 }
@@ -657,6 +671,18 @@ ASSEMBLER_TEST_RUN(Testb2, test) {
       "movq rax,-1\n"
       "popcntq rcx,rax\n"
       "cmpq rcx,0x40\n"
+      "jz 0x................\n"
+      "int3\n"
+
+      "movl rax,0xf\n"
+      "popcntq rcx,rax\n"
+      "cmpq rcx,4\n"
+      "jz 0x................\n"
+      "int3\n"
+
+      "movl rax,0x........\n"
+      "lzcntq rcx,rax\n"
+      "cmpq rcx,0x21\n"
       "jz 0x................\n"
       "int3\n"
 

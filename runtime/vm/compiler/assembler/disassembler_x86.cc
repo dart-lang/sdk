@@ -1445,6 +1445,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     } else if (opcode == 0xB8) {
       // POPCNT.
       current += PrintOperands(mnemonic, REG_OPER_OP_ORDER, current);
+    } else if (opcode == 0xBD) {
+      // LZCNT (rep BSR encoding).
+      current += PrintOperands("lzcnt", REG_OPER_OP_ORDER, current);
     } else {
       UnimplementedInstruction();
     }

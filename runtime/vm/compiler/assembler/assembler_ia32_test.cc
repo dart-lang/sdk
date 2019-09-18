@@ -359,15 +359,42 @@ ASSEMBLER_TEST_RUN(Bsr, test) {
 ASSEMBLER_TEST_GENERATE(Popcnt, assembler) {
   __ movl(ECX, Immediate(-1));
   __ popcntl(EAX, ECX);
+  __ movl(ECX, Immediate(0xf));
+  __ popcntl(ECX, ECX);
+  __ addl(EAX, ECX);
   __ ret();
 }
 
 ASSEMBLER_TEST_RUN(Popcnt, test) {
   typedef int (*PopcntCode)();
-  EXPECT_EQ(32, reinterpret_cast<PopcntCode>(test->entry())());
+  EXPECT_EQ(36, reinterpret_cast<PopcntCode>(test->entry())());
   EXPECT_DISASSEMBLY(
       "mov ecx,0x........\n"
       "popcnt eax,ecx\n"
+      "mov ecx,0xf\n"
+      "popcnt ecx,ecx\n"
+      "add eax,ecx\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Lzcnt, assembler) {
+  __ movl(ECX, Immediate(0x0f00));
+  __ lzcntl(EAX, ECX);
+  __ movl(ECX, Immediate(0x00f0));
+  __ lzcntl(ECX, ECX);
+  __ addl(EAX, ECX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Lzcnt, test) {
+  typedef int (*LzcntCode)();
+  EXPECT_EQ(44, reinterpret_cast<LzcntCode>(test->entry())());
+  EXPECT_DISASSEMBLY(
+      "mov ecx,0x...\n"
+      "lzcnt eax,ecx\n"
+      "mov ecx,0xf0\n"
+      "lzcnt ecx,ecx\n"
+      "add eax,ecx\n"
       "ret\n");
 }
 
