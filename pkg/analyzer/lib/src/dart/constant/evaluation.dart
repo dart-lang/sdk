@@ -1412,7 +1412,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
-      InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+      InterfaceType setType = _typeProvider.setType2(elementType);
       return new DartObjectImpl(setType, new SetState(set));
     }
   }

@@ -661,7 +661,7 @@ class AssistProcessor extends BaseProcessor {
     InstanceCreationExpression creation = node.thisOrAncestorOfType();
     if (creation == null ||
         node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.setType.element) {
+        creation.staticType.element != typeProvider.setElement) {
       // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
       _coverageMarker();
       return;
@@ -718,7 +718,7 @@ class AssistProcessor extends BaseProcessor {
       if (parent is VariableDeclaration) {
         AstNode parent2 = parent.parent;
         if (parent2 is VariableDeclarationList &&
-            parent2.type?.type?.element == typeProvider.setType.element) {
+            parent2.type?.type?.element == typeProvider.setElement) {
           return true;
         }
       }

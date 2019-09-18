@@ -1042,9 +1042,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         (node as SetOrMapLiteralImpl).becomeSet();
         var elementType = _getType(typeArguments[0]) ?? _dynamicType;
         _recordStaticType(
-            node,
-            _nonNullable(
-                _typeProvider.setType.instantiate(<DartType>[elementType])));
+            node, _nonNullable(_typeProvider.setType2(elementType)));
         return;
       } else if (typeArguments.length == 2) {
         (node as SetOrMapLiteralImpl).becomeMap();
@@ -1066,7 +1064,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (literalType.element == _typeProvider.mapType.element) {
       (node as SetOrMapLiteralImpl).becomeMap();
     } else {
-      assert(literalType.element == _typeProvider.setType.element);
+      assert(literalType.element == _typeProvider.setElement);
       (node as SetOrMapLiteralImpl).becomeSet();
     }
     if (_strictInference &&

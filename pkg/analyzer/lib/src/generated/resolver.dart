@@ -4340,7 +4340,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (literalResolution.kind == _LiteralResolutionKind.set) {
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0].type;
-        literalType = typeProvider.setType.instantiate([elementType]);
+        literalType = typeProvider.setType2(elementType);
       } else {
         literalType = typeAnalyzer.inferSetTypeDownwards(
             node, literalResolution.contextType);
@@ -4776,7 +4776,7 @@ class ResolverVisitor extends ScopedVisitor {
       NodeList<TypeAnnotation> arguments = typeArgumentList.arguments;
       if (arguments.length == 1) {
         return _LiteralResolution(_LiteralResolutionKind.set,
-            typeProvider.setType.instantiate([arguments[0].type]));
+            typeProvider.setType2(arguments[0].type));
       } else if (arguments.length == 2) {
         return _LiteralResolution(
             _LiteralResolutionKind.map,
@@ -6737,6 +6737,7 @@ abstract class TypeProvider {
   ClassElement get setElement;
 
   /// Return the type representing the built-in type 'Set'.
+  @Deprecated('Use setType2() instead.')
   InterfaceType get setType;
 
   /// Return the type representing the built-in type 'StackTrace'.

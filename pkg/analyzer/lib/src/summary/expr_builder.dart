@@ -1020,8 +1020,7 @@ class ExprBuilder {
         var valueType = typeArguments == null
             ? resynthesizer.typeProvider.dynamicType
             : typeArguments.arguments[0].type;
-        staticType =
-            resynthesizer.typeProvider.setType.instantiate([valueType]);
+        staticType = resynthesizer.typeProvider.setType2(valueType);
       }
     } else {
       for (var i = 0; i < elements.length; ++i) {

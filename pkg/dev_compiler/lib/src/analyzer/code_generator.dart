@@ -4462,7 +4462,7 @@ class CodeGenerator extends Object
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.setType.element) {
+      if (type.element == types.setElement) {
         return _emitConstSet(type.typeArguments[0],
             value.toSetValue().map(_emitDartObject).toList());
       }

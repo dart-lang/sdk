@@ -994,8 +994,7 @@ const c = {'a' : 1, ...{'b' : 2, 'c' : 3}, 'd' : 4};
 const c = {1, if (1 < 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3, 4]);
   }
 
@@ -1004,8 +1003,7 @@ const c = {1, if (1 < 0) 2 else 3, 4};
 const c = {1, if (1 < 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 3]);
   }
 
@@ -1014,8 +1012,7 @@ const c = {1, if (1 < 0) 2, 3};
 const c = {1, if (1 > 0) 2 else 3, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 4]);
   }
 
@@ -1024,8 +1021,7 @@ const c = {1, if (1 > 0) 2 else 3, 4};
 const c = {1, if (1 > 0) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -1034,8 +1030,7 @@ const c = {1, if (1 > 0) 2, 3};
 const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3]);
   }
 
@@ -1044,8 +1039,7 @@ const c = {1, if (1 > 0) if (2 > 1) 2, 3};
 const c = {1, ...{2, 3}, 4};
 ''');
     DartObjectImpl result = _evaluateConstant('c');
-    expect(
-        result.type, typeProvider.setType.instantiate([typeProvider.intType]));
+    expect(result.type, typeProvider.setType2(typeProvider.intType));
     expect(result.toSetValue().map((e) => e.toIntValue()), [1, 2, 3, 4]);
   }
 }

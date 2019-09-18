@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -415,16 +416,14 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_getValue_set_empty() {
-    Object result = _setValue().toSetValue();
-    _assertInstanceOfObjectArray(result);
-    Set<Object> set = result as Set<Object>;
+    DartObjectImpl object = _setValue(_typeProvider.intType, null);
+    Set<DartObject> set = object.toSetValue();
     expect(set, hasLength(0));
   }
 
   void test_getValue_set_valid() {
-    Object result = _setValue(new Set.from([_intValue(23)])).toSetValue();
-    _assertInstanceOfObjectArray(result);
-    Set<Object> set = result as Set<Object>;
+    DartObjectImpl object = _setValue(_typeProvider.intType, {_intValue(23)});
+    Set<DartObject> set = object.toSetValue();
     expect(set, hasLength(1));
   }
 
@@ -1942,9 +1941,8 @@ class DartObjectImplTest extends EngineTestCase {
     return new DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
   }
 
-  DartObjectImpl _setValue([Set<DartObjectImpl> elements]) {
-    return new DartObjectImpl(_typeProvider.setType,
-        new SetState(elements ?? new Set<DartObjectImpl>()));
+  DartObjectImpl _setValue(DartType type, Set<DartObjectImpl> elements) {
+    return DartObjectImpl(type, SetState(elements ?? Set<DartObjectImpl>()));
   }
 
   DartObjectImpl _stringValue(String value) {
