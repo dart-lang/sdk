@@ -113,34 +113,14 @@ class SubstituteTest extends _Base {
     _assertIdenticalType(typeProvider.dynamicType, {T: intType});
   }
 
-  test_function_noTypeParameters() async {
+  test_function_noSubstitutions() async {
     var type = functionType(required: [intType], returns: boolType);
 
     var T = typeParameter('T');
     _assertIdenticalType(type, {T: intType});
   }
 
-  test_function_typeFormals() async {
-    // typedef F<T> = T Function<U extends T>(U);
-    var T = typeParameter('T');
-    var U = typeParameter('U', bound: typeParameterType(T));
-    var type = functionType(
-      typeFormals: [U],
-      required: [
-        typeParameterType(U),
-      ],
-      returns: typeParameterType(T),
-    );
-
-    assertElementTypeString(type, 'T Function<U extends T>(U)');
-    _assertSubstitution(
-      type,
-      {T: intType},
-      'int Function<U extends int>(U)',
-    );
-  }
-
-  test_function_typeParameters() async {
+  test_function_parameters_returnType() async {
     // typedef F<T, U> = T Function(U u, bool);
     var T = typeParameter('T');
     var U = typeParameter('U');
@@ -163,6 +143,65 @@ class SubstituteTest extends _Base {
       {T: intType, U: doubleType},
       'int Function(double, bool)',
     );
+  }
+
+  test_function_typeFormals() async {
+    // typedef F<T> = T Function<U extends T>(U);
+    var T = typeParameter('T');
+    var U = typeParameter('U', bound: typeParameterType(T));
+    var type = functionType(
+      typeFormals: [U],
+      required: [
+        typeParameterType(U),
+      ],
+      returns: typeParameterType(T),
+    );
+
+    assertElementTypeString(type, 'T Function<U extends T>(U)');
+    _assertSubstitution(
+      type,
+      {T: intType},
+      'int Function<U extends int>(U)',
+    );
+  }
+
+  test_function_typeFormals_bounds() async {
+    // class Triple<X, Y, Z> {}
+    // typedef F<V> = bool Function<T extends Triplet<T, U, V>, U>();
+    var classTriplet = class_(name: 'Triple', typeParameters: [
+      typeParameter('X'),
+      typeParameter('Y'),
+      typeParameter('Z'),
+    ]);
+
+    var T = typeParameter('T');
+    var U = typeParameter('U');
+    var V = typeParameter('V');
+    T.bound = interfaceType(classTriplet, typeArguments: [
+      typeParameterType(T),
+      typeParameterType(U),
+      typeParameterType(V),
+    ]);
+    var type = functionType(
+      typeFormals: [T, U],
+      returns: boolType,
+    );
+
+    assertElementTypeString(
+      type,
+      'bool Function<T extends Triple<T, U, V>,U>()',
+    );
+
+    var result = substitute(type, {V: intType}) as FunctionType;
+    assertElementTypeString(
+      result,
+      'bool Function<T extends Triple<T, U, int>,U>()',
+    );
+    var T2 = result.typeFormals[0];
+    var U2 = result.typeFormals[1];
+    var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
+    expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
+    expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
   }
 
   test_interface_arguments() async {
