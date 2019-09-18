@@ -4355,8 +4355,7 @@ main() {
     expect(ft.toString(), 'List<int> Function(String)');
 
     SimpleIdentifier x = findIdentifier('x');
-    expect(x.staticType,
-        typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(x.staticType, typeProvider.listType2(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {

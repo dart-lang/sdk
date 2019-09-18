@@ -64,11 +64,9 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listType.element;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapType.element;
-
-  InterfaceType get mapType => typeProvider.mapType;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   ClassElement get numElement => typeProvider.numType.element;
 
@@ -1879,8 +1877,7 @@ class C<T> {
     FieldDeclaration fDeclaration = cNode.members[0];
     VariableDeclaration fNode = fDeclaration.fields.variables[0];
     FieldElement fElement = fNode.declaredElement;
-    expect(fElement.type,
-        typeProvider.listType.instantiate([typeParameterType(tElement)]));
+    expect(fElement.type, typeProvider.listType2(typeParameterType(tElement)));
   }
 
   test_field_generic() async {
@@ -2154,8 +2151,7 @@ main() {
 
     var typeProvider = unit.declaredElement.context.typeProvider;
     InterfaceType intType = typeProvider.intType;
-    InterfaceType listType = typeProvider.listType;
-    InterfaceType listIntType = listType.instantiate([intType]);
+    InterfaceType listIntType = typeProvider.listType2(intType);
 
     List<Statement> mainStatements = _getMainStatements(result);
 
@@ -5228,10 +5224,8 @@ void main() {
     {
       ExpressionStatement statement = statements[0];
       SetOrMapLiteral mapLiteral = statement.expression;
-      expect(
-          mapLiteral.staticType,
-          typeProvider.mapType
-              .instantiate([typeProvider.intType, typeProvider.doubleType]));
+      expect(mapLiteral.staticType,
+          typeProvider.mapType2(typeProvider.intType, typeProvider.doubleType));
     }
 
     {
@@ -5239,8 +5233,8 @@ void main() {
       SetOrMapLiteral mapLiteral = statement.expression;
       expect(
           mapLiteral.staticType,
-          typeProvider.mapType
-              .instantiate([typeProvider.boolType, typeProvider.stringType]));
+          typeProvider.mapType2(
+              typeProvider.boolType, typeProvider.stringType));
     }
   }
 
@@ -7872,7 +7866,7 @@ class C<T extends A, U extends List<A>, V> {}
     }
 
     {
-      var listElement = typeProvider.listType.element;
+      var listElement = typeProvider.listElement;
       var listOfA = listElement.instantiate(
         typeArguments: [interfaceType(aElement)],
         nullabilitySuffix: NullabilitySuffix.star,

@@ -231,13 +231,13 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
       // to Map<dynamic, dynamic>
-      DartType expressionCastType = typeProvider.mapType
-          .instantiate([DynamicTypeImpl.instance, DynamicTypeImpl.instance]);
+      DartType expressionCastType = typeProvider.mapType2(
+          DynamicTypeImpl.instance, DynamicTypeImpl.instance);
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.staticType;
       var asMapType = exprType is InterfaceTypeImpl
-          ? exprType.asInstanceOf(typeProvider.mapType.element)
+          ? exprType.asInstanceOf(typeProvider.mapElement)
           : null;
 
       var elementKeyType =

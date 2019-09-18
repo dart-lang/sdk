@@ -2479,8 +2479,7 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   @override
   InterfaceType get type {
     if (_type == null) {
-      InterfaceType listType = context.typeProvider.listType;
-      return _type = listType.instantiate(<DartType>[_enum.type]);
+      return _type = context.typeProvider.listType2(_enum.type);
     }
     return _type;
   }

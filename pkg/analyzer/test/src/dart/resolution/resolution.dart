@@ -49,9 +49,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listType.element;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapType.element;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   ClassElement get numElement => typeProvider.numType.element;
 

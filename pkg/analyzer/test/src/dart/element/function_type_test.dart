@@ -44,9 +44,9 @@ class FunctionTypeTest with ElementsTypesMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listType.element;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapType.element;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   InterfaceType get objectType => typeProvider.objectType;
 

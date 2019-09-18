@@ -290,19 +290,35 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_equalEqual_list_empty() {
-    _assertEqualEqual(null, _listValue(), _listValue());
+    _assertEqualEqual(
+      null,
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equalEqual_list_false() {
-    _assertEqualEqual(null, _listValue(), _listValue());
+    _assertEqualEqual(
+      null,
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equalEqual_map_empty() {
-    _assertEqualEqual(null, _mapValue(), _mapValue());
+    _assertEqualEqual(
+      null,
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equalEqual_map_false() {
-    _assertEqualEqual(null, _mapValue(), _mapValue());
+    _assertEqualEqual(
+      null,
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equalEqual_null() {
@@ -326,26 +342,38 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_equals_list_false_differentSizes() {
     expect(
-        _listValue([_boolValue(true)]) ==
-            _listValue([_boolValue(true), _boolValue(false)]),
+        _listValue(_typeProvider.boolType, [_boolValue(true)]) ==
+            _listValue(
+                _typeProvider.boolType, [_boolValue(true), _boolValue(false)]),
         isFalse);
   }
 
   void test_equals_list_false_sameSize() {
-    expect(_listValue([_boolValue(true)]) == _listValue([_boolValue(false)]),
+    expect(
+        _listValue(_typeProvider.boolType, [_boolValue(true)]) ==
+            _listValue(_typeProvider.boolType, [_boolValue(false)]),
         isFalse);
   }
 
   void test_equals_list_true_empty() {
-    expect(_listValue(), _listValue());
+    expect(
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_equals_list_true_nonEmpty() {
-    expect(_listValue([_boolValue(true)]), _listValue([_boolValue(true)]));
+    expect(
+      _listValue(_typeProvider.boolType, [_boolValue(true)]),
+      _listValue(_typeProvider.boolType, [_boolValue(true)]),
+    );
   }
 
   void test_equals_map_true_empty() {
-    expect(_mapValue(), _mapValue());
+    expect(
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_equals_symbol_false() {
@@ -387,27 +415,29 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_getValue_list_empty() {
-    Object result = _listValue().toListValue();
+    Object result = _listValue(_typeProvider.intType, []).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
-    Object result = _listValue([_intValue(23)]).toListValue();
+    Object result =
+        _listValue(_typeProvider.intType, [_intValue(23)]).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
-    Map result = _mapValue().toMapValue();
+    Map result = _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
+        .toMapValue();
     expect(result, hasLength(0));
   }
 
   void test_getValue_map_valid() {
-    Map result =
-        _mapValue([_stringValue("key"), _stringValue("value")]).toMapValue();
+    Map result = _mapValue(_typeProvider.stringType, _typeProvider.stringType,
+        [_stringValue("key"), _stringValue("value")]).toMapValue();
     expect(result, hasLength(1));
   }
 
@@ -603,20 +633,25 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_list_empty() {
-    expect(_listValue().hasKnownValue, isTrue);
+    expect(_listValue(_typeProvider.intType, []).hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_list_valid() {
-    expect(_listValue([_intValue(23)]).hasKnownValue, isTrue);
+    expect(_listValue(_typeProvider.intType, [_intValue(23)]).hasKnownValue,
+        isTrue);
   }
 
   void test_hasKnownValue_map_empty() {
-    expect(_mapValue().hasKnownValue, isTrue);
+    expect(
+        _mapValue(_typeProvider.intType, _typeProvider.stringType, [])
+            .hasKnownValue,
+        isTrue);
   }
 
   void test_hasKnownValue_map_valid() {
     expect(
-        _mapValue([_stringValue("key"), _stringValue("value")]).hasKnownValue,
+        _mapValue(_typeProvider.stringType, _typeProvider.stringType,
+            [_stringValue("key"), _stringValue("value")]).hasKnownValue,
         isTrue);
   }
 
@@ -669,21 +704,36 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_identical_list_empty() {
-    _assertIdentical(_boolValue(true), _listValue(), _listValue());
+    _assertIdentical(
+      _boolValue(true),
+      _listValue(_typeProvider.intType, []),
+      _listValue(_typeProvider.intType, []),
+    );
   }
 
   void test_identical_list_false() {
-    _assertIdentical(
-        _boolValue(false), _listValue(), _listValue([_intValue(3)]));
+    _assertIdentical(_boolValue(false), _listValue(_typeProvider.intType, []),
+        _listValue(_typeProvider.intType, [_intValue(3)]));
   }
 
   void test_identical_map_empty() {
-    _assertIdentical(_boolValue(true), _mapValue(), _mapValue());
+    _assertIdentical(
+      _boolValue(true),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+      _mapValue(_typeProvider.intType, _typeProvider.stringType, []),
+    );
   }
 
   void test_identical_map_false() {
-    _assertIdentical(_boolValue(false), _mapValue(),
-        _mapValue([_intValue(1), _intValue(2)]));
+    _assertIdentical(
+      _boolValue(false),
+      _mapValue(_typeProvider.intType, _typeProvider.intType, []),
+      _mapValue(
+        _typeProvider.intType,
+        _typeProvider.intType,
+        [_intValue(1), _intValue(2)],
+      ),
+    );
   }
 
   void test_identical_null() {
@@ -787,7 +837,8 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_isBoolNumStringOrNull_list() {
-    expect(_listValue().isBoolNumStringOrNull, isFalse);
+    expect(
+        _listValue(_typeProvider.intType, []).isBoolNumStringOrNull, isFalse);
   }
 
   void test_isBoolNumStringOrNull_null() {
@@ -1922,19 +1973,27 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   DartObjectImpl _listValue(
-      [List<DartObjectImpl> elements = const <DartObjectImpl>[]]) {
-    return new DartObjectImpl(_typeProvider.listType, new ListState(elements));
+    DartType elementType,
+    List<DartObjectImpl> elements,
+  ) {
+    return DartObjectImpl(
+      _typeProvider.listType2(elementType),
+      ListState(elements),
+    );
   }
 
-  DartObjectImpl _mapValue(
-      [List<DartObjectImpl> keyElementPairs = const <DartObjectImpl>[]]) {
+  DartObjectImpl _mapValue(DartType keyType, DartType valueType,
+      List<DartObjectImpl> keyElementPairs) {
     Map<DartObjectImpl, DartObjectImpl> map =
         new Map<DartObjectImpl, DartObjectImpl>();
     int count = keyElementPairs.length;
     for (int i = 0; i < count;) {
       map[keyElementPairs[i++]] = keyElementPairs[i++];
     }
-    return new DartObjectImpl(_typeProvider.mapType, new MapState(map));
+    return DartObjectImpl(
+      _typeProvider.mapType2(keyType, valueType),
+      MapState(map),
+    );
   }
 
   DartObjectImpl _nullValue() {

@@ -170,7 +170,7 @@ class ElementFactory {
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.isStatic = true;
     valuesField.isConst = true;
-    valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
+    valuesField.type = typeProvider.listType2(enumType);
     fields.add(valuesField);
     //
     // Build the enum constants.

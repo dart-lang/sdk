@@ -5000,7 +5000,7 @@ void f(Point<int> x) {}
     await analyze('''
 void f(List<int> x) {}
 ''');
-    var listClass = typeProvider.listType.element;
+    var listClass = typeProvider.listElement;
     var listBound =
         variables.decoratedTypeParameterBound(listClass.typeParameters[0]);
     expect(listBound.type.toString(), 'dynamic');

@@ -413,7 +413,7 @@ abstract class BaseProcessor {
     ConstructorElement element = creation.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement != typeProvider.mapType.element) {
+        element.enclosingElement != typeProvider.mapElement) {
       _coverageMarker();
       return null;
     }

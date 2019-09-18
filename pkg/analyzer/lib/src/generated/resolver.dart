@@ -2323,7 +2323,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<void> {
     valuesField.isStatic = true;
     valuesField.isConst = true;
     valuesField.isSynthetic = true;
-    valuesField.type = _typeProvider.listType.instantiate(<DartType>[enumType]);
+    valuesField.type = _typeProvider.listType2(enumType);
     fields.add(valuesField);
     getters.add(_createGetter(valuesField));
     //
@@ -4164,7 +4164,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (typeArguments.arguments.length == 1) {
         DartType elementType = typeArguments.arguments[0].type;
         if (!elementType.isDynamic) {
-          listType = typeProvider.listType.instantiate([elementType]);
+          listType = typeProvider.listType2(elementType);
         }
       }
     } else {
@@ -4348,7 +4348,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (typeArguments != null && typeArguments.length == 2) {
         var keyType = typeArguments[0].type;
         var valueType = typeArguments[1].type;
-        literalType = typeProvider.mapType.instantiate([keyType, valueType]);
+        literalType = typeProvider.mapType2(keyType, valueType);
       } else {
         literalType = typeAnalyzer.inferMapTypeDownwards(
             node, literalResolution.contextType);
@@ -4716,8 +4716,8 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (literal.elements.isEmpty) {
       return _LiteralResolution(
           _LiteralResolutionKind.map,
-          typeProvider.mapType.instantiate(
-              [typeProvider.dynamicType, typeProvider.dynamicType]));
+          typeProvider.mapType2(
+              typeProvider.dynamicType, typeProvider.dynamicType));
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
@@ -4781,10 +4781,8 @@ class ResolverVisitor extends ScopedVisitor {
         return _LiteralResolution(_LiteralResolutionKind.set,
             typeProvider.setType2(arguments[0].type));
       } else if (arguments.length == 2) {
-        return _LiteralResolution(
-            _LiteralResolutionKind.map,
-            typeProvider.mapType
-                .instantiate([arguments[0].type, arguments[1].type]));
+        return _LiteralResolution(_LiteralResolutionKind.map,
+            typeProvider.mapType2(arguments[0].type, arguments[1].type));
       }
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
@@ -6709,6 +6707,7 @@ abstract class TypeProvider {
   ClassElement get listElement;
 
   /// Return the type representing the built-in type 'List'.
+  @Deprecated('Use listType2() instead.')
   InterfaceType get listType;
 
   /// Return the element representing the built-in class 'Map'.
@@ -6718,6 +6717,7 @@ abstract class TypeProvider {
   InterfaceType get mapObjectObjectType;
 
   /// Return the type representing the built-in type 'Map'.
+  @Deprecated('Use mapType2() instead.')
   InterfaceType get mapType;
 
   /// Return the type representing the built-in type 'Never'.

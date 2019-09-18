@@ -96,8 +96,7 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
       DecoratedType(typeProvider.intType, node ?? newNode());
 
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
-      DecoratedType(typeProvider.listType.instantiate([elementType.type]),
-          node ?? newNode(),
+      DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);

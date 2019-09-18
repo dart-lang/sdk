@@ -4458,7 +4458,7 @@ class CodeGenerator extends Object
       return _emitType(value.toTypeValue());
     }
     if (type is InterfaceType) {
-      if (type.element == types.listType.element) {
+      if (type.element == types.listElement) {
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
@@ -4466,7 +4466,7 @@ class CodeGenerator extends Object
         return _emitConstSet(type.typeArguments[0],
             value.toSetValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.mapType.element) {
+      if (type.element == types.mapElement) {
         var entries = <js_ast.Expression>[];
         value.toMapValue().forEach((key, value) {
           entries.add(_emitDartObject(key));

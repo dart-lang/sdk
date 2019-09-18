@@ -1180,8 +1180,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (_typeSystem.isSubtypeOf(
         spreadType, _typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
-      final expectedType = _typeSystem.instantiateType(_typeProvider.mapType,
-          [_currentMapKeyType.type, _currentMapValueType.type]);
+      final expectedType = _typeProvider.mapType2(
+          _currentMapKeyType.type, _currentMapValueType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
           _typeProvider, expectedType, _graph,
           typeArguments: [_currentMapKeyType, _currentMapValueType]);

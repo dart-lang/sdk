@@ -225,7 +225,7 @@ class SubstituteTest extends _Base {
     var U = typeParameter('U');
     var type = interfaceType(A, typeArguments: [
       interfaceType(
-        typeProvider.listType.element,
+        typeProvider.listElement,
         typeArguments: [
           typeParameterType(U),
         ],

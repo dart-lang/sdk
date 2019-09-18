@@ -516,7 +516,7 @@ class AssistProcessor extends BaseProcessor {
     InstanceCreationExpression creation = node.thisOrAncestorOfType();
     if (creation == null ||
         node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.listType.element ||
+        creation.staticType.element != typeProvider.listElement ||
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty) {
       _coverageMarker();
@@ -595,7 +595,7 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_convertMapConstructorToMapLiteral() async {
     bool isMapClass(Element element) =>
         element is ClassElement &&
-        (element == typeProvider.mapType.element ||
+        (element == typeProvider.mapElement ||
             (element.name == 'LinkedHashMap' &&
                 element.library.name == 'dart.collection'));
     //
@@ -963,9 +963,8 @@ class AssistProcessor extends BaseProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.staticType;
-      InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
-          iterableType.element != listType.element) {
+          iterableType.element != typeProvider.listElement) {
         _coverageMarker();
         return;
       }

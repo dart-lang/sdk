@@ -979,9 +979,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     Expression node = AstTestFactory.listLiteral();
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.listType
-            .instantiate(<DartType>[_typeProvider.dynamicType]),
-        resultType);
+        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
     _listener.assertNoErrors();
   }
 
@@ -989,9 +987,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // [0]
     Expression node = AstTestFactory.listLiteral([_resolvedInteger(0)]);
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType.instantiate(<DartType>[_typeProvider.intType]),
-        resultType);
+    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
     _listener.assertNoErrors();
   }
 
@@ -1001,9 +997,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     Expression node = AstTestFactory.listLiteral([identifier]);
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.listType
-            .instantiate(<DartType>[_typeProvider.dynamicType]),
-        resultType);
+        _typeProvider.listType2(_typeProvider.dynamicType), resultType);
     _listener.assertNoErrors();
   }
 
@@ -1013,9 +1007,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     Expression node = AstTestFactory.listLiteral(
         [_resolvedInteger(0), identifier, _resolvedInteger(1)]);
     DartType resultType = _analyze(node);
-    _assertType2(
-        _typeProvider.listType.instantiate(<DartType>[_typeProvider.intType]),
-        resultType);
+    _assertType2(_typeProvider.listType2(_typeProvider.intType), resultType);
     _listener.assertNoErrors();
   }
 
@@ -1024,8 +1016,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     Expression node = AstTestFactory.setOrMapLiteral(null, null);
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.mapType.instantiate(
-            <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
+        _typeProvider.mapType2(
+            _typeProvider.dynamicType, _typeProvider.dynamicType),
         resultType);
     _listener.assertNoErrors();
   }
@@ -1036,8 +1028,8 @@ class StaticTypeAnalyzerTest extends EngineTestCase
         null, null, [AstTestFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.mapType.instantiate(
-            <DartType>[_typeProvider.dynamicType, _typeProvider.intType]),
+        _typeProvider.mapType2(
+            _typeProvider.dynamicType, _typeProvider.intType),
         resultType);
     _listener.assertNoErrors();
   }

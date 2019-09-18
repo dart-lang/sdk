@@ -88,7 +88,7 @@ abstract class AbstractTypeSystemTest {
   }
 
   DartType listType(DartType T) {
-    var listElement = typeProvider.listType.element;
+    var listElement = typeProvider.listElement;
     return _interfaceType(listElement, typeArguments: [T]);
   }
 
@@ -3475,7 +3475,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl listClassTypeNone(DartType argument) {
-    var element = typeProvider.listType.element;
+    var element = typeProvider.listElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],
@@ -3484,7 +3484,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
-    var element = typeProvider.listType.element;
+    var element = typeProvider.listElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],
@@ -3493,7 +3493,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   InterfaceTypeImpl listClassTypeStar(DartType argument) {
-    var element = typeProvider.listType.element;
+    var element = typeProvider.listElement;
     return _interfaceType(
       element,
       typeArguments: <DartType>[argument],

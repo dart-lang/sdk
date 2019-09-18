@@ -740,14 +740,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         }
       }
       _recordStaticType(
-          node,
-          _nonNullable(
-              _typeProvider.listType.instantiate(<DartType>[staticType])));
+          node, _nonNullable(_typeProvider.listType2(staticType)));
       return;
     }
 
-    DartType listDynamicType =
-        _typeProvider.listType.instantiate(<DartType>[_dynamicType]);
+    DartType listDynamicType = _typeProvider.listType2(_dynamicType);
 
     // If there are no type arguments, try to infer some arguments.
     DartType inferred = inferListType(node);
@@ -1049,9 +1046,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         var keyType = _getType(typeArguments[0]) ?? _dynamicType;
         var valueType = _getType(typeArguments[1]) ?? _dynamicType;
         _recordStaticType(
-            node,
-            _nonNullable(_typeProvider.mapType
-                .instantiate(<DartType>[keyType, valueType])));
+            node, _nonNullable(_typeProvider.mapType2(keyType, valueType)));
         return;
       }
       // If we get here, then a nonsense number of type arguments were provided,
@@ -1061,7 +1056,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (literalType.isDynamic) {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
-    } else if (literalType.element == _typeProvider.mapType.element) {
+    } else if (literalType.element == _typeProvider.mapElement) {
       (node as SetOrMapLiteralImpl).becomeMap();
     } else {
       assert(literalType.element == _typeProvider.setElement);
@@ -1569,7 +1564,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         } else if (_typeSystem.isSubtypeOf(
             expressionType, _typeProvider.mapObjectObjectType)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
-              .asInstanceOf(_typeProvider.mapType.element);
+              .asInstanceOf(_typeProvider.mapElement);
           List<DartType> typeArguments = mapType.typeArguments;
           return _InferredCollectionElementTypeInformation(
               elementType: null,

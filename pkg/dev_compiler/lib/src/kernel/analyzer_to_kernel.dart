@@ -796,11 +796,11 @@ class AnalyzerToKernel {
       return TypeLiteral(_visitDartType(obj.toTypeValue()));
     }
     if (type is a.InterfaceType) {
-      if (type.element == types.listType.element) {
+      if (type.element == types.listElement) {
         return ListLiteral(obj.toListValue().map(_visitConstant).toList(),
             typeArgument: _visitDartType(type.typeArguments[0]), isConst: true);
       }
-      if (type.element == types.mapType.element) {
+      if (type.element == types.mapElement) {
         var entries = obj
             .toMapValue()
             .entries
