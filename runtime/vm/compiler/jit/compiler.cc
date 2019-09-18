@@ -647,17 +647,14 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
 
-        auto mutator_fun = [&]() {
+        auto install_code_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
         };
-        auto bg_compiler_fun = [&]() {
-          if (Compiler::IsBackgroundCompilation()) {
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-          }
-          *result =
-              FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-        };
+
+        if (Compiler::IsBackgroundCompilation()) {
+          CheckIfBackgroundCompilerIsBeingStopped(optimized());
+        }
 
         // We have to ensure no mutators are running, because:
         //
@@ -673,7 +670,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         //      those writes are observed atomically.
         //
         thread()->isolate_group()->RunWithStoppedMutators(
-            mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+            install_code_fun, install_code_fun, /*use_force_growth=*/true);
 
         // We notify code observers after finalizing the code in order to be
         // outside a [SafepointOperationScope].
