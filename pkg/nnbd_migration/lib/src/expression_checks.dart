@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -64,6 +65,13 @@ class ExpressionChecks extends PotentialModification {
     // adding an `as` expression, e.g. `as List<int>?` to verify that a list is
     // reified to contain only non-null ints.
     return isEmpty ? [] : [SourceEdit(offset, 0, '!')];
+  }
+
+  @override
+  Iterable<FixReasonInfo> get reasons sync* {
+    for (var edge in edges) {
+      if (!edge.isSatisfied) yield edge;
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/nullability_state.dart';
 
 /// Information exposed to the migration client about the set of nullability
@@ -42,7 +43,7 @@ abstract class DecoratedTypeInfo {
 /// A graph edge represents a dependency relationship between two types being
 /// migrated, suggesting that if one type (the source) is made nullable, it may
 /// be desirable to make the other type (the destination) nullable as well.
-abstract class EdgeInfo {
+abstract class EdgeInfo implements FixReasonInfo {
   /// Information about the graph node that this edge "points to".
   NullabilityNodeInfo get destinationNode;
 
@@ -97,6 +98,10 @@ abstract class EdgeOriginInfo {
 }
 
 /// Interface used by the migration engine to expose information to its client
+/// about a reason for a modification to the source file.
+abstract class FixReasonInfo {}
+
+/// Interface used by the migration engine to expose information to its client
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
 abstract class NullabilityMigrationInstrumentation {
@@ -111,6 +116,9 @@ abstract class NullabilityMigrationInstrumentation {
   /// being migrated, to report the nullability nodes associated with the type
   /// of the element.
   void externalDecoratedType(Element element, DecoratedTypeInfo decoratedType);
+
+  /// Called whenever a fix is decided upon, to report the reasons for the fix.
+  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons);
 
   /// Called whenever the migration engine creates a graph edge between
   /// nullability nodes, to report information about the edge that was created,
@@ -162,7 +170,7 @@ abstract class NullabilityMigrationInstrumentation {
 
 /// Information exposed to the migration client about a single node in the
 /// nullability graph.
-abstract class NullabilityNodeInfo {
+abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// Indicates whether the node is immutable.  The only immutable nodes in the
   /// nullability graph are the nodes `never` and `always` that are used as the
   /// starting points for nullability propagation.

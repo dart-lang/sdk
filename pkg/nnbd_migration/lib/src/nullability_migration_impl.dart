@@ -55,7 +55,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     // it, we can't report on every unsatisfied edge.  We need to figure out a
     // way to report unsatisfied edges that isn't too overwhelming.
     if (_variables != null) {
-      broadcast(_variables, listener);
+      broadcast(_variables, listener, _instrumentation);
     }
   }
 
@@ -77,7 +77,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @visibleForTesting
   static void broadcast(
-      Variables variables, NullabilityMigrationListener listener) {
+      Variables variables,
+      NullabilityMigrationListener listener,
+      NullabilityMigrationInstrumentation instrumentation) {
     for (var entry in variables.getPotentialModifications().entries) {
       var source = entry.key;
       final lineInfo = LineInfo.fromContent(source.contents.data);
@@ -89,6 +91,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         var fix =
             _SingleNullabilityFix(source, potentialModification, lineInfo);
         listener.addFix(fix);
+        instrumentation?.fix(fix, potentialModification.reasons);
         for (var edit in modifications) {
           listener.addEdit(fix, edit);
         }

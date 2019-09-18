@@ -41,6 +41,11 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
+    test.fixes[fix] = reasons.toList();
+  }
+
+  @override
   void graphEdge(EdgeInfo edge, EdgeOriginInfo originInfo) {
     expect(test.edgeOrigin, isNot(contains(edge)));
     test.edges.add(edge);
@@ -92,6 +97,8 @@ class _InstrumentationTest extends AbstractContextTest {
   final Map<Element, DecoratedTypeInfo> externalDecoratedType = {};
 
   final List<EdgeInfo> edges = [];
+
+  Map<SingleNullabilityFix, List<FixReasonInfo>> fixes = {};
 
   final Map<AstNode, DecoratedTypeInfo> implicitReturnType = {};
 
@@ -146,6 +153,47 @@ main() {
             .type
             .toString(),
         'void Function(Object)');
+  }
+
+  test_fix_reason_edge() async {
+    await analyze('''
+void f(int x) {
+  print(x.isEven);
+}
+void g(int y, bool b) {
+  if (b) {
+    f(y);
+  }
+}
+main() {
+  g(null, false);
+}
+''');
+    var yUsage = findNode.simple('y);');
+    var entry =
+        fixes.entries.where((e) => e.key.location.offset == yUsage.end).single;
+    var reasons = entry.value;
+    expect(reasons, hasLength(1));
+    var edge = reasons[0] as EdgeInfo;
+    expect(edge.sourceNode,
+        same(explicitTypeNullability[findNode.typeAnnotation('int y')]));
+    expect(edge.destinationNode,
+        same(explicitTypeNullability[findNode.typeAnnotation('int x')]));
+    expect(edge.isSatisfied, false);
+    expect(edgeOrigin[edge].node, same(yUsage));
+  }
+
+  test_fix_reason_node() async {
+    await analyze('''
+int x = null;
+''');
+    var entries = fixes.entries.toList();
+    expect(entries, hasLength(1));
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(entries.single.key.location.offset, intAnnotation.end);
+    var reasons = entries.single.value;
+    expect(reasons, hasLength(1));
+    expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
   test_graphEdge() async {

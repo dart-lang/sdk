@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -87,6 +88,9 @@ class ConditionalModification extends PotentialModification {
     }
     return result;
   }
+
+  @override
+  Iterable<FixReasonInfo> get reasons => discard.reasons;
 }
 
 /// Records information about the possible addition of an import to the source
@@ -125,6 +129,13 @@ class PotentiallyAddImport extends PotentialModification {
   Iterable<SourceEdit> get modifications =>
       isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$importPath';\n")];
 
+  @override
+  Iterable<FixReasonInfo> get reasons sync* {
+    for (var usage in _usages) {
+      if (!usage.isEmpty) yield* usage.reasons;
+    }
+  }
+
   void addUsage(PotentialModification usage) {
     _usages.add(usage);
   }
@@ -149,6 +160,9 @@ class PotentiallyAddQuestionSuffix extends PotentialModification {
   @override
   Iterable<SourceEdit> get modifications =>
       isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
+
+  @override
+  Iterable<FixReasonInfo> get reasons => [node];
 }
 
 /// Records information about the possible addition of a `@required` annotation
@@ -184,6 +198,9 @@ class PotentiallyAddRequired extends PotentialModification {
   @override
   Iterable<SourceEdit> get modifications =>
       isEmpty ? const [] : [SourceEdit(_offset, 0, '@required ')];
+
+  @override
+  Iterable<FixReasonInfo> get reasons => [_node];
 }
 
 /// Interface used by data structures representing potential modifications to
@@ -197,6 +214,9 @@ abstract class PotentialModification {
   /// Gets the individual migrations that need to be done, considering the
   /// solution to the constraint equations.
   Iterable<SourceEdit> get modifications;
+
+  /// Gets the reasons for this potential modification.
+  Iterable<FixReasonInfo> get reasons;
 }
 
 /// Helper object used by [ConditionalModification] to keep track of AST nodes

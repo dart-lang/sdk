@@ -39,7 +39,7 @@ class NullabilityMigrationImplTest {
 
     when(innerModification.isEmpty).thenReturn(false);
 
-    NullabilityMigrationImpl.broadcast(variables, listener);
+    NullabilityMigrationImpl.broadcast(variables, listener, null);
 
     final fix = verify(listener.addFix(captureAny)).captured.single
         as SingleNullabilityFix;
@@ -68,7 +68,7 @@ class NullabilityMigrationImplTest {
 
     when(potentialModification.modifications).thenReturn([]);
 
-    NullabilityMigrationImpl.broadcast(variables, listener);
+    NullabilityMigrationImpl.broadcast(variables, listener, null);
 
     verifyNever(listener.addFix(any));
     verifyNever(listener.reportException(any, any, any, any));
@@ -80,7 +80,7 @@ class NullabilityMigrationImplTest {
     final source = SourceMock('');
     when(variables.getPotentialModifications()).thenReturn({source: []});
 
-    NullabilityMigrationImpl.broadcast(variables, listener);
+    NullabilityMigrationImpl.broadcast(variables, listener, null);
 
     verifyNever(listener.addFix(any));
     verifyNever(listener.reportException(any, any, any, any));
