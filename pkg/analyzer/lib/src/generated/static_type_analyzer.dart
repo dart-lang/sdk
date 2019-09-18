@@ -52,7 +52,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * The type system in use for static type analysis.
    */
-  TypeSystem _typeSystem;
+  Dart2TypeSystem _typeSystem;
 
   /**
    * The type representing the type 'dynamic'.
@@ -124,12 +124,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       FormalParameterList node, DartType functionType) {
     bool inferred = false;
     if (node != null && functionType is FunctionType) {
-      var ts = _typeSystem as Dart2TypeSystem;
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
         if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
-          inferredType = ts.upperBoundForType(inferredType);
+          inferredType = _typeSystem.upperBoundForType(inferredType);
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
           }
@@ -202,8 +201,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
     }
 
-    var typeArguments =
-        (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
+    var typeArguments = _typeSystem.inferGenericFunctionOrType(
       typeParameters: typeParameters,
       parameters: parameters,
       declaredReturnType: element.thisType,
@@ -227,8 +225,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
 
     var element = _typeProvider.mapElement;
-    var typeArguments =
-        (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
+    var typeArguments = _typeSystem.inferGenericFunctionOrType(
       typeParameters: element.typeParameters,
       parameters: const [],
       declaredReturnType: element.thisType,
@@ -251,8 +248,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
 
     var element = _typeProvider.setElement;
-    var typeArguments =
-        (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
+    var typeArguments = _typeSystem.inferGenericFunctionOrType(
       typeParameters: element.typeParameters,
       parameters: const [],
       declaredReturnType: element.thisType,
@@ -1674,11 +1670,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       ArgumentList argumentList,
       AstNode errorNode,
       {bool isConst: false}) {
-    TypeSystem ts = _typeSystem;
     if (typeArguments == null &&
         fnType is FunctionType &&
-        fnType.typeFormals.isNotEmpty &&
-        ts is Dart2TypeSystem) {
+        fnType.typeFormals.isNotEmpty) {
       // Get the parameters that correspond to the uninstantiated generic.
       List<ParameterElement> rawParameters =
           ResolverVisitor.resolveArgumentsToParameters(
@@ -1693,7 +1687,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           argTypes.add(argumentList.arguments[i].staticType);
         }
       }
-      var typeArgs = ts.inferGenericFunctionOrType(
+      var typeArgs = _typeSystem.inferGenericFunctionOrType(
         typeParameters: fnType.typeFormals,
         parameters: params,
         declaredReturnType: fnType.returnType,
@@ -1996,12 +1990,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     SimpleIdentifier identifier,
     DartType tearOffType,
   ) {
-    TypeSystem ts = _typeSystem;
     var context = InferenceContext.getContext(expression);
-    if (context is FunctionType &&
-        tearOffType is FunctionType &&
-        ts is Dart2TypeSystem) {
-      var typeArguments = ts.inferFunctionTypeInstantiation(
+    if (context is FunctionType && tearOffType is FunctionType) {
+      var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         context,
         tearOffType,
         errorReporter: _resolver.errorReporter,
@@ -2134,8 +2125,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       argumentTypes[2 * i + 1] = inferredTypes[i].valueType ?? dynamicType;
     }
 
-    var typeArguments =
-        (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
+    var typeArguments = _typeSystem.inferGenericFunctionOrType(
       typeParameters: typeParameters,
       parameters: parameters,
       declaredReturnType: element.thisType,
@@ -2166,8 +2156,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       argumentTypes[i] = inferredTypes[i].elementType ?? dynamicType;
     }
 
-    var typeArguments =
-        (_typeSystem as Dart2TypeSystem).inferGenericFunctionOrType(
+    var typeArguments = _typeSystem.inferGenericFunctionOrType(
       typeParameters: typeParameters,
       parameters: parameters,
       declaredReturnType: element.thisType,

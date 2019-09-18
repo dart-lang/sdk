@@ -3048,7 +3048,7 @@ class ResolverVisitor extends ScopedVisitor {
   StaticTypeAnalyzer typeAnalyzer;
 
   /// The type system in use during resolution.
-  TypeSystem typeSystem;
+  Dart2TypeSystem typeSystem;
 
   /// The class declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a class.
@@ -4813,12 +4813,10 @@ class ResolverVisitor extends ScopedVisitor {
       DartType uninstantiatedType, TypeArgumentList typeArguments,
       {AstNode errorNode, bool isConst: false}) {
     errorNode ??= inferenceNode;
-    TypeSystem ts = typeSystem;
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
-        uninstantiatedType.typeFormals.isNotEmpty &&
-        ts is Dart2TypeSystem) {
-      var typeArguments = ts.inferGenericFunctionOrType(
+        uninstantiatedType.typeFormals.isNotEmpty) {
+      var typeArguments = typeSystem.inferGenericFunctionOrType(
         typeParameters: uninstantiatedType.typeFormals,
         parameters: const <ParameterElement>[],
         declaredReturnType: uninstantiatedType.returnType,
@@ -5862,7 +5860,7 @@ class ToDoFinder {
 ///
 /// The client must set [nameScope] before calling [resolveTypeName].
 class TypeNameResolver {
-  final TypeSystem typeSystem;
+  final Dart2TypeSystem typeSystem;
   final DartType dynamicType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
@@ -6194,9 +6192,8 @@ class TypeNameResolver {
       }
     } else {
       if (element is GenericTypeAliasElementImpl) {
-        var ts = typeSystem as Dart2TypeSystem;
         List<DartType> typeArguments =
-            ts.instantiateTypeFormalsToBounds2(element);
+            typeSystem.instantiateTypeFormalsToBounds2(element);
         type = GenericTypeAliasElementImpl.typeAfterSubstitution(
                 element, typeArguments) ??
             dynamicType;
@@ -6312,17 +6309,15 @@ class TypeNameResolver {
       TypeName node, ClassElement typeElement) {
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
-    TypeSystem ts = typeSystem;
     if (constructorName is ConstructorName &&
         enclosingConstructor is ConstructorDeclaration &&
-        enclosingConstructor.redirectedConstructor == constructorName &&
-        ts is Dart2TypeSystem) {
+        enclosingConstructor.redirectedConstructor == constructorName) {
       ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
       var enclosingClassElement = enclosingClassNode.declaredElement;
       if (enclosingClassElement == typeElement) {
         return typeElement.thisType.typeArguments;
       } else {
-        return ts.inferGenericFunctionOrType(
+        return typeSystem.inferGenericFunctionOrType(
           typeParameters: typeElement.typeParameters,
           parameters: const [],
           declaredReturnType: typeElement.thisType,
@@ -6441,8 +6436,7 @@ class TypeNameResolver {
       typeArguments =
           _inferTypeArgumentsForRedirectedConstructor(node, element);
       if (typeArguments == null) {
-        var ts = typeSystem as Dart2TypeSystem;
-        typeArguments = ts.instantiateTypeFormalsToBounds2(element);
+        typeArguments = typeSystem.instantiateTypeFormalsToBounds2(element);
       }
     }
 
