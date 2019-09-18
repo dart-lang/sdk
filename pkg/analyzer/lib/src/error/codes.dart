@@ -5435,10 +5435,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * 2: the number of additional not initialized variables that aren't listed
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
-      const StaticWarningCode(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
-          "The final variables '{0}', '{1}' and '{2}' more must be "
-              "initialized.",
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "The final variables '{0}', '{1}' and {2} more must be initialized.",
           correction: "Try adding initializers for the fields.");
 
   /**
