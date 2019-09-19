@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -212,8 +213,6 @@ class TypeArgumentsVerifier {
             'Unexpected element associated with parameterized type: '
             '${element.runtimeType}');
       }
-      var parameterTypes =
-          parameterElements.map<DartType>((p) => p.type).toList();
       List<DartType> arguments = type.typeArguments;
       // iterate over each bounded type parameter and corresponding argument
       NodeList<TypeAnnotation> argumentNodes =
@@ -222,7 +221,7 @@ class TypeArgumentsVerifier {
       int loopThroughIndex =
           math.min(typeArguments.length, parameterElements.length);
       bool shouldSubstitute =
-          arguments.isNotEmpty && arguments.length == parameterTypes.length;
+          arguments.isNotEmpty && arguments.length == parameterElements.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         DartType argType = typeArguments[i];
         TypeAnnotation argumentNode =
@@ -239,7 +238,8 @@ class TypeArgumentsVerifier {
         DartType boundType = parameterElements[i].bound;
         if (argType != null && boundType != null) {
           if (shouldSubstitute) {
-            boundType = boundType.substitute2(arguments, parameterTypes);
+            boundType = Substitution.fromPairs(parameterElements, arguments)
+                .substituteType(boundType);
           }
 
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
