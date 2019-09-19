@@ -69,6 +69,8 @@ class InferenceVisitor
           return visitPropertyPostIncDec(node, typeContext);
         case InternalExpressionKind.StaticPostIncDec:
           return visitStaticPostIncDec(node, typeContext);
+        case InternalExpressionKind.SuperPostIncDec:
+          return visitSuperPostIncDec(node, typeContext);
       }
     }
     return _unhandledExpression(node, typeContext);
@@ -1956,6 +1958,15 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitStaticPostIncDec(
       StaticPostIncDec node, DartType typeContext) {
+    inferrer.inferStatement(node.read);
+    inferrer.inferStatement(node.write);
+    DartType inferredType = node.read.type;
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitSuperPostIncDec(
+      SuperPostIncDec node, DartType typeContext) {
     inferrer.inferStatement(node.read);
     inferrer.inferStatement(node.write);
     DartType inferredType = node.read.type;

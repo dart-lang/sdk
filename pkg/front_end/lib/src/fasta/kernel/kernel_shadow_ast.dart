@@ -193,6 +193,7 @@ enum InternalExpressionKind {
   NullAwarePropertySet,
   PropertyPostIncDec,
   StaticPostIncDec,
+  SuperPostIncDec,
 }
 
 /// Common base class for internal expressions.
@@ -1699,11 +1700,11 @@ class IfNullPropertySet extends InternalExpression {
 /// An if-null assignment of the form `a ??= b` is, if used for value,
 /// encoded as the expression:
 ///
-///     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
+///     let v1 = a in v1 == null ? a = b : v1
 ///
 /// and, if used for effect, encoded as the expression:
 ///
-///     let v1 = o in v1.a == null ? v1.a = b : null
+///     a == null ? a = b : null
 ///
 class IfNullSet extends InternalExpression {
   /// The expression that reads the property from [variable].
@@ -1854,7 +1855,7 @@ class PropertyPostIncDec extends InternalExpression {
 /// An local variable post inc/dec expression of the form `a++` is encoded as
 /// the expression:
 ///
-///     let v1 = a in let v2 = a = a + 1 in v1
+///     let v1 = a in let v2 = a = v1 + 1 in v1
 ///
 class LocalPostIncDec extends InternalExpression {
   /// The expression that reads the local variable.
@@ -1905,7 +1906,7 @@ class LocalPostIncDec extends InternalExpression {
 /// An local variable post inc/dec expression of the form `a++` is encoded as
 /// the expression:
 ///
-///     let v1 = a in let v2 = a = a + 1 in v1
+///     let v1 = a in let v2 = a = v1 + 1 in v1
 ///
 class StaticPostIncDec extends InternalExpression {
   /// The expression that reads the static member.
@@ -1922,6 +1923,57 @@ class StaticPostIncDec extends InternalExpression {
 
   @override
   InternalExpressionKind get kind => InternalExpressionKind.StaticPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(read, createLet(write, createVariableGet(read)))
+          ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an static member post inc/dec expression.
+///
+/// An local variable post inc/dec expression of the form `super.a++` is encoded
+/// as the expression:
+///
+///     let v1 = super.a in let v2 = super.a = v1 + 1 in v1
+///
+class SuperPostIncDec extends InternalExpression {
+  /// The expression that reads the static member.
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// static member.
+  VariableDeclaration write;
+
+  SuperPostIncDec(this.read, this.write) {
+    read?.parent = this;
+    write?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.SuperPostIncDec;
 
   @override
   Expression replace() {

@@ -704,6 +704,7 @@ class PropertyAccessGenerator extends Generator {
       ..fileOffset = offset;
   }
 
+  @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -1111,6 +1112,18 @@ class SuperPropertyAccessGenerator extends Generator {
   String get _plainNameForRead => name.name;
 
   @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    if (getter == null) {
+      _helper.warnUnresolvedGet(name, fileOffset, isSuper: true);
+    }
+    return new SuperPropertyGet(name, getter)..fileOffset = fileOffset;
+  }
+
+  @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     if (getter == null) {
       _helper.warnUnresolvedGet(name, fileOffset, isSuper: true);
@@ -1124,12 +1137,67 @@ class SuperPropertyAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    return _createWrite(fileOffset, value);
+  }
+
+  Expression _createWrite(int offset, Expression value) {
     if (setter == null) {
-      _helper.warnUnresolvedSet(name, fileOffset, isSuper: true);
+      _helper.warnUnresolvedSet(name, offset, isSuper: true);
     }
     SuperPropertySet write = new SuperPropertySet(name, value, setter)
-      ..fileOffset = fileOffset;
+      ..fileOffset = offset;
     return write;
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _createRead(),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    return _createWrite(fileOffset, binary);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPostIncDec: true);
+    }
+    VariableDeclaration read = _helper.forest
+        .createVariableDeclarationForValue(fileOffset, _createRead());
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _helper.createVariableGet(read, fileOffset),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    VariableDeclaration write = _helper.forest
+        .createVariableDeclarationForValue(
+            offset, _createWrite(fileOffset, binary));
+    return new StaticPostIncDec(read, write)..fileOffset = offset;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullSet(_createRead(), _createWrite(fileOffset, value),
+        forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override
