@@ -266,12 +266,15 @@ template("build_gen_snapshot_dart_io") {
 
     if (is_fuchsia) {
       if (using_fuchsia_sdk) {
-        deps += [ "$fuchsia_sdk_root/pkg/lib/netstack/c" ]
+        deps += [
+          "$fuchsia_sdk_root/fidl:fuchsia.netstack",
+          "$fuchsia_sdk_root/pkg:sys_cpp",
+        ]
         public_deps = [
           "$fuchsia_sdk_root/pkg:fdio",
         ]
       } else {
-        deps += [ "//garnet/public/lib/netstack/c" ]
+        deps += [ "//sdk/fidl/fuchsia.netstack" ]
         public_deps = [
           "//zircon/public/lib/fdio",
         ]
@@ -388,12 +391,15 @@ template("dart_io") {
 
     if (is_fuchsia) {
       if (using_fuchsia_sdk) {
-        deps += [ "$fuchsia_sdk_root/pkg/lib/netstack/c" ]
+        deps += [
+          "$fuchsia_sdk_root/fidl:fuchsia.netstack",
+          "$fuchsia_sdk_root/pkg:sys_cpp",
+        ]
         public_deps = [
           "$fuchsia_sdk_root/pkg:fdio",
         ]
       } else {
-        deps += [ "//garnet/public/lib/netstack/c" ]
+        deps += [ "//sdk/fidl/fuchsia.netstack" ]
         public_deps = [
           "//zircon/public/lib/fdio",
         ]
