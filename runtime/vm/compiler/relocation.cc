@@ -23,7 +23,7 @@ DEFINE_FLAG(bool,
 
 // The trampolines will have a 1-word object header in front of them.
 const intptr_t kOffsetInTrampoline = kWordSize;
-const intptr_t kTrampolineSize = OS::kMaxPreferredCodeAlignment;
+const intptr_t kTrampolineSize = 32;
 
 CodeRelocator::CodeRelocator(Thread* thread,
                              GrowableArray<RawCode*>* code_objects,
@@ -33,7 +33,16 @@ CodeRelocator::CodeRelocator(Thread* thread,
       commands_(commands),
       kind_type_and_offset_(Smi::Handle(thread->zone())),
       target_(Object::Handle(thread->zone())),
-      destination_(Code::Handle(thread->zone())) {}
+      destination_(Code::Handle(thread->zone())) {
+  // Trampolines will be disguised as FreeListElement objects.
+  ASSERT(Utils::IsAligned(kTrampolineSize, kObjectAlignment));
+  // Trampolines will be inserted between Instructions objects and must
+  // preserve their alignment.
+  ASSERT(Utils::IsAligned(kTrampolineSize, OS::PreferredCodeAlignment()));
+  // Trampolines are big enough to hold a full-range call.
+  ASSERT((kOffsetInTrampoline +
+          PcRelativeTrampolineJumpPattern::kLengthInBytes) < kTrampolineSize);
+}
 
 void CodeRelocator::Relocate(bool is_vm_isolate) {
   Zone* zone = Thread::Current()->zone();
@@ -408,7 +417,12 @@ bool CodeRelocator::IsTargetInRangeFor(UnresolvedCall* unresolved_call,
 static void MarkAsFreeListElement(uint8_t* trampoline_bytes,
                                   intptr_t trampoline_length) {
   uint32_t tags = 0;
+#if defined(IS_SIMARM_X64)
+  // Account for difference in kObjectAlignment between host and target.
+  tags = RawObject::SizeTag::update(trampoline_length * 2, tags);
+#else
   tags = RawObject::SizeTag::update(trampoline_length, tags);
+#endif
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
   tags = RawObject::OldBit::update(true, tags);
   tags = RawObject::OldAndNotMarkedBit::update(true, tags);
@@ -464,9 +478,6 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
       // buffer.
       auto trampoline_bytes = new uint8_t[kTrampolineSize];
       memset(trampoline_bytes, 0x00, kTrampolineSize);
-      ASSERT((kOffsetInTrampoline +
-              PcRelativeTrampolineJumpPattern::kLengthInBytes) <
-             kTrampolineSize);
       auto unresolved_trampoline = new UnresolvedTrampoline{
           unresolved_call->callee,
           unresolved_call->offset_into_target,

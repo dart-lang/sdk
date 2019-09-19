@@ -219,7 +219,7 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
 }
 
 static constexpr intptr_t kSimarmX64InstructionsAlignment =
-    2 * compiler::target::ObjectAlignment::kObjectAlignment;
+    compiler::target::ObjectAlignment::kObjectAlignment;
 static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
   const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
                                               kSimarmX64InstructionsAlignment);
