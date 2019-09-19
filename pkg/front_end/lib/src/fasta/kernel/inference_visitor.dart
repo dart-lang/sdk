@@ -41,6 +41,8 @@ class InferenceVisitor
       switch (node.kind) {
         case InternalExpressionKind.Cascade:
           return visitCascade(node, typeContext);
+        case InternalExpressionKind.CompoundPropertyAssignment:
+          return visitCompoundPropertyAssignment(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
         case InternalExpressionKind.IfNullPropertySet:
@@ -1835,9 +1837,8 @@ class InferenceVisitor
         }
       }
     }
-    ExpressionInferenceResult result = inferrer.inferMethodInvocation(
-        node, node.receiver, node.fileOffset, typeContext, node,
-        isImplicitCall: node._isImplicitCall);
+    ExpressionInferenceResult result =
+        inferrer.inferMethodInvocation(node, typeContext);
     return new ExpressionInferenceResult(
         result.inferredType, result.replacement);
   }
@@ -1943,6 +1944,15 @@ class InferenceVisitor
     node.replaceWith(replacement = new Let(node.variable, condition)
       ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitCompoundPropertyAssignment(
+      CompoundPropertyAssignment node, DartType typeContext) {
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult writeResult =
+        inferrer.inferExpression(node.write, const UnknownType(), true);
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(writeResult.inferredType, replacement);
   }
 
   ExpressionInferenceResult visitIfNullPropertySet(

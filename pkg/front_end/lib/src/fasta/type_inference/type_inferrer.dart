@@ -1549,6 +1549,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   DartType _inferInvocation(DartType typeContext, int offset,
       FunctionType calleeType, DartType returnType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
+      bool isBinaryOperator: false,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
@@ -1720,6 +1721,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           ensureAssignable(
               expectedType, actualType, expression, expression.fileOffset,
               isVoidAllowed: expectedType is VoidType,
+              // TODO(johnniwinther): Specialize message for operator
+              // invocations.
               template: templateArgumentTypeNotAssignable);
         }
       }
@@ -1922,65 +1925,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the core type inference algorithm for method invocations (this
   /// handles both null-aware and non-null-aware method invocations).
   ExpressionInferenceResult inferMethodInvocation(
-      Expression expression,
-      Expression receiver,
-      int fileOffset,
-      DartType typeContext,
-      MethodInvocation methodInvocation,
-      {VariableDeclaration nullAwareReceiverVariable,
-      bool isImplicitCall}) {
+      MethodInvocationImpl node, DartType typeContext) {
     // First infer the receiver so we can look up the method that was invoked.
-    DartType receiverType;
-    if (receiver == null) {
-      receiverType = thisType;
-    } else {
-      ExpressionInferenceResult result =
-          inferExpression(receiver, const UnknownType(), true);
-      if (result.replacement != null) {
-        receiver = result.replacement;
-      }
-      receiverType = result.inferredType;
-    }
-    nullAwareReceiverVariable?.type = receiverType;
-    ObjectAccessTarget target =
-        findMethodInvocationMember(receiverType, methodInvocation);
-    Name methodName = methodInvocation.name;
-    Arguments arguments = methodInvocation.arguments;
-    assert(
-        target != null,
-        "No target for ${expression} with desugared "
-        "invocation ${methodInvocation}.");
+    ExpressionInferenceResult result =
+        inferExpression(node.receiver, const UnknownType(), true);
+    DartType receiverType = result.inferredType;
+    ObjectAccessTarget target = findMethodInvocationMember(receiverType, node);
+    Name methodName = node.name;
+    Arguments arguments = node.arguments;
+    assert(target != null, "No target for ${node}.");
     bool isOverloadedArithmeticOperator =
         _isOverloadedArithmeticOperatorAndType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType =
-        getFunctionType(target, receiverType, !isImplicitCall);
+        getFunctionType(target, receiverType, !node.isImplicitCall);
 
     if (!target.isUnresolved &&
         calleeType is! DynamicType &&
         !(calleeType is InterfaceType &&
             calleeType.classNode == coreTypes.functionClass) &&
         identical(functionType, unknownFunction)) {
-      TreeNode parent = expression.parent;
-      Expression error = helper.wrapInProblem(expression,
+      TreeNode parent = node.parent;
+      Expression error = helper.wrapInProblem(node,
           templateInvokeNonFunction.withArguments(methodName.name), noLength);
-      parent?.replaceChild(expression, error);
+      parent?.replaceChild(node, error);
       return const ExpressionInferenceResult(const DynamicType());
     }
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
-        receiver,
-        receiverType,
-        target,
-        methodInvocation,
-        arguments,
-        expression);
+        node.receiver, receiverType, target, node, arguments, node);
     StaticInvocation replacement;
     if (target.isExtensionMember) {
       replacement = transformExtensionMethodInvocation(
-          target, expression, receiver, arguments);
+          target, node, node.receiver, arguments);
       arguments = replacement.arguments;
     }
-    DartType inferredType = inferInvocation(typeContext, fileOffset,
+    DartType inferredType = inferInvocation(typeContext, node.fileOffset,
         functionType, functionType.returnType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
@@ -1988,21 +1967,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (methodName.name == '==') {
       inferredType = coreTypes.boolRawType(library.nonNullable);
     }
-    handleInvocationContravariance(checkKind, methodInvocation, arguments,
-        expression, inferredType, functionType, fileOffset);
-    if (isImplicitCall && target.isInstanceMember) {
+    handleInvocationContravariance(checkKind, node, arguments, node,
+        inferredType, functionType, node.fileOffset);
+    if (node.isImplicitCall && target.isInstanceMember) {
       Member member = target.member;
       if (!(member is Procedure && member.kind == ProcedureKind.Method)) {
-        TreeNode parent = expression.parent;
+        TreeNode parent = node.parent;
         Expression errorNode = helper.wrapInProblem(
-            expression,
+            node,
             templateImplicitCallOfNonMethod.withArguments(receiverType),
             noLength);
-        parent?.replaceChild(expression, errorNode);
+        parent?.replaceChild(node, errorNode);
       }
     }
-    _checkBoundsInMethodInvocation(
-        target, receiverType, calleeType, methodName, arguments, fileOffset);
+    _checkBoundsInMethodInvocation(target, receiverType, calleeType, methodName,
+        arguments, node.fileOffset);
 
     return new ExpressionInferenceResult(inferredType, replacement);
   }

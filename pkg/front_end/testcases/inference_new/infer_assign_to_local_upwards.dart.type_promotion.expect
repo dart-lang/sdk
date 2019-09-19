@@ -10,12 +10,12 @@ pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:15:31: 
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:16:31: Context: Write to t@343
   var /*@ type=num* */ v5 = t ??= getNum();
                               ^^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:17:31: Context: Write to t@343
-  var /*@ type=int* */ v7 = t += getInt();
-                              ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:18:31: Context: Write to t@343
-  var /*@ type=num* */ v8 = t += getNum();
-                              ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:17:52: Context: Write to t@343
+  var /*@ type=int* */ v7 = t /*@ target=num::+ */ += getInt();
+                                                   ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:18:52: Context: Write to t@343
+  var /*@ type=num* */ v8 = t /*@ target=num::+ */ += getNum();
+                                                   ^^
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:19:30: Context: Write to t@343
   var /*@ type=int* */ v10 = ++t;
                              ^^
@@ -40,15 +40,15 @@ pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:28:31: 
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:29:31: Context: Write to t@343
   var /*@ type=num* */ v6 = t ??= getDouble();
                               ^^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:30:31: Context: Write to t@343
-  var /*@ type=num* */ v7 = t += getInt();
-                              ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:31:31: Context: Write to t@343
-  var /*@ type=num* */ v8 = t += getNum();
-                              ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:32:31: Context: Write to t@343
-  var /*@ type=num* */ v9 = t += getDouble();
-                              ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:30:52: Context: Write to t@343
+  var /*@ type=num* */ v7 = t /*@ target=num::+ */ += getInt();
+                                                   ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:31:52: Context: Write to t@343
+  var /*@ type=num* */ v8 = t /*@ target=num::+ */ += getNum();
+                                                   ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:32:52: Context: Write to t@343
+  var /*@ type=num* */ v9 = t /*@ target=num::+ */ += getDouble();
+                                                   ^^
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:33:30: Context: Write to t@343
   var /*@ type=num* */ v10 = ++t;
                              ^^
@@ -67,15 +67,15 @@ pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:40:31: 
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:41:34: Context: Write to t@343
   var /*@ type=double* */ v6 = t ??= getDouble();
                                  ^^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:42:34: Context: Write to t@343
-  var /*@ type=double* */ v7 = t += getInt();
-                                 ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:43:34: Context: Write to t@343
-  var /*@ type=double* */ v8 = t += getNum();
-                                 ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:44:34: Context: Write to t@343
-  var /*@ type=double* */ v9 = t += getDouble();
-                                 ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:42:58: Context: Write to t@343
+  var /*@ type=double* */ v7 = t /*@ target=double::+ */ += getInt();
+                                                         ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:43:58: Context: Write to t@343
+  var /*@ type=double* */ v8 = t /*@ target=double::+ */ += getNum();
+                                                         ^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:44:58: Context: Write to t@343
+  var /*@ type=double* */ v9 = t /*@ target=double::+ */ += getDouble();
+                                                         ^^
 pkg/front_end/testcases/inference_new/infer_assign_to_local_upwards.dart:45:33: Context: Write to t@343
   var /*@ type=double* */ v10 = ++t;
                                 ^^

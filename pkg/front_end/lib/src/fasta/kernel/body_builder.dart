@@ -5250,14 +5250,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           variable,
           forest.createMethodInvocation(offset,
               createVariableGet(variable, receiver.fileOffset), name, arguments,
-              isImplicitCall: isImplicitCall)
-            ..interfaceTarget = interfaceTarget)
+              isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget))
         ..fileOffset = receiver.fileOffset;
     } else {
       MethodInvocation node = forest.createMethodInvocation(
           offset, receiver, name, arguments,
-          isImplicitCall: isImplicitCall)
-        ..interfaceTarget = interfaceTarget;
+          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget);
       return node;
     }
   }

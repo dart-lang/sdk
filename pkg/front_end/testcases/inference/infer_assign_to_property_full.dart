@@ -26,9 +26,15 @@ class Test {
     /*@ type=Test* */ t
             . /*@target=Test::member*/ /*@target=Test::member*/ member
         /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
-    t. /*@target=Test::member*/ member += /*@ typeArgs=dynamic */ f();
-    t. /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
-    t. /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
+    /*@ type=Test* */ t
+            . /*@target=Test::member*/ /*@target=Test::member*/ member
+        /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
+    /*@ type=Test* */ t
+            . /*@target=Test::member*/ /*@target=Test::member*/ member
+        /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
+    /*@ type=Test* */ t
+            . /*@target=Test::member*/ /*@target=Test::member*/ member
+        /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
     --t. /*@target=Test::member*/ member;
     t. /*@target=Test::member*/ member--;
     var /*@ type=B* */ v1 =
@@ -37,10 +43,18 @@ class Test {
         /*@ type=Test* */ t
                 . /*@target=Test::member*/ /*@target=Test::member*/ member
             /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
+    var /*@ type=A* */ v3 =
+        /*@ type=Test* */ t
+                . /*@target=Test::member*/ /*@target=Test::member*/ member
+            /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
     var /*@ type=B* */ v4 =
-        t. /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
+        /*@ type=Test* */ t
+                . /*@target=Test::member*/ /*@target=Test::member*/ member
+            /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
     var /*@ type=C* */ v5 =
-        t. /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
+        /*@ type=Test* */ t
+                . /*@target=Test::member*/ /*@target=Test::member*/ member
+            /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
     var /*@ type=B* */ v6 = --t. /*@target=Test::member*/ member;
     var /*@ type=B* */ v7 = t. /*@target=Test::member*/ member--;
   }

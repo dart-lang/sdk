@@ -178,6 +178,7 @@ class ClassInferenceInfo {
 
 enum InternalExpressionKind {
   Cascade,
+  CompoundPropertyAssignment,
   DeferredCheck,
   LoadLibraryTearOff,
   NullAwareMethodInvocation,
@@ -878,12 +879,11 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 class MethodInvocationImpl extends MethodInvocation {
   /// Indicates whether this method invocation is a call to a `call` method
   /// resulting from the invocation of a function expression.
-  final bool _isImplicitCall;
+  final bool isImplicitCall;
 
   MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
-      {bool isImplicitCall: false, Member interfaceTarget})
-      : _isImplicitCall = isImplicitCall,
-        super(receiver, name, arguments, interfaceTarget);
+      {this.isImplicitCall: false, Member interfaceTarget})
+      : super(receiver, name, arguments, interfaceTarget);
 }
 
 /// Concrete shadow object representing a named function expression.
@@ -1635,11 +1635,11 @@ class SyntheticWrapper {
 /// An if-null assignment of the form `o.a ??= b` is, if used for value,
 /// encoded as the expression:
 ///
-///     let v1 = o in let v2 = v1.a in v2 == null ? v1.b : v2
+///     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
 ///
 /// and, if used for effect, encoded as the expression:
 ///
-///     let v1 = o in v1.a == null ? v1.b : null
+///     let v1 = o in v1.a == null ? v1.a = b : null
 ///
 class IfNullPropertySet extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
@@ -1678,6 +1678,55 @@ class IfNullPropertySet extends InternalExpression {
     }
     if (read != null) {
       read = read.accept<TreeNode>(v);
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+    }
+  }
+}
+
+/// Internal expression representing an compound property assignment.
+///
+/// An compound property assignment of the form `o.a += b` is encoded as the
+/// expression:
+///
+///     let v1 = o in v1.a = v1.a + b
+///
+class CompoundPropertyAssignment extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that writes the result of the binary operation to the
+  /// property on [variable].
+  Expression write;
+
+  CompoundPropertyAssignment(this.variable, this.write) {
+    variable.parent = this;
+    write.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundPropertyAssignment;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(variable, write)..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
     }
     if (write != null) {
       write = write.accept<TreeNode>(v);

@@ -10,9 +10,12 @@ class A {
 }
 
 var v_assign = (new A(). /*@target=A::f*/ f = 1);
-var v_plus = (new A(). /*@target=A::f*/ f += 1);
-var v_minus = (new A(). /*@target=A::f*/ f -= 1);
-var v_multiply = (new A(). /*@target=A::f*/ f *= 1);
+var v_plus = (new /*@ type=A* */ A()
+    . /*@target=A::f*/ /*@target=A::f*/ f /*@ target=num::+ */ += 1);
+var v_minus = (new /*@ type=A* */ A()
+    . /*@target=A::f*/ /*@target=A::f*/ f /*@ target=num::- */ -= 1);
+var v_multiply = (new /*@ type=A* */ A()
+    . /*@target=A::f*/ /*@target=A::f*/ f /*@ target=num::* */ *= 1);
 var v_prefix_pp = (++new A(). /*@target=A::f*/ f);
 var v_prefix_mm = (--new A(). /*@target=A::f*/ f);
 var v_postfix_pp = (new A(). /*@target=A::f*/ f++);

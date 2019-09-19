@@ -511,6 +511,38 @@ class VariableUseGenerator extends Generator {
     return write;
   }
 
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    if (!isPreIncDec && !isPostIncDec) {
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          _helper.createVariableGet(variable, fileOffset),
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      _helper.typePromoter
+          ?.mutateVariable(variable, _helper.functionNestingLevel);
+      Expression write;
+      if (variable.isFinal || variable.isConst) {
+        write = _makeInvalidWrite(binary);
+      } else {
+        write = new VariableSet(variable, binary)..fileOffset = fileOffset;
+      }
+      return write;
+    } else {
+      return super.buildCompoundAssignment(binaryOperator, value,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPreIncDec: isPreIncDec,
+          isPostIncDec: isPostIncDec);
+    }
+  }
+
   @override
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
@@ -649,6 +681,40 @@ class PropertyAccessGenerator extends Generator {
       ..fileOffset = fileOffset;
     return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
       ..fileOffset = offset;
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    if (!isPreIncDec && !isPostIncDec) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          new PropertyGet(
+              _helper.createVariableGet(variable, receiver.fileOffset), name)
+            ..fileOffset = fileOffset,
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      PropertySet write = new PropertySet(
+          _helper.createVariableGet(variable, receiver.fileOffset),
+          name,
+          binary)
+        ..fileOffset = fileOffset;
+      return new CompoundPropertyAssignment(variable, write)
+        ..fileOffset = offset;
+    } else {
+      return super.buildCompoundAssignment(binaryOperator, value,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPreIncDec: isPreIncDec,
+          isPostIncDec: isPostIncDec);
+    }
   }
 
   @override

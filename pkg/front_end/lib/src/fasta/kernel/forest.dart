@@ -700,10 +700,11 @@ class Forest {
 
   MethodInvocation createMethodInvocation(
       int fileOffset, Expression expression, Name name, Arguments arguments,
-      {bool isImplicitCall: false}) {
+      {bool isImplicitCall: false, Member interfaceTarget}) {
     return new MethodInvocationImpl(expression, name, arguments,
         isImplicitCall: isImplicitCall)
-      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+      ..fileOffset = fileOffset ?? TreeNode.noOffset
+      ..interfaceTarget = interfaceTarget;
   }
 
   NamedExpression createNamedExpression(String name, Expression expression) {

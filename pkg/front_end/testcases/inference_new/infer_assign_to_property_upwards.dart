@@ -21,8 +21,12 @@ class Test1 {
     var /*@ type=num* */ v5 = /*@ type=Test1* */ t
             . /*@target=Test1::prop*/ /*@target=Test1::prop*/ prop
         /*@target=num::==*/ ??= getNum();
-    var /*@ type=int* */ v7 = t. /*@target=Test1::prop*/ prop += getInt();
-    var /*@ type=num* */ v8 = t. /*@target=Test1::prop*/ prop += getNum();
+    var /*@ type=int* */ v7 = /*@ type=Test1* */ t
+            . /*@target=Test1::prop*/ /*@target=Test1::prop*/ prop
+        /*@ target=num::+ */ += getInt();
+    var /*@ type=num* */ v8 = /*@ type=Test1* */ t
+            . /*@target=Test1::prop*/ /*@target=Test1::prop*/ prop
+        /*@ target=num::+ */ += getNum();
     var /*@ type=int* */ v10 = ++t. /*@target=Test1::prop*/ prop;
     var /*@ type=int* */ v11 = t. /*@target=Test1::prop*/ prop++;
   }
@@ -44,9 +48,15 @@ class Test2 {
     var /*@ type=num* */ v6 = /*@ type=Test2* */ t
             . /*@target=Test2::prop*/ /*@target=Test2::prop*/ prop
         /*@target=num::==*/ ??= getDouble();
-    var /*@ type=num* */ v7 = t. /*@target=Test2::prop*/ prop += getInt();
-    var /*@ type=num* */ v8 = t. /*@target=Test2::prop*/ prop += getNum();
-    var /*@ type=num* */ v9 = t. /*@target=Test2::prop*/ prop += getDouble();
+    var /*@ type=num* */ v7 = /*@ type=Test2* */ t
+            . /*@target=Test2::prop*/ /*@target=Test2::prop*/ prop
+        /*@ target=num::+ */ += getInt();
+    var /*@ type=num* */ v8 = /*@ type=Test2* */ t
+            . /*@target=Test2::prop*/ /*@target=Test2::prop*/ prop
+        /*@ target=num::+ */ += getNum();
+    var /*@ type=num* */ v9 = /*@ type=Test2* */ t
+            . /*@target=Test2::prop*/ /*@target=Test2::prop*/ prop
+        /*@ target=num::+ */ += getDouble();
     var /*@ type=num* */ v10 = ++t. /*@target=Test2::prop*/ prop;
     var /*@ type=num* */ v11 = t. /*@target=Test2::prop*/ prop++;
   }
@@ -64,9 +74,15 @@ class Test3 {
     var /*@ type=double* */ v6 = /*@ type=Test3* */ t
             . /*@target=Test3::prop*/ /*@target=Test3::prop*/ prop
         /*@target=num::==*/ ??= getDouble();
-    var /*@ type=double* */ v7 = t. /*@target=Test3::prop*/ prop += getInt();
-    var /*@ type=double* */ v8 = t. /*@target=Test3::prop*/ prop += getNum();
-    var /*@ type=double* */ v9 = t. /*@target=Test3::prop*/ prop += getDouble();
+    var /*@ type=double* */ v7 = /*@ type=Test3* */ t
+            . /*@target=Test3::prop*/ /*@target=Test3::prop*/ prop
+        /*@ target=double::+ */ += getInt();
+    var /*@ type=double* */ v8 = /*@ type=Test3* */ t
+            . /*@target=Test3::prop*/ /*@target=Test3::prop*/ prop
+        /*@ target=double::+ */ += getNum();
+    var /*@ type=double* */ v9 = /*@ type=Test3* */ t
+            . /*@target=Test3::prop*/ /*@target=Test3::prop*/ prop
+        /*@ target=double::+ */ += getDouble();
     var /*@ type=double* */ v10 = ++t. /*@target=Test3::prop*/ prop;
     var /*@ type=double* */ v11 = t. /*@target=Test3::prop*/ prop++;
   }

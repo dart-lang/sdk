@@ -32,9 +32,13 @@ class G {
 }
 
 void test1(G g) {
-  g. /*@target=G::target*/ target *= /*@ typeArgs=dynamic */ f();
+  /*@ type=G* */ g. /*@target=G::target*/ /*@target=G::target*/ target
+      /*@ target=A::* */ *=
+      /*@ typeArgs=D* */ f();
   var /*@ type=C* */ x =
-      g. /*@target=G::target*/ target *= /*@ typeArgs=dynamic */ f();
+      /*@ type=G* */ g. /*@target=G::target*/ /*@target=G::target*/ target
+          /*@ target=A::* */ *=
+          /*@ typeArgs=D* */ f();
 }
 
 void test2(G g) {
