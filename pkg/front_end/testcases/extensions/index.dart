@@ -20,8 +20,18 @@ main() {
   map1.put(0, '0');
   expect('0', map1[0]);
   expect(null, map1[1]);
-  expect('1', map1[1] = '1');
+  map1[1] = '1';
   expect('1', map1[1]);
+  expect('2', map1[1] = '2');
+  expect('2', map1[1]);
+  map1[1] ??= '3';
+  expect('2', map1[1]);
+  expect('2', map1[1] ??= '4');
+  expect('2', map1[1]);
+  map1[2] ??= '2';
+  expect('2', map1[2]);
+  expect('3', map1[3] ??= '3');
+  expect('3', map1[3]);
 }
 
 expect(expected, actual) {

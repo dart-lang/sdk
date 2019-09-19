@@ -45,6 +45,8 @@ class InferenceVisitor
           return visitCompoundPropertyAssignment(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.IfNullIndexSet:
+          return visitIfNullIndexSet(node, typeContext);
         case InternalExpressionKind.IfNullPropertySet:
           return visitIfNullPropertySet(node, typeContext);
         case InternalExpressionKind.IndexSet:
@@ -738,7 +740,7 @@ class InferenceVisitor
     // when doing compound assignment?
     DartType indexContext = const UnknownType();
     DartType expectedIndexTypeForWrite =
-        inferrer.getIndexSetKeyType(writeTarget, receiverType);
+        inferrer.getIndexKeyType(writeTarget, receiverType);
     DartType writeContext =
         inferrer.getIndexSetValueType(writeTarget, receiverType);
     ExpressionInferenceResult indexResult =
@@ -777,8 +779,8 @@ class InferenceVisitor
       MethodInvocation desugaredInvocation =
           read is MethodInvocation ? read : null;
       MethodContravarianceCheckKind checkKind =
-          inferrer.preCheckInvocationContravariance(node.receiver, receiverType,
-              readMember, desugaredInvocation, read.arguments, read);
+          inferrer.preCheckInvocationContravariance(receiverType, readMember,
+              isThisReceiver: node.receiver is ThisExpression);
       Expression replacedRead = inferrer.handleInvocationContravariance(
           checkKind,
           desugaredInvocation,
@@ -2049,8 +2051,7 @@ class InferenceVisitor
         receiverType, new Name('[]='), node.fileOffset,
         includeExtensionMethods: true);
 
-    DartType indexType =
-        inferrer.getIndexSetKeyType(indexSetTarget, receiverType);
+    DartType indexType = inferrer.getIndexKeyType(indexSetTarget, receiverType);
     DartType valueType =
         inferrer.getIndexSetValueType(indexSetTarget, receiverType);
 
@@ -2128,6 +2129,189 @@ class InferenceVisitor
                   ..fileOffset = assignment.fileOffset)
               ..fileOffset = node.index.fileOffset)
           ..fileOffset = node.receiver.fileOffset));
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitIfNullIndexSet(
+      IfNullIndexSet node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType receiverType = receiverResult.inferredType;
+    VariableDeclaration receiverVariable =
+        createVariable(node.receiver, receiverType);
+
+    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
+        receiverType, new Name('[]'), node.readOffset,
+        includeExtensionMethods: true);
+
+    MethodContravarianceCheckKind checkKind =
+        inferrer.preCheckInvocationContravariance(receiverType, readTarget,
+            isThisReceiver: node.receiver is ThisExpression);
+
+    DartType readType = inferrer.getReturnType(readTarget, receiverType);
+    DartType readIndexType = inferrer.getIndexKeyType(readTarget, receiverType);
+
+    Member equalsMember = inferrer
+        .findInterfaceMember(readType, new Name('=='), node.fileOffset)
+        .member;
+
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, new Name('[]='), node.fileOffset,
+        includeExtensionMethods: true);
+
+    DartType writeIndexType =
+        inferrer.getIndexKeyType(writeTarget, receiverType);
+    DartType valueType =
+        inferrer.getIndexSetValueType(writeTarget, receiverType);
+
+    ExpressionInferenceResult indexResult = inferrer
+        .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
+
+    VariableDeclaration indexVariable =
+        createVariable(node.index, indexResult.inferredType);
+
+    Expression readIndex = createVariableGet(indexVariable);
+    readIndex = inferrer.ensureAssignable(readIndexType,
+            indexResult.inferredType, readIndex, readIndex.fileOffset) ??
+        readIndex;
+
+    Expression writeIndex = createVariableGet(indexVariable);
+    writeIndex = inferrer.ensureAssignable(writeIndexType,
+            indexResult.inferredType, writeIndex, writeIndex.fileOffset) ??
+        writeIndex;
+
+    ExpressionInferenceResult valueResult = inferrer
+        .inferExpression(node.value, valueType, true, isVoidAllowed: true);
+    inferrer.ensureAssignable(
+        valueType, valueResult.inferredType, node.value, node.value.fileOffset);
+
+    DartType inferredType = inferrer.typeSchemaEnvironment
+        .getStandardUpperBound(readType, valueResult.inferredType);
+
+    Expression read;
+
+    if (readTarget.isMissing) {
+      read = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments('[]', receiverType),
+          node.readOffset,
+          '[]'.length,
+          wrapInSyntheticExpression: false);
+    } else if (readTarget.isExtensionMember) {
+      read = new StaticInvocation(
+          readTarget.member,
+          new Arguments(<Expression>[
+            createVariableGet(receiverVariable),
+            readIndex,
+          ], types: readTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.readOffset)
+        ..fileOffset = node.readOffset;
+    } else {
+      read = new MethodInvocation(
+          createVariableGet(receiverVariable),
+          new Name('[]'),
+          new Arguments(<Expression>[
+            readIndex,
+          ])
+            ..fileOffset = node.readOffset,
+          readTarget.member)
+        ..fileOffset = node.readOffset;
+
+      if (checkKind == MethodContravarianceCheckKind.checkMethodReturn) {
+        if (inferrer.instrumentation != null) {
+          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
+              'checkReturn', new InstrumentationValueForType(readType));
+        }
+        read = new AsExpression(read, readType)
+          ..isTypeError = true
+          ..fileOffset = node.readOffset;
+      }
+    }
+
+    VariableDeclaration valueVariable;
+    Expression valueExpression;
+    if (node.forEffect) {
+      valueExpression = node.value;
+    } else {
+      valueVariable = createVariable(node.value, valueResult.inferredType);
+      valueExpression = createVariableGet(valueVariable);
+    }
+
+    Expression write;
+
+    if (writeTarget.isMissing) {
+      write = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments('[]=', receiverType),
+          node.fileOffset,
+          '[]='.length,
+          wrapInSyntheticExpression: false);
+    } else if (writeTarget.isExtensionMember) {
+      write = new StaticInvocation(
+          writeTarget.member,
+          new Arguments(<Expression>[
+            createVariableGet(receiverVariable),
+            writeIndex,
+            valueExpression
+          ], types: writeTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset;
+    } else {
+      write = new MethodInvocation(
+          createVariableGet(receiverVariable),
+          new Name('[]='),
+          new Arguments(<Expression>[writeIndex, valueExpression])
+            ..fileOffset = node.fileOffset,
+          writeTarget.member)
+        ..fileOffset = node.fileOffset;
+    }
+
+    Expression replacement;
+    if (node.forEffect) {
+      // Encode `o[a] ??= b` as:
+      //
+      //     let v1 = o in
+      //     let v2 = a in
+      //     let v3 = v1[v2] in
+      //        v3 == null ? v1.[]=(v2, b) : null
+      //
+      MethodInvocation equalsNull =
+          createEqualsNull(node.fileOffset, read, equalsMember);
+      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
+          write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
+        ..fileOffset = node.fileOffset;
+      node.replaceWith(replacement =
+          new Let(receiverVariable, createLet(indexVariable, conditional))
+            ..fileOffset = node.fileOffset);
+    } else {
+      // Encode `o[a] ??= b` as:
+      //
+      //     let v1 = o in
+      //     let v2 = a in
+      //     let v3 = v1[v2] in
+      //       v3 == null
+      //        ? (let v4 = b in
+      //           let _ = v1.[]=(v2, v4) in
+      //           v4)
+      //        : v3
+      //
+      assert(valueVariable != null);
+
+      VariableDeclaration readVariable = createVariable(read, readType);
+      MethodInvocation equalsNull = createEqualsNull(
+          node.fileOffset, createVariableGet(readVariable), equalsMember);
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull,
+          createLet(valueVariable,
+              createLet(writeVariable, createVariableGet(valueVariable))),
+          createVariableGet(readVariable),
+          inferredType)
+        ..fileOffset = node.fileOffset;
+      node.replaceWith(replacement = new Let(receiverVariable,
+          createLet(indexVariable, createLet(readVariable, conditional)))
+        ..fileOffset = node.fileOffset);
+    }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

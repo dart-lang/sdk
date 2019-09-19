@@ -1191,6 +1191,15 @@ class IndexedAccessGenerator extends Generator {
     }
   }
 
+  @override
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullIndexSet(receiver, index, value, fileOffset,
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
     return new VariableGet(indexVariable)..fileOffset = fileOffset;

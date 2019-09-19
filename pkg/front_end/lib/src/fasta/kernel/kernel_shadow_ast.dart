@@ -181,6 +181,7 @@ enum InternalExpressionKind {
   Cascade,
   CompoundPropertyAssignment,
   DeferredCheck,
+  IfNullIndexSet,
   IfNullPropertySet,
   IndexSet,
   LoadLibraryTearOff,
@@ -499,8 +500,8 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
         combinedType = combinerType.returnType;
       }
       MethodContravarianceCheckKind checkKind =
-          inferrer.preCheckInvocationContravariance(read, readType,
-              combinerTarget, combiner, combiner.arguments, combiner);
+          inferrer.preCheckInvocationContravariance(readType, combinerTarget,
+              isThisReceiver: read is ThisExpression);
       Expression replacedCombiner = inferrer.handleInvocationContravariance(
           checkKind,
           combiner,
@@ -1769,12 +1770,7 @@ class PropertyPostIncDec extends InternalExpression {
   Expression replace() {
     Expression replacement;
     replaceWith(replacement = new Let(
-        variable,
-        new Let(
-            read,
-            new Let(write, new VariableGet(read)..fileOffset = fileOffset)
-              ..fileOffset = fileOffset)
-          ..fileOffset = fileOffset)
+        variable, createLet(read, createLet(write, createVariableGet(read))))
       ..fileOffset = fileOffset);
     return replacement;
   }
@@ -1823,11 +1819,9 @@ class LocalPostIncDec extends InternalExpression {
   @override
   Expression replace() {
     Expression replacement;
-    replaceWith(replacement = new Let(
-        read,
-        new Let(write, new VariableGet(read)..fileOffset = fileOffset)
-          ..fileOffset = fileOffset)
-      ..fileOffset = fileOffset);
+    replaceWith(
+        replacement = new Let(read, createLet(write, createVariableGet(read)))
+          ..fileOffset = fileOffset);
     return replacement;
   }
 
@@ -1901,10 +1895,112 @@ class IndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing an if-null index assignment.
+///
+/// An if-null index assignment of the form `o[a] ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1[v2] in
+///       v3 == null
+///        ? (let v4 = b in
+///           let _ = v1.[]=(v2, v4) in
+///           v4)
+///        : v3
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1[v2] in
+///        v3 == null ? v1.[]=(v2, b) : null
+///
+class IfNullIndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullIndexSet(this.receiver, this.index, this.value, this.readOffset,
+      {this.forEffect})
+      : assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+    }
+  }
+}
+
+/// Creates a [Let] of [variable] with the given [body] using
+/// `variable.fileOffset` as the file offset for the let.
+///
+/// This is useful for create let expressions in replacement code.
+Let createLet(VariableDeclaration variable, Expression body) {
+  return new Let(variable, body)..fileOffset = variable.fileOffset;
+}
+
+/// Creates a [VariableDeclaration] for [expression] with the static [type]
+/// using `expression.fileOffset` as the file offset for the declaration.
+///
+/// This is useful for creating let variables for expressions in replacement
+/// code.
+VariableDeclaration createVariable(Expression expression, DartType type) {
+  return new VariableDeclaration.forValue(expression, type: type)
+    ..fileOffset = expression.fileOffset;
+}
+
+/// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
+/// file offset for the expression.
+///
+/// This is useful for referencing let variables for expressions in replacement
+/// code.
+VariableGet createVariableGet(VariableDeclaration variable) {
+  return new VariableGet(variable)..fileOffset = variable.fileOffset;
+}
+
+/// Creates a `e == null` test for the expression [left] using the [fileOffset]
+/// as file offset for the created nodes and [equalsMember] as the interface
+/// target of the created method invocation.
 MethodInvocation createEqualsNull(
     int fileOffset, Expression left, Member equalsMember) {
-  return new MethodInvocation(left, new Name('=='),
-      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset]))
+  return new MethodInvocation(
+      left,
+      new Name('=='),
+      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
+        ..fileOffset = fileOffset)
     ..fileOffset = fileOffset
     ..interfaceTarget = equalsMember;
 }

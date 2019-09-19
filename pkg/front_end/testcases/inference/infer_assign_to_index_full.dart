@@ -28,8 +28,9 @@ class Test {
     Test t = /*@ typeArgs=Test* */ f();
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
-    t /*@target=Test::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
+    t /*@target=Test::[]*/ [/*@ typeArgs=Index* */ f()]
+        /*@ target=Object::== */ /*@ target=Test::[]= */
+        ??= /*@ typeArgs=B* */ f();
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] += /*@ typeArgs=dynamic */ f();
     t /*@target=Test::[]=*/ [
@@ -41,8 +42,10 @@ class Test {
     t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
     var /*@ type=B* */ v1 = t /*@target=Test::[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
-    var /*@ type=B* */ v2 = t /*@target=Test::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 = t /*@target=Test::[]*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=Object::== */ /*@ target=Test::[]= */
+        ??= /*@ typeArgs=B* */ f();
     var /*@ type=B* */ v4 = t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
     var /*@ type=C* */ v5 = t /*@target=Test::[]=*/ [

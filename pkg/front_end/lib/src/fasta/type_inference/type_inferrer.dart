@@ -1145,23 +1145,62 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     throw unhandled('$target', 'getFunctionType', null, null);
   }
 
-  /// Returns the type of the 'key' parameter in an []= implementation.
+  /// Returns the return type of the invocation of [target] on [receiverType].
+  // TODO(johnniwinther): Cleanup [getFunctionType], [getReturnType],
+  // [getIndexKeyType] and [getIndexSetValueType]. We shouldn't need that many.
+  DartType getReturnType(ObjectAccessTarget target, DartType receiverType) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        FunctionType functionType = _getFunctionType(
+            getGetterTypeForMemberTarget(target.member, receiverType), false);
+        return functionType.returnType;
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        switch (target.extensionMethodKind) {
+          case ProcedureKind.Operator:
+            FunctionType functionType = target.member.function.functionType;
+            DartType returnType = functionType.returnType;
+            if (functionType.typeParameters.isNotEmpty) {
+              Substitution substitution = Substitution.fromPairs(
+                  functionType.typeParameters,
+                  target.inferredExtensionTypeArguments);
+              return substitution.substituteType(returnType);
+            }
+            return returnType;
+          default:
+            throw unhandled('$target', 'getFunctionType', null, null);
+        }
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
+        break;
+    }
+    return const DynamicType();
+  }
+
+  /// Returns the type of the 'key' parameter in an [] or []= implementation.
   ///
   /// For instance
   ///
   ///    class Class<K, V> {
+  ///      V operator [](K key) => null;
   ///      void operator []=(K key, V value) {}
   ///    }
   ///
   ///    extension Extension<K, V> on Class<K, V> {
+  ///      V operator [](K key) => null;
   ///      void operator []=(K key, V value) {}
   ///    }
   ///
+  ///    new Class<int, String>()[0];             // The key type is `int`.
   ///    new Class<int, String>()[0] = 'foo';     // The key type is `int`.
+  ///    Extension<int, String>(null)[0];         // The key type is `int`.
   ///    Extension<int, String>(null)[0] = 'foo'; // The key type is `int`.
   ///
-  DartType getIndexSetKeyType(
-      ObjectAccessTarget target, DartType receiverType) {
+  DartType getIndexKeyType(ObjectAccessTarget target, DartType receiverType) {
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
         FunctionType functionType = _getFunctionType(
@@ -1175,14 +1214,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           case ProcedureKind.Operator:
             FunctionType functionType = target.member.function.functionType;
             if (functionType.positionalParameters.length >= 2) {
-              DartType indexType = functionType.positionalParameters[1];
+              DartType keyType = functionType.positionalParameters[1];
               if (functionType.typeParameters.isNotEmpty) {
                 Substitution substitution = Substitution.fromPairs(
                     functionType.typeParameters,
                     target.inferredExtensionTypeArguments);
-                return substitution.substituteType(indexType);
+                return substitution.substituteType(keyType);
               }
-              return indexType;
+              return keyType;
             }
             break;
           default:
@@ -1196,7 +1235,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.missing:
         break;
     }
-    return const UnknownType();
+    return const DynamicType();
   }
 
   /// Returns the type of the 'value' parameter in an []= implementation.
@@ -1250,7 +1289,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.missing:
         break;
     }
-    return const UnknownType();
+    return const DynamicType();
   }
 
   FunctionType _getFunctionType(DartType calleeType, bool followCall) {
@@ -2013,7 +2052,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return const ExpressionInferenceResult(const DynamicType());
     }
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
-        node.receiver, receiverType, target, node, arguments, node);
+        receiverType, target,
+        isThisReceiver: node.receiver is ThisExpression);
     StaticInvocation replacement;
     if (target.isExtensionMember) {
       replacement = transformExtensionMethodInvocation(
@@ -2323,12 +2363,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// boolean indicating whether an "as" check will need to be added due to
   /// contravariance.
   MethodContravarianceCheckKind preCheckInvocationContravariance(
-      Expression receiver,
-      DartType receiverType,
-      ObjectAccessTarget target,
-      MethodInvocation desugaredInvocation,
-      Arguments arguments,
-      Expression expression) {
+      DartType receiverType, ObjectAccessTarget target,
+      {bool isThisReceiver}) {
+    assert(isThisReceiver != null);
     if (target.isInstanceMember) {
       Member interfaceMember = target.member;
       if (interfaceMember is Field ||
@@ -2338,7 +2375,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (getType is DynamicType) {
           return MethodContravarianceCheckKind.none;
         }
-        if (receiver != null && receiver is! ThisExpression) {
+        if (!isThisReceiver) {
           if ((interfaceMember is Field &&
                   returnedTypeParametersOccurNonCovariantly(
                       interfaceMember.enclosingClass, interfaceMember.type)) ||
@@ -2349,8 +2386,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             return MethodContravarianceCheckKind.checkGetterReturn;
           }
         }
-      } else if (receiver != null &&
-          receiver is! ThisExpression &&
+      } else if (!isThisReceiver &&
           interfaceMember is Procedure &&
           returnedTypeParametersOccurNonCovariantly(
               interfaceMember.enclosingClass,
