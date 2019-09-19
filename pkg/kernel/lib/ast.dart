@@ -1114,6 +1114,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
+    dirty = false;
   }
 
   /// The immediate super class, or `null` if this is the root class.
