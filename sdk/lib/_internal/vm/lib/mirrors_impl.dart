@@ -258,8 +258,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
   }
 }
 
-class _InstanceMirror extends _ObjectMirror
-    implements InstanceMirror {
+class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
   _InstanceMirror._(reflectee) : super._(reflectee);
 
   ClassMirror _type;
@@ -280,8 +279,7 @@ class _InstanceMirror extends _ObjectMirror
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
   bool operator ==(other) {
-    return other is _InstanceMirror &&
-        identical(_reflectee, other._reflectee);
+    return other is _InstanceMirror && identical(_reflectee, other._reflectee);
   }
 
   int get hashCode {
@@ -332,8 +330,7 @@ class _InstanceMirror extends _ObjectMirror
   static _computeType(reflectee) native 'InstanceMirror_computeType';
 }
 
-class _ClosureMirror extends _InstanceMirror
-    implements ClosureMirror {
+class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
   _ClosureMirror._(reflectee) : super._(reflectee);
 
   MethodMirror _function;
@@ -358,8 +355,7 @@ abstract class _TypeMirror {
   Type get _reflectedType;
 }
 
-class _ClassMirror extends _ObjectMirror
-    implements ClassMirror, _TypeMirror {
+class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   final Type _reflectedType;
   Symbol _simpleName;
   DeclarationMirror _owner;
@@ -485,8 +481,7 @@ class _ClassMirror extends _ObjectMirror
   var _mixin;
   ClassMirror get mixin {
     if (_mixin == null) {
-      Type mixinType =
-          _nativeMixinInstantiated(_reflectedType, _instantiator);
+      Type mixinType = _nativeMixinInstantiated(_reflectedType, _instantiator);
       if (mixinType == null) {
         // The reflectee is not a mixin application.
         _mixin = this;
@@ -674,8 +669,7 @@ class _ClassMirror extends _ObjectMirror
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(
-        _reflectedType, (other as _TypeMirror)._reflectedType);
+    return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
@@ -739,12 +733,11 @@ class _ClassMirror extends _ObjectMirror
       native "ClassMirror_type_arguments";
 }
 
-class _FunctionTypeMirror extends _ClassMirror
-    implements FunctionTypeMirror {
+class _FunctionTypeMirror extends _ClassMirror implements FunctionTypeMirror {
   final _functionReflectee;
   _FunctionTypeMirror._(reflectee, this._functionReflectee, reflectedType)
-      : super._(reflectee, reflectedType, null, null, false, false, false, false,
-            false);
+      : super._(reflectee, reflectedType, null, null, false, false, false,
+            false, false);
 
   bool get _isAnonymousMixinApplication => false;
 
@@ -803,8 +796,7 @@ class _FunctionTypeMirror extends _ClassMirror
       native "FunctionTypeMirror_parameters";
 }
 
-abstract class _DeclarationMirror extends Mirror
-    implements DeclarationMirror {
+abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
   final _reflectee;
   Symbol _simpleName;
 
@@ -892,8 +884,7 @@ class _TypeVariableMirror extends _DeclarationMirror
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(
-        _reflectedType, (other as _TypeMirror)._reflectedType);
+    return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
@@ -981,9 +972,9 @@ class _TypedefMirror extends _DeclarationMirror
       if (_isGenericDeclaration) {
         _typeArguments = const <TypeMirror>[];
       } else {
-        _typeArguments = new UnmodifiableListView<TypeMirror>(_ClassMirror
-            ._computeTypeArguments(_reflectedType)
-            .cast<TypeMirror>());
+        _typeArguments = new UnmodifiableListView<TypeMirror>(
+            _ClassMirror._computeTypeArguments(_reflectedType)
+                .cast<TypeMirror>());
       }
     }
     return _typeArguments;
@@ -994,8 +985,7 @@ class _TypedefMirror extends _DeclarationMirror
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _subtypeTest(
-        _reflectedType, (other as _TypeMirror)._reflectedType);
+    return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
@@ -1159,14 +1149,13 @@ class _CombinatorMirror extends Mirror implements CombinatorMirror {
   bool get isHide => !isShow;
 }
 
-class _MethodMirror extends _DeclarationMirror
-    implements MethodMirror {
+class _MethodMirror extends _DeclarationMirror implements MethodMirror {
   final Type _instantiator;
   final bool isStatic;
   final int _kindFlags;
 
-  _MethodMirror._(reflectee, String simpleName, this._owner,
-      this._instantiator, this.isStatic, this._kindFlags)
+  _MethodMirror._(reflectee, String simpleName, this._owner, this._instantiator,
+      this.isStatic, this._kindFlags)
       : super._(reflectee, _s(simpleName));
 
   static const kAbstract = 0;
@@ -1287,8 +1276,7 @@ class _MethodMirror extends _DeclarationMirror
   static String _MethodMirror_source(reflectee) native "MethodMirror_source";
 }
 
-class _VariableMirror extends _DeclarationMirror
-    implements VariableMirror {
+class _VariableMirror extends _DeclarationMirror implements VariableMirror {
   final DeclarationMirror owner;
   final bool isStatic;
   final bool isFinal;
@@ -1328,8 +1316,7 @@ class _VariableMirror extends _DeclarationMirror
       native "VariableMirror_type";
 }
 
-class _ParameterMirror extends _VariableMirror
-    implements ParameterMirror {
+class _ParameterMirror extends _VariableMirror implements ParameterMirror {
   final int _position;
   final bool isOptional;
   final bool isNamed;
@@ -1462,8 +1449,7 @@ class _Mirrors {
   static Type _instantiateGenericType(Type key, typeArguments)
       native "Mirrors_instantiateGenericType";
 
-  static Expando<_ClassMirror> _declarationCache =
-      new Expando("ClassMirror");
+  static Expando<_ClassMirror> _declarationCache = new Expando("ClassMirror");
   static Expando<TypeMirror> _instantiationCache = new Expando("TypeMirror");
 
   static ClassMirror reflectClass(Type key) {

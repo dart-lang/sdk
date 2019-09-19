@@ -8,11 +8,3 @@ developer_runtime_cc_files = [
   "profiler.cc",
   "timeline.cc",
 ]
-
-developer_runtime_dart_files = [
-  # developer.dart needs to be the first dart file because it contains
-  # imports.
-  "developer.dart",
-  "profiler.dart",
-  "timeline.dart",
-]

@@ -3,5 +3,3 @@
 # BSD-style license that can be found in the LICENSE file.
 
 wasm_runtime_cc_files = [ "wasm.cc" ]
-
-wasm_runtime_dart_files = [ "wasm_patch.dart" ]
