@@ -184,6 +184,7 @@ enum InternalExpressionKind {
   DeferredCheck,
   IfNullIndexSet,
   IfNullPropertySet,
+  IfNullSet,
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
@@ -1635,9 +1636,9 @@ class SyntheticWrapper {
   }
 }
 
-/// Internal expression representing an if-null assignment.
+/// Internal expression representing an if-null property set.
 ///
-/// An if-null assignment of the form `o.a ??= b` is, if used for value,
+/// An if-null property set of the form `o.a ??= b` is, if used for value,
 /// encoded as the expression:
 ///
 ///     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
@@ -1682,6 +1683,55 @@ class IfNullPropertySet extends InternalExpression {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null assignment.
+///
+/// An if-null assignment of the form `a ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in v1.a == null ? v1.a = b : null
+///
+class IfNullSet extends InternalExpression {
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression write;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullSet(this.read, this.write, {this.forEffect})
+      : assert(forEffect != null) {
+    read?.parent = this;
+    write?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
     if (read != null) {
       read = read.accept<TreeNode>(v);
       read?.parent = this;

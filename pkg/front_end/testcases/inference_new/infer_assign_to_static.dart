@@ -25,7 +25,7 @@ B topLevelVariable;
 void test_topLevelVariable() {
   topLevelVariable = /*@ typeArgs=B* */ f();
 
-  topLevelVariable ??= /*@ typeArgs=B* */ f();
+  topLevelVariable /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
 
   topLevelVariable /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
 
@@ -39,7 +39,8 @@ void test_topLevelVariable() {
 
   var /*@ type=B* */ v1 = topLevelVariable = /*@ typeArgs=B* */ f();
 
-  var /*@ type=B* */ v2 = topLevelVariable ??= /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v2 =
+      topLevelVariable /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
 
   var /*@ type=A* */ v3 =
       topLevelVariable /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
@@ -59,7 +60,7 @@ void test_topLevelVariable() {
 void test_staticVariable() {
   B.staticVariable = /*@ typeArgs=B* */ f();
 
-  B.staticVariable ??= /*@ typeArgs=B* */ f();
+  B.staticVariable /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
 
   B.staticVariable /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
 
@@ -73,7 +74,8 @@ void test_staticVariable() {
 
   var /*@ type=B* */ v1 = B.staticVariable = /*@ typeArgs=B* */ f();
 
-  var /*@ type=B* */ v2 = B.staticVariable ??= /*@ typeArgs=B* */ f();
+  var /*@ type=B* */ v2 =
+      B.staticVariable /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
 
   var /*@ type=A* */ v3 =
       B.staticVariable /*@ target=B::+ */ += /*@ typeArgs=C* */ f();

@@ -168,8 +168,7 @@ abstract class Generator {
   /// [voidContext] is true, in which case it may evaluate to anything.
   ///
   /// [type] is the static type of the RHS.
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     ComplexAssignmentJudgment complexAssignment = startComplexAssignment(value);
     if (voidContext) {
@@ -691,8 +690,7 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
     VariableDeclaration variable = _helper.forest
         .createVariableDeclarationForValue(receiver.fileOffset, receiver);
@@ -878,6 +876,41 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   String get _plainNameForRead => name.name;
+
+  @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    if (getter == null) {
+      _helper.warnUnresolvedGet(name, fileOffset);
+    }
+    return new PropertyGet(_forest.createThisExpression(token), name, getter)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _createWrite(fileOffset, value);
+  }
+
+  Expression _createWrite(int offset, Expression value) {
+    if (setter == null) {
+      _helper.warnUnresolvedSet(name, fileOffset);
+    }
+    return new PropertySet(
+        _forest.createThisExpression(token), name, value, setter)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullSet(_createRead(), _createWrite(offset, value),
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
@@ -1197,8 +1230,7 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return new IfNullIndexSet(receiver, index, value, fileOffset,
         forEffect: voidContext)
@@ -1728,6 +1760,14 @@ class StaticAccessGenerator extends Generator {
       write = new StaticSet(writeTarget, value)..fileOffset = offset;
     }
     return write;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullSet(_createRead(), _createWrite(offset, value),
+        forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override
@@ -2879,8 +2919,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
         isSetter: true);
@@ -3075,8 +3114,7 @@ abstract class ContextAwareGenerator extends Generator {
   }
 
   @override
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return _makeInvalidWrite(value);
   }
@@ -3172,7 +3210,7 @@ class DelayedAssignment extends ContextAwareGenerator {
       return generator.buildCompoundAssignment(tripleShiftName, value,
           offset: fileOffset, voidContext: voidContext);
     } else if (identical("??=", assignmentOperator)) {
-      return generator.buildNullAwareAssignment(
+      return generator.buildIfNullAssignment(
           value, const DynamicType(), fileOffset,
           voidContext: voidContext);
     } else if (identical("^=", assignmentOperator)) {
@@ -3420,8 +3458,7 @@ class ParserErrorGenerator extends Generator {
     return buildProblem();
   }
 
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildProblem();
   }
@@ -3681,8 +3718,7 @@ class ThisAccessGenerator extends Generator {
     return buildAssignmentError();
   }
 
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return buildAssignmentError();
   }
@@ -3812,8 +3848,7 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
         isNullAware: isNullAware);
   }
 
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return unsupported("buildNullAwareAssignment", offset, _uri);
   }
@@ -3887,8 +3922,7 @@ class IncompletePropertyAccessGenerator extends Generator
         _helper.toValue(receiver), name, null, null, isNullAware);
   }
 
-  Expression buildNullAwareAssignment(
-      Expression value, DartType type, int offset,
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     return unsupported("buildNullAwareAssignment", offset, _uri);
   }
