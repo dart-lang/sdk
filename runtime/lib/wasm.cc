@@ -580,13 +580,8 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
         "Wrong number of args. Expected %" Pu " but found %" Pd ".",
         fn->args().length(), args.Length())));
   }
-  intptr_t length = fn->args().length();
-  if (length == 0) {
-    // Wasmer requires that our params ptr is valid, even if params_len is 0.
-    // TODO(liama): Remove after https://github.com/wasmerio/wasmer/issues/753
-    length = 1;
-  }
-  auto params = std::unique_ptr<wasmer_value_t[]>(new wasmer_value_t[length]);
+  auto params = std::unique_ptr<wasmer_value_t[]>(
+      new wasmer_value_t[fn->args().length()]);
   for (intptr_t i = 0; i < args.Length(); ++i) {
     if (!ToWasmValue(Number::Cast(Object::Handle(args.At(i))), fn->args()[i],
                      &params[i])) {
