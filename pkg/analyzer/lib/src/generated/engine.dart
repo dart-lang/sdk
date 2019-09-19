@@ -6,15 +6,12 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1135,138 +1132,4 @@ class PerformanceStatistics {
 
   /// The [PerformanceTag] for time spent in summaries support.
   static PerformanceTag summary = analyzer.createChild('summary');
-}
-
-/// An visitor that removes any resolution information from an AST structure when
-/// used to visit that structure.
-class ResolutionEraser extends GeneralizingAstVisitor<void> {
-  /// A flag indicating whether the elements associated with declarations should
-  /// be erased.
-  bool eraseDeclarations = true;
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    node.staticElement = null;
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    node.staticElement = null;
-    super.visitBinaryExpression(node);
-  }
-
-  @override
-  void visitBreakStatement(BreakStatement node) {
-    node.target = null;
-    super.visitBreakStatement(node);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    if (eraseDeclarations) {
-      node.element = null;
-    }
-    super.visitCompilationUnit(node);
-  }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (eraseDeclarations) {
-      (node as ConstructorDeclarationImpl).declaredElement = null;
-    }
-    super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  void visitConstructorName(ConstructorName node) {
-    node.staticElement = null;
-    super.visitConstructorName(node);
-  }
-
-  @override
-  void visitContinueStatement(ContinueStatement node) {
-    node.target = null;
-    super.visitContinueStatement(node);
-  }
-
-  @override
-  void visitDirective(Directive node) {
-    if (eraseDeclarations) {
-      node.element = null;
-    }
-    super.visitDirective(node);
-  }
-
-  @override
-  void visitExpression(Expression node) {
-    node.staticType = null;
-    super.visitExpression(node);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    if (eraseDeclarations) {
-      (node as FunctionExpressionImpl).declaredElement = null;
-    }
-    super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    node.staticElement = null;
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    node.staticElement = null;
-    super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.staticElement = null;
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
-  void visitPostfixExpression(PostfixExpression node) {
-    node.staticElement = null;
-    super.visitPostfixExpression(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    node.staticElement = null;
-    super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    node.staticElement = null;
-    super.visitRedirectingConstructorInvocation(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (eraseDeclarations || !node.inDeclarationContext()) {
-      node.staticElement = null;
-    }
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    node.staticElement = null;
-    super.visitSuperConstructorInvocation(node);
-  }
-
-  /// Remove any resolution information from the given AST structure.
-  static void erase(AstNode node, {bool eraseDeclarations: true}) {
-    ResolutionEraser eraser = new ResolutionEraser();
-    eraser.eraseDeclarations = eraseDeclarations;
-    node.accept(eraser);
-  }
 }
