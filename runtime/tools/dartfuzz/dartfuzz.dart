@@ -14,12 +14,18 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.46';
+const String version = '1.47';
 
 // Restriction on statements and expressions.
-const int stmtLength = 2;
 const int stmtDepth = 1;
 const int exprDepth = 2;
+const int numStatements = 2;
+const int numGlobalVars = 4;
+const int numLocalVars = 4;
+const int numGlobalMethods = 4;
+const int numClassMethods = 3;
+const int numMethodParams = 4;
+const int numClasses = 4;
 
 // Naming conventions.
 const varName = 'var';
@@ -123,17 +129,22 @@ class DartFuzz {
     // Setup the types.
     localVars = <DartType>[];
     iterVars = <String>[];
-    globalVars = fillTypes1();
+
+    globalVars = fillTypes1(limit: numGlobalVars);
     globalVars.addAll(DartType.allTypes); // always one each
-    globalMethods = fillTypes2();
-    classFields = fillTypes2(limit: 4);
-    classMethods = fillTypes3(classFields.length);
+    globalMethods =
+        fillTypes2(limit2: numGlobalMethods, limit1: numMethodParams);
+    classFields = fillTypes2(limit2: numClasses, limit1: numLocalVars);
+    classMethods = fillTypes3(classFields.length,
+        limit2: numClassMethods, limit1: numMethodParams);
+
     virtualClassMethods = <Map<int, List<int>>>[];
     classParents = <int>[];
     // Setup optional ffi methods and types.
     final ffiStatus = <bool>[for (final _ in globalMethods) false];
     if (ffi) {
-      List<List<DartType>> globalMethodsFfi = fillTypes2(isFfi: true);
+      List<List<DartType>> globalMethodsFfi = fillTypes2(
+          limit2: numGlobalMethods, limit1: numMethodParams, isFfi: true);
       for (var m in globalMethodsFfi) {
         globalMethods.add(m);
         ffiStatus.add(true);
@@ -769,7 +780,7 @@ class DartFuzz {
 
   // Emit statements. Returns true if code may fall-through.
   bool emitStatements(int depth) {
-    int s = 1 + rand.nextInt(stmtLength);
+    int s = 1 + rand.nextInt(numStatements);
     for (int i = 0; i < s; i++) {
       if (!emitStatement(depth)) {
         return false; // rest would be dead code
@@ -1427,9 +1438,9 @@ class DartFuzz {
     }
   }
 
-  List<DartType> fillTypes1({bool isFfi = false}) {
+  List<DartType> fillTypes1({int limit = 4, bool isFfi = false}) {
     final list = <DartType>[];
-    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(limit); i < n; i++) {
       if (isFfi) {
         list.add(fp ? oneOf([DartType.INT, DartType.DOUBLE]) : DartType.INT);
       } else {
@@ -1439,18 +1450,20 @@ class DartFuzz {
     return list;
   }
 
-  List<List<DartType>> fillTypes2({bool isFfi = false, int limit = 4}) {
+  List<List<DartType>> fillTypes2(
+      {bool isFfi = false, int limit2 = 4, int limit1 = 4}) {
     final list = <List<DartType>>[];
-    for (int i = 0, n = 1 + rand.nextInt(limit); i < n; i++) {
-      list.add(fillTypes1(isFfi: isFfi));
+    for (int i = 0, n = 1 + rand.nextInt(limit2); i < n; i++) {
+      list.add(fillTypes1(limit: limit1, isFfi: isFfi));
     }
     return list;
   }
 
-  List<List<List<DartType>>> fillTypes3(int n) {
+  List<List<List<DartType>>> fillTypes3(int n,
+      {int limit2 = 4, int limit1 = 4}) {
     final list = <List<List<DartType>>>[];
     for (int i = 0; i < n; i++) {
-      list.add(fillTypes2());
+      list.add(fillTypes2(limit2: limit2, limit1: limit1));
     }
     return list;
   }
