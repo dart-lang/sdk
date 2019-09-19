@@ -342,7 +342,7 @@ class _MixinsInference {
   void _infer(ClassElementImpl element, WithClause withClause) {
     element.linkedMixinInferenceCallback = _callbackWhenLoop;
     try {
-      _MixinInference(typeSystem, element.type).perform(withClause);
+      _MixinInference(typeSystem, element.thisType).perform(withClause);
     } finally {
       element.linkedMixinInferenceCallback = null;
     }

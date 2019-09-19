@@ -58,17 +58,11 @@ class NamedTypeBuilder extends TypeBuilder {
     var element = this.element;
     if (element is ClassElement) {
       var parameters = element.typeParameters;
-      if (parameters.isEmpty) {
-        var rawType = element.type;
-        _type = (rawType as TypeImpl).withNullability(nullabilitySuffix);
-      } else {
-        var arguments = _buildArguments(parameters);
-        _type = InterfaceTypeImpl.explicit(
-          element,
-          arguments,
-          nullabilitySuffix: nullabilitySuffix,
-        );
-      }
+      var arguments = _buildArguments(parameters);
+      _type = element.instantiate(
+        typeArguments: arguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else if (element is GenericTypeAliasElement) {
       // Break a possible recursion.
       _type = _dynamicType;
@@ -84,9 +78,12 @@ class NamedTypeBuilder extends TypeBuilder {
         _type = substitution.substituteType(rawType);
       }
     } else if (element is NeverElementImpl) {
-      _type = element.type.withNullability(nullabilitySuffix);
+      _type = BottomTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (element is TypeParameterElement) {
-      _type = TypeParameterTypeImpl(element);
+      _type = TypeParameterTypeImpl(
+        element,
+        nullabilitySuffix: nullabilitySuffix,
+      );
     } else {
       _type = _dynamicType;
     }
@@ -109,7 +106,9 @@ class NamedTypeBuilder extends TypeBuilder {
 
   /// Build arguments that correspond to the type [parameters].
   List<DartType> _buildArguments(List<TypeParameterElement> parameters) {
-    if (arguments.isNotEmpty) {
+    if (parameters.isEmpty) {
+      return const <DartType>[];
+    } else if (arguments.isNotEmpty) {
       if (arguments.length == parameters.length) {
         var result = List<DartType>(parameters.length);
         for (int i = 0; i < result.length; ++i) {
