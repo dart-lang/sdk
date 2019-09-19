@@ -18,7 +18,7 @@ import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 import 'package:vm/target/flutter.dart';
@@ -339,6 +339,19 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         target.performOutlineTransformations(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
+      }
+
+      // Make sure the output is stable.
+      incrementalComponent.libraries.sort((l1, l2) {
+        return "${l1.fileUri}".compareTo("${l2.fileUri}");
+      });
+      incrementalComponent.problemsAsJson?.sort();
+      incrementalComponent.computeCanonicalNames();
+      for (Library library in incrementalComponent.libraries) {
+        library.additionalExports.sort((Reference r1, Reference r2) {
+          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+        });
+        library.problemsAsJson?.sort();
       }
 
       return Future.value(fe.serializeComponent(incrementalComponent,
