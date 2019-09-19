@@ -979,6 +979,48 @@ void h(int k) {}
     assertEdge(iNode, kNode, hard: true);
   }
 
+  test_is() async {
+    await analyze('''
+void f(num n) {
+  if (n is int) {
+    g(n);
+  }
+  h(n);
+}
+void g(int i) {}
+void h(num m) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var nNode = decoratedTypeAnnotation('num n').node;
+    var mNode = decoratedTypeAnnotation('num m').node;
+    // No edge from n to i because n is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(nNode, iNode);
+    // But there is an edge from n to m.
+    assertEdge(nNode, mNode, hard: true);
+  }
+
+  test_is_not() async {
+    await analyze('''
+void f(num n) {
+  if (n is! int) {} else {
+    g(n);
+  }
+  h(n);
+}
+void g(int i) {}
+void h(num m) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var nNode = decoratedTypeAnnotation('num n').node;
+    var mNode = decoratedTypeAnnotation('num m').node;
+    // No edge from n to i because n is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(nNode, iNode);
+    // But there is an edge from n to m.
+    assertEdge(nNode, mNode, hard: true);
+  }
+
   test_local_function_parameters() async {
     await analyze('''
 void f() {

@@ -826,11 +826,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitIsExpression(IsExpression node) {
     var type = node.type;
+    type.accept(this);
+    var decoratedType = _variables.decoratedTypeAnnotation(source, type);
     if (type is NamedType) {
       // The main type of the is check historically could not be nullable.
       // Making it nullable could change runtime behavior.
-      _connect(_variables.decoratedTypeAnnotation(source, type).node,
-          _graph.never, IsCheckMainTypeOrigin(source, type));
+      _connect(decoratedType.node, _graph.never,
+          IsCheckMainTypeOrigin(source, type));
       if (type.typeArguments != null) {
         // TODO(mfairhurst): connect arguments to the expression type when they
         // relate.
@@ -845,7 +847,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(brianwilkerson)
       _unimplemented(node, 'Is expression with GenericFunctionType');
     }
-    node.visitChildren(this);
+    var expression = node.expression;
+    expression.accept(this);
+    if (expression is SimpleIdentifier) {
+      var element = expression.staticElement;
+      if (element is VariableElement) {
+        _flowAnalysis.isExpression_end(
+            node, element, node.notOperator != null, decoratedType);
+      }
+    }
     return DecoratedType(node.staticType, _graph.never);
   }
 
