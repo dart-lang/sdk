@@ -1757,6 +1757,92 @@ class C {
         decoratedTypeAnnotation('int i').node);
   }
 
+  test_for_each_element_with_declaration() async {
+    await analyze('''
+void f(List<int> l) {
+  [for (int i in l) 0];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(substitutionNode(decoratedTypeAnnotation('int> l').node, never),
+        decoratedTypeAnnotation('int i').node,
+        hard: false);
+  }
+
+  test_for_each_element_with_declaration_implicit_type() async {
+    await analyze('''
+void f(List<int> l) {
+  [for (var i in l) g(i)];
+}
+int g(int j) => 0;
+''');
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var iMatcher = anyNode;
+    assertEdge(iMatcher, jNode, hard: false);
+    var iNode = iMatcher.matchingNode;
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> l').node, never), iNode,
+        hard: false);
+  }
+
+  test_for_each_element_with_identifier() async {
+    await analyze('''
+void f(List<int> l) {
+  int x;
+  [for (x in l) 0];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(substitutionNode(decoratedTypeAnnotation('int> l').node, never),
+        decoratedTypeAnnotation('int x').node,
+        hard: false);
+  }
+
+  test_for_each_with_declaration() async {
+    await analyze('''
+void f(List<int> l) {
+  for (int i in l) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(substitutionNode(decoratedTypeAnnotation('int> l').node, never),
+        decoratedTypeAnnotation('int i').node,
+        hard: false);
+  }
+
+  test_for_each_with_declaration_implicit_type() async {
+    await analyze('''
+void f(List<int> l) {
+  for (var i in l) {
+    g(i);
+  }
+}
+void g(int j) {}
+''');
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var iMatcher = anyNode;
+    assertEdge(iMatcher, jNode, hard: false);
+    var iNode = iMatcher.matchingNode;
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int> l').node, never), iNode,
+        hard: false);
+  }
+
+  test_for_each_with_identifier() async {
+    await analyze('''
+void f(List<int> l) {
+  int x;
+  for (x in l) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('List<int>').node, never, hard: true);
+    assertEdge(substitutionNode(decoratedTypeAnnotation('int> l').node, never),
+        decoratedTypeAnnotation('int x').node,
+        hard: false);
+  }
+
   test_for_element_list() async {
     await analyze('''
 void f(List<int> ints) {

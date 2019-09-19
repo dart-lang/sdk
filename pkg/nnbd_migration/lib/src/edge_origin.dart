@@ -48,6 +48,19 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
       : super(source, node);
 }
 
+/// Edge origin resulting from the use of an iterable type in a for-each loop.
+///
+/// For example, in the following code snippet:
+///   void f(Iterable<int> l) {
+///     for (int i in l) {}
+///   }
+///
+/// this class is used for the edge connecting the type of `l`'s `int` type
+/// parameter to the type of `i`.
+class ForEachVariableOrigin extends EdgeOrigin {
+  ForEachVariableOrigin(Source source, ForEachParts node) : super(source, node);
+}
+
 /// Edge origin resulting from the use of greatest lower bound.
 ///
 /// For example, in the following code snippet:

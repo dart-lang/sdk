@@ -1293,6 +1293,32 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_for_each_basic() async {
+    var content = '''
+void f(List<int> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int x) {}
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+void f(List<int?> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int? x) {}
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_function_expression() async {
     var content = '''
 int f(int i) {

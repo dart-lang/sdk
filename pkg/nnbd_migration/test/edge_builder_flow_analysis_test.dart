@@ -712,6 +712,35 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
+  test_for_each_assigns_to_declared_var() async {
+    await analyze('''
+void f(Iterable<int> x) {
+  for (int i in x) {
+    g(i);
+  }
+}
+void g(int j) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    // No edge from never to i because it is assigned before it is used.
+    assertNoEdge(never, iNode);
+  }
+
+  test_for_each_assigns_to_identifier() async {
+    await analyze('''
+void f(Iterable<int> x) {
+  int i;
+  for (i in x) {
+    g(i);
+  }
+}
+void g(int j) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    // No edge from never to i because it is assigned before it is used.
+    assertNoEdge(never, iNode);
+  }
+
   test_for_each_cancels_promotions_for_assignments_in_body() async {
     await analyze('''
 void f(int i, int j, Iterable<Object> x) {
@@ -730,6 +759,31 @@ void f(int i, int j, Iterable<Object> x) {
     assertNoEdge(iNode, never);
     // But there is an edge from j to never because its promotion was cancelled.
     assertEdge(jNode, never, hard: false);
+  }
+
+  test_for_each_collection_assigns_to_declared_var() async {
+    await analyze('''
+void f(Iterable<int> x) {
+  [for (int i in x) g(i)];
+}
+void g(int j) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    // No edge from never to i because it is assigned before it is used.
+    assertNoEdge(never, iNode);
+  }
+
+  test_for_each_collection_assigns_to_identifier() async {
+    await analyze('''
+void f(Iterable<int> x) {
+  int i;
+  [for (i in x) g(i)];
+}
+void g(int j) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    // No edge from never to i because it is assigned before it is used.
+    assertNoEdge(never, iNode);
   }
 
   test_for_each_collection_cancels_promotions_for_assignments_in_body() async {

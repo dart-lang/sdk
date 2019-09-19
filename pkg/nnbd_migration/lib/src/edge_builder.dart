@@ -1812,12 +1812,33 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _flowAnalysis.for_bodyBegin(
           node is Statement ? node : null, parts.condition);
     } else if (parts is ForEachParts) {
+      Element lhsElement;
       if (parts is ForEachPartsWithDeclaration) {
-        _flowAnalysis.add(parts.loopVariable.declaredElement, assigned: true);
+        var variableElement = parts.loopVariable.declaredElement;
+        lhsElement = variableElement;
+        _flowAnalysis.add(variableElement, assigned: false);
+      } else if (parts is ForEachPartsWithIdentifier) {
+        lhsElement = parts.identifier.staticElement;
+      } else {
+        throw StateError(
+            'Unexpected ForEachParts subtype: ${parts.runtimeType}');
       }
-      _checkExpressionNotNull(parts.iterable);
-      _flowAnalysis.forEach_bodyBegin(
-          _assignedVariables.writtenInNode(node), null);
+      var iterableType = _checkExpressionNotNull(parts.iterable);
+      if (lhsElement != null) {
+        DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
+        var iterableTypeType = iterableType.type;
+        if (_typeSystem.isSubtypeOf(
+            iterableTypeType, _typeProvider.iterableDynamicType)) {
+          var elementType = _decoratedClassHierarchy
+              .asInstanceOf(
+                  iterableType, _typeProvider.iterableDynamicType.element)
+              .typeArguments[0];
+          _checkAssignment(ForEachVariableOrigin(source, parts),
+              source: elementType, destination: lhsType, hard: false);
+        }
+      }
+      _flowAnalysis.forEach_bodyBegin(_assignedVariables.writtenInNode(node),
+          lhsElement is VariableElement ? lhsElement : null);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new
