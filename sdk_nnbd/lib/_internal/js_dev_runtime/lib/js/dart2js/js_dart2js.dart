@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.5
+
 // DDC version of sdk/lib/js/dart2js/js_dart2js.dart
 
 /// Low-level support for interoperating with JavaScript.
