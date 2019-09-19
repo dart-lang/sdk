@@ -971,6 +971,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
     List<TypeParameterElement> formals,
     MapSubstitution substitution,
   ) {
+    if (substitution.map.isEmpty) {
+      return formals;
+    }
+
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
     var newElements = formals.toList(growable: false);
