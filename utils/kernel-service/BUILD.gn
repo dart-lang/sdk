@@ -90,15 +90,18 @@ template("kernel_service_dill") {
     ]
 
     script = gen_kernel_script
+    scheme = "org-dartlang-kernel-service"
 
     args =
         invoker.extra_args + [
-          "--packages=" + rebase_path("../../.packages"),
+          "--packages=" + scheme + ":///.packages",
           "--platform=" + rebase_path("$root_out_dir/vm_platform_strong.dill"),
+          "--filesystem-root=" + rebase_path("../../"),
+          "--filesystem-scheme=" + scheme,
           "--no-aot",
           "--no-embed-sources",
           "--output=" + rebase_path(output),
-          rebase_path(kernel_service_script),
+          scheme + ":///pkg/vm/bin/kernel_service.dart",
         ]
 
     if (dart_platform_bytecode) {
