@@ -15,6 +15,7 @@ dependencies:
   linter: any
   logging: any
   meta: any
+  mustache: any
   nnbd_migration: any
   source_span: any
   package_config: any
