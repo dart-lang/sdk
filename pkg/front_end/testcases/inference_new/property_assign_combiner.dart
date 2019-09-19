@@ -42,13 +42,18 @@ void test1(G g) {
 }
 
 void test2(G g) {
-  ++g. /*@target=G::target*/ target;
-  var /*@ type=C* */ x = ++g. /*@target=G::target*/ target;
+  /*@ target=A::+ */ ++ /*@ type=G* */ g
+      . /*@target=G::target*/ /*@target=G::target*/ target;
+  var /*@ type=C* */ x = /*@ target=A::+ */ ++ /*@ type=G* */ g
+      . /*@target=G::target*/ /*@target=G::target*/ target;
 }
 
 void test3(G g) {
-  g. /*@target=G::target*/ target++;
-  var /*@ type=A* */ x = g. /*@target=G::target*/ target++;
+  /*@ type=G* */ g
+      . /*@target=G::target*/ /*@target=G::target*/ target /*@ target=A::+ */ ++;
+  var /*@ type=A* */ x = /*@ type=G* */ g
+          . /*@ type=A* */ /*@target=G::target*/ /*@target=G::target*/ target
+      /*@ type=C* */ /*@ target=A::+ */ ++;
 }
 
 main() {}

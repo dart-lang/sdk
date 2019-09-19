@@ -16,8 +16,9 @@ void test1(int t) {
   var /*@ type=num* */ v5 = t ??= getNum();
   var /*@ type=int* */ v7 = t /*@ target=num::+ */ += getInt();
   var /*@ type=num* */ v8 = t /*@ target=num::+ */ += getNum();
-  var /*@ type=int* */ v10 = ++t;
-  var /*@ type=int* */ v11 = t++;
+  var /*@ type=int* */ v10 = /*@ target=num::+ */ ++t;
+  var /*@ type=int* */ v11 =
+      /*@ type=int* */ t /*@ type=int* */ /*@ target=num::+ */ ++;
 }
 
 void test2(num t) {
@@ -30,8 +31,9 @@ void test2(num t) {
   var /*@ type=num* */ v7 = t /*@ target=num::+ */ += getInt();
   var /*@ type=num* */ v8 = t /*@ target=num::+ */ += getNum();
   var /*@ type=num* */ v9 = t /*@ target=num::+ */ += getDouble();
-  var /*@ type=num* */ v10 = ++t;
-  var /*@ type=num* */ v11 = t++;
+  var /*@ type=num* */ v10 = /*@ target=num::+ */ ++t;
+  var /*@ type=num* */ v11 =
+      /*@ type=num* */ t /*@ type=num* */ /*@ target=num::+ */ ++;
 }
 
 void test3(double t) {
@@ -42,8 +44,9 @@ void test3(double t) {
   var /*@ type=double* */ v7 = t /*@ target=double::+ */ += getInt();
   var /*@ type=double* */ v8 = t /*@ target=double::+ */ += getNum();
   var /*@ type=double* */ v9 = t /*@ target=double::+ */ += getDouble();
-  var /*@ type=double* */ v10 = ++t;
-  var /*@ type=double* */ v11 = t++;
+  var /*@ type=double* */ v10 = /*@ target=double::+ */ ++t;
+  var /*@ type=double* */ v11 =
+      /*@ type=double* */ t /*@ type=double* */ /*@ target=double::+ */ ++;
 }
 
 main() {}

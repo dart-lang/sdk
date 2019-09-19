@@ -26,9 +26,9 @@ extension ClassExtension on self::Class* {
   get property = self::ClassExtension|get#property;
   set property = self::ClassExtension|set#property;
 }
-static method NumberExtension|+(final self::Number* #this, self::Number* other) → self::Number*
+static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number*
   ;
-static method NumberExtension|-(final self::Number* #this, self::Number* other) → self::Number*
+static method NumberExtension|-(final self::Number* #this, core::Object* other) → self::Number*
   ;
 static method ClassExtension|get#property(final self::Class* #this) → self::Number*
   ;

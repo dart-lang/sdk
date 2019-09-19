@@ -517,30 +517,48 @@ class VariableUseGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    if (!isPreIncDec && !isPostIncDec) {
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
-          offset,
-          _helper.createVariableGet(variable, fileOffset),
-          binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
-      _helper.typePromoter
-          ?.mutateVariable(variable, _helper.functionNestingLevel);
-      Expression write;
-      if (variable.isFinal || variable.isConst) {
-        write = _makeInvalidWrite(binary);
-      } else {
-        write = new VariableSet(variable, binary)..fileOffset = fileOffset;
-      }
-      return write;
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _helper.createVariableGet(variable, fileOffset),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    _helper.typePromoter
+        ?.mutateVariable(variable, _helper.functionNestingLevel);
+    Expression write;
+    if (variable.isFinal || variable.isConst) {
+      write = _makeInvalidWrite(binary);
     } else {
-      return super.buildCompoundAssignment(binaryOperator, value,
+      write = new VariableSet(variable, binary)..fileOffset = fileOffset;
+    }
+    return write;
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,
-          isPreIncDec: isPreIncDec,
-          isPostIncDec: isPostIncDec);
+          isPostIncDec: true);
     }
+    VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
+        fileOffset, _helper.createVariableGet(variable, fileOffset));
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _helper.createVariableGet(read, fileOffset),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    VariableDeclaration write = _helper.forest
+        .createVariableDeclarationForValue(
+            offset, new VariableSet(variable, binary)..fileOffset = fileOffset);
+    return new LocalPostIncDec(read, write)..fileOffset = offset;
   }
 
   @override
@@ -689,32 +707,57 @@ class PropertyAccessGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    if (!isPreIncDec && !isPostIncDec) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
-      MethodInvocation binary = _helper.forest.createMethodInvocation(
-          offset,
-          new PropertyGet(
-              _helper.createVariableGet(variable, receiver.fileOffset), name)
-            ..fileOffset = fileOffset,
-          binaryOperator,
-          _helper.forest.createArguments(offset, <Expression>[value]),
-          interfaceTarget: interfaceTarget);
-      PropertySet write = new PropertySet(
-          _helper.createVariableGet(variable, receiver.fileOffset),
-          name,
-          binary)
-        ..fileOffset = fileOffset;
-      return new CompoundPropertyAssignment(variable, write)
-        ..fileOffset = offset;
-    } else {
-      return super.buildCompoundAssignment(binaryOperator, value,
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        new PropertyGet(
+            _helper.createVariableGet(variable, receiver.fileOffset), name)
+          ..fileOffset = fileOffset,
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    PropertySet write = new PropertySet(
+        _helper.createVariableGet(variable, receiver.fileOffset), name, binary)
+      ..fileOffset = fileOffset;
+    return new CompoundPropertyAssignment(variable, write)..fileOffset = offset;
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,
-          isPreIncDec: isPreIncDec,
-          isPostIncDec: isPostIncDec);
+          isPostIncDec: true);
     }
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
+        fileOffset,
+        new PropertyGet(
+            _helper.createVariableGet(variable, receiver.fileOffset), name)
+          ..fileOffset = fileOffset);
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _helper.createVariableGet(read, fileOffset),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    VariableDeclaration write = _helper.forest
+        .createVariableDeclarationForValue(
+            offset,
+            new PropertySet(
+                _helper.createVariableGet(variable, receiver.fileOffset),
+                name,
+                binary)
+              ..fileOffset = fileOffset);
+    return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 
   @override

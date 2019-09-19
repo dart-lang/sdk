@@ -2326,12 +2326,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (variableOrExpression is VariableDeclaration) {
       return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
-          variableOrExpression, functionNestingLevel);
+      VariableDeclaration variable =
+          new VariableDeclarationImpl.forEffect(variableOrExpression);
       return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
       VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
-          variableOrExpression.expression, functionNestingLevel);
+          variableOrExpression.expression);
       return <VariableDeclaration>[variable];
     } else if (forest.isVariablesDeclaration(variableOrExpression)) {
       return forest

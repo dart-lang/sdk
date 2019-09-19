@@ -49,12 +49,16 @@ class InferenceVisitor
           return visitIfNullPropertySet(node, typeContext);
         case InternalExpressionKind.LoadLibraryTearOff:
           return visitLoadLibraryTearOff(node, typeContext);
+        case InternalExpressionKind.LocalPostIncDec:
+          return visitLocalPostIncDec(node, typeContext);
         case InternalExpressionKind.NullAwareMethodInvocation:
           return visitNullAwareMethodInvocation(node, typeContext);
         case InternalExpressionKind.NullAwarePropertyGet:
           return visitNullAwarePropertyGet(node, typeContext);
         case InternalExpressionKind.NullAwarePropertySet:
           return visitNullAwarePropertySet(node, typeContext);
+        case InternalExpressionKind.PropertyPostIncDec:
+          return visitPropertyPostIncDec(node, typeContext);
       }
     }
     return _unhandledExpression(node, typeContext);
@@ -1943,6 +1947,25 @@ class InferenceVisitor
         inferredType);
     node.replaceWith(replacement = new Let(node.variable, condition)
       ..fileOffset = node.fileOffset);
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitLocalPostIncDec(
+      LocalPostIncDec node, DartType typeContext) {
+    inferrer.inferStatement(node.read);
+    inferrer.inferStatement(node.write);
+    DartType inferredType = node.read.type;
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitPropertyPostIncDec(
+      PropertyPostIncDec node, DartType typeContext) {
+    inferrer.inferStatement(node.variable);
+    inferrer.inferStatement(node.read);
+    inferrer.inferStatement(node.write);
+    DartType inferredType = node.read.type;
+    Expression replacement = node.replace();
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

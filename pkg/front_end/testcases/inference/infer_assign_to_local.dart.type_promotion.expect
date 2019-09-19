@@ -13,12 +13,12 @@ pkg/front_end/testcases/inference/infer_assign_to_local.dart:26:28: Context: Wri
 pkg/front_end/testcases/inference/infer_assign_to_local.dart:27:28: Context: Write to local@474
   local /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
                            ^^
-pkg/front_end/testcases/inference/infer_assign_to_local.dart:28:3: Context: Write to local@474
-  --local;
-  ^^
-pkg/front_end/testcases/inference/infer_assign_to_local.dart:29:8: Context: Write to local@474
-  local--;
-       ^^
+pkg/front_end/testcases/inference/infer_assign_to_local.dart:28:22: Context: Write to local@474
+  /*@ target=B::- */ --local;
+                     ^^
+pkg/front_end/testcases/inference/infer_assign_to_local.dart:29:28: Context: Write to local@474
+  local /*@ target=B::- */ --;
+                           ^^
 pkg/front_end/testcases/inference/infer_assign_to_local.dart:30:33: Context: Write to local@474
   var /*@ type=B* */ v1 = local = /*@ typeArgs=B* */ f();
                                 ^
@@ -34,9 +34,9 @@ pkg/front_end/testcases/inference/infer_assign_to_local.dart:33:52: Context: Wri
 pkg/front_end/testcases/inference/infer_assign_to_local.dart:34:52: Context: Write to local@474
   var /*@ type=C* */ v5 = local /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
                                                    ^^
-pkg/front_end/testcases/inference/infer_assign_to_local.dart:35:27: Context: Write to local@474
-  var /*@ type=B* */ v6 = --local;
-                          ^^
-pkg/front_end/testcases/inference/infer_assign_to_local.dart:36:32: Context: Write to local@474
-  var /*@ type=B* */ v7 = local--;
-                               ^^
+pkg/front_end/testcases/inference/infer_assign_to_local.dart:35:46: Context: Write to local@474
+  var /*@ type=B* */ v6 = /*@ target=B::- */ --local;
+                                             ^^
+pkg/front_end/testcases/inference/infer_assign_to_local.dart:37:41: Context: Write to local@474
+      /*@ type=B* */ /*@ target=B::- */ --;
+                                        ^^

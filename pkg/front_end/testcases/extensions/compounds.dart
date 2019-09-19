@@ -15,8 +15,24 @@ class Number {
 }
 
 extension NumberExtension on Number {
-  Number operator +(Number other) => new Number(value + other.value);
-  Number operator -(Number other) => new Number(value - other.value);
+  Number operator +(Object other) {
+    if (other is int) {
+      return new Number(value + other);
+    } else if (other is Number) {
+      return new Number(value + other.value);
+    } else {
+      throw new ArgumentError('$other');
+    }
+  }
+  Number operator -(Object other)  {
+    if (other is int) {
+     return new Number(value - other);
+    } else if (other is Number) {
+      return new Number(value - other.value);
+    } else {
+      throw new ArgumentError('$other');
+    }
+  }
 }
 
 class Class {
@@ -48,6 +64,11 @@ testLocals() {
   expect(n0, v -= n2);
   expect(n1, v += n1);
   expect(n0, v -= n1);
+  expect(n1, ++v);
+  expect(n0, --v);
+  expect(n0, v++);
+  expect(n1, v--);
+  expect(n0, v);
 }
 
 testProperties() {
@@ -61,6 +82,11 @@ testProperties() {
   expect(n0, v.field -= n2);
   expect(n1, v.field += n1);
   expect(n0, v.field -= n1);
+  expect(n1, ++v.field);
+  expect(n0, --v.field);
+  expect(n0, v.field++);
+  expect(n1, v.field--);
+  expect(n0, v.field);
 
   expect(n0, v.property);
   expect(n1, v.property += n1);
@@ -68,8 +94,12 @@ testProperties() {
   expect(n0, v.property -= n2);
   expect(n1, v.property += n1);
   expect(n0, v.property -= n1);
+  expect(n1, ++v.property);
+  expect(n0, --v.property);
+  expect(n0, v.property++);
+  expect(n1, v.property--);
+  expect(n0, v.property);
 }
-
 
 expect(expected, actual) {
   if (expected != actual) {

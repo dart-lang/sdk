@@ -194,7 +194,7 @@ class ValidatingInstrumentation implements Instrumentation {
         _Expectation expectation = expectationsAtOffset[i];
         if (expectation.property == property) {
           if (!value.matches(expectation.value)) {
-            _problemWithStack(
+            _problem(
                 uri,
                 offset,
                 'expected $property=${expectation.value}, got '
@@ -209,7 +209,7 @@ class ValidatingInstrumentation implements Instrumentation {
     }
     // Unexpected property/value pair.  See if we should report.
     if (_shouldCheck(property, uri, offset)) {
-      _problemWithStack(
+      _problem(
           uri,
           offset,
           'expected nothing, got $property=${value.toString()}',
@@ -273,6 +273,7 @@ class ValidatingInstrumentation implements Instrumentation {
     _fixes.putIfAbsent(uri, () => []).add(fix);
   }
 
+  /// ignore: unused_element
   void _problemWithStack(Uri uri, int offset, String desc, _Fix fix) {
     _problems.add(_formatProblem(uri, offset, desc, StackTrace.current));
     _fixes.putIfAbsent(uri, () => []).add(fix);

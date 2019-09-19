@@ -181,10 +181,12 @@ enum InternalExpressionKind {
   CompoundPropertyAssignment,
   DeferredCheck,
   LoadLibraryTearOff,
+  LocalPostIncDec,
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
   IfNullPropertySet,
+  PropertyPostIncDec,
 }
 
 /// Common base class for internal expressions.
@@ -1427,9 +1429,9 @@ class VariableDeclarationImpl extends VariableDeclaration {
             isLate: isLate,
             isRequired: isRequired);
 
-  VariableDeclarationImpl.forEffect(
-      Expression initializer, this._functionNestingLevel)
+  VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
+        _functionNestingLevel = 0,
         _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
@@ -1728,6 +1730,113 @@ class CompoundPropertyAssignment extends InternalExpression {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
     }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+    }
+  }
+}
+
+/// Internal expression representing an compound property assignment.
+///
+/// An compound property assignment of the form `o.a++` is encoded as the
+/// expression:
+///
+///     let v1 = o in let v2 = v1.a in let v3 = v1.a = v2 + 1 in v2
+///
+class PropertyPostIncDec extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that reads the property on [variable].
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// property on [variable].
+  VariableDeclaration write;
+
+  PropertyPostIncDec(this.variable, this.read, this.write) {
+    variable.parent = this;
+    read.parent = this;
+    write.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(replacement = new Let(
+        variable,
+        new Let(
+            read,
+            new Let(write, new VariableGet(read)..fileOffset = fileOffset)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+    }
+  }
+}
+
+/// Internal expression representing an local variable post inc/dec expression.
+///
+/// An local variable post inc/dec expression of the form `a++` is encoded as
+/// the expression:
+///
+///     let v1 = a in let v2 = a = a + 1 in v1
+///
+class LocalPostIncDec extends InternalExpression {
+  /// The expression that reads the local variable.
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// property on [variable].
+  VariableDeclaration write;
+
+  LocalPostIncDec(this.read, this.write) {
+    read.parent = this;
+    write.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.LocalPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(replacement = new Let(
+        read,
+        new Let(write, new VariableGet(read)..fileOffset = fileOffset)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
     if (write != null) {
       write = write.accept<TreeNode>(v);
     }

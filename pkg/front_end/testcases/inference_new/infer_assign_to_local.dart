@@ -25,8 +25,8 @@ void test() {
   local /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
   local /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
   local /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
-  --local;
-  local--;
+  /*@ target=B::- */ --local;
+  local /*@ target=B::- */ --;
   var /*@ type=B* */ v1 = local = /*@ typeArgs=B* */ f();
   var /*@ type=B* */ v2 = local ??= /*@ typeArgs=B* */ f();
   var /*@ type=A* */ v3 = local
@@ -35,8 +35,9 @@ void test() {
       /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
   var /*@ type=C* */ v5 = local
       /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
-  var /*@ type=B* */ v6 = --local;
-  var /*@ type=B* */ v7 = local--;
+  var /*@ type=B* */ v6 = /*@ target=B::- */ --local;
+  var /*@ type=B* */ v7 = /*@ type=B* */ local
+      /*@ type=B* */ /*@ target=B::- */ --;
 }
 
 main() {}
