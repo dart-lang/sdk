@@ -47,6 +47,8 @@ class InferenceVisitor
           return visitDeferredCheck(node, typeContext);
         case InternalExpressionKind.IfNullPropertySet:
           return visitIfNullPropertySet(node, typeContext);
+        case InternalExpressionKind.IndexSet:
+          return visitIndexSet(node, typeContext);
         case InternalExpressionKind.LoadLibraryTearOff:
           return visitLoadLibraryTearOff(node, typeContext);
         case InternalExpressionKind.LocalPostIncDec:
@@ -2031,6 +2033,101 @@ class InferenceVisitor
         ..fileOffset = node.fileOffset);
     }
 
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitIndexSet(IndexSet node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType receiverType = receiverResult.inferredType;
+    VariableDeclaration receiverVariable =
+        new VariableDeclaration.forValue(node.receiver, type: receiverType)
+          ..fileOffset = node.receiver.fileOffset;
+
+    ObjectAccessTarget indexSetTarget = inferrer.findInterfaceMember(
+        receiverType, new Name('[]='), node.fileOffset,
+        includeExtensionMethods: true);
+
+    DartType indexType =
+        inferrer.getIndexSetKeyType(indexSetTarget, receiverType);
+    DartType valueType =
+        inferrer.getIndexSetValueType(indexSetTarget, receiverType);
+
+    ExpressionInferenceResult indexResult = inferrer
+        .inferExpression(node.index, indexType, true, isVoidAllowed: true);
+
+    inferrer.ensureAssignable(
+        indexType, indexResult.inferredType, node.index, node.index.fileOffset);
+
+    VariableDeclaration indexVariable = new VariableDeclaration.forValue(
+        node.index,
+        type: indexResult.inferredType)
+      ..fileOffset = node.index.fileOffset;
+
+    ExpressionInferenceResult valueResult = inferrer
+        .inferExpression(node.value, valueType, true, isVoidAllowed: true);
+    inferrer.ensureAssignable(
+        valueType, valueResult.inferredType, node.value, node.value.fileOffset);
+    VariableDeclaration valueVariable = new VariableDeclaration.forValue(
+        node.value,
+        type: valueResult.inferredType)
+      ..fileOffset = node.value.fileOffset;
+
+    // The inferred type is that inferred type of the value expression and not
+    // the type of the value parameter.
+    DartType inferredType = valueResult.inferredType;
+
+    Expression replacement;
+    Expression assignment;
+    if (indexSetTarget.isMissing) {
+      assignment = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments('[]=', receiverType),
+          node.fileOffset,
+          '[]='.length,
+          wrapInSyntheticExpression: false);
+    } else if (indexSetTarget.isExtensionMember) {
+      assignment = new StaticInvocation(
+          indexSetTarget.member,
+          new Arguments(<Expression>[
+            new VariableGet(receiverVariable)
+              ..fileOffset = node.receiver.fileOffset,
+            new VariableGet(indexVariable)..fileOffset = node.index.fileOffset,
+            new VariableGet(valueVariable)
+              ..fileOffset = node.receiver.fileOffset
+          ], types: indexSetTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset;
+    } else {
+      assignment = new MethodInvocation(
+          new VariableGet(receiverVariable)
+            ..fileOffset = node.receiver.fileOffset,
+          new Name('[]='),
+          new Arguments(<Expression>[
+            new VariableGet(indexVariable)..fileOffset = node.index.fileOffset,
+            new VariableGet(valueVariable)
+              ..fileOffset = node.receiver.fileOffset
+          ])
+            ..fileOffset = node.fileOffset,
+          indexSetTarget.member)
+        ..fileOffset = node.fileOffset;
+    }
+    VariableDeclaration assignmentVariable =
+        new VariableDeclaration.forValue(assignment, type: const VoidType())
+          ..fileOffset = assignment.fileOffset;
+    node.replaceWith(replacement = new Let(
+        receiverVariable,
+        new Let(
+            indexVariable,
+            new Let(
+                valueVariable,
+                new Let(
+                    assignmentVariable,
+                    new VariableGet(valueVariable)
+                      ..fileOffset = node.fileOffset)
+                  ..fileOffset = assignment.fileOffset)
+              ..fileOffset = node.index.fileOffset)
+          ..fileOffset = node.receiver.fileOffset));
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

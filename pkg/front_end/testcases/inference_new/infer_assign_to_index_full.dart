@@ -26,18 +26,21 @@ class Test {
 
   void test() {
     Test t = /*@ typeArgs=Test* */ f();
-    t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
-    t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
+    t /*@target=Test::[]=*/ [
+        /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
+    t /*@target=Test::[]=*/ [
+        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] += /*@ typeArgs=dynamic */ f();
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
+    t /*@target=Test::[]*/ [/*@ typeArgs=Index* */ f()];
     --t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()];
     t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
     var /*@ type=B* */ v1 = t /*@target=Test::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
+        /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
     var /*@ type=B* */ v2 = t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
     var /*@ type=A* */ v3 = t /*@target=Test::[]=*/ [
@@ -46,8 +49,11 @@ class Test {
         /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
     var /*@ type=C* */ v5 = t /*@target=Test::[]=*/ [
         /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
-    var /*@ type=B* */ v6 = --t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()];
-    var /*@ type=B* */ v7 = t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
+    var /*@ type=B* */ v6 = t /*@target=Test::[]*/ [/*@ typeArgs=Index* */ f()];
+    var /*@ type=B* */ v7 =
+        --t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()];
+    var /*@ type=B* */ v8 =
+        t /*@target=Test::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
   }
 }
 

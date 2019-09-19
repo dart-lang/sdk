@@ -683,6 +683,7 @@ delegate
 delegates
 delegation
 delete
+deleted
 deliberately
 delimited
 delimiter

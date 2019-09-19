@@ -1166,6 +1166,31 @@ class IndexedAccessGenerator extends Generator {
   @override
   String get _debugName => "IndexedAccessGenerator";
 
+  @override
+  Expression buildSimpleRead() {
+    return _helper.buildMethodInvocation(
+        receiver,
+        new Name('[]'),
+        _helper.forest.createArguments(fileOffset, <Expression>[index]),
+        fileOffset,
+        interfaceTarget: getter);
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    if (voidContext) {
+      return _helper.buildMethodInvocation(
+          receiver,
+          new Name('[]='),
+          _helper.forest
+              .createArguments(fileOffset, <Expression>[index, value]),
+          fileOffset,
+          interfaceTarget: setter);
+    } else {
+      return new IndexSet(receiver, index, value)..fileOffset = fileOffset;
+    }
+  }
+
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);
     return new VariableGet(indexVariable)..fileOffset = fileOffset;

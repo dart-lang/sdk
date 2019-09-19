@@ -680,10 +680,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// be targeted due to, e.g., an incorrect argument count).
   ObjectAccessTarget findInterfaceMember(
       DartType receiverType, Name name, int fileOffset,
-      {Template<Message Function(String, DartType)> errorTemplate,
-      Expression expression,
-      Expression receiver,
-      bool setter: false,
+      {bool setter: false,
       bool instrumented: true,
       bool includeExtensionMethods: false}) {
     assert(receiverType != null && isKnown(receiverType));
@@ -699,9 +696,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         : coreTypes.objectClass;
     Member interfaceMember =
         _getInterfaceMember(classNode, name, setter, fileOffset);
-    ObjectAccessTarget target = interfaceMember != null
-        ? new ObjectAccessTarget.interfaceMember(interfaceMember)
-        : const ObjectAccessTarget.unresolved();
+    ObjectAccessTarget target;
+    if (interfaceMember != null) {
+      target = new ObjectAccessTarget.interfaceMember(interfaceMember);
+    } else if (receiverType is DynamicType) {
+      target = const ObjectAccessTarget.dynamic();
+    } else if (receiverType is InvalidType) {
+      target = const ObjectAccessTarget.invalid();
+    } else if (receiverType == coreTypes.functionLegacyRawType &&
+        name.name == 'call') {
+      target = const ObjectAccessTarget.callFunction();
+    } else {
+      target = const ObjectAccessTarget.missing();
+    }
     if (instrumented &&
         receiverType != const DynamicType() &&
         target.isInstanceMember) {
@@ -803,7 +810,41 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         // one potential targets were found.
       }
     }
+    return target;
+  }
 
+  /// Finds a member of [receiverType] called [name], and if it is found,
+  /// reports it through instrumentation using [fileOffset].
+  ///
+  /// For the case where [receiverType] is a [FunctionType], and the name
+  /// is `call`, the string 'call' is returned as a sentinel object.
+  ///
+  /// For the case where [receiverType] is `dynamic`, and the name is declared
+  /// in Object, the member from Object is returned though the call may not end
+  /// up targeting it if the arguments do not match (the basic principle is that
+  /// the Object member is used for inferring types only if noSuchMethod cannot
+  /// be targeted due to, e.g., an incorrect argument count).
+  ///
+  /// If no target is found on a non-dynamic receiver an error is reported
+  /// using [errorTemplate] and [expression] is replaced by an invalid
+  /// expression.
+  ObjectAccessTarget findInterfaceMemberOrReport(
+      DartType receiverType,
+      Name name,
+      int fileOffset,
+      Template<Message Function(String, DartType)> errorTemplate,
+      Expression expression,
+      {bool setter: false,
+      bool instrumented: true,
+      bool includeExtensionMethods: false}) {
+    ObjectAccessTarget target = findInterfaceMember(
+        receiverType, name, fileOffset,
+        setter: setter,
+        instrumented: instrumented,
+        includeExtensionMethods: includeExtensionMethods);
+
+    assert(receiverType != null && isKnown(receiverType));
+    // TODO(johnniwinther): Use `target.isMissing` to check
     if (!isTopLevel &&
         target.isUnresolved &&
         receiverType is! DynamicType &&
@@ -812,6 +853,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             receiverType.classNode == coreTypes.functionClass &&
             name.name == 'call') &&
         errorTemplate != null) {
+      assert(target.isMissing);
       int length = name.name.length;
       if (identical(name.name, callName.name) ||
           identical(name.name, unaryMinusName.name)) {
@@ -835,11 +877,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // TODO(paulberry): could we add getters to InvocationExpression to make
     // these is-checks unnecessary?
     if (methodInvocation is MethodInvocation) {
-      ObjectAccessTarget interfaceTarget = findInterfaceMember(
-          receiverType, methodInvocation.name, methodInvocation.fileOffset,
-          errorTemplate: templateUndefinedMethod,
-          expression: methodInvocation,
-          receiver: methodInvocation.receiver,
+      ObjectAccessTarget interfaceTarget = findInterfaceMemberOrReport(
+          receiverType,
+          methodInvocation.name,
+          methodInvocation.fileOffset,
+          templateUndefinedMethod,
+          methodInvocation,
           instrumented: instrumented,
           includeExtensionMethods: true);
       if (interfaceTarget.isInstanceMember) {
@@ -890,11 +933,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // TODO(paulberry): could we add a common base class to PropertyGet and
     // SuperPropertyGet to make these is-checks unnecessary?
     if (propertyGet is PropertyGet) {
-      ObjectAccessTarget readTarget = findInterfaceMember(
-          receiverType, propertyGet.name, propertyGet.fileOffset,
-          errorTemplate: templateUndefinedGetter,
-          expression: propertyGet,
-          receiver: propertyGet.receiver,
+      ObjectAccessTarget readTarget = findInterfaceMemberOrReport(
+          receiverType,
+          propertyGet.name,
+          propertyGet.fileOffset,
+          templateUndefinedGetter,
+          propertyGet,
           instrumented: instrumented);
       if (readTarget.isInstanceMember) {
         if (instrumented &&
@@ -927,11 +971,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType receiverType, Expression propertySet,
       {bool instrumented: true}) {
     if (propertySet is PropertySet) {
-      ObjectAccessTarget writeTarget = findInterfaceMember(
-          receiverType, propertySet.name, propertySet.fileOffset,
-          errorTemplate: templateUndefinedSetter,
-          expression: propertySet,
-          receiver: propertySet.receiver,
+      ObjectAccessTarget writeTarget = findInterfaceMemberOrReport(
+          receiverType,
+          propertySet.name,
+          propertySet.fileOffset,
+          templateUndefinedSetter,
+          propertySet,
           setter: true,
           instrumented: instrumented,
           includeExtensionMethods: true);
@@ -978,6 +1023,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
         return receiverType;
       case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
         return const DynamicType();
       case ObjectAccessTargetKind.instanceMember:
         return getGetterTypeForMemberTarget(target.member, receiverType);
@@ -1073,6 +1121,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
         return _getFunctionType(receiverType, followCall);
       case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
         return unknownFunction;
       case ObjectAccessTargetKind.instanceMember:
         return _getFunctionType(
@@ -1140,6 +1191,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
         break;
     }
     return const UnknownType();
@@ -1191,6 +1245,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         break;
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
         break;
     }
     return const UnknownType();
@@ -1239,6 +1296,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   DartType getSetterType(ObjectAccessTarget target, DartType receiverType) {
     switch (target.kind) {
       case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
         return const DynamicType();
       case ObjectAccessTargetKind.instanceMember:
         Member interfaceMember = target.member;
@@ -1288,6 +1348,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         // TODO(johnniwinther): Compute the right setter type.
         return const DynamicType();
       case ObjectAccessTargetKind.callFunction:
+        break;
     }
     throw unhandled(target.runtimeType.toString(), 'getSetterType', null, null);
   }
@@ -2117,11 +2178,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     nullAwareReceiverVariable?.type = receiverType;
     Name propertyName = propertyGet.name;
-    ObjectAccessTarget readTarget = findInterfaceMember(
-        receiverType, propertyName, fileOffset,
-        errorTemplate: templateUndefinedGetter,
-        expression: expression,
-        receiver: receiver,
+    ObjectAccessTarget readTarget = findInterfaceMemberOrReport(receiverType,
+        propertyName, fileOffset, templateUndefinedGetter, expression,
         includeExtensionMethods: true);
     if (readTarget.isInstanceMember) {
       if (instrumentation != null && receiverType == const DynamicType()) {
@@ -2596,8 +2654,12 @@ class ExpressionInferenceResult {
 enum ObjectAccessTargetKind {
   instanceMember,
   callFunction,
-  unresolved,
   extensionMember,
+  dynamic,
+  invalid,
+  missing,
+  // TODO(johnniwinther): Remove this.
+  unresolved,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -2627,12 +2689,25 @@ class ObjectAccessTarget {
   const ObjectAccessTarget.callFunction()
       : this.internal(ObjectAccessTargetKind.callFunction, null);
 
-  /// Creates an access with no target.
-  ///
-  /// Done depending on context this may or may not be an error. For instance
-  /// if the receiver has type `dynamic` this is not an error.
+  /// Creates an access with no known target.
   const ObjectAccessTarget.unresolved()
       : this.internal(ObjectAccessTargetKind.unresolved, null);
+
+  /// Creates an access on a dynamic receiver type with no known target.
+  const ObjectAccessTarget.dynamic()
+      : this.internal(ObjectAccessTargetKind.dynamic, null);
+
+  /// Creates an access with no target due to an invalid receiver type.
+  ///
+  /// This is not in itself an error but a consequence of another error.
+  const ObjectAccessTarget.invalid()
+      : this.internal(ObjectAccessTargetKind.invalid, null);
+
+  /// Creates an access with no target.
+  ///
+  /// This is an error case.
+  const ObjectAccessTarget.missing()
+      : this.internal(ObjectAccessTargetKind.missing, null);
 
   /// Returns `true` if this is an access to an instance member.
   bool get isInstanceMember => kind == ObjectAccessTargetKind.instanceMember;
@@ -2644,7 +2719,20 @@ class ObjectAccessTarget {
   bool get isCallFunction => kind == ObjectAccessTargetKind.callFunction;
 
   /// Returns `true` if this is an access without a known target.
-  bool get isUnresolved => kind == ObjectAccessTargetKind.unresolved;
+  bool get isUnresolved =>
+      kind == ObjectAccessTargetKind.unresolved ||
+      isDynamic ||
+      isInvalid ||
+      isMissing;
+
+  /// Returns `true` if this is an access on a dynamic receiver type.
+  bool get isDynamic => kind == ObjectAccessTargetKind.dynamic;
+
+  /// Returns `true` if this is an access on an invalid receiver type.
+  bool get isInvalid => kind == ObjectAccessTargetKind.invalid;
+
+  /// Returns `true` if this is an access with no target.
+  bool get isMissing => kind == ObjectAccessTargetKind.missing;
 
   /// Returns the original procedure kind, if this is an extension method
   /// target.
@@ -2684,7 +2772,8 @@ class ExtensionAccessTarget extends ObjectAccessTarget {
 
   @override
   String toString() =>
-      'ExtensionAccessTarget($kind,$member,$extensionMethodKind)';
+      'ExtensionAccessTarget($kind,$member,$extensionMethodKind,'
+      '$inferredExtensionTypeArguments)';
 }
 
 class ExtensionAccessCandidate {

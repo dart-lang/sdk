@@ -51,6 +51,7 @@ import '../fasta_codes.dart'
         templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
         templateSwitchExpressionNotAssignable,
+        templateUndefinedMethod,
         templateWebLiteralCannotBeRepresentedExactly;
 
 import '../problems.dart' show getFileUri, unhandled, unsupported;
@@ -180,12 +181,13 @@ enum InternalExpressionKind {
   Cascade,
   CompoundPropertyAssignment,
   DeferredCheck,
+  IfNullPropertySet,
+  IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
-  IfNullPropertySet,
   PropertyPostIncDec,
 }
 
@@ -1837,8 +1839,64 @@ class LocalPostIncDec extends InternalExpression {
 
   @override
   void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+    }
     if (write != null) {
       write = write.accept<TreeNode>(v);
+    }
+  }
+}
+
+/// Internal expression representing an index set expression.
+///
+/// An index set expression of the form `o[a] = b` used for value is encoded as
+/// the expression:
+///
+///     let v1 = o in let v2 = a in let v3 = b in let _ = o.[]=(v2, v3) in v3
+///
+/// An index set expression used for effect is encoded as
+///
+///    o.[]=(a, b)
+///
+/// using [MethodInvocationImpl].
+///
+class IndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  IndexSet(this.receiver, this.index, this.value) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
     }
   }
 }

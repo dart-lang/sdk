@@ -4855,15 +4855,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context, bool suppressMessage: false}) {
+      {List<LocatedMessage> context,
+      bool suppressMessage: false,
+      bool wrapInSyntheticExpression: true}) {
     if (!suppressMessage) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
     }
     String text = libraryBuilder.loader.target.context
         .format(message.withLocation(uri, charOffset, length), Severity.error);
-    return wrapSyntheticExpression(
-        new InvalidExpression(text)..fileOffset = charOffset, charOffset);
+    InvalidExpression expression = new InvalidExpression(text)
+      ..fileOffset = charOffset;
+    return wrapInSyntheticExpression
+        ? wrapSyntheticExpression(expression, charOffset)
+        : expression;
   }
 
   @override
