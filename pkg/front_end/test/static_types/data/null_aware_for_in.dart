@@ -8,5 +8,5 @@ main() {
   var o;
   // ignore: unused_local_variable
   /*as: Class*/ for (Class c
-      in /*dynamic*/ o?. /*as: Iterable<dynamic>*/ /*dynamic*/ iterable) {}
+      in /*as: Iterable<dynamic>*/ /*dynamic*/ o?. /*dynamic*/ iterable) {}
 }

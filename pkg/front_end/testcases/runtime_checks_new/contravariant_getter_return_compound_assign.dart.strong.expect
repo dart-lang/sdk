@@ -61,7 +61,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
 Try changing the type of the left hand side, or casting the right hand side to 'B<void Function(num)>'.
   c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();
                                                       ^" in new self::B::•<core::num*>() as{TypeError} self::B<(core::num*) →* void>* : null;
-  self::B<core::Object*>* z = let final self::C<core::num*>* #t7 = c in let final dynamic #t8 = #t7.{self::C::x} as{TypeError} self::B<(core::num*) →* void>* in #t8.{core::Object::==}(null) ?{self::B<core::Object*>*} #t7.{self::C::x} = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:63: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
+  self::B<core::Object*>* z = let final self::C<core::num*>* #t7 = c in let final self::B<(core::num*) →* void>* #t8 = #t7.{self::C::x} as{TypeError} self::B<(core::num*) →* void>* in #t8.{core::Object::==}(null) ?{self::B<core::Object*>*} #t7.{self::C::x} = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart:23:63: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<void Function(num)>'.
  - 'B' is from 'pkg/front_end/testcases/runtime_checks_new/contravariant_getter_return_compound_assign.dart'.
 Try changing the type of the left hand side, or casting the right hand side to 'B<void Function(num)>'.
   var z = c. /*@ checkReturn=B<(num*) ->* void>* */ x ??= new B<num>();

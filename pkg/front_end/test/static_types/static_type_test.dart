@@ -64,7 +64,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     if (value1.object is NullLiteral && value2.object is! NullLiteral) {
       // Skip `null` literals from null-aware operations.
       return value2;
-    } else if (value2.object is NullLiteral && value2.object is NullLiteral) {
+    } else if (value1.object is! NullLiteral && value2.object is NullLiteral) {
       // Skip `null` literals from null-aware operations.
       return value1;
     }

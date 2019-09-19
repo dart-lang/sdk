@@ -20,8 +20,6 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -183,7 +181,9 @@ enum InternalExpressionKind {
   DeferredCheck,
   LoadLibraryTearOff,
   NullAwareMethodInvocation,
-  NullAwareMethodPropertyGet,
+  NullAwarePropertyGet,
+  NullAwarePropertySet,
+  IfNullPropertySet,
 }
 
 /// Common base class for internal expressions.
@@ -195,7 +195,9 @@ abstract class InternalExpression extends Expression {
   ///
   /// This method most be called after inference has been performed to ensure
   /// that [InternalExpression] nodes do not leak.
-  Expression replace();
+  Expression replace() {
+    throw new UnsupportedError('$runtimeType.replace()');
+  }
 
   @override
   R accept<R>(ExpressionVisitor<R> visitor) => visitor.defaultExpression(this);
@@ -907,39 +909,30 @@ class NamedFunctionExpressionJudgment extends Let
 
 /// Internal expression representing a null-aware method invocation.
 ///
-/// A null-aware method invocation of the form `a?.b(...)` is represented as the
-/// expression:
+/// A null-aware method invocation of the form `a?.b(...)` is encoded as:
 ///
 ///     let v = a in v == null ? null : v.b(...)
-// TODO(johnniwinther): Change the representation to be direct and perform
-// the [Let] encoding in [replace].
+///
 class NullAwareMethodInvocation extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
   VariableDeclaration variable;
-  ConditionalExpression body;
 
-  NullAwareMethodInvocation(this.variable, this.body) {
+  /// The expression that invokes the method on [variable].
+  Expression invocation;
+
+  NullAwareMethodInvocation(this.variable, this.invocation) {
     variable.parent = this;
-    body.parent = this;
+    invocation.parent = this;
   }
-
-  MethodInvocation get _desugaredInvocation => body.otherwise;
 
   @override
   InternalExpressionKind get kind =>
       InternalExpressionKind.NullAwareMethodInvocation;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    parent.replaceChild(
-        this, replacement = new Let(variable, body)..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
-    body?.accept(v);
+    invocation?.accept(v);
   }
 
   @override
@@ -948,50 +941,39 @@ class NullAwareMethodInvocation extends InternalExpression {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
-    if (body != null) {
-      body = body.accept<TreeNode>(v);
-      body?.parent = this;
+    if (invocation != null) {
+      invocation = invocation.accept<TreeNode>(v);
+      invocation?.parent = this;
     }
   }
 }
 
 /// Internal expression representing a null-aware read from a property.
 ///
-/// A null-aware property get of the form `a?.b` is represented as the kernel
-/// expression:
+/// A null-aware property get of the form `a?.b` is encoded as:
 ///
 ///     let v = a in v == null ? null : v.b
-// TODO(johnniwinther): Change the representation to be direct and perform
-// the [Let] encoding in [replace].
+///
 class NullAwarePropertyGet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
   VariableDeclaration variable;
-  ConditionalExpression body;
 
-  NullAwarePropertyGet(this.variable, this.body) {
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  NullAwarePropertyGet(this.variable, this.read) {
     variable.parent = this;
-    body.parent = this;
+    read.parent = this;
   }
-
-  PropertyGet get _desugaredGet => body.otherwise;
-
-  Expression get receiver => variable.initializer;
 
   @override
   InternalExpressionKind get kind =>
-      InternalExpressionKind.NullAwareMethodPropertyGet;
-
-  @override
-  Expression replace() {
-    Expression replacement;
-    parent.replaceChild(
-        this, replacement = new Let(variable, body)..fileOffset = fileOffset);
-    return replacement;
-  }
+      InternalExpressionKind.NullAwarePropertyGet;
 
   @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
-    body?.accept(v);
+    read?.accept(v);
   }
 
   @override
@@ -1000,9 +982,50 @@ class NullAwarePropertyGet extends InternalExpression {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
-    if (body != null) {
-      body = body.accept<TreeNode>(v);
-      body?.parent = this;
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a null-aware read from a property.
+///
+/// A null-aware property get of the form `a?.b = c` is encoded as:
+///
+///     let v = a in v == null ? null : v.b = c
+///
+class NullAwarePropertySet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that writes the value to the property in [variable].
+  Expression write;
+
+  NullAwarePropertySet(this.variable, this.write) {
+    variable.parent = this;
+    write.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwarePropertySet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
     }
   }
 }
@@ -1064,7 +1087,7 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
   final Arguments arguments;
 
   InvalidConstructorInvocationJudgment._(
-      kernel.Expression desugared, this.constructor, this.arguments)
+      Expression desugared, this.constructor, this.arguments)
       : super._(desugared);
 
   @override
@@ -1079,7 +1102,7 @@ class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
 class InvalidWriteJudgment extends SyntheticExpressionJudgment {
   final Expression expression;
 
-  InvalidWriteJudgment._(kernel.Expression desugared, this.expression)
+  InvalidWriteJudgment._(Expression desugared, this.expression)
       : super._(desugared);
 
   @override
@@ -1215,7 +1238,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 
   @override
   ExpressionInferenceResult inferExpression(
-      kernel.Expression expression, DartType typeContext, bool typeNeeded,
+      Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false}) {
     // `null` should never be used as the type context.  An instance of
     // `UnknownType` should be used instead.
@@ -1254,8 +1277,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer(
-      InferenceHelper helper, kernel.Initializer initializer) {
+  void inferInitializer(InferenceHelper helper, Initializer initializer) {
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
@@ -1442,7 +1464,7 @@ class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
   final ArgumentsImpl argumentsJudgment;
 
   UnresolvedTargetInvocationJudgment._(
-      kernel.Expression desugared, this.argumentsJudgment)
+      Expression desugared, this.argumentsJudgment)
       : super._(desugared);
 
   @override
@@ -1459,7 +1481,7 @@ class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
   final Expression rhs;
 
   UnresolvedVariableAssignmentJudgment._(
-      kernel.Expression desugared, this.isCompound, this.rhs)
+      Expression desugared, this.isCompound, this.rhs)
       : super._(desugared);
 
   @override
@@ -1563,7 +1585,7 @@ class SyntheticWrapper {
   }
 
   static Expression wrapInvalidConstructorInvocation(
-      kernel.Expression desugared, Member constructor, Arguments arguments) {
+      Expression desugared, Member constructor, Arguments arguments) {
     return new InvalidConstructorInvocationJudgment._(
         desugared, constructor, arguments)
       ..fileOffset = desugared.fileOffset;
@@ -1606,4 +1628,67 @@ class SyntheticWrapper {
   static Expression wrapVariableAssignment(Expression rhs) {
     return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
   }
+}
+
+/// Internal expression representing an if-null assignment.
+///
+/// An if-null assignment of the form `o.a ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in let v2 = v1.a in v2 == null ? v1.b : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in v1.a == null ? v1.b : null
+///
+class IfNullPropertySet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression write;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullPropertySet(this.variable, this.read, this.write, {this.forEffect})
+      : assert(forEffect != null) {
+    variable.parent = this;
+    read.parent = this;
+    write.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullPropertySet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+    }
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+    }
+  }
+}
+
+MethodInvocation createEqualsNull(
+    int fileOffset, Expression left, Member equalsMember) {
+  return new MethodInvocation(left, new Name('=='),
+      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset]))
+    ..fileOffset = fileOffset
+    ..interfaceTarget = equalsMember;
 }

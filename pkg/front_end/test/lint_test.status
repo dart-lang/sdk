@@ -9,7 +9,6 @@ src/fasta/builder/prefix_builder/ImportsTwice: Fail
 src/fasta/incremental_compiler/ImportsTwice: Fail
 src/fasta/kernel/body_builder/ImportsTwice: Fail
 src/fasta/kernel/expression_generator_helper/ImportsTwice: Fail
-src/fasta/kernel/kernel_shadow_ast/ImportsTwice: Fail
 src/fasta/parser/parser/ImportsTwice: Fail
 src/fasta/scanner/abstract_scanner/ImportsTwice: Fail
 src/fasta/scanner/recover/ImportsTwice: Fail

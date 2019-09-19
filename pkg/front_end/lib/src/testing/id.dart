@@ -355,15 +355,19 @@ abstract class DataRegistry<T> {
         ActualData<T> existingData = actualMap[id];
         ActualData<T> mergedData = mergeData(existingData, newData);
         if (mergedData != null) {
-          actualMap[id] = newData;
+          actualMap[id] = mergedData;
         } else {
           report(
-              uri, offset, "Duplicate id ${id}, value=$value, object=$object");
+              uri,
+              offset,
+              "Duplicate id ${id}, value=$value, object=$object "
+              "(${object.runtimeType})");
           report(
               uri,
               offset,
               "Duplicate id ${id}, value=${existingData.value}, "
-              "object=${existingData.object}");
+              "object=${existingData.object} "
+              "(${existingData.object.runtimeType})");
           fail("Duplicate id $id.");
         }
       } else {

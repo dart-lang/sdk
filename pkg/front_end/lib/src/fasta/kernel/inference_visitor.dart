@@ -43,12 +43,16 @@ class InferenceVisitor
           return visitCascade(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.IfNullPropertySet:
+          return visitIfNullPropertySet(node, typeContext);
         case InternalExpressionKind.LoadLibraryTearOff:
           return visitLoadLibraryTearOff(node, typeContext);
         case InternalExpressionKind.NullAwareMethodInvocation:
           return visitNullAwareMethodInvocation(node, typeContext);
-        case InternalExpressionKind.NullAwareMethodPropertyGet:
+        case InternalExpressionKind.NullAwarePropertyGet:
           return visitNullAwarePropertyGet(node, typeContext);
+        case InternalExpressionKind.NullAwarePropertySet:
+          return visitNullAwarePropertySet(node, typeContext);
       }
     }
     return _unhandledExpression(node, typeContext);
@@ -1861,27 +1865,140 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitNullAwareMethodInvocation(
       NullAwareMethodInvocation node, DartType typeContext) {
-    ExpressionInferenceResult result = inferrer.inferMethodInvocation(
-        node,
-        node.variable.initializer,
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult readResult = inferrer.inferExpression(
+        node.invocation, typeContext, true,
+        isVoidAllowed: true);
+    Member equalsMember = inferrer
+        .findInterfaceMember(
+            node.variable.type, new Name('=='), node.fileOffset)
+        .member;
+
+    DartType inferredType = readResult.inferredType;
+
+    Expression replacement;
+    MethodInvocation equalsNull = createEqualsNull(
         node.fileOffset,
-        typeContext,
-        node._desugaredInvocation,
-        nullAwareReceiverVariable: node.variable,
-        isImplicitCall: false);
-    node.body.staticType = result.inferredType;
-    Expression replacement = node.replace();
-    return new ExpressionInferenceResult(result.inferredType, replacement);
+        new VariableGet(node.variable)..fileOffset = node.fileOffset,
+        equalsMember);
+    ConditionalExpression condition = new ConditionalExpression(
+        equalsNull,
+        new NullLiteral()..fileOffset = node.fileOffset,
+        node.invocation,
+        inferredType);
+    node.replaceWith(replacement = new Let(node.variable, condition)
+      ..fileOffset = node.fileOffset);
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   ExpressionInferenceResult visitNullAwarePropertyGet(
       NullAwarePropertyGet node, DartType typeContext) {
-    ExpressionInferenceResult result = inferrer.inferPropertyGet(
-        node, node.receiver, node.fileOffset, typeContext, node._desugaredGet,
-        nullAwareReceiverVariable: node.variable);
-    node.body.staticType = result.inferredType;
-    Expression replacement = node.replace();
-    return new ExpressionInferenceResult(result.inferredType, replacement);
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult readResult =
+        inferrer.inferExpression(node.read, const UnknownType(), true);
+    Member equalsMember = inferrer
+        .findInterfaceMember(
+            node.variable.type, new Name('=='), node.fileOffset)
+        .member;
+
+    DartType inferredType = readResult.inferredType;
+
+    Expression replacement;
+    MethodInvocation equalsNull = createEqualsNull(
+        node.fileOffset,
+        new VariableGet(node.variable)..fileOffset = node.fileOffset,
+        equalsMember);
+    ConditionalExpression condition = new ConditionalExpression(
+        equalsNull,
+        new NullLiteral()..fileOffset = node.fileOffset,
+        node.read,
+        inferredType);
+    node.replaceWith(replacement = new Let(node.variable, condition)
+      ..fileOffset = node.fileOffset);
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitNullAwarePropertySet(
+      NullAwarePropertySet node, DartType typeContext) {
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult writeResult =
+        inferrer.inferExpression(node.write, typeContext, true);
+    Member equalsMember = inferrer
+        .findInterfaceMember(
+            node.variable.type, new Name('=='), node.fileOffset)
+        .member;
+
+    DartType inferredType = writeResult.inferredType;
+
+    Expression replacement;
+    MethodInvocation equalsNull = createEqualsNull(
+        node.fileOffset,
+        new VariableGet(node.variable)..fileOffset = node.fileOffset,
+        equalsMember);
+    ConditionalExpression condition = new ConditionalExpression(
+        equalsNull,
+        new NullLiteral()..fileOffset = node.fileOffset,
+        node.write,
+        inferredType);
+    node.replaceWith(replacement = new Let(node.variable, condition)
+      ..fileOffset = node.fileOffset);
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitIfNullPropertySet(
+      IfNullPropertySet node, DartType typeContext) {
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult readResult =
+        inferrer.inferExpression(node.read, const UnknownType(), true);
+    ExpressionInferenceResult writeResult =
+        inferrer.inferExpression(node.write, const UnknownType(), true);
+    Member equalsMember = inferrer
+        .findInterfaceMember(
+            readResult.inferredType, new Name('=='), node.fileOffset)
+        .member;
+
+    DartType inferredType = inferrer.typeSchemaEnvironment
+        .getStandardUpperBound(
+            readResult.inferredType, writeResult.inferredType);
+
+    Expression replacement;
+    if (node.forEffect) {
+      // Encode `o.a ??= b` as:
+      //
+      //     let v1 = o in v1.a == null ? v1.b : null
+      //
+      MethodInvocation equalsNull =
+          createEqualsNull(node.fileOffset, node.read, equalsMember);
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull,
+          node.write,
+          new NullLiteral()..fileOffset = node.fileOffset,
+          inferredType)
+        ..fileOffset = node.fileOffset;
+      node.replaceWith(replacement =
+          new Let(node.variable, conditional..fileOffset = node.fileOffset));
+    } else {
+      // Encode `o.a ??= b` as:
+      //
+      //     let v1 = o in let v2 = v1.a in v2 == null ? v1.b : v2
+      //
+      VariableDeclaration readVariable = new VariableDeclaration.forValue(
+          node.read,
+          type: readResult.inferredType)
+        ..fileOffset = node.fileOffset;
+      MethodInvocation equalsNull = createEqualsNull(
+          node.fileOffset,
+          new VariableGet(readVariable)..fileOffset = node.fileOffset,
+          equalsMember);
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull, node.write, new VariableGet(readVariable), inferredType)
+        ..fileOffset = node.fileOffset;
+      node.replaceWith(replacement = new Let(node.variable,
+          new Let(readVariable, conditional)..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+    }
+
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   @override

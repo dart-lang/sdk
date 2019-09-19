@@ -698,6 +698,14 @@ class Forest {
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
+  MethodInvocation createMethodInvocation(
+      int fileOffset, Expression expression, Name name, Arguments arguments,
+      {bool isImplicitCall: false}) {
+    return new MethodInvocationImpl(expression, name, arguments,
+        isImplicitCall: isImplicitCall)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
   NamedExpression createNamedExpression(String name, Expression expression) {
     return new NamedExpression(name, expression);
   }

@@ -5244,24 +5244,20 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     if (isNullAware) {
-      VariableDeclaration variable = new VariableDeclaration.forValue(receiver);
+      VariableDeclaration variable = forest.createVariableDeclarationForValue(
+          receiver.fileOffset, receiver);
       return new NullAwareMethodInvocation(
           variable,
-          forest.createConditionalExpression(
-              buildIsNull(new VariableGet(variable), offset, this),
-              null,
-              forest.createNullLiteral(null)..fileOffset = offset,
-              null,
-              new MethodInvocation(
-                  new VariableGet(variable), name, arguments, interfaceTarget)
-                ..fileOffset = offset)
-            ..fileOffset = offset)
-        ..fileOffset = offset;
+          forest.createMethodInvocation(offset,
+              createVariableGet(variable, receiver.fileOffset), name, arguments,
+              isImplicitCall: isImplicitCall)
+            ..interfaceTarget = interfaceTarget)
+        ..fileOffset = receiver.fileOffset;
     } else {
-      MethodInvocation node = new MethodInvocationImpl(
-          receiver, name, arguments,
-          isImplicitCall: isImplicitCall, interfaceTarget: interfaceTarget)
-        ..fileOffset = offset;
+      MethodInvocation node = forest.createMethodInvocation(
+          offset, receiver, name, arguments,
+          isImplicitCall: isImplicitCall)
+        ..interfaceTarget = interfaceTarget;
       return node;
     }
   }

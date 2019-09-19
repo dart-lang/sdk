@@ -83,17 +83,7 @@ import 'kernel_builder.dart'
         UnlinkedDeclaration,
         UnresolvedType;
 
-import 'kernel_shadow_ast.dart'
-    show
-        ComplexAssignmentJudgment,
-        LoadLibraryTearOff,
-        MethodInvocationImpl,
-        NullAwarePropertyGet,
-        PropertyAssignmentJudgment,
-        SyntheticWrapper,
-        VariableDeclarationImpl,
-        VariableGetImpl,
-        getExplicitTypeArguments;
+import 'kernel_shadow_ast.dart';
 
 /// A generator represents a subexpression for which we can't yet build an
 /// expression because we don't yet know the context in which it's used.
@@ -646,6 +636,22 @@ class PropertyAccessGenerator extends Generator {
   }
 
   @override
+  Expression buildNullAwareAssignment(
+      Expression value, DartType type, int offset,
+      {bool voidContext = false}) {
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    PropertyGet read = new PropertyGet(
+        _helper.createVariableGet(variable, receiver.fileOffset), name)
+      ..fileOffset = fileOffset;
+    PropertySet write = new PropertySet(
+        _helper.createVariableGet(variable, receiver.fileOffset), name, value)
+      ..fileOffset = fileOffset;
+    return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
   Expression _makeSimpleWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
     PropertySet write = new PropertySet(receiver, name, value, setter)
@@ -849,6 +855,33 @@ class NullAwarePropertyAccessGenerator extends Generator {
   String get _plainNameForRead => name.name;
 
   @override
+  Expression buildSimpleRead() {
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(
+            receiverExpression.fileOffset, receiverExpression);
+    PropertyGet read = new PropertyGet(
+        _helper.createVariableGet(variable, receiverExpression.fileOffset),
+        name)
+      ..fileOffset = fileOffset;
+    return new NullAwarePropertyGet(variable, read)
+      ..fileOffset = receiverExpression.fileOffset;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(
+            receiverExpression.fileOffset, receiverExpression);
+    PropertySet read = new PropertySet(
+        _helper.createVariableGet(variable, receiverExpression.fileOffset),
+        name,
+        value)
+      ..fileOffset = fileOffset;
+    return new NullAwarePropertySet(variable, read)
+      ..fileOffset = receiverExpression.fileOffset;
+  }
+
+  @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     PropertyGet read = new PropertyGet(receiverAccess(), name, getter)
       ..fileOffset = fileOffset;
@@ -882,8 +915,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       kernelPropertyAssign.desugared = body;
       return kernelPropertyAssign;
     } else {
-      return new NullAwarePropertyGet(receiver, nullAwareGuard)
-        ..fileOffset = fileOffset;
+      return unhandled('${runtimeType}', "_finish", fileOffset, _uri);
     }
   }
 
