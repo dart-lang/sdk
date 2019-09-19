@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.47';
+const String version = '1.48';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -958,7 +958,7 @@ class DartFuzz {
     } else if (tp == DartType.INT_LIST ||
         tp == DartType.INT_SET ||
         tp == DartType.INT_STRING_MAP) {
-      emitCollection(depth, tp, rhsFilter: rhsFilter);
+      emitCollection(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
     } else {
       assert(false);
     }
