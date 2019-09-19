@@ -658,8 +658,6 @@ class LibraryAnalyzer {
         source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    // TODO(scheglov) remove EnumMemberBuilder class
-
     new TypeParameterBoundsResolver(_context.typeSystem, _libraryElement,
             source, errorListener, unit.featureSet)
         .resolveTypeBounds(unit);

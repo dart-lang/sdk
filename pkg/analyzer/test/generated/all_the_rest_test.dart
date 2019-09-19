@@ -2,23 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/builder.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart' hide SdkLibrariesReader;
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -32,7 +24,6 @@ main() {
     // ignore: deprecated_member_use_from_same_package
     defineReflectiveTests(CustomUriResolverTest);
     defineReflectiveTests(DartUriResolverTest);
-    defineReflectiveTests(EnumMemberBuilderTest);
     defineReflectiveTests(ErrorSeverityTest);
     defineReflectiveTests(FileBasedSourceTest);
     defineReflectiveTests(ResolveRelativeUriTest);
@@ -140,100 +131,6 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
     Uri dartUri = resolver.restoreAbsolute(source);
     expect(dartUri.toString(), 'dart:core/int.dart');
   }
-}
-
-@reflectiveTest
-class EnumMemberBuilderTest extends EngineTestCase {
-  test_visitEnumDeclaration_multiple() async {
-    String firstName = "ONE";
-    String secondName = "TWO";
-    String thirdName = "THREE";
-    EnumDeclaration enumDeclaration = AstTestFactory.enumDeclaration2(
-        "E", [firstName, secondName, thirdName]);
-
-    ClassElement enumElement = _buildElement(enumDeclaration);
-    List<FieldElement> fields = enumElement.fields;
-    expect(fields, hasLength(5));
-
-    FieldElement constant = fields[2];
-    expect(constant, isNotNull);
-    expect(constant.name, firstName);
-    expect(constant.isStatic, isTrue);
-    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
-    _assertGetter(constant);
-
-    constant = fields[3];
-    expect(constant, isNotNull);
-    expect(constant.name, secondName);
-    expect(constant.isStatic, isTrue);
-    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
-    _assertGetter(constant);
-
-    constant = fields[4];
-    expect(constant, isNotNull);
-    expect(constant.name, thirdName);
-    expect(constant.isStatic, isTrue);
-    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
-    _assertGetter(constant);
-  }
-
-  test_visitEnumDeclaration_single() async {
-    String firstName = "ONE";
-    EnumDeclaration enumDeclaration =
-        AstTestFactory.enumDeclaration2("E", [firstName]);
-    enumDeclaration.constants[0].documentationComment =
-        AstTestFactory.documentationComment(
-            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-
-    ClassElement enumElement = _buildElement(enumDeclaration);
-    List<FieldElement> fields = enumElement.fields;
-    expect(fields, hasLength(3));
-
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, "index");
-    expect(field.isStatic, isFalse);
-    expect(field.isSynthetic, isTrue);
-    _assertGetter(field);
-
-    field = fields[1];
-    expect(field, isNotNull);
-    expect(field.name, "values");
-    expect(field.isStatic, isTrue);
-    expect(field.isSynthetic, isTrue);
-    expect((field as FieldElementImpl).evaluationResult, isNotNull);
-    _assertGetter(field);
-
-    FieldElement constant = fields[2];
-    expect(constant, isNotNull);
-    expect(constant.name, firstName);
-    expect(constant.isStatic, isTrue);
-    expect((constant as FieldElementImpl).evaluationResult, isNotNull);
-    expect(constant.documentationComment, '/// aaa');
-    _assertGetter(constant);
-  }
-
-  void _assertGetter(FieldElement field) {
-    PropertyAccessorElement getter = field.getter;
-    expect(getter, isNotNull);
-    expect(getter.variable, same(field));
-    expect(getter.type, isNotNull);
-  }
-
-  ClassElement _buildElement(EnumDeclaration enumDeclaration) {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder elementBuilder = _makeBuilder(holder);
-    enumDeclaration.accept(elementBuilder);
-    EnumMemberBuilder memberBuilder =
-        new EnumMemberBuilder(new TestTypeProvider());
-    enumDeclaration.accept(memberBuilder);
-    List<ClassElement> enums = holder.enums;
-    expect(enums, hasLength(1));
-    return enums[0];
-  }
-
-  ElementBuilder _makeBuilder(ElementHolder holder) =>
-      new ElementBuilder(holder, new CompilationUnitElementImpl());
 }
 
 @reflectiveTest
