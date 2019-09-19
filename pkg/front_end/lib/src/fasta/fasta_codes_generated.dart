@@ -6926,6 +6926,16 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
         r"""Try adding the name of the type of the variable or the keyword 'var'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingExplicitConst = messageMissingExplicitConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingExplicitConst = const MessageCode(
+    "MissingExplicitConst",
+    analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
+    message: r"""Constant expression expected.""",
+    tip: r"""Try inserting 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(int count)>
     templateMissingExplicitTypeArguments =
     const Template<Message Function(int count)>(

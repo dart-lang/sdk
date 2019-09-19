@@ -165,7 +165,7 @@ class FieldBuilder extends MemberBuilder {
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
-          isConst ? ConstantContext.inferred : ConstantContext.none;
+          isConst ? ConstantContext.inferred : ConstantContext.required;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
         ..parent = field;
       bodyBuilder.typeInferrer

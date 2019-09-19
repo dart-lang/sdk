@@ -195,6 +195,16 @@ NotAConstantExpression:
   template: "Not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
+MissingExplicitConst:
+  template: "Constant expression expected."
+  tip: "Try inserting 'const'."
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: >
+    class A {
+      final x;
+      const A(): x = [];
+    }
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."

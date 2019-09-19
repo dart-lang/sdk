@@ -905,7 +905,7 @@ class ConstructorBuilder extends FunctionBuilder {
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, classBuilder.scope, fileUri);
-      bodyBuilder.constantContext = ConstantContext.inferred;
+      bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers);
       bodyBuilder.resolveRedirectingFactoryTargets();
     }

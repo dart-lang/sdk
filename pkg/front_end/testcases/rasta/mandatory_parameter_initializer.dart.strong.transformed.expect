@@ -20,6 +20,11 @@ library;
 // main(arguments = [x]) {
 //                ^
 //
+// pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:18: Error: Constant expression expected.
+// Try inserting 'const'.
+// main(arguments = [x]) {
+//                  ^
+//
 // pkg/front_end/testcases/rasta/mandatory_parameter_initializer.dart:5:19: Error: Getter not found: 'x'.
 // main(arguments = [x]) {
 //                   ^
