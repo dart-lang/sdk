@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.48';
+const String version = '1.49';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -797,8 +797,8 @@ class DartFuzz {
     emit(rand.nextInt(2) == 0 ? 'true' : 'false');
   }
 
-  void emitSmallPositiveInt() {
-    emit('${rand.nextInt(100)}');
+  void emitSmallPositiveInt({int limit = 100}) {
+    emit('${rand.nextInt(limit)}');
   }
 
   void emitSmallNegativeInt() {
@@ -899,7 +899,7 @@ class DartFuzz {
           switch (rand.nextInt(3)) {
             case 0:
               emit('= 0; $localName$i < ');
-              emitSmallPositiveInt();
+              emitSmallPositiveInt(limit: 16);
               emit('; $localName$i++) ');
               break;
             case 1:
