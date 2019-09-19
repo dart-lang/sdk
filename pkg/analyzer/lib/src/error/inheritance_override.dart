@@ -135,7 +135,7 @@ class _ClassVerifier {
       return;
     }
 
-    InterfaceTypeImpl type = classElement.type;
+    InterfaceTypeImpl type = classElement.thisType;
 
     // Add all superinterfaces of the direct supertype.
     if (type.superclass != null) {

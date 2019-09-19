@@ -552,7 +552,7 @@ class MethodInvocationResolver {
       }
       enclosingClass = receiverType.element;
     } else {
-      receiverType = enclosingClass.type;
+      receiverType = enclosingClass.thisType;
     }
     var target = _inheritance.getMember(receiverType, _currentName);
 
@@ -639,7 +639,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    var receiverType = enclosingClass.type;
+    var receiverType = enclosingClass.thisType;
     var target = _inheritance.getMember(
       receiverType,
       _currentName,

@@ -166,7 +166,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = enumElement.type;
+    InterfaceTypeImpl enumType = enumElement.thisType;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be

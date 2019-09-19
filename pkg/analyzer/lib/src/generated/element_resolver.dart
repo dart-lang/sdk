@@ -863,7 +863,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (node.inSetterContext() &&
         node.inGetterContext() &&
         enclosingClass != null) {
-      InterfaceType enclosingType = enclosingClass.type;
+      InterfaceType enclosingType = enclosingClass.thisType;
       var propertyResolver = _newPropertyResolver();
       propertyResolver.resolve(null, enclosingType, node.name, node);
       node.auxiliaryElements = AuxiliaryElements(
@@ -1789,7 +1789,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           if (enclosingClass != null) {
             var propertyResolver = _newPropertyResolver();
             propertyResolver.resolve(
-                null, enclosingClass.type, identifier.name, identifier);
+                null, enclosingClass.thisType, identifier.name, identifier);
             setter = propertyResolver.setterResult.setter;
           }
         }
@@ -1822,7 +1822,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           return null;
         }
       } else {
-        enclosingType = enclosingClass.type;
+        enclosingType = enclosingClass.thisType;
       }
       if (element == null && enclosingType != null) {
         var propertyResolver = _newPropertyResolver();

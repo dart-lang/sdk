@@ -57,7 +57,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   ConstructorElement get redirectedConstructor {
-    var definingType = _substitution.substituteType(enclosingElement.type);
+    var definingType = _substitution.substituteType(enclosingElement.thisType);
     return from(baseElement.redirectedConstructor, definingType);
   }
 

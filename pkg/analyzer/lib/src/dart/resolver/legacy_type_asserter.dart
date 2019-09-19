@@ -50,12 +50,6 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
-    _assertLegacyType(node.declaredElement?.type);
-    super.visitClassDeclaration(node);
-  }
-
-  @override
   visitClassMember(ClassMember node) {
     final element = node.declaredElement;
     if (element is ExecutableElement) {
@@ -75,12 +69,6 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
   visitDeclaredIdentifier(DeclaredIdentifier node) {
     _assertLegacyType(node.declaredElement?.type);
     super.visitDeclaredIdentifier(node);
-  }
-
-  @override
-  visitEnumDeclaration(EnumDeclaration node) {
-    _assertLegacyType(node.declaredElement?.type);
-    super.visitEnumDeclaration(node);
   }
 
   @override
@@ -147,12 +135,16 @@ class LegacyTypeAsserter extends GeneralizingAstVisitor {
       _assertLegacyType(type.bound);
     } else if (type is InterfaceType) {
       type.typeArguments.forEach(_assertLegacyType);
-      type.typeParameters.map((param) => param.type).forEach(_assertLegacyType);
+      type.typeParameters
+          .map((param) => param.bound)
+          .forEach(_assertLegacyType);
     } else if (type is FunctionType) {
       _assertLegacyType(type.returnType);
       type.parameters.map((param) => param.type).forEach(_assertLegacyType);
       type.typeArguments.forEach(_assertLegacyType);
-      type.typeParameters.map((param) => param.type).forEach(_assertLegacyType);
+      type.typeParameters
+          .map((param) => param.bound)
+          .forEach(_assertLegacyType);
     }
 
     if ((type as TypeImpl).nullabilitySuffix == NullabilitySuffix.star) {

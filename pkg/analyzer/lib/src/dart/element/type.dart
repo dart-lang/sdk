@@ -1408,20 +1408,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get interfaces {
-    ClassElement classElement = element;
-    List<InterfaceType> interfaces = classElement.interfaces;
-    List<TypeParameterElement> typeParameters = classElement.typeParameters;
-    List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.isEmpty) {
-      return interfaces;
-    }
-    int count = interfaces.length;
-    List<InterfaceType> typedInterfaces = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedInterfaces[i] =
-          interfaces[i].substitute2(typeArguments, parameterTypes);
-    }
-    return typedInterfaces;
+    return _instantiateSuperTypes(element.interfaces);
   }
 
   @override
@@ -1575,17 +1562,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   InterfaceType get superclass {
-    ClassElement classElement = element;
-    InterfaceType supertype = classElement.supertype;
+    InterfaceType supertype = element.supertype;
     if (supertype == null) {
       return null;
     }
-    List<DartType> typeParameters = classElement.type.typeArguments;
-    if (typeArguments.isEmpty ||
-        typeArguments.length != typeParameters.length) {
-      return supertype;
-    }
-    return supertype.substitute2(typeArguments, typeParameters);
+
+    return Substitution.fromInterfaceType(this).substituteType(supertype);
   }
 
   @override
@@ -2342,17 +2324,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
-    List<TypeParameterElement> typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return defined;
+    if (defined.isEmpty) return defined;
+
+    var typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) return defined;
+
+    var substitution = Substitution.fromInterfaceType(this);
+    var result = List<InterfaceType>(defined.length);
+    for (int i = 0; i < defined.length; i++) {
+      result[i] = substitution.substituteType(defined[i]);
     }
-    List<DartType> instantiated = element.type.typeArguments;
-    int count = defined.length;
-    List<InterfaceType> typedConstraints = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedConstraints[i] = defined[i].substitute2(typeArguments, instantiated);
-    }
-    return typedConstraints;
+    return result;
   }
 
   /**

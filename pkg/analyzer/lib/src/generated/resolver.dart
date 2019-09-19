@@ -2666,7 +2666,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
     Scope outerScope = nameScope;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       if (enclosingClass == null) {
         AnalysisEngine.instance.logger.logInformation(
             "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
@@ -2686,7 +2686,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       }
     } finally {
       nameScope = outerScope;
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -2731,7 +2731,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _currentType = node.declaredElement.type;
+    _currentType = node.declaredElement.thisType;
     super.visitClassDeclaration(node);
     _currentType = null;
   }
@@ -2782,7 +2782,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitMixinDeclaration(MixinDeclaration node) {
-    _currentType = node.declaredElement.type;
+    _currentType = node.declaredElement.thisType;
     super.visitMixinDeclaration(node);
     _currentType = null;
   }
@@ -3178,7 +3178,7 @@ class ResolverVisitor extends ScopedVisitor {
   }) {
     _enclosingClassDeclaration = null;
     enclosingClass = enclosingClassElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
+    typeAnalyzer.thisType = enclosingClass?.thisType;
     _enclosingFunction = enclosingExecutableElement;
   }
 
@@ -3186,7 +3186,7 @@ class ResolverVisitor extends ScopedVisitor {
   void prepareToResolveMembersInClass(ClassDeclaration node) {
     _enclosingClassDeclaration = node;
     enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
+    typeAnalyzer.thisType = enclosingClass?.thisType;
   }
 
   /// Visit the given [comment] if it is not `null`.
@@ -3446,12 +3446,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -3668,12 +3668,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitEnumDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -4149,12 +4149,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitMixinDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingMixinDeclaration = null;
     }

@@ -124,6 +124,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   InterfaceType get thisType {
     if (_thisType == null) {
+      // TODO(scheglov) `library` is null in low-level unit tests
       var nullabilitySuffix = library?.isNonNullableByDefault == true
           ? NullabilitySuffix.none
           : NullabilitySuffix.star;
@@ -558,7 +559,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   @override
   List<InterfaceType> get allSupertypes {
     List<InterfaceType> list = new List<InterfaceType>();
-    collectAllSupertypes(list, type, type);
+    collectAllSupertypes(list, thisType, thisType);
     return list;
   }
 
@@ -2442,7 +2443,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   }
 
   @override
-  InterfaceType get type => _enum.type;
+  InterfaceType get type => _enum.thisType;
 }
 
 /// The synthetic `values` field of an enum.
@@ -2473,7 +2474,7 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   @override
   InterfaceType get type {
     if (_type == null) {
-      return _type = context.typeProvider.listType2(_enum.type);
+      return _type = context.typeProvider.listType2(_enum.thisType);
     }
     return _type;
   }
@@ -2793,7 +2794,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType => enclosingElement.type;
+  DartType get returnType => enclosingElement.thisType;
 
   void set returnType(DartType returnType) {
     assert(false);
@@ -6475,7 +6476,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
     if (typeArguments == null ||
         parameterElements.length != typeArguments.length) {
-      DartType dynamicType = DynamicElementImpl.instance.type;
+      DartType dynamicType = element.context.typeProvider.dynamicType;
       typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
     }
 
@@ -10292,7 +10293,8 @@ mixin TypeParameterizedElementMixin
   /// element's type parameters.
   List<TypeParameterType> get typeParameterTypes {
     return _typeParameterTypes ??= typeParameters
-        .map((TypeParameterElement e) => e.type)
+        .map((TypeParameterElement e) =>
+            e.instantiate(nullabilitySuffix: NullabilitySuffix.star))
         .toList(growable: false);
   }
 
