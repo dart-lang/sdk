@@ -802,6 +802,10 @@ static ProcedureAttributesMetadata ProcedureAttributesOf(
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
+  if (function.is_declared_in_bytecode()) {
+    // TODO(alexmarkov): add AOT metadata to bytecode.
+    return ProcedureAttributesMetadata();
+  }
   const Script& script = Script::Handle(zone, function.script());
   return ProcedureAttributesOf(
       zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
@@ -810,6 +814,10 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone) {
+  if (field.is_declared_in_bytecode()) {
+    // TODO(alexmarkov): add AOT metadata to bytecode.
+    return ProcedureAttributesMetadata();
+  }
   const Class& parent = Class::Handle(zone, field.Owner());
   const Script& script = Script::Handle(zone, parent.script());
   return ProcedureAttributesOf(

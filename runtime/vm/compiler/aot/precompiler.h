@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 #define RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_
 
+#ifndef DART_PRECOMPILED_RUNTIME
+
 #include "vm/allocation.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/hash_map.h"
@@ -96,13 +98,11 @@ class FieldKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    // We are using pointer hash for objects originating from Kernel because
-    // Fasta currently does not assign any position information to them.
-    if (key->kernel_offset() > 0) {
-      return key->kernel_offset();
-    } else {
-      return key->token_pos().value();
+    const TokenPosition token_pos = key->token_pos();
+    if (token_pos.IsReal()) {
+      return token_pos.value();
     }
+    return key->binary_declaration_offset();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -556,5 +556,7 @@ class Obfuscator {
         // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
+
+#endif  // DART_PRECOMPILED_RUNTIME
 
 #endif  // RUNTIME_VM_COMPILER_AOT_PRECOMPILER_H_

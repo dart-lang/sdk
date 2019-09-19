@@ -676,6 +676,11 @@ void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
 }
 
+void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  object()->PrintTo(f);
+  f->Print(", %" Pd, offset());
+}
+
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {
   const String& type_name = String::Handle(type().Name());
   f->Print("%s,", type_name.ToCString());

@@ -5522,6 +5522,8 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
     return other->AsLoadUntagged()->offset_ == offset_;
   }
 
+  PRINT_OPERANDS_TO_SUPPORT
+
  private:
   intptr_t offset_;
 

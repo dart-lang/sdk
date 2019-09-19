@@ -993,7 +993,7 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                          TokenPosition::kNoSource, try_index);
       pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, end_pc,
                                          DeoptId::kNone,
-                                         TokenPosition::kNoSource, -1);
+                                         TokenPosition::kNoSource, try_index);
 
       // The exception handler keeps a zone handle of the types array, rather
       // than a raw pointer. Do not share the handle across iterations to avoid
