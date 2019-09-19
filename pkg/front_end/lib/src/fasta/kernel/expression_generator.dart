@@ -488,6 +488,15 @@ class VariableUseGenerator extends Generator {
   String get _plainNameForRead => variable.name;
 
   @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    return _helper.createVariableGet(variable, fileOffset);
+  }
+
+  @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     TypePromotionFact fact = _helper.typePromoter
         ?.getFactForAccess(variable, _helper.functionNestingLevel);
@@ -500,13 +509,17 @@ class VariableUseGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    return _createWrite(fileOffset, value);
+  }
+
+  Expression _createWrite(int offset, Expression value) {
     _helper.typePromoter
         ?.mutateVariable(variable, _helper.functionNestingLevel);
     Expression write;
     if (variable.isFinal || variable.isConst) {
       write = _makeInvalidWrite(value);
     } else {
-      write = new VariableSet(variable, value)..fileOffset = fileOffset;
+      write = new VariableSet(variable, value)..fileOffset = offset;
     }
     return write;
   }
@@ -519,19 +532,11 @@ class VariableUseGenerator extends Generator {
       bool isPostIncDec: false}) {
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
-        _helper.createVariableGet(variable, fileOffset),
+        _createRead(),
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
-    _helper.typePromoter
-        ?.mutateVariable(variable, _helper.functionNestingLevel);
-    Expression write;
-    if (variable.isFinal || variable.isConst) {
-      write = _makeInvalidWrite(binary);
-    } else {
-      write = new VariableSet(variable, binary)..fileOffset = fileOffset;
-    }
-    return write;
+    return _createWrite(fileOffset, binary);
   }
 
   @override
@@ -547,8 +552,8 @@ class VariableUseGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        fileOffset, _helper.createVariableGet(variable, fileOffset));
+    VariableDeclaration read = _helper.forest
+        .createVariableDeclarationForValue(fileOffset, _createRead());
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -557,7 +562,7 @@ class VariableUseGenerator extends Generator {
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
-            offset, new VariableSet(variable, binary)..fileOffset = fileOffset);
+            offset, _createWrite(offset, binary));
     return new LocalPostIncDec(read, write)..fileOffset = offset;
   }
 
@@ -1694,6 +1699,79 @@ class StaticAccessGenerator extends Generator {
 
   @override
   String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
+
+  @override
+  Expression buildSimpleRead() {
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    Expression read;
+    if (readTarget == null) {
+      read = _makeInvalidRead();
+    } else {
+      read = _helper.makeStaticGet(readTarget, token);
+    }
+    return read;
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    return _createWrite(fileOffset, value);
+  }
+
+  Expression _createWrite(int offset, Expression value) {
+    Expression write;
+    if (writeTarget == null) {
+      write = _makeInvalidWrite(value);
+    } else {
+      write = new StaticSet(writeTarget, value)..fileOffset = offset;
+    }
+    return write;
+  }
+
+  @override
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget,
+      bool isPreIncDec = false,
+      bool isPostIncDec = false}) {
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _createRead(),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    return _createWrite(fileOffset, binary);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    if (voidContext) {
+      return buildCompoundAssignment(binaryOperator, value,
+          offset: offset,
+          voidContext: voidContext,
+          interfaceTarget: interfaceTarget,
+          isPostIncDec: true);
+    }
+    VariableDeclaration read = _helper.forest
+        .createVariableDeclarationForValue(fileOffset, _createRead());
+    MethodInvocation binary = _helper.forest.createMethodInvocation(
+        offset,
+        _helper.createVariableGet(read, fileOffset),
+        binaryOperator,
+        _helper.forest.createArguments(offset, <Expression>[value]),
+        interfaceTarget: interfaceTarget);
+    VariableDeclaration write = _helper.forest
+        .createVariableDeclarationForValue(
+            offset, _createWrite(offset, binary));
+    return new StaticPostIncDec(read, write)..fileOffset = offset;
+  }
 
   @override
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {

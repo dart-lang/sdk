@@ -79,7 +79,6 @@ inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheck
 inference/generic_methods_infer_js_builtin: InstrumentationMismatch # Issue #30029
 inference/inconsistent_overrides: TypeCheckError
 inference/infer_field_override_multiple: TypeCheckError
-inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError # Issue #35630
 inference/infer_method_missing_params: ExpectationFileMismatch # Not supposed to be able to infer types if supertypes disagree on number of parameters. An error may be missing as C.f and B.f are not compatible at all.
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError

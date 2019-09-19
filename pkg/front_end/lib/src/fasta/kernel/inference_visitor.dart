@@ -65,6 +65,8 @@ class InferenceVisitor
           return visitNullAwarePropertySet(node, typeContext);
         case InternalExpressionKind.PropertyPostIncDec:
           return visitPropertyPostIncDec(node, typeContext);
+        case InternalExpressionKind.StaticPostIncDec:
+          return visitStaticPostIncDec(node, typeContext);
       }
     }
     return _unhandledExpression(node, typeContext);
@@ -139,12 +141,6 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitSetConcatenation(
       SetConcatenation node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult visitStaticSet(
-      StaticSet node, DartType typeContext) {
     return _unhandledExpression(node, typeContext);
   }
 
@@ -1956,6 +1952,15 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
+  ExpressionInferenceResult visitStaticPostIncDec(
+      StaticPostIncDec node, DartType typeContext) {
+    inferrer.inferStatement(node.read);
+    inferrer.inferStatement(node.write);
+    DartType inferredType = node.read.type;
+    Expression replacement = node.replace();
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitLocalPostIncDec(
       LocalPostIncDec node, DartType typeContext) {
     inferrer.inferStatement(node.read);
@@ -2815,6 +2820,22 @@ class InferenceVisitor
       }
     }
     return new ExpressionInferenceResult(inferredType);
+  }
+
+  @override
+  ExpressionInferenceResult visitStaticSet(
+      StaticSet node, DartType typeContext) {
+    Member writeMember = node.target;
+    DartType writeContext = writeMember.setterType;
+    TypeInferenceEngine.resolveInferenceNode(writeMember);
+    ExpressionInferenceResult rhsResult = inferrer.inferExpression(
+        node.value, writeContext ?? const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType rhsType = rhsResult.inferredType;
+    inferrer.ensureAssignable(
+        writeContext, rhsType, node.value, node.fileOffset,
+        isVoidAllowed: writeContext is VoidType);
+    return new ExpressionInferenceResult(rhsType);
   }
 
   ExpressionInferenceResult visitStaticAssignmentJudgment(
