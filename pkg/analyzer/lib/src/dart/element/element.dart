@@ -124,7 +124,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   InterfaceType get thisType {
     if (_thisType == null) {
-      var nullabilitySuffix = library.isNonNullableByDefault
+      var nullabilitySuffix = library?.isNonNullableByDefault == true
           ? NullabilitySuffix.none
           : NullabilitySuffix.star;
       List<DartType> typeArguments;

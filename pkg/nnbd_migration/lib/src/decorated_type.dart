@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -337,13 +338,10 @@ class DecoratedType implements DecoratedTypeInfo {
       [DartType undecoratedResult]) {
     if (substitution.isEmpty) return this;
     if (undecoratedResult == null) {
-      List<DartType> argumentTypes = [];
-      List<DartType> parameterTypes = [];
-      for (var entry in substitution.entries) {
-        argumentTypes.add(entry.value.type);
-        parameterTypes.add(entry.key.type);
-      }
-      undecoratedResult = type.substitute2(argumentTypes, parameterTypes);
+      undecoratedResult = Substitution.fromPairs(
+        substitution.keys.toList(),
+        substitution.values.map((d) => d.type).toList(),
+      ).substituteType(type);
     }
     return _substitute(substitution, undecoratedResult);
   }

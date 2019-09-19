@@ -1742,7 +1742,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var classElement = declaredElement.enclosingElement as ClassElement;
         var origin = InheritanceOrigin(source, node);
         for (var overriddenElement in _inheritanceManager.getOverridden(
-                classElement.type,
+                classElement.thisType,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
             const <ExecutableElement>[]) {
           if (overriddenElement is ExecutableMember) {

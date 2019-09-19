@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -496,10 +497,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _createDecoratedTypeForClass(
       ClassElement classElement, AstNode node) {
     var typeArguments = classElement.typeParameters
-        .map((t) => DecoratedType(t.type, _graph.never))
+        .map((t) => t.instantiate(nullabilitySuffix: NullabilitySuffix.star))
         .toList();
-    return DecoratedType(classElement.type, _graph.never,
-        typeArguments: typeArguments);
+    var decoratedTypeArguments =
+        typeArguments.map((t) => DecoratedType(t, _graph.never)).toList();
+    return DecoratedType(
+      classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      _graph.never,
+      typeArguments: decoratedTypeArguments,
+    );
   }
 
   /// Common handling of function and method declarations.
