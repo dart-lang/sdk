@@ -15,7 +15,7 @@ import 'package:modular_test/src/runner.dart';
 // TODO(vsm): Hack until we have either:
 // (1) an NNBD version of the below
 // (2) the ability to compile the primary version with NNBD
-List<String> _nnbdOptOut = [];
+List<String> _nnbdOptOut = ['sdk'];
 String _test_package = 'ddc_modular_test';
 
 Uri sdkRoot = Platform.script.resolve("../../../");
