@@ -228,9 +228,10 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_addNotNullAssert() async {
-    if (node is SimpleIdentifier) {
-      if (node.parent is FormalParameter) {
-        final exp = node.parent.thisOrAncestorMatching(
+    final identifier = this.node;
+    if (identifier is SimpleIdentifier) {
+      if (identifier.parent is FormalParameter) {
+        final exp = identifier.parent.thisOrAncestorMatching(
             (node) => node is FunctionExpression || node is MethodDeclaration);
         var body;
         if (exp is FunctionExpression) {
@@ -239,9 +240,26 @@ class AssistProcessor extends BaseProcessor {
           body = exp.body;
         }
         if (body is BlockFunctionBody) {
+          // Check for an obvious pre-existing assertion.
+          for (var statement in body.block.statements) {
+            if (statement is AssertStatement) {
+              final condition = statement.condition;
+              if (condition is BinaryExpression) {
+                final leftOperand = condition.leftOperand;
+                if (leftOperand is SimpleIdentifier) {
+                  if (leftOperand.staticElement == identifier.staticElement &&
+                      condition.operator.type == TokenType.BANG_EQ &&
+                      condition.rightOperand is NullLiteral) {
+                    return;
+                  }
+                }
+              }
+            }
+          }
+
           final changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            final id = (node as SimpleIdentifier).name;
+            final id = identifier.name;
             final prefix = utils.getNodePrefix(exp);
             final indent = utils.getIndent(1);
             // todo (pq): follow-ups:

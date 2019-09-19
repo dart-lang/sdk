@@ -39,6 +39,25 @@ foo(int x) {
 ''');
   }
 
+  test_function_withAssert() async {
+    await resolveTestUnit('''
+foo(int x) {
+  assert(x != null);
+}
+''');
+    await assertNoAssistAt('x');
+  }
+
+  test_function_withAssert2() async {
+    await resolveTestUnit('''
+foo(int x) {
+  print('foo');
+  assert(x != null);
+}
+''');
+    await assertNoAssistAt('x');
+  }
+
   test_method_noAssert() async {
     await resolveTestUnit('''
 class A {
