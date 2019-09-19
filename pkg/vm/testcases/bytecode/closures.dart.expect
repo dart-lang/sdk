@@ -1656,11 +1656,11 @@ ClosureCode {
     method foo<T3 extends dart.core::Object* = dynamic, T4 extends dart.core::Object* = dynamic>() → void {
       function nested1<T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic>() → void {
         function nested2<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() → void {
-          () →* dart.core::Null* nested3 = () → dart.core::Null* {
+          () →* dart.core::Null? nested3 = () → dart.core::Null? {
             dart.core::print(<dart.core::Type*>[#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*]);
             #lib::callWithArgs<#lib::A::T1*, #lib::A::T2*, #lib::A::foo::T3*, #lib::A::foo::T4*, T5*, T6*, T7*, T8*>();
           };
-          [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] nested3.call();
+          [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] nested3.call();
         }
         [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() →* void] nested2.call<#lib::C7*, #lib::C8*>();
         [@vm.call-site-attributes.metadata=receiverType:<T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() →* void] nested2.call<dart.core::List<#lib::C7*>*, dart.core::List<#lib::C8*>*>();
@@ -1680,7 +1680,7 @@ ClosureCode {
         {
           dart.core::int* y = 2;
           dart.core::int* z = 3;
-          (dart.core::int*) →* dart.core::Null* closure1 = (dart.core::int* y) → dart.core::Null* {
+          (dart.core::int*) →* dart.core::Null? closure1 = (dart.core::int* y) → dart.core::Null? {
             x = y.{dart.core::num::+}(1);
             if(x.{dart.core::num::>}(5)) {
               dart.core::int* w = 4;
@@ -1692,8 +1692,8 @@ ClosureCode {
               dart.core::print(w);
             }
           };
-          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] closure1.call(10);
-          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] closure1.call(11);
+          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null?] closure1.call(10);
+          [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null?] closure1.call(11);
           dart.core::print(y);
           dart.core::print(z);
         }
@@ -1701,10 +1701,10 @@ ClosureCode {
       }
       {
         dart.core::int* x = 42;
-        () →* dart.core::Null* closure3 = () → dart.core::Null* {
+        () →* dart.core::Null? closure3 = () → dart.core::Null? {
           this.{#lib::B::foo} = x;
         };
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] closure3.call();
+        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] closure3.call();
       }
     }
   }
@@ -1718,17 +1718,17 @@ ClosureCode {
       dart.core::List<dart.core::Function*>* setI = <dart.core::Function*>[];
       for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
         [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] getI.{dart.core::List::add}(() → dart.core::int* => i.{dart.core::num::+}(delta));
-        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null* {
+        [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::Function*>*] setI.{dart.core::List::add}((dart.core::int* ii) → dart.core::Null? {
           i = ii.{dart.core::num::+}(delta);
         });
       }
     }
     method testForInLoop(dart.core::List<dart.core::int*>* list) → void {
       for (dart.core::int* i in list) {
-        () →* dart.core::Null* inc = () → dart.core::Null* {
+        () →* dart.core::Null? inc = () → dart.core::Null? {
           i = i.{dart.core::num::+}(1);
         };
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] inc.call();
+        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] inc.call();
         dart.core::print(i);
       }
     }
@@ -1741,18 +1741,18 @@ ClosureCode {
       return () → #lib::D::T* => t;
     }
     method bar() → dynamic {
-      return () → dart.core::Null* {
-        function inner() → dart.core::Null* {}
-        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null*] inner.call();
+      return () → dart.core::Null? {
+        function inner() → dart.core::Null? {}
+        [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::Null?] inner.call();
       };
     }
   }
   static method simpleClosure() → dart.core::int* {
     dart.core::int* x = 5;
-    (dart.core::int*) →* dart.core::Null* inc = (dart.core::int* y) → dart.core::Null* {
+    (dart.core::int*) →* dart.core::Null? inc = (dart.core::int* y) → dart.core::Null? {
       x = x.{dart.core::num::+}(y);
     };
-    [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null*] inc.call(3);
+    [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*) →* dart.core::Null?] inc.call(3);
     return x;
   }
   static method callWithArgs<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic, T3 extends dart.core::Object* = dynamic, T4 extends dart.core::Object* = dynamic, T5 extends dart.core::Object* = dynamic, T6 extends dart.core::Object* = dynamic, T7 extends dart.core::Object* = dynamic, T8 extends dart.core::Object* = dynamic>() → void {

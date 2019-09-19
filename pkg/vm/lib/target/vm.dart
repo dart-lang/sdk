@@ -176,7 +176,7 @@ class VmTarget extends Target {
           new IntLiteral(type)..fileOffset = offset,
           _fixedLengthList(
               coreTypes,
-              coreTypes.typeClass.rawType,
+              coreTypes.typeLegacyRawType,
               arguments.types.map((t) => new TypeLiteral(t)).toList(),
               arguments.fileOffset),
           _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
@@ -190,11 +190,11 @@ class VmTarget extends Target {
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;
-                })), keyType: coreTypes.symbolClass.rawType)
+                })), keyType: coreTypes.symbolLegacyRawType)
                   ..isConst = (arguments.named.length == 0)
                   ..fileOffset = arguments.fileOffset
               ], types: [
-                coreTypes.symbolClass.rawType,
+                coreTypes.symbolLegacyRawType,
                 new DynamicType()
               ]))
             ..fileOffset = offset

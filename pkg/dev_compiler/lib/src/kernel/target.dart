@@ -160,7 +160,7 @@ class DevCompilerTarget extends Target {
           arguments.named
               .map((n) => MapEntry(SymbolLiteral(n.name), n.value))
               .toList(),
-          keyType: coreTypes.symbolClass.rawType));
+          keyType: coreTypes.symbolLegacyRawType));
     }
     return createInvocation('method', ctorArgs);
   }

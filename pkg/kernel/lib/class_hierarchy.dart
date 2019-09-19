@@ -8,6 +8,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'ast.dart';
+import 'core_types.dart';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
@@ -62,7 +63,7 @@ abstract class ClassHierarchy {
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2);
+      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
@@ -540,7 +541,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -614,7 +615,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        candidate = next.classNode.rawType;
+        // TODO(dmitryas): Update nullability as necessary for the LUB spec.
+        candidate = coreTypes.legacyRawType(next.classNode);
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {

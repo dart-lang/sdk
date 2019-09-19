@@ -263,11 +263,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   FunctionNode get currentFunction => _currentFunction;
 
   @override
-  InterfaceType get privateSymbolType => _privateSymbolClass.rawType;
+  InterfaceType get privateSymbolType =>
+      _coreTypes.legacyRawType(_privateSymbolClass);
 
   @override
   InterfaceType get internalSymbolType =>
-      _coreTypes.internalSymbolClass.rawType;
+      _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
 
   js_ast.Program emitModule(Component component, List<Component> summaries,
       List<Uri> summaryUris, Map<Uri, String> moduleImportForSummary) {
@@ -794,7 +795,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         getBaseClass(isMixinAliasClass(c) ? 0 : mixins.length),
         emitDeferredType(supertype),
       ]));
-      supertype = supertype.classNode.rawType;
+      supertype = _coreTypes.legacyRawType(supertype.classNode);
     }
     var baseClass = emitClassRef(supertype);
 
@@ -2058,7 +2059,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _registerExtensionType(
       Class c, String jsPeerName, List<js_ast.Statement> body) {
     var className = _emitTopLevelName(c);
-    if (_typeRep.isPrimitive(c.rawType)) {
+    if (_typeRep.isPrimitive(_coreTypes.legacyRawType(c))) {
       body.add(runtimeStatement(
           'definePrimitiveHashCode(#.prototype)', [className]));
     }
@@ -2285,7 +2286,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (c == null) {
       return _isObjectMember(name);
     }
-    c = _typeRep.getImplementationClass(c.rawType) ?? c;
+    c = _typeRep.getImplementationClass(_coreTypes.legacyRawType(c)) ?? c;
     if (_extensionTypes.isNativeClass(c)) {
       var member = _lookupForwardedMember(c, name);
 
@@ -3275,7 +3276,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var conditionType = condition.getStaticType(_types);
     var jsCondition = _visitExpression(condition);
 
-    var boolType = _coreTypes.boolClass.rawType;
+    var boolType = _coreTypes.boolLegacyRawType;
     if (conditionType is FunctionType &&
         conditionType.requiredParameterCount == 0 &&
         conditionType.returnType == boolType) {
@@ -3515,7 +3516,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //
     // TODO(jmesserly): we may want a helper if these become common. For now the
     // full desugaring seems okay.
-    var streamIterator = _asyncStreamIteratorClass.rawType;
+    var streamIterator = _coreTypes.legacyRawType(_asyncStreamIteratorClass);
     var createStreamIter = js_ast.Call(
         _emitConstructorName(
             streamIterator,
@@ -4136,13 +4137,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isDynamicOrFunction(DartType t) =>
-      t == _coreTypes.functionClass.rawType || t == const DynamicType();
+      t == _coreTypes.functionLegacyRawType || t == const DynamicType();
 
   js_ast.Expression _emitUnaryOperator(
       Expression expr, Member target, InvocationExpression node) {
     var op = node.name.name;
     if (target != null) {
-      var dispatchType = target.enclosingClass.rawType;
+      var dispatchType = _coreTypes.legacyRawType(target.enclosingClass);
       if (_typeRep.unaryOperationIsPrimitive(dispatchType)) {
         if (op == '~') {
           if (_typeRep.isNumber(dispatchType)) {
@@ -4312,7 +4313,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // https://github.com/dart-lang/sdk/issues/33293
     if (target != null) {
       var targetClass = target.enclosingClass;
-      var leftType = targetClass.rawType;
+      var leftType = _coreTypes.legacyRawType(targetClass);
       var rightType = right.getStaticType(_types);
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
@@ -4411,7 +4412,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression left, Member target, Expression right,
       {bool negated = false}) {
     var targetClass = target?.enclosingClass;
-    var leftType = targetClass?.rawType ?? left.getStaticType(_types);
+    var leftType = targetClass != null
+        ? _coreTypes.legacyRawType(targetClass)
+        : left.getStaticType(_types);
 
     // Conceptually `x == y` in Dart is defined as:
     //
@@ -4710,8 +4713,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   bool _isNull(Expression expr) =>
-      expr is NullLiteral ||
-      expr.getStaticType(_types) == _coreTypes.nullClass.rawType;
+      expr is NullLiteral || expr.getStaticType(_types) == _coreTypes.nullType;
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
     // If we statically know LHS or RHS is null we can use ==.
@@ -4789,7 +4791,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var type = ctorClass.typeParameters.isEmpty
-        ? ctorClass.rawType
+        ? _coreTypes.legacyRawType(ctorClass)
         : InterfaceType(ctorClass, args.types);
 
     if (isFromEnvironmentInvocation(_coreTypes, node)) {
@@ -4841,7 +4843,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass;
     if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
-    return js_ast.New(_emitConstructorName(ctorClass.rawType, ctor),
+    return js_ast.New(
+        _emitConstructorName(_coreTypes.legacyRawType(ctorClass), ctor),
         _emitArgumentList(args, types: false));
   }
 
@@ -5000,8 +5003,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // All Dart number types map to a JS double.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {
       // Make sure to check when converting to int.
-      if (from != _coreTypes.intClass.rawType &&
-          to == _coreTypes.intClass.rawType) {
+      if (from != _coreTypes.intLegacyRawType &&
+          to == _coreTypes.intLegacyRawType) {
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.

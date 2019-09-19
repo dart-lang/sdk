@@ -32,16 +32,18 @@ abstract class TypeEnvironment extends SubtypeTester {
     return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
   }
 
-  InterfaceType get objectType => coreTypes.objectClass.rawType;
-  InterfaceType get nullType => coreTypes.nullClass.rawType;
-  InterfaceType get boolType => coreTypes.boolClass.rawType;
-  InterfaceType get intType => coreTypes.intClass.rawType;
-  InterfaceType get numType => coreTypes.numClass.rawType;
-  InterfaceType get doubleType => coreTypes.doubleClass.rawType;
-  InterfaceType get stringType => coreTypes.stringClass.rawType;
-  InterfaceType get symbolType => coreTypes.symbolClass.rawType;
-  InterfaceType get typeType => coreTypes.typeClass.rawType;
-  InterfaceType get rawFunctionType => coreTypes.functionClass.rawType;
+  // TODO(dmitryas): Remove these getters, use the appropriate member of
+  //  CoreTypes at the call sites instead.
+  InterfaceType get objectType => coreTypes.objectLegacyRawType;
+  InterfaceType get nullType => coreTypes.nullType;
+  InterfaceType get boolType => coreTypes.boolLegacyRawType;
+  InterfaceType get intType => coreTypes.intLegacyRawType;
+  InterfaceType get numType => coreTypes.numLegacyRawType;
+  InterfaceType get doubleType => coreTypes.doubleLegacyRawType;
+  InterfaceType get stringType => coreTypes.stringLegacyRawType;
+  InterfaceType get symbolType => coreTypes.symbolLegacyRawType;
+  InterfaceType get typeType => coreTypes.typeLegacyRawType;
+  InterfaceType get rawFunctionType => coreTypes.functionLegacyRawType;
 
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;

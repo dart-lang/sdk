@@ -39,11 +39,11 @@ class TypeSchemaEnvironmentTest {
     coreTypes = new CoreTypes(component);
   }
 
-  InterfaceType get doubleType => coreTypes.doubleClass.rawType;
+  InterfaceType get doubleType => coreTypes.doubleLegacyRawType;
 
-  InterfaceType get functionType => coreTypes.functionClass.rawType;
+  InterfaceType get functionType => coreTypes.functionLegacyRawType;
 
-  InterfaceType get intType => coreTypes.intClass.rawType;
+  InterfaceType get intType => coreTypes.intLegacyRawType;
 
   Class get iterableClass => coreTypes.iterableClass;
 
@@ -51,20 +51,20 @@ class TypeSchemaEnvironmentTest {
 
   Class get mapClass => coreTypes.mapClass;
 
-  InterfaceType get nullType => coreTypes.nullClass.rawType;
+  InterfaceType get nullType => coreTypes.nullType;
 
-  InterfaceType get numType => coreTypes.numClass.rawType;
+  InterfaceType get numType => coreTypes.numLegacyRawType;
 
   Class get objectClass => coreTypes.objectClass;
 
-  InterfaceType get objectType => objectClass.rawType;
+  InterfaceType get objectType => coreTypes.objectLegacyRawType;
 
   void test_addLowerBound() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
-    var C =
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.legacyRawType(_addClass(_class('A')));
+    var B = coreTypes.legacyRawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)));
+    var C = coreTypes.legacyRawType(
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)));
     var env = _makeEnv();
     var typeConstraint = new TypeConstraint();
     expect(typeConstraint.lower, same(unknownType));
@@ -75,11 +75,13 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_addUpperBound() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
-    var C =
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var C = coreTypes.rawType(
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     var typeConstraint = new TypeConstraint();
     expect(typeConstraint.upper, same(unknownType));
@@ -92,16 +94,17 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_glb_bottom() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(bottomType, A), same(bottomType));
     expect(env.getStandardLowerBound(A, bottomType), same(bottomType));
   }
 
   void test_glb_function() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     // GLB(() -> A, () -> B) = () -> B
     expect(
@@ -219,23 +222,24 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_glb_identical() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, A), same(A));
     expect(env.getStandardLowerBound(new InterfaceType(A.classNode), A), A);
   }
 
   void test_glb_subtype() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, B), same(B));
     expect(env.getStandardLowerBound(B, A), same(B));
   }
 
   void test_glb_top() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(dynamicType, A), same(A));
     expect(env.getStandardLowerBound(A, dynamicType), same(A));
@@ -246,15 +250,15 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_glb_unknown() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, unknownType), same(A));
     expect(env.getStandardLowerBound(unknownType, A), same(A));
   }
 
   void test_glb_unrelated() {
-    var A = _addClass(_class('A')).rawType;
-    var B = _addClass(_class('B')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(_addClass(_class('B')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, B), same(bottomType));
   }
@@ -350,19 +354,25 @@ class TypeSchemaEnvironmentTest {
     // B C
     // |X|
     // D E
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
-    var C =
-        _addClass(_class('C', supertype: A.classNode.asThisSupertype)).rawType;
-    var D = _addClass(_class('D', implementedTypes: [
-      B.classNode.asThisSupertype,
-      C.classNode.asThisSupertype
-    ])).rawType;
-    var E = _addClass(_class('E', implementedTypes: [
-      B.classNode.asThisSupertype,
-      C.classNode.asThisSupertype
-    ])).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var C = coreTypes.rawType(
+        _addClass(_class('C', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var D = coreTypes.rawType(
+        _addClass(_class('D', implementedTypes: [
+          B.classNode.asThisSupertype,
+          C.classNode.asThisSupertype
+        ])),
+        Nullability.legacy);
+    var E = coreTypes.rawType(
+        _addClass(_class('E', implementedTypes: [
+          B.classNode.asThisSupertype,
+          C.classNode.asThisSupertype
+        ])),
+        Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardUpperBound(D, E), A);
   }
@@ -374,9 +384,10 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_lub_function() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     // LUB(() -> A, () -> B) = () -> A
     expect(
@@ -490,16 +501,17 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_lub_identical() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardUpperBound(A, A), same(A));
     expect(env.getStandardUpperBound(new InterfaceType(A.classNode), A), A);
   }
 
   void test_lub_sameClass() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardUpperBound(_map(A, B), _map(B, A)), _map(A, A));
   }
@@ -513,7 +525,7 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_lub_top() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardUpperBound(dynamicType, A), same(dynamicType));
     expect(env.getStandardUpperBound(A, dynamicType), same(dynamicType));
@@ -549,16 +561,17 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_lub_unknown() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.getStandardLowerBound(A, unknownType), same(A));
     expect(env.getStandardLowerBound(unknownType, A), same(A));
   }
 
   void test_solveTypeConstraint() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     // Solve(? <: T <: ?) => ?
     expect(env.solveTypeConstraint(_makeConstraint()), same(unknownType));
@@ -653,15 +666,19 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_typeSatisfiesConstraint() {
-    var A = _addClass(_class('A')).rawType;
-    var B =
-        _addClass(_class('B', supertype: A.classNode.asThisSupertype)).rawType;
-    var C =
-        _addClass(_class('C', supertype: B.classNode.asThisSupertype)).rawType;
-    var D =
-        _addClass(_class('D', supertype: C.classNode.asThisSupertype)).rawType;
-    var E =
-        _addClass(_class('E', supertype: D.classNode.asThisSupertype)).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
+    var B = coreTypes.rawType(
+        _addClass(_class('B', supertype: A.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var C = coreTypes.rawType(
+        _addClass(_class('C', supertype: B.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var D = coreTypes.rawType(
+        _addClass(_class('D', supertype: C.classNode.asThisSupertype)),
+        Nullability.legacy);
+    var E = coreTypes.rawType(
+        _addClass(_class('E', supertype: D.classNode.asThisSupertype)),
+        Nullability.legacy);
     var env = _makeEnv();
     var typeConstraint = _makeConstraint(upper: B, lower: D);
     expect(env.typeSatisfiesConstraint(A, typeConstraint), isFalse);
@@ -672,13 +689,13 @@ class TypeSchemaEnvironmentTest {
   }
 
   void test_unknown_at_bottom() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.isSubtypeOf(unknownType, A), isTrue);
   }
 
   void test_unknown_at_top() {
-    var A = _addClass(_class('A')).rawType;
+    var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
     expect(env.isSubtypeOf(A, unknownType), isTrue);
   }

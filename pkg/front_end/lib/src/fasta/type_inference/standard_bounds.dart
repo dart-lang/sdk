@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidType,
         NamedType,
+        Nullability,
         TypeParameterType,
         VoidType;
 
@@ -337,7 +338,8 @@ abstract class StandardBounds {
     // TODO(paulberry): We could do better here, e.g.:
     //   SUB(([int]) -> void, (int) -> void) = (int) -> void
     if (f.requiredParameterCount != g.requiredParameterCount) {
-      return functionClass.rawType;
+      return new InterfaceType(
+          functionClass, const <DynamicType>[], Nullability.legacy);
     }
     int requiredParameterCount = f.requiredParameterCount;
 

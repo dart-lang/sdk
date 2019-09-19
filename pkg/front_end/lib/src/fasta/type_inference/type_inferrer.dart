@@ -212,7 +212,7 @@ class ClosureContext {
       // Null.
       if (flattenedReturnType is VoidType ||
           flattenedReturnType is DynamicType ||
-          flattenedReturnType == inferrer.coreTypes.nullClass.rawType) {
+          flattenedReturnType == inferrer.coreTypes.nullType) {
         return true;
       }
       statement.expression = inferrer.helper.wrapInProblem(
@@ -237,7 +237,7 @@ class ClosureContext {
     if (returnType is VoidType &&
         flattenedExpressionType is! VoidType &&
         flattenedExpressionType is! DynamicType &&
-        flattenedExpressionType != inferrer.coreTypes.nullClass.rawType) {
+        flattenedExpressionType != inferrer.coreTypes.nullType) {
       statement.expression = inferrer.helper.wrapInProblem(
           statement.expression, messageReturnFromVoidFunction, noLength)
         ..parent = statement;
@@ -250,7 +250,7 @@ class ClosureContext {
     if (flattenedExpressionType is VoidType &&
         flattenedReturnType is! VoidType &&
         flattenedReturnType is! DynamicType &&
-        flattenedReturnType != inferrer.coreTypes.nullClass.rawType) {
+        flattenedReturnType != inferrer.coreTypes.nullType) {
       statement.expression = inferrer.helper
           .wrapInProblem(statement.expression, messageVoidExpression, noLength)
             ..parent = statement;
@@ -520,7 +520,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       InterfaceType type = typeContext;
       typeContext = type.typeArguments.first;
     }
-    return typeContext == coreTypes.doubleClass.rawType;
+    return typeContext is InterfaceType &&
+        typeContext.classNode == coreTypes.doubleClass;
   }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
@@ -807,7 +808,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         target.isUnresolved &&
         receiverType is! DynamicType &&
         receiverType is! InvalidType &&
-        !(receiverType == coreTypes.functionClass.rawType &&
+        !(receiverType is InterfaceType &&
+            receiverType.classNode == coreTypes.functionClass &&
             name.name == 'call') &&
         errorTemplate != null) {
       int length = name.name.length;
@@ -1816,8 +1818,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       VariableDeclarationImpl formal = formals[i];
       if (VariableDeclarationImpl.isImplicitlyTyped(formal)) {
         DartType inferredType;
-        if (formalTypesFromContext[i] == coreTypes.nullClass.rawType) {
-          inferredType = coreTypes.objectClass.rawType;
+        if (formalTypesFromContext[i] == coreTypes.nullType) {
+          inferredType = coreTypes.objectRawType(library.nullable);
         } else if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
               substitution.substituteType(formalTypesFromContext[i]));
@@ -1956,7 +1958,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     if (!target.isUnresolved &&
         calleeType is! DynamicType &&
-        calleeType != coreTypes.functionClass.rawType &&
+        !(calleeType is InterfaceType &&
+            calleeType.classNode == coreTypes.functionClass) &&
         identical(functionType, unknownFunction)) {
       TreeNode parent = expression.parent;
       Expression error = helper.wrapInProblem(expression,
@@ -1983,7 +1986,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
     if (methodName.name == '==') {
-      inferredType = coreTypes.boolClass.rawType;
+      inferredType = coreTypes.boolRawType(library.nonNullable);
     }
     handleInvocationContravariance(checkKind, methodInvocation, arguments,
         expression, inferredType, functionType, fileOffset);
@@ -2073,7 +2076,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     if (!target.isUnresolved &&
         calleeType is! DynamicType &&
-        calleeType != coreTypes.functionClass.rawType &&
+        !(calleeType is InterfaceType &&
+            calleeType.classNode == coreTypes.functionClass) &&
         identical(functionType, unknownFunction)) {
       TreeNode parent = expression.parent;
       Expression error = helper.wrapInProblem(expression,
@@ -2087,7 +2091,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
     if (methodName.name == '==') {
-      inferredType = coreTypes.boolClass.rawType;
+      inferredType = coreTypes.boolRawType(library.nonNullable);
     }
     _checkBoundsInMethodInvocation(
         target, receiverType, calleeType, methodName, arguments, fileOffset);

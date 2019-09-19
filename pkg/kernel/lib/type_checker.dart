@@ -344,7 +344,7 @@ class TypeCheckingVisitor
         }
         final enclosingFunction = parent as FunctionNode;
         if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-          return coreTypes.boolClass.rawType;
+          return coreTypes.boolLegacyRawType;
         }
         return null;
 

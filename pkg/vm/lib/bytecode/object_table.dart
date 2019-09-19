@@ -1961,7 +1961,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
-      objectTable.getHandle(objectTable.coreTypes.nullClass.rawType);
+      objectTable.getHandle(objectTable.coreTypes.nullType);
 
   @override
   ObjectHandle visitInterfaceType(InterfaceType node) {

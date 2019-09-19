@@ -3173,7 +3173,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (parameterCount > 1) {
           stackTrace = catchParameters.parameters[1];
           stackTrace.build(libraryBuilder, functionNestingLevel).type =
-              coreTypes.stackTraceClass.rawType;
+              coreTypes.stackTraceRawType(libraryBuilder.nonNullable);
         }
       }
       if (parameterCount > 2) {
@@ -3195,7 +3195,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         catchKeyword,
         exception?.target,
         stackTrace?.target,
-        coreTypes.stackTraceClass.rawType,
+        coreTypes.stackTraceRawType(libraryBuilder.nonNullable),
         body));
     if (compileTimeErrors == null) {
       push(NullValue.Block);
@@ -5173,7 +5173,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     for (Expression argument in expressions.reversed) {
       expression = new Let(
           new VariableDeclaration.forValue(argument,
-              isFinal: true, type: coreTypes.objectClass.rawType),
+              isFinal: true,
+              type: coreTypes.objectRawType(libraryBuilder.nullable)),
           expression);
     }
     return expression;

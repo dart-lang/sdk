@@ -465,7 +465,7 @@ abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
       FunctionType combinerType =
           inferrer.getFunctionType(combinerTarget, readType, false);
       if (isPreIncDec || isPostIncDec) {
-        rhsType = inferrer.coreTypes.intClass.rawType;
+        rhsType = inferrer.coreTypes.intRawType(inferrer.library.nonNullable);
       } else {
         // It's not necessary to call _storeLetType for [rhs] because the RHS
         // is always passed directly to the combiner; it's never stored in a

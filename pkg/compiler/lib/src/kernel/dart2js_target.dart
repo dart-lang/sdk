@@ -117,7 +117,7 @@ class Dart2jsTarget extends Target {
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
-          })), keyType: coreTypes.stringClass.rawType)
+          })), keyType: coreTypes.stringLegacyRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
           new ir.IntLiteral(kind)..fileOffset = offset,

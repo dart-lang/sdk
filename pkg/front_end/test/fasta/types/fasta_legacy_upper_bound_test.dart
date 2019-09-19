@@ -48,12 +48,12 @@ class FastaLegacyUpperBoundTest extends LegacyUpperBoundTest {
     await target.buildOutlines();
     ClassBuilder objectClass =
         loader.coreLibrary.lookupLocalMember("Object", required: true);
-    hierarchy = new ClassHierarchyBuilder(
-        objectClass, loader, new CoreTypes(component));
+    hierarchy = new ClassHierarchyBuilder(objectClass, loader, coreTypes);
   }
 
   @override
-  DartType getLegacyLeastUpperBound(DartType a, DartType b) {
+  DartType getLegacyLeastUpperBound(
+      DartType a, DartType b, CoreTypes coreTypes) {
     return hierarchy.getKernelLegacyLeastUpperBound(a, b);
   }
 }

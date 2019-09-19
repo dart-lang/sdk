@@ -274,7 +274,7 @@ main() {
   });
   positiveTest('Valid typedef Foo = `(C) => void`', (TestHarness test) {
     var typedef_ = new Typedef(
-        'Foo', new FunctionType([test.otherClass.rawType], const VoidType()));
+        'Foo', new FunctionType([test.otherLegacyRawType], const VoidType()));
     test.addNode(typedef_);
   });
   positiveTest('Valid typedef Foo = C<dynamic>', (TestHarness test) {
@@ -286,7 +286,7 @@ main() {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new TypedefType(bar);
-    bar.type = test.otherClass.rawType;
+    bar.type = test.otherLegacyRawType;
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
@@ -294,13 +294,13 @@ main() {
     var foo = new Typedef('Foo', null);
     var bar = new Typedef('Bar', null);
     foo.type = new InterfaceType(test.otherClass, [new TypedefType(bar)]);
-    bar.type = test.otherClass.rawType;
+    bar.type = test.otherLegacyRawType;
     test.enclosingLibrary.addTypedef(foo);
     test.enclosingLibrary.addTypedef(bar);
   });
   positiveTest('Valid typedef type in field', (TestHarness test) {
     var typedef_ = new Typedef(
-        'Foo', new FunctionType([test.otherClass.rawType], const VoidType()));
+        'Foo', new FunctionType([test.otherLegacyRawType], const VoidType()));
     var field = new Field(new Name('field'),
         type: new TypedefType(typedef_), isStatic: true);
     test.enclosingLibrary.addTypedef(typedef_);
@@ -396,14 +396,14 @@ main() {
     first.type = new TypedefType(typedef_);
   });
   positiveTest('Valid typedef Foo<T extends C> = C<T>', (TestHarness test) {
-    var param = new TypeParameter('T', test.otherClass.rawType);
+    var param = new TypeParameter('T', test.otherLegacyRawType);
     var foo = new Typedef('Foo',
         new InterfaceType(test.otherClass, [new TypeParameterType(param)]),
         typeParameters: [param]);
     test.addNode(foo);
   });
   positiveTest('Valid typedef Foo<T extends C<T>> = C<T>', (TestHarness test) {
-    var param = new TypeParameter('T', test.otherClass.rawType);
+    var param = new TypeParameter('T', test.otherLegacyRawType);
     param.bound =
         new InterfaceType(test.otherClass, [new TypeParameterType(param)]);
     var foo = new Typedef('Foo',
@@ -458,7 +458,7 @@ main() {
           " but the typedef declares 1 parameters.", (TestHarness test) {
     var param = test.makeTypeParameter('T');
     var foo =
-        new Typedef('Foo', test.otherClass.rawType, typeParameters: [param]);
+        new Typedef('Foo', test.otherLegacyRawType, typeParameters: [param]);
     var field = new Field(new Name('field'),
         type: new TypedefType(foo, []), isStatic: true);
     test.enclosingLibrary.addTypedef(foo);
@@ -468,7 +468,7 @@ main() {
       'Dangling typedef reference',
       "Dangling reference to 'typedef Foo = test_lib::OtherClass<dynamic>*;\n'"
           ", parent is: 'null'", (TestHarness test) {
-    var foo = new Typedef('Foo', test.otherClass.rawType, typeParameters: []);
+    var foo = new Typedef('Foo', test.otherLegacyRawType, typeParameters: []);
     var field = new Field(new Name('field'),
         type: new TypedefType(foo, []), isStatic: true);
     test.enclosingLibrary.addMember(field);
@@ -502,6 +502,10 @@ class TestHarness {
   Procedure enclosingMember;
 
   Class otherClass;
+
+  InterfaceType objectLegacyRawType;
+  InterfaceType enclosingLegacyRawType;
+  InterfaceType otherLegacyRawType;
 
   void addNode(TreeNode node) {
     if (node is Expression) {
@@ -545,7 +549,7 @@ class TestHarness {
   VariableDeclaration makeVariable() => new VariableDeclaration(null);
 
   TypeParameter makeTypeParameter([String name]) {
-    return new TypeParameter(name, new InterfaceType(objectClass));
+    return new TypeParameter(name, objectLegacyRawType);
   }
 
   TestHarness() {
@@ -558,6 +562,8 @@ class TestHarness {
     component.libraries.add(stubLibrary..parent = component);
     stubLibrary.name = 'dart.core';
     objectClass = new Class(name: 'Object');
+    objectLegacyRawType =
+        new InterfaceType(objectClass, const <DartType>[], Nullability.legacy);
     stubLibrary.addClass(objectClass);
     enclosingLibrary = new Library(Uri.parse('file://test.dart'));
     component.libraries.add(enclosingLibrary..parent = component);
@@ -567,6 +573,8 @@ class TestHarness {
         name: 'TestClass',
         typeParameters: [classTypeParameter],
         supertype: objectClass.asRawSupertype);
+    enclosingLegacyRawType = new InterfaceType(enclosingClass,
+        const <DartType>[const DynamicType()], Nullability.legacy);
     enclosingLibrary.addClass(enclosingClass);
     enclosingMember = new Procedure(new Name('test'), ProcedureKind.Method,
         new FunctionNode(new EmptyStatement()));
@@ -575,6 +583,8 @@ class TestHarness {
         name: 'OtherClass',
         typeParameters: [makeTypeParameter('OtherT')],
         supertype: objectClass.asRawSupertype);
+    otherLegacyRawType = new InterfaceType(
+        otherClass, const <DartType>[const DynamicType()], Nullability.legacy);
     enclosingLibrary.addClass(otherClass);
   }
 }

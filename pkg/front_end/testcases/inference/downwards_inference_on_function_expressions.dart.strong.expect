@@ -64,7 +64,7 @@ import "dart:core" as core;
 typedef Function2<S extends core::Object* = dynamic, T extends core::Object* = dynamic> = (S*) →* T*;
 static method test() → void {
   {
-    (core::int*) →* core::String* l0 = (core::int* x) → core::Null* => null;
+    (core::int*) →* core::String* l0 = (core::int* x) → core::Null? => null;
     (core::int*) →* core::String* l1 = (core::int* x) → core::String* => "hello";
     (core::int*) →* core::String* l2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:15:69: Error: A value of type 'String Function(String)' can't be assigned to a variable of type 'String Function(int)'.
 Try changing the type of the left hand side, or casting the right hand side to 'String Function(int)'.
@@ -82,7 +82,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     };
   }
   {
-    (core::int*) →* core::String* l0 = (core::int* x) → core::Null* => null;
+    (core::int*) →* core::String* l0 = (core::int* x) → core::Null? => null;
     (core::int*) →* core::String* l1 = (core::int* x) → core::String* => "hello";
     (core::int*) →* core::String* l2 = (core::int* x) → core::String* => let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:29:13: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the left hand side, or casting the right hand side to 'String'.
@@ -102,7 +102,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     };
   }
   {
-    (core::int*) →* core::List<core::String*>* l0 = (core::int* x) → core::Null* => null;
+    (core::int*) →* core::List<core::String*>* l0 = (core::int* x) → core::Null? => null;
     (core::int*) →* core::List<core::String*>* l1 = (core::int* x) → core::List<core::String*>* => <core::String*>["hello"];
     (core::int*) →* core::List<core::String*>* l2 = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_expressions.dart:42:76: Error: A value of type 'List<String> Function(String)' can't be assigned to a variable of type 'List<String> Function(int)'.
  - 'List' is from 'dart:core'.
