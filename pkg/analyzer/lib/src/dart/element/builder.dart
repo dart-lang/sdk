@@ -368,7 +368,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
       ..parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
-    element.type = new FunctionTypeImpl.forTypedef(element);
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
@@ -387,7 +386,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     setElementDocumentationComment(element, node);
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
-    element.type = new FunctionTypeImpl.forTypedef(element);
     element.function = node.functionType?.type?.element;
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
@@ -728,10 +726,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     for (int i = 0; i < typeParameterCount; i++) {
       TypeParameterElementImpl typeParameter =
           typeParameters[i] as TypeParameterElementImpl;
-      TypeParameterTypeImpl typeParameterType =
-          new TypeParameterTypeImpl(typeParameter);
-      typeParameter.type = typeParameterType;
-      typeArguments[i] = typeParameterType;
+      typeArguments[i] = TypeParameterTypeImpl(typeParameter);
     }
     return typeArguments;
   }
@@ -1557,9 +1552,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
         new TypeParameterElementImpl.forNode(parameterName);
     _setCodeRange(typeParameter, node);
     typeParameter.metadata = _createElementAnnotations(node.metadata);
-    TypeParameterTypeImpl typeParameterType =
-        new TypeParameterTypeImpl(typeParameter);
-    typeParameter.type = typeParameterType;
     _currentHolder.addTypeParameter(typeParameter);
     parameterName.staticElement = typeParameter;
     super.visitTypeParameter(node);

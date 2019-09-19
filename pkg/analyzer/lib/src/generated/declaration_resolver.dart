@@ -462,7 +462,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
-      element.type = new TypeParameterTypeImpl(element);
       node.name?.staticElement = element;
     } else {
       TypeParameterElement element =

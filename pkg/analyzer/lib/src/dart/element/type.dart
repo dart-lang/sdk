@@ -530,7 +530,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       var freshElement =
           new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-      freshElement.type = freshTypeVar;
 
       typeVars.add(typeParamElement.type);
       freshTypeVars.add(freshTypeVar);
@@ -3626,7 +3625,6 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       if (identical(bound, newBound)) return p;
       var element = new TypeParameterElementImpl.synthetic(p.name);
       element.bound = newBound;
-      element.type = new TypeParameterTypeImpl(element);
       return element;
     }
 
