@@ -168,8 +168,7 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 /// this class is used for the edge connecting the type of f's `i` parameter to
 /// `never`, due to the assert statement proclaiming that `i` is not `null`.
 class NonNullAssertionOrigin extends EdgeOrigin {
-  NonNullAssertionOrigin(Source source, AssertStatement node)
-      : super(source, node);
+  NonNullAssertionOrigin(Source source, Assertion node) : super(source, node);
 }
 
 /// Edge origin resulting from the presence of an explicit nullability hint

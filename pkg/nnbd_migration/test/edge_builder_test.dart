@@ -430,6 +430,17 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  test_assert_initializer_demonstrates_non_null_intent() async {
+    await analyze('''
+class C {
+  C(int i)
+    : assert(i != null);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
   test_assign_bound_to_type_parameter() async {
     await analyze('''
 class C<T extends List<int>> {

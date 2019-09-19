@@ -276,6 +276,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitAssertInitializer(AssertInitializer node) {
+    _checkExpressionNotNull(node.condition);
+    if (identical(_conditionInfo?.condition, node.condition)) {
+      var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
+      if (intentNode != null && _conditionInfo.postDominatingIntent) {
+        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
+            _graph.never, NonNullAssertionOrigin(source, node),
+            hard: true);
+      }
+    }
+    node.message?.accept(this);
+    return null;
+  }
+
+  @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     bool isQuestionAssign = false;
     bool isCompound = false;
