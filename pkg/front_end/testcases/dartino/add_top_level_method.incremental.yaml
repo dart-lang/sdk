@@ -5,7 +5,7 @@
 main.dart.patch: |
   // Test that top-level functions can be added
 
-  <<<< "threw"
+  <<<< []
   ==== "v2"
   foo() {
     print('v2');

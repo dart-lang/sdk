@@ -33,6 +33,7 @@ extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
+extensions/unnamed_extensions: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
 general/error_locations/error_location_01: TextSerializationFailure
 general/error_locations/error_location_02: TextSerializationFailure
@@ -96,6 +97,7 @@ general/clone_function_type: TextSerializationFailure # Was: Pass
 general/closure: TextSerializationFailure # Was: Pass
 general/co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
 general/complex_class_hierarchy: TextSerializationFailure
+general/compound_binary_implicit_as: TextSerializationFailure
 general/constructor_const_inference: TextSerializationFailure # Was: Pass
 general/constructor_cycle: TextSerializationFailure # Was: Pass
 general/constructor_function_types: TextSerializationFailure # Was: Pass

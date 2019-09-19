@@ -32,6 +32,16 @@ main() {
   expect('2', map1[2]);
   expect('3', map1[3] ??= '3');
   expect('3', map1[3]);
+
+  MapLike<int, int> map2 = new MapLike();
+  expect(1, map2[0] = 1);
+  expect(3, map2[0] += 2);
+  expect(5, map2[0] += 2);
+  expect(5, map2[0]++);
+  expect(6, map2[0]);
+  expect(5, --map2[0]);
+  expect(5, map2[0]);
+
 }
 
 expect(expected, actual) {

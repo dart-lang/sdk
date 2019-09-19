@@ -720,7 +720,7 @@ class PropertyAccessGenerator extends Generator {
     PropertySet write = new PropertySet(
         _helper.createVariableGet(variable, receiver.fileOffset), name, binary)
       ..fileOffset = fileOffset;
-    return new CompoundPropertyAssignment(variable, write)..fileOffset = offset;
+    return new CompoundPropertySet(variable, write)..fileOffset = offset;
   }
 
   @override
@@ -1198,6 +1198,33 @@ class IndexedAccessGenerator extends Generator {
     return new IfNullIndexSet(receiver, index, value, fileOffset,
         forEffect: voidContext)
       ..fileOffset = offset;
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    return new CompoundIndexSet(receiver, index, binaryOperator, value,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext,
+        forPostIncDec: isPostIncDec);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    return buildCompoundAssignment(binaryOperator, value,
+        offset: offset,
+        voidContext: voidContext,
+        interfaceTarget: interfaceTarget,
+        isPostIncDec: true);
   }
 
   Expression indexAccess() {

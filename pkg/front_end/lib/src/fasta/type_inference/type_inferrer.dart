@@ -1181,6 +1181,39 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return const DynamicType();
   }
 
+  DartType getPositionalParameterTypeForTarget(
+      ObjectAccessTarget target, DartType receiverType, int index) {
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        FunctionType functionType = _getFunctionType(
+            getGetterTypeForMemberTarget(target.member, receiverType), false);
+        if (functionType.positionalParameters.length > index) {
+          return functionType.positionalParameters[index];
+        }
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+        FunctionType functionType = target.member.function.functionType;
+        if (functionType.positionalParameters.length > index + 1) {
+          DartType keyType = functionType.positionalParameters[index + 1];
+          if (functionType.typeParameters.isNotEmpty) {
+            Substitution substitution = Substitution.fromPairs(
+                functionType.typeParameters,
+                target.inferredExtensionTypeArguments);
+            return substitution.substituteType(keyType);
+          }
+          return keyType;
+        }
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.unresolved:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
+        break;
+    }
+    return const DynamicType();
+  }
+
   /// Returns the type of the 'key' parameter in an [] or []= implementation.
   ///
   /// For instance
@@ -2035,7 +2068,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Arguments arguments = node.arguments;
     assert(target != null, "No target for ${node}.");
     bool isOverloadedArithmeticOperator =
-        _isOverloadedArithmeticOperatorAndType(target, receiverType);
+        isOverloadedArithmeticOperatorAndType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType =
         getFunctionType(target, receiverType, !node.isImplicitCall);
@@ -2132,7 +2165,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
-  bool _isOverloadedArithmeticOperatorAndType(
+  bool isOverloadedArithmeticOperatorAndType(
       ObjectAccessTarget target, DartType receiverType) {
     return target.isInstanceMember &&
         target.member is Procedure &&
@@ -2150,7 +2183,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Arguments arguments = expression.arguments;
     DartType receiverType = thisType;
     bool isOverloadedArithmeticOperator =
-        _isOverloadedArithmeticOperatorAndType(target, receiverType);
+        isOverloadedArithmeticOperatorAndType(target, receiverType);
     DartType calleeType = getGetterType(target, receiverType);
     FunctionType functionType = getFunctionType(target, receiverType, true);
 

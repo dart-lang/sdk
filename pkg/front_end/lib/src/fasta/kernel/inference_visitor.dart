@@ -41,8 +41,10 @@ class InferenceVisitor
       switch (node.kind) {
         case InternalExpressionKind.Cascade:
           return visitCascade(node, typeContext);
-        case InternalExpressionKind.CompoundPropertyAssignment:
-          return visitCompoundPropertyAssignment(node, typeContext);
+        case InternalExpressionKind.CompoundIndexSet:
+          return visitCompoundIndexSet(node, typeContext);
+        case InternalExpressionKind.CompoundPropertySet:
+          return visitCompoundPropertySet(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
         case InternalExpressionKind.IfNullIndexSet:
@@ -1973,8 +1975,8 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitCompoundPropertyAssignment(
-      CompoundPropertyAssignment node, DartType typeContext) {
+  ExpressionInferenceResult visitCompoundPropertySet(
+      CompoundPropertySet node, DartType typeContext) {
     inferrer.inferStatement(node.variable);
     ExpressionInferenceResult writeResult =
         inferrer.inferExpression(node.write, const UnknownType(), true);
@@ -2313,6 +2315,264 @@ class InferenceVisitor
         ..fileOffset = node.fileOffset);
     }
     return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
+  ExpressionInferenceResult visitCompoundIndexSet(
+      CompoundIndexSet node, DartType typeContext) {
+    ExpressionInferenceResult receiverResult = inferrer.inferExpression(
+        node.receiver, const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType receiverType = receiverResult.inferredType;
+    VariableDeclaration receiverVariable =
+        createVariable(node.receiver, receiverType);
+
+    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
+        receiverType, new Name('[]'), node.readOffset,
+        includeExtensionMethods: true);
+
+    MethodContravarianceCheckKind readCheckKind =
+        inferrer.preCheckInvocationContravariance(receiverType, readTarget,
+            isThisReceiver: node.receiver is ThisExpression);
+
+    DartType readType = inferrer.getReturnType(readTarget, receiverType);
+    DartType readIndexType = inferrer.getPositionalParameterTypeForTarget(
+        readTarget, receiverType, 0);
+
+    ExpressionInferenceResult indexResult = inferrer
+        .inferExpression(node.index, readIndexType, true, isVoidAllowed: true);
+    VariableDeclaration indexVariable =
+        createVariable(node.index, indexResult.inferredType);
+
+    Expression readIndex = createVariableGet(indexVariable);
+    Expression readIndexReplacement = inferrer.ensureAssignable(readIndexType,
+        indexResult.inferredType, readIndex, readIndex.fileOffset);
+    if (readIndexReplacement != null) {
+      readIndex = readIndexReplacement;
+    }
+
+    Expression read;
+    if (readTarget.isMissing) {
+      read = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments('[]', receiverType),
+          node.readOffset,
+          '[]'.length,
+          wrapInSyntheticExpression: false);
+    } else if (readTarget.isExtensionMember) {
+      read = new StaticInvocation(
+          readTarget.member,
+          new Arguments(<Expression>[
+            createVariableGet(receiverVariable),
+            readIndex,
+          ], types: readTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.readOffset)
+        ..fileOffset = node.readOffset;
+    } else {
+      read = new MethodInvocation(
+          createVariableGet(receiverVariable),
+          new Name('[]'),
+          new Arguments(<Expression>[
+            readIndex,
+          ])
+            ..fileOffset = node.readOffset,
+          readTarget.member)
+        ..fileOffset = node.readOffset;
+      if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+        if (inferrer.instrumentation != null) {
+          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
+              'checkReturn', new InstrumentationValueForType(readType));
+        }
+        read = new AsExpression(read, readType)
+          ..isTypeError = true
+          ..fileOffset = node.readOffset;
+      }
+    }
+
+    VariableDeclaration leftVariable;
+    Expression left;
+    if (node.forEffect) {
+      left = read;
+    } else if (node.forPostIncDec) {
+      leftVariable = createVariable(read, readType);
+      left = createVariableGet(leftVariable);
+    } else {
+      left = read;
+    }
+
+    ObjectAccessTarget binaryTarget = inferrer.findInterfaceMember(
+        readType, node.binaryName, node.binaryOffset,
+        includeExtensionMethods: true);
+
+    MethodContravarianceCheckKind binaryCheckKind =
+        inferrer.preCheckInvocationContravariance(readType, binaryTarget,
+            isThisReceiver: false);
+
+    DartType binaryType = inferrer.getReturnType(binaryTarget, readType);
+    DartType rhsType =
+        inferrer.getPositionalParameterTypeForTarget(binaryTarget, readType, 0);
+
+    ExpressionInferenceResult rhsResult =
+        inferrer.inferExpression(node.rhs, rhsType, true, isVoidAllowed: true);
+    inferrer.ensureAssignable(
+        rhsType, rhsResult.inferredType, node.rhs, node.rhs.fileOffset);
+
+    if (inferrer.isOverloadedArithmeticOperatorAndType(
+        binaryTarget, readType)) {
+      binaryType = inferrer.typeSchemaEnvironment
+          .getTypeOfOverloadedArithmetic(readType, rhsResult.inferredType);
+    }
+
+    Expression binary;
+    if (binaryTarget.isMissing) {
+      binary = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments(
+              node.binaryName.name, receiverType),
+          node.binaryOffset,
+          node.binaryName.name.length,
+          wrapInSyntheticExpression: false);
+    } else if (binaryTarget.isExtensionMember) {
+      binary = new StaticInvocation(
+          binaryTarget.member,
+          new Arguments(<Expression>[
+            left,
+            node.rhs,
+          ], types: binaryTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.binaryOffset)
+        ..fileOffset = node.binaryOffset;
+    } else {
+      binary = new MethodInvocation(
+          left,
+          node.binaryName,
+          new Arguments(<Expression>[
+            node.rhs,
+          ])
+            ..fileOffset = node.binaryOffset,
+          binaryTarget.member)
+        ..fileOffset = node.binaryOffset;
+
+      if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
+        if (inferrer.instrumentation != null) {
+          inferrer.instrumentation.record(inferrer.uri, node.binaryOffset,
+              'checkReturn', new InstrumentationValueForType(readType));
+        }
+        binary = new AsExpression(binary, binaryType)
+          ..isTypeError = true
+          ..fileOffset = node.binaryOffset;
+      }
+    }
+
+    ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
+        receiverType, new Name('[]='), node.writeOffset,
+        includeExtensionMethods: true);
+
+    DartType writeIndexType = inferrer.getPositionalParameterTypeForTarget(
+        writeTarget, receiverType, 0);
+    Expression writeIndex = createVariableGet(indexVariable);
+    Expression writeIndexReplacement = inferrer.ensureAssignable(writeIndexType,
+        indexResult.inferredType, writeIndex, writeIndex.fileOffset);
+    if (writeIndexReplacement != null) {
+      writeIndex = writeIndexReplacement;
+    }
+
+    DartType valueType =
+        inferrer.getIndexSetValueType(writeTarget, receiverType);
+    Expression binaryReplacement = inferrer.ensureAssignable(
+        valueType, binaryType, binary, node.fileOffset);
+    if (binaryReplacement != null) {
+      binary = binaryReplacement;
+    }
+
+    Expression replacement;
+
+    VariableDeclaration valueVariable;
+    Expression valueExpression;
+    if (node.forEffect || node.forPostIncDec) {
+      valueExpression = binary;
+    } else {
+      valueVariable = createVariable(binary, binaryType);
+      valueExpression = createVariableGet(valueVariable);
+    }
+
+    Expression write;
+
+    if (writeTarget.isMissing) {
+      write = inferrer.helper.buildProblem(
+          templateUndefinedMethod.withArguments('[]=', receiverType),
+          node.writeOffset,
+          '[]='.length,
+          wrapInSyntheticExpression: false);
+    } else if (writeTarget.isExtensionMember) {
+      write = new StaticInvocation(
+          writeTarget.member,
+          new Arguments(<Expression>[
+            createVariableGet(receiverVariable),
+            writeIndex,
+            valueExpression
+          ], types: writeTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.writeOffset)
+        ..fileOffset = node.writeOffset;
+    } else {
+      write = new MethodInvocation(
+          createVariableGet(receiverVariable),
+          new Name('[]='),
+          new Arguments(<Expression>[writeIndex, valueExpression])
+            ..fileOffset = node.writeOffset,
+          writeTarget.member)
+        ..fileOffset = node.writeOffset;
+    }
+
+    if (node.forEffect) {
+      assert(leftVariable == null);
+      assert(valueVariable == null);
+      // Encode `o[a] += b` as:
+      //
+      //     let v1 = o in let v2 = a in v1.[]=(v2, v1.[](v2) + b)
+      //
+      node.replaceWith(replacement =
+          new Let(receiverVariable, createLet(indexVariable, write))
+            ..fileOffset = node.fileOffset);
+    } else if (node.forPostIncDec) {
+      // Encode `o[a]++` as:
+      //
+      //     let v1 = o in
+      //     let v2 = a in
+      //     let v3 = v1.[](v2)
+      //     let v4 = v1.[]=(v2, c3 + b) in v3
+      //
+      assert(leftVariable != null);
+      assert(valueVariable == null);
+
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      node.replaceWith(replacement = new Let(
+          receiverVariable,
+          createLet(
+              indexVariable,
+              createLet(leftVariable,
+                  createLet(writeVariable, createVariableGet(leftVariable)))))
+        ..fileOffset = node.fileOffset);
+    } else {
+      // Encode `o[a] += b` as:
+      //
+      //     let v1 = o in
+      //     let v2 = a in
+      //     let v3 = v1.[](v2) + b
+      //     let v4 = v1.[]=(v2, c3) in v3
+      //
+      assert(leftVariable == null);
+      assert(valueVariable != null);
+
+      VariableDeclaration writeVariable =
+          createVariable(write, const VoidType());
+      node.replaceWith(replacement = new Let(
+          receiverVariable,
+          createLet(
+              indexVariable,
+              createLet(valueVariable,
+                  createLet(writeVariable, createVariableGet(valueVariable)))))
+        ..fileOffset = node.fileOffset);
+    }
+    return new ExpressionInferenceResult(
+        node.forPostIncDec ? readType : binaryType, replacement);
   }
 
   @override

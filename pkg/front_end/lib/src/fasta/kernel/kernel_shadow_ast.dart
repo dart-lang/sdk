@@ -179,7 +179,8 @@ class ClassInferenceInfo {
 
 enum InternalExpressionKind {
   Cascade,
-  CompoundPropertyAssignment,
+  CompoundIndexSet,
+  CompoundPropertySet,
   DeferredCheck,
   IfNullIndexSet,
   IfNullPropertySet,
@@ -314,7 +315,7 @@ class Cascade extends InternalExpression {
     _lastCascade = _firstCascade = makeLet(
         new VariableDeclaration.forValue(new _UnfinishedCascade()),
         new VariableGet(variable));
-    variable.parent = this;
+    variable?.parent = this;
     _firstCascade.parent = this;
   }
 
@@ -601,8 +602,8 @@ class DeferredCheck extends InternalExpression {
   Expression expression;
 
   DeferredCheck(this._variable, this.expression) {
-    _variable.parent = this;
-    expression.parent = this;
+    _variable?.parent = this;
+    expression?.parent = this;
   }
 
   InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
@@ -926,8 +927,8 @@ class NullAwareMethodInvocation extends InternalExpression {
   Expression invocation;
 
   NullAwareMethodInvocation(this.variable, this.invocation) {
-    variable.parent = this;
-    invocation.parent = this;
+    variable?.parent = this;
+    invocation?.parent = this;
   }
 
   @override
@@ -967,8 +968,8 @@ class NullAwarePropertyGet extends InternalExpression {
   Expression read;
 
   NullAwarePropertyGet(this.variable, this.read) {
-    variable.parent = this;
-    read.parent = this;
+    variable?.parent = this;
+    read?.parent = this;
   }
 
   @override
@@ -1008,8 +1009,8 @@ class NullAwarePropertySet extends InternalExpression {
   Expression write;
 
   NullAwarePropertySet(this.variable, this.write) {
-    variable.parent = this;
-    write.parent = this;
+    variable?.parent = this;
+    write?.parent = this;
   }
 
   @override
@@ -1541,11 +1542,9 @@ class LoadLibraryTearOff extends InternalExpression {
   void transformChildren(Transformer v) {
     if (import != null) {
       import = import.accept<TreeNode>(v);
-      import?.parent = this;
     }
     if (target != null) {
       target = target.accept<TreeNode>(v);
-      target?.parent = this;
     }
   }
 }
@@ -1661,9 +1660,9 @@ class IfNullPropertySet extends InternalExpression {
 
   IfNullPropertySet(this.variable, this.read, this.write, {this.forEffect})
       : assert(forEffect != null) {
-    variable.parent = this;
-    read.parent = this;
-    write.parent = this;
+    variable?.parent = this;
+    read?.parent = this;
+    write?.parent = this;
   }
 
   @override
@@ -1680,12 +1679,15 @@ class IfNullPropertySet extends InternalExpression {
   void transformChildren(Transformer v) {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
     }
     if (read != null) {
       read = read.accept<TreeNode>(v);
+      read?.parent = this;
     }
     if (write != null) {
       write = write.accept<TreeNode>(v);
+      write?.parent = this;
     }
   }
 }
@@ -1697,7 +1699,7 @@ class IfNullPropertySet extends InternalExpression {
 ///
 ///     let v1 = o in v1.a = v1.a + b
 ///
-class CompoundPropertyAssignment extends InternalExpression {
+class CompoundPropertySet extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
   VariableDeclaration variable;
 
@@ -1705,14 +1707,13 @@ class CompoundPropertyAssignment extends InternalExpression {
   /// property on [variable].
   Expression write;
 
-  CompoundPropertyAssignment(this.variable, this.write) {
-    variable.parent = this;
-    write.parent = this;
+  CompoundPropertySet(this.variable, this.write) {
+    variable?.parent = this;
+    write?.parent = this;
   }
 
   @override
-  InternalExpressionKind get kind =>
-      InternalExpressionKind.CompoundPropertyAssignment;
+  InternalExpressionKind get kind => InternalExpressionKind.CompoundPropertySet;
 
   @override
   Expression replace() {
@@ -1732,9 +1733,11 @@ class CompoundPropertyAssignment extends InternalExpression {
   void transformChildren(Transformer v) {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
     }
     if (write != null) {
       write = write.accept<TreeNode>(v);
+      write?.parent = this;
     }
   }
 }
@@ -1758,9 +1761,9 @@ class PropertyPostIncDec extends InternalExpression {
   VariableDeclaration write;
 
   PropertyPostIncDec(this.variable, this.read, this.write) {
-    variable.parent = this;
-    read.parent = this;
-    write.parent = this;
+    variable?.parent = this;
+    read?.parent = this;
+    write?.parent = this;
   }
 
   @override
@@ -1786,9 +1789,11 @@ class PropertyPostIncDec extends InternalExpression {
   void transformChildren(Transformer v) {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
     }
     if (write != null) {
       write = write.accept<TreeNode>(v);
+      write?.parent = this;
     }
   }
 }
@@ -1809,8 +1814,8 @@ class LocalPostIncDec extends InternalExpression {
   VariableDeclaration write;
 
   LocalPostIncDec(this.read, this.write) {
-    read.parent = this;
-    write.parent = this;
+    read?.parent = this;
+    write?.parent = this;
   }
 
   @override
@@ -1835,9 +1840,11 @@ class LocalPostIncDec extends InternalExpression {
   void transformChildren(Transformer v) {
     if (read != null) {
       read = read.accept<TreeNode>(v);
+      read?.parent = this;
     }
     if (write != null) {
       write = write.accept<TreeNode>(v);
+      write?.parent = this;
     }
   }
 }
@@ -1885,12 +1892,15 @@ class IndexSet extends InternalExpression {
   void transformChildren(Transformer v) {
     if (receiver != null) {
       receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
     }
     if (index != null) {
       index = index.accept<TreeNode>(v);
+      index?.parent = this;
     }
     if (value != null) {
       value = value.accept<TreeNode>(v);
+      value?.parent = this;
     }
   }
 }
@@ -1954,12 +1964,97 @@ class IfNullIndexSet extends InternalExpression {
   void transformChildren(Transformer v) {
     if (receiver != null) {
       receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
     }
     if (index != null) {
       index = index.accept<TreeNode>(v);
+      index?.parent = this;
     }
     if (value != null) {
       value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null index assignment.
+///
+/// An if-null index assignment of the form `o[a] += b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1.[](v2) + b
+///     let v4 = v1.[]=(v2, c3) in v3
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in let v2 = a in v1.[]=(v2, v1.[](v2) + b)
+///
+class CompoundIndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.CompoundIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
     }
   }
 }
