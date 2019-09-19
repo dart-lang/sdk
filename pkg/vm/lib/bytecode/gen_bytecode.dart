@@ -1795,8 +1795,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (options.emitLocalVarInfo && locals.currentContextSize > 0) {
       // Open a new scope after allocating context.
-      asm.localVariableTable.enterScope(
-          asm.offset, locals.currentContextLevel, function.fileOffset);
+      asm.localVariableTable.enterScope(asm.offset, locals.currentContextLevel,
+          function != null ? function.fileOffset : enclosingMember.fileOffset);
     }
 
     if (locals.hasCapturedParameters) {
@@ -1811,8 +1811,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           _genStoreVar(locals.capturedReceiverVar);
         }
       }
-      function.positionalParameters.forEach(_copyParamIfCaptured);
-      locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
+      if (function != null) {
+        function.positionalParameters.forEach(_copyParamIfCaptured);
+        locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
+      }
     }
   }
 
