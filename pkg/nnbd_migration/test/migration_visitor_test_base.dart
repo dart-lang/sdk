@@ -29,8 +29,12 @@ class AnyNodeMatcher implements NodeMatcher {
   NullabilityNode get matchingNode => _matchingNodes.single;
 
   @override
-  bool matches(NullabilityNode node) {
+  void matched(NullabilityNode node) {
     _matchingNodes.add(node);
+  }
+
+  @override
+  bool matches(NullabilityNode node) {
     return true;
   }
 }
@@ -208,12 +212,16 @@ mixin EdgeTester {
   List<NullabilityEdge> getEdges(Object source, Object destination) {
     var sourceMatcher = NodeMatcher(source);
     var destinationMatcher = NodeMatcher(destination);
-    return graph
-        .getAllEdges()
-        .where((e) =>
-            sourceMatcher.matches(e.sourceNode) &&
-            destinationMatcher.matches(e.destinationNode))
-        .toList();
+    var result = <NullabilityEdge>[];
+    for (var edge in graph.getAllEdges()) {
+      if (sourceMatcher.matches(edge.sourceNode) &&
+          destinationMatcher.matches(edge.destinationNode)) {
+        sourceMatcher.matched(edge.sourceNode);
+        destinationMatcher.matched(edge.destinationNode);
+        result.add(edge);
+      }
+    }
+    return result;
   }
 
   /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
@@ -365,6 +373,8 @@ abstract class NodeMatcher {
         'Unclear how to match node expectation of type ${expectation.runtimeType}');
   }
 
+  void matched(NullabilityNode node);
+
   bool matches(NullabilityNode node);
 }
 
@@ -373,6 +383,9 @@ class _ExactNodeMatcher implements NodeMatcher {
   final NullabilityNode _expectation;
 
   _ExactNodeMatcher(this._expectation);
+
+  @override
+  void matched(NullabilityNode node) {}
 
   @override
   bool matches(NullabilityNode node) => node == _expectation;
@@ -385,6 +398,18 @@ class _SubstitutionNodeMatcher implements NodeMatcher {
   final NodeMatcher outer;
 
   _SubstitutionNodeMatcher(this.inner, this.outer);
+
+  @override
+  void matched(NullabilityNode node) {
+    if (node is NullabilityNodeForSubstitution) {
+      inner.matched(node.innerNode);
+      outer.matched(node.outerNode);
+    } else {
+      throw StateError(
+          'matched should only be called on nodes for which matches returned '
+          'true');
+    }
+  }
 
   @override
   bool matches(NullabilityNode node) {
