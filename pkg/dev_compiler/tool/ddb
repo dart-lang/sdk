@@ -37,6 +37,12 @@ void main(List<String> args) async {
         abbr: 'd',
         help: 'Use current source instead of built SDK.',
         defaultsTo: false)
+    ..addFlag('observe',
+        help:
+            'Run the compiler in the Dart VM with --observe. Implies --debug.',
+        defaultsTo: false)
+    ..addOption('vm-service-port',
+        help: 'Specify the observatory port. Implied --observe.')
     ..addFlag('summarize-text',
         help: 'Emit API summary in a .js.txt file.\n'
             'Ignored when not passed with --kernel.',
@@ -70,7 +76,9 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
-  var debug = options['debug'] as bool;
+  var debug = options['debug'] as bool ||
+      options['observe'] as bool ||
+      options.wasParsed('vm-service-port');
   var kernel = options['kernel'] as bool;
   var summarizeText = options['summarize-text'] as bool;
   var binary = options['binary'] as String;
@@ -109,8 +117,19 @@ void main(List<String> args) async {
   Future<void> runDdc(String command, List<String> args) async {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(
-          0, ['--enable-asserts', p.join(ddcPath, 'bin', '$command.dart')]);
+      var vmServicePort = options.wasParsed('vm-service-port')
+          ? '=${options['vm-service-port']}'
+          : '';
+      var observe =
+          options.wasParsed('vm-service-port') || options['observe'] as bool;
+      args.insertAll(0, [
+        if (observe) ...[
+          '--enable-vm-service$vmServicePort',
+          '--pause-isolates-on-start',
+        ],
+        '--enable-asserts',
+        p.join(ddcPath, 'bin', '$command.dart')
+      ]);
       command = dartBinary;
     } else {
       // Use built snapshot.
