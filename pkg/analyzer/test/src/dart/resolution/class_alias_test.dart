@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -14,10 +13,7 @@ main() {
 }
 
 @reflectiveTest
-class ClassAliasDriverResolutionTest extends DriverResolutionTest
-    with ClassAliasResolutionMixin {}
-
-mixin ClassAliasResolutionMixin implements ResolutionTest {
+class ClassAliasDriverResolutionTest extends DriverResolutionTest {
   test_defaultConstructor() async {
     addTestFile(r'''
 class A {}

@@ -6,7 +6,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest
-    with TopTypeInstanceMixin {}
-
-mixin TopTypeInstanceMixin implements ResolutionTest {
+class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
     addTestFile(r'''
 class A {

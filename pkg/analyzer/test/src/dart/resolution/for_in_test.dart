@@ -6,7 +6,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ForInDriverResolutionTest extends DriverResolutionTest
-    with ForInResolutionMixin {}
-
-mixin ForInResolutionMixin implements ResolutionTest {
+class ForInDriverResolutionTest extends DriverResolutionTest {
   test_importPrefix_asIterable() async {
     // TODO(scheglov) Remove this test (already tested as import prefix).
     // TODO(scheglov) Move other for-in tests here.

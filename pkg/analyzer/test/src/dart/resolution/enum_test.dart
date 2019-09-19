@@ -6,7 +6,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,10 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class EnumDriverResolutionTest extends DriverResolutionTest
-    with EnumResolutionMixin {}
-
-mixin EnumResolutionMixin implements ResolutionTest {
+class EnumDriverResolutionTest extends DriverResolutionTest {
   test_inference_listLiteral() async {
     addTestFile(r'''
 enum E1 {a, b}

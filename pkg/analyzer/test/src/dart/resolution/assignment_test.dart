@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,10 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentDriverResolutionTest extends DriverResolutionTest
-    with AssignmentResolutionMixin {}
-
-mixin AssignmentResolutionMixin implements ResolutionTest {
+class AssignmentDriverResolutionTest extends DriverResolutionTest {
   test_compound_indexExpression() async {
     addTestFile(r'''
 main() {
