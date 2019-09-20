@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.49';
+const String version = '1.50';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -869,7 +869,7 @@ class DartFuzz {
 
   void emitCollectionElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
-    switch (r) {
+    switch (r + 3) {
       // Favors elements over control-flow collections.
       case 0:
         // TODO (ajcbik): Remove restriction once compiler is fixed.
