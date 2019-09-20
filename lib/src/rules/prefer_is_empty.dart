@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const alwaysFalse = 'Always false because length is always greater or equal 0.';
 
@@ -111,13 +112,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Should be subtype of Iterable, Map or String.
-    TypeProvider typeProvider = context.typeProvider;
-    TypeSystem typeSystem = context.typeSystem;
-
-    if (typeSystem.mostSpecificTypeArgument(type, typeProvider.iterableType) ==
-            null &&
-        typeSystem.mostSpecificTypeArgument(type, typeProvider.mapType) ==
-            null &&
+    if (!DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core') &&
+        !DartTypeUtilities.implementsInterface(type, 'Map', 'dart.core') &&
         !type.isDartCoreString) {
       return;
     }
