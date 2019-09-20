@@ -62,7 +62,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartTypeUtilities.extendsClass(type, 'Future', 'dart.async') ||
         DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async') ||
         DartTypeUtilities.isClass(type, 'FutureOr', 'dart.async'))) {
-      rule.reportLintForToken(node.awaitKeyword);
+      rule.reportLintForToken(node.awaitKeyword,
+          errorCode: LintCode('await_only_futures',
+              'Await applied to $type, which is not a Future'));
     }
   }
 }
