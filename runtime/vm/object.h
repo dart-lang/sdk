@@ -4782,7 +4782,7 @@ class Instructions : public Object {
 
   static const intptr_t kMaxElements =
       (kMaxInt32 - (sizeof(RawInstructions) + sizeof(RawObject) +
-                    (2 * OS::kMaxPreferredCodeAlignment)));
+                    (2 * kMaxObjectAlignment)));
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawInstructions) ==
@@ -4791,17 +4791,11 @@ class Instructions : public Object {
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    // OS::PreferredCodeAlignment() is smaller than kObjectAlignment for
-    // simarm_x64.
-    const intptr_t alignment =
-        Utils::Maximum(OS::PreferredCodeAlignment(), kObjectAlignment);
-    return Utils::RoundUp(HeaderSize() + size, alignment);
+    return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
   }
 
   static intptr_t HeaderSize() {
-    intptr_t alignment = OS::PreferredCodeAlignment();
-    intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
-    return aligned_size;
+    return Utils::RoundUp(sizeof(RawInstructions), compiler::target::kWordSize);
   }
 
   static RawInstructions* FromPayloadStart(uword payload_start) {

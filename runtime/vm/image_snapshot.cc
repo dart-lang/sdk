@@ -221,9 +221,8 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
 static constexpr intptr_t kSimarmX64InstructionsAlignment =
     compiler::target::ObjectAlignment::kObjectAlignment;
 static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
-  const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
-                                              kSimarmX64InstructionsAlignment);
-  return header_size + Utils::RoundUp(len, kSimarmX64InstructionsAlignment);
+  const intptr_t header_size = 3 * compiler::target::kWordSize;
+  return Utils::RoundUp(header_size + len, kSimarmX64InstructionsAlignment);
 }
 
 intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
@@ -396,15 +395,15 @@ void ImageWriter::Write(WriteStream* clustered_stream, bool vm) {
 }
 
 void ImageWriter::WriteROData(WriteStream* stream) {
-  stream->Align(OS::kMaxPreferredCodeAlignment);
+  stream->Align(kMaxObjectAlignment);
 
   // Heap page starts here.
 
   intptr_t section_start = stream->Position();
 
   stream->WriteWord(next_data_offset_);  // Data length.
-  COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
-  stream->Align(OS::kMaxPreferredCodeAlignment);
+  COMPILE_ASSERT(kMaxObjectAlignment >= kObjectAlignment);
+  stream->Align(kMaxObjectAlignment);
 
   ASSERT(stream->Position() - section_start == Image::kHeaderSize);
 
@@ -567,7 +566,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   assembly_stream_.Print(".globl %s\n", instructions_symbol);
 
   // Start snapshot at page boundary.
-  ASSERT(VirtualMemory::PageSize() >= OS::kMaxPreferredCodeAlignment);
+  ASSERT(VirtualMemory::PageSize() >= kMaxObjectAlignment);
   assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
   assembly_stream_.Print("%s:\n", instructions_symbol);
 
@@ -782,8 +781,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   const char* data_symbol =
       vm ? "_kDartVmSnapshotData" : "_kDartIsolateSnapshotData";
   assembly_stream_.Print(".globl %s\n", data_symbol);
-  assembly_stream_.Print(".balign %" Pd ", 0\n",
-                         OS::kMaxPreferredCodeAlignment);
+  assembly_stream_.Print(".balign %" Pd ", 0\n", kMaxObjectAlignment);
   assembly_stream_.Print("%s:\n", data_symbol);
   uword buffer = reinterpret_cast<uword>(clustered_stream->buffer());
   intptr_t length = clustered_stream->bytes_written();
@@ -963,8 +961,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
     uword entry = beginning + Instructions::HeaderSize();
-    uword payload_size = insns.Size();
-    payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+    uword payload_size =
+        Utils::RoundUp(Instructions::HeaderSize() + insns.Size(),
+                       compiler::target::ObjectAlignment::kObjectAlignment) -
+        Instructions::HeaderSize();
     uword end = entry + payload_size;
 
     ASSERT(Utils::IsAligned(beginning, sizeof(uword)));
@@ -1002,7 +1002,6 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         insns.raw_ptr()->size_and_flags_);
     instructions_blob_stream_.WriteFixed<uint32_t>(
         insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
-    instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
     payload_stream_start = instructions_blob_stream_.Position();
     instructions_blob_stream_.WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
@@ -1096,9 +1095,8 @@ ImageReader::ImageReader(const uint8_t* data_image,
 RawApiError* ImageReader::VerifyAlignment() const {
   if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
       !Utils::IsAligned(shared_data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(instructions_image_, OS::PreferredCodeAlignment()) ||
-      !Utils::IsAligned(shared_instructions_image_,
-                        OS::PreferredCodeAlignment())) {
+      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment) ||
+      !Utils::IsAligned(shared_instructions_image_, kMaxObjectAlignment)) {
     return ApiError::New(
         String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
         Heap::kOld);
@@ -1107,7 +1105,7 @@ RawApiError* ImageReader::VerifyAlignment() const {
 }
 
 RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
+  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
   RawObject* result;
   if (offset < 0) {

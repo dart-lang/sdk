@@ -36,9 +36,6 @@ CodeRelocator::CodeRelocator(Thread* thread,
       destination_(Code::Handle(thread->zone())) {
   // Trampolines will be disguised as FreeListElement objects.
   ASSERT(Utils::IsAligned(kTrampolineSize, kObjectAlignment));
-  // Trampolines will be inserted between Instructions objects and must
-  // preserve their alignment.
-  ASSERT(Utils::IsAligned(kTrampolineSize, OS::PreferredCodeAlignment()));
   // Trampolines are big enough to hold a full-range call.
   ASSERT((kOffsetInTrampoline +
           PcRelativeTrampolineJumpPattern::kLengthInBytes) < kTrampolineSize);

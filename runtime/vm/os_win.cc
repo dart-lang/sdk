@@ -190,18 +190,6 @@ intptr_t OS::ActivationFrameAlignment() {
 #endif
 }
 
-intptr_t OS::PreferredCodeAlignment() {
-  ASSERT(16 <= OS::kMaxPreferredCodeAlignment);
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
-    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  return 16;
-#elif defined(TARGET_ARCH_ARM)
-  return 8;
-#else
-#error Unsupported architecture.
-#endif
-}
-
 int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
