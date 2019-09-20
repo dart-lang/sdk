@@ -4679,6 +4679,8 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   virtual Representation RequiredInputRepresentation(intptr_t index) const;
 
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
