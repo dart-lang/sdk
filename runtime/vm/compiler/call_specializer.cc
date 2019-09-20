@@ -160,6 +160,7 @@ bool CallSpecializer::TryCreateICData(InstanceCallInstr* call) {
     if (function.IsNull()) {
       return false;
     }
+    ASSERT(!function.IsInvokeFieldDispatcher());
 
     // Update the CallTargets attached to the instruction with our speculative
     // target. The next round of CallSpecializer::VisitInstanceCall will make
