@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _checkExpression(Expression rawExpression) {
-    final expression = rawExpression.unParenthesized;
+    final expression = rawExpression?.unParenthesized;
     return expression is InstanceCreationExpression &&
         expression.argumentList.arguments.length == 1 &&
         expression.argumentList.arguments.first is ThisExpression;
