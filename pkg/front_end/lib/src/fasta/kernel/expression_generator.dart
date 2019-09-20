@@ -498,6 +498,16 @@ class VariableUseGenerator extends Generator {
     return write;
   }
 
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    Expression read = _createRead();
+    Expression write = _createWrite(fileOffset, value);
+    return new IfNullSet(read, write, forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
@@ -2555,6 +2565,15 @@ class LoadLibraryGenerator extends Generator {
   }
 
   @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    Expression read = buildSimpleRead();
+    Expression write = _makeInvalidWrite(value);
+    return new IfNullSet(read, write, forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
   Expression doInvocation(int offset, Arguments arguments) {
     if (_forest.argumentsPositional(arguments).length > 0 ||
         _forest.argumentsNamed(arguments).length > 0) {
@@ -3024,6 +3043,15 @@ class ReadOnlyAccessGenerator extends Generator {
   }
 
   @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    Expression read = buildSimpleRead();
+    Expression write = _makeInvalidWrite(value);
+    return new IfNullSet(read, write, forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  @override
   Expression _finish(
           Expression body, ComplexAssignmentJudgment complexAssignment) =>
       super._finish(makeLet(value, body), complexAssignment);
@@ -3286,6 +3314,21 @@ class UnlinkedGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     return new PropertyGet(receiver, name)..fileOffset = fileOffset;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    PropertyGet read = new PropertyGet(
+        _helper.createVariableGet(variable, receiver.fileOffset), name)
+      ..fileOffset = fileOffset;
+    PropertySet write = new PropertySet(
+        _helper.createVariableGet(variable, receiver.fileOffset), name, value)
+      ..fileOffset = fileOffset;
+    return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override

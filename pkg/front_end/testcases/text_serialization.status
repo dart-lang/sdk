@@ -939,9 +939,9 @@ rasta/switch_execution_case_t02: TextSerializationFailure # Was: Pass
 rasta/switch_fall_through: TextSerializationFailure # Was: Pass
 rasta/this_invoke: TextSerializationFailure # Was: Pass
 rasta/try_label: TextSerializationFailure
-rasta/type_literals: Crash
+rasta/type_literals: TextSerializationFailure
 rasta/type_with_parse_error: TextSerializationFailure # Was: Pass
-rasta/typedef: Crash
+rasta/typedef: TextSerializationFailure
 rasta/unresolved: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/unresolved_for_in: TextSerializationFailure # Was: RuntimeError

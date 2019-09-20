@@ -145,8 +145,8 @@ rasta/super: TypeCheckError
 rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
-rasta/type_literals: Crash
-rasta/typedef: Crash
+rasta/type_literals: RuntimeError
+rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError

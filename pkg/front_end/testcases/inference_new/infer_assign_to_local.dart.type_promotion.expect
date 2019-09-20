@@ -1,42 +1,42 @@
 pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:23:9: Context: Write to local@474
   local = /*@ typeArgs=B* */ f();
         ^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:24:9: Context: Write to local@474
-  local ??= /*@ typeArgs=B* */ f();
-        ^^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:25:28: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:25:34: Context: Write to local@474
+  local /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
+                                 ^^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:27:28: Context: Write to local@474
   local /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
                            ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:26:28: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:29:28: Context: Write to local@474
   local /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
                            ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:27:28: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:31:28: Context: Write to local@474
   local /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
                            ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:28:22: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:33:22: Context: Write to local@474
   /*@ target=B::- */ --local;
                      ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:29:28: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:35:28: Context: Write to local@474
   local /*@ target=B::- */ --;
                            ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:30:33: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:37:33: Context: Write to local@474
   var /*@ type=B* */ v1 = local = /*@ typeArgs=B* */ f();
                                 ^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:31:33: Context: Write to local@474
-  var /*@ type=B* */ v2 = local ??= /*@ typeArgs=B* */ f();
-                                ^^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:33:26: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:40:38: Context: Write to local@474
+      local /*@ target=Object::== */ ??= /*@ typeArgs=B* */ f();
+                                     ^^^
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:43:26: Context: Write to local@474
       /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
                          ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:35:26: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:46:26: Context: Write to local@474
       /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
                          ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:37:26: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:49:26: Context: Write to local@474
       /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
                          ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:38:46: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:51:46: Context: Write to local@474
   var /*@ type=B* */ v6 = /*@ target=B::- */ --local;
                                              ^^
-pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:40:41: Context: Write to local@474
+pkg/front_end/testcases/inference_new/infer_assign_to_local.dart:54:41: Context: Write to local@474
       /*@ type=B* */ /*@ target=B::- */ --;
                                         ^^
