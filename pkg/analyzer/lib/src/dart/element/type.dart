@@ -93,11 +93,7 @@ class BottomTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   BottomTypeImpl._(this.nullabilitySuffix)
-      : super(new NeverElementImpl(), "Never") {
-    if (nullabilitySuffix == NullabilitySuffix.none) {
-      (element as NeverElementImpl).type = this;
-    }
-  }
+      : super(new NeverElementImpl(), "Never");
 
   @override
   int get hashCode => 0;
@@ -394,10 +390,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl._()
-      : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme) {
-    (element as DynamicElementImpl).type = this;
-  }
+  DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
 
   /**
    * Constructor used by [CircularTypeImpl].

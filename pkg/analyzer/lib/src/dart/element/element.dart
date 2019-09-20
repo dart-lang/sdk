@@ -3056,9 +3056,6 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   static DynamicElementImpl get instance =>
       DynamicTypeImpl.instance.element as DynamicElementImpl;
 
-  @override
-  DynamicTypeImpl type;
-
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
@@ -3069,6 +3066,9 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 
   @override
   ElementKind get kind => ElementKind.DYNAMIC;
+
+  @override
+  DartType get type => DynamicTypeImpl.instance;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => null;
@@ -8432,9 +8432,6 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   static NeverElementImpl get instance =>
       BottomTypeImpl.instance.element as NeverElementImpl;
 
-  @override
-  BottomTypeImpl type;
-
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
@@ -8447,7 +8444,26 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   ElementKind get kind => ElementKind.NEVER;
 
   @override
+  DartType get type {
+    throw StateError('Should not be accessed.');
+  }
+
+  @override
   T accept<T>(ElementVisitor<T> visitor) => null;
+
+  DartType instantiate({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return BottomTypeImpl.instanceNullable;
+      case NullabilitySuffix.star:
+        return BottomTypeImpl.instanceLegacy;
+      case NullabilitySuffix.none:
+        return BottomTypeImpl.instance;
+    }
+    throw StateError('Unsupported nullability: $nullabilitySuffix');
+  }
 }
 
 /// A [VariableElementImpl], which is not a parameter.

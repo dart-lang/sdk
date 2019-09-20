@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -1639,13 +1640,36 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
         return new DartObjectImpl(functionType, new FunctionState(function));
       }
-    } else if (variableElement is TypeDefiningElement) {
+    } else if (variableElement is ClassElement) {
+      var type = variableElement.instantiate(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is DynamicElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.dynamicType),
+      );
+    } else if (variableElement is FunctionTypeAliasElement) {
+      var type = variableElement.instantiate2(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is NeverElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.neverType),
+      );
+    } else if (variableElement is TypeParameterElement) {
       // Constants may not refer to type parameters.
-      if (variableElement is! TypeParameterElement) {
-        return new DartObjectImpl(
-            _typeProvider.typeType, new TypeState(variableElement.type));
-      }
     }
+
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;

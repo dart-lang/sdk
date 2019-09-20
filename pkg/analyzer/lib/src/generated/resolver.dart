@@ -6026,7 +6026,9 @@ class TypeNameResolver {
       type = DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.instantiate(
+        nullabilitySuffix: _getNullability(node.question != null),
+      );
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type as TypeImpl;
