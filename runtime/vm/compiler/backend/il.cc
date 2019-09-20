@@ -928,20 +928,6 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
   return kTagged;
 }
 
-Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
-  // Dart objects are allocated null-initialized, which means we can eliminate
-  // all initializing stores which store null value.
-  // TODO(dartbug.com/38454) Context objects can be allocated uninitialized
-  // as a performance optimization (all initializing stores are inlined into
-  // the caller, which allocates the context). Investigate if this can be
-  // changed to align with normal Dart objects for code size reasons.
-  if (is_initialization_ && slot().IsDartField() &&
-      value()->BindsToConstantNull()) {
-    return nullptr;
-  }
-  return this;
-}
-
 bool GuardFieldClassInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardFieldClass()->field().raw();
 }
