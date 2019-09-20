@@ -254,6 +254,7 @@ general/top_level_accessors: TextSerializationFailure # Was: Pass
 general/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general/top_level_library_method: TextSerializationFailure # Was: Pass
 general/type_of_null: TextSerializationFailure
+general/type_variable_bound_access: TypeCheckError
 general/type_parameter_type_named_int: TextSerializationFailure
 general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 general/type_variable_prefix: TextSerializationFailure # Was: RuntimeError

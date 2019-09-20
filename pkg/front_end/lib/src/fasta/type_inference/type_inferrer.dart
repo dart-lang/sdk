@@ -844,16 +844,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         includeExtensionMethods: includeExtensionMethods);
 
     assert(receiverType != null && isKnown(receiverType));
-    // TODO(johnniwinther): Use `target.isMissing` to check
-    if (!isTopLevel &&
-        target.isUnresolved &&
-        receiverType is! DynamicType &&
-        receiverType is! InvalidType &&
-        !(receiverType is InterfaceType &&
-            receiverType.classNode == coreTypes.functionClass &&
-            name.name == 'call') &&
-        errorTemplate != null) {
-      assert(target.isMissing);
+    if (!isTopLevel && target.isMissing && errorTemplate != null) {
       int length = name.name.length;
       if (identical(name.name, callName.name) ||
           identical(name.name, unaryMinusName.name)) {
@@ -862,7 +853,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       expression.parent.replaceChild(
           expression,
           helper.desugarSyntheticExpression(helper.buildProblem(
-              errorTemplate.withArguments(name.name, receiverType),
+              errorTemplate.withArguments(
+                  name.name, resolveTypeParameter(receiverType)),
               fileOffset,
               length)));
     }

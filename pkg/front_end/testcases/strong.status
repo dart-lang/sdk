@@ -53,6 +53,7 @@ general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
 general/statements: Crash
+general/type_variable_bound_access: TypeCheckError
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: RuntimeError
