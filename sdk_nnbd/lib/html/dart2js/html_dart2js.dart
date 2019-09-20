@@ -1,3 +1,5 @@
+// @dart = 2.5
+
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
