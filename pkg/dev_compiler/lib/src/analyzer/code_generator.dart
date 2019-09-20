@@ -6311,8 +6311,12 @@ class CodeGenerator extends Object
   js_ast.Expression _throwUnsafe(String message) => runtimeCall(
       'throw(Error(#))', [js.escapedString("compile error: $message")]);
 
-  Null _unreachable(Object node) {
-    throw UnsupportedError('tried to generate an unreachable node: `$node`');
+  js_ast.Expression _unreachable(Object node) {
+    var message = 'tried to generate an unreachable node: `$node`';
+    if (options.unsafeForceCompile) {
+      return _throwUnsafe(message);
+    }
+    throw UnsupportedError(message);
   }
 
   /// Unused, see methods for emitting declarations.
@@ -6584,7 +6588,7 @@ class CodeGenerator extends Object
         return _emitAwaitFor(forParts, jsBody);
       }
     }
-    return _unreachable(forParts);
+    return _unreachable(forParts).toStatement();
   }
 
   @override

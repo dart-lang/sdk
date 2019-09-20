@@ -69,10 +69,7 @@ class DDCStep implements IOModularStep {
     ProcessResult result;
 
     bool nnbd = flags.contains('non-nullable');
-    if (nnbd && _nnbdOptOut.contains(module.name)) {
-      flags = List.from(flags);
-      flags.remove('non-nullable');
-    }
+    bool allowErrors = nnbd && _nnbdOptOut.contains(module.name);
 
     if (module.isSdk) {
       assert(transitiveDependencies.isEmpty);
@@ -101,6 +98,7 @@ class DDCStep implements IOModularStep {
             '--summary-out',
             '${toUri(module, sumId)}',
             '--modules=es6',
+            if (allowErrors) '--unsafe-force-compile',
             for (String flag in flags) '--enable-experiment=$flag',
             '-o',
             '${toUri(module, jsId)}',
