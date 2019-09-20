@@ -68,6 +68,16 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
   }
 }
 
+class _Collector extends RecursiveAstVisitor<void> {
+  bool foundTypeParamElement = false;
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticElement is TypeParameterElement) {
+      foundTypeParamElement = true;
+    }
+  }
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
@@ -85,9 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      final typeProvider = context.typeProvider;
-
-      if (node.staticElement.enclosingElement.type == typeProvider.objectType) {
+      if (node.staticElement.enclosingElement.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }
@@ -101,16 +109,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         rule.reportLint(node);
       }
-    }
-  }
-}
-
-class _Collector extends RecursiveAstVisitor<void> {
-  bool foundTypeParamElement = false;
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement is TypeParameterElement) {
-      foundTypeParamElement = true;
     }
   }
 }

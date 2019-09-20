@@ -115,8 +115,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       return false;
     }
     Uri libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager
-            .getInherited(classElement.type, Name(libraryUri, member.name)) !=
+    return context.inheritanceManager.getInherited(
+            classElement.thisType, Name(libraryUri, member.name)) !=
         null;
   }
 }

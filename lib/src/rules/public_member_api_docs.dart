@@ -120,7 +120,7 @@ class _Visitor extends SimpleAstVisitor {
     }
     Uri libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
-      classElement.type,
+      classElement.thisType,
       Name(libraryUri, member.name),
     );
   }
@@ -172,7 +172,7 @@ class _Visitor extends SimpleAstVisitor {
         Uri libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
         Element getter = context.inheritanceManager.getMember(
-          node.declaredElement.type,
+          node.declaredElement.thisType,
           Name(libraryUri, setter.name.name),
         );
         if (getter is PropertyAccessorElement) {

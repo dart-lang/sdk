@@ -114,9 +114,9 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       if (classDeclaration == null) {
         targetType = null;
       } else if (classDeclaration is ClassDeclaration) {
-        targetType = classDeclaration.declaredElement?.type;
+        targetType = classDeclaration.declaredElement?.thisType;
       } else if (classDeclaration is MixinDeclaration) {
-        targetType = classDeclaration.declaredElement?.type;
+        targetType = classDeclaration.declaredElement?.thisType;
       }
     }
     Expression argument = node.argumentList.arguments.first;

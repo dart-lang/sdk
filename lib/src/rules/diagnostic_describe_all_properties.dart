@@ -117,8 +117,8 @@ class _Visitor extends SimpleAstVisitor {
       return false;
     }
     Uri libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager
-            .getInherited(classElement.type, Name(libraryUri, member.name)) !=
+    return context.inheritanceManager.getInherited(
+            classElement.thisType, Name(libraryUri, member.name)) !=
         null;
   }
 
@@ -127,7 +127,7 @@ class _Visitor extends SimpleAstVisitor {
 //    ++totalClasses;
 
     // We only care about Diagnosticables.
-    var type = node.declaredElement.type;
+    var type = node.declaredElement.thisType;
     if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
       return;
     }

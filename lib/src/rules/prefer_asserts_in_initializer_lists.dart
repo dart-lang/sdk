@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer putting asserts in initializer list.';
@@ -44,18 +43,18 @@ class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
+    registry.addClassDeclaration(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
 
 class _AssertVisitor extends RecursiveAstVisitor {
   final ConstructorElement constructorElement;
+  final _ClassAndSuperClasses classAndSuperClasses;
 
   bool needInstance = false;
 
-  _AssertVisitor(this.constructorElement);
-
-  ClassElement get classElement => constructorElement.enclosingElement;
+  _AssertVisitor(this.constructorElement, this.classAndSuperClasses);
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
@@ -80,36 +79,48 @@ class _AssertVisitor extends RecursiveAstVisitor {
     needInstance = true;
   }
 
-  PropertyAccessorElement _getBaseElement(PropertyAccessorElement element) =>
-      element is PropertyAccessorMember ? element.baseElement : element;
+  bool _hasAccessor(PropertyAccessorElement element) =>
+      classAndSuperClasses.classes.contains(element.enclosingElement);
 
-  bool _hasAccessor(PropertyAccessorElement e) {
-    final element = _getBaseElement(e);
-    final type = classElement.type;
-    final name = element.name;
-    if (element.isGetter) {
-      return _getBaseElement(type.lookUpGetter(name, element.library)) ==
-              element ||
-          _getBaseElement(type.lookUpInheritedGetter(name)) == element;
-    } else {
-      return _getBaseElement(type.lookUpSetter(name, element.library)) ==
-              element ||
-          _getBaseElement(type.lookUpInheritedSetter(name)) == element;
+  bool _hasMethod(MethodElement element) =>
+      classAndSuperClasses.classes.contains(element.enclosingElement);
+}
+
+/// Lazy cache of elements.
+class _ClassAndSuperClasses {
+  final ClassElement element;
+  final Set<ClassElement> _classes = {};
+
+  _ClassAndSuperClasses(this.element);
+
+  /// The [element] and its super classes, including mixins.
+  Set<ClassElement> get classes {
+    if (_classes.isEmpty) {
+      void addRecursively(ClassElement element) {
+        if (element != null && _classes.add(element)) {
+          element.mixins.forEach((t) => addRecursively(t.element));
+          addRecursively(element.supertype?.element);
+        }
+      }
+
+      addRecursively(element);
     }
-  }
 
-  bool _hasMethod(MethodElement element) {
-    final type = classElement.type;
-    final name = element.name;
-    return element == type.lookUpMethod(name, element.library) ||
-        element == type.lookUpInheritedMethod(name);
+    return _classes;
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  _ClassAndSuperClasses _classAndSuperClasses;
+
   _Visitor(this.rule);
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    _classAndSuperClasses = _ClassAndSuperClasses(node.declaredElement);
+  }
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -120,7 +131,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (final statement in body.block.statements) {
         if (statement is! AssertStatement) break;
 
-        final assertVisitor = _AssertVisitor(node.declaredElement);
+        final assertVisitor =
+            _AssertVisitor(node.declaredElement, _classAndSuperClasses);
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
           rule.reportLintForToken(statement.beginToken);

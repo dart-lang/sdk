@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     Uri libraryUri = classElement.library.source.uri;
     return context.inheritanceManager.getInherited(
-      classElement.type,
+      classElement.thisType,
       Name(libraryUri, member.name),
     );
   }

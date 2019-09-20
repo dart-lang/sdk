@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc =
@@ -58,6 +57,7 @@ class PreferVoidToNull extends LintRule implements NodeLintRule {
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
     registry.addSimpleIdentifier(this, visitor);
+    registry.addTypeName(this, visitor);
   }
 }
 
@@ -67,37 +67,35 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier id) {
-    final element = id.staticElement;
-    if (element is ClassElement && element.type.isDartCoreNull) {
-      final typeName =
-          id.parent is PrefixedIdentifier ? id.parent.parent : id.parent;
-
-      final parent = typeName.parent;
-
-      // Null Function()
-      if (parent is GenericFunctionType) {
-        return;
-      }
-
-      // Function(Null)
-      if (parent is SimpleFormalParameter &&
-          parent.parent is FormalParameterList &&
-          parent.parent.parent is GenericFunctionType) {
-        return;
-      }
-
-      // <Null>[] or <Null, Null>{}
-      if (parent is TypeArgumentList) {
-        final literal = parent.parent;
-        if (literal is ListLiteral && literal.elements.isEmpty) {
-          return;
-        } else if (literal is SetOrMapLiteral && literal.elements.isEmpty) {
-          return;
-        }
-      }
-
-      rule.reportLintForToken(id.token);
+  void visitTypeName(TypeName node) {
+    if (!node.type.isDartCoreNull) {
+      return;
     }
+
+    final parent = node.parent;
+
+    // Null Function()
+    if (parent is GenericFunctionType) {
+      return;
+    }
+
+    // Function(Null)
+    if (parent is SimpleFormalParameter &&
+        parent.parent is FormalParameterList &&
+        parent.parent.parent is GenericFunctionType) {
+      return;
+    }
+
+    // <Null>[] or <Null, Null>{}
+    if (parent is TypeArgumentList) {
+      final literal = parent.parent;
+      if (literal is ListLiteral && literal.elements.isEmpty) {
+        return;
+      } else if (literal is SetOrMapLiteral && literal.elements.isEmpty) {
+        return;
+      }
+    }
+
+    rule.reportLint(node.name);
   }
 }

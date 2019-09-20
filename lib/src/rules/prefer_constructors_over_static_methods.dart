@@ -79,7 +79,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     final parent = node.parent;
     if (node.isStatic &&
         parent is ClassOrMixinDeclaration &&
-        returnType == parent.declaredElement.type &&
+        returnType is InterfaceType &&
+        returnType.element == parent.declaredElement &&
         _hasNewInvocation(returnType, node.body)) {
       rule.reportLint(node.name);
     }

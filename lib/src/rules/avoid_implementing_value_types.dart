@@ -119,11 +119,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  static bool _overridesEquals(ClassElement element) =>
-      // ignore: unnecessary_cast
-      (element.lookUpConcreteMethod('==', element.library)?.enclosingElement
-              as ClassElement)
-          ?.type
-          ?.isObject ==
-      false;
+  static bool _overridesEquals(ClassElement element) {
+    var method = element.lookUpConcreteMethod('==', element.library);
+    var enclosing = method?.enclosingElement;
+    return enclosing is ClassElement && !enclosing.isDartCoreObject;
+  }
 }

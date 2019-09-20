@@ -112,9 +112,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       node.parent.thisOrAncestorOfType<ClassDeclaration>()?.declaredElement;
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = clazz.allSupertypes..add(clazz.type);
-    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element)
+    final inheritedAndSelfElements = <ClassElement>[
+      ...clazz.allSupertypes.map((t) => t.element),
+      clazz,
+    ];
+    final inheritedAndSelfAnnotations = inheritedAndSelfElements
         .expand((c) => c.metadata)
         .map((m) => m.element);
     return inheritedAndSelfAnnotations.any(_isImmutable);

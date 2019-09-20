@@ -154,7 +154,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       interfaces = _findAllSupertypesInMixin(classElement);
     } else {
       interfaces =
-          _findAllSupertypesAndMixins(classElement.type, <InterfaceType>[]);
+          _findAllSupertypesAndMixins(classElement.thisType, <InterfaceType>[]);
     }
     InterfaceType interface =
         interfaces.firstWhere(containsOverriddenMember, orElse: () => null);

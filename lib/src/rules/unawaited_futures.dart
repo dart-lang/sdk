@@ -104,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   /// computation.
   bool _isFutureDelayedInstanceCreationWithComputation(Expression expr) =>
       expr is InstanceCreationExpression &&
-      expr.staticElement?.enclosingElement?.type?.isDartAsyncFuture == true &&
+      expr.staticType?.isDartAsyncFuture == true &&
       expr.constructorName?.name?.name == 'delayed' &&
       expr.argumentList.arguments.length == 2;
 

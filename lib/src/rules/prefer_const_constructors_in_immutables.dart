@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Prefer declare const constructors on `@immutable` classes.';
@@ -89,15 +88,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  Iterable<InterfaceType> _getSelfAndInheritedTypes(InterfaceType type) sync* {
-    InterfaceType current = type;
-    Set<ClassElement> seenTypes = <ClassElement>{};
-    while (current != null && seenTypes.add(current.element)) {
-      yield current;
-      current = current.superclass;
-    }
-  }
-
   bool _hasConstConstructorInvocation(ConstructorDeclaration node) {
     final clazz = node.declaredElement.enclosingElement;
     // construct with super
@@ -120,13 +110,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasImmutableAnnotation(ClassElement clazz) {
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(clazz.type);
-    final inheritedAndSelfAnnotations = inheritedAndSelfTypes
-        .map((type) => type.element)
-        .expand((c) => c.metadata)
-        .map((m) => m.element);
-    return inheritedAndSelfAnnotations.any(_isImmutable);
+    final selfAndInheritedClasses = _getSelfAndInheritedClasses(clazz);
+    final selfAndInheritedAnnotations =
+        selfAndInheritedClasses.expand((c) => c.metadata).map((m) => m.element);
+    return selfAndInheritedAnnotations.any(_isImmutable);
   }
 
   bool _hasMixin(ClassElement clazz) => clazz.mixins.isNotEmpty;
+
+  static Iterable<ClassElement> _getSelfAndInheritedClasses(
+      ClassElement self) sync* {
+    ClassElement current = self;
+    final seenElements = <ClassElement>{};
+    while (current != null && seenElements.add(current)) {
+      yield current;
+      current = current.supertype?.element;
+    }
+  }
 }

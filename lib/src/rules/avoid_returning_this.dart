@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -76,8 +77,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     final parent = node.parent;
     if (parent is ClassOrMixinDeclaration) {
-      if (node.declaredElement.returnType != parent.declaredElement?.type ||
-          DartTypeUtilities.overridesMethod(node)) {
+      if (DartTypeUtilities.overridesMethod(node)) {
+        return;
+      }
+
+      var returnType = node.declaredElement.returnType;
+      if (returnType is InterfaceType &&
+          returnType.element == parent.declaredElement) {
+      } else {
         return;
       }
     } else {
