@@ -337,22 +337,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
+        makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
       }
 
-      // Make sure the output is stable.
-      incrementalComponent.libraries.sort((l1, l2) {
-        return "${l1.fileUri}".compareTo("${l2.fileUri}");
-      });
-      incrementalComponent.problemsAsJson?.sort();
-      incrementalComponent.computeCanonicalNames();
-      for (Library library in incrementalComponent.libraries) {
-        library.additionalExports.sort((Reference r1, Reference r2) {
-          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-        });
-        library.problemsAsJson?.sort();
-      }
+      makeStable(incrementalComponent);
 
       return Future.value(fe.serializeComponent(incrementalComponent,
           filter: excludeNonSources
@@ -392,6 +382,22 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   return new ComputeKernelResult(succeeded, state);
+}
+
+/// Make sure the output is stable by sorting libraries and additional exports.
+void makeStable(Component c) {
+  // Make sure the output is stable.
+  c.libraries.sort((l1, l2) {
+    return "${l1.fileUri}".compareTo("${l2.fileUri}");
+  });
+  c.problemsAsJson?.sort();
+  c.computeCanonicalNames();
+  for (Library library in c.libraries) {
+    library.additionalExports.sort((Reference r1, Reference r2) {
+      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+    });
+    library.problemsAsJson?.sort();
+  }
 }
 
 /// Extends the DevCompilerTarget to transform outlines to meet the requirements
