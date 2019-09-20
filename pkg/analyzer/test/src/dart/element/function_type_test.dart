@@ -592,64 +592,6 @@ class FunctionTypeTest with ElementsTypesMixin {
         throwsA(new TypeMatcher<ArgumentError>()));
   }
 
-  test_synthetic_substitute_share_returnType_and_parameters() {
-    // int Function<U extends T>(int x)
-    var t = typeParameter('T');
-    var u = typeParameter('U', bound: typeParameterType(t));
-    var x = requiredParameter('x', type: intType);
-    FunctionType f = new FunctionTypeImpl.synthetic(intType, [u], [x]);
-    FunctionType substituted =
-        f.substitute2([objectType], [typeParameterType(t)]);
-    basicChecks(substituted,
-        element: isNull,
-        displayName: 'int Function<U extends Object>(int)',
-        returnType: same(f.returnType),
-        typeFormals: hasLength(1),
-        normalParameterNames: ['x'],
-        normalParameterTypes: [same(intType)],
-        parameters: same(f.parameters));
-    expect(substituted.typeFormals[0].name, 'U');
-    expect(substituted.typeFormals[0].bound, same(objectType));
-  }
-
-  test_synthetic_substitute_share_returnType_and_typeFormals() {
-    // int Function<U>(T x, U y)
-    var t = typeParameter('T');
-    var u = typeParameter('U');
-    var x = requiredParameter('x', type: typeParameterType(t));
-    var y = requiredParameter('y', type: typeParameterType(u));
-    FunctionType f = new FunctionTypeImpl.synthetic(intType, [u], [x, y]);
-    FunctionType substituted =
-        f.substitute2([objectType], [typeParameterType(t)]);
-    basicChecks(substituted,
-        element: isNull,
-        displayName: 'int Function<U>(Object, U)',
-        returnType: same(f.returnType),
-        typeFormals: same(f.typeFormals),
-        normalParameterNames: ['x', 'y'],
-        normalParameterTypes: [same(objectType), typeParameterType(u)],
-        parameters: hasLength(2));
-  }
-
-  test_synthetic_substitute_share_typeFormals_and_parameters() {
-    // T Function<U>(U x)
-    var t = typeParameter('T');
-    var u = typeParameter('U');
-    var x = requiredParameter('x', type: typeParameterType(u));
-    FunctionType f =
-        new FunctionTypeImpl.synthetic(typeParameterType(t), [u], [x]);
-    FunctionType substituted =
-        f.substitute2([objectType], [typeParameterType(t)]);
-    basicChecks(substituted,
-        element: isNull,
-        displayName: 'Object Function<U>(U)',
-        returnType: same(objectType),
-        typeFormals: same(f.typeFormals),
-        normalParameterNames: ['x'],
-        normalParameterTypes: [typeParameterType(u)],
-        parameters: same(f.parameters));
-  }
-
   test_synthetic_substitute_unchanged() {
     // dynamic Function<U>(U x)
     var t = typeParameter('T');

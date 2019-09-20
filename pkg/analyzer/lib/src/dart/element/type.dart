@@ -514,7 +514,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (formalCount == 0 && !force) return original;
 
     // Allocate fresh type variables
-    var typeVars = <DartType>[];
+    var typeVars = <TypeParameterElement>[];
     var freshTypeVars = <DartType>[];
     var freshVarElements = <TypeParameterElement>[];
     for (int i = 0; i < formalCount; i++) {
@@ -524,7 +524,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
 
-      typeVars.add(typeParamElement.type);
+      typeVars.add(typeParamElement);
       freshTypeVars.add(freshTypeVar);
       freshVarElements.add(freshElement);
     }
@@ -535,7 +535,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       var bound = typeParamElement.bound;
       if (bound != null) {
         var freshElement = freshVarElements[i] as TypeParameterElementImpl;
-        freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
+        freshElement.bound = Substitution.fromPairs(typeVars, freshTypeVars)
+            .substituteType(bound);
       }
     }
 
@@ -747,7 +748,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
 
         List<DartType> instantiateTypeArgs = <DartType>[];
-        List<DartType> variables = <DartType>[];
+        List<TypeParameterElement> variables = <TypeParameterElement>[];
         typeParametersBuffer.write('<');
         for (TypeParameterElement e in typeFormals) {
           if (e != typeFormals[0]) {
@@ -769,11 +770,12 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           t.appendTo(typeParametersBuffer, visitedTypes,
               withNullability: withNullability);
           instantiateTypeArgs.add(t);
-          variables.add(e.type);
+          variables.add(e);
           if (e.bound != null) {
             typeParametersBuffer.write(' extends ');
             TypeImpl renamed =
-                e.bound.substitute2(instantiateTypeArgs, variables);
+                Substitution.fromPairs(variables, instantiateTypeArgs)
+                    .substituteType(e.bound);
             renamed.appendTo(typeParametersBuffer, visitedTypes);
           }
         }
@@ -1173,8 +1175,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // We build up a substitution matching up the type parameters
     // from the two types, {variablesFresh/variables1} and
     // {variablesFresh/variables2}
-    List<DartType> variables1 = <DartType>[];
-    List<DartType> variables2 = <DartType>[];
+    List<TypeParameterElement> variables1 = <TypeParameterElement>[];
+    List<TypeParameterElement> variables2 = <TypeParameterElement>[];
     List<DartType> variablesFresh = <DartType>[];
     for (int i = 0; i < count; i++) {
       TypeParameterElement p1 = params1[i];
@@ -1182,18 +1184,18 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElementImpl pFresh =
           new TypeParameterElementImpl.synthetic(p2.name);
 
-      DartType variable1 = p1.type;
-      DartType variable2 = p2.type;
       DartType variableFresh = new TypeParameterTypeImpl(pFresh);
 
-      variables1.add(variable1);
-      variables2.add(variable2);
+      variables1.add(p1);
+      variables2.add(p2);
       variablesFresh.add(variableFresh);
 
       DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
       DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
-      bound1 = bound1.substitute2(variablesFresh, variables1);
-      bound2 = bound2.substitute2(variablesFresh, variables2);
+      bound1 = Substitution.fromPairs(variables1, variablesFresh)
+          .substituteType(bound1);
+      bound2 = Substitution.fromPairs(variables2, variablesFresh)
+          .substituteType(bound2);
       if (!relation(bound2, bound1, p2, p1)) {
         return null;
       }
@@ -1706,8 +1708,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   bool isDirectSupertypeOf(InterfaceType type) {
     InterfaceType i = this;
     InterfaceType j = type;
+    var substitution = Substitution.fromInterfaceType(j);
     ClassElement jElement = j.element;
-    InterfaceType supertype = jElement.supertype;
     //
     // If J is Object, then it has no direct supertypes.
     //
@@ -1717,10 +1719,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // I is listed in the extends clause of J.
     //
-    List<DartType> jArgs = j.typeArguments;
-    List<DartType> jVars = jElement.type.typeArguments;
+    InterfaceType supertype = jElement.supertype;
     if (supertype != null) {
-      supertype = supertype.substitute2(jArgs, jVars);
+      supertype = substitution.substituteType(supertype);
       if (supertype == i) {
         return true;
       }
@@ -1729,7 +1730,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // I is listed in the on clause of J.
     //
     for (InterfaceType interfaceType in jElement.superclassConstraints) {
-      interfaceType = interfaceType.substitute2(jArgs, jVars);
+      interfaceType = substitution.substituteType(interfaceType);
       if (interfaceType == i) {
         return true;
       }
@@ -1738,7 +1739,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // I is listed in the implements clause of J.
     //
     for (InterfaceType interfaceType in jElement.interfaces) {
-      interfaceType = interfaceType.substitute2(jArgs, jVars);
+      interfaceType = substitution.substituteType(interfaceType);
       if (interfaceType == i) {
         return true;
       }
@@ -1747,7 +1748,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // I is listed in the with clause of J.
     //
     for (InterfaceType mixinType in jElement.mixins) {
-      mixinType = mixinType.substitute2(jArgs, jVars);
+      mixinType = substitution.substituteType(mixinType);
       if (mixinType == i) {
         return true;
       }
@@ -3580,10 +3581,12 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
     if (argumentTypes.isEmpty) {
       return this;
     }
-    var parameterTypes = typeFormals.map((p) => p.type).toList();
+
+    var substitution = Substitution.fromPairs(typeFormals, argumentTypes);
+
     ParameterElement transformParameter(ParameterElement p) {
       var type = p.type;
-      var newType = type.substitute2(argumentTypes, parameterTypes);
+      var newType = substitution.substituteType(type);
       if (identical(newType, type)) return p;
       return new ParameterElementImpl.synthetic(
           p.name,
@@ -3594,7 +3597,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
     }
 
     return new _FunctionTypeImplStrict._(
-        returnType.substitute2(argumentTypes, parameterTypes),
+        substitution.substituteType(returnType),
         const [],
         _transformOrShare(parameters, transformParameter),
         nullabilitySuffix: nullabilitySuffix);
@@ -3612,56 +3615,12 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
           "argumentTypes.length (${argumentTypes.length}) != "
           "parameterTypes.length (${parameterTypes.length})");
     }
-    TypeParameterElement transformTypeFormal(TypeParameterElement p) {
-      var bound = p.bound;
-      var newBound = bound?.substitute2(argumentTypes, parameterTypes);
-      if (identical(bound, newBound)) return p;
-      var element = new TypeParameterElementImpl.synthetic(p.name);
-      element.bound = newBound;
-      return element;
-    }
 
-    var newTypeFormals = _transformOrShare(typeFormals, transformTypeFormal);
-    List<DartType> typeFormalsArgumentTypes;
-    List<DartType> typeFormalsParameterTypes;
-    if (!identical(typeFormals, newTypeFormals)) {
-      typeFormalsArgumentTypes = newTypeFormals.map((p) => p.type).toList();
-      typeFormalsParameterTypes = typeFormals.map((p) => p.type).toList();
-    }
-    DartType transformType(DartType t) {
-      t = t.substitute2(argumentTypes, parameterTypes);
-      if (typeFormalsArgumentTypes != null) {
-        t = t.substitute2(typeFormalsArgumentTypes, typeFormalsParameterTypes);
-      }
-      return t;
-    }
-
-    ParameterElement transformParameter(ParameterElement p) {
-      var type = p.type;
-      var newType = transformType(type);
-      if (identical(newType, type)) return p;
-      return new ParameterElementImpl.synthetic(
-          p.name,
-          newType,
-          // ignore: deprecated_member_use_from_same_package
-          p.parameterKind);
-    }
-
-    var newReturnType = transformType(returnType);
-    var newParameters = _transformOrShare(parameters, transformParameter);
-    if (identical(returnType, newReturnType) &&
-        identical(typeFormals, newTypeFormals) &&
-        identical(parameters, newParameters)) {
-      return this;
-    }
-
-    var typeArguments = this.typeArguments.map(transformType).toList();
-
-    return new _FunctionTypeImplStrict._(
-        newReturnType, newTypeFormals, newParameters,
-        element: element,
-        typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix);
+    var substitution = Substitution.fromPairs(
+      parameterTypes.map<TypeParameterElement>((t) => t.element).toList(),
+      argumentTypes,
+    );
+    return substitution.substituteType(this);
   }
 
   @override
