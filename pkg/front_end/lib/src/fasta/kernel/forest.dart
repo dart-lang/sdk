@@ -515,8 +515,9 @@ class Forest {
     return new LabeledStatement(statement);
   }
 
-  Expression createThisExpression(Token token) {
-    return new ThisExpression()..fileOffset = offsetForToken(token);
+  Expression createThisExpression(int offset) {
+    assert(offset != null);
+    return new ThisExpression()..fileOffset = offset;
   }
 
   /// Return a representation of a throw expression consisting of the

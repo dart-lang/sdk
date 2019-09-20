@@ -24,6 +24,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/clone.dart';
+
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -2026,6 +2028,7 @@ class IndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
+  // TODO(johnniwinther): Add `readOnlyReceiver` capability.
   IndexSet(this.receiver, this.index, this.value) {
     receiver?.parent = this;
     index?.parent = this;
@@ -2080,6 +2083,8 @@ class IndexSet extends InternalExpression {
 ///     let v3 = v1[v2] in
 ///        v3 == null ? v1.[]=(v2, b) : null
 ///
+/// If the [readOnlyReceiver] is true, no temporary variable is created for the
+/// receiver and its use is inlined.
 class IfNullIndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
   Expression receiver;
@@ -2093,12 +2098,29 @@ class IfNullIndexSet extends InternalExpression {
   /// The file offset for the [] operation.
   final int readOffset;
 
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullIndexSet(this.receiver, this.index, this.value, this.readOffset,
-      {this.forEffect})
-      : assert(forEffect != null) {
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  IfNullIndexSet(this.receiver, this.index, this.value,
+      {this.readOffset,
+      this.testOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.readOnlyReceiver: false})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
@@ -2173,12 +2195,17 @@ class CompoundIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
   CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
       {this.readOffset,
       this.binaryOffset,
       this.writeOffset,
       this.forEffect,
-      this.forPostIncDec})
+      this.forPostIncDec,
+      this.readOnlyReceiver: false})
       : assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;

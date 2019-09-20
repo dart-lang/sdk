@@ -2187,8 +2187,17 @@ class InferenceVisitor
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
     DartType receiverType = receiverResult.inferredType;
-    VariableDeclaration receiverVariable =
-        createVariable(node.receiver, receiverType);
+    VariableDeclaration receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (node.readOnlyReceiver) {
+      readReceiver = node.receiver;
+      writeReceiver = readReceiver.accept<TreeNode>(new CloneVisitor());
+    } else {
+      receiverVariable = createVariable(node.receiver, receiverType);
+      readReceiver = createVariableGet(receiverVariable);
+      writeReceiver = createVariableGet(receiverVariable);
+    }
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, new Name('[]'), node.readOffset,
@@ -2202,11 +2211,11 @@ class InferenceVisitor
     DartType readIndexType = inferrer.getIndexKeyType(readTarget, receiverType);
 
     Member equalsMember = inferrer
-        .findInterfaceMember(readType, new Name('=='), node.fileOffset)
+        .findInterfaceMember(readType, new Name('=='), node.testOffset)
         .member;
 
     ObjectAccessTarget writeTarget = inferrer.findInterfaceMember(
-        receiverType, new Name('[]='), node.fileOffset,
+        receiverType, new Name('[]='), node.writeOffset,
         includeExtensionMethods: true);
 
     DartType writeIndexType =
@@ -2250,14 +2259,14 @@ class InferenceVisitor
       read = new StaticInvocation(
           readTarget.member,
           new Arguments(<Expression>[
-            createVariableGet(receiverVariable),
+            readReceiver,
             readIndex,
           ], types: readTarget.inferredExtensionTypeArguments)
             ..fileOffset = node.readOffset)
         ..fileOffset = node.readOffset;
     } else {
       read = new MethodInvocation(
-          createVariableGet(receiverVariable),
+          readReceiver,
           new Name('[]'),
           new Arguments(<Expression>[
             readIndex,
@@ -2291,48 +2300,50 @@ class InferenceVisitor
     if (writeTarget.isMissing) {
       write = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]=', receiverType),
-          node.fileOffset,
+          node.writeOffset,
           '[]='.length,
           wrapInSyntheticExpression: false);
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
-          new Arguments(<Expression>[
-            createVariableGet(receiverVariable),
-            writeIndex,
-            valueExpression
-          ], types: writeTarget.inferredExtensionTypeArguments)
-            ..fileOffset = node.fileOffset)
-        ..fileOffset = node.fileOffset;
+          new Arguments(
+              <Expression>[writeReceiver, writeIndex, valueExpression],
+              types: writeTarget.inferredExtensionTypeArguments)
+            ..fileOffset = node.writeOffset)
+        ..fileOffset = node.writeOffset;
     } else {
       write = new MethodInvocation(
-          createVariableGet(receiverVariable),
+          writeReceiver,
           new Name('[]='),
           new Arguments(<Expression>[writeIndex, valueExpression])
             ..fileOffset = node.fileOffset,
           writeTarget.member)
-        ..fileOffset = node.fileOffset;
+        ..fileOffset = node.writeOffset;
     }
 
-    Expression replacement;
+    Expression inner;
     if (node.forEffect) {
-      // Encode `o[a] ??= b` as:
+      // Encode `o[a] ??= b`, if `node.readOnlyReceiver` is false, as:
       //
       //     let v1 = o in
       //     let v2 = a in
       //     let v3 = v1[v2] in
       //        v3 == null ? v1.[]=(v2, b) : null
       //
+      // and if `node.readOnlyReceiver` is true as:
+      //
+      //     let v2 = a in
+      //     let v3 = o[v2] in
+      //        v3 == null ? o.[]=(v2, b) : null
+      //
       MethodInvocation equalsNull =
-          createEqualsNull(node.fileOffset, read, equalsMember);
+          createEqualsNull(node.testOffset, read, equalsMember);
       ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          write, new NullLiteral()..fileOffset = node.fileOffset, inferredType)
-        ..fileOffset = node.fileOffset;
-      node.replaceWith(replacement =
-          new Let(receiverVariable, createLet(indexVariable, conditional))
-            ..fileOffset = node.fileOffset);
+          write, new NullLiteral()..fileOffset = node.testOffset, inferredType)
+        ..fileOffset = node.testOffset;
+      inner = createLet(indexVariable, conditional);
     } else {
-      // Encode `o[a] ??= b` as:
+      // Encode `o[a] ??= b` as, if `node.readOnlyReceiver` is false, as:
       //
       //     let v1 = o in
       //     let v2 = a in
@@ -2343,11 +2354,22 @@ class InferenceVisitor
       //           v4)
       //        : v3
       //
+      // and if `node.readOnlyReceiver` is true as:
+      //
+      //     let v2 = a in
+      //     let v3 = o[v2] in
+      //       v3 == null
+      //        ? (let v4 = b in
+      //           let _ = o.[]=(v2, v4) in
+      //           v4)
+      //        : v3
+      //
+      //
       assert(valueVariable != null);
 
       VariableDeclaration readVariable = createVariable(read, readType);
       MethodInvocation equalsNull = createEqualsNull(
-          node.fileOffset, createVariableGet(readVariable), equalsMember);
+          node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
       ConditionalExpression conditional = new ConditionalExpression(
@@ -2357,9 +2379,15 @@ class InferenceVisitor
           createVariableGet(readVariable),
           inferredType)
         ..fileOffset = node.fileOffset;
-      node.replaceWith(replacement = new Let(receiverVariable,
-          createLet(indexVariable, createLet(readVariable, conditional)))
+      inner = createLet(indexVariable, createLet(readVariable, conditional));
+    }
+
+    Expression replacement;
+    if (receiverVariable != null) {
+      node.replaceWith(replacement = new Let(receiverVariable, inner)
         ..fileOffset = node.fileOffset);
+    } else {
+      node.replaceWith(replacement = inner);
     }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -2370,8 +2398,17 @@ class InferenceVisitor
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
     DartType receiverType = receiverResult.inferredType;
-    VariableDeclaration receiverVariable =
-        createVariable(node.receiver, receiverType);
+    VariableDeclaration receiverVariable;
+    Expression readReceiver;
+    Expression writeReceiver;
+    if (node.readOnlyReceiver) {
+      readReceiver = node.receiver;
+      writeReceiver = readReceiver.accept<TreeNode>(new CloneVisitor());
+    } else {
+      receiverVariable = createVariable(node.receiver, receiverType);
+      readReceiver = createVariableGet(receiverVariable);
+      writeReceiver = createVariableGet(receiverVariable);
+    }
 
     ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
         receiverType, new Name('[]'), node.readOffset,
@@ -2408,14 +2445,14 @@ class InferenceVisitor
       read = new StaticInvocation(
           readTarget.member,
           new Arguments(<Expression>[
-            createVariableGet(receiverVariable),
+            readReceiver,
             readIndex,
           ], types: readTarget.inferredExtensionTypeArguments)
             ..fileOffset = node.readOffset)
         ..fileOffset = node.readOffset;
     } else {
       read = new MethodInvocation(
-          createVariableGet(receiverVariable),
+          readReceiver,
           new Name('[]'),
           new Arguments(<Expression>[
             readIndex,
@@ -2528,8 +2565,6 @@ class InferenceVisitor
       binary = binaryReplacement;
     }
 
-    Expression replacement;
-
     VariableDeclaration valueVariable;
     Expression valueExpression;
     if (node.forEffect || node.forPostIncDec) {
@@ -2550,16 +2585,14 @@ class InferenceVisitor
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
-          new Arguments(<Expression>[
-            createVariableGet(receiverVariable),
-            writeIndex,
-            valueExpression
-          ], types: writeTarget.inferredExtensionTypeArguments)
+          new Arguments(
+              <Expression>[writeReceiver, writeIndex, valueExpression],
+              types: writeTarget.inferredExtensionTypeArguments)
             ..fileOffset = node.writeOffset)
         ..fileOffset = node.writeOffset;
     } else {
       write = new MethodInvocation(
-          createVariableGet(receiverVariable),
+          writeReceiver,
           new Name('[]='),
           new Arguments(<Expression>[writeIndex, valueExpression])
             ..fileOffset = node.writeOffset,
@@ -2567,6 +2600,7 @@ class InferenceVisitor
         ..fileOffset = node.writeOffset;
     }
 
+    Expression inner;
     if (node.forEffect) {
       assert(leftVariable == null);
       assert(valueVariable == null);
@@ -2574,9 +2608,7 @@ class InferenceVisitor
       //
       //     let v1 = o in let v2 = a in v1.[]=(v2, v1.[](v2) + b)
       //
-      node.replaceWith(replacement =
-          new Let(receiverVariable, createLet(indexVariable, write))
-            ..fileOffset = node.fileOffset);
+      inner = createLet(indexVariable, write);
     } else if (node.forPostIncDec) {
       // Encode `o[a]++` as:
       //
@@ -2590,13 +2622,10 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      node.replaceWith(replacement = new Let(
-          receiverVariable,
-          createLet(
-              indexVariable,
-              createLet(leftVariable,
-                  createLet(writeVariable, createVariableGet(leftVariable)))))
-        ..fileOffset = node.fileOffset);
+      inner = createLet(
+          indexVariable,
+          createLet(leftVariable,
+              createLet(writeVariable, createVariableGet(leftVariable))));
     } else {
       // Encode `o[a] += b` as:
       //
@@ -2610,13 +2639,18 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      node.replaceWith(replacement = new Let(
-          receiverVariable,
-          createLet(
-              indexVariable,
-              createLet(valueVariable,
-                  createLet(writeVariable, createVariableGet(valueVariable)))))
+      inner = createLet(
+          indexVariable,
+          createLet(valueVariable,
+              createLet(writeVariable, createVariableGet(valueVariable))));
+    }
+
+    Expression replacement;
+    if (receiverVariable != null) {
+      node.replaceWith(replacement = new Let(receiverVariable, inner)
         ..fileOffset = node.fileOffset);
+    } else {
+      node.replaceWith(replacement = inner);
     }
     return new ExpressionInferenceResult(
         node.forPostIncDec ? readType : binaryType, replacement);

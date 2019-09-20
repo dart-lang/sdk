@@ -1483,7 +1483,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (receiver is ThisAccessGenerator && receiver.isSuper) {
       ThisAccessGenerator thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = forest.createThisExpression(thisAccessorReceiver.token);
+      receiver = forest.createThisExpression(thisAccessorReceiver.fileOffset);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -3277,7 +3277,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSuper = false;
       if (receiver is ThisAccessGenerator && receiver.isSuper) {
         isSuper = true;
-        receiverValue = forest.createThisExpression(receiver.token);
+        receiverValue = forest.createThisExpression(receiver.fileOffset);
       } else {
         receiverValue = toValue(receiver);
       }
