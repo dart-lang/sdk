@@ -2559,10 +2559,8 @@ class InferenceVisitor
     if (node.forEffect) {
       // Encode `o[a] ??= b` as:
       //
-      //     let v1 = o in
-      //     let v2 = a in
-      //     let v3 = v1[v2] in
-      //        v3 == null ? v1.[]=(v2, b) : null
+      //     let v1 = a in
+      //        super[v1] == null ? super.[]=(v1, b) : null
       //
       MethodInvocation equalsNull =
           createEqualsNull(node.testOffset, read, equalsMember);
@@ -2573,14 +2571,13 @@ class InferenceVisitor
     } else {
       // Encode `o[a] ??= b` as:
       //
-      //     let v1 = o in
-      //     let v2 = a in
-      //     let v3 = v1[v2] in
-      //       v3 == null
-      //        ? (let v4 = b in
-      //           let _ = v1.[]=(v2, v4) in
-      //           v4)
-      //        : v3
+      //     let v1 = a in
+      //     let v2 = super[v1] in
+      //       v2 == null
+      //        ? (let v3 = b in
+      //           let _ = super.[]=(v1, v3) in
+      //           v3)
+      //        : v2
       //
       assert(valueVariable != null);
 
@@ -3046,7 +3043,7 @@ class InferenceVisitor
       //
       //     let v2 = a in
       //     let v3 = v1.[](v2)
-      //     let v4 = v1.[]=(v2, c3 + b) in v3
+      //     let v4 = v1.[]=(v2, v3 + 1) in v3
       //
       assert(leftVariable != null);
       assert(valueVariable == null);

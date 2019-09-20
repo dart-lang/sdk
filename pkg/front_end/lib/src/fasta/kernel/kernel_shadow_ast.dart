@@ -1811,6 +1811,9 @@ class CompoundPropertySet extends InternalExpression {
 ///
 class PropertyPostIncDec extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
+  ///
+  /// This is `null` if the receiver is read-only and therefore does not need to
+  /// be stored in a temporary variable.
   VariableDeclaration variable;
 
   /// The expression that reads the property on [variable].
@@ -1826,15 +1829,25 @@ class PropertyPostIncDec extends InternalExpression {
     write?.parent = this;
   }
 
+  PropertyPostIncDec.onReadOnly(
+      VariableDeclaration read, VariableDeclaration write)
+      : this(null, read, write);
+
   @override
   InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
 
   @override
   Expression replace() {
     Expression replacement;
-    replaceWith(replacement = new Let(
-        variable, createLet(read, createLet(write, createVariableGet(read))))
-      ..fileOffset = fileOffset);
+    if (variable != null) {
+      replaceWith(replacement = new Let(
+          variable, createLet(read, createLet(write, createVariableGet(read))))
+        ..fileOffset = fileOffset);
+    } else {
+      replaceWith(
+          replacement = new Let(read, createLet(write, createVariableGet(read)))
+            ..fileOffset = fileOffset);
+    }
     return replacement;
   }
 
