@@ -16,9 +16,8 @@ class B {
 class C extends B {
   void operator []=(Object x, Object y) {}
   void h() {
-    // Note: the index is inferred with an empty context due to issue 31336.
     super /*@target=B::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=String* */ f();
+        /*@ typeArgs=int* */ f()] = /*@ typeArgs=String* */ f();
   }
 }
 

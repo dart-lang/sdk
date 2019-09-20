@@ -589,12 +589,12 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(let final dynamic #t46 = super.{self::A::h} in #t46.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : #t46);
     super.{self::A::i}.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : null;
     self::use(let final dynamic #t47 = super.{self::A::i} in #t47.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : #t47);
-    let final core::int* #t48 = 87 in super.{self::A::[]}(#t48).{core::Object::==}(null) ?{dynamic} let final core::int* #t49 = 42 in let final void #t50 = super.{self::A::[]=}(#t48, #t49) in #t49 : null;
-    self::use(let final core::int* #t51 = 87 in let final dynamic #t52 = super.{self::A::[]}(#t51) in #t52.{core::Object::==}(null) ?{dynamic} let final core::int* #t53 = 42 in let final void #t54 = super.{self::A::[]=}(#t51, #t53) in #t53 : #t52);
+    let final core::int* #t48 = 87 in super.{self::A::[]}(#t48).{core::Object::==}(null) ?{dynamic} super.{self::A::[]=}(#t48, 42) : null;
+    self::use(let final core::int* #t49 = 87 in let final dynamic #t50 = super.{self::A::[]}(#t49) in #t50.{core::Object::==}(null) ?{dynamic} let final core::int* #t51 = 42 in let final void #t52 = super.{self::A::[]=}(#t49, #t51) in #t51 : #t50);
     super.{self::A::m}.{core::Object::==}(null) ?{core::Object*} super.m = 42 : null;
-    self::use(let final () →* void #t55 = super.{self::A::m} in #t55.{core::Object::==}(null) ?{core::Object*} super.m = 42 : #t55);
+    self::use(let final () →* void #t53 = super.{self::A::m} in #t53.{core::Object::==}(null) ?{core::Object*} super.m = 42 : #t53);
     super.{self::A::n}.{core::Object::==}(null) ?{core::Object*} super.{self::A::n} = 42 : null;
-    self::use(let final () →* void #t56 = super.{self::A::n} in #t56.{core::Object::==}(null) ?{core::Object*} super.{self::A::n} = 42 : #t56);
+    self::use(let final () →* void #t54 = super.{self::A::n} in #t54.{core::Object::==}(null) ?{core::Object*} super.{self::A::n} = 42 : #t54);
     super.{self::A::a} = super.{self::A::a}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}.+(42));
     super.{self::A::b} = super.{self::B::b}.+(42);
@@ -613,8 +613,8 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::A::h} = super.{self::A::h}.+(42));
     super.{self::B::i} = super.{self::A::i}.+(42);
     self::use(super.{self::B::i} = super.{self::A::i}.+(42));
-    let final core::int* #t57 = 87 in super.{self::A::[]=}(#t57, super.{self::A::[]}(#t57).+(42));
-    self::use(let final core::int* #t58 = 87 in let final dynamic #t59 = super.{self::A::[]}(#t58).+(42) in let final void #t60 = super.{self::A::[]=}(#t58, #t59) in #t59);
+    let final core::int* #t55 = 87 in super.{self::A::[]=}(#t55, super.{self::A::[]}(#t55).+(42));
+    self::use(let final core::int* #t56 = 87 in let final dynamic #t57 = super.{self::A::[]}(#t56).+(42) in let final void #t58 = super.{self::A::[]=}(#t56, #t57) in #t57);
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The method '+' isn't defined for the class 'void Function()'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
     super.m += 42;
@@ -649,8 +649,8 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(super.{self::A::h} = super.{self::A::h}.-(42));
     super.{self::B::i} = super.{self::A::i}.-(42);
     self::use(super.{self::B::i} = super.{self::A::i}.-(42));
-    let final core::int* #t61 = 87 in super.{self::A::[]=}(#t61, super.{self::A::[]}(#t61).-(42));
-    self::use(let final core::int* #t62 = 87 in let final dynamic #t63 = super.{self::A::[]}(#t62).-(42) in let final void #t64 = super.{self::A::[]=}(#t62, #t63) in #t63);
+    let final core::int* #t59 = 87 in super.{self::A::[]=}(#t59, super.{self::A::[]}(#t59).-(42));
+    self::use(let final core::int* #t60 = 87 in let final dynamic #t61 = super.{self::A::[]}(#t60).-(42) in let final void #t62 = super.{self::A::[]=}(#t60, #t61) in #t61);
     super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The method '-' isn't defined for the class 'void Function()'.
 Try correcting the name to the name of an existing method, or defining a method named '-'.
     super.m -= 42;

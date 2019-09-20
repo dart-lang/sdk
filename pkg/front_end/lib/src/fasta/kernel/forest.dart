@@ -717,6 +717,12 @@ class Forest {
     return new StaticInvocation(procedure, arguments)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
+
+  SuperMethodInvocation createSuperMethodInvocation(
+      int fileOffset, Name name, Procedure procedure, Arguments arguments) {
+    return new SuperMethodInvocation(name, arguments, procedure)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

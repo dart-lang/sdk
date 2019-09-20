@@ -1277,7 +1277,7 @@ class IndexedAccessGenerator extends Generator {
   Expression buildSimpleRead() {
     return _helper.buildMethodInvocation(
         receiver,
-        new Name('[]'),
+        indexGetName,
         _helper.forest.createArguments(fileOffset, <Expression>[index]),
         fileOffset,
         interfaceTarget: getter);
@@ -1288,7 +1288,7 @@ class IndexedAccessGenerator extends Generator {
     if (voidContext) {
       return _helper.buildMethodInvocation(
           receiver,
-          new Name('[]='),
+          indexSetName,
           _helper.forest
               .createArguments(fileOffset, <Expression>[index, value]),
           fileOffset,
@@ -1498,7 +1498,7 @@ class ThisIndexedAccessGenerator extends Generator {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return _helper.buildMethodInvocation(
         receiver,
-        new Name('[]'),
+        indexGetName,
         _helper.forest.createArguments(fileOffset, <Expression>[index]),
         fileOffset,
         interfaceTarget: getter);
@@ -1510,7 +1510,7 @@ class ThisIndexedAccessGenerator extends Generator {
     if (voidContext) {
       return _helper.buildMethodInvocation(
           receiver,
-          new Name('[]='),
+          indexSetName,
           _helper.forest
               .createArguments(fileOffset, <Expression>[index, value]),
           fileOffset,
@@ -1678,6 +1678,74 @@ class SuperIndexedAccessGenerator extends Generator {
   String get _plainNameForRead => "[]";
 
   String get _debugName => "SuperIndexedAccessGenerator";
+
+  @override
+  Expression buildSimpleRead() {
+    if (getter == null) {
+      _helper.warnUnresolvedMethod(indexGetName, fileOffset, isSuper: true);
+    }
+    return _helper.forest.createSuperMethodInvocation(
+        fileOffset,
+        indexGetName,
+        getter,
+        _helper.forest.createArguments(fileOffset, <Expression>[index]));
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    if (voidContext) {
+      if (setter == null) {
+        _helper.warnUnresolvedMethod(indexSetName, fileOffset, isSuper: true);
+      }
+      return _helper.forest.createSuperMethodInvocation(
+          fileOffset,
+          indexSetName,
+          setter,
+          _helper.forest
+              .createArguments(fileOffset, <Expression>[index, value]));
+    } else {
+      return new SuperIndexSet(setter, index, value)..fileOffset = fileOffset;
+    }
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullSuperIndexSet(getter, setter, index, value,
+        readOffset: fileOffset,
+        testOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    return new CompoundSuperIndexSet(
+        getter, setter, index, binaryOperator, value,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext,
+        forPostIncDec: isPostIncDec);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    return buildCompoundAssignment(binaryOperator, value,
+        offset: offset,
+        voidContext: voidContext,
+        interfaceTarget: interfaceTarget,
+        isPostIncDec: true);
+  }
 
   Expression indexAccess() {
     indexVariable ??= new VariableDeclaration.forValue(index);

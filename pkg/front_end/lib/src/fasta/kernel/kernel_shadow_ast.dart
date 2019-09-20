@@ -52,9 +52,12 @@ import '../fasta_codes.dart'
         templateSpreadMapEntryElementValueTypeMismatch,
         templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
+        templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
         templateUndefinedMethod,
         templateWebLiteralCannotBeRepresentedExactly;
+
+import '../names.dart';
 
 import '../problems.dart' show getFileUri, unhandled, unsupported;
 
@@ -183,10 +186,12 @@ enum InternalExpressionKind {
   Cascade,
   CompoundIndexSet,
   CompoundPropertySet,
+  CompoundSuperIndexSet,
   DeferredCheck,
   IfNullIndexSet,
   IfNullPropertySet,
   IfNullSet,
+  IfNullSuperIndexSet,
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
@@ -195,6 +200,7 @@ enum InternalExpressionKind {
   NullAwarePropertySet,
   PropertyPostIncDec,
   StaticPostIncDec,
+  SuperIndexSet,
   SuperPostIncDec,
 }
 
@@ -2062,6 +2068,56 @@ class IndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing a  super index set expression.
+///
+/// A super index set expression of the form `super[a] = b` used for value is
+/// encoded as the expression:
+///
+///     let v1 = a in let v2 = b in let _ = super.[]=(v1, v2) in v2
+///
+/// An index set expression used for effect is encoded as
+///
+///    super.[]=(a, b)
+///
+/// using [SuperMethodInvocation].
+///
+class SuperIndexSet extends InternalExpression {
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  SuperIndexSet(this.setter, this.index, this.value) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.SuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an if-null index assignment.
 ///
 /// An if-null index assignment of the form `o[a] ??= b` is, if used for value,
@@ -2153,7 +2209,83 @@ class IfNullIndexSet extends InternalExpression {
   }
 }
 
-/// Internal expression representing an if-null index assignment.
+/// Internal expression representing an if-null super index set expression.
+///
+/// An if-null super index set expression of the form `super[a] ??= b` is, if
+/// used for value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///       v2 == null
+///        ? (let v3 = b in
+///           let _ = super.[]=(v1, v3) in
+///           v3)
+///        : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///        v2 == null ? super.[]=(v1, b) : null
+///
+class IfNullSuperIndexSet extends InternalExpression {
+  /// The [] member;
+  Member getter;
+
+  /// The []= member;
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullSuperIndexSet(this.getter, this.setter, this.index, this.value,
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound index assignment.
 ///
 /// An if-null index assignment of the form `o[a] += b` is, if used for value,
 /// encoded as the expression:
@@ -2240,6 +2372,86 @@ class CompoundIndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing a compound super index assignment.
+///
+/// An if-null index assignment of the form `super[a] += b` is, if used for
+/// value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) + b
+///     let v3 = super.[]=(v1, v2) in v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in super.[]=(v2, super.[](v2) + b)
+///
+class CompoundSuperIndexSet extends InternalExpression {
+  /// The [] member.
+  Member getter;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundSuperIndexSet(
+      this.getter, this.setter, this.index, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(forEffect != null) {
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
 /// Creates a [Let] of [variable] with the given [body] using
 /// `variable.fileOffset` as the file offset for the let.
 ///
@@ -2274,7 +2486,7 @@ MethodInvocation createEqualsNull(
     int fileOffset, Expression left, Member equalsMember) {
   return new MethodInvocation(
       left,
-      new Name('=='),
+      equalsName,
       new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset

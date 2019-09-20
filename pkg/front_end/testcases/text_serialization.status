@@ -681,7 +681,7 @@ inference/type_promotion_simple: TextSerializationFailure # Was: Pass
 inference/type_promotion_stopped_by_access_in_a_closure: TextSerializationFailure # Was: Pass
 inference/type_promotion_stopped_by_assignment_in_scope: TextSerializationFailure # Was: Pass
 inference/type_promotion_stopped_by_mutation_in_a_closure: TextSerializationFailure # Was: Pass
-inference/unresolved_super: TypeCheckError
+inference/unresolved_super: TextSerializationFailure
 inference/unsafe_block_closure_inference_closure_call: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param: TextSerializationFailure # Was: Pass
 inference/unsafe_block_closure_inference_constructor_call_explicit_type_param: TextSerializationFailure # Was: Pass
