@@ -11,12 +11,13 @@ import 'fix_processor.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddTypeAnnotationLintTest);
     defineReflectiveTests(AddTypeAnnotationTest);
   });
 }
 
 @reflectiveTest
-class AddTypeAnnotationTest extends FixProcessorLintTest {
+class AddTypeAnnotationLintTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
 
@@ -33,6 +34,40 @@ class A {
     await assertHasFix('''
 class A {
   /*LINT*/final int f = 0;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddTypeAnnotationTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+
+  test_missingFieldType() async {
+    // MISSING_CONST_FINAL_VAR_OR_TYPE
+    await resolveTestUnit('''
+class A {
+  f = 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  int f = 0;
+}
+''');
+  }
+
+  test_missingStaticFieldType() async {
+    // MISSING_CONST_FINAL_VAR_OR_TYPE
+    await resolveTestUnit('''
+class A {
+  static f = 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  static int f = 0;
 }
 ''');
   }
