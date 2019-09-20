@@ -1,5 +1,3 @@
-// @dart = 2.5
-
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
@@ -34976,7 +34974,7 @@ abstract class CssRect implements Rectangle<num> {
     // always dealing with pixels in this method.
     var styles = _element.getComputedStyle();
 
-    var val = 0;
+    num val = 0;
 
     for (String measurement in dimensions) {
       // The border-box and default box model both exclude margin in the regular
