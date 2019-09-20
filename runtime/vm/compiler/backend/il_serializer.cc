@@ -1090,7 +1090,7 @@ void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
     s->AddExtraSymbol(sexp, "rebind_rule", str);
   }
 
-  if (result_type() != nullptr) {
+  if (ShouldSerializeType(result_type())) {
     sexp->AddExtra("result_type", result_type()->ToSExpression(s));
   }
 
@@ -1135,7 +1135,7 @@ void InstanceCallInstr::AddExtraInfoToSExpression(
     s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
   }
 
-  if (result_type() != nullptr) {
+  if (ShouldSerializeType(result_type())) {
     sexp->AddExtra("result_type", result_type()->ToSExpression(s));
   }
 
