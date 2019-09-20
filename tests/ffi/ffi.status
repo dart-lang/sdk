@@ -36,3 +36,6 @@ function_callbacks_test/03: Skip
 
 [ $arch == simarm || $arch == simarm64 ]
 *: Skip # FFI not yet supported on the arm simulator.
+
+[ $system == android ]
+*: Slow # https://github.com/dart-lang/sdk/issues/38489
