@@ -57,6 +57,7 @@ class FlowGraphDeserializer : ValueObject {
         instance_class_(Class::Handle(zone)),
         instance_field_(Field::Handle(zone)),
         instance_fields_array_(Array::Handle(zone)),
+        instance_type_args_(TypeArguments::Handle(zone)),
         name_class_(Class::Handle(zone)),
         name_field_(Field::Handle(zone)),
         name_function_(Function::Handle(zone)),
@@ -230,6 +231,8 @@ class FlowGraphDeserializer : ValueObject {
     intptr_t type_args_len = 0;
     intptr_t args_len = 0;
     PushArgumentsArray* arguments = nullptr;
+    CompileType* result_type = nullptr;
+    Code::EntryKind entry_kind = Code::EntryKind::kNormal;
   };
 
   // Helper function for parsing call instructions that returns a structure
@@ -300,15 +303,13 @@ class FlowGraphDeserializer : ValueObject {
   bool CreateICData(SExpList* list, Instruction* inst);
 
   // Helper function for creating a placeholder value when the definition
-  // has not yet been seen.
-  Value* AddNewPendingValue(intptr_t index);
+  // with index [i] has not yet been seen. If [inherit_type], then the type of
+  // the definition should be used as the reaching type for the use. [s] is used
+  // for any errors that occur when resolving the pending value.
+  Value* AddNewPendingValue(SExpression* s, intptr_t i, bool inherit_type);
 
-  // Similar helper, but where we already have a created value.
-  void AddPendingValue(intptr_t index, Value* val);
-
-  // Helper function for rebinding pending values once the definition has
-  // been located.
-  void FixPendingValues(intptr_t index, Definition* def);
+  // Helper function for rebinding values pending on this definition.
+  bool FixPendingValues(intptr_t index, Definition* def);
 
   // Creates a PushArgumentsArray of size [len] from [pushed_stack_] if there
   // are enough and pops the fetched arguments from the stack.
@@ -375,9 +376,19 @@ class FlowGraphDeserializer : ValueObject {
   // Map from variable indexes to definitions.
   IntMap<Definition*> definition_map_;
 
+  // Information needed to handle uses seen prior to their definitions.
+  struct PendingValue {
+    // SExpression used for error reporting.
+    SExpression* sexp;
+    // Value to be rebound once the right definition is found.
+    Value* value;
+    // Whether the type should inherit the type of the found definition.
+    bool inherit_type;
+  };
+
   // Map from variable indices to lists of values. The list of values are
   // values that were parsed prior to the corresponding definition being found.
-  IntMap<ZoneGrowableArray<Value*>*> values_map_;
+  IntMap<ZoneGrowableArray<PendingValue>*> values_map_;
 
   // Map from hash values to SExpLists. This is used by ParseTypeRef to
   // determine whether or not the recursive type it refers to is being currently
@@ -394,16 +405,17 @@ class FlowGraphDeserializer : ValueObject {
   // Temporary handles used by functions that are not re-entrant or where the
   // handle is not live after the re-entrant call. Comments show which handles
   // are expected to only be used within a single method.
-  TypeArguments& array_type_args_;  // ParseImmutableList
-  Class& instance_class_;           // ParseInstance
-  Field& instance_field_;           // ParseInstance
-  Array& instance_fields_array_;    // ParseInstance
-  Class& name_class_;               // ParseCanonicalName
-  Field& name_field_;               // ParseCanonicalName
-  Function& name_function_;         // ParseCanonicalName
-  Library& name_library_;           // ParseCanonicalName
-  Class& type_param_class_;         // ParseTypeParameter
-  Function& type_param_function_;   // ParseTypeParameter
+  TypeArguments& array_type_args_;     // ParseImmutableList
+  Class& instance_class_;              // ParseInstance
+  Field& instance_field_;              // ParseInstance
+  Array& instance_fields_array_;       // ParseInstance
+  TypeArguments& instance_type_args_;  // ParseInstance
+  Class& name_class_;                  // ParseCanonicalName
+  Field& name_field_;                  // ParseCanonicalName
+  Function& name_function_;            // ParseCanonicalName
+  Library& name_library_;              // ParseCanonicalName
+  Class& type_param_class_;            // ParseTypeParameter
+  Function& type_param_function_;      // ParseTypeParameter
   // Uses of string handles tend to be immediate, so we only need one.
   String& tmp_string_;
 

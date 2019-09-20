@@ -325,6 +325,10 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
   } else {
     ASSERT(instruction->InputAt(use->use_index()) == use);
   }
+  // Make sure the reaching type, if any, has an owner consistent with this use.
+  if (auto const type = use->reaching_type()) {
+    ASSERT(type->owner() == nullptr || type->owner() == def);
+  }
   // Make sure each use appears in the graph and is properly dominated
   // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).

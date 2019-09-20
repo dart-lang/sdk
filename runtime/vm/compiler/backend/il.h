@@ -87,7 +87,12 @@ class Value : public ZoneAllocated {
         reaching_type_(NULL) {}
 
   Definition* definition() const { return definition_; }
-  void set_definition(Definition* definition) { definition_ = definition; }
+  void set_definition(Definition* definition) {
+    definition_ = definition;
+    // Clone the reaching type if there was one and the owner no longer matches
+    // this value's definition.
+    SetReachingType(reaching_type_);
+  }
 
   Value* previous_use() const { return previous_use_; }
   void set_previous_use(Value* previous) { previous_use_ = previous; }
@@ -156,6 +161,7 @@ class Value : public ZoneAllocated {
 
  private:
   friend class FlowGraphPrinter;
+  friend class FlowGraphDeserializer;  // For setting reaching_type_ directly.
 
   Definition* definition_;
   Value* previous_use_;

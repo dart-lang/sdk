@@ -3721,8 +3721,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
   const String& value =
       H.DartString(ReadStringReference());  // read index into string table.
-  const Integer& integer =
-      Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const Integer& integer = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   if (integer.IsNull()) {
     H.ReportError(script_, TokenPosition::kNoSource,
                   "Integer literal %s is out of range", value.ToCString());

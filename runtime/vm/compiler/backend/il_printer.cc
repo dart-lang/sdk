@@ -345,9 +345,7 @@ void Definition::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL &&
-      ((type_->ToNullableCid() != kDynamicCid) ||
-       !type_->ToAbstractType()->IsDynamicType() || !type_->is_nullable())) {
+  if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }

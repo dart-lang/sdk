@@ -268,6 +268,9 @@ SExpression* FlowGraphSerializer::FlowGraphToSExp() {
   AddSymbol(sexp, "FlowGraph");
   sexp->Add(CanonicalNameToSExp(flow_graph()->function()));
   AddExtraInteger(sexp, "deopt_id", start->deopt_id());
+  if (start->env() != nullptr) {
+    sexp->AddExtra("env", start->env()->ToSExpression(this));
+  }
   if (start->IsCompiledForOsr()) {
     AddExtraInteger(sexp, "osr_id", start->osr_id());
   }
@@ -325,8 +328,7 @@ SExpression* FlowGraphSerializer::ClassToSExp(const Class& cls) {
 static bool ShouldSerializeType(CompileType* type) {
   return (FLAG_verbose_flow_graph_serialization ||
           FLAG_serialize_flow_graph_types) &&
-         type != NULL &&
-         (type->ToNullableCid() != kDynamicCid || !type->is_nullable());
+         type != nullptr;
 }
 
 SExpression* FlowGraphSerializer::FieldToSExp(const Field& field) {
@@ -399,36 +401,43 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   }
   ASSERT(t.IsType());
   AddSymbol(sexp, "Type");
-  const auto& typ = Type::Cast(t);
-  if (!typ.token_pos().IsNoSource()) {
-    AddExtraInteger(sexp, "token_pos", typ.token_pos().value());
+  const auto& type = Type::Cast(t);
+  if (!type.token_pos().IsNoSource()) {
+    AddExtraInteger(sexp, "token_pos", type.token_pos().value());
   }
   // We want to check for the type being recursive before we may serialize
   // any sub-parts that include possible TypeRefs to this type.
-  if (typ.IsRecursive()) {
-    AddExtraInteger(sexp, "hash", typ.Hash());
-    open_recursive_types_.Insert(typ.Hash(), &typ);
+  const bool is_recursive = type.IsRecursive();
+  intptr_t hash = 0;
+  if (is_recursive) {
+    hash = type.Hash();
+    AddExtraInteger(sexp, "hash", hash);
+    open_recursive_types_.Insert(hash, &type);
   }
-  if (typ.HasTypeClass()) {
-    type_class_ = typ.type_class();
+  if (type.HasTypeClass()) {
+    type_class_ = type.type_class();
     // This avoids re-entry as long as serializing a class doesn't involve
     // serializing concrete (non-parameter, non-reference) types.
     sexp->Add(DartValueToSExp(type_class_));
-    // Since type arguments may themselves be instantiations of generic
-    // classes, we may call back into this function in the middle of printing
-    // the TypeArguments and so we must allocate a fresh handle here.
-    const auto& args = TypeArguments::Handle(zone(), typ.arguments());
-    if (auto const args_sexp = NonEmptyTypeArgumentsToSExp(args)) {
-      sexp->AddExtra("type_args", args_sexp);
-    }
   } else {
     // TODO(dartbug.com/36882): Actually structure non-class types instead of
     // just printing out this version.
-    AddString(sexp, typ.ToCString());
+    AddExtraString(sexp, "name", type.ToCString());
+  }
+  if (type.IsFunctionType()) {
+    type_function_ = type.signature();
+    sexp->AddExtra("signature", DartValueToSExp(type_function_));
+  }
+  // Since type arguments may themselves be instantiations of generic
+  // types, we may call back into this function in the middle of printing
+  // the TypeArguments and so we must allocate a fresh handle here.
+  const auto& args = TypeArguments::Handle(zone(), type.arguments());
+  if (auto const args_sexp = NonEmptyTypeArgumentsToSExp(args)) {
+    sexp->AddExtra("type_args", args_sexp);
   }
   // If we were parsing a recursive type, we're now done building it, so
   // remove it from the open recursive types.
-  if (typ.IsRecursive()) open_recursive_types_.Remove(typ.Hash());
+  if (is_recursive) open_recursive_types_.Remove(hash);
   return sexp;
 }
 
@@ -681,15 +690,19 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
   AddSymbol(constant_list, "Constants");
   for (intptr_t i = 0; i < initial_defs->length(); i++) {
     ASSERT(initial_defs->At(i)->IsConstant());
-    ConstantInstr* value = initial_defs->At(i)->AsConstant();
+    auto const definition = initial_defs->At(i)->AsDefinition();
     auto elem = new (zone()) SExpList(zone());
     AddSymbol(elem, "def");
-    elem->Add(UseToSExp(value->AsDefinition()));
+    elem->Add(UseToSExp(definition));
     // Use ObjectToSExp here, not DartValueToSExp!
-    elem->Add(ObjectToSExp(value->value()));
-    if (ShouldSerializeType(value->AsDefinition()->Type())) {
-      auto const val = value->AsDefinition()->Type()->ToSExpression(this);
-      elem->AddExtra("type", val);
+    elem->Add(ObjectToSExp(definition->AsConstant()->value()));
+    // Check this first, otherwise Type() can have the side effect of setting
+    // a new CompileType!
+    if (definition->HasType()) {
+      auto const type = definition->Type();
+      if (ShouldSerializeType(type)) {
+        elem->AddExtra("type", type->ToSExpression(this));
+      }
     }
     constant_list->Add(elem);
   }
@@ -869,6 +882,7 @@ void StoreInstanceFieldInstr::AddOperandsToSExpression(
 void StoreInstanceFieldInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
   if (is_initialization_ || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraBool(sexp, "is_init", is_initialization_);
   }
@@ -940,6 +954,7 @@ void GotoInstr::AddOperandsToSExpression(SExpList* sexp,
 void DebugStepCheckInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
+  Instruction::AddExtraInfoToSExpression(sexp, s);
   if (stub_kind_ != RawPcDescriptors::kAnyKind ||
       FLAG_verbose_flow_graph_serialization) {
     auto const stub_kind_name = RawPcDescriptors::KindToCString(stub_kind_);
@@ -1074,6 +1089,16 @@ void StaticCallInstr::AddExtraInfoToSExpression(SExpList* sexp,
     ASSERT(str != nullptr);
     s->AddExtraSymbol(sexp, "rebind_rule", str);
   }
+
+  if (result_type() != nullptr) {
+    sexp->AddExtra("result_type", result_type()->ToSExpression(s));
+  }
+
+  if (entry_kind() != Code::EntryKind::kNormal ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const kind_str = Code::EntryKindToCString(entry_kind());
+    s->AddExtraSymbol(sexp, "entry_kind", kind_str);
+  }
 }
 
 void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
@@ -1109,19 +1134,28 @@ void InstanceCallInstr::AddExtraInfoToSExpression(
   if (checked_argument_count() > 0 || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraInteger(sexp, "checked_arg_count", checked_argument_count());
   }
+
+  if (result_type() != nullptr) {
+    sexp->AddExtra("result_type", result_type()->ToSExpression(s));
+  }
+
+  if (entry_kind() != Code::EntryKind::kNormal ||
+      FLAG_verbose_flow_graph_serialization) {
+    auto const kind_str = Code::EntryKindToCString(entry_kind());
+    s->AddExtraSymbol(sexp, "entry_kind", kind_str);
+  }
 }
 
 void PolymorphicInstanceCallInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  instance_call()->AddOperandsToSExpression(sexp, s);
+  sexp->Add(instance_call()->ToSExpression(s));
 }
 
 void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  ASSERT(deopt_id() == instance_call()->deopt_id());
-  instance_call()->AddExtraInfoToSExpression(sexp, s);
+  Instruction::AddExtraInfoToSExpression(sexp, s);
   if (targets().length() > 0 || FLAG_verbose_flow_graph_serialization) {
     auto elem_list = new (s->zone()) SExpList(s->zone());
     for (intptr_t i = 0; i < targets().length(); i++) {
@@ -1258,45 +1292,52 @@ void CheckNullInstr::AddExtraInfoToSExpression(SExpList* sexp,
 
 SExpression* Value::ToSExpression(FlowGraphSerializer* s) const {
   auto name = s->UseToSExp(definition());
-  if (reaching_type_ == nullptr || reaching_type_ == definition()->type_ ||
-      !ShouldSerializeType(reaching_type_)) {
-    return name;
-  }
+  // If we're not serializing types or there is no reaching type for this use,
+  // just serialize the use as the bound name.
+  if (!ShouldSerializeType(reaching_type_)) return name;
+
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "value");
   sexp->Add(name);
-  sexp->AddExtra("type", reaching_type_->ToSExpression(s));
+  // If there is no owner for the type, then serialize the type in full.
+  // Otherwise the owner should be the definition, so we'll inherit the type
+  // from it. (That is, (value v<X>) with no explicit type info means the
+  // reaching type comes from the definition of v<X>.) We'll serialize an
+  // "inherit_type" extra info field to make this explicit when in verbose mode.
+  if (reaching_type_->owner() == nullptr) {
+    sexp->AddExtra("type", reaching_type_->ToSExpression(s));
+  } else {
+    ASSERT(reaching_type_->owner() == definition());
+  }
+  if (FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraBool(sexp, "inherit_type",
+                    reaching_type_->owner() == definition());
+  }
   return sexp;
 }
 
 SExpression* CompileType::ToSExpression(FlowGraphSerializer* s) const {
   ASSERT(FLAG_verbose_flow_graph_serialization ||
          FLAG_serialize_flow_graph_types);
-  ASSERT(cid_ != kDynamicCid || !is_nullable());
 
   auto sexp = new (s->zone()) SExpList(s->zone());
   s->AddSymbol(sexp, "CompileType");
-  if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
-    s->AddInteger(sexp, cid_);
-  }
   AddExtraInfoToSExpression(sexp, s);
   return sexp;
 }
 
 void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
                                             FlowGraphSerializer* s) const {
+  if (cid_ != kIllegalCid || FLAG_verbose_flow_graph_serialization) {
+    s->AddExtraInteger(sexp, "cid", cid_);
+  }
   // TODO(sstrickl): Currently we only print out nullable if it's false
   // (or during verbose printing). Switch this when NNBD is the standard.
   if (!is_nullable() || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraBool(sexp, "nullable", is_nullable());
   }
-  if (cid_ == kIllegalCid || cid_ == kDynamicCid ||
-      FLAG_verbose_flow_graph_serialization) {
-    if (type_ != nullptr) {
-      sexp->AddExtra("type", s->DartValueToSExp(*type_));
-    } else {
-      s->AddExtraString(sexp, "name", ToCString());
-    }
+  if (type_ != nullptr) {
+    sexp->AddExtra("type", s->DartValueToSExp(*type_));
   }
 }
 

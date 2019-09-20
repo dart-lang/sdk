@@ -5225,6 +5225,9 @@ class Code : public Object {
 
   using EntryKind = CodeEntryKind;
 
+  static const char* EntryKindToCString(EntryKind kind);
+  static bool ParseEntryKind(const char* str, EntryKind* out);
+
   static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
     switch (kind) {
       case EntryKind::kNormal:
@@ -7285,6 +7288,7 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   // Returns null if integer is out of range.
   static RawInteger* NewCanonical(const String& str);
+  static RawInteger* NewCanonical(int64_t value);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 

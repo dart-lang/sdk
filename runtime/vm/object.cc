@@ -14450,6 +14450,39 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 
 Code::Comments::Comments(const Array& comments) : comments_(comments) {}
 
+const char* Code::EntryKindToCString(EntryKind kind) {
+  switch (kind) {
+    case EntryKind::kNormal:
+      return "Normal";
+    case EntryKind::kUnchecked:
+      return "Unchecked";
+    case EntryKind::kMonomorphic:
+      return "Monomorphic";
+    case EntryKind::kMonomorphicUnchecked:
+      return "MonomorphicUnchecked";
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool Code::ParseEntryKind(const char* str, EntryKind* out) {
+  if (strcmp(str, "Normal") == 0) {
+    *out = EntryKind::kNormal;
+    return true;
+  } else if (strcmp(str, "Unchecked") == 0) {
+    *out = EntryKind::kUnchecked;
+    return true;
+  } else if (strcmp(str, "Monomorphic") == 0) {
+    *out = EntryKind::kMonomorphic;
+    return true;
+  } else if (strcmp(str, "MonomorphicUnchecked") == 0) {
+    *out = EntryKind::kMonomorphicUnchecked;
+    return true;
+  }
+  return false;
+}
+
 RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
   const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
   if (v.IsNull()) {
@@ -18657,6 +18690,10 @@ RawInteger* Integer::NewCanonical(const String& str) {
     // Out of range.
     return Integer::null();
   }
+  return NewCanonical(value);
+}
+
+RawInteger* Integer::NewCanonical(int64_t value) {
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
   }
