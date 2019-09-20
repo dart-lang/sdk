@@ -440,6 +440,7 @@ abstract class JClassData {
   ClassDefinition get definition;
 
   InterfaceType get thisType;
+  InterfaceType get jsInteropType;
   InterfaceType get rawType;
   InterfaceType get supertype;
   InterfaceType get mixedInType;
@@ -465,6 +466,8 @@ class JClassDataImpl implements JClassData {
 
   @override
   InterfaceType thisType;
+  @override
+  InterfaceType jsInteropType;
   @override
   InterfaceType rawType;
   @override

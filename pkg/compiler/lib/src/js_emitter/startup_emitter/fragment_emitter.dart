@@ -589,9 +589,12 @@ class FragmentEmitter {
   RecipeEncoder _recipeEncoder;
   RulesetEncoder _rulesetEncoder;
 
+  ClassHierarchy get _classHierarchy => _closedWorld.classHierarchy;
+  CommonElements get _commonElements => _closedWorld.commonElements;
   DartTypes get _dartTypes => _closedWorld.dartTypes;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
+  NativeData get _nativeData => _closedWorld.nativeData;
 
   js.Name _call0Name, _call1Name, _call2Name;
   js.Name get call0Name =>
@@ -1948,17 +1951,35 @@ class FragmentEmitter {
     classes.forEach((Class cls) {
       if (cls.classChecksNewRti == null) return;
       InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
-      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
-          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
+      bool isInterop = _nativeData.isJsInteropClass(cls.element);
+
+      Iterable<TypeCheck> checks = cls.classChecksNewRti.checks;
+      Iterable<InterfaceType> supertypes = isInterop
+          ? checks
+              .map((check) => _elementEnvironment.getJsInteropType(check.cls))
+          : checks
+              .map((check) => _dartTypes.asInstanceOf(targetType, check.cls));
+
       Map<TypeVariableType, DartType> typeVariables = {};
       for (TypeVariableType typeVariable in cls.namedTypeVariablesNewRti) {
         TypeVariableEntity element = typeVariable.element;
-        InterfaceType supertype =
-            _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
+        InterfaceType supertype = isInterop
+            ? _elementEnvironment.getJsInteropType(element.typeDeclaration)
+            : _dartTypes.asInstanceOf(targetType, element.typeDeclaration);
         List<DartType> supertypeArguments = supertype.typeArguments;
         typeVariables[typeVariable] = supertypeArguments[element.index];
       }
-      ruleset.add(targetType, supertypes, typeVariables);
+
+      if (isInterop) {
+        _classHierarchy
+            .subtypesOf(_commonElements.jsJavaScriptObjectClass)
+            .forEach((ClassEntity interceptor) {
+          ruleset.add(_elementEnvironment.getThisType(interceptor), supertypes,
+              typeVariables);
+        });
+      } else {
+        ruleset.add(targetType, supertypes, typeVariables);
+      }
     });
 
     FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;

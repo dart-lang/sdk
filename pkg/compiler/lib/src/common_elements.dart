@@ -2253,6 +2253,10 @@ abstract class ElementEnvironment {
   /// where all types arguments are `dynamic`.
   InterfaceType getRawType(ClassEntity cls);
 
+  /// Returns the 'JS-interop type' of [cls]; that is, the instantiation of
+  /// [cls] where all type arguments are 'any'.
+  InterfaceType getJsInteropType(ClassEntity cls);
+
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].
   InterfaceType getThisType(ClassEntity cls);
