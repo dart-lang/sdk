@@ -27,7 +27,7 @@ char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
-bool Platform::Initialize() {
+bool Platform::InitOnce() {
   return true;
 }
 

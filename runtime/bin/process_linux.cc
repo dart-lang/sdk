@@ -1020,9 +1020,12 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 }
 
 void Process::ClearSignalHandler(intptr_t signal, Dart_Port port) {
-  // Either the port is illegal or there is no current isolate, but not both.
-  ASSERT((port != ILLEGAL_PORT) || (Dart_CurrentIsolate() == NULL));
-  ASSERT((port == ILLEGAL_PORT) || (Dart_CurrentIsolate() != NULL));
+  // If the port is illegal there shouldn't be a current isolate and we should
+  // clear all signal handlers. Otherwise, if the port is legal there should be
+  // a current isolate and we should only clear signals for handlers for that
+  // isolate.
+  ASSERT(((port != ILLEGAL_PORT) && (Dart_CurrentIsolate() != NULL)) ||
+         ((port == ILLEGAL_PORT) && (Dart_CurrentIsolate() == NULL)));
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;

@@ -853,7 +853,7 @@ int main(int argc, char** argv) {
   }
   DartUtils::SetEnvironment(environment);
 
-  if (!Platform::Initialize()) {
+  if (!Platform::InitOnce()) {
     Syslog::PrintErr("Initialization failed\n");
     return kErrorExitCode;
   }

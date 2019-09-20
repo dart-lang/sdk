@@ -7,6 +7,7 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/isolate_data.h"
+#include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -14,7 +15,7 @@
 namespace dart {
 namespace embedder {
 
-static char* MallocFormatedString(const char* format, ...) {
+static char* MallocFormattedString(const char* format, ...) {
   va_list args;
   va_start(args, format);
   intptr_t len = vsnprintf(NULL, 0, format, args);
@@ -32,8 +33,14 @@ static char* MallocFormatedString(const char* format, ...) {
 bool InitOnce(char** error) {
   if (!bin::DartUtils::SetOriginalWorkingDirectory()) {
     bin::OSError err;
-    *error = MallocFormatedString("Error determining current directory: %s\n",
-                                  err.message());
+    *error = MallocFormattedString("Error determining current directory: %s\n",
+                                   err.message());
+    return false;
+  }
+  if (!bin::Platform::InitOnce()) {
+    bin::OSError err;
+    *error = MallocFormattedString("Platform initialization failed: %s\n",
+                                   err.message());
     return false;
   }
   bin::TimerUtils::InitOnce();

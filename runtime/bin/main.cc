@@ -879,6 +879,11 @@ static void ReadFile(const char* filename, uint8_t** buffer, intptr_t* size) {
   file->Release();
 }
 
+static void ShutdownDartIO() {
+  Process::ClearAllSignalHandlers();
+  EventHandler::Stop();
+}
+
 bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   // Call CreateIsolateGroupAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -903,8 +908,7 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
       Syslog::PrintErr("VM cleanup failed: %s\n", error);
       free(error);
     }
-    Process::ClearAllSignalHandlers();
-    EventHandler::Stop();
+    ShutdownDartIO();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   main_isolate = isolate;
@@ -1054,9 +1058,13 @@ void main(int argc, char** argv) {
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
 
-  // Perform platform specific initialization.
-  if (!Platform::Initialize()) {
-    Syslog::PrintErr("Initialization failed\n");
+  // This call will start the event handler, potentially before all VM state
+  // has been initialized. This shouldn't cause any issues since the thread will
+  // block before doing anything.
+  char* error = nullptr;
+  if (!dart::embedder::InitOnce(&error)) {
+    Syslog::PrintErr("Standalone embedder initialization failed: %s\n", error);
+    free(error);
     Platform::Exit(kErrorExitCode);
   }
 
@@ -1105,9 +1113,11 @@ void main(int argc, char** argv) {
                                 &verbose_debug_seen) < 0) {
       if (Options::help_option()) {
         Options::PrintUsage();
+        ShutdownDartIO();
         Platform::Exit(0);
       } else if (Options::version_option()) {
         Options::PrintVersion();
+        ShutdownDartIO();
         Platform::Exit(0);
       } else if (print_flags_seen) {
         // Will set the VM flags, print them out and then we exit as no
@@ -1122,6 +1132,7 @@ void main(int argc, char** argv) {
         Platform::Exit(0);
       } else {
         Options::PrintUsage();
+        ShutdownDartIO();
         Platform::Exit(kErrorExitCode);
       }
     }
@@ -1145,6 +1156,7 @@ void main(int argc, char** argv) {
     if (shared_blobs == NULL) {
       Syslog::PrintErr("Failed to load: %s\n",
                        Options::shared_blobs_filename());
+      ShutdownDartIO();
       Platform::Exit(kErrorExitCode);
     }
     const uint8_t* ignored;
@@ -1172,13 +1184,6 @@ void main(int argc, char** argv) {
   if ((Options::gen_snapshot_kind() == kAppJIT) ||
       (Options::depfile() != NULL)) {
     Process::SetExitHook(OnExitHook);
-  }
-
-  char* error = nullptr;
-  if (!dart::embedder::InitOnce(&error)) {
-    Syslog::PrintErr("Standalone embedder initialization failed: %s\n", error);
-    free(error);
-    Platform::Exit(kErrorExitCode);
   }
 
   error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
@@ -1254,8 +1259,7 @@ void main(int argc, char** argv) {
     Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
-  Process::ClearAllSignalHandlers();
-  EventHandler::Stop();
+  ShutdownDartIO();
 
   delete app_snapshot;
   delete shared_blobs;
