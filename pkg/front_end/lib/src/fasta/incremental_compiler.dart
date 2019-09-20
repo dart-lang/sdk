@@ -6,6 +6,9 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/dill/dill_class_builder.dart'
+    show DillClassBuilder;
+
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_from_binary.dart'
@@ -48,7 +51,7 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart' show ClassBuilder, LibraryBuilder;
+import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -311,7 +314,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         // Reset dill loaders and kernel class hierarchy.
         for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
           if (builder is DillLibraryBuilder) {
-            builder.isBuiltAndMarked = false;
+            if (builder.isBuiltAndMarked) {
+              // Clear cached calculations in classes which upon calculation can
+              // mark things as needed.
+              for (Builder builder in builder.scope.local.values) {
+                if (builder is DillClassBuilder) {
+                  builder.supertype = null;
+                  builder.interfaces = null;
+                }
+              }
+              builder.isBuiltAndMarked = false;
+            }
           }
         }
 
