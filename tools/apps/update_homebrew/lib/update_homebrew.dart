@@ -13,7 +13,7 @@ const githubRepo = 'dart-lang/homebrew-dart';
 
 const dartRbFileName = 'dart.rb';
 
-Iterable<String> get supportedChannels => _files.keys;
+Iterable<String> get supportedChannels => _osFiles.keys;
 
 Future<void> writeHomebrewInfo(
     String channel, String revision, String repository) async {
