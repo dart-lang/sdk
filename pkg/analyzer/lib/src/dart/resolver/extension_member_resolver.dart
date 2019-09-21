@@ -291,17 +291,38 @@ class ExtensionMemberResolver {
       for (var field in extension.fields) {
         if (field.name == name) {
           candidates.add(
-            _CandidateExtension(extension, field: field),
+            _CandidateExtension(
+              extension,
+              getter: field.getter,
+              setter: field.setter,
+            ),
           );
           return;
         }
       }
-      for (var method in extension.methods) {
-        if (method.name == name) {
+      if (name == '[]') {
+        ExecutableElement getter;
+        ExecutableElement setter;
+        for (var method in extension.methods) {
+          if (method.name == '[]') {
+            getter = method;
+          } else if (method.name == '[]=') {
+            setter = method;
+          }
+        }
+        if (getter != null || setter != null) {
           candidates.add(
-            _CandidateExtension(extension, method: method),
+            _CandidateExtension(extension, getter: getter, setter: setter),
           );
-          return;
+        }
+      } else {
+        for (var method in extension.methods) {
+          if (method.name == name) {
+            candidates.add(
+              _CandidateExtension(extension, getter: method),
+            );
+            return;
+          }
         }
       }
     }
@@ -429,11 +450,11 @@ class ExtensionMemberResolver {
 
 class _CandidateExtension {
   final ExtensionElement extension;
-  final FieldElement field;
-  final MethodElement method;
+  final ExecutableElement getter;
+  final ExecutableElement setter;
 
-  _CandidateExtension(this.extension, {this.field, this.method})
-      : assert(field != null || method != null);
+  _CandidateExtension(this.extension, {this.getter, this.setter})
+      : assert(getter != null || setter != null);
 }
 
 class _InstantiatedExtension {
@@ -444,22 +465,22 @@ class _InstantiatedExtension {
   _InstantiatedExtension(this.candidate, this.substitution, this.extendedType);
 
   ResolutionResult get asResolutionResult {
-    return ResolutionResult(function: method, property: field);
+    return ResolutionResult(getter: getter, setter: setter);
   }
 
   ExtensionElement get extension => candidate.extension;
 
-  FieldElement get field {
-    if (candidate.field == null) {
+  ExecutableElement get getter {
+    if (candidate.getter == null) {
       return null;
     }
-    return FieldMember.from2(candidate.field, substitution);
+    return ExecutableMember.from2(candidate.getter, substitution);
   }
 
-  MethodElement get method {
-    if (candidate.method == null) {
+  ExecutableElement get setter {
+    if (candidate.setter == null) {
       return null;
     }
-    return MethodMember.from2(candidate.method, substitution);
+    return ExecutableMember.from2(candidate.setter, substitution);
   }
 }

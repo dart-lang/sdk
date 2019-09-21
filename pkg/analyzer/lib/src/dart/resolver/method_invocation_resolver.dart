@@ -747,7 +747,7 @@ class MethodInvocationResolver {
         var result = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName);
         if (result.isSingle) {
-          call = result.function;
+          call = result.getter;
         } else if (result.isAmbiguous) {
           return;
         }
