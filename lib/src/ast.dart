@@ -102,9 +102,12 @@ bool isDefinedInLib(CompilationUnit compilationUnit) {
     return false;
   }
 
-  // TODO(devoncarew): Change to using the resource provider on the context
-  // when that is available.
-  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  final resourceProvider =
+      compilationUnit?.declaredElement?.session?.resourceProvider;
+  if (resourceProvider == null) {
+    return false;
+  }
+
   File file = resourceProvider.getFile(fullName);
   Folder folder = file.parent;
 
