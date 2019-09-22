@@ -1410,6 +1410,7 @@ void Precompiler::DropFunctions() {
         function ^= functions.At(j);
         bool retain = functions_to_retain_.ContainsKey(function);
         function.DropUncompiledImplicitClosureFunction();
+        function.ClearBytecode();
         if (retain) {
           retained_functions.Add(function);
         } else {
@@ -1435,6 +1436,7 @@ void Precompiler::DropFunctions() {
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
     bool retain = functions_to_retain_.ContainsKey(function);
+    function.ClearBytecode();
     if (retain) {
       retained_functions.Add(function);
     } else {
@@ -1455,6 +1457,7 @@ void Precompiler::DropFields() {
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
+  Function& initializer_function = Function::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1470,6 +1473,10 @@ void Precompiler::DropFields() {
       for (intptr_t j = 0; j < fields.Length(); j++) {
         field ^= fields.At(j);
         bool retain = fields_to_retain_.HasKey(&field);
+        if (field.HasInitializerFunction()) {
+          initializer_function = field.InitializerFunction();
+          initializer_function.ClearBytecode();
+        }
         if (retain) {
           retained_fields.Add(field);
           type = field.type();

@@ -538,8 +538,9 @@ void RegisterTypeArgumentsUse(const Function& function,
           klass, declaration_type_args);
     }
   } else {
-    // It can also be a phi node where the inputs are any of the above.
-    ASSERT(type_arguments->IsPhi());
+    // It can also be a phi node where the inputs are any of the above,
+    // or it could be the result of _prependTypeArguments call.
+    ASSERT(type_arguments->IsPhi() || type_arguments->IsStaticCall());
   }
 }
 
