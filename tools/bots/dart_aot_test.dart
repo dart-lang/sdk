@@ -5,6 +5,7 @@
 
 // Test program for Dart AOT (dart2aot, dartaotruntime).
 
-main(List<String> args) async {
-  print('Hello, 世界.');
+void main(List<String> args) async {
+  final String who = !args.isEmpty ? args[0] : '世界';
+  print('Hello, ${who}.');
 }

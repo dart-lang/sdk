@@ -179,9 +179,12 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotBlobs(
   if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
     return nullptr;
   }
+  // Length is always encoded as Little Endian.
+  const uint64_t appended_length =
+      Utils::LittleEndianToHost64(appended_header[0]);
   if (memcmp(&appended_header[1], appjit_magic_number.bytes,
              appjit_magic_number.length) != 0 ||
-      appended_header[0] <= 0 || !file->SetPosition(appended_header[0])) {
+      appended_length <= 0 || !file->SetPosition(appended_length)) {
     return nullptr;
   }
 

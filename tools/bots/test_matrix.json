@@ -1611,8 +1611,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "out/ReleaseX64/dart",
+          "name": "run AOT and Exe smoke tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
@@ -1661,8 +1661,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "xcodebuild/ReleaseX64/dart",
+          "name": "run AOT and Exe smoke tests",
+          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
@@ -1698,8 +1698,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "out/ReleaseX64/dart.exe",
+          "name": "run AOT and Exe smoke tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart.exe",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
