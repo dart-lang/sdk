@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, FunctionType;
 import 'package:analyzer/dart/element/type.dart';
@@ -14,6 +15,8 @@ import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+
+import 'type_utilities.dart';
 
 class Tuple2<T0, T1> {
   final T0 e0;
@@ -29,9 +32,12 @@ class Tuple2<T0, T1> {
 /// [instantiateElementTypeToBounds] should be used instead.
 InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
   if (t.typeArguments.isNotEmpty) {
-    var rawT = t.element.type;
-    var dyn = List.filled(rawT.typeArguments.length, DynamicTypeImpl.instance);
-    return rawT.substitute2(dyn, rawT.typeArguments);
+    var dyn =
+        List.filled(t.element.typeParameters.length, DynamicTypeImpl.instance);
+    return t.element.instantiate(
+      typeArguments: dyn,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
   return t;
 }
@@ -63,14 +69,14 @@ DartType instantiateElementTypeToBounds(
     } else if (e is FunctionTypedElement) {
       type = e.type;
     } else if (e is ClassElement) {
-      type = e.type;
+      type = getLegacyRawClassType(e);
     }
     var bounds = rules.instantiateTypeFormalsToBounds(e.typeParameters);
     if (bounds == null) return type;
     return type.substitute2(
         bounds, TypeParameterTypeImpl.getTypes(e.typeParameters));
   }
-  return element.type;
+  return getLegacyElementType(element);
 }
 
 /// Given an [element] and a [test] function, returns the first matching
@@ -253,7 +259,8 @@ bool isCallableClass(ClassElement c) {
   // * `dynamic d; d();` without a declared `call` method is handled by dcall.
   // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
   //   the `call` method on the `Callable` interface.
-  var callMethod = c.type.lookUpInheritedGetterOrMethod('call');
+  var callMethod =
+      getLegacyRawClassType(c).lookUpInheritedGetterOrMethod('call');
   return callMethod is PropertyAccessorElement
       ? callMethod.returnType is FunctionType
       : callMethod != null;
