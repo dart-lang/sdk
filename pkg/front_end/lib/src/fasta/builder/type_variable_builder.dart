@@ -79,6 +79,12 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
       charOffset,
       fileUri);
 
+  int get variance => parameter.variance;
+
+  void set variance(int value) {
+    parameter.variance = variance;
+  }
+
   DartType buildType(LibraryBuilder library, Nullability nullability,
       List<TypeBuilder> arguments) {
     // TODO(dmitryas): Use [nullability].

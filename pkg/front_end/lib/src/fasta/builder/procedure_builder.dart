@@ -6,7 +6,7 @@ library fasta.procedure_builder;
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/type_algebra.dart';
 

@@ -195,6 +195,7 @@ import '../kernel/metadata_collector.dart';
 import '../kernel/type_algorithms.dart'
     show
         calculateBounds,
+        computeVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables;
@@ -1976,6 +1977,12 @@ class SourceLibraryBuilder extends LibraryBuilder {
       List<TypeVariableBuilder> typeVariables,
       FunctionTypeBuilder type,
       int charOffset) {
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; ++i) {
+        TypeVariableBuilder variable = typeVariables[i];
+        variable.variance = computeVariance(variable, type);
+      }
+    }
     TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
     loader.target.metadataCollector

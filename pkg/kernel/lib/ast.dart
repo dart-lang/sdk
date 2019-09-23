@@ -5937,6 +5937,63 @@ class TypeParameterType extends DartType {
   }
 }
 
+/// Value set for variance of a type parameter X in a type term T.
+class Variance {
+  /// Used when X does not occur free in T.
+  static const int unrelated = 0;
+
+  /// Used when X occurs free in T, and U <: V implies [U/X]T <: [V/X]T.
+  static const int covariant = 1;
+
+  /// Used when X occurs free in T, and U <: V implies [V/X]T <: [U/X]T.
+  static const int contravariant = 2;
+
+  /// Used when there exists a pair U and V such that U <: V, but [U/X]T and
+  /// [V/X]T are incomparable.
+  static const int invariant = 3;
+
+  /// Variance values form a lattice where [unrelated] is the top, [invariant]
+  /// is the bottom, and [covariant] and [contravariant] are incomparable.
+  /// [meet] calculates the meet of two elements of such lattice.  It can be
+  /// used, for example, to calculate the variance of a typedef type parameter
+  /// if it's encountered on the r.h.s. of the typedef multiple times.
+  static int meet(int a, int b) => a | b;
+
+  /// Combines variances of X in T and Y in S into variance of X in [Y/T]S.
+  ///
+  /// Consider the following examples:
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// List<Y> is [covariant], so variance of X in List<Function(X)> is
+  /// [contravariant];
+  ///
+  /// * variance of X in List<X> is [covariant], variance of Y in Function(Y) is
+  /// [contravariant], so variance of X in Function(List<X>) is [contravariant];
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// Function(Y) is [contravariant], so variance of X in Function(Function(X))
+  /// is [covariant];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef F<Z> = Function();
+  ///
+  /// then variance of X in F<X> is [unrelated], variance of Y in List<Y> is
+  /// [covariant], so variance of X in List<F<X>> is [unrelated];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef G<Z> = Z Function(Z);
+  ///
+  /// then variance of X in List<X> is [covariant], variance of Y in G<Y> is
+  /// [invariant], so variance of `X` in `G<List<X>>` is [invariant].
+  static int combine(int a, int b) {
+    if (a == unrelated || b == unrelated) return unrelated;
+    if (a == invariant || b == invariant) return invariant;
+    return a == b ? covariant : contravariant;
+  }
+}
+
 /// Declaration of a type variable.
 ///
 /// Type parameters declared in a [Class] or [FunctionNode] are part of the AST,
@@ -5969,6 +6026,12 @@ class TypeParameter extends TreeNode {
   /// [defaultType] is used by the backends in place of the missing type
   /// argument of a dynamic invocation of a generic function.
   DartType defaultType;
+
+  /// Describes variance of the type parameter w.r.t. declaration on which it is
+  /// defined.  It's always [Variance.covariant] for classes, and for typedefs
+  /// it's the variance of the type parameters in the type term on the r.h.s. of
+  /// the typedef.
+  int variance = Variance.covariant;
 
   TypeParameter([this.name, this.bound, this.defaultType]);
 

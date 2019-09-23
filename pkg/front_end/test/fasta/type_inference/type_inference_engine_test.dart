@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide Variance;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

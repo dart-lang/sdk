@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 

@@ -15,11 +15,10 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
-
-import 'package:kernel/src/bounds_checks.dart' show Variance;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
@@ -47,7 +46,7 @@ import '../fasta_codes.dart'
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
 
-export 'package:kernel/src/bounds_checks.dart' show Variance;
+export 'package:kernel/ast.dart' show Variance;
 
 // Computes the variance of a variable in a type.  The function can be run
 // before the types are resolved to compute variances of typedefs' type
