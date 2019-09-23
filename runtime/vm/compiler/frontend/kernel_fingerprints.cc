@@ -442,6 +442,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kNot:
       CalculateExpressionFingerprint();  // read expression.
       return;
+    case kNullCheck:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read expression.
+      return;
     case kLogicalExpression:
       CalculateExpressionFingerprint();  // read left.
       SkipBytes(1);                      // read operator.

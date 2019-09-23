@@ -3901,6 +3901,37 @@ class AsExpression extends Expression {
   }
 }
 
+/// Null check expression of form `x!`.
+///
+/// This expression was added as part of NNBD and is currently only created when
+/// the 'non-nullable' experimental feature is enabled.
+class NullCheck extends Expression {
+  Expression operand;
+
+  NullCheck(this.operand) {
+    operand?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(types))`.
+      operand.getStaticType(types);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitNullCheck(this, arg);
+
+  visitChildren(Visitor v) {
+    operand?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (operand != null) {
+      operand = operand.accept<TreeNode>(v);
+      operand?.parent = this;
+    }
+  }
+}
+
 /// An integer, double, boolean, string, or null constant.
 abstract class BasicLiteral extends Expression {
   Object get value;

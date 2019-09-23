@@ -1495,6 +1495,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.operand);
   }
 
+  @override
+  void visitNullCheck(NullCheck node) {
+    writeByte(Tag.NullCheck);
+    writeOffset(node.fileOffset);
+    writeNode(node.operand);
+  }
+
   int logicalOperatorIndex(String operator) {
     switch (operator) {
       case '&&':

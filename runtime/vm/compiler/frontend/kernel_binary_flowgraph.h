@@ -301,6 +301,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildStaticInvocation(bool is_const, TokenPosition* position);
   Fragment BuildConstructorInvocation(bool is_const, TokenPosition* position);
   Fragment BuildNot(TokenPosition* position);
+  Fragment BuildNullCheck(TokenPosition* position);
   Fragment BuildLogicalExpression(TokenPosition* position);
   Fragment TranslateLogicalExpressionForValue(bool negated,
                                               TestFragment* side_exits);

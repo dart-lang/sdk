@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 32;
+  UInt32 formatVersion = 33;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -700,6 +700,12 @@ type ConstConstructorInvocation extends Expression {
 
 type Not extends Expression {
   Byte tag = 33;
+  Expression operand;
+}
+
+type NullCheck extends Expression {
+  Byte tag = 117;
+  FileOffset fileOffset;
   Expression operand;
 }
 

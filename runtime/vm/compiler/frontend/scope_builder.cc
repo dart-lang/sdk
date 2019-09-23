@@ -763,6 +763,10 @@ void ScopeBuilder::VisitExpression() {
     case kNot:
       VisitExpression();  // read expression.
       return;
+    case kNullCheck:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
+      return;
     case kLogicalExpression:
       needs_expr_temp_ = true;
       VisitExpression();     // read left.

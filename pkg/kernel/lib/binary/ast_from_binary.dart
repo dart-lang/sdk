@@ -1661,6 +1661,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
+      case Tag.NullCheck:
+        int offset = readOffset();
+        return new NullCheck(readExpression())..fileOffset = offset;
       case Tag.LogicalExpression:
         return new LogicalExpression(readExpression(),
             logicalOperatorToString(readByte()), readExpression());

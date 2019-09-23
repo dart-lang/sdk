@@ -2746,9 +2746,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleNonNullAssertExpression(Token bang) {
+    assert(checkState(bang, [
+      unionOfKinds([ValueKind.Expression, ValueKind.Generator])
+    ]));
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
+    Object operand = pop();
+    Expression expression;
+    if (operand is Generator) {
+      expression = operand.buildSimpleRead();
+    } else {
+      assert(operand is Expression);
+      expression = operand;
+    }
+    push(forest.createNullCheck(offsetForToken(bang), expression));
   }
 
   @override

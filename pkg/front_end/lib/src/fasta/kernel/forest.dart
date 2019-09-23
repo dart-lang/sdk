@@ -723,6 +723,10 @@ class Forest {
     return new SuperMethodInvocation(name, arguments, procedure)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
+
+  NullCheck createNullCheck(int fileOffset, Expression expression) {
+    return new NullCheck(expression)..fileOffset = fileOffset;
+  }
 }
 
 class _VariablesDeclaration extends Statement {

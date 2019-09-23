@@ -4895,6 +4895,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitNullCheck(NullCheck node) {
+    throw UnimplementedError('Unimplemented null check expression: $node');
+  }
+
+  @override
   js_ast.Expression visitLogicalExpression(LogicalExpression node) {
     // The operands of logical boolean operators are subject to boolean
     // conversion.

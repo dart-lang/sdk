@@ -650,6 +650,12 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitNullCheck(NullCheck node) {
+    // TODO(johnniwinther): Return `NonNull(visitExpression(types))`.
+    return visitExpression(node.operand);
+  }
+
+  @override
   DartType visitNullLiteral(NullLiteral node) {
     return const BottomType();
   }

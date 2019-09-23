@@ -838,6 +838,7 @@ instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was:
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
 nnbd/late: TextSerializationFailure
+nnbd/null_check: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass

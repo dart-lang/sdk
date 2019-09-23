@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  method method() → core::int?
+    return this.{self::Class::field};
+  operator +(self::Class other) → self::Class
+    return new self::Class::•();
+}
+static method main() → dynamic {
+  self::Class? c = new self::Class::•();
+  c!;
+  c!.{self::Class::field};
+  c!.{self::Class::field} = 42;
+  c!.{self::Class::method};
+  c!.{self::Class::method}();
+  c!.{self::Class::field}!.{core::int::toString}();
+  c!.{self::Class::method}()!.{core::int::toString}();
+  c!.{self::Class::+}(c);
+  c!.{self::Class::+}(c!);
+  c.{self::Class::+}(c!);
+  c.{self::Class::+}(c)!;
+  core::bool? o = true;
+  !o! ?{core::bool} !o! : !!o!!;
+  !o! ?{core::bool} (!o)! : (!(!o)!)!;
+}

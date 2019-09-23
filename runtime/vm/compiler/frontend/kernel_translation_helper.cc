@@ -2229,6 +2229,10 @@ void KernelReaderHelper::SkipExpression() {
     case kNot:
       SkipExpression();  // read expression.
       return;
+    case kNullCheck:
+      ReadPosition();    // read position.
+      SkipExpression();  // read expression.
+      return;
     case kLogicalExpression:
       SkipExpression();  // read left.
       SkipBytes(1);      // read operator.

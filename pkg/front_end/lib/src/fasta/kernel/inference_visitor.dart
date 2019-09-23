@@ -1880,6 +1880,20 @@ class InferenceVisitor
     return new ExpressionInferenceResult(boolType);
   }
 
+  @override
+  ExpressionInferenceResult visitNullCheck(
+      NullCheck node, DartType typeContext) {
+    // TODO(johnniwinther): Should the typeContext for the operand be
+    //  `Nullable(typeContext)`?
+    DartType inferredType = inferrer
+        .inferExpression(node.operand, typeContext, !inferrer.isTopLevel)
+        .inferredType;
+    // TODO(johnniwinther): Check that the inferred type is potentially
+    //  nullable.
+    // TODO(johnniwinther): Return `NonNull(inferredType)`.
+    return new ExpressionInferenceResult(inferredType);
+  }
+
   ExpressionInferenceResult visitNullAwareMethodInvocation(
       NullAwareMethodInvocation node, DartType typeContext) {
     inferrer.inferStatement(node.variable);

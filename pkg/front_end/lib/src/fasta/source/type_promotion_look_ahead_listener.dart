@@ -1361,6 +1361,12 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
+  void handleNonNullAssertExpression(Token token) {
+    debugEvent("NonNullAssertExpression", token);
+    state.popPushNull("%NonNullAssertExpression%", token);
+  }
+
+  @override
   void handleUnescapeError(
       Message message, Token location, int stringOffset, int length) {
     debugEvent("UnescapeError", location);
