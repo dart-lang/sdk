@@ -125,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
-  
+
   bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
   bool _isHashSet(Expression expression) => DartTypeUtilities.isClass(
       expression.staticType, 'LinkedHashSet', 'dart.collection');
