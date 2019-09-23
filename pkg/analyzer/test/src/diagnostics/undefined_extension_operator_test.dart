@@ -22,52 +22,29 @@ class UndefinedExtensionMethodTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_method_defined() async {
+  test_binary_defined() async {
     await assertNoErrorsInCode('''
 extension E on String {
-  int m() => 0;
+  void operator +(int offset) {}
 }
 f() {
-  E('a').m();
+  E('a') + 1;
 }
 ''');
   }
 
-  test_method_undefined() async {
+  test_binary_undefined() async {
     await assertErrorsInCode('''
 extension E on String {}
 f() {
-  E('a').m();
+  E('a') + 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1),
     ]);
-    var invocation = findNode.methodInvocation('m();');
-    assertMethodInvocation(
-      invocation,
-      null,
-      'dynamic',
-      expectedType: 'dynamic',
-    );
-  }
-
-  test_static_withInference() async {
-    await assertErrorsInCode('''
-extension E on Object {}
-var a = E.m();
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 35, 1),
-    ]);
-  }
-
-  test_static_withoutInference() async {
-    await assertErrorsInCode('''
-extension E on Object {}
-void f() {
-  E.m();
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
-    ]);
+    var binaryExpression = findNode.binary('+ 1');
+    assertElementNull(binaryExpression);
+    assertInvokeTypeNull(binaryExpression);
+    assertTypeDynamic(binaryExpression);
   }
 }

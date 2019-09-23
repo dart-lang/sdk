@@ -3960,6 +3960,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the operator that is undefined
+   * 1: the name of the extension that was explicitly specified
+   */
+  static const CompileTimeErrorCode UNDEFINED_EXTENSION_OPERATOR =
+      const CompileTimeErrorCode('UNDEFINED_EXTENSION_OPERATOR',
+          "The operator '{0}' isn't defined for the extension '{1}'.",
+          correction: "Try defining the operator '{0}'.");
+
+  /**
+   * Parameters:
    * 0: the name of the setter that is undefined
    * 1: the name of the extension that was explicitly specified
    */

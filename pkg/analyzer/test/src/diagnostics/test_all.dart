@@ -293,6 +293,7 @@ import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
+import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
 import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
@@ -527,6 +528,7 @@ main() {
     undefined_class.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
+    undefined_extension_operator.main();
     undefined_extension_setter.main();
     undefined_getter.main();
     undefined_hidden_name.main();

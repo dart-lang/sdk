@@ -1428,7 +1428,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         MethodElement member = element.getMethod(methodName);
         if (member == null) {
           _resolver.errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
               node.operator,
               [methodName, element.name]);
         }
