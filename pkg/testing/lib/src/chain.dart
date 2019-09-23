@@ -21,15 +21,7 @@ import 'zone_helper.dart' show runGuarded;
 
 import 'error_handling.dart' show withErrorHandling;
 
-import 'log.dart'
-    show
-        logMessage,
-        logStepComplete,
-        logStepStart,
-        logSuiteComplete,
-        logTestComplete,
-        logUnexpectedResult,
-        splitLines;
+import 'log.dart' show Logger, StdoutLogger, splitLines;
 
 import 'multitest.dart' show MultitestTransformer, isError;
 
@@ -112,7 +104,9 @@ abstract class ChainContext {
   ExpectationSet get expectationSet => ExpectationSet.Default;
 
   Future<Null> run(Chain suite, Set<String> selectors,
-      {int shards = 1, int shard = 0}) async {
+      {int shards = 1,
+      int shard = 0,
+      Logger logger: const StdoutLogger()}) async {
     assert(shards >= 1, "Invalid shards count: $shards");
     assert(0 <= shard && shard < shards,
         "Invalid shard index: $shard, not in range [0,$shards[.");
@@ -182,8 +176,8 @@ abstract class ChainContext {
           Step step = iterator.current;
           lastStepRun = step;
           isAsync = step.isAsync;
-          logStepStart(completed, unexpectedResults.length, descriptions.length,
-              suite, description, step);
+          logger.logStepStart(completed, unexpectedResults.length,
+              descriptions.length, suite, description, step);
           // TODO(ahe): It's important to share the zone error reporting zone
           // between all the tasks. Otherwise, if a future completes with an
           // error in one zone, and gets stored, it becomes an uncaught error
@@ -201,7 +195,7 @@ abstract class ChainContext {
         future = future.then((_currentResult) async {
           Result currentResult = _currentResult;
           if (currentResult != null) {
-            logStepComplete(completed, unexpectedResults.length,
+            logger.logStepComplete(completed, unexpectedResults.length,
                 descriptions.length, suite, description, lastStepRun);
             result = currentResult;
             if (currentResult.outcome == Expectation.Pass) {
@@ -217,12 +211,13 @@ abstract class ChainContext {
             result.addLog("$sb");
             unexpectedResults[description] = result;
             unexpectedOutcomes[description] = expectedOutcomes;
-            logUnexpectedResult(suite, description, result, expectedOutcomes);
+            logger.logUnexpectedResult(
+                suite, description, result, expectedOutcomes);
             exitCode = 1;
           } else {
-            logMessage(sb);
+            logger.logMessage(sb);
           }
-          logTestComplete(++completed, unexpectedResults.length,
+          logger.logTestComplete(++completed, unexpectedResults.length,
               descriptions.length, suite, description);
         });
         if (isAsync) {
@@ -233,14 +228,16 @@ abstract class ChainContext {
         }
       }
 
+      logger.logTestStart(completed, unexpectedResults.length,
+          descriptions.length, suite, description);
       // The input of the first step is [description].
       await doStep(description);
     }
     await Future.wait(futures);
-    logSuiteComplete();
+    logger.logSuiteComplete();
     if (unexpectedResults.isNotEmpty) {
       unexpectedResults.forEach((TestDescription description, Result result) {
-        logUnexpectedResult(
+        logger.logUnexpectedResult(
             suite, description, result, unexpectedOutcomes[description]);
       });
       print("${unexpectedResults.length} failed:");
