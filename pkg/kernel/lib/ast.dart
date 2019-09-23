@@ -5611,7 +5611,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefType: typedefType);
+        typedefType: null);
   }
 
   /// Looks up the type of the named parameter with the given name.
