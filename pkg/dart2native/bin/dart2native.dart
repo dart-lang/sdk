@@ -22,8 +22,14 @@ final String genSnapshot =
 final String platformDill =
     path.join(sdkDir, 'lib', '_internal', 'vm_platform_strong.dill');
 
-Future<void> generateNative(Kind kind, String sourceFile, String outputFile,
-    String packages, List<String> defines, bool enableAsserts) async {
+Future<void> generateNative(
+    Kind kind,
+    String sourceFile,
+    String outputFile,
+    String packages,
+    List<String> defines,
+    bool enableAsserts,
+    bool verbose) async {
   final Directory tempDir = Directory.systemTemp.createTempSync();
   try {
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
@@ -31,7 +37,9 @@ Future<void> generateNative(Kind kind, String sourceFile, String outputFile,
         ? outputFile
         : path.join(tempDir.path, 'snapshot.aot'));
 
-    print('Generating AOT kernel dill.');
+    if (verbose) {
+      print('Generating AOT kernel dill.');
+    }
     final kernelResult = await generateAotKernel(dart, genKernel, platformDill,
         sourceFile, kernelFile, packages, defines);
     if (kernelResult.exitCode != 0) {
@@ -41,7 +49,9 @@ Future<void> generateNative(Kind kind, String sourceFile, String outputFile,
       throw 'Generating AOT kernel dill failed!';
     }
 
-    print('Generating AOT snapshot.');
+    if (verbose) {
+      print('Generating AOT snapshot.');
+    }
     final snapshotResult = await generateAotSnapshot(
         genSnapshot, kernelFile, snapshotFile, enableAsserts);
     if (snapshotResult.exitCode != 0) {
@@ -52,11 +62,15 @@ Future<void> generateNative(Kind kind, String sourceFile, String outputFile,
     }
 
     if (kind == Kind.exe) {
-      print('Generating executable.');
+      if (verbose) {
+        print('Generating executable.');
+      }
       await writeAppendedExecutable(dartaotruntime, snapshotFile, outputFile);
 
       if (Platform.isLinux || Platform.isMacOS) {
-        print('Marking binary executable.');
+        if (verbose) {
+          print('Marking binary executable.');
+        }
         await markExecutable(outputFile);
       }
     }
@@ -95,9 +109,19 @@ Future<void> main(List<String> args) async {
         help:
             'Whether to generate a stand-alone executable or an AOT snapshot.')
     ..addOption('packages',
-        valueHelp: 'path', help: 'Where to find a package spec file.');
+        valueHelp: 'path', help: 'Where to find a package spec file.')
+    ..addFlag('verbose',
+        abbr: 'v', negatable: false, help: 'Enables more verbose output.');
 
-  final ArgResults parsedArgs = parser.parse(args);
+  ArgResults parsedArgs;
+  try {
+    parsedArgs = parser.parse(args);
+  } on FormatException catch (e) {
+    stderr.writeln('Error: ${e.message}');
+    await stderr.flush();
+    printUsage(parser);
+    exit(1);
+  }
 
   if (parsedArgs['help']) {
     printUsage(parser);
@@ -131,8 +155,14 @@ Future<void> main(List<String> args) async {
   }
 
   try {
-    await generateNative(kind, sourcePath, outputPath, parsedArgs['packages'],
-        parsedArgs['define'], parsedArgs['enable-asserts']);
+    await generateNative(
+        kind,
+        sourcePath,
+        outputPath,
+        parsedArgs['packages'],
+        parsedArgs['define'],
+        parsedArgs['enable-asserts'],
+        parsedArgs['verbose']);
   } catch (e) {
     stderr.writeln('Failed to generate native files:');
     stderr.writeln(e);
