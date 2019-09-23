@@ -2856,8 +2856,6 @@ abstract class TypeImpl implements DartType {
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   static bool _comparingBounds = false;
 
-  static bool _appendingBounds = false;
-
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -2897,29 +2895,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       }
     }
     return false;
-  }
-
-  /**
-   * Append a textual representation of this type to the given [buffer]. The set
-   * of [visitedTypes] is used to prevent infinite recursion.
-   */
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
-      {bool withNullability = false}) {
-    super.appendTo(buffer, visitedTypes, withNullability: withNullability);
-    TypeParameterElement e = element;
-    if (e is TypeParameterMember &&
-        e.bound != e.baseElement.bound &&
-        !_appendingBounds) {
-      buffer.write(' extends ');
-      // If we're appending bounds already, we don't want to do it recursively.
-      _appendingBounds = true;
-      try {
-        (e.bound as TypeImpl)
-            .appendTo(buffer, visitedTypes, withNullability: withNullability);
-      } finally {
-        _appendingBounds = false;
-      }
-    }
   }
 
   @override

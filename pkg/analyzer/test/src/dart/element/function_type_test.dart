@@ -36,7 +36,6 @@ Element getBaseElement(Element e) {
 @reflectiveTest
 class FunctionTypeTest with ElementsTypesMixin {
   static const bug_33294_fixed = false;
-  static const bug_33300_fixed = false;
   static const bug_33301_fixed = false;
   static const bug_33302_fixed = false;
 
@@ -819,13 +818,8 @@ class FunctionTypeTest with ElementsTypesMixin {
         typeFormals: hasLength(3),
         typeParameters: [same(u)],
         typeArguments: [same(objectType)]);
-    if (bug_33300_fixed) {
-      expect(substituted.displayName,
-          'Map<S, V> Function<S extends T,T extends Object,V extends T>()');
-    } else {
-      expect(substituted.displayName,
-          'Map<S, V> Function<S extends T extends Object,T extends Object,V extends T>()');
-    }
+    expect(substituted.displayName,
+        'Map<S, V> Function<S extends T,T extends Object,V extends T>()');
     var s2 = substituted.typeFormals[0];
     var t2 = substituted.typeFormals[1];
     var v2 = substituted.typeFormals[2];
@@ -875,13 +869,8 @@ class FunctionTypeTest with ElementsTypesMixin {
         typeFormals: hasLength(3),
         typeParameters: [same(u)],
         typeArguments: [same(objectType)]);
-    if (bug_33300_fixed) {
-      expect(substituted.displayName,
-          'void Function<S extends T,T extends Object,V extends T>(S, V)');
-    } else {
-      expect(substituted.displayName,
-          'void Function<S extends T extends Object,T extends Object,V extends T>(S, V)');
-    }
+    expect(substituted.displayName,
+        'void Function<S extends T,T extends Object,V extends T>(S, V)');
     var s2 = substituted.typeFormals[0];
     var t2 = substituted.typeFormals[1];
     var v2 = substituted.typeFormals[2];
