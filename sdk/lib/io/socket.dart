@@ -406,16 +406,16 @@ enum _RawSocketOptions {
   IPPROTO_UDP, // 6
 }
 
-/// The [RawSocketOption] is used as a parameter to [Socket.setRawOption] and
-/// [RawSocket.setRawOption] to set customize the behaviour of the underlying
-/// socket.
+/// The [RawSocketOption] is used as a parameter to [Socket.setRawOption],
+/// [RawSocket.setRawOption], and [RawDatagramSocket.setRawOption] to customize
+/// the behaviour of the underlying socket.
 ///
-/// It allows for fine grained control of the socket options, and its values will
-/// be passed to the underlying platform's implementation of setsockopt and
-/// getsockopt.
+/// It allows for fine grained control of the socket options, and its values
+/// will be passed to the underlying platform's implementation of `setsockopt`
+/// and `getsockopt`.
 @Since("2.2")
 class RawSocketOption {
-  /// Creates a RawSocketOption for getRawOption andSetRawOption.
+  /// Creates a [RawSocketOption] for `getRawOption` and `setRawOption`.
   ///
   /// All arguments are required and must not be null.
   ///
@@ -425,10 +425,10 @@ class RawSocketOption {
   /// The value argument and its length correspond to the optval and length
   /// arguments on the native call.
   ///
-  /// For a [getRawOption] call, the value parameter will be updated after a
+  /// For a `getRawOption` call, the value parameter will be updated after a
   /// successful call (although its length will not be changed).
   ///
-  /// For a [setRawOption] call, the value parameter will be used set the
+  /// For a `setRawOption` call, the value parameter will be used set the
   /// option.
   const RawSocketOption(this.level, this.option, this.value);
 

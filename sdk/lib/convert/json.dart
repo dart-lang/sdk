@@ -74,10 +74,10 @@ const JsonCodec json = JsonCodec();
 /// If [toEncodable] is omitted, it defaults to a function that returns the
 /// result of calling `.toJson()` on the unencodable object.
 ///
-/// Shorthand for [json.encode]. Useful if a local variable shadows the global
+/// Shorthand for `json.encode`. Useful if a local variable shadows the global
 /// [json] constant.
-String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
-    json.encode(object, toEncodable: toEncodable);
+String jsonEncode(Object value, {Object toEncodable(Object nonEncodable)}) =>
+    json.encode(value, toEncodable: toEncodable);
 
 /// Parses the string and returns the resulting Json object.
 ///
@@ -88,7 +88,7 @@ String jsonEncode(Object object, {Object toEncodable(Object nonEncodable)}) =>
 ///
 /// The default [reviver] (when not provided) is the identity function.
 ///
-/// Shorthand for [json.decode]. Useful if a local variable shadows the global
+/// Shorthand for `json.decode`. Useful if a local variable shadows the global
 /// [json] constant.
 dynamic jsonDecode(String source, {Object reviver(Object key, Object value)}) =>
     json.decode(source, reviver: reviver);
