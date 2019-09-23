@@ -149,6 +149,8 @@ import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
+import 'invocation_of_extension_without_call_test.dart'
+    as invocation_of_extension_without_call;
 import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
@@ -428,6 +430,7 @@ main() {
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
+    invocation_of_extension_without_call.main();
     is_double.main();
     is_int.main();
     is_not_double.main();

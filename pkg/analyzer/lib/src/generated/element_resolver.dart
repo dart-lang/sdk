@@ -397,13 +397,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
     DartType functionType;
     if (function is ExtensionOverride) {
       var member = _extensionResolver.getOverrideMember(function, 'call');
-      if (member != null && member.isStatic) {
+      if (member == null) {
         _resolver.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
-            node.argumentList);
+            CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
+            function,
+            [function.extensionName.name]);
+        functionType = _resolver.typeProvider.dynamicType;
+      } else {
+        if (member.isStatic) {
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+              node.argumentList);
+        }
+        node.staticElement = member;
+        functionType = member.type;
       }
-      node.staticElement = member;
-      functionType = member.type;
     } else {
       functionType = function.staticType;
     }

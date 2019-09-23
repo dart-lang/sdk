@@ -2334,6 +2334,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('INVALID_URI', "Invalid URI syntax: '{0}'.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension
+   */
+  static const CompileTimeErrorCode INVOCATION_OF_EXTENSION_WITHOUT_CALL =
+      const CompileTimeErrorCode(
+          'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+          "The extension '{0}' does not define a 'call' method so the override "
+              "can't be used in an invocation.");
+
+  /**
    * 13.13 Break: It is a compile-time error if no such statement
    * <i>s<sub>E</sub></i> exists within the innermost function in which
    * <i>s<sub>b</sub></i> occurs.

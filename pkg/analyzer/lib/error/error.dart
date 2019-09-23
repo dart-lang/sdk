@@ -196,6 +196,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_URI,
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
+  CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
   CompileTimeErrorCode.LABEL_UNDEFINED,
   CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
