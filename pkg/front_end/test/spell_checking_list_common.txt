@@ -320,6 +320,7 @@ calculate
 calculated
 calculates
 calculation
+calculator
 call
 callback
 called

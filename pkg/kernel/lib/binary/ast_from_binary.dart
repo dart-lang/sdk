@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
+import '../src/bounds_checks.dart' show computeVariance;
 import '../transformations/flags.dart';
 import 'tag.dart';
 
@@ -995,6 +996,10 @@ class BinaryBuilder {
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
+    for (int i = 0; i < node.typeParameters.length; ++i) {
+      node.typeParameters[i].variance =
+          computeVariance(node.typeParameters[i], type);
+    }
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.name = name;
@@ -2165,6 +2170,7 @@ class BinaryBuilder {
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();
+    node.variance = Variance.covariant;
   }
 
   Arguments readArguments() {

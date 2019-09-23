@@ -82,7 +82,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   int get variance => parameter.variance;
 
   void set variance(int value) {
-    parameter.variance = variance;
+    parameter.variance = value;
   }
 
   DartType buildType(LibraryBuilder library, Nullability nullability,
