@@ -1,3 +1,8 @@
+# 0.1.98
+
+* fixed null raw expression accesses in `use_to_and_as_if_applicable`
+* (internal) migrated to using analyzer `InheritanceManager3`
+
 # 0.1.97+1
 
 * enabled `camel_case_extensions` experimental lint
