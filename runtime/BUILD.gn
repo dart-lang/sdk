@@ -67,9 +67,11 @@ config("dart_nosnapshot_config") {
 config("dart_os_config") {
   defines = []
 
-  # If dart_host_toolchain is the current toolchain then we are building
-  # the SDK for the host, and should not hardcode these defines.
-  if (current_toolchain != dart_host_toolchain) {
+  # If dart_host_toolchain is the current toolchain, and it is different from
+  # host_toolchain, then we are building the SDK for the host, and should not
+  # hardcode these defines.
+  if (current_toolchain != dart_host_toolchain ||
+      host_toolchain == dart_host_toolchain) {
     if (target_os == "android") {
       defines += [ "TARGET_OS_ANDROID" ]
     } else if (target_os == "fuchsia") {
