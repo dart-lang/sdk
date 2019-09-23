@@ -5,11 +5,13 @@
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' as lint_service;
+import 'package:analyzer/src/task/options.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
@@ -276,13 +278,12 @@ testRule(String ruleName, File file,
         // Dump results for debugging purposes.
 
         // AST
-// todo (pq): add featureSet post analyzer 0.38.1.
-//        final optionsProvider = AnalysisOptionsProvider();
-//        final optionMap = optionsProvider.getOptionsFromString(analysisOptions);
-//        final optionsImpl = AnalysisOptionsImpl();
-//        applyToAnalysisOptions(optionsImpl, optionMap);
-//        final featureSet = optionsImpl.contextFeatures;
-        Spelunker(file.absolute.path /*, featureSet: featureSet */).spelunk();
+        final optionsProvider = AnalysisOptionsProvider();
+        final optionMap = optionsProvider.getOptionsFromString(analysisOptions);
+        final optionsImpl = AnalysisOptionsImpl();
+        applyToAnalysisOptions(optionsImpl, optionMap);
+        final featureSet = optionsImpl.contextFeatures;
+        Spelunker(file.absolute.path, featureSet: featureSet).spelunk();
         print('');
         // Lints.
         ResultReporter(lints)..write();
