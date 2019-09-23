@@ -15,6 +15,7 @@ import '../ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
 import '../type_algebra.dart' show Substitution, substitute;
@@ -454,4 +455,86 @@ bool isObject(TypeEnvironment typeEnvironment, DartType type) {
 bool isNull(TypeEnvironment typeEnvironment, DartType type) {
   return type is InterfaceType &&
       type.classNode == typeEnvironment.nullType.classNode;
+}
+
+int computeVariance(TypeParameter typeParameter, DartType type) {
+  return type.accept(new VarianceCalculator(typeParameter));
+}
+
+class VarianceCalculator implements DartTypeVisitor<int> {
+  final TypeParameter typeParameter;
+
+  VarianceCalculator(this.typeParameter);
+
+  @override
+  int defaultDartType(DartType node) => Variance.unrelated;
+
+  @override
+  int visitTypeParameterType(TypeParameterType node) {
+    if (node.parameter == typeParameter) return Variance.covariant;
+    return Variance.unrelated;
+  }
+
+  @override
+  int visitInterfaceType(InterfaceType node) {
+    int result = Variance.unrelated;
+    for (DartType argument in node.typeArguments) {
+      result = Variance.meet(result, argument.accept(this));
+    }
+    return result;
+  }
+
+  @override
+  int visitTypedefType(TypedefType node) {
+    int result = Variance.unrelated;
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              node.typeArguments[i].accept(this),
+              node.typedefNode.type.accept(
+                  new VarianceCalculator(node.typedefNode.typeParameters[i]))));
+    }
+    return result;
+  }
+
+  @override
+  int visitFunctionType(FunctionType node) {
+    int result = Variance.unrelated;
+    result = Variance.meet(result, node.returnType.accept(this));
+    for (TypeParameter functionTypeParameter in node.typeParameters) {
+      // If [typeParameter] is referenced in the bound at all, it makes the
+      // variance of [typeParameter] in the entire type invariant.  The
+      // invocation of the visitor below is made to simply figure out if
+      // [typeParameter] occurs in the bound.
+      if (functionTypeParameter.bound.accept(this) != Variance.unrelated) {
+        result = Variance.invariant;
+      }
+    }
+    for (DartType positionalType in node.positionalParameters) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              Variance.contravariant, positionalType.accept(this)));
+    }
+    for (NamedType namedType in node.namedParameters) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              Variance.contravariant, namedType.type.accept(this)));
+    }
+    return result;
+  }
+
+  @override
+  int visitBottomType(BottomType node) => defaultDartType(node);
+
+  @override
+  int visitVoidType(VoidType node) => defaultDartType(node);
+
+  @override
+  int visitDynamicType(DynamicType node) => defaultDartType(node);
+
+  @override
+  int visitInvalidType(InvalidType node) => defaultDartType(node);
 }
