@@ -96,8 +96,9 @@ String updateErrorExpectations(String source, List<StaticError> errors,
 
       var comment = (" " * indent) + "//";
 
-      // If the error can't fit in a line comment, use an explicit location.
-      if (error.column <= 2) {
+      // If the error can't fit in a line comment, or no source location is
+      // sepcified, use an explicit location.
+      if (error.column <= 2 || error.length == 0) {
         if (error.length == null) {
           result.add("$comment [error line $codeLine, column "
               "${error.column}]");
