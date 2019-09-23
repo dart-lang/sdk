@@ -17,18 +17,6 @@ main() {
 
 @reflectiveTest
 class InstrumentationRendererTest extends AbstractAnalysisTest {
-  test_outputContainsModifiedAndUnmodifiedRegions() async {
-    LibraryInfo info = LibraryInfo([
-      UnitInfo('/lib/a.dart', 'int? a = null;',
-          [RegionInfo(3, 1, 'null was assigned')]),
-    ]);
-    String output = InstrumentationRenderer(info).render();
-    expect(
-        output,
-        contains('int<span class="region">?'
-            '<span class="tooltip">null was assigned</span></span> a = null;'));
-  }
-
   test_outputContainsEachPath() async {
     LibraryInfo info = LibraryInfo([
       UnitInfo('/lib/a.dart', 'int? a = null;',
@@ -39,8 +27,40 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
           [RegionInfo(3, 1, 'null was assigned')]),
     ]);
     String output = InstrumentationRenderer(info).render();
-    expect(output, contains('<h2>&#x2F;lib&#x2F;a.dart</h2>'));
-    expect(output, contains('<h2>&#x2F;lib&#x2F;part1.dart</h2>'));
-    expect(output, contains('<h2>&#x2F;lib&#x2F;part2.dart</h2>'));
+    expect(output, contains('<h2>/lib/a.dart</h2>'));
+    expect(output, contains('<h2>/lib/part1.dart</h2>'));
+    expect(output, contains('<h2>/lib/part2.dart</h2>'));
+  }
+
+  test_outputContainsEscapedHtml() async {
+    LibraryInfo info = LibraryInfo([
+      UnitInfo('/lib/a.dart', 'List<String>? a = null;',
+          [RegionInfo(12, 1, 'null was assigned')]),
+    ]);
+    String output = InstrumentationRenderer(info).render();
+    expect(
+        output,
+        contains('List&lt;String&gt;<span class="region">?'
+            '<span class="tooltip">null was assigned</span></span> a = null;'));
+  }
+
+  test_outputContainsEscapedHtml_ampersand() async {
+    LibraryInfo info = LibraryInfo([
+      UnitInfo('/lib/a.dart', 'bool a = true && false;', []),
+    ]);
+    String output = InstrumentationRenderer(info).render();
+    expect(output, contains('bool a = true &amp;&amp; false;'));
+  }
+
+  test_outputContainsModifiedAndUnmodifiedRegions() async {
+    LibraryInfo info = LibraryInfo([
+      UnitInfo('/lib/a.dart', 'int? a = null;',
+          [RegionInfo(3, 1, 'null was assigned')]),
+    ]);
+    String output = InstrumentationRenderer(info).render();
+    expect(
+        output,
+        contains('int<span class="region">?'
+            '<span class="tooltip">null was assigned</span></span> a = null;'));
   }
 }
