@@ -3377,6 +3377,13 @@ bool Debugger::FindBestFit(const Script& script,
   Class& cls = Class::Handle(zone);
   Library& lib = Library::Handle(zone, script.FindLibrary());
   ASSERT(!lib.IsNull());
+  if (!lib.IsDebuggable()) {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("Library '%s' has been marked as non-debuggable\n",
+                   lib.ToCString());
+    }
+    return false;
+  }
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       zone, isolate_->object_store()->closure_functions());
   Array& functions = Array::Handle(zone);
@@ -4533,6 +4540,10 @@ RawError* Debugger::PauseBreakpoint() {
   ASSERT(top_frame != NULL);
   CodeBreakpoint* cbpt = GetCodeBreakpoint(top_frame->pc());
   ASSERT(cbpt != NULL);
+
+  if (!Library::Handle(top_frame->Library()).IsDebuggable()) {
+    return Error::null();
+  }
 
   Breakpoint* bpt_hit = FindHitBreakpoint(cbpt->bpt_location_, top_frame);
   if (bpt_hit == NULL) {
