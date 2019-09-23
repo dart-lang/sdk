@@ -122,25 +122,39 @@ TypeBuilder substituteRange(
     TypeBuilder type,
     Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
     Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-    {bool isCovariant = true}) {
+    {final int variance = Variance.covariant}) {
   if (type is NamedTypeBuilder) {
     if (type.declaration is TypeVariableBuilder) {
-      if (isCovariant) {
-        return upperSubstitution[type.declaration] ?? type;
+      if (variance == Variance.contravariant) {
+        return lowerSubstitution[type.declaration] ?? type;
       }
-      return lowerSubstitution[type.declaration] ?? type;
+      return upperSubstitution[type.declaration] ?? type;
     }
     if (type.arguments == null || type.arguments.length == 0) {
       return type;
     }
     List<TypeBuilder> arguments;
-    for (int i = 0; i < type.arguments.length; i++) {
-      TypeBuilder substitutedArgument = substituteRange(
-          type.arguments[i], upperSubstitution, lowerSubstitution,
-          isCovariant: isCovariant);
-      if (substitutedArgument != type.arguments[i]) {
-        arguments ??= type.arguments.toList();
-        arguments[i] = substitutedArgument;
+    TypeDeclarationBuilder declaration = type.declaration;
+    if (declaration is ClassBuilder) {
+      for (int i = 0; i < type.arguments.length; ++i) {
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments[i], upperSubstitution, lowerSubstitution,
+            variance: variance);
+        if (substitutedArgument != type.arguments[i]) {
+          arguments ??= type.arguments.toList();
+          arguments[i] = substitutedArgument;
+        }
+      }
+    } else if (declaration is TypeAliasBuilder) {
+      for (int i = 0; i < type.arguments.length; ++i) {
+        TypeVariableBuilder variable = declaration.typeVariables[i];
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments[i], upperSubstitution, lowerSubstitution,
+            variance: Variance.combine(variance, variable.variance));
+        if (substitutedArgument != type.arguments[i]) {
+          arguments ??= type.arguments.toList();
+          arguments[i] = substitutedArgument;
+        }
       }
     }
     if (arguments != null) {
@@ -148,9 +162,7 @@ TypeBuilder substituteRange(
         ..bind(type.declaration);
     }
     return type;
-  }
-
-  if (type is FunctionTypeBuilder) {
+  } else if (type is FunctionTypeBuilder) {
     List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
       variables = new List<TypeVariableBuilder>(type.typeVariables.length);
@@ -167,7 +179,7 @@ TypeBuilder substituteRange(
         TypeVariableBuilder variable = type.typeVariables[i];
         TypeBuilder bound = substituteRange(
             variable.bound, upperSubstitution, lowerSubstitution,
-            isCovariant: isCovariant);
+            variance: Variance.invariant);
         if (bound != variable.bound) {
           variables[i] = new TypeVariableBuilder(
               variable.name, variable.parent, variable.charOffset,
@@ -178,13 +190,12 @@ TypeBuilder substituteRange(
         }
       }
     }
-
     if (type.formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = type.formals[i];
         TypeBuilder parameterType = substituteRange(
             formal.type, upperSubstitution, lowerSubstitution,
-            isCovariant: !isCovariant);
+            variance: Variance.combine(variance, Variance.contravariant));
         if (parameterType != formal.type) {
           formals[i] = new FormalParameterBuilder(
               formal.metadata,
@@ -199,19 +210,15 @@ TypeBuilder substituteRange(
         }
       }
     }
-
     returnType = substituteRange(
         type.returnType, upperSubstitution, lowerSubstitution,
-        isCovariant: true);
-    if (returnType != type.returnType) {
-      changed = true;
-    }
+        variance: variance);
+    changed = changed || returnType != type.returnType;
 
     if (changed) {
       return new FunctionTypeBuilder(
           returnType, variables, formals, type.nullabilityBuilder);
     }
-
     return type;
   }
   return type;
@@ -219,7 +226,8 @@ TypeBuilder substituteRange(
 
 TypeBuilder substitute(
     TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution) {
-  return substituteRange(type, substitution, substitution, isCovariant: true);
+  return substituteRange(type, substitution, substitution,
+      variance: Variance.covariant);
 }
 
 /// Calculates bounds to be provided as type arguments in place of missing type
@@ -248,9 +256,10 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
       nullSubstitution[variables[variableIndex]] = bottomType;
     }
     for (int variableIndex in component) {
+      TypeVariableBuilder variable = variables[variableIndex];
       bounds[variableIndex] = substituteRange(
           bounds[variableIndex], dynamicSubstitution, nullSubstitution,
-          isCovariant: true);
+          variance: variable.variance);
     }
   }
 
@@ -262,8 +271,9 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
+      TypeVariableBuilder variable = variables[j];
       bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
-          isCovariant: true);
+          variance: variable.variance);
     }
   }
 

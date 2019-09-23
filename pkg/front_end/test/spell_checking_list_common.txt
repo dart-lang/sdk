@@ -97,8 +97,8 @@ already
 also
 alternating
 alternative
-alternatives
 alternatively
+alternatives
 although
 always
 ambiguous
@@ -278,6 +278,7 @@ bottom
 bound
 boundary
 bounded
+boundedness
 boundless
 bounds
 box
@@ -1628,6 +1629,7 @@ matched
 matcher
 matches
 matching
+material
 math
 mathematical
 matter
@@ -1958,10 +1960,10 @@ pipeline
 piping
 pivot
 place
-places
 placed
 placeholder
 placeholders
+places
 plain
 plan
 platform
@@ -2592,6 +2594,7 @@ substitutions
 substring
 substrings
 substructures
+subterm
 subterms
 subtly
 subtract

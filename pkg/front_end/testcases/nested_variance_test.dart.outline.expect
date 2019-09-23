@@ -1,0 +1,81 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::Object = dynamic> = <Y extends X = dynamic>() → void;
+typedef Fcov<X extends core::Object = dynamic> = () → X;
+typedef Fcon<X extends core::Object = dynamic> = (X) → dynamic;
+typedef Finv<X extends core::Object = dynamic> = (X) → X;
+typedef FcovBound<X extends core::num = dynamic> = () → X;
+typedef FconBound<X extends core::num = dynamic> = (X) → dynamic;
+typedef FinvBound<X extends core::num = dynamic> = (X) → X;
+typedef FcovCyclicBound<X extends self::A<X> = dynamic> = () → X;
+typedef FconCyclicBound<X extends self::A<X> = dynamic> = (X) → dynamic;
+typedef FinvCyclicBound<X extends self::A<X> = dynamic> = (X) → X;
+typedef FcovCyclicCoBound<X extends (X) → dynamic = dynamic> = () → X;
+typedef FconCyclicCoBound<X extends (X) → dynamic = dynamic> = (X) → dynamic;
+typedef FinvCyclicCoBound<X extends (X) → dynamic = dynamic> = (X) → X;
+class Acov<X extends () → self::Acov::Y = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Acov<self::Acov::X, self::Acov::Y>
+    ;
+}
+class Acon<X extends (self::Acon::Y) → dynamic = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Acon<self::Acon::X, self::Acon::Y>
+    ;
+}
+class Ainv<X extends (self::Ainv::Y) → self::Ainv::Y = dynamic, Y extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::Ainv<self::Ainv::X, self::Ainv::Y>
+    ;
+}
+class AcovBound<X extends () → self::AcovBound::Y = dynamic, Y extends core::num = dynamic> extends core::Object {
+  synthetic constructor •() → self::AcovBound<self::AcovBound::X, self::AcovBound::Y>
+    ;
+}
+class AconBound<X extends (self::AconBound::Y) → dynamic = dynamic, Y extends core::num = dynamic> extends core::Object {
+  synthetic constructor •() → self::AconBound<self::AconBound::X, self::AconBound::Y>
+    ;
+}
+class AinvBound<X extends (self::AinvBound::Y) → self::AinvBound::Y = dynamic, Y extends core::num = dynamic> extends core::Object {
+  synthetic constructor •() → self::AinvBound<self::AinvBound::X, self::AinvBound::Y>
+    ;
+}
+class A<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    ;
+}
+class AcovCyclicBound<X extends () → self::AcovCyclicBound::Y = dynamic, Y extends self::A<self::AcovCyclicBound::Y> = dynamic> extends core::Object {
+  synthetic constructor •() → self::AcovCyclicBound<self::AcovCyclicBound::X, self::AcovCyclicBound::Y>
+    ;
+}
+class AconCyclicBound<X extends (self::AconCyclicBound::Y) → dynamic = dynamic, Y extends self::A<self::AconCyclicBound::Y> = dynamic> extends core::Object {
+  synthetic constructor •() → self::AconCyclicBound<self::AconCyclicBound::X, self::AconCyclicBound::Y>
+    ;
+}
+class AinvCyclicBound<X extends (self::AinvCyclicBound::Y) → self::AinvCyclicBound::Y = dynamic, Y extends self::A<self::AinvCyclicBound::Y> = dynamic> extends core::Object {
+  synthetic constructor •() → self::AinvCyclicBound<self::AinvCyclicBound::X, self::AinvCyclicBound::Y>
+    ;
+}
+class AcovCyclicCoBound<X extends () → self::AcovCyclicCoBound::Y = dynamic, Y extends (self::AcovCyclicCoBound::Y) → dynamic = dynamic> extends core::Object {
+  synthetic constructor •() → self::AcovCyclicCoBound<self::AcovCyclicCoBound::X, self::AcovCyclicCoBound::Y>
+    ;
+}
+class AconCyclicCoBound<X extends (self::AconCyclicCoBound::Y) → dynamic = dynamic, Y extends (self::AconCyclicCoBound::Y) → dynamic = dynamic> extends core::Object {
+  synthetic constructor •() → self::AconCyclicCoBound<self::AconCyclicCoBound::X, self::AconCyclicCoBound::Y>
+    ;
+}
+class AinvCyclicCoBound<X extends (self::AinvCyclicCoBound::Y) → self::AinvCyclicCoBound::Y = dynamic, Y extends (self::AinvCyclicCoBound::Y) → dynamic = dynamic> extends core::Object {
+  synthetic constructor •() → self::AinvCyclicCoBound<self::AinvCyclicCoBound::X, self::AinvCyclicCoBound::Y>
+    ;
+}
+class B<X extends core::Object = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X>
+    ;
+}
+static method toF<X extends core::Object = dynamic>(self::toF::X x) → <Y extends self::toF::X = dynamic>() → void
+  ;
+static method testTypeAliasAsTypeArgument() → void
+  ;
+static method testNested() → void
+  ;
+static method main() → dynamic
+  ;
