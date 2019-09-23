@@ -17,14 +17,42 @@ CHANNELS = RELEASE_CHANNELS + ["try"]
 ANALYZER_CHANNELS = ["analyzer-stable"] + CHANNELS
 BRANCHES = ["master", "dev", "stable"]
 
-VM_PATHS = [
-    "DEPS",
+TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
+
+STANDARD_PATHS = [
+    "DEPS",  # DEPS catches most third_party changes.
     "build/.+",
-    "pkg/(front_end|kernel|vm)/.+",
-    "runtime/.+",
-    "sdk/.+",
+    # core libraries
+    "sdk(_nnbd)?/.+",
+    # testing
+    TEST_PY_PATHS,
+    # tests
     "tests/.+",
 ]
+
+VM_PATHS = STANDARD_PATHS + [
+    # VM sources
+    "pkg/(front_end|kernel|vm)/.+",
+    "runtime/.+",
+]
+
+DART2JS_PATHS = STANDARD_PATHS + [
+    # compiler sources
+    "pkg/(compiler|dart2js_tools|front_end|kernel|js_ast)/.+",
+    # testing
+    "pkg/(js|modular_test|sourcemap_testing)/.+",
+]
+
+DDC_PATHS = STANDARD_PATHS + [
+    # compiler sources
+    "pkg/(analyzer|build_integration|dev_compiler|front_end|kernel|meta)/.+",
+    # testing
+    "pkg/(js|modular_test|sourcemap_testing|testing)/.+",
+]
+
+
+def to_location_regexp(paths):
+    return [".+/[+]/%s" % path for path in paths]
 
 
 def mac():
@@ -227,10 +255,7 @@ luci.notifier(
     notify_emails=["ajcbik@google.com", "athom@google.com"])
 
 luci.notifier(
-    name="frontend-team",
-    on_failure = True,
-    notify_emails = ["jensj@google.com"]
-)
+    name="frontend-team", on_failure=True, notify_emails=["jensj@google.com"])
 
 luci.cq(
     submit_max_burst=2,
@@ -427,7 +452,7 @@ def dart_ci_sandbox_builder(name, channels=CHANNELS, properties={}, **kwargs):
 def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
     triggered_by = ["dart-vm-gitiles-trigger-%s"]
     if on_cq and not location_regexp:
-        location_regexp = [".+/[+]/%s" % path for path in VM_PATHS]
+        location_regexp = to_location_regexp(VM_PATHS)
     dart_ci_sandbox_builder(
         name,
         triggered_by=triggered_by,
@@ -618,16 +643,24 @@ dart_vm_extra_builder("vm-ffi-android-product-arm64", category="vm|ffi|p64")
 dart_ci_sandbox_builder(
     "dart2js-strong-hostasserts-linux-ia32-d8",
     category="dart2js|d8|ha",
+    location_regexp=to_location_regexp(DART2JS_PATHS),
     on_cq=True)
 dart_ci_sandbox_builder("dart2js-rti-linux-x64-d8", category="dart2js|d8|rti")
 dart_ci_sandbox_builder(
     "dart2js-minified-strong-linux-x64-d8",
     category="dart2js|d8|mi",
+    location_regexp=to_location_regexp(DART2JS_PATHS),
     on_cq=True)
 dart_ci_sandbox_builder(
-    "dart2js-unit-linux-x64-release", category="dart2js|d8|u", on_cq=True)
+    "dart2js-unit-linux-x64-release",
+    category="dart2js|d8|u",
+    location_regexp=to_location_regexp(DART2JS_PATHS),
+    on_cq=True)
 dart_ci_sandbox_builder(
-    "dart2js-strong-linux-x64-chrome", category="dart2js|chrome|l", on_cq=True)
+    "dart2js-strong-linux-x64-chrome",
+    category="dart2js|chrome|l",
+    location_regexp=to_location_regexp(DART2JS_PATHS),
+    on_cq=True)
 dart_ci_sandbox_builder(
     "dart2js-csp-minified-linux-x64-chrome", category="dart2js|chrome|csp")
 dart_ci_sandbox_builder(
@@ -705,7 +738,10 @@ dart_ci_builder(
 
 # ddc
 dart_ci_sandbox_builder(
-    "ddc-linux-release-chrome", category="ddc|l", on_cq=True)
+    "ddc-linux-release-chrome",
+    category="ddc|l",
+    location_regexp=to_location_regexp(DDC_PATHS),
+    on_cq=True)
 dart_ci_sandbox_builder(
     "ddc-mac-release-chrome", category="ddc|m", dimensions=mac())
 dart_ci_sandbox_builder(
