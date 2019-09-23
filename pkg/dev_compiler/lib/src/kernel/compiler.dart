@@ -2796,10 +2796,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   void _emitVirtualFieldSymbols(Class c, List<js_ast.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      body.add(js.statement('const # = Symbol(#);', [
-        virtualField,
-        js.string('${getLocalClassName(c)}.${field.name.name}')
-      ]));
+      var symbol = emitClassPrivateNameSymbol(
+          c.enclosingLibrary, getLocalClassName(c), field.name.name);
+      body.add(js.statement('const # = #;', [virtualField, symbol]));
     });
   }
 
@@ -5413,8 +5412,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     entryToProperty(MapEntry<Reference, Constant> entry) {
       var constant = visitConstant(entry.value);
       var member = entry.key.asField;
-      return js_ast.Property(
-          _emitMemberName(member.name.name, member: member), constant);
+      var cls = member.enclosingClass;
+      // Enums cannot be overridden, so we can safely use the field name
+      // directly.  Otherwise, use a private symbol in case the field
+      // was overridden.
+      var symbol = cls.isEnum
+          ? _emitMemberName(member.name.name, member: member)
+          : emitClassPrivateNameSymbol(
+              cls.enclosingLibrary, getLocalClassName(cls), member.name.name);
+      return js_ast.Property(symbol, constant);
     }
 
     var type = visitInterfaceType(node.getType(_types) as InterfaceType);
