@@ -126,7 +126,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  // todo (pq): migrate to using typeProvider
   bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
   bool _isHashSet(Expression expression) => DartTypeUtilities.isClass(
       expression.staticType, 'LinkedHashSet', 'dart.collection');
