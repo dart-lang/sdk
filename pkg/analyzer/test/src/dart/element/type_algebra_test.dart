@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -254,6 +255,11 @@ class SubstituteTest extends _Base {
 
     var U = typeParameter('U');
     _assertIdenticalType(type, {U: doubleType});
+  }
+
+  test_unknownInferredType() async {
+    var T = typeParameter('T');
+    _assertIdenticalType(UnknownInferredType.instance, {T: intType});
   }
 
   test_void() async {

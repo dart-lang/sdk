@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 
@@ -25,6 +26,8 @@ class DartTypeVisitor<R> {
   R visitNamedType(NamedTypeBuilder type) => defaultDartType(type);
 
   R visitTypeParameterType(TypeParameterType type) => defaultDartType(type);
+
+  R visitUnknownInferredType(UnknownInferredType type) => defaultDartType(type);
 
   R visitVoidType(VoidType type) => defaultDartType(type);
 
@@ -49,6 +52,9 @@ class DartTypeVisitor<R> {
     }
     if (type is TypeParameterType) {
       return visitor.visitTypeParameterType(type);
+    }
+    if (type is UnknownInferredType) {
+      return visitor.visitUnknownInferredType(type);
     }
     if (type is VoidType) {
       return visitor.visitVoidType(type);
