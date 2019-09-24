@@ -9,6 +9,7 @@
 all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
+extensions/annotations: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure

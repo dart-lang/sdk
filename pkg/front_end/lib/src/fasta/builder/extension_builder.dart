@@ -93,4 +93,17 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
 
   @override
   String get debugName => "ExtensionBuilder";
+
+  void buildOutlineExpressions(LibraryBuilder library) {
+    void build(String ignore, Builder declaration) {
+      MemberBuilder member = declaration;
+      member.buildOutlineExpressions(library);
+    }
+
+    // TODO(johnniwinther): Handle annotations on the extension declaration.
+    //MetadataBuilder.buildAnnotations(
+    //    isPatch ? origin.extension : extension,
+    //    metadata, library, this, null);
+    scope.forEach(build);
+  }
 }

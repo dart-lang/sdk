@@ -37,6 +37,8 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
+import '../builder/extension_builder.dart';
+
 import '../export.dart' show Export;
 
 import '../import.dart' show Import;
@@ -967,6 +969,8 @@ class SourceLoader extends Loader {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
+            declaration.buildOutlineExpressions(library);
+          } else if (declaration is ExtensionBuilder) {
             declaration.buildOutlineExpressions(library);
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(library);
