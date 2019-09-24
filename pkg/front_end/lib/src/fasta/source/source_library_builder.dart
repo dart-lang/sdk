@@ -721,8 +721,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
                 .withLocation(
                     existing.fileUri, existing.charOffset, fullName.length)
           ]);
-    }
-    if (declaration.isExtension) {
+    } else if (declaration.isExtension) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions.add(declaration);
     }
     return members[name] = declaration;
@@ -2048,7 +2050,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
     if (declaration is SourceClassBuilder) {
       cls = declaration.build(this, coreLibrary);
     } else if (declaration is SourceExtensionBuilder) {
-      extension = declaration.build(this, coreLibrary);
+      extension = declaration.build(this, coreLibrary,
+          isAddedToLibrary: declaration.next == null);
     } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
