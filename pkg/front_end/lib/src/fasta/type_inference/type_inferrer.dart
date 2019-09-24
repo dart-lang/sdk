@@ -716,7 +716,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new InstrumentationValueForMember(target.member));
     }
 
-    if (target.isUnresolved && includeExtensionMethods) {
+    if (target.isUnresolved &&
+        receiverType is! DynamicType &&
+        includeExtensionMethods) {
       Member otherMember =
           _getInterfaceMember(classNode, name, !setter, fileOffset);
       if (otherMember != null) {

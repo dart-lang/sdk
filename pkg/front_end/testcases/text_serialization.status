@@ -13,6 +13,7 @@ extensions/compounds: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
+extensions/dynamic_invoke: TextSerializationFailure
 extensions/explicit_extension_access: TextSerializationFailure
 extensions/explicit_extension_inference: TextSerializationFailure
 extensions/explicit_generic_extension_access: TextSerializationFailure
