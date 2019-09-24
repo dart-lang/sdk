@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
@@ -189,7 +188,7 @@ class GenericMethodResolverTest extends StaticTypeAnalyzer2TestShared {
     // therefore discard the propagated type.
     //
     // So this test does not use strong mode.
-    await resolveTestUnit(r'''
+    await assertNoErrorsInCode(r'''
 abstract class Iter {
   List<S> map<S>(S f(x));
 }
@@ -867,7 +866,7 @@ int f() {
 }
 
 @reflectiveTest
-class TypePropagationTest extends ResolverTestCase {
+class TypePropagationTest extends DriverResolutionTest {
   test_assignment_null() async {
     String code = r'''
 main() {
@@ -875,144 +874,81 @@ main() {
   v = null;
   return v; // return
 }''';
-    CompilationUnit unit;
-    {
-      Source source = addSource(code);
-      TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-      assertNoErrors(source);
-      verify([source]);
-      unit = analysisResult.unit;
-    }
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit, code, "v; // declare", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, typeProvider.intType);
-    }
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit, code, "v = null;", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, typeProvider.intType);
-    }
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit, code, "v; // return", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, typeProvider.intType);
-    }
+    addTestFile(code);
+    await resolveTestFile();
+
+    assertType(findNode.simple('v; // declare'), 'int');
+    assertType(findNode.simple('v = null;'), 'int');
+    assertType(findNode.simple('v; // return'), 'int');
   }
 
   test_functionExpression_asInvocationArgument_notSubtypeOfStaticType() async {
-    String code = r'''
+    await assertErrorsInCode(r'''
 class A {
   m(void f(int i)) {}
 }
 x() {
   A a = new A();
   a.m(() => 0);
-}''';
-    Source source = addSource(code);
-    CompilationUnit unit = await _computeResolvedUnit(source, noErrors: false);
-    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
-    // () => 0
-    FunctionExpression functionExpression = EngineTestCase.findNode(
-        unit, code, "() => 0)", (node) => node is FunctionExpression);
-    expect((functionExpression.staticType as FunctionType).parameters.length,
-        same(0));
+}''', [
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 63, 7),
+    ]);
+    assertType(findNode.functionExpression('() => 0'), 'int Function()');
   }
 
   test_initializer_hasStaticType() async {
-    Source source = addSource(r'''
+    addTestFile(r'''
 f() {
   int v = 0;
   return v;
 }''');
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    NodeList<Statement> statements = body.block.statements;
-    // Type of 'v' in declaration.
-    {
-      VariableDeclarationStatement statement =
-          statements[0] as VariableDeclarationStatement;
-      SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, typeProvider.intType);
-    }
-    // Type of 'v' in reference.
-    {
-      ReturnStatement statement = statements[1] as ReturnStatement;
-      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-      expect(variableName.staticType, typeProvider.intType);
-    }
+    await resolveTestFile();
+    assertType(findNode.simple('v = 0;'), 'int');
+    assertType(findNode.simple('v;'), 'int');
   }
 
   test_initializer_hasStaticType_parameterized() async {
-    Source source = addSource(r'''
+    addTestFile(r'''
 f() {
   List<int> v = <int>[];
   return v;
 }''');
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    NodeList<Statement> statements = body.block.statements;
-    // Type of 'v' in declaration.
-    {
-      VariableDeclarationStatement statement =
-          statements[0] as VariableDeclarationStatement;
-      SimpleIdentifier variableName = statement.variables.variables[0].name;
-      expect(variableName.staticType, isNotNull);
-    }
-    // Type of 'v' in reference.
-    {
-      ReturnStatement statement = statements[1] as ReturnStatement;
-      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-      expect(variableName.staticType, isNotNull);
-    }
+    await resolveTestFile();
+    assertType(findNode.simple('v ='), 'List<int>');
+    assertType(findNode.simple('v;'), 'List<int>');
   }
 
   test_initializer_null() async {
-    String code = r'''
+    addTestFile(r'''
 main() {
   int v = null;
-  return v; // marker
-}''';
-    CompilationUnit unit;
-    {
-      Source source = addSource(code);
-      unit = await _computeResolvedUnit(source);
-    }
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit, code, "v = null;", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, typeProvider.intType);
-    }
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(
-          unit, code, "v; // marker", (node) => node is SimpleIdentifier);
-      expect(identifier.staticType, typeProvider.intType);
-    }
+  return v;
+}''');
+    await resolveTestFile();
+
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v;'), 'int');
   }
 
   test_invocation_target_prefixed() async {
-    addNamedSource('/helper.dart', '''
-library helper;
+    newFile('/test/lib/a.dart', content: r'''
 int max(int x, int y) => 0;
 ''');
-    String code = '''
-import 'helper.dart' as helper;
+    addTestFile('''
+import 'a.dart' as helper;
 main() {
   helper.max(10, 10); // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier methodName =
-        findMarkedIdentifier(code, unit, "(10, 10); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodInvoke.methodName.staticElement, isNotNull);
+}''');
+    await resolveTestFile();
+
+    assertElement(
+      findNode.simple('max(10, 10)'),
+      findElement.importFind('package:test/a.dart').topFunction('max'),
+    );
   }
 
   test_is_subclass() async {
-    Source source = addSource(r'''
+    addTestFile(r'''
 class A {}
 class B extends A {
   B m() => this;
@@ -1023,20 +959,17 @@ A f(A p) {
   }
   return p;
 }''');
-    CompilationUnit unit = await _computeResolvedUnit(source);
-    FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
-    BlockFunctionBody body =
-        function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body.block.statements[0] as IfStatement;
-    ReturnStatement statement =
-        (ifStatement.thenStatement as Block).statements[0] as ReturnStatement;
-    MethodInvocation invocation = statement.expression as MethodInvocation;
-    expect(invocation.methodName.staticElement, isNotNull);
+    await resolveTestFile();
+
+    assertElement(
+      findNode.methodInvocation('p.m()'),
+      findElement.method('m', of: 'B'),
+    );
   }
 
   test_mutatedOutsideScope() async {
     // https://code.google.com/p/dart/issues/detail?id=22732
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 class Base {
 }
 
@@ -1061,104 +994,62 @@ void g() {
   }
   x = null;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_objectAccessInference_disabled_for_library_prefix() async {
-    String name = 'hashCode';
-    addNamedSource('/helper.dart', '''
-library helper;
-dynamic get $name => 42;
+    newFile('/test/lib/a.dart', content: '''
+dynamic get hashCode => 42;
 ''');
-    String code = '''
-import 'helper.dart' as helper;
+    await assertNoErrorsInCode('''
+import 'a.dart' as helper;
 main() {
-  helper.$name; // marker
-}''';
-
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier id = findMarkedIdentifier(code, unit, "; // marker");
-    PrefixedIdentifier prefixedId = id.parent;
-    expect(id.staticType, typeProvider.dynamicType);
-    expect(prefixedId.staticType, typeProvider.dynamicType);
+  helper.hashCode;
+}''');
+    assertTypeDynamic(findNode.prefixed('helper.hashCode'));
   }
 
   test_objectAccessInference_disabled_for_local_getter() async {
-    String name = 'hashCode';
-    String code = '''
-dynamic get $name => null;
+    await assertNoErrorsInCode('''
+dynamic get hashCode => null;
 main() {
-  $name; // marker
-}''';
-
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier getter = findMarkedIdentifier(code, unit, "; // marker");
-    expect(getter.staticType, typeProvider.dynamicType);
+  hashCode; // marker
+}''');
+    assertTypeDynamic(findNode.simple('hashCode; // marker'));
   }
 
   test_objectMethodInference_disabled_for_library_prefix() async {
-    String name = 'toString';
-    addNamedSource('/helper.dart', '''
-library helper;
+    newFile('/test/lib/a.dart', content: '''
 dynamic toString = (int x) => x + 42;
 ''');
-    String code = '''
-import 'helper.dart' as helper;
+    await assertNoErrorsInCode('''
+import 'a.dart' as helper;
 main() {
-  helper.$name(); // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    SimpleIdentifier methodName =
-        findMarkedIdentifier(code, unit, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  helper.toString();
+}''');
+    assertTypeDynamic(findNode.methodInvocation('helper.toString()'));
   }
 
   test_objectMethodInference_disabled_for_local_function() async {
-    String name = 'toString';
-    String code = '''
+    addTestFile('''
 main() {
-  dynamic $name = () => null;
-  $name(); // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "$name = ");
-    expect(identifier.staticType, typeProvider.dynamicType);
-
-    SimpleIdentifier methodName =
-        findMarkedIdentifier(code, unit, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  dynamic toString = () => null;
+  toString(); // marker
+}''');
+    await resolveTestFile();
+    assertTypeDynamic(findNode.simple('toString ='));
+    assertTypeDynamic(findNode.simple('toString(); // marker'));
   }
 
   @failingTest
   test_propagatedReturnType_functionExpression() async {
     // TODO(scheglov) disabled because we don't resolve function expression
-    String code = r'''
+    addTestFile(r'''
 main() {
   var v = (() {return 42;})();
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
-  }
+}''');
+    await resolveTestFile();
 
-  /**
-   * Return the resolved unit for the given [source].
-   *
-   * If [noErrors] is not specified or is not `true`, [assertNoErrors].
-   */
-  Future<CompilationUnit> _computeResolvedUnit(Source source,
-      {bool noErrors: true}) async {
-    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
-    if (noErrors) {
-      assertNoErrors(source);
-      verify([source]);
-    }
-    return analysisResult.unit;
+    assertTypeDynamic(findNode.simple('v = '));
   }
 }
 

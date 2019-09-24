@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -17,7 +16,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
 import '../util/element_type_matchers.dart';
-import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -245,9 +243,8 @@ const b = null;
     await setupCode('f() { @a g() {} }');
     // Note: metadata on local function declarations is ignored by the
     // analyzer.  TODO(paulberry): is this a bug?
-    FunctionDeclaration node = EngineTestCase.findNode(
-        unit, code, 'g', (AstNode n) => n is FunctionDeclaration);
-    NodeList<Annotation> metadata = (node as FunctionDeclarationImpl).metadata;
+    var node = FindNode(code, unit).functionDeclaration('g()');
+    NodeList<Annotation> metadata = node.metadata;
     if (Parser.useFasta) {
       expect(metadata, hasLength(1));
     } else {
@@ -354,8 +351,7 @@ const b = null;
   }
 
   NodeList<Annotation> _findMetadata(CompilationUnit unit, String search) {
-    AstNode node =
-        EngineTestCase.findNode(unit, code, search, (AstNode _) => true);
+    var node = FindNode(code, unit).any(search);
     while (node != null) {
       if (node is AnnotatedNode && node.metadata.isNotEmpty) {
         return node.metadata;

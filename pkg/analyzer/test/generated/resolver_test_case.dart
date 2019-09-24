@@ -32,6 +32,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
 import 'test_analysis_context.dart';
 import 'test_support.dart';
 
@@ -738,11 +739,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
  * Shared infrastructure for [StaticTypeAnalyzer2Test] and
  * [StrongModeStaticTypeAnalyzer2Test].
  */
-class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
-  String testCode;
-  Source testSource;
-  CompilationUnit testUnit;
-
+class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   /**
    * Find the expression that starts at the offset of [search] and validate its
    * that its static type matches the given [type].
@@ -752,7 +749,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectExpressionType(String search, type) {
-    Expression expression = findExpression(search);
+    Expression expression = findNode.expression(search);
     _expectType(expression.staticType, type);
   }
 
@@ -778,7 +775,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
       fail('Wrong element type: ${element.runtimeType}');
     }
 
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     // Element is either ExecutableElement or ParameterElement.
     var element = identifier.staticElement;
     FunctionTypeImpl functionType = (element as dynamic).type;
@@ -797,7 +794,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * output.
    */
   FunctionTypeImpl expectFunctionType2(String name, String type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     FunctionTypeImpl functionType = identifier.staticType;
     expect('$functionType', type);
     return functionType;
@@ -811,7 +808,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectIdentifierType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     _expectType(identifier.staticType, type);
   }
 
@@ -824,32 +821,11 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectInitializerType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     VariableDeclaration declaration =
         identifier.thisOrAncestorOfType<VariableDeclaration>();
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
-  }
-
-  Expression findExpression(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is Expression);
-  }
-
-  SimpleIdentifier findIdentifier(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-  }
-
-  Future<void> resolveTestUnit(String code, {bool noErrors: true}) async {
-    testCode = code;
-    testSource = addSource(testCode);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
-    if (noErrors) {
-      assertNoErrors(testSource);
-    }
-    verify([testSource]);
-    testUnit = analysisResult.unit;
   }
 
   /**
