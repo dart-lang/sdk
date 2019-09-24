@@ -195,6 +195,8 @@ enum InternalExpressionKind {
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
+  NullAwareCompoundSet,
+  NullAwareIfNullSet,
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
@@ -2381,6 +2383,183 @@ class CompoundIndexSet extends InternalExpression {
     if (rhs != null) {
       rhs = rhs.accept<TreeNode>(v);
       rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a null-aware compound assignment.
+///
+/// A null-aware compound assignment of the form
+///
+///     receiver?.property binaryName= rhs
+///
+/// is, if used for value as a normal compound or prefix operation, encoded as
+/// the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let valueVariable = leftVariable binaryName rhs in
+///             let writeVariable =
+///                 receiverVariable.propertyName = valueVariable in
+///               valueVariable
+///
+/// and, if used for value as a postfix operation, encoded as
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let writeVariable =
+///               receiverVariable.propertyName =
+///                   leftVariable binaryName rhs in
+///             leftVariable
+///
+/// and, if used for effect, encoded as:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         receiverVariable.propertyName = receiverVariable.propertyName + rhs
+///
+class NullAwareCompoundSet extends InternalExpression {
+  /// The receiver on which the null aware operation is performed.
+  Expression receiver;
+
+  /// The name of the null-aware property.
+  Name propertyName;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a postfix inc/dec expression.
+  final bool forPostIncDec;
+
+  NullAwareCompoundSet(
+      this.receiver, this.propertyName, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null),
+        assert(forPostIncDec != null) {
+    receiver?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwareCompoundSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an null-aware if-null property set.
+///
+/// A null-aware if-null property set of the form
+///
+///    receiver?.name ??= value
+///
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (let readVariable = receiverVariable.name in
+///           readVariable == null ?
+///             receiverVariable.name = value : readVariable)
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (receiverVariable.name == null ?
+///           receiverVariable.name = value : null)
+///
+///
+class NullAwareIfNullSet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  Expression receiver;
+
+  /// The expression that reads the property from [variable].
+  Name name;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression value;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  NullAwareIfNullSet(this.receiver, this.name, this.value,
+      {this.readOffset, this.writeOffset, this.testOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(writeOffset != null),
+        assert(testOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareIfNullSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
     }
   }
 }

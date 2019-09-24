@@ -198,6 +198,9 @@ abstract class Generator {
     return buildCompoundAssignment(
         binaryOperator, _forest.createIntLiteral(1, null)..fileOffset = offset,
         offset: offset,
+        // TODO(johnniwinther): We are missing some void contexts here. For
+        // instance `++a?.b;` is not providing a void context making it default
+        // `true`.
         voidContext: voidContext,
         interfaceTarget: interfaceTarget,
         isPreIncDec: true);
@@ -1055,6 +1058,43 @@ class NullAwarePropertyAccessGenerator extends Generator {
       ..fileOffset = fileOffset;
     return new NullAwarePropertySet(variable, read)
       ..fileOffset = receiverExpression.fileOffset;
+  }
+
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new NullAwareIfNullSet(receiverExpression, name, value,
+        forEffect: voidContext,
+        readOffset: fileOffset,
+        testOffset: offset,
+        writeOffset: fileOffset)
+      ..fileOffset = offset;
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    return new NullAwareCompoundSet(
+        receiverExpression, name, binaryOperator, value,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext,
+        forPostIncDec: isPostIncDec);
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
+    return buildCompoundAssignment(
+        binaryOperator, _forest.createIntLiteral(1, null)..fileOffset = offset,
+        offset: offset,
+        voidContext: voidContext,
+        interfaceTarget: interfaceTarget,
+        isPostIncDec: true);
   }
 
   @override
@@ -2536,6 +2576,22 @@ class ExplicitExtensionAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
+    return _makeInvalidRead();
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    return _makeInvalidRead();
+  }
+
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget}) {
     return _makeInvalidRead();
   }
 
