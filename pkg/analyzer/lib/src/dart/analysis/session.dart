@@ -219,6 +219,7 @@ class SynchronousSession {
     return _typeSystem ??= Dart2TypeSystem(
       typeProvider,
       implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
     );
   }
 

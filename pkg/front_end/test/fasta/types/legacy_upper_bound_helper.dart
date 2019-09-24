@@ -8,6 +8,8 @@ import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/ast.dart" show Class, Component, DartType, InterfaceType;
 
+import "package:kernel/core_types.dart";
+
 import "package:kernel/library_index.dart" show LibraryIndex;
 
 import "kernel_type_parser.dart" as kernel_type_parser show parseComponent;
@@ -17,20 +19,23 @@ final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 abstract class LegacyUpperBoundTest {
   Component component;
 
+  CoreTypes coreTypes;
+
   LibraryIndex index;
 
-  DartType get objectType => getCoreClass("Object").rawType;
+  DartType get objectType => coreTypes.objectLegacyRawType;
 
-  DartType get intType => getCoreClass("int").rawType;
+  DartType get intType => coreTypes.intLegacyRawType;
 
-  DartType get stringType => getCoreClass("String").rawType;
+  DartType get stringType => coreTypes.intLegacyRawType;
 
-  DartType get doubleType => getCoreClass("double").rawType;
+  DartType get doubleType => coreTypes.doubleLegacyRawType;
 
-  DartType get boolType => getCoreClass("bool").rawType;
+  DartType get boolType => coreTypes.boolLegacyRawType;
 
   void parseComponent(String source) {
     component = kernel_type_parser.parseComponent(source, libraryUri);
+    coreTypes = new CoreTypes(component);
     index = new LibraryIndex.all(component);
   }
 
@@ -42,11 +47,12 @@ abstract class LegacyUpperBoundTest {
     return index.getClass("dart:core", name);
   }
 
-  DartType getLegacyLeastUpperBound(DartType a, DartType b);
+  DartType getLegacyLeastUpperBound(
+      DartType a, DartType b, CoreTypes coreTypes);
 
   void checkGetLegacyLeastUpperBound(
       DartType a, DartType b, DartType expected) {
-    DartType actual = getLegacyLeastUpperBound(a, b);
+    DartType actual = getLegacyLeastUpperBound(a, b, coreTypes);
     Expect.equals(expected, actual);
   }
 
@@ -125,9 +131,9 @@ class F implements D<int, bool>;
         new InterfaceType(d, [boolType, doubleType]),
         new InterfaceType(c, [doubleType]));
     checkGetLegacyLeastUpperBound(new InterfaceType(d, [intType, doubleType]),
-        new InterfaceType(d, [boolType, intType]), a.rawType);
-    checkGetLegacyLeastUpperBound(
-        e.rawType, f.rawType, new InterfaceType(b, [intType]));
+        new InterfaceType(d, [boolType, intType]), coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(e),
+        coreTypes.legacyRawType(f), new InterfaceType(b, [intType]));
   }
 
   Future<void> test_getLegacyLeastUpperBound_nonGeneric() async {
@@ -152,13 +158,21 @@ class I implements C, D, E;
     Class h = getClass("H");
     Class i = getClass("I");
 
-    checkGetLegacyLeastUpperBound(a.rawType, b.rawType, objectType);
-    checkGetLegacyLeastUpperBound(a.rawType, objectType, objectType);
-    checkGetLegacyLeastUpperBound(objectType, b.rawType, objectType);
-    checkGetLegacyLeastUpperBound(c.rawType, d.rawType, a.rawType);
-    checkGetLegacyLeastUpperBound(c.rawType, a.rawType, a.rawType);
-    checkGetLegacyLeastUpperBound(a.rawType, d.rawType, a.rawType);
-    checkGetLegacyLeastUpperBound(f.rawType, g.rawType, a.rawType);
-    checkGetLegacyLeastUpperBound(h.rawType, i.rawType, a.rawType);
+    checkGetLegacyLeastUpperBound(
+        coreTypes.legacyRawType(a), coreTypes.legacyRawType(b), objectType);
+    checkGetLegacyLeastUpperBound(
+        coreTypes.legacyRawType(a), objectType, objectType);
+    checkGetLegacyLeastUpperBound(
+        objectType, coreTypes.legacyRawType(b), objectType);
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
+        coreTypes.legacyRawType(d), coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(c),
+        coreTypes.legacyRawType(a), coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(a),
+        coreTypes.legacyRawType(d), coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(f),
+        coreTypes.legacyRawType(g), coreTypes.legacyRawType(a));
+    checkGetLegacyLeastUpperBound(coreTypes.legacyRawType(h),
+        coreTypes.legacyRawType(i), coreTypes.legacyRawType(a));
   }
 }

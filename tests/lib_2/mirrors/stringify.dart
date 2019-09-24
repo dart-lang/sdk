@@ -175,7 +175,7 @@ String stringify(value) {
   throw 'Unexpected value: $value';
 }
 
-expect(expected, actual, [String reason]) {
+expect(expected, actual, [String reason = ""]) {
   Expect.stringEquals(expected, stringify(actual), reason);
 }
 

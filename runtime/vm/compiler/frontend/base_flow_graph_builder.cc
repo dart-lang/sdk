@@ -951,6 +951,9 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
         function_name, String::Handle(Z, String::New("#tearoff", Heap::kNew)),
         Heap::kOld);
   }
+  if (!function_name.IsCanonical()) {
+    function_name = Symbols::New(thread_, function_name);
+  }
 
   Fragment call_hook;
   call_hook += Constant(closure);

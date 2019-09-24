@@ -64,6 +64,9 @@ class TestVisitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {}
 
   @override
+  void declaredExtension(ExtensionDeclaration declaration) {}
+
+  @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
   @override

@@ -1,6 +1,6 @@
 [package]
 name = "wasmer"
-version = "0.6.0"
+version = "0.7.0"
 
 [lib]
 name = "wasmer"
@@ -8,4 +8,4 @@ crate-type = ["staticlib"]
 path = "wasmer.rs"
 
 [dependencies]
-wasmer-runtime-c-api = "0.6.0"
+wasmer-runtime-c-api = "0.7.0"

@@ -252,6 +252,91 @@ class SafepointMonitorLocker : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(SafepointMonitorLocker);
 };
 
+class RwLock {
+ public:
+  RwLock() {}
+  ~RwLock() {}
+
+ private:
+  friend class ReadRwLocker;
+  friend class WriteRwLocker;
+
+  void EnterRead() {
+    MonitorLocker ml(&monitor_);
+    while (state_ == -1) {
+      ml.Wait();
+    }
+    ++state_;
+  }
+  void LeaveRead() {
+    MonitorLocker ml(&monitor_);
+    ASSERT(state_ > 0);
+    if (--state_ == 0) {
+      ml.NotifyAll();
+    }
+  }
+
+  void EnterWrite() {
+    MonitorLocker ml(&monitor_);
+    while (state_ != 0) {
+      ml.Wait();
+    }
+    state_ = -1;
+  }
+  void LeaveWrite() {
+    MonitorLocker ml(&monitor_);
+    ASSERT(state_ == -1);
+    state_ = 0;
+    ml.NotifyAll();
+  }
+
+  Monitor monitor_;
+  // [state_] > 0  : The lock is held by multiple readers.
+  // [state_] == 0 : The lock is free (no readers/writers).
+  // [state_] == -1: The lock is held by a single writer.
+  intptr_t state_ = 0;
+};
+
+/*
+ * Locks a given [RwLock] for reading purposes.
+ *
+ * It will block while the lock is held by a writer.
+ *
+ * If this locker is long'jmped over (e.g. on a background compiler thread) the
+ * lock will be freed.
+ *
+ * NOTE: If the locking operation blocks (due to a writer) it will not check
+ * for a pending safepoint operation.
+ */
+class ReadRwLocker : public StackResource {
+ public:
+  ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock);
+  ~ReadRwLocker();
+
+ private:
+  RwLock* rw_lock_;
+};
+
+/*
+ * Locks a given [RwLock] for writing purposes.
+ *
+ * It will block while the lock is held by one or more readers.
+ *
+ * If this locker is long'jmped over (e.g. on a background compiler thread) the
+ * lock will be freed.
+ *
+ * NOTE: If the locking operation blocks (due to a writer) it will not check
+ * for a pending safepoint operation.
+ */
+class WriteRwLocker : public StackResource {
+ public:
+  WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock);
+  ~WriteRwLocker();
+
+ private:
+  RwLock* rw_lock_;
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_LOCKERS_H_

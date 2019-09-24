@@ -41,9 +41,6 @@ class VmTarget extends Target {
   VmTarget(this.flags);
 
   @override
-  bool get legacyMode => flags.legacyMode;
-
-  @override
   bool get enableNoSuchMethodForwarders => true;
 
   @override
@@ -80,9 +77,7 @@ class VmTarget extends Target {
       ];
 
   @override
-  List<String> get extraRequiredLibrariesPlatform => const <String>[
-        'dart:profiler',
-      ];
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
 
   void _patchVmConstants(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -181,7 +176,7 @@ class VmTarget extends Target {
           new IntLiteral(type)..fileOffset = offset,
           _fixedLengthList(
               coreTypes,
-              coreTypes.typeClass.rawType,
+              coreTypes.typeLegacyRawType,
               arguments.types.map((t) => new TypeLiteral(t)).toList(),
               arguments.fileOffset),
           _fixedLengthList(coreTypes, const DynamicType(), arguments.positional,
@@ -195,11 +190,11 @@ class VmTarget extends Target {
                       new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
                       arg.value)
                     ..fileOffset = arg.fileOffset;
-                })), keyType: coreTypes.symbolClass.rawType)
+                })), keyType: coreTypes.symbolLegacyRawType)
                   ..isConst = (arguments.named.length == 0)
                   ..fileOffset = arguments.fileOffset
               ], types: [
-                coreTypes.symbolClass.rawType,
+                coreTypes.symbolLegacyRawType,
                 new DynamicType()
               ]))
             ..fileOffset = offset

@@ -895,7 +895,7 @@ class ExprBuilder {
     var typeArg = typeArguments == null
         ? resynthesizer.typeProvider.dynamicType
         : typeArguments.arguments[0].type;
-    var staticType = resynthesizer.typeProvider.listType.instantiate([typeArg]);
+    var staticType = resynthesizer.typeProvider.listType2(typeArg);
     _push(AstTestFactory.listLiteral2(Keyword.CONST, typeArguments, elements)
       ..staticType = staticType);
   }
@@ -960,8 +960,7 @@ class ExprBuilder {
     var valueType = typeArguments == null
         ? resynthesizer.typeProvider.dynamicType
         : typeArguments.arguments[1].type;
-    var staticType =
-        resynthesizer.typeProvider.mapType.instantiate([keyType, valueType]);
+    var staticType = resynthesizer.typeProvider.mapType2(keyType, valueType);
     SetOrMapLiteralImpl literal =
         AstTestFactory.setOrMapLiteral(Keyword.CONST, typeArguments, entries);
     literal.becomeMap();
@@ -1013,15 +1012,13 @@ class ExprBuilder {
       if (typeArguments.arguments.length == 2) {
         var keyType = typeArguments.arguments[0].type;
         var valueType = typeArguments.arguments[1].type;
-        staticType = resynthesizer.typeProvider.mapType
-            .instantiate([keyType, valueType]);
+        staticType = resynthesizer.typeProvider.mapType2(keyType, valueType);
       } else if (typeArguments.arguments.length == 1) {
         isMap = false;
         var valueType = typeArguments == null
             ? resynthesizer.typeProvider.dynamicType
             : typeArguments.arguments[0].type;
-        staticType =
-            resynthesizer.typeProvider.setType.instantiate([valueType]);
+        staticType = resynthesizer.typeProvider.setType2(valueType);
       }
     } else {
       for (var i = 0; i < elements.length; ++i) {

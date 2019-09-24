@@ -230,14 +230,14 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
         Exceptions::PropagateError(Error::Cast(result));
       }
     }
-    if (function.HasBytecode()) {
+    if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
       // triggered by interpreter later via CompileInterpretedFunction.
       return;
     }
-    // No bytecode, fall back to compilation.
+    // Fall back to compilation.
   } else {
     ASSERT(!function.HasCode());
   }
@@ -646,25 +646,31 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
-        if (thread()->IsMutatorThread()) {
+
+        auto install_code_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-        } else {
-          // This part of compilation must be at a safepoint.
-          // Stop mutator thread before creating the instruction object and
-          // installing code.
-          // Mutator thread may not run code while we are creating the
-          // instruction object, since the creation of instruction object
-          // changes code page access permissions (makes them temporary not
-          // executable).
-          {
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            ForceGrowthSafepointOperationScope safepoint_scope(thread());
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            *result =
-                FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-          }
+        };
+
+        if (Compiler::IsBackgroundCompilation()) {
+          CheckIfBackgroundCompilerIsBeingStopped(optimized());
         }
+
+        // We have to ensure no mutators are running, because:
+        //
+        //   a) We allocate an instructions object, which might cause us to
+        //      temporarily flip page protections (RX -> RW -> RX).
+        //
+        //   b) We have to ensure the code generated does not violate
+        //      assumptions (e.g. CHA, field guards), the validation has to
+        //      happen while mutator is stopped.
+        //
+        //   b) We update the [Function] object with a new [Code] which
+        //      requires updating several pointers: We have to ensure all of
+        //      those writes are observed atomically.
+        //
+        thread()->isolate_group()->RunWithStoppedMutators(
+            install_code_fun, install_code_fun, /*use_force_growth=*/true);
 
         // We notify code observers after finalizing the code in order to be
         // outside a [SafepointOperationScope].
@@ -1010,6 +1016,41 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
+}
+
+void Compiler::ComputeYieldPositions(const Function& function) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function.script());
+  Array& yield_position_map = Array::Handle(zone, script.yield_positions());
+  if (yield_position_map.IsNull()) {
+    yield_position_map = HashTables::New<UnorderedHashMap<SmiTraits>>(4);
+  }
+  UnorderedHashMap<SmiTraits> function_map(yield_position_map.raw());
+  Smi& key = Smi::Handle(zone, Smi::New(function.token_pos().value()));
+
+  if (function_map.ContainsKey(key)) {
+    ASSERT(function_map.Release().raw() == yield_position_map.raw());
+    return;
+  }
+
+  CompilerState state(thread);
+  LongJumpScope jump;
+  auto& array = GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  if (setjmp(*jump.Set()) == 0) {
+    ParsedFunction* parsed_function =
+        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
+    ZoneGrowableArray<const ICData*>* ic_data_array =
+        new ZoneGrowableArray<const ICData*>();
+    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
+                                     /* not inlining */ nullptr, false,
+                                     Compiler::kNoOSRDeoptId, 1, false, &array);
+    builder.BuildGraph();
+  }
+  function_map.UpdateOrInsert(key, array);
+  // Release and store back to script
+  yield_position_map = function_map.Release().raw();
+  script.set_yield_positions(yield_position_map);
 }
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
@@ -1409,6 +1450,10 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  UNREACHABLE();
+}
+
+void Compiler::ComputeYieldPositions(const Function& function) {
   UNREACHABLE();
 }
 

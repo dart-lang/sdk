@@ -4,12 +4,3 @@
 
 # Sources that patch the library "dart:_internal".
 internal_runtime_cc_files = [ "class_id.cc" ]
-
-internal_runtime_dart_files = [
-  "internal_patch.dart",
-
-  # The above file needs to be first as it imports required libraries.
-  "class_id.dart",
-  "print_patch.dart",
-  "symbol_patch.dart",
-]

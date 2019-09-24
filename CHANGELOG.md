@@ -4,7 +4,24 @@
 
 ### Language
 
+*   **Breaking change** [#37985](https://github.com/dart-lang/sdk/issues/37985):
+    Inference is changed when using `Null` values in a `FutureOr` context.
+    Namely, constraints of the forms similar to `Null` <: `FutureOr<T>` now
+    yield `Null` as the solution for `T`.  For example, the following code will
+    now print "Null", and it was printing "dynamic" before (note that the
+    anonymous closure `() {}` in the example has `Null` as its return type):
+
+```dart
+import 'dart:async';
+void foo<T>(FutureOr<T> Function() f) { print(T); }
+main() { foo(() {}); }
+```
+
+
 ### Core libraries
+
+* Default values of parameters of abstract methods are no longer available
+  via `dart:mirrors`.
 
 ### Dart VM
 

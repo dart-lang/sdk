@@ -6,7 +6,7 @@
 library test;
 
 void test() {
-  for (num x = 0;; x++) {
+  for (num x = 0;; x /*@ target=num::+ */ ++) {
     if (x /*@target=num::>=*/ >= 10) break;
     if (x is int) {
       var /*@ type=int* */ y = /*@ promotedType=int* */ x;

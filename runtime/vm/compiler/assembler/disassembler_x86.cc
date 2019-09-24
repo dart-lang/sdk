@@ -1442,6 +1442,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       get_modrm(*current, &mod, &regop, &rm);
       Print("cvtdq2pd %s,", NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
+    } else if (opcode == 0xB8) {
+      // POPCNT.
+      current += PrintOperands(mnemonic, REG_OPER_OP_ORDER, current);
+    } else if (opcode == 0xBD) {
+      // LZCNT (rep BSR encoding).
+      current += PrintOperands("lzcnt", REG_OPER_OP_ORDER, current);
     } else {
       UnimplementedInstruction();
     }
@@ -1585,7 +1591,7 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
         "cpuid", "bt",   "shld",    "shld",    NULL,     NULL,
         NULL,    NULL,   NULL,      "bts",     "shrd",   "shrd",
         NULL,    "imul", "cmpxchg", "cmpxchg", NULL,     NULL,
-        NULL,    NULL,   "movzxb",  "movzxw",  NULL,     NULL,
+        NULL,    NULL,   "movzxb",  "movzxw",  "popcnt", NULL,
         NULL,    NULL,   "bsf",     "bsr",     "movsxb", "movsxw"};
     return mnemonics[opcode - 0xA2];
   }

@@ -1810,7 +1810,7 @@ class ICData : public Object {
         kNumRebindRules,
   };
   static const char* RebindRuleToCString(RebindRule r);
-  static bool RebindRuleFromCString(const char* str, RebindRule* out);
+  static bool ParseRebindRule(const char* str, RebindRule* out);
   RebindRule rebind_rule() const;
   void set_rebind_rule(uint32_t rebind_rule) const;
 
@@ -2017,6 +2017,8 @@ class ICData : public Object {
   }
 
  private:
+  friend class FlowGraphSerializer;  // For is_megamorphic()
+
   static RawICData* New();
 
   // Grows the array and also sets the argument to the index that should be used
@@ -2990,8 +2992,6 @@ class Function : public Object {
 
   RawFunction* GetDynamicInvocationForwarder(const String& mangled_name,
                                              bool allow_add = true) const;
-
-  RawFunction* GetTargetOfDynamicInvocationForwarder() const;
 #endif
 
   // Slow function, use in asserts to track changes in important library
@@ -3840,9 +3840,11 @@ class Script : public Object {
 
   void LookupSourceAndLineStarts(Zone* zone) const;
   RawGrowableObjectArray* GenerateLineNumberArray() const;
+
   RawScript::Kind kind() const {
-    return static_cast<RawScript::Kind>(raw_ptr()->kind_);
+    return RawScript::KindBits::decode(raw_ptr()->kind_and_tags_);
   }
+
   const char* GetKindAsCString() const;
   intptr_t line_offset() const { return raw_ptr()->line_offset_; }
   intptr_t col_offset() const { return raw_ptr()->col_offset_; }
@@ -3876,6 +3878,8 @@ class Script : public Object {
   void set_yield_positions(const Array& value) const;
 
   RawArray* yield_positions() const;
+
+  RawGrowableObjectArray* GetYieldPositions(const Function& function) const;
 
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
@@ -3920,10 +3924,14 @@ class Script : public Object {
                             intptr_t kernel_buffer_len) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  void SetLazyLookupSourceAndLineStarts(bool value) const;
+  bool IsLazyLookupSourceAndLineStarts() const;
+
  private:
   void set_resolved_url(const String& value) const;
   void set_source(const String& value) const;
   void set_kind(RawScript::Kind value) const;
+  void set_kind_and_tags(uint8_t value) const;
   void set_load_timestamp(int64_t value) const;
   RawArray* debug_positions() const;
 
@@ -4783,19 +4791,16 @@ class Instructions : public Object {
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    intptr_t instructions_size =
-        Utils::RoundUp(size, OS::PreferredCodeAlignment());
-    intptr_t result = instructions_size + HeaderSize();
-    ASSERT(result % OS::PreferredCodeAlignment() == 0);
-    return result;
+    // OS::PreferredCodeAlignment() is smaller than kObjectAlignment for
+    // simarm_x64.
+    const intptr_t alignment =
+        Utils::Maximum(OS::PreferredCodeAlignment(), kObjectAlignment);
+    return Utils::RoundUp(HeaderSize() + size, alignment);
   }
 
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
     intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
-#if !defined(IS_SIMARM_X64)
-    ASSERT(aligned_size == alignment);
-#endif  // !defined(IS_SIMARM_X64)
     return aligned_size;
   }
 
@@ -4814,19 +4819,8 @@ class Instructions : public Object {
     return memcmp(a->ptr(), b->ptr(), InstanceSize(Size(a))) == 0;
   }
 
-  CodeStatistics* stats() const {
-#if defined(DART_PRECOMPILER)
-    return raw_ptr()->stats_;
-#else
-    return nullptr;
-#endif
-  }
-
-  void set_stats(CodeStatistics* stats) const {
-#if defined(DART_PRECOMPILER)
-    StoreNonPointer(&raw_ptr()->stats_, stats);
-#endif
-  }
+  CodeStatistics* stats() const;
+  void set_stats(CodeStatistics* stats) const;
 
   uword unchecked_entrypoint_pc_offset() const {
     return raw_ptr()->unchecked_entrypoint_pc_offset_;
@@ -5168,7 +5162,6 @@ class ExceptionHandlers : public Object {
                       uword handler_pc_offset,
                       bool needs_stacktrace,
                       bool has_catch_all,
-                      TokenPosition token_pos,
                       bool is_generated) const;
 
   RawArray* GetHandledTypes(intptr_t try_index) const;
@@ -5231,6 +5224,9 @@ class Code : public Object {
   }
 
   using EntryKind = CodeEntryKind;
+
+  static const char* EntryKindToCString(EntryKind kind);
+  static bool ParseEntryKind(const char* str, EntryKind* out);
 
   static intptr_t entry_point_offset(EntryKind kind = EntryKind::kNormal) {
     switch (kind) {
@@ -7292,6 +7288,7 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   // Returns null if integer is out of range.
   static RawInteger* NewCanonical(const String& str);
+  static RawInteger* NewCanonical(int64_t value);
 
   static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 

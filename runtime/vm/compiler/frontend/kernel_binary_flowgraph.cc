@@ -232,7 +232,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);
+        AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
+                                               field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = ReadTag();  // read first part of initializer.
@@ -3720,8 +3721,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
   const String& value =
       H.DartString(ReadStringReference());  // read index into string table.
-  const Integer& integer =
-      Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const Integer& integer = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   if (integer.IsNull()) {
     H.ReportError(script_, TokenPosition::kNoSource,
                   "Integer literal %s is out of range", value.ToCString());
@@ -4768,6 +4768,10 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
+  // Collect yield position
+  if (record_yield_positions_ != nullptr) {
+    record_yield_positions_->Add(Smi::Handle(Z, Smi::New(position.value())));
+  }
   // Setup yield/continue point:
   //
   //   ...

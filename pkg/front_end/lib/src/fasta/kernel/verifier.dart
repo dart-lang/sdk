@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         DartType,
         ExpressionStatement,
         Field,
+        FunctionType,
         Let,
         Library,
         Member,
@@ -20,7 +21,8 @@ import 'package:kernel/ast.dart'
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
-        TreeNode;
+        TreeNode,
+        TypeParameter;
 
 import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
@@ -180,6 +182,20 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
       problem(null, "Unexpected appearance of the unknown type.");
     }
     super.defaultDartType(node);
+  }
+
+  @override
+  visitFunctionType(FunctionType node) {
+    if (node.typeParameters.isNotEmpty) {
+      for (TypeParameter typeParameter in node.typeParameters) {
+        if (typeParameter.parent != null) {
+          problem(
+              null,
+              "Type parameters of function types shouldn't have parents: "
+              "$node.");
+        }
+      }
+    }
   }
 
   @override

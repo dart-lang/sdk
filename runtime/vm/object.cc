@@ -1931,6 +1931,15 @@ RawError* Object::Init(Isolate* isolate,
     }
     object_store->set_bootstrap_library(ObjectStore::kWasm, lib);
 
+#define REGISTER_WASM_TYPE(clazz)                                              \
+  cls = Class::New<Instance>(k##clazz##Cid, isolate);                          \
+  cls.set_num_type_arguments(0);                                               \
+  cls.set_is_prefinalized();                                                   \
+  pending_classes.Add(cls);                                                    \
+  RegisterClass(cls, Symbols::clazz(), lib);
+    CLASS_LIST_WASM(REGISTER_WASM_TYPE);
+#undef REGISTER_WASM_TYPE
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -2024,6 +2033,11 @@ RawError* Object::Init(Isolate* isolate,
   cls = Class::New<Instance>(kFfi##clazz##Cid, isolate);
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
 #undef REGISTER_FFI_CLASS
+
+#define REGISTER_WASM_CLASS(clazz)                                             \
+  cls = Class::New<Instance>(k##clazz##Cid, isolate);
+    CLASS_LIST_WASM(REGISTER_WASM_CLASS);
+#undef REGISTER_WASM_CLASS
 
     cls = Class::New<Instance>(kFfiNativeFunctionCid, isolate);
 
@@ -3171,16 +3185,6 @@ RawFunction* Function::GetDynamicInvocationForwarder(
   }
 
   return result.raw();
-}
-
-RawFunction* Function::GetTargetOfDynamicInvocationForwarder() const {
-  ASSERT(IsDynamicInvocationForwarder());
-  auto& func_name = String::Handle(name());
-  func_name = DemangleDynamicInvocationForwarderName(func_name);
-  const auto& owner = Class::Handle(Owner());
-  RawFunction* target = owner.LookupDynamicFunction(func_name);
-  ASSERT(target != Function::null());
-  return target;
 }
 
 #endif
@@ -9372,13 +9376,12 @@ RawTypedData* Script::kernel_string_offsets() const {
 
 void Script::LookupSourceAndLineStarts(Zone* zone) const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (Source() == String::null()) {
-    // This is a script without source info.
+  if (!IsLazyLookupSourceAndLineStarts()) {
     return;
   }
   const String& uri = String::Handle(zone, resolved_url());
   ASSERT(uri.IsSymbol());
-  if (uri.Length() > 0 && Source() == Symbols::Empty().raw()) {
+  if (uri.Length() > 0) {
     // Entry included only to provide URI - actual source should already exist
     // in the VM, so try to find it.
     Library& lib = Library::Handle(zone);
@@ -9388,18 +9391,18 @@ void Script::LookupSourceAndLineStarts(Zone* zone) const {
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
       script = lib.LookupScript(uri, /* useResolvedUri = */ true);
-      if (!script.IsNull() && script.kind() == RawScript::kKernelTag &&
-          script.Source() != Symbols::Empty().raw()) {
-        set_source(String::Handle(zone, script.Source()));
-        set_line_starts(TypedData::Handle(zone, script.line_starts()));
-        // Note that we may find a script without source info (null source).
-        // We will not repeat the lookup in this case.
-        return;
+      if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
+        const auto& source = String::Handle(zone, script.Source());
+        const auto& line_starts = TypedData::Handle(zone, script.line_starts());
+        if (!source.IsNull() || !line_starts.IsNull()) {
+          set_source(source);
+          set_line_starts(line_starts);
+          break;
+        }
       }
     }
-    set_source(Object::null_string());
-    // No script found. Set source to null to prevent further lookup.
   }
+  SetLazyLookupSourceAndLineStarts(false);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -9503,14 +9506,26 @@ void Script::set_yield_positions(const Array& value) const {
 }
 
 RawArray* Script::yield_positions() const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  Array& yields = Array::Handle(raw_ptr()->yield_positions_);
-  if (yields.IsNull() && kind() == RawScript::kKernelTag) {
-    // This is created lazily. Now we need it.
-    kernel::CollectTokenPositionsFor(*this);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return raw_ptr()->yield_positions_;
+}
+
+RawGrowableObjectArray* Script::GetYieldPositions(
+    const Function& function) const {
+  if (!function.IsAsyncClosure() && !function.IsAsyncGenClosure())
+    return GrowableObjectArray::null();
+  ASSERT(!function.is_declared_in_bytecode());
+  Compiler::ComputeYieldPositions(function);
+  UnorderedHashMap<SmiTraits> function_map(raw_ptr()->yield_positions_);
+  const auto& key = Smi::Handle(Smi::New(function.token_pos().value()));
+  intptr_t entry = function_map.FindKey(key);
+  GrowableObjectArray& array = GrowableObjectArray::Handle();
+  if (entry < 0) {
+    array ^= GrowableObjectArray::null();
+  } else {
+    array ^= function_map.GetPayload(entry, 0);
+  }
+  function_map.Release();
+  return array.raw();
 }
 
 RawTypedData* Script::line_starts() const {
@@ -9529,7 +9544,22 @@ RawArray* Script::debug_positions() const {
 }
 
 void Script::set_kind(RawScript::Kind value) const {
-  StoreNonPointer(&raw_ptr()->kind_, value);
+  set_kind_and_tags(
+      RawScript::KindBits::update(value, raw_ptr()->kind_and_tags_));
+}
+
+void Script::set_kind_and_tags(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->kind_and_tags_, value);
+}
+
+void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
+  set_kind_and_tags(RawScript::LazyLookupSourceAndLineStartsBit::update(
+      value, raw_ptr()->kind_and_tags_));
+}
+
+bool Script::IsLazyLookupSourceAndLineStarts() const {
+  return RawScript::LazyLookupSourceAndLineStartsBit::decode(
+      raw_ptr()->kind_and_tags_);
 }
 
 void Script::set_load_timestamp(int64_t value) const {
@@ -9805,6 +9835,7 @@ RawScript* Script::New(const String& url,
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
   result.SetLocationOffset(0, 0);
+  result.set_kind_and_tags(0);
   result.set_kind(kind);
   result.set_kernel_script_index(0);
   result.set_load_timestamp(
@@ -11399,8 +11430,10 @@ static RawObject* EvaluateCompiledExpressionHelper(
     const String& klass,
     const Array& arguments,
     const TypeArguments& type_arguments) {
+  Zone* zone = Thread::Current()->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const String& error_str = String::Handle(
+      zone,
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
@@ -11409,36 +11442,51 @@ static RawObject* EvaluateCompiledExpressionHelper(
 
   if (kernel_pgm == NULL) {
     return ApiError::New(String::Handle(
-        String::New("Kernel isolate returned ill-formed kernel.")));
+        zone, String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
   kernel::KernelLoader loader(kernel_pgm.get(),
                               /*uri_to_source_table=*/nullptr);
-  const Object& result = Object::Handle(
-      loader.LoadExpressionEvaluationFunction(library_url, klass));
+  auto& result = Object::Handle(
+      zone, loader.LoadExpressionEvaluationFunction(library_url, klass));
   kernel_pgm.reset();
 
   if (result.IsError()) return result.raw();
 
-  const Function& callee = Function::Cast(result);
+  const auto& callee = Function::CheckedHandle(zone, result.raw());
 
   // type_arguments is null if all type arguments are dynamic.
   if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
-    return DartEntry::InvokeFunction(callee, arguments);
+    result = DartEntry::InvokeFunction(callee, arguments);
+  } else {
+    intptr_t num_type_args = type_arguments.Length();
+    Array& real_arguments =
+        Array::Handle(zone, Array::New(arguments.Length() + 1));
+    real_arguments.SetAt(0, type_arguments);
+    Object& arg = Object::Handle(zone);
+    for (intptr_t i = 0; i < arguments.Length(); ++i) {
+      arg = arguments.At(i);
+      real_arguments.SetAt(i + 1, arg);
+    }
+
+    const Array& args_desc = Array::Handle(
+        zone, ArgumentsDescriptor::New(num_type_args, arguments.Length()));
+    result = DartEntry::InvokeFunction(callee, real_arguments, args_desc);
   }
 
-  intptr_t num_type_args = type_arguments.Length();
-  Array& real_arguments = Array::Handle(Array::New(arguments.Length() + 1));
-  real_arguments.SetAt(0, type_arguments);
-  Object& arg = Object::Handle();
-  for (intptr_t i = 0; i < arguments.Length(); ++i) {
-    arg = arguments.At(i);
-    real_arguments.SetAt(i + 1, arg);
+  if (callee.is_declared_in_bytecode()) {
+    // Expression evaluation binary expires immediately after evaluation is
+    // finished. However, hot reload may still find corresponding
+    // KernelProgramInfo object in the heap and it would try to patch it.
+    // To prevent accessing stale kernel binary in ResetObjectTable, bytecode
+    // component of the callee's KernelProgramInfo is reset here.
+    const auto& script = Script::Handle(zone, callee.script());
+    const auto& info =
+        KernelProgramInfo::Handle(zone, script.kernel_program_info());
+    info.set_bytecode_component(Object::null_array());
   }
 
-  const Array& args_desc = Array::Handle(
-      ArgumentsDescriptor::New(num_type_args, arguments.Length()));
-  return DartEntry::InvokeFunction(callee, real_arguments, args_desc);
+  return result.raw();
 #endif
 }
 
@@ -12447,6 +12495,21 @@ const char* Instructions::ToCString() const {
   return "Instructions";
 }
 
+CodeStatistics* Instructions::stats() const {
+#if defined(DART_PRECOMPILER)
+  return reinterpret_cast<CodeStatistics*>(
+      Thread::Current()->heap()->GetPeer(raw()));
+#else
+  return nullptr;
+#endif
+}
+
+void Instructions::set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+  Thread::Current()->heap()->SetPeer(raw(), stats);
+#endif
+}
+
 // Encode integer |value| in SLEB128 format and store into |data|.
 static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
   bool is_last_part = false;
@@ -13019,7 +13082,6 @@ void ExceptionHandlers::SetHandlerInfo(intptr_t try_index,
                                        uword handler_pc_offset,
                                        bool needs_stacktrace,
                                        bool has_catch_all,
-                                       TokenPosition token_pos,
                                        bool is_generated) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
   NoSafepointScope no_safepoint;
@@ -13408,7 +13470,7 @@ const char* ICData::RebindRuleToCString(RebindRule r) {
   }
 }
 
-bool ICData::RebindRuleFromCString(const char* str, RebindRule* out) {
+bool ICData::ParseRebindRule(const char* str, RebindRule* out) {
 #define RULE_CASE(Name)                                                        \
   if (strcmp(str, #Name) == 0) {                                               \
     *out = RebindRule::k##Name;                                                \
@@ -14387,6 +14449,39 @@ void Code::Comments::SetCommentAt(intptr_t idx, const String& comment) {
 }
 
 Code::Comments::Comments(const Array& comments) : comments_(comments) {}
+
+const char* Code::EntryKindToCString(EntryKind kind) {
+  switch (kind) {
+    case EntryKind::kNormal:
+      return "Normal";
+    case EntryKind::kUnchecked:
+      return "Unchecked";
+    case EntryKind::kMonomorphic:
+      return "Monomorphic";
+    case EntryKind::kMonomorphicUnchecked:
+      return "MonomorphicUnchecked";
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool Code::ParseEntryKind(const char* str, EntryKind* out) {
+  if (strcmp(str, "Normal") == 0) {
+    *out = EntryKind::kNormal;
+    return true;
+  } else if (strcmp(str, "Unchecked") == 0) {
+    *out = EntryKind::kUnchecked;
+    return true;
+  } else if (strcmp(str, "Monomorphic") == 0) {
+    *out = EntryKind::kMonomorphic;
+    return true;
+  } else if (strcmp(str, "MonomorphicUnchecked") == 0) {
+    *out = EntryKind::kMonomorphicUnchecked;
+    return true;
+  }
+  return false;
+}
 
 RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
   const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
@@ -18595,6 +18690,10 @@ RawInteger* Integer::NewCanonical(const String& str) {
     // Out of range.
     return Integer::null();
   }
+  return NewCanonical(value);
+}
+
+RawInteger* Integer::NewCanonical(int64_t value) {
   if (Smi::IsValid(value)) {
     return Smi::New(static_cast<intptr_t>(value));
   }

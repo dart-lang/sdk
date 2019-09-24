@@ -363,7 +363,7 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
 
 ConstantInstr* IRRegExpMacroAssembler::Int64Constant(int64_t value) const {
   return new (Z)
-      ConstantInstr(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
+      ConstantInstr(Integer::ZoneHandle(Z, Integer::NewCanonical(value)));
 }
 
 ConstantInstr* IRRegExpMacroAssembler::Uint64Constant(uint64_t value) const {

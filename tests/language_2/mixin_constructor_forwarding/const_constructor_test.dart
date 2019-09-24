@@ -40,8 +40,6 @@ class Base {
 
 class Application = Base with Mixin;
 
-class Application2 extends Base with Mixin {}
-
 main() {
   Expect.equals(42, new Application.c1(42).m);
   Expect.equals(42, new Application.c2(42).m);
@@ -59,53 +57,22 @@ main() {
   Expect.equals(42, const Application.c14(42).m);
   Expect.equals(42, const Application.c15(x: 42).m);
 
-  Expect.equals(37, new Application.c2().m);
+  Expect.equals(37, new Application.c2().m); //# issue38304: ok
   Expect.equals(37, new Application.c3().m);
-  Expect.equals(37, const Application.c5().m);
+  Expect.equals(37, const Application.c5().m); //# issue38304: continued
   Expect.equals(37, const Application.c6().m);
-  Expect.equals(87, const Application.c8().m);
+  Expect.equals(87, const Application.c8().m); //# issue38304: continued
   Expect.equals(87, const Application.c9().m);
-  Expect.equals(87, const Application.c11().m);
+  Expect.equals(87, const Application.c11().m); //# issue38304: continued
   Expect.equals(87, const Application.c12().m);
-  Expect.equals(87, const Application.c14().m);
+  Expect.equals(87, const Application.c14().m); //# issue38304: continued
   Expect.equals(87, const Application.c15().m);
-
-  Expect.equals(42, new Application2.c1(42).m);
-  Expect.equals(42, new Application2.c2(42).m);
-  Expect.equals(42, new Application2.c3(x: 42).m);
-  Expect.equals(42, const Application2.c4(42).m);
-  Expect.equals(42, const Application2.c5(42).m);
-  Expect.equals(42, const Application2.c6(x: 42).m);
-  Expect.equals(42, const Application2.c7(42).m);
-  Expect.equals(42, const Application2.c8(42).m);
-  Expect.equals(42, const Application2.c9(x: 42).m);
-  Expect.equals(42, const Application2.c10(42).m);
-  Expect.equals(42, const Application2.c11(42).m);
-  Expect.equals(42, const Application2.c12(x: 42).m);
-  Expect.equals(42, const Application2.c13(42).m);
-  Expect.equals(42, const Application2.c14(42).m);
-  Expect.equals(42, const Application2.c15(x: 42).m);
-
-  Expect.equals(37, new Application2.c2().m);
-  Expect.equals(37, new Application2.c3().m);
-  Expect.equals(37, const Application2.c5().m);
-  Expect.equals(37, const Application2.c6().m);
-  Expect.equals(87, const Application2.c8().m);
-  Expect.equals(87, const Application2.c9().m);
-  Expect.equals(87, const Application2.c11().m);
-  Expect.equals(87, const Application2.c12().m);
-  Expect.equals(87, const Application2.c14().m);
-  Expect.equals(87, const Application2.c15().m);
 
   // Only make forwarders const if original constructor is const.
   const Application.c1(0); //# 01: compile-time error
   const Application.c2(0); //# 02: compile-time error
   const Application.c3(x: 0); //# 03: compile-time error
-  const Application2.c1(0); //# 04: compile-time error
-  const Application2.c2(0); //# 05: compile-time error
-  const Application2.c3(x: 0); //# 06: compile-time error
 
   // Only insert forwarders for generative constructors.
-  new Application(); //# 07: compile-time error
-  new Application2(); //# 08: compile-time error
+  new Application(); //# 04: compile-time error
 }

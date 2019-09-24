@@ -161,20 +161,28 @@ void Assembler::setcc(Condition condition, ByteRegister dst) {
 }
 
 void Assembler::EnterSafepoint() {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, to simplify GenerateJitCallbackTrampolines.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. If the CAS fails, go to a slow-path stub.
-  Label done;
+  pushq(RAX);
+  movq(RAX, Immediate(target::Thread::safepoint_state_unacquired()));
+  movq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+  LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+
   if (!FLAG_use_slow_path) {
-    pushq(RAX);
-    movq(RAX, Immediate(target::Thread::safepoint_state_unacquired()));
-    movq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
-    LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
-    movq(TMP, RAX);
-    popq(RAX);
-    cmpq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
     j(EQUAL, &done);
   }
 
+  Bind(&slow_path);
   movq(TMP, Address(THR, target::Thread::enter_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 
@@ -203,20 +211,29 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
 }
 
 void Assembler::LeaveSafepoint() {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
   // Compare and swap the value at Thread::safepoint_state from acquired to
   // unacquired. On success, jump to 'success'; otherwise, fallthrough.
-  Label done;
+
+  pushq(RAX);
+  movq(RAX, Immediate(target::Thread::safepoint_state_acquired()));
+  movq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
+  LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
+  movq(TMP, RAX);
+  popq(RAX);
+  cmpq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
+
   if (!FLAG_use_slow_path) {
-    pushq(RAX);
-    movq(RAX, Immediate(target::Thread::safepoint_state_acquired()));
-    movq(TMP, Immediate(target::Thread::safepoint_state_unacquired()));
-    LockCmpxchgq(Address(THR, target::Thread::safepoint_state_offset()), TMP);
-    movq(TMP, RAX);
-    popq(RAX);
-    cmpq(TMP, Immediate(target::Thread::safepoint_state_acquired()));
     j(EQUAL, &done);
   }
 
+  Bind(&slow_path);
   movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 

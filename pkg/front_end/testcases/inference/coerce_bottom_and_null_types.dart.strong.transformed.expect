@@ -7,12 +7,12 @@ static method f() → dynamic {
   dynamic b = null;
   dynamic c = throw "foo";
   () →* core::int* d = () → core::int* => 0;
-  () →* core::Null* e = () → core::Null* => null;
+  () →* core::Null? e = () → core::Null? => null;
   () →* <BottomType>f = () → <BottomType>=> throw "foo";
   () →* core::int* g = () → core::int* {
     return 0;
   };
-  () →* core::Null* h = () → core::Null* {
+  () →* core::Null? h = () → core::Null? {
     return null;
   };
   () →* <BottomType>i = () → <BottomType>{

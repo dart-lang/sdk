@@ -227,7 +227,7 @@ bool hasNoSuchMethod(ClassElement classElement) {
   var method = classElement.lookUpMethod(
       FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
   var definingClass = method?.enclosingElement;
-  return definingClass is ClassElement && !definingClass.type.isObject;
+  return definingClass is ClassElement && !definingClass.isDartCoreObject;
 }
 
 /// Returns true if this class is of the form:

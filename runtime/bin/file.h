@@ -223,6 +223,9 @@ class File : public ReferenceCounted<File> {
   static const char* GetCanonicalPath(Namespace* namespc, const char* path);
   // Link LinkTarget, but pathname must be absolute.
   static const char* ReadLink(const char* pathname);
+  static intptr_t ReadLinkInto(const char* pathname,
+                               char* result,
+                               size_t result_size);
 
   // Cleans an input path, transforming it to out, according to the rules
   // defined by "Lexical File Names in Plan 9 or Getting Dot-Dot Right",

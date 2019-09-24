@@ -64,6 +64,7 @@
 ///
 library kernel.ast;
 
+import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
 import 'visitor.dart';
@@ -116,7 +117,7 @@ abstract class TreeNode extends Node {
 
   R accept<R>(TreeVisitor<R> v);
   void visitChildren(Visitor v);
-  transformChildren(Transformer v);
+  void transformChildren(Transformer v);
 
   /// Replaces [child] with [replacement].
   ///
@@ -200,7 +201,38 @@ abstract class Annotatable {
 class Reference {
   CanonicalName canonicalName;
 
-  NamedNode node;
+  NamedNode _node;
+
+  NamedNode get node {
+    if (_node == null) {
+      // Either this is an unbound reference or it belongs to a lazy-loaded
+      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
+      // load the class.
+
+      CanonicalName canonicalNameParent = canonicalName?.parent;
+      while (canonicalNameParent != null) {
+        if (canonicalNameParent.name.startsWith("@")) {
+          break;
+        }
+        canonicalNameParent = canonicalNameParent.parent;
+      }
+      if (canonicalNameParent != null) {
+        NamedNode parentNamedNode =
+            canonicalNameParent?.parent?.reference?._node;
+        if (parentNamedNode is Class) {
+          Class parentClass = parentNamedNode;
+          if (parentClass.lazyBuilder != null) {
+            parentClass.ensureLoaded();
+          }
+        }
+      }
+    }
+    return _node;
+  }
+
+  void set node(NamedNode node) {
+    _node = node;
+  }
 
   String toString() {
     if (canonicalName != null) {
@@ -298,6 +330,7 @@ class Library extends NamedNode
 
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
+  static const int NonNullableByDefaultFlag = 1 << 2;
 
   int flags = 0;
 
@@ -320,6 +353,13 @@ class Library extends NamedNode
   bool get isSynthetic => flags & SyntheticFlag != 0;
   void set isSynthetic(bool value) {
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
+  }
+
+  bool get isNonNullableByDefault => (flags & NonNullableByDefaultFlag) != 0;
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | NonNullableByDefaultFlag)
+        : (flags & ~NonNullableByDefaultFlag);
   }
 
   String name;
@@ -378,6 +418,23 @@ class Library extends NamedNode
     setParents(this.extensions, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+  }
+
+  Nullability get nullable {
+    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
+  }
+
+  Nullability get nonNullable {
+    return isNonNullableByDefault
+        ? Nullability.nonNullable
+        : Nullability.legacy;
+  }
+
+  Nullability nullableIfTrue(bool isNullable) {
+    if (isNonNullableByDefault) {
+      return isNullable ? Nullability.nullable : Nullability.nonNullable;
+    }
+    return Nullability.legacy;
   }
 
   /// Returns the top-level fields and procedures defined in this library.
@@ -745,6 +802,41 @@ enum ClassLevel {
   Body,
 }
 
+/// List-wrapper that marks the parent-class as dirty if the list is modified.
+///
+/// The idea being, that for non-dirty classes (classes just loaded from dill)
+/// the canonical names has already been calculated, and recalculating them is
+/// not needed. If, however, we change anything, recalculation of the canonical
+/// names can be needed.
+class DirtifyingList<E> extends ListBase<E> {
+  final Class dirtifyClass;
+  final List<E> wrapped;
+
+  DirtifyingList(this.dirtifyClass, this.wrapped);
+
+  @override
+  int get length {
+    return wrapped.length;
+  }
+
+  @override
+  void set length(int length) {
+    dirtifyClass.dirty = true;
+    wrapped.length = length;
+  }
+
+  @override
+  E operator [](int index) {
+    return wrapped[index];
+  }
+
+  @override
+  void operator []=(int index, E value) {
+    dirtifyClass.dirty = true;
+    wrapped[index] = value;
+  }
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
@@ -885,23 +977,92 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The types from the `implements` clause.
   final List<Supertype> implementedTypes;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If non-null, the function that will have to be called to fill-out the
+  /// content of this class. Note that this should not be called directly though.
+  void Function() lazyBuilder;
+
+  /// Makes sure the class is loaded, i.e. the fields, procedures etc have been
+  /// loaded from the dill. Generally, one should not need to call this as it is
+  /// done automatically when accessing the lists.
+  void ensureLoaded() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  final List<Field> fieldsInternal;
+  DirtifyingList<Field> _fieldsView;
+
   /// Fields declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<Field> fields;
+  List<Field> get fields {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return fieldsInternal;
+    _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    return _fieldsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding constructors when reading the dill file.
+  final List<Constructor> constructorsInternal;
+  DirtifyingList<Constructor> _constructorsView;
 
   /// Constructors declared in the class.
-  final List<Constructor> constructors;
+  List<Constructor> get constructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return constructorsInternal;
+    _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    return _constructorsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  final List<Procedure> proceduresInternal;
+  DirtifyingList<Procedure> _proceduresView;
 
   /// Procedures declared in the class.
   ///
   /// For mixin applications this should only contain forwarding stubs.
-  final List<Procedure> procedures;
+  List<Procedure> get procedures {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return proceduresInternal;
+    _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    return _proceduresView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding redirecting factory constructor when reading the dill
+  /// file.
+  final List<RedirectingFactoryConstructor>
+      redirectingFactoryConstructorsInternal;
+  DirtifyingList<RedirectingFactoryConstructor>
+      _redirectingFactoryConstructorsView;
 
   /// Redirecting factory constructors declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+  List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return redirectingFactoryConstructorsInternal;
+    _redirectingFactoryConstructorsView ??=
+        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+    return _redirectingFactoryConstructorsView;
+  }
 
   Class(
       {this.name,
@@ -919,23 +1080,24 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fields = fields ?? <Field>[],
-        this.constructors = constructors ?? <Constructor>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructors =
+        this.fieldsInternal = fields ?? <Field>[],
+        this.constructorsInternal = constructors ?? <Constructor>[],
+        this.proceduresInternal = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructorsInternal =
             redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructors, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
-    setParents(this.redirectingFactoryConstructors, this);
+    setParents(this.constructorsInternal, this);
+    setParents(this.proceduresInternal, this);
+    setParents(this.fieldsInternal, this);
+    setParents(this.redirectingFactoryConstructorsInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
+    if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
@@ -952,6 +1114,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
+    dirty = false;
   }
 
   /// The immediate super class, or `null` if this is the root class.
@@ -1008,20 +1171,27 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The library containing this class.
   Library get enclosingLibrary => parent;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If true we have to compute canonical names for all children of this class.
+  /// if false we can skip it.
+  bool dirty = true;
+
   /// Adds a member to this class.
   ///
   /// Throws an error if attempting to add a field or procedure to a mixin
   /// application.
   void addMember(Member member) {
+    dirty = true;
     member.parent = this;
     if (member is Constructor) {
-      constructors.add(member);
+      constructorsInternal.add(member);
     } else if (member is Procedure) {
-      procedures.add(member);
+      proceduresInternal.add(member);
     } else if (member is Field) {
-      fields.add(member);
+      fieldsInternal.add(member);
     } else if (member is RedirectingFactoryConstructor) {
-      redirectingFactoryConstructors.add(member);
+      redirectingFactoryConstructorsInternal.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -1053,9 +1223,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   Supertype get asThisSupertype {
     return new Supertype(this, _getAsTypeArguments(typeParameters));
   }
-
-  InterfaceType _rawType;
-  InterfaceType get rawType => _rawType ??= new InterfaceType(this);
 
   InterfaceType _thisType;
   InterfaceType get thisType {
@@ -2302,7 +2469,15 @@ class FunctionNode extends TreeNode {
     return new NamedType(node.name, node.type, isRequired: node.isRequired);
   }
 
-  FunctionType get functionType {
+  /// Returns the function type of the node reusing its type parameters.
+  ///
+  /// This getter works similarly to [functionType], but reuses type parameters
+  /// of the function node (or the class enclosing it -- see the comment on
+  /// [functionType] about constructors of generic classes) in the result.  It
+  /// is useful in some contexts, especially when reasoning about the function
+  /// type of the enclosing generic function and in combination with
+  /// [FunctionType.withoutTypeParameters].
+  FunctionType get thisFunctionType {
     TreeNode parent = this.parent;
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
@@ -2318,6 +2493,21 @@ class FunctionNode extends TreeNode {
         namedParameters: named,
         typeParameters: typeParametersCopy,
         requiredParameterCount: requiredParameterCount);
+  }
+
+  /// Returns the function type of the function node.
+  ///
+  /// If the function node describes a generic function, the resulting function
+  /// type will be generic.  If the function node describes a constructor of a
+  /// generic class, the resulting function type will be generic with its type
+  /// parameters constructed after those of the class.  In both cases, if the
+  /// resulting function type is generic, a fresh set of type parameters is used
+  /// in it.
+  FunctionType get functionType {
+    return typeParameters.isEmpty
+        ? thisFunctionType
+        : getFreshTypeParameters(typeParameters)
+            .applyToFunctionType(thisFunctionType);
   }
 
   R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
@@ -2416,7 +2606,7 @@ abstract class Expression extends TreeNode {
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return superclass.rawType;
+      return types.coreTypes.legacyRawType(superclass);
     }
     var type = getStaticType(types);
     while (type is TypeParameterType) {
@@ -2432,7 +2622,7 @@ abstract class Expression extends TreeNode {
       return superclass.bottomType;
     }
     types.typeError(this, '$type is not a subtype of $superclass');
-    return superclass.rawType;
+    return types.coreTypes.legacyRawType(superclass);
   }
 
   R accept<R>(ExpressionVisitor<R> v);
@@ -3229,8 +3419,9 @@ class ConstructorInvocation extends InvocationExpression {
 
   DartType getStaticType(TypeEnvironment types) {
     return arguments.types.isEmpty
-        ? target.enclosingClass.rawType
-        : new InterfaceType(target.enclosingClass, arguments.types);
+        ? types.coreTypes.legacyRawType(target.enclosingClass)
+        : new InterfaceType(
+            target.enclosingClass, arguments.types, Nullability.legacy);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorInvocation(this);
@@ -3249,10 +3440,16 @@ class ConstructorInvocation extends InvocationExpression {
     }
   }
 
+  // TODO(dmitryas): Change the getter into a method that accepts a CoreTypes.
   InterfaceType get constructedType {
+    Class enclosingClass = target.enclosingClass;
+    // TODO(dmitryas): Get raw type from a CoreTypes object if arguments is
+    // empty.
     return arguments.types.isEmpty
-        ? target.enclosingClass.rawType
-        : new InterfaceType(target.enclosingClass, arguments.types);
+        ? new InterfaceType(
+            enclosingClass, const <DartType>[], Nullability.legacy)
+        : new InterfaceType(
+            enclosingClass, arguments.types, Nullability.legacy);
   }
 }
 
@@ -3561,7 +3758,7 @@ class InstanceCreation extends Expression {
 
   DartType getStaticType(TypeEnvironment types) {
     return typeArguments.isEmpty
-        ? classNode.rawType
+        ? types.coreTypes.legacyRawType(classNode)
         : new InterfaceType(classNode, typeArguments);
   }
 
@@ -4498,13 +4695,13 @@ class ForInStatement extends Statement {
   R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitForInStatement(this, arg);
 
-  visitChildren(Visitor v) {
+  void visitChildren(Visitor v) {
     variable?.accept(v);
     iterable?.accept(v);
     body?.accept(v);
   }
 
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
@@ -5901,6 +6098,7 @@ class BoolConstant extends PrimitiveConstant<bool> {
   DartType getType(TypeEnvironment types) => types.boolType;
 }
 
+/// An integer constant on a non-JS target.
 class IntConstant extends PrimitiveConstant<int> {
   IntConstant(int value) : super(value);
 
@@ -5911,6 +6109,7 @@ class IntConstant extends PrimitiveConstant<int> {
   DartType getType(TypeEnvironment types) => types.intType;
 }
 
+/// A double constant on a non-JS target or any numeric constant on a JS target.
 class DoubleConstant extends PrimitiveConstant<double> {
   DoubleConstant(double value) : super(value);
 
@@ -6326,6 +6525,14 @@ class Component extends TreeNode {
   }
 
   void unbindCanonicalNames() {
+    // TODO(jensj): Get rid of this.
+    for (int i = 0; i < libraries.length; i++) {
+      Library lib = libraries[i];
+      for (int j = 0; j < lib.classes.length; j++) {
+        Class c = lib.classes[j];
+        c.dirty = true;
+      }
+    }
     root.unbindAll();
   }
 

@@ -344,8 +344,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary(
             parameterCount: numArgs, positionalParameterCount: numArgs);
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter(
-            "this", member.enclosingClass.rawType, null,
+        _receiver = _declareParameter("this",
+            _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       } else {
@@ -391,8 +391,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
       if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter(
-            "this", member.enclosingClass.rawType, null,
+        _receiver = _declareParameter("this",
+            _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       }
@@ -524,7 +524,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     if (hasReceiverArg(member)) {
       assertx(member.enclosingClass != null);
-      Type receiver = new Type.cone(member.enclosingClass.rawType);
+      Type receiver = new Type.cone(
+          _environment.coreTypes.legacyRawType(member.enclosingClass));
       args.add(receiver);
     }
 

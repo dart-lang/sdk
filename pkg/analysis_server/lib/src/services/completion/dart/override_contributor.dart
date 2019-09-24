@@ -9,8 +9,11 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -40,7 +43,8 @@ class OverrideContributor implements DartCompletionContributor {
 
     // Generate a collection of inherited members
     var classElem = classDecl.declaredElement;
-    var interface = inheritance.getInterface(classElem.type);
+    var classType = _thisType(request, classElem);
+    var interface = inheritance.getInterface(classType);
     var interfaceMap = interface.map;
     var namesToOverride =
         _namesToOverride(classElem.librarySource.uri, interface);
@@ -191,5 +195,26 @@ class OverrideContributor implements DartCompletionContributor {
       }
     }
     return namesToOverride;
+  }
+
+  InterfaceType _thisType(
+    DartCompletionRequest request,
+    ClassElement thisElement,
+  ) {
+    var typeParameters = thisElement.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+          ? NullabilitySuffix.none
+          : NullabilitySuffix.star;
+      typeArguments = typeParameters.map((t) {
+        return t.instantiate(nullabilitySuffix: nullabilitySuffix);
+      }).toList();
+    }
+
+    return thisElement.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 }

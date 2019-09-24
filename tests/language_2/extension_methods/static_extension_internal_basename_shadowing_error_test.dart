@@ -212,7 +212,7 @@ class A4 {}
 
 // Define extensions on A6.
 extension E5 on A6 {
-  void set extensionSetter(int _) {};
+  void set extensionSetter(int _) {}
   int extensionMethod(int x) => -3;
 }
 

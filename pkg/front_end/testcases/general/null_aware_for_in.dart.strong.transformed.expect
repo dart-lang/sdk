@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  dynamic o;
+  if(false) {
+    for (final dynamic #t1 in (let final dynamic #t2 = o in #t2.{core::Object::==}(null) ?{dynamic} null : #t2.iterable) as{TypeError} core::Iterable<dynamic>*) {
+      self::Class* c = #t1 as{TypeError} self::Class*;
+    }
+  }
+}

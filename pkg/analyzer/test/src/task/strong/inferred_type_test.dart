@@ -429,12 +429,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 ''');
   }
@@ -466,7 +466,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 ''');
   }
@@ -751,7 +751,7 @@ class A {
 }
 
 class B implements A {
-  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
+  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
 }
 
 foo() {
@@ -1955,8 +1955,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  /*error:INVALID_OVERRIDE*/T m<T>(T x) => x;
-  /*error:INVALID_OVERRIDE*/T g<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/m<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
@@ -2486,56 +2486,6 @@ foo() {
   i = new B().w;
 }
 ''');
-  }
-
-  test_inferredType_usesSyntheticFunctionType() async {
-    var mainUnit = await checkFileElement('''
-int f() => null;
-String g() => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function()>');
-  }
-
-  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
-    var mainUnit = await checkFileElement('''
-int f(int x(String y)) => null;
-String g(int x(String y)) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function(int Function(String))>');
-  }
-
-  test_inferredType_usesSyntheticFunctionType_namedParam() async {
-    var mainUnit = await checkFileElement('''
-int f({int x}) => null;
-String g({int x}) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function({x: int})>');
-  }
-
-  test_inferredType_usesSyntheticFunctionType_positionalParam() async {
-    var mainUnit = await checkFileElement('''
-int f([int x]) => null;
-String g([int x]) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function([int])>');
-  }
-
-  test_inferredType_usesSyntheticFunctionType_requiredParam() async {
-    var mainUnit = await checkFileElement('''
-int f(int x) => null;
-String g(int x) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function(int)>');
   }
 
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
@@ -3077,6 +3027,56 @@ final x = <String, F<int>>{};
     expect(x.type.toString(), 'Map<String, int Function()>');
   }
 
+  test_inferredType_usesSyntheticFunctionType() async {
+    var mainUnit = await checkFileElement('''
+int f() => null;
+String g() => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function()>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
+    var mainUnit = await checkFileElement('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function(int Function(String))>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_namedParam() async {
+    var mainUnit = await checkFileElement('''
+int f({int x}) => null;
+String g({int x}) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function({x: int})>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_positionalParam() async {
+    var mainUnit = await checkFileElement('''
+int f([int x]) => null;
+String g([int x]) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function([int])>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_requiredParam() async {
+    var mainUnit = await checkFileElement('''
+int f(int x) => null;
+String g(int x) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function(int)>');
+  }
+
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
     var mainUnit = await checkFileElement('''
 class C {
@@ -3400,7 +3400,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
+  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
 }
 
 foo() {

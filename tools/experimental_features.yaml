@@ -79,6 +79,9 @@ non-nullable:
 triple-shift:
   help: "Triple-shift operator"
 
+variance:
+  help: "Sound variance."
+
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.

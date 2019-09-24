@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,6 +33,15 @@ var l = []..ad/*caret*/d('a')..add('b');
     await assertHasAssist('''
 var l = ['a']..add('b');
 ''');
+  }
+
+  test_add_emptyTarget_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+var l = []..ad/*caret*/d('a')..add('b');
+''');
+    await assertNoAssist();
   }
 
   test_add_nonEmptyTarget() async {
@@ -76,6 +86,15 @@ var l = []..add/*caret*/All(['a'])..addAll(['b']);
     await assertHasAssist('''
 var l = ['a']..addAll(['b']);
 ''');
+  }
+
+  test_addAll_emptyTarget_noAssistWithLint() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+var l = []..add/*caret*/All(['a'])..addAll(['b']);
+''');
+    await assertNoAssist();
   }
 
   test_addAll_nonEmptyTarget() async {

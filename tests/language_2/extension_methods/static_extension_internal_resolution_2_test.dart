@@ -44,6 +44,7 @@ extension MyExt on A {
   set setterInGlobalScope(bool x) {
     Expect.equals(true, x);
   }
+
   bool methodInGlobalScope() => true;
 
   bool get fieldInInstanceScope => true;
@@ -51,6 +52,7 @@ extension MyExt on A {
   set setterInInstanceScope(bool x) {
     Expect.equals(true, x);
   }
+
   bool methodInInstanceScope() => true;
 
   bool get fieldInExtensionScope => true;
@@ -58,6 +60,7 @@ extension MyExt on A {
   set setterInExtensionScope(bool x) {
     Expect.equals(true, x);
   }
+
   bool methodInExtensionScope() => true;
 
   void testNakedIdentifiers() {
@@ -106,7 +109,6 @@ extension MyExt on A {
       double t2 = methodInOtherExtensionScope();
       checkOtherExtensionValue(t2);
     }
-
   }
 
   void testIdentifiersOnThis() {
@@ -214,7 +216,6 @@ extension MyExt on A {
   }
 }
 
-
 class B extends A {
   void testNakedIdentifiers() {
     // Globals should resolve to the global name space, and not to the members
@@ -321,5 +322,4 @@ void main() {
     double t2 = a.methodInOtherExtensionScope();
     checkOtherExtensionValue(t2);
   }
-
 }

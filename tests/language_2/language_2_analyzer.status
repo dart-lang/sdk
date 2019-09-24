@@ -5,7 +5,6 @@
 # Sections in this file should contain "$compiler == dart2analyzer".
 
 [ $compiler == dart2analyzer ]
-generic_no_such_method_dispatcher_simple_test: Skip # failing-by-design: This test is just for kernel
 large_class_declaration_test: Slow
 vm/debug_break_enabled_vm_test: Skip
 vm/debug_break_vm_test/*: Skip

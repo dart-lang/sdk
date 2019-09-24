@@ -1,3 +1,5 @@
+// @dart = 2.5
+
 /**
  * Scalable Vector Graphics:
  * Two-dimensional vector graphics with support for events and animation.

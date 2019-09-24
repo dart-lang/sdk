@@ -61,6 +61,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -84,6 +85,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:meta/meta.dart';
 
 final _typesWithImplicitArguments = new Expando();
 
@@ -486,6 +488,11 @@ abstract class ClassElementForLink
   @override
   String get name;
 
+  @override
+  InterfaceType get thisType {
+    return type;
+  }
+
   DartType get typeWithDefaultBounds => _typeWithDefaultBounds ??=
       enclosingElement.library._linker.typeSystem.instantiateToBounds(type);
 
@@ -539,6 +546,23 @@ abstract class ClassElementForLink
       }
     }
     return null;
+  }
+
+  @override
+  InterfaceType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (typeArguments.length != typeParameters.length) {
+      var ta = 'typeArguments.length (${typeArguments.length})';
+      var tp = 'typeParameters.length (${typeParameters.length})';
+      throw ArgumentError('$ta != $tp');
+    }
+    return InterfaceTypeImpl.explicit(
+      this,
+      typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /// Perform type inference and cycle detection on this class and
@@ -5581,8 +5605,14 @@ class TypeProviderForLink extends TypeProviderBase {
       _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get futureElement => futureType.element;
+
+  @override
   InterfaceType get futureNullType =>
       _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+
+  @override
+  ClassElement get futureOrElement => futureOrType.element;
 
   @override
   InterfaceType get futureOrNullType =>
@@ -5605,6 +5635,9 @@ class TypeProviderForLink extends TypeProviderBase {
       iterableType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get iterableElement => iterableType.element;
+
+  @override
   InterfaceType get iterableObjectType =>
       _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
 
@@ -5613,8 +5646,14 @@ class TypeProviderForLink extends TypeProviderBase {
       _iterableType ??= _buildInterfaceType(_linker.coreLibrary, 'Iterable');
 
   @override
+  ClassElement get listElement => listType.element;
+
+  @override
   InterfaceType get listType =>
       _listType ??= _buildInterfaceType(_linker.coreLibrary, 'List');
+
+  @override
+  ClassElement get mapElement => mapType.element;
 
   @override
   InterfaceType get mapObjectObjectType => _mapObjectObjectType ??=
@@ -5646,6 +5685,9 @@ class TypeProviderForLink extends TypeProviderBase {
       _objectType ??= _buildInterfaceType(_linker.coreLibrary, 'Object');
 
   @override
+  ClassElement get setElement => setType.element;
+
+  @override
   InterfaceType get setType =>
       _setType ??= _buildInterfaceType(_linker.coreLibrary, 'Set');
 
@@ -5658,12 +5700,18 @@ class TypeProviderForLink extends TypeProviderBase {
       _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
 
   @override
+  ClassElement get streamElement => streamType.element;
+
+  @override
   InterfaceType get streamType =>
       _streamType ??= _buildInterfaceType(_linker.asyncLibrary, 'Stream');
 
   @override
   InterfaceType get stringType =>
       _stringType ??= _buildInterfaceType(_linker.coreLibrary, 'String');
+
+  @override
+  ClassElement get symbolElement => symbolType.element;
 
   @override
   InterfaceType get symbolType =>
@@ -5675,6 +5723,41 @@ class TypeProviderForLink extends TypeProviderBase {
 
   @override
   VoidType get voidType => VoidTypeImpl.instance;
+
+  @override
+  InterfaceType futureOrType2(DartType valueType) {
+    return futureOrType.instantiate([valueType]);
+  }
+
+  @override
+  InterfaceType futureType2(DartType valueType) {
+    return futureType.instantiate([valueType]);
+  }
+
+  @override
+  InterfaceType iterableType2(DartType elementType) {
+    return iterableType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType listType2(DartType elementType) {
+    return listType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType mapType2(DartType keyType, DartType valueType) {
+    return mapType.instantiate([keyType, valueType]);
+  }
+
+  @override
+  InterfaceType setType2(DartType elementType) {
+    return setType.instantiate([elementType]);
+  }
+
+  @override
+  InterfaceType streamType2(DartType elementType) {
+    return streamType.instantiate([elementType]);
+  }
 
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {

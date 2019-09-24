@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,9 +14,7 @@ main() {
 
 @reflectiveTest
 class InstanceMemberInferenceClassDriverResolutionTest
-    extends DriverResolutionTest with InstanceMemberInferenceClassMixin {}
-
-mixin InstanceMemberInferenceClassMixin implements ResolutionTest {
+    extends DriverResolutionTest {
   test_invalid_inheritanceCycle() async {
     addTestFile('''
 class A extends C {}

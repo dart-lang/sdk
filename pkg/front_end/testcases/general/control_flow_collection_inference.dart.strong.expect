@@ -1208,10 +1208,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
   core::Map<dynamic, dynamic>* map11 = <dynamic, dynamic>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:109:70: Error: Expected ':' after this.
   Map<dynamic, dynamic> map11 = {if (oracle(\"foo\")) \"bar\": 3.14 else 42};
                                                                      ^": null};
-  core::Map<<BottomType>, core::Null*>* map12 = <<BottomType>, core::Null*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:110:35: Error: Expected ':' after this.
+  core::Map<<BottomType>, core::Null?>* map12 = <<BottomType>, core::Null?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:110:35: Error: Expected ':' after this.
   var map12 = {if (oracle(\"foo\")) 42 else \"bar\": 3.14};
                                   ^": null};
-  core::Map<<BottomType>, core::Null*>* map13 = <<BottomType>, core::Null*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:111:52: Error: Expected ':' after this.
+  core::Map<<BottomType>, core::Null?>* map13 = <<BottomType>, core::Null?>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:111:52: Error: Expected ':' after this.
   var map13 = {if (oracle(\"foo\")) \"bar\": 3.14 else 42};
                                                    ^": null};
   core::List<core::int*>* list20 = block {

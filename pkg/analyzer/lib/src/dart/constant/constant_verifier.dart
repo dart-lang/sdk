@@ -279,8 +279,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         assert(!node.isConst);
         return;
       }
-      _reportErrors(result.errors,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      if (node.isConst) {
+        _reportErrors(result.errors,
+            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      } else {
+        _reportErrors(result.errors, null);
+      }
       _reportErrorIfFromDeferredLibrary(
           initializer,
           CompileTimeErrorCode
@@ -352,7 +356,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       MethodElement method =
           element.lookUpConcreteMethod("==", _currentLibrary);
       if (method == null ||
-          (method.enclosingElement as ClassElement).type.isObject) {
+          (method.enclosingElement as ClassElement).isDartCoreObject) {
         return false;
       }
       // there is == that we don't like

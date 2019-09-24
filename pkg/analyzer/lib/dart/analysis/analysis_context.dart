@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 
 /// A representation of a body of code and the context in which the code is to
 /// be analyzed.

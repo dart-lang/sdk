@@ -1,5 +1,5 @@
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:12:7: Context: Write to v@380
-    v = <T> /*@ returnType=Null* */ (int x) => null;
+    v = <T> /*@ returnType=Null? */ (int x) => null;
       ^
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:13:7: Context: Write to v@380
     v = <T> /*@ returnType=String* */ (int x) => "hello";
@@ -14,7 +14,7 @@ pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expres
     v = <T> /*@ returnType=String* */ (int x) {
       ^
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:24:7: Context: Write to v@889
-    v = <T> /*@ returnType=Null* */ (/*@ type=int* */ x) => null;
+    v = <T> /*@ returnType=Null? */ (/*@ type=int* */ x) => null;
       ^
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:25:7: Context: Write to v@889
     v = <T> /*@ returnType=String* */ (/*@ type=int* */ x) => "hello";
@@ -29,7 +29,7 @@ pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expres
     v = <T> /*@ returnType=String* */ (/*@ type=int* */ x) {
       ^
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:39:7: Context: Write to v@1531
-    v = <T> /*@ returnType=Null* */ (int x) => null;
+    v = <T> /*@ returnType=Null? */ (int x) => null;
       ^
 pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:40:7: Context: Write to v@1531
     v = <T> /*@ returnType=List<String*>* */ (int x) => /*@ typeArgs=String* */ [

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:source_span/source_span.dart';
@@ -106,8 +107,14 @@ main() {
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('B').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('B').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
 
@@ -137,8 +144,14 @@ main() {
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('A').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(

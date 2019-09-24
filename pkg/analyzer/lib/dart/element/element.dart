@@ -37,6 +37,7 @@
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -100,6 +101,10 @@ abstract class ClassElement
   /// class defined by a mixin declaration. Note, that this definition of
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
+
+  /// Return `true` if this class represents the class 'Object' defined in the
+  /// dart:core library.
+  bool get isDartCoreObject;
 
   /// Return `true` if this class is defined by an enum declaration.
   bool get isEnum;
@@ -170,6 +175,15 @@ abstract class ClassElement
   /// guard against infinite loops.
   InterfaceType get supertype;
 
+  /// Return the type of `this` expression for this class.
+  ///
+  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
+  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
+  /// type parameters, and either `none` or `star` nullability suffix is used
+  /// for the type arguments, and the returned type depending on the
+  /// nullability status of the declaring library.
+  InterfaceType get thisType;
+
   @override
   InterfaceType get type;
 
@@ -209,6 +223,13 @@ abstract class ClassElement
   /// declared in this class, or `null` if this class does not declare a setter
   /// with the given name.
   PropertyAccessorElement getSetter(String name);
+
+  /// Create the [InterfaceType] for this class with the given [typeArguments]
+  /// and [nullabilitySuffix].
+  InterfaceType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 
   /// Return the element representing the method that results from looking up
   /// the given [methodName] in this class with respect to the given [library],
@@ -1187,6 +1208,19 @@ abstract class FunctionTypeAliasElement
   /// then a single type argument should be provided, and it will be substituted
   /// for T.
   FunctionType instantiate(List<DartType> argumentTypes);
+
+  /// Produces the function type resulting from instantiating this typedef with
+  /// the given [typeArguments] and [nullabilitySuffix].
+  ///
+  /// Note that this always instantiates the typedef itself, so for a
+  /// [GenericTypeAliasElement] the returned [FunctionType] might still be a
+  /// generic function, with type formals. For example, if the typedef is:
+  ///     typedef F<T> = void Function<U>(T, U);
+  /// then `F<int>` will produce `void Function<U>(int, U)`.
+  FunctionType instantiate2({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 }
 
 /// An element that has a [FunctionType] as its [type].
@@ -1656,6 +1690,12 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 
   @override
   TypeParameterType get type;
+
+  /// Create the [TypeParameterType] with the given [nullabilitySuffix] for
+  /// this type parameter.
+  TypeParameterType instantiate({
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 }
 
 /// An element that has type parameters, such as a class or a typedef. This also

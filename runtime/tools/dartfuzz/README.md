@@ -51,7 +51,7 @@ where
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[debug-][ia32|x64|arm32|arm64|dbc32|dbc64]   = Dart JIT
+        jit-[debug-][ia32|x64|arm32|arm64]               = Dart JIT
         aot-[debug-][x64|arm32|arm64]                    = Dart AOT
         kbc-[int|mix|cmp]-[debug-][ia32|x64|arm32|arm64] = Dart KBC
                                                            (interpreted/

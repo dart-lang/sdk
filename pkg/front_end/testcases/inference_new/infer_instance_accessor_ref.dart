@@ -20,6 +20,8 @@ class D extends C {}
 
 var a = new A();
 var x = a. /*@target=A::b*/ b. /*@target=B::c*/ c;
-var y = a. /*@target=A::b*/ b. /*@target=B::c*/ c ??= new D();
+var y =
+    a. /*@ type=B* */ /*@target=A::b*/ b. /*@target=B::c*/ /*@target=B::c*/ c
+        /*@target=Object::==*/ ??= new D();
 
 main() {}

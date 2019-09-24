@@ -240,6 +240,10 @@ library_for_all_configs("libdart") {
     "third_party/double-conversion/src:libdouble_conversion",
     ":generate_version_cc_file",
   ]
+  if (dart_enable_wasm) {
+    extra_deps += [ "//third_party/wasmer" ]
+    defines = [ "DART_ENABLE_WASM" ]
+  }
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
       extra_deps += [ "$fuchsia_sdk_root/pkg:fdio" ]

@@ -154,7 +154,7 @@ abstract class TargetImplementation extends Target {
   Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
     severity ??= message.code.severity;
     if (severity == Severity.errorLegacyWarning) {
-      severity = backendTarget.legacyMode ? Severity.warning : Severity.error;
+      severity = Severity.error;
     }
     return rewriteSeverity(severity, message.code, fileUri);
   }

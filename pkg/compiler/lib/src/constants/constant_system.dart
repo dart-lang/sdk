@@ -636,7 +636,7 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
   BigInt foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
-    return new BigInt.from(ratio.truncate().toInt());
+    return new BigInt.from(ratio.truncateToDouble());
   }
 
   @override

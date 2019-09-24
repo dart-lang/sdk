@@ -605,6 +605,34 @@ var b = a;
     });
   }
 
+  test_buildLinked_invalidPartUri() async {
+    await withTempDirAsync((tempDir) async {
+      var aDart = path.join(tempDir, 'a.dart');
+
+      var aUri = 'package:aaa/a.dart';
+
+      var aSum = path.join(tempDir, 'a.sum');
+
+      new File(aDart).writeAsStringSync('''
+part '[invalid]';
+''');
+
+      await _doDrive(aDart,
+          uri: aUri, additionalArgs: ['--build-summary-output=$aSum']);
+      expect(exitCode, ErrorSeverity.ERROR.ordinal);
+      var bytes = new File(aSum).readAsBytesSync();
+      var bundle = new PackageBundle.fromBuffer(bytes);
+      if (AnalysisDriver.useSummary2) {
+        var bundle2 = bundle.bundle2;
+        expect(_linkedLibraryUriList(bundle2), [aUri]);
+        expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
+      } else {
+        expect(bundle.unlinkedUnitUris, equals([aUri]));
+        expect(bundle.linkedLibraryUris, equals([aUri]));
+      }
+    });
+  }
+
   test_buildSuppressExitCode_fail_whenFileNotFound() async {
     await _doDrive(path.join('data', 'non_existent_file.dart'),
         additionalArgs: ['--build-suppress-exit-code']);

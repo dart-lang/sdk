@@ -11,10 +11,10 @@ class Node extends core::Object {
   constructor •(core::String* name, [core::List<self::Node*>* nested = #C1]) → self::Node*
     : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
   method toString() → core::String*
-    return "<${this.{self::Node::name}}:[${let final core::List<self::Node*>* #t1 = this.{self::Node::nested} in #t1.==(null) ?{core::String*} null : #t1.{core::Iterable::join}(", ")}]>";
+    return "<${this.{self::Node::name}}:[${let final core::List<self::Node*>* #t1 = this.{self::Node::nested} in #t1.{core::List::==}(null) ?{core::String*} null : #t1.{core::Iterable::join}(", ")}]>";
   method toSimpleString() → dynamic {
-    core::Iterable<dynamic>* tmp = let final core::List<self::Node*>* #t2 = this.{self::Node::nested} in #t2.==(null) ?{core::Iterable<dynamic>*} null : #t2.{core::Iterable::map}<dynamic>((self::Node* child) → dynamic => child.{self::Node::toSimpleString}());
-    return "${this.{self::Node::name}} ${let final core::Iterable<dynamic>* #t3 = tmp in #t3.==(null) ?{core::String*} null : #t3.{core::Iterable::join}(" ")}".{core::String::trim}();
+    core::Iterable<dynamic>* tmp = let final core::List<self::Node*>* #t2 = this.{self::Node::nested} in #t2.{core::List::==}(null) ?{core::Iterable<dynamic>*} null : #t2.{core::Iterable::map}<dynamic>((self::Node* child) → dynamic => child.{self::Node::toSimpleString}());
+    return "${this.{self::Node::name}} ${let final core::Iterable<dynamic>* #t3 = tmp in #t3.{core::Object::==}(null) ?{core::String*} null : #t3.{core::Iterable::join}(" ")}".{core::String::trim}();
   }
 }
 static method main() → void /* originally async */ {

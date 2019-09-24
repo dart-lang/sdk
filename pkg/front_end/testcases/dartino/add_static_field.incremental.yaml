@@ -15,7 +15,7 @@ main.dart.patch: |
     print("v1");
   ====
     print(C.field);
-    field = "value";
+    C.field = "value";
     print(C.field);
   >>>>
   }

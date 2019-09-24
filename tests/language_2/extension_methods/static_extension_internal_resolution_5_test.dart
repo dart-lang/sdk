@@ -28,7 +28,6 @@ import "helpers/global_scope.dart";
 import "helpers/class_shadow.dart";
 import "helpers/class_no_shadow.dart";
 
-
 const bool extensionValue = true;
 
 void checkExtensionValue(bool x) {
@@ -41,6 +40,7 @@ int get getterInExtensionScope => globalValue;
 set setterInExtensionScope(int x) {
   checkGlobalValue(x);
 }
+
 int methodInExtensionScope() => globalValue;
 
 // Put the superclass members in the global scope
@@ -49,16 +49,17 @@ int get getterInInstanceScope => globalValue;
 set setterInInstanceScope(int x) {
   checkGlobalValue(x);
 }
+
 int methodInInstanceScope() => globalValue;
 
 // An extension which defines only its own members
 extension MyExt on AGlobal {
-
   bool get fieldInExtensionScope => extensionValue;
   bool get getterInExtensionScope => extensionValue;
   set setterInExtensionScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInExtensionScope() => extensionValue;
 
   bool get fieldInInstanceScope => extensionValue;
@@ -66,6 +67,7 @@ extension MyExt on AGlobal {
   set setterInInstanceScope(bool x) {
     checkExtensionValue(x);
   }
+
   bool methodInInstanceScope() => extensionValue;
 
   void testNakedIdentifiers() {

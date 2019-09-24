@@ -205,8 +205,8 @@ Function 'test_map_literal', static, reflectable, debuggable
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
   PushInt              4
@@ -332,8 +332,8 @@ Function 'test_type_literal', static, reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   PushConstant         CP#0
   DirectCall           CP#1, 1
   Drop1

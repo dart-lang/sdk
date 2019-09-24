@@ -683,6 +683,7 @@ delegate
 delegates
 delegation
 delete
+deleted
 deliberately
 delimited
 delimiter
@@ -914,6 +915,7 @@ escape
 escaped
 escapes
 escaping
+especially
 essence
 essentials
 etc
@@ -1353,6 +1355,7 @@ inlined
 inlining
 inner
 innermost
+inout
 input
 inputs
 insert
@@ -2147,6 +2150,7 @@ realized
 really
 reason
 reasonable
+reasoning
 reasons
 receive
 receiver
@@ -2307,6 +2311,7 @@ returns
 retype
 reuse
 reused
+reuses
 reusing
 reverse
 reversed

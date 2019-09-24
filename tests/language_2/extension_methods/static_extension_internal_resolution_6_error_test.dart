@@ -35,6 +35,7 @@ extension GenericExtension<T> on T {
     //     ^^^
     // [cfe] unspecified
   }
+
   void castToShadowedTypeParam<T>() {
     dynamic s = self;
     (s as T);
@@ -45,7 +46,6 @@ extension GenericExtension<T> on T {
     (mkList() as List<T>);
   }
 }
-
 
 const bool extensionValue = true;
 
@@ -62,10 +62,11 @@ extension StaticExt on AGlobal {
   //              ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
   static set setterInInstanceScope(bool x) {
-  //         ^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+    //       ^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
     checkExtensionValue(x);
   }
+
   static bool methodInInstanceScope() => extensionValue;
   //          ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -76,6 +77,7 @@ extension StaticExt on AGlobal {
   static set setterInGlobalScope(bool x) {
     checkExtensionValue(x);
   }
+
   static bool methodInGlobalScope() => extensionValue;
 
   // Invalid to overlap the static and extension scopes
@@ -86,14 +88,14 @@ extension StaticExt on AGlobal {
   //       ^^^
   // [cfe] unspecified
   set setterInInstanceScope(bool x) {
-  //  ^^^
-  // [cfe] unspecified
+    //^^^
+    // [cfe] unspecified
     checkExtensionValue(x);
   }
+
   bool methodInInstanceScope() => extensionValue;
   //   ^^^
   // [cfe] unspecified
-
 
   void testNakedIdentifiers() {
     // Symbols in the global scope and the local static scope resolve to
@@ -108,6 +110,7 @@ extension StaticExt on AGlobal {
       // No errors: see static_extension_internal_resolution_6_test.dart
     }
   }
+
   void instanceTest() {
     StaticExt(this).testNakedIdentifiers();
   }

@@ -345,9 +345,7 @@ void Definition::PrintTo(BufferFormatter* f) const {
     range_->PrintTo(f);
   }
 
-  if (type_ != NULL &&
-      ((type_->ToNullableCid() != kDynamicCid) ||
-       !type_->ToAbstractType()->IsDynamicType() || !type_->is_nullable())) {
+  if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }
@@ -674,6 +672,11 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(" . %s%s", slot().Name(), slot().is_immutable() ? " {final}" : "");
+}
+
+void LoadUntaggedInstr::PrintOperandsTo(BufferFormatter* f) const {
+  object()->PrintTo(f);
+  f->Print(", %" Pd, offset());
 }
 
 void InstantiateTypeInstr::PrintOperandsTo(BufferFormatter* f) const {

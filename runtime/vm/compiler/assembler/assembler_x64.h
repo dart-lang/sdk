@@ -334,7 +334,10 @@ class Assembler : public AssemblerBase {
   REGULAR_INSTRUCTION(test, 0x85)
   REGULAR_INSTRUCTION(xchg, 0x87)
   REGULAR_INSTRUCTION(imul, 0xAF, 0x0F)
+  REGULAR_INSTRUCTION(bsf, 0xBC, 0x0F)
   REGULAR_INSTRUCTION(bsr, 0xBD, 0x0F)
+  REGULAR_INSTRUCTION(popcnt, 0xB8, 0x0F, 0xF3)
+  REGULAR_INSTRUCTION(lzcnt, 0xBD, 0x0F, 0xF3)
 #undef REGULAR_INSTRUCTION
   RA(Q, movsxd, 0x63)
   RR(Q, movsxd, 0x63)

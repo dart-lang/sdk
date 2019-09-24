@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -33,7 +34,9 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
-  Variables(this._graph, TypeProvider typeProvider)
+  final NullabilityMigrationInstrumentation /*?*/ instrumentation;
+
+  Variables(this._graph, TypeProvider typeProvider, {this.instrumentation})
       : _alreadyMigratedCodeDecorator =
             AlreadyMigratedCodeDecorator(_graph, typeProvider);
 
@@ -142,6 +145,7 @@ class Variables implements VariableRecorder, VariableRepository {
 
   void recordDecoratedTypeAnnotation(Source source, TypeAnnotation node,
       DecoratedType type, PotentiallyAddQuestionSuffix potentialModification) {
+    instrumentation?.explicitTypeNullability(source, node, type.node);
     if (potentialModification != null)
       _addPotentialModification(source, potentialModification);
     (_decoratedTypeAnnotations[source] ??=
@@ -160,8 +164,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    _addPotentialModification(source, checks);
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    _addPotentialModification(source, origin.checks);
   }
 
   @override
@@ -240,6 +244,7 @@ class Variables implements VariableRecorder, VariableRepository {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');
     }
+    instrumentation?.externalDecoratedType(element, decoratedType);
     return decoratedType;
   }
 

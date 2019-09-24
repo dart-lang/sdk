@@ -535,9 +535,10 @@ void Interpreter::Unexit(Thread* thread) {
 // Calling into runtime may trigger garbage collection and relocate objects,
 // so all RawObject* pointers become outdated and should not be used across
 // runtime calls.
-// Note: functions below are marked DART_NOINLINE to recover performance on
-// ARM where inlining these functions into the interpreter loop seemed to cause
-// some code quality issues.
+// Note: functions below are marked DART_NOINLINE to recover performance where
+// inlining these functions into the interpreter loop seemed to cause some code
+// quality issues. Functions with the "returns_twice" attribute, such as setjmp,
+// prevent reusing spill slots and large frame sizes.
 static DART_NOINLINE bool InvokeRuntime(Thread* thread,
                                         Interpreter* interpreter,
                                         RuntimeFunction drt,
@@ -723,50 +724,6 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
 
     ASSERT(Function::HasCode(function) || Function::HasBytecode(function));
   }
-}
-
-void Interpreter::InlineCacheMiss(int checked_args,
-                                  Thread* thread,
-                                  RawICData* icdata,
-                                  RawObject** args,
-                                  RawObject** top,
-                                  const KBCInstr* pc,
-                                  RawObject** FP,
-                                  RawObject** SP) {
-  RawObject** result = top;
-  top[0] = 0;  // Clean up result slot.
-
-  // Save arguments descriptor as it may be clobbered by running Dart code
-  // during the call to miss handler (class finalization).
-  top[1] = argdesc_;
-
-  RawObject** miss_handler_args = top + 2;
-  for (intptr_t i = 0; i < checked_args; i++) {
-    miss_handler_args[i] = args[i];
-  }
-  miss_handler_args[checked_args] = icdata;
-  RuntimeFunction handler = NULL;
-  switch (checked_args) {
-    case 1:
-      handler = DRT_InlineCacheMissHandlerOneArg;
-      break;
-    case 2:
-      handler = DRT_InlineCacheMissHandlerTwoArgs;
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-
-  // Handler arguments: arguments to check and an ICData object.
-  const intptr_t miss_handler_argc = checked_args + 1;
-  RawObject** exit_frame = miss_handler_args + miss_handler_argc;
-  Exit(thread, FP, exit_frame, pc);
-  NativeArguments native_args(thread, miss_handler_argc, miss_handler_args,
-                              result);
-  handler(native_args);
-
-  argdesc_ = Array::RawCast(top[1]);
 }
 
 DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
@@ -1058,8 +1015,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
       SP[1] = 0; /* Unused result. */                                          \
       SP[2] = function;                                                        \
       Exit(thread, FP, SP + 3, pc);                                            \
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);                  \
-      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);             \
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction,                           \
+                     NativeArguments(thread, 1, SP + 2, SP + 1));              \
       function = FrameFunction(FP);                                            \
     }                                                                          \
   }
@@ -1075,14 +1032,14 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     if (thread->isolate()->debugger()->HasBytecodeBreakpointAt(pc)) {          \
       SP[1] = null_value;                                                      \
       Exit(thread, FP, SP + 2, pc);                                            \
-      NativeArguments args(thread, 0, NULL, SP + 1);                           \
-      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)                       \
+      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                             \
+                     NativeArguments(thread, 0, nullptr, SP + 1))              \
     }                                                                          \
     /* The debugger expects to see the same pc again when single-stepping */   \
     if (thread->isolate()->single_step()) {                                    \
       Exit(thread, FP, SP + 1, pc);                                            \
-      NativeArguments args(thread, 0, NULL, NULL);                             \
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);                             \
+      INVOKE_RUNTIME(DRT_SingleStepHandler,                                    \
+                     NativeArguments(thread, 0, nullptr, nullptr));            \
     }                                                                          \
   }
 #endif  // PRODUCT
@@ -1679,8 +1636,8 @@ SwitchDispatch:
       if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
           thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
-        NativeArguments args(thread, 0, NULL, NULL);
-        INVOKE_RUNTIME(DRT_StackOverflow, args);
+        INVOKE_RUNTIME(DRT_StackOverflow,
+                       NativeArguments(thread, 0, nullptr, nullptr));
       }
     }
     RawFunction* function = FrameFunction(FP);
@@ -1691,8 +1648,8 @@ SwitchDispatch:
       SP[1] = 0;  // Unused result.
       SP[2] = function;
       Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction,
+                     NativeArguments(thread, 1, SP + 2, SP + 1));
     }
     DISPATCH();
   }
@@ -1734,8 +1691,8 @@ SwitchDispatch:
     SP[3] = SP[0];
     Exit(thread, FP, SP + 4, pc);
     {
-      NativeArguments args(thread, 3, SP + 1, SP - 1);
-      INVOKE_RUNTIME(DRT_InstantiateType, args);
+      INVOKE_RUNTIME(DRT_InstantiateType,
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
     SP -= 1;
     DISPATCH();
@@ -1773,8 +1730,8 @@ SwitchDispatch:
       SP[3] = function_type_args;
 
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments args(thread, 3, SP + 1, SP - 1);
-      INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
+      INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
 
   InstantiateTypeArgumentsTOSDone:
@@ -1788,11 +1745,9 @@ SwitchDispatch:
       SP[1] = 0;  // Space for result.
       Exit(thread, FP, SP + 2, pc);
       if (rA == 0) {  // Throw
-        NativeArguments args(thread, 1, SP, SP + 1);
-        INVOKE_RUNTIME(DRT_Throw, args);
+        INVOKE_RUNTIME(DRT_Throw, NativeArguments(thread, 1, SP, SP + 1));
       } else {  // ReThrow
-        NativeArguments args(thread, 2, SP - 1, SP + 1);
-        INVOKE_RUNTIME(DRT_ReThrow, args);
+        INVOKE_RUNTIME(DRT_ReThrow, NativeArguments(thread, 2, SP - 1, SP + 1));
       }
     }
     DISPATCH();
@@ -2190,11 +2145,12 @@ SwitchDispatch:
         RawObject** incoming_args = SP - num_arguments;
         RawObject** return_slot = SP;
         Exit(thread, FP, SP + 1, pc);
-        NativeArguments args(thread, argc_tag, incoming_args, return_slot);
+        NativeArguments native_args(thread, argc_tag, incoming_args,
+                                    return_slot);
         INVOKE_NATIVE(
             payload->trampoline,
             reinterpret_cast<Dart_NativeFunction>(payload->native_function),
-            reinterpret_cast<Dart_NativeArguments>(&args));
+            reinterpret_cast<Dart_NativeArguments>(&native_args));
 
         *(SP - num_arguments) = *return_slot;
         SP -= num_arguments;
@@ -2305,8 +2261,9 @@ SwitchDispatch:
       SP[2] = field;
       SP[3] = value;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments args(thread, 2, /* argv */ SP + 2, /* retval */ SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, args)) {
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid,
+                         NativeArguments(thread, 2, /* argv */ SP + 2,
+                                         /* retval */ SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -2462,8 +2419,7 @@ SwitchDispatch:
     {
       SP[1] = SP[0];  // Context to clone.
       Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 1, SP + 1, SP);
-      INVOKE_RUNTIME(DRT_CloneContext, args);
+      INVOKE_RUNTIME(DRT_CloneContext, NativeArguments(thread, 1, SP + 1, SP));
     }
     DISPATCH();
   }
@@ -2491,8 +2447,8 @@ SwitchDispatch:
     SP[2] = cls;         // Class object.
     SP[3] = null_value;  // Type arguments.
     Exit(thread, FP, SP + 4, pc);
-    NativeArguments args(thread, 2, SP + 2, SP + 1);
-    INVOKE_RUNTIME(DRT_AllocateObject, args);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 2, SP + 1));
     SP++;  // Result is in SP[1].
     DISPATCH();
   }
@@ -2523,8 +2479,8 @@ SwitchDispatch:
     SP[1] = cls;
     SP[2] = type_args;
     Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP - 1);
-    INVOKE_RUNTIME(DRT_AllocateObject, args);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 1, SP - 1));
     SP -= 1;  // Result is in SP - 1.
     DISPATCH();
   }
@@ -2579,8 +2535,8 @@ SwitchDispatch:
     RawObject** result_slot = SP;
 
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments native_args(thread, 5, args, result_slot);
-    INVOKE_RUNTIME(DRT_SubtypeCheck, native_args);
+    INVOKE_RUNTIME(DRT_SubtypeCheck,
+                   NativeArguments(thread, 5, args, result_slot));
 
     // Result slot not used anymore.
     SP--;
@@ -2606,8 +2562,8 @@ SwitchDispatch:
     {
       SP[1] = SP[0];  // instance
       Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 1, SP + 1, SP);
-      INVOKE_RUNTIME(DRT_NonBoolTypeError, args);
+      INVOKE_RUNTIME(DRT_NonBoolTypeError,
+                     NativeArguments(thread, 1, SP + 1, SP));
     }
 
   AssertBooleanOk:
@@ -3146,10 +3102,9 @@ SwitchDispatch:
         SP[1] = null_value;  // Result.
 
         Exit(thread, FP, SP + 2, pc);
-        NativeArguments native_args(thread, 0, /* argv */ SP + 1,
-                                    /* retval */ SP + 1);
         if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
-                           native_args)) {
+                           NativeArguments(thread, 0, /* argv */ SP + 1,
+                                           /* retval */ SP + 1))) {
           HANDLE_EXCEPTION;
         }
 
@@ -3185,9 +3140,9 @@ SwitchDispatch:
       SP[2] = field;
       SP[3] = value;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 2, /* argv */ SP + 2,
-                                  /* retval */ SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid,
+                         NativeArguments(thread, 2, /* argv */ SP + 2,
+                                         /* retval */ SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3250,8 +3205,8 @@ SwitchDispatch:
       SP[1] = 0;  // Unused result of invoking the initializer.
       SP[2] = field;
       Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_InitStaticField, native_args);
+      INVOKE_RUNTIME(DRT_InitStaticField,
+                     NativeArguments(thread, 1, SP + 2, SP + 1));
 
       // Reload objects after the call which may trigger GC.
       function = FrameFunction(FP);
@@ -3351,8 +3306,8 @@ SwitchDispatch:
       SP[3] = receiver;                // Receiver.
       SP[4] = function->ptr()->name_;  // Field name.
       Exit(thread, FP, SP + 5, pc);
-      NativeArguments native_args(thread, 2, SP + 3, SP + 2);
-      if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
+                         NativeArguments(thread, 2, SP + 3, SP + 2))) {
         HANDLE_EXCEPTION;
       }
       argdesc_ = Array::RawCast(SP[1]);
@@ -3374,8 +3329,8 @@ SwitchDispatch:
       SP[2] = receiver;
       SP[3] = argdesc_;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 2, SP + 2, SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
+                         NativeArguments(thread, 2, SP + 2, SP + 1))) {
         HANDLE_EXCEPTION;
       }
       argdesc_ = Array::RawCast(SP[3]);
@@ -3401,8 +3356,8 @@ SwitchDispatch:
       SP[5] = Smi::New(argc);  // length
       SP[6] = null_value;      // type
       Exit(thread, FP, SP + 7, pc);
-      NativeArguments native_args(thread, 2, SP + 5, SP + 4);
-      if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 5, SP + 4))) {
         HANDLE_EXCEPTION;
       }
     }
@@ -3422,8 +3377,8 @@ SwitchDispatch:
     // array of arguments, and target name.
     {
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
+                         NativeArguments(thread, 4, SP + 2, SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3484,8 +3439,8 @@ SwitchDispatch:
         SP[8] = SP[5];       // instantiator_type_args
         SP[9] = null_value;  // function_type_args
         Exit(thread, FP, SP + 10, pc);
-        NativeArguments args(thread, 3, SP + 7, SP + 7);
-        INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
+        INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
+                       NativeArguments(thread, 3, SP + 7, SP + 7));
         SP[6] = SP[7];
       }
     }
@@ -3518,8 +3473,8 @@ SwitchDispatch:
         SP[9] = check->ptr()->name_;
         SP[10] = 0;
         Exit(thread, FP, SP + 11, pc);
-        NativeArguments native_args(thread, 5, SP + 5, SP + 10);
-        INVOKE_RUNTIME(DRT_SubtypeCheck, native_args);
+        INVOKE_RUNTIME(DRT_SubtypeCheck,
+                       NativeArguments(thread, 5, SP + 5, SP + 10));
       }
 
       checks = Array::RawCast(SP[1]);  // Reload after runtime call.
@@ -3602,9 +3557,9 @@ SwitchDispatch:
       SP[2] = 0;  // Code result.
       SP[3] = function;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 1, /* argv */ SP + 3,
-                                  /* retval */ SP + 2);
-      if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_CompileFunction,
+                         NativeArguments(thread, 1, /* argv */ SP + 3,
+                                         /* retval */ SP + 2))) {
         HANDLE_EXCEPTION;
       }
       function = Function::RawCast(SP[3]);
@@ -3637,8 +3592,8 @@ SwitchDispatch:
       SP[6] = Smi::New(argc);  // length
       SP[7] = null_value;      // type
       Exit(thread, FP, SP + 8, pc);
-      NativeArguments native_args(thread, 2, SP + 6, SP + 5);
-      if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 6, SP + 5))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3654,8 +3609,8 @@ SwitchDispatch:
     // and array of arguments.
     {
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue, native_args);
+      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue,
+                     NativeArguments(thread, 4, SP + 2, SP + 1));
       ++SP;  // Result at SP[0]
     }
 
@@ -3667,8 +3622,8 @@ SwitchDispatch:
     // SP[0] contains selector.
     SP[1] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 2, pc);
-    NativeArguments args(thread, 1, SP, SP + 1);
-    INVOKE_RUNTIME(DRT_NullErrorWithSelector, args);
+    INVOKE_RUNTIME(DRT_NullErrorWithSelector,
+                   NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
 
@@ -3676,8 +3631,8 @@ SwitchDispatch:
   ThrowIntegerDivisionByZeroException:
     SP[0] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, 0, SP, SP);
-    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException, args);
+    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException,
+                   NativeArguments(thread, 0, SP, SP));
     UNREACHABLE();
   }
 
@@ -3686,8 +3641,7 @@ SwitchDispatch:
     // SP[0] contains value.
     SP[1] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 2, pc);
-    NativeArguments args(thread, 1, SP, SP + 1);
-    INVOKE_RUNTIME(DRT_ArgumentError, args);
+    INVOKE_RUNTIME(DRT_ArgumentError, NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
 

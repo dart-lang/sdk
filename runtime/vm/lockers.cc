@@ -101,4 +101,22 @@ Monitor::WaitResult SafepointMonitorLocker::Wait(int64_t millis) {
   }
 }
 
+ReadRwLocker::ReadRwLocker(ThreadState* thread_state, RwLock* rw_lock)
+    : StackResource(thread_state), rw_lock_(rw_lock) {
+  rw_lock_->EnterRead();
+}
+
+ReadRwLocker::~ReadRwLocker() {
+  rw_lock_->LeaveRead();
+}
+
+WriteRwLocker::WriteRwLocker(ThreadState* thread_state, RwLock* rw_lock)
+    : StackResource(thread_state), rw_lock_(rw_lock) {
+  rw_lock_->EnterWrite();
+}
+
+WriteRwLocker::~WriteRwLocker() {
+  rw_lock_->LeaveWrite();
+}
+
 }  // namespace dart

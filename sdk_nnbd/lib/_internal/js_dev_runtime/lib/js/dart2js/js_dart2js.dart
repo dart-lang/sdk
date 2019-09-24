@@ -2,89 +2,90 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Support for interoperating with JavaScript.
- *
- * This library provides access to JavaScript objects from Dart, allowing
- * Dart code to get and set properties, and call methods of JavaScript objects
- * and invoke JavaScript functions. The library takes care of converting
- * between Dart and JavaScript objects where possible, or providing proxies if
- * conversion isn't possible.
- *
- * This library does not yet make Dart objects usable from JavaScript, their
- * methods and proeprties are not accessible, though it does allow Dart
- * functions to be passed into and called from JavaScript.
- *
- * [JsObject] is the core type and represents a proxy of a JavaScript object.
- * JsObject gives access to the underlying JavaScript objects properties and
- * methods. `JsObject`s can be acquired by calls to JavaScript, or they can be
- * created from proxies to JavaScript constructors.
- *
- * The top-level getter [context] provides a [JsObject] that represents the
- * global object in JavaScript, usually `window`.
- *
- * The following example shows an alert dialog via a JavaScript call to the
- * global function `alert()`:
- *
- *     import 'dart:js';
- *
- *     main() => context.callMethod('alert', ['Hello from Dart!']);
- *
- * This example shows how to create a [JsObject] from a JavaScript constructor
- * and access its properties:
- *
- *     import 'dart:js';
- *
- *     main() {
- *       var object = new JsObject(context['Object']);
- *       object['greeting'] = 'Hello';
- *       object['greet'] = (name) => "${object['greeting']} $name";
- *       var message = object.callMethod('greet', ['JavaScript']);
- *       context['console'].callMethod('log', [message]);
- *     }
- *
- * ## Proxying and automatic conversion
- *
- * When setting properties on a JsObject or passing arguments to a Javascript
- * method or function, Dart objects are automatically converted or proxied to
- * JavaScript objects. When accessing JavaScript properties, or when a Dart
- * closure is invoked from JavaScript, the JavaScript objects are also
- * converted to Dart.
- *
- * Functions and closures are proxied in such a way that they are callable. A
- * Dart closure assigned to a JavaScript property is proxied by a function in
- * JavaScript. A JavaScript function accessed from Dart is proxied by a
- * [JsFunction], which has a [apply] method to invoke it.
- *
- * The following types are transferred directly and not proxied:
- *
- * * "Basic" types: `null`, `bool`, `num`, `String`, `DateTime`
- * * `Blob`
- * * `Event`
- * * `HtmlCollection`
- * * `ImageData`
- * * `KeyRange`
- * * `Node`
- * * `NodeList`
- * * `TypedData`, including its subclasses like `Int32List`, but _not_
- *   `ByteBuffer`
- * * `Window`
- *
- * ## Converting collections with JsObject.jsify()
- *
- * To create a JavaScript collection from a Dart collection use the
- * [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
- * into JavaScript Objects and Arrays.
- *
- * The following expression creates a new JavaScript object with the properties
- * `a` and `b` defined:
- *
- *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- *
- * This expression creates a JavaScript array:
- *
- *     var jsArray = new JsObject.jsify([1, 2, 3]);
- */
+// @dart = 2.5
+
+// DDC version of sdk/lib/js/dart2js/js_dart2js.dart
+
+/// Low-level support for interoperating with JavaScript.
+///
+/// You should usually use `package:js` instead of this library. For more
+/// information, see the [JS interop page](https://dart.dev/web/js-interop).
+///
+/// This library provides access to JavaScript objects from Dart, allowing
+/// Dart code to get and set properties, and call methods of JavaScript objects
+/// and invoke JavaScript functions. The library takes care of converting
+/// between Dart and JavaScript objects where possible, or providing proxies if
+/// conversion isn't possible.
+///
+/// This library does not make Dart objects usable from JavaScript, their
+/// methods and properties are not accessible, though it does allow Dart
+/// functions to be passed into and called from JavaScript.
+///
+/// [JsObject] is the core type and represents a proxy of a JavaScript object.
+/// JsObject gives access to the underlying JavaScript objects properties and
+/// methods. `JsObject`s can be acquired by calls to JavaScript, or they can be
+/// created from proxies to JavaScript constructors.
+///
+/// The top-level getter [context] provides a [JsObject] that represents the
+/// global object in JavaScript, usually `window`.
+///
+/// The following example shows an alert dialog via a JavaScript call to the
+/// global function `alert()`:
+///
+///     import 'dart:js';
+///
+///     main() => context.callMethod('alert', ['Hello from Dart!']);
+///
+/// This example shows how to create a [JsObject] from a JavaScript constructor
+/// and access its properties:
+///
+///     import 'dart:js';
+///
+///     main() {
+///       var object = JsObject(context['Object']);
+///       object['greeting'] = 'Hello';
+///       object['greet'] = (name) => "${object['greeting']} $name";
+///       var message = object.callMethod('greet', ['JavaScript']);
+///       context['console'].callMethod('log', [message]);
+///     }
+///
+/// ## Proxying and automatic conversion
+///
+/// When setting properties on a JsObject or passing arguments to a Javascript
+/// method or function, Dart objects are automatically converted or proxied to
+/// JavaScript objects. When accessing JavaScript properties, or when a Dart
+/// closure is invoked from JavaScript, the JavaScript objects are also
+/// converted to Dart.
+///
+/// Functions and closures are proxied in such a way that they are callable. A
+/// Dart closure assigned to a JavaScript property is proxied by a function in
+/// JavaScript. A JavaScript function accessed from Dart is proxied by a
+/// [JsFunction], which has a [apply] method to invoke it.
+///
+/// The following types are transferred directly and not proxied:
+///
+///   * Basic types: `null`, `bool`, `num`, `String`, `DateTime`
+///   * `TypedData`, including its subclasses like `Int32List`, but _not_
+///     `ByteBuffer`
+///   * When compiling for the web, also: `Blob`, `Event`, `ImageData`,
+///     `KeyRange`, `Node`, and `Window`.
+///
+/// ## Converting collections with JsObject.jsify()
+///
+/// To create a JavaScript collection from a Dart collection use the
+/// [JsObject.jsify] constructor, which converts Dart [Map]s and [Iterable]s
+/// into JavaScript Objects and Arrays.
+///
+/// The following expression creates a new JavaScript object with the properties
+/// `a` and `b` defined:
+///
+///     var jsMap = JsObject.jsify({'a': 1, 'b': 2});
+///
+/// This expression creates a JavaScript array:
+///
+///     var jsArray = JsObject.jsify([1, 2, 3]);
+///
+/// {@category Web}
 library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
@@ -93,14 +94,13 @@ import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 
+/// The JavaScript global object, usually `window`.
 final JsObject context = _wrapToDart(dart.global_);
 
-/**
- * Proxies a JavaScript object to Dart.
- *
- * The properties of the JavaScript object are accessible via the `[]` and
- * `[]=` operators. Methods are callable via [callMethod].
- */
+/// A proxy on a JavaScript object.
+///
+/// The properties of the JavaScript object are accessible via the `[]` and
+/// `[]=` operators. Methods are callable via [callMethod].
 class JsObject {
   // The wrapped JS object.
   final dynamic _jsObject;
@@ -110,10 +110,8 @@ class JsObject {
     assert(_jsObject != null);
   }
 
-  /**
-   * Constructs a new JavaScript object from [constructor] and returns a proxy
-   * to it.
-   */
+  /// Constructs a JavaScript object from its native [constructor] and returns
+  /// a proxy to it.
   factory JsObject(JsFunction constructor, [List arguments]) {
     var ctor = constructor._jsObject;
     if (arguments == null) {
@@ -123,17 +121,15 @@ class JsObject {
     return _wrapToDart(JS('', 'new #(...#)', ctor, unwrapped));
   }
 
-  /**
-   * Constructs a [JsObject] that proxies a native Dart object; _for expert use
-   * only_.
-   *
-   * Use this constructor only if you wish to get access to JavaScript
-   * properties attached to a browser host object, such as a Node or Blob, that
-   * is normally automatically converted into a native Dart object.
-   *
-   * An exception will be thrown if [object] either is `null` or has the type
-   * `bool`, `num`, or `String`.
-   */
+  /// Constructs a [JsObject] that proxies a native Dart object; _for expert use
+  /// only_.
+  ///
+  /// Use this constructor only if you wish to get access to JavaScript
+  /// properties attached to a browser host object, such as a Node or Blob, that
+  /// is normally automatically converted into a native Dart object.
+  ///
+  /// An exception will be thrown if [object] either is `null` or has the type
+  /// `bool`, `num`, or `String`.
   factory JsObject.fromBrowserObject(object) {
     if (object is num || object is String || object is bool || object == null) {
       throw ArgumentError("object cannot be a num, string, bool, or null");
@@ -141,15 +137,13 @@ class JsObject {
     return _wrapToDart(_convertToJS(object));
   }
 
-  /**
-   * Recursively converts a JSON-like collection of Dart objects to a
-   * collection of JavaScript objects and returns a [JsObject] proxy to it.
-   *
-   * [object] must be a [Map] or [Iterable], the contents of which are also
-   * converted. Maps and Iterables are copied to a new JavaScript object.
-   * Primitives and other transferable values are directly converted to their
-   * JavaScript type, and all other objects are proxied.
-   */
+  /// Recursively converts a JSON-like collection of Dart objects to a
+  /// collection of JavaScript objects and returns a [JsObject] proxy to it.
+  ///
+  /// [object] must be a [Map] or [Iterable], the contents of which are also
+  /// converted. Maps and Iterables are copied to a new JavaScript object.
+  /// Primitives and other transferable values are directly converted to their
+  /// JavaScript type, and all other objects are proxied.
   factory JsObject.jsify(object) {
     if ((object is! Map) && (object is! Iterable)) {
       throw ArgumentError("object must be a Map or Iterable");
@@ -184,12 +178,10 @@ class JsObject {
     return _convert(data);
   }
 
-  /**
-   * Returns the value associated with [property] from the proxied JavaScript
-   * object.
-   *
-   * The type of [property] must be either [String] or [num].
-   */
+  /// Returns the value associated with [property] from the proxied JavaScript
+  /// object.
+  ///
+  /// The type of [property] must be either [String] or [num].
   dynamic operator [](Object property) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
@@ -197,12 +189,10 @@ class JsObject {
     return _convertToDart(JS('', '#[#]', _jsObject, property));
   }
 
-  /**
-   * Sets the value associated with [property] on the proxied JavaScript
-   * object.
-   *
-   * The type of [property] must be either [String] or [num].
-   */
+  // Sets the value associated with [property] on the proxied JavaScript
+  // object.
+  //
+  // The type of [property] must be either [String] or [num].
   void operator []=(Object property, value) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
@@ -215,12 +205,10 @@ class JsObject {
   bool operator ==(other) =>
       other is JsObject && JS<bool>('!', '# === #', _jsObject, other._jsObject);
 
-  /**
-   * Returns `true` if the JavaScript object contains the specified property
-   * either directly or though its prototype chain.
-   *
-   * This is the equivalent of the `in` operator in JavaScript.
-   */
+  /// Returns `true` if the JavaScript object contains the specified property
+  /// either directly or though its prototype chain.
+  ///
+  /// This is the equivalent of the `in` operator in JavaScript.
   bool hasProperty(property) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
@@ -228,11 +216,9 @@ class JsObject {
     return JS<bool>('!', '# in #', property, _jsObject);
   }
 
-  /**
-   * Removes [property] from the JavaScript object.
-   *
-   * This is the equivalent of the `delete` operator in JavaScript.
-   */
+  /// Removes [property] from the JavaScript object.
+  ///
+  /// This is the equivalent of the `delete` operator in JavaScript.
   void deleteProperty(property) {
     if (property is! String && property is! num) {
       throw ArgumentError("property is not a String or num");
@@ -240,18 +226,14 @@ class JsObject {
     JS<bool>('!', 'delete #[#]', _jsObject, property);
   }
 
-  /**
-   * Returns `true` if the JavaScript object has [type] in its prototype chain.
-   *
-   * This is the equivalent of the `instanceof` operator in JavaScript.
-   */
+  /// Returns `true` if the JavaScript object has [type] in its prototype chain.
+  ///
+  /// This is the equivalent of the `instanceof` operator in JavaScript.
   bool instanceof(JsFunction type) {
     return JS<bool>('!', '# instanceof #', _jsObject, _convertToJS(type));
   }
 
-  /**
-   * Returns the result of the JavaScript objects `toString` method.
-   */
+  /// Returns the result of the JavaScript objects `toString` method.
   String toString() {
     try {
       return JS<String>('!', 'String(#)', _jsObject);
@@ -260,12 +242,10 @@ class JsObject {
     }
   }
 
-  /**
-   * Calls [method] on the JavaScript object with the arguments [args] and
-   * returns the result.
-   *
-   * The type of [method] must be either [String] or [num].
-   */
+  /// Calls [method] on the JavaScript object with the arguments [args] and
+  /// returns the result.
+  ///
+  /// The type of [method] must be either [String] or [num].
   dynamic callMethod(method, [List args]) {
     if (method is! String && method is! num) {
       throw ArgumentError("method is not a String or num");
@@ -279,14 +259,10 @@ class JsObject {
   }
 }
 
-/**
- * Proxies a JavaScript Function object.
- */
+/// A proxy on a JavaScript Function object.
 class JsFunction extends JsObject {
-  /**
-   * Returns a [JsFunction] that captures its 'this' binding and calls [f]
-   * with the value of this passed as the first argument.
-   */
+  /// Returns a [JsFunction] that captures its 'this' binding and calls [f]
+  /// with the value of JavaScript `this` passed as the first argument.
   factory JsFunction.withThis(Function f) {
     return JsFunction._fromJs(JS(
         '',
@@ -305,10 +281,8 @@ class JsFunction extends JsObject {
 
   JsFunction._fromJs(jsObject) : super._fromJs(jsObject);
 
-  /**
-   * Invokes the JavaScript function with arguments [args]. If [thisArg] is
-   * supplied it is the value of `this` for the invocation.
-   */
+  /// Invokes the JavaScript function with arguments [args]. If [thisArg] is
+  /// supplied it is the value of `this` for the invocation.
   dynamic apply(List args, {thisArg}) => _convertToDart(JS(
       '',
       '#.apply(#, #)',
@@ -318,17 +292,13 @@ class JsFunction extends JsObject {
 }
 
 // TODO(jmesserly): this is totally unnecessary in dev_compiler.
-/** A [List] that proxies a JavaScript array. */
+/// A [List] that proxies a JavaScript array.
 class JsArray<E> extends JsObject with ListMixin<E> {
-  /**
-   * Creates a new JavaScript array.
-   */
+  /// Creates an empty JavaScript array.
   JsArray() : super._fromJs([]);
 
-  /**
-   * Creates a new JavaScript array and initializes it to the contents of
-   * [other].
-   */
+  /// Creates a new JavaScript array and initializes it to the contents of
+  /// [other].
   JsArray.from(Iterable<E> other)
       : super._fromJs([]..addAll(other.map(_convertToJS)));
 
@@ -544,16 +514,16 @@ Object _putIfAbsent(weakMap, o, getValue(o)) {
 Expando<Function> _interopExpando = Expando<Function>();
 
 /// Returns a wrapper around function [f] that can be called from JavaScript
-/// using the package:js Dart-JavaScript interop.
+/// using `package:js` JavaScript interop.
 ///
-/// For performance reasons in Dart2Js, by default Dart functions cannot be
-/// passed directly to JavaScript unless this method is called to create
-/// a Function compatible with both Dart and JavaScript.
-/// Calling this method repeatedly on a function will return the same function.
-/// The [Function] returned by this method can be used from both Dart and
-/// JavaScript. We may remove the need to call this method completely in the
-/// future if Dart2Js is refactored so that its function calling conventions
-/// are more compatible with JavaScript.
+/// The calling conventions in Dart2Js differ from JavaScript and so, by
+/// default, it is not possible to call a Dart function directly. Wrapping with
+/// `allowInterop` creates a function that can be called from JavaScript or
+/// Dart. The semantics of the wrapped function are still more strict than
+/// JavaScript, and the function will throw if called with too many or too few
+/// arguments.
+///
+/// Calling this method repeatedly on a function will return the same result.
 F allowInterop<F extends Function>(F f) {
   var ret = _interopExpando[f];
   if (ret == null) {
@@ -571,12 +541,13 @@ F allowInterop<F extends Function>(F f) {
 
 Expando<Function> _interopCaptureThisExpando = Expando<Function>();
 
-/// Returns a [Function] that when called from JavaScript captures its 'this'
-/// binding and calls [f] with the value of this passed as the first argument.
-/// When called from Dart, [null] will be passed as the first argument.
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using `package:js` JavaScript interop, passing JavaScript `this` as the first
+/// argument.
 ///
-/// See the documentation for [allowInterop]. This method should only be used
-/// with package:js Dart-JavaScript interop.
+/// See [allowInterop].
+///
+/// When called from Dart, [null] will be passed as the first argument.
 Function allowInteropCaptureThis(Function f) {
   var ret = _interopCaptureThisExpando[f];
   if (ret == null) {

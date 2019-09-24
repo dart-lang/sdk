@@ -2235,6 +2235,16 @@
           an error of type <tt>UNKNOWN_FIX</tt> will be generated.
         </p>
       </field>
+      <field name="outputDir" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The absolute and normalized path to a directory to which
+          non-nullability migration output will be written. The output is only
+          produced if the non-nullable fix is included. Files in the directory
+          might be overwritten, but no previously existing files will be
+          deleted.
+        </p>
+      </field>
     </params>
     <result>
       <field name="suggestions">

@@ -1,0 +1,115 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Number extends core::Object {
+  final field core::int* value;
+  constructor •(core::int* value) → self::Number*
+    : self::Number::value = value, super core::Object::•()
+    ;
+  get hashCode() → core::int*
+    return this.{self::Number::value}.{core::num::hashCode};
+  operator ==(core::Object* other) → core::bool*
+    return other is self::Number* && this.{self::Number::value}.{core::num::==}(other{self::Number*}.{self::Number::value});
+  method toString() → core::String*
+    return "Number(${this.{self::Number::value}})";
+}
+class Class extends core::Object {
+  field self::Number* field;
+  constructor •(self::Number* field) → self::Class*
+    : self::Class::field = field, super core::Object::•()
+    ;
+}
+extension NumberExtension on self::Number* {
+  operator + = self::NumberExtension|+;
+  operator - = self::NumberExtension|-;
+}
+extension ClassExtension on self::Class* {
+  get property = self::ClassExtension|get#property;
+  set property = self::ClassExtension|set#property;
+}
+static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number* {
+  if(other is core::int*) {
+    return new self::Number::•(#this.{self::Number::value}.{core::num::+}(other{core::int*}));
+  }
+  else
+    if(other is self::Number*) {
+      return new self::Number::•(#this.{self::Number::value}.{core::num::+}(other{self::Number*}.{self::Number::value}));
+    }
+    else {
+      throw new core::ArgumentError::•("${other}");
+    }
+}
+static method NumberExtension|-(final self::Number* #this, core::Object* other) → self::Number* {
+  if(other is core::int*) {
+    return new self::Number::•(#this.{self::Number::value}.{core::num::-}(other{core::int*}));
+  }
+  else
+    if(other is self::Number*) {
+      return new self::Number::•(#this.{self::Number::value}.{core::num::-}(other{self::Number*}.{self::Number::value}));
+    }
+    else {
+      throw new core::ArgumentError::•("${other}");
+    }
+}
+static method ClassExtension|get#property(final self::Class* #this) → self::Number*
+  return #this.{self::Class::field};
+static method ClassExtension|set#property(final self::Class* #this, self::Number* value) → self::Number* {
+  final self::Number* #t1 = value;
+  #this.{self::Class::field} = value;
+  return #t1;
+}
+static method main() → dynamic {
+  self::testLocals();
+  self::testProperties();
+}
+static method testLocals() → dynamic {
+  self::Number* n0 = new self::Number::•(0);
+  self::Number* n1 = new self::Number::•(1);
+  self::Number* n2 = new self::Number::•(2);
+  self::Number* v = n0;
+  self::expect(n0, v);
+  self::expect(n1, v = self::NumberExtension|+(v, n1));
+  self::expect(n2, v = self::NumberExtension|+(v, n1));
+  self::expect(n0, v = self::NumberExtension|-(v, n2));
+  self::expect(n1, v = self::NumberExtension|+(v, n1));
+  self::expect(n0, v = self::NumberExtension|-(v, n1));
+  self::expect(n1, v = self::NumberExtension|+(v, 1));
+  self::expect(n0, v = self::NumberExtension|-(v, 1));
+  self::expect(n0, let final self::Number* #t2 = v in let final self::Number* #t3 = v = self::NumberExtension|+(#t2, 1) in #t2);
+  self::expect(n1, let final self::Number* #t4 = v in let final self::Number* #t5 = v = self::NumberExtension|-(#t4, 1) in #t4);
+  self::expect(n0, v);
+}
+static method testProperties() → dynamic {
+  self::Number* n0 = new self::Number::•(0);
+  self::Number* n1 = new self::Number::•(1);
+  self::Number* n2 = new self::Number::•(2);
+  self::Class* v = new self::Class::•(n0);
+  self::expect(n0, v.{self::Class::field});
+  self::expect(n1, let final self::Class* #t6 = v in #t6.{self::Class::field} = self::NumberExtension|+(#t6.{self::Class::field}, n1));
+  self::expect(n2, let final self::Class* #t7 = v in #t7.{self::Class::field} = self::NumberExtension|+(#t7.{self::Class::field}, n1));
+  self::expect(n0, let final self::Class* #t8 = v in #t8.{self::Class::field} = self::NumberExtension|-(#t8.{self::Class::field}, n2));
+  self::expect(n1, let final self::Class* #t9 = v in #t9.{self::Class::field} = self::NumberExtension|+(#t9.{self::Class::field}, n1));
+  self::expect(n0, let final self::Class* #t10 = v in #t10.{self::Class::field} = self::NumberExtension|-(#t10.{self::Class::field}, n1));
+  self::expect(n1, let final self::Class* #t11 = v in #t11.{self::Class::field} = self::NumberExtension|+(#t11.{self::Class::field}, 1));
+  self::expect(n0, let final self::Class* #t12 = v in #t12.{self::Class::field} = self::NumberExtension|-(#t12.{self::Class::field}, 1));
+  self::expect(n0, let final self::Class* #t13 = v in let final self::Number* #t14 = #t13.{self::Class::field} in let final self::Number* #t15 = #t13.{self::Class::field} = self::NumberExtension|+(#t14, 1) in #t14);
+  self::expect(n1, let final self::Class* #t16 = v in let final self::Number* #t17 = #t16.{self::Class::field} in let final self::Number* #t18 = #t16.{self::Class::field} = self::NumberExtension|-(#t17, 1) in #t17);
+  self::expect(n0, v.{self::Class::field});
+  self::expect(n0, self::ClassExtension|get#property(v));
+  self::expect(n1, let final self::Class* #t19 = v in self::ClassExtension|set#property(#t19, self::NumberExtension|+(self::ClassExtension|get#property(#t19), n1)));
+  self::expect(n2, let final self::Class* #t20 = v in self::ClassExtension|set#property(#t20, self::NumberExtension|+(self::ClassExtension|get#property(#t20), n1)));
+  self::expect(n0, let final self::Class* #t21 = v in self::ClassExtension|set#property(#t21, self::NumberExtension|-(self::ClassExtension|get#property(#t21), n2)));
+  self::expect(n1, let final self::Class* #t22 = v in self::ClassExtension|set#property(#t22, self::NumberExtension|+(self::ClassExtension|get#property(#t22), n1)));
+  self::expect(n0, let final self::Class* #t23 = v in self::ClassExtension|set#property(#t23, self::NumberExtension|-(self::ClassExtension|get#property(#t23), n1)));
+  self::expect(n1, let final self::Class* #t24 = v in self::ClassExtension|set#property(#t24, self::NumberExtension|+(self::ClassExtension|get#property(#t24), 1)));
+  self::expect(n0, let final self::Class* #t25 = v in self::ClassExtension|set#property(#t25, self::NumberExtension|-(self::ClassExtension|get#property(#t25), 1)));
+  self::expect(n0, let final self::Class* #t26 = v in let final self::Number* #t27 = self::ClassExtension|get#property(#t26) in let final self::Number* #t28 = self::ClassExtension|set#property(#t26, self::NumberExtension|+(#t27, 1)) in #t27);
+  self::expect(n1, let final self::Class* #t29 = v in let final self::Number* #t30 = self::ClassExtension|get#property(#t29) in let final self::Number* #t31 = self::ClassExtension|set#property(#t29, self::NumberExtension|-(#t30, 1)) in #t30);
+  self::expect(n0, self::ClassExtension|get#property(v));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

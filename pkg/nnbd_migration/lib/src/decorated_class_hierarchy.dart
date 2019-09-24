@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
@@ -53,7 +54,13 @@ class DecoratedClassHierarchy {
       ClassElement class_, ClassElement superclass) {
     assert(!(class_.library.isDartCore && class_.name == 'Null'));
     if (superclass.typeParameters.isEmpty) {
-      return DecoratedType(superclass.type, _graph.never);
+      return DecoratedType(
+        superclass.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        _graph.never,
+      );
     }
     return _getGenericSupertypeDecorations(class_)[superclass] ??
         (throw StateError('Unrelated types: $class_ and $superclass'));

@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/protocol/protocol_generated.dart' show DartFix;
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    show DartFix, EditDartfixParams;
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
+import 'package:analysis_server/src/edit/fix/basic_fix_lint_assist_task.dart';
+import 'package:analysis_server/src/edit/fix/basic_fix_lint_error_task.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
-import 'package:analysis_server/src/edit/fix/basic_fix_lint_assist_task.dart';
-import 'package:analysis_server/src/edit/fix/basic_fix_lint_error_task.dart';
 
 const allFixes = <DartFixInfo>[
   //
@@ -186,7 +187,8 @@ class DartFixInfo {
   final bool isDefault;
   final bool isPedantic;
   final bool isRequired;
-  final void Function(DartFixRegistrar dartfix, DartFixListener listener) setup;
+  final void Function(DartFixRegistrar dartfix, DartFixListener listener,
+      EditDartfixParams params) setup;
 
   const DartFixInfo(
     this.key,

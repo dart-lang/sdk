@@ -176,15 +176,6 @@ class Interpreter {
                       RawObject*** FP,
                       RawObject*** SP);
 
-  void InlineCacheMiss(int checked_args,
-                       Thread* thread,
-                       RawICData* icdata,
-                       RawObject** call_base,
-                       RawObject** top,
-                       const KBCInstr* pc,
-                       RawObject** FP,
-                       RawObject** SP);
-
   bool InstanceCall(Thread* thread,
                     RawString* target_name,
                     RawObject** call_base,

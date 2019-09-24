@@ -68,7 +68,7 @@ const char* Slot::KindToCString(Kind k) {
   }
 }
 
-bool Slot::KindFromCString(const char* str, Kind* out) {
+bool Slot::ParseKind(const char* str, Kind* out) {
   ASSERT(str != nullptr && out != nullptr);
 #define NATIVE_CASE(C, F, id, M)                                               \
   if (strcmp(str, NATIVE_TO_STR(C, F, id, M)) == 0) {                          \

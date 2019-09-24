@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -15,7 +15,7 @@ class TestAnalysisContext implements AnalysisContext {
   final SourceFactory sourceFactory = _MockSourceFactory();
 
   AnalysisOptions _analysisOptions;
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
   TypeSystem _typeSystem;
 
   TestAnalysisContext({FeatureSet featureSet}) {
@@ -33,6 +33,11 @@ class TestAnalysisContext implements AnalysisContext {
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
     );
+
+    if (_analysisOptions.contextFeatures.isEnabled(Feature.non_nullable)) {
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+    }
+
     _typeSystem = Dart2TypeSystem(typeProvider);
   }
 

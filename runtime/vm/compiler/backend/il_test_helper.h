@@ -242,12 +242,11 @@ class FlowGraphBuilderHelper {
 
   ConstantInstr* IntConstant(int64_t value) const {
     return flow_graph_.GetConstant(
-        Integer::Handle(Integer::New(value, Heap::kOld)));
+        Integer::Handle(Integer::NewCanonical(value)));
   }
 
   ConstantInstr* DoubleConstant(double value) {
-    return flow_graph_.GetConstant(
-        Double::Handle(Double::New(value, Heap::kOld)));
+    return flow_graph_.GetConstant(Double::Handle(Double::NewCanonical(value)));
   }
 
   PhiInstr* Phi(JoinEntryInstr* join,

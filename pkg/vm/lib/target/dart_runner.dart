@@ -45,7 +45,5 @@ class DartRunnerTarget extends VmTarget {
       ];
 
   @override
-  List<String> get extraRequiredLibrariesPlatform => const <String>[
-        'dart:profiler',
-      ];
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
 }

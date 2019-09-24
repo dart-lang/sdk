@@ -429,7 +429,7 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration temp;
     if (entry.isNullAware) {
       temp = new VariableDeclaration.forValue(value,
-          type: coreTypes.mapClass.rawType);
+          type: coreTypes.mapLegacyRawType);
       body.add(temp);
       value = new VariableGet(temp);
     }

@@ -170,7 +170,7 @@ class ElementFactory {
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.isStatic = true;
     valuesField.isConst = true;
-    valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
+    valuesField.type = typeProvider.listType2(enumType);
     fields.add(valuesField);
     //
     // Build the enum constants.
@@ -404,7 +404,6 @@ class ElementFactory {
     element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
       ..parameters = parameters
       ..returnType = returnType ?? DynamicTypeImpl.instance;
-    element.type = new FunctionTypeImpl.forTypedef(element);
     return element;
   }
 
@@ -586,6 +585,7 @@ class ElementFactory {
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
     setter.type = new FunctionTypeImpl(setter);
+    setter.isStatic = isStatic;
     field.setter = setter;
     return setter;
   }
@@ -628,9 +628,7 @@ class ElementFactory {
   }
 
   static TypeParameterElementImpl typeParameterElement(String name) {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(name, 0);
-    element.type = new TypeParameterTypeImpl(element);
-    return element;
+    return new TypeParameterElementImpl(name, 0);
   }
 
   static List<TypeParameterElement> typeParameters(List<String> names) {
@@ -649,7 +647,6 @@ class ElementFactory {
   static TypeParameterElementImpl typeParameterWithType(String name,
       [DartType bound]) {
     TypeParameterElementImpl typeParameter = typeParameterElement(name);
-    typeParameter.type = new TypeParameterTypeImpl(typeParameter);
     typeParameter.bound = bound;
     return typeParameter;
   }

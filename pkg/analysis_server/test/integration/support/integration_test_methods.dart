@@ -1773,6 +1773,13 @@ abstract class IntegrationTestMixin {
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
    *
+   * outputDir: FilePath (optional)
+   *
+   *   The absolute and normalized path to a directory to which non-nullability
+   *   migration output will be written. The output is only produced if the
+   *   non-nullable fix is included. Files in the directory might be
+   *   overwritten, but no previously existing files will be deleted.
+   *
    * Returns
    *
    * suggestions: List<DartFixSuggestion>
@@ -1806,12 +1813,14 @@ abstract class IntegrationTestMixin {
       {List<String> includedFixes,
       bool includePedanticFixes,
       bool includeRequiredFixes,
-      List<String> excludedFixes}) async {
+      List<String> excludedFixes,
+      String outputDir}) async {
     var params = new EditDartfixParams(included,
             includedFixes: includedFixes,
             includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
-            excludedFixes: excludedFixes)
+            excludedFixes: excludedFixes,
+            outputDir: outputDir)
         .toJson();
     var result = await server.send("edit.dartfix", params);
     ResponseDecoder decoder = new ResponseDecoder(null);

@@ -1623,8 +1623,8 @@ bool DirectCallMetadataHelper::ReadMetadata(intptr_t node_offset,
     return false;
   }
 
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
 
   *target_name = helper_->ReadCanonicalNameReference();
   *check_receiver_for_null = helper_->ReadBool();
@@ -1701,8 +1701,8 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
                                 InferredTypeMetadata::kFlagNullable);
   }
 
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
 
   const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
   const uint8_t flags = helper_->ReadByte();
@@ -1737,8 +1737,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
     return false;
   }
 
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
 
   const int kDynamicUsesBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
@@ -1771,8 +1771,8 @@ void ObfuscationProhibitionsMetadataHelper::ReadMetadata(intptr_t node_offset) {
     return;
   }
 
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
   Obfuscator O(Thread::Current(), String::Handle());
 
   intptr_t len = helper_->ReadUInt32();
@@ -1797,8 +1797,8 @@ bool CallSiteAttributesMetadataHelper::ReadMetadata(
     return false;
   }
 
-  AlternativeReadingScope alt(&helper_->reader_, &H.metadata_payloads(),
-                              md_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
 
   metadata->receiver_type = &type_translator_.BuildType();
   return true;
@@ -2475,8 +2475,7 @@ void KernelReaderHelper::SkipStatement() {
       SkipStatement();  // read finalizer.
       return;
     case kYieldStatement: {
-      TokenPosition position = ReadPosition();  // read position.
-      RecordYieldPosition(position);
+      ReadPosition();    // read position.
       ReadByte();        // read flags.
       SkipExpression();  // read expression.
       return;

@@ -208,7 +208,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
         dartAsyncMarker: AsyncMarker.Sync)
       ..fileOffset = enclosingFunction.fileOffset
       ..fileEndOffset = enclosingFunction.fileEndOffset
-      ..returnType = helper.coreTypes.boolClass.rawType;
+      ..returnType = helper.coreTypes.boolLegacyRawType;
 
     final closureFunction =
         new FunctionDeclaration(nestedClosureVariable, function)

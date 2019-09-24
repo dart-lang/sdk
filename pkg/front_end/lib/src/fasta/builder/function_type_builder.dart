@@ -4,7 +4,8 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeVariableBuilder;
+import 'builder.dart'
+    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
 
 import 'package:kernel/ast.dart'
     show
@@ -32,8 +33,10 @@ class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;
   final List<TypeVariableBuilder> typeVariables;
   final List<FormalParameterBuilder> formals;
+  final NullabilityBuilder nullabilityBuilder;
 
-  FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals);
+  FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
+      this.nullabilityBuilder);
 
   @override
   String get name => null;
@@ -68,7 +71,9 @@ class FunctionTypeBuilder extends TypeBuilder {
         buffer.write(t?.fullNameForErrors);
       }
     }
-    buffer.write(") -> ");
+    buffer.write(") ->");
+    nullabilityBuilder.writeNullabilityOn(buffer);
+    buffer.write(" ");
     buffer.write(returnType?.fullNameForErrors);
     return buffer;
   }
@@ -106,7 +111,8 @@ class FunctionTypeBuilder extends TypeBuilder {
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
         requiredParameterCount: requiredParameterCount,
-        typedefType: origin);
+        typedefType: origin,
+        nullability: nullabilityBuilder.build(library));
   }
 
   Supertype buildSupertype(
@@ -143,7 +149,10 @@ class FunctionTypeBuilder extends TypeBuilder {
       }
     }
     FunctionTypeBuilder newType = new FunctionTypeBuilder(
-        returnType?.clone(newTypes), clonedTypeVariables, clonedFormals);
+        returnType?.clone(newTypes),
+        clonedTypeVariables,
+        clonedFormals,
+        nullabilityBuilder);
     newTypes.add(newType);
     return newType;
   }

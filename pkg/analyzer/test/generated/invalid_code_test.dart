@@ -178,6 +178,12 @@ const v = [<S extends num>(S x) => x is int ? x : 0];
 ''');
   }
 
+  test_fuzz_38091() async {
+    // https://github.com/dart-lang/sdk/issues/38091
+    // this caused an infinite loop in parser recovery
+    await _assertCanBeAnalyzed(r'c(=k(<)>');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
@@ -229,6 +235,29 @@ class InvalidCodeWithExtensionMethodsTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_extensionOverrideInAnnotationContext() async {
+    await _assertCanBeAnalyzed('''
+class R {
+  const R(int x);
+}
+
+@R(E(null).f())
+extension E on Object {
+  int f() => 0;
+}
+''');
+  }
+
+  test_extensionOverrideInConstContext() async {
+    await _assertCanBeAnalyzed('''
+extension E on Object {
+  int f() => 0;
+}
+
+const e = E(null).f();
+''');
+  }
 
   test_fuzz_14() async {
     // This crashes because parser produces `ConstructorDeclaration`.

@@ -527,7 +527,10 @@ class Assembler : public AssemblerBase {
   void negl(Register reg);
   void notl(Register reg);
 
+  void bsfl(Register dst, Register src);
   void bsrl(Register dst, Register src);
+  void popcntl(Register dst, Register src);
+  void lzcntl(Register dst, Register src);
 
   void bt(Register base, Register offset);
   void bt(Register base, int bit);

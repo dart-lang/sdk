@@ -87,7 +87,12 @@ class Value : public ZoneAllocated {
         reaching_type_(NULL) {}
 
   Definition* definition() const { return definition_; }
-  void set_definition(Definition* definition) { definition_ = definition; }
+  void set_definition(Definition* definition) {
+    definition_ = definition;
+    // Clone the reaching type if there was one and the owner no longer matches
+    // this value's definition.
+    SetReachingType(reaching_type_);
+  }
 
   Value* previous_use() const { return previous_use_; }
   void set_previous_use(Value* previous) { previous_use_ = previous; }
@@ -156,6 +161,7 @@ class Value : public ZoneAllocated {
 
  private:
   friend class FlowGraphPrinter;
+  friend class FlowGraphDeserializer;  // For setting reaching_type_ directly.
 
   Definition* definition_;
   Value* previous_use_;
@@ -1862,8 +1868,7 @@ class IndirectEntryInstr : public JoinEntryInstr {
 
 class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
  public:
-  CatchBlockEntryInstr(TokenPosition handler_token_pos,
-                       bool is_generated,
+  CatchBlockEntryInstr(bool is_generated,
                        intptr_t block_id,
                        intptr_t try_index,
                        GraphEntryInstr* graph_entry,
@@ -1885,7 +1890,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
         raw_exception_var_(raw_exception_var),
         raw_stacktrace_var_(raw_stacktrace_var),
         needs_stacktrace_(needs_stacktrace),
-        handler_token_pos_(handler_token_pos),
         is_generated_(is_generated) {}
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
@@ -1911,7 +1915,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   bool needs_stacktrace() const { return needs_stacktrace_; }
 
   bool is_generated() const { return is_generated_; }
-  TokenPosition handler_token_pos() const { return handler_token_pos_; }
 
   // Returns try index for the try block to which this catch handler
   // corresponds.
@@ -1938,7 +1941,6 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   const LocalVariable* raw_exception_var_;
   const LocalVariable* raw_stacktrace_var_;
   const bool needs_stacktrace_;
-  TokenPosition handler_token_pos_;
   bool is_generated_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
@@ -3269,7 +3271,18 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
 class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
-  enum Kind { kParameterCheck, kInsertedByFrontend, kFromSource, kUnknown };
+#define FOR_EACH_ASSERT_ASSIGNABLE_KIND(V)                                     \
+  V(ParameterCheck)                                                            \
+  V(InsertedByFrontend)                                                        \
+  V(FromSource)                                                                \
+  V(Unknown)
+
+#define KIND_DEFN(name) k##name,
+  enum Kind { FOR_EACH_ASSERT_ASSIGNABLE_KIND(KIND_DEFN) };
+#undef KIND_DEFN
+
+  static const char* KindToCString(Kind kind);
+  static bool ParseKind(const char* str, Kind* out);
 
   AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
@@ -3326,6 +3339,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual Value* RedefinedValue() const;
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   const TokenPosition token_pos_;
@@ -3385,7 +3399,7 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
 #undef KIND_INC
 
   static const char* KindToCString(SpecialParameterKind k);
-  static bool KindFromCString(const char* str, SpecialParameterKind* out);
+  static bool ParseKind(const char* str, SpecialParameterKind* out);
 
   SpecialParameterInstr(SpecialParameterKind kind,
                         intptr_t deopt_id,
@@ -3666,6 +3680,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
   bool MatchesCoreName(const String& name);
 
@@ -4438,6 +4453,7 @@ class NativeCallInstr : public TemplateDartCall<0> {
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  private:
   void set_native_c_function(NativeFunction value) {
@@ -5511,6 +5527,8 @@ class LoadUntaggedInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsLoadUntagged()->offset_ == offset_;
   }
+
+  PRINT_OPERANDS_TO_SUPPORT
 
  private:
   intptr_t offset_;

@@ -20,6 +20,7 @@ extension ExtraExt on A {
   set setterInGlobalScope(double x) {
     checkOtherExtensionValue(x);
   }
+
   double methodInGlobalScope() => otherExtensionValue;
 
   double get fieldInInstanceScope => otherExtensionValue;
@@ -27,6 +28,7 @@ extension ExtraExt on A {
   set setterInInstanceScope(double x) {
     checkOtherExtensionValue(x);
   }
+
   double methodInInstanceScope() => otherExtensionValue;
 
   double get fieldInExtensionScope => otherExtensionValue;
@@ -34,6 +36,7 @@ extension ExtraExt on A {
   set setterInExtensionScope(double x) {
     checkOtherExtensionValue(x);
   }
+
   double methodInExtensionScope() => otherExtensionValue;
 
   double get fieldInOtherExtensionScope => otherExtensionValue;
@@ -41,6 +44,6 @@ extension ExtraExt on A {
   set setterInOtherExtensionScope(double x) {
     checkOtherExtensionValue(x);
   }
-  double methodInOtherExtensionScope() => otherExtensionValue;
 
+  double methodInOtherExtensionScope() => otherExtensionValue;
 }

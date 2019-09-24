@@ -6,9 +6,10 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
@@ -17,7 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
+import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -106,9 +107,15 @@ class Dart2TypeSystem extends TypeSystem {
    */
   final bool implicitCasts;
 
+  /// A flag indicating whether inference failures are allowed, off by default.
+  ///
+  /// This option is experimental and subject to change.
+  final bool strictInference;
+
   final TypeProvider typeProvider;
 
-  Dart2TypeSystem(this.typeProvider, {this.implicitCasts: true});
+  Dart2TypeSystem(this.typeProvider,
+      {this.implicitCasts: true, this.strictInference: false});
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -202,7 +209,7 @@ class Dart2TypeSystem extends TypeSystem {
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
-   * This is similar to [inferGenericFunctionOrType2], but the return type is
+   * This is similar to [inferGenericFunctionOrType], but the return type is
    * also considered as part of the solution.
    *
    * If this function is called with a [contextType] that is also
@@ -231,49 +238,6 @@ class Dart2TypeSystem extends TypeSystem {
     );
   }
 
-  /// Infers a generic type, function, method, or list/map literal
-  /// instantiation, using the downward context type as well as the argument
-  /// types if available.
-  ///
-  /// For example, given a function type with generic type parameters, this
-  /// infers the type parameters from the actual argument types, and returns the
-  /// instantiated function type.
-  ///
-  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
-  /// result type R, and generic type parameters T0, T1, ... Tm, use the
-  /// argument types A0, A1, ... An to solve for the type parameters.
-  ///
-  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Tj,
-  /// recording the lower or upper bound it must satisfy. At the end, all
-  /// constraints can be combined to determine the type.
-  ///
-  /// All constraints on each type parameter Tj are tracked, as well as where
-  /// they originated, so we can issue an error message tracing back to the
-  /// argument values, type parameter "extends" clause, or the return type
-  /// context.
-  T inferGenericFunctionOrType<T extends ParameterizedType>(
-      T genericType,
-      List<ParameterElement> parameters,
-      List<DartType> argumentTypes,
-      DartType returnContextType,
-      {ErrorReporter errorReporter,
-      AstNode errorNode,
-      bool downwards: false,
-      bool isConst: false}) {
-    var inferredTypes = inferGenericFunctionOrType2(
-      genericType,
-      parameters,
-      argumentTypes,
-      returnContextType,
-      errorReporter: errorReporter,
-      errorNode: errorNode,
-      downwards: downwards,
-      isConst: isConst,
-    );
-    return genericType.instantiate(inferredTypes);
-  }
-
   /// Infers type arguments for a generic type, function, method, or
   /// list/map literal, using the downward context type as well as the
   /// argument types if available.
@@ -295,18 +259,19 @@ class Dart2TypeSystem extends TypeSystem {
   /// they originated, so we can issue an error message tracing back to the
   /// argument values, type parameter "extends" clause, or the return type
   /// context.
-  List<DartType> inferGenericFunctionOrType2<T extends ParameterizedType>(
-      T genericType,
-      List<ParameterElement> parameters,
-      List<DartType> argumentTypes,
-      DartType returnContextType,
-      {ErrorReporter errorReporter,
-      AstNode errorNode,
-      bool downwards: false,
-      bool isConst: false}) {
-    // TODO(jmesserly): expose typeFormals on ParameterizedType.
-    List<TypeParameterElement> typeFormals = typeFormalsAsElements(genericType);
-    if (typeFormals.isEmpty) {
+  List<DartType> inferGenericFunctionOrType({
+    ClassElement genericClass,
+    @required List<TypeParameterElement> typeParameters,
+    @required List<ParameterElement> parameters,
+    @required DartType declaredReturnType,
+    @required List<DartType> argumentTypes,
+    @required DartType contextReturnType,
+    ErrorReporter errorReporter,
+    AstNode errorNode,
+    bool downwards: false,
+    bool isConst: false,
+  }) {
+    if (typeParameters.isEmpty) {
       return null;
     }
 
@@ -314,30 +279,32 @@ class Dart2TypeSystem extends TypeSystem {
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferrer = new GenericInferrer(typeProvider, this, typeFormals);
+    var inferrer = new GenericInferrer(typeProvider, this, typeParameters);
 
-    DartType declaredReturnType =
-        genericType is FunctionType ? genericType.returnType : genericType;
-
-    if (returnContextType != null) {
+    if (contextReturnType != null) {
       if (isConst) {
-        returnContextType = _eliminateTypeVariables(returnContextType);
+        contextReturnType = _eliminateTypeVariables(contextReturnType);
       }
-      inferrer.constrainReturnType(declaredReturnType, returnContextType);
+      inferrer.constrainReturnType(declaredReturnType, contextReturnType);
     }
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
       // parameter bounds that were implied by this assignment.
       inferrer.constrainArgument(
-          argumentTypes[i], parameters[i].type, parameters[i].name,
-          genericType: genericType);
+        argumentTypes[i],
+        parameters[i].type,
+        parameters[i].name,
+        genericClass: genericClass,
+      );
     }
 
-    return inferrer.infer(typeFormals,
-        errorReporter: errorReporter,
-        errorNode: errorNode,
-        downwardsInferPhase: downwards);
+    return inferrer.infer(
+      typeParameters,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+      downwardsInferPhase: downwards,
+    );
   }
 
   /**
@@ -351,7 +318,7 @@ class Dart2TypeSystem extends TypeSystem {
    * and generic functions; compute lazily and cache.
    */
   DartType instantiateToBounds(DartType type,
-      {List<bool> hasError, Map<TypeParameterType, DartType> knownTypes}) {
+      {List<bool> hasError, Map<TypeParameterElement, DartType> knownTypes}) {
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
     List<DartType> arguments = instantiateTypeFormalsToBounds(typeFormals,
         hasError: hasError, knownTypes: knownTypes);
@@ -371,20 +338,19 @@ class Dart2TypeSystem extends TypeSystem {
   List<DartType> instantiateTypeFormalsToBounds(
       List<TypeParameterElement> typeFormals,
       {List<bool> hasError,
-      Map<TypeParameterType, DartType> knownTypes}) {
+      Map<TypeParameterElement, DartType> knownTypes}) {
     int count = typeFormals.length;
     if (count == 0) {
       return const <DartType>[];
     }
 
-    Set<TypeParameterType> all = new Set<TypeParameterType>();
+    Set<TypeParameterElement> all = new Set<TypeParameterElement>();
     // all ground
-    Map<TypeParameterType, DartType> defaults = knownTypes ?? {};
+    Map<TypeParameterElement, DartType> defaults = knownTypes ?? {};
     // not ground
-    Map<TypeParameterType, DartType> partials = {};
+    Map<TypeParameterElement, DartType> partials = {};
 
-    for (TypeParameterElement typeParameterElement in typeFormals) {
-      TypeParameterType typeParameter = typeParameterElement.type;
+    for (TypeParameterElement typeParameter in typeFormals) {
       all.add(typeParameter);
       if (!defaults.containsKey(typeParameter)) {
         if (typeParameter.bound == null) {
@@ -395,8 +361,8 @@ class Dart2TypeSystem extends TypeSystem {
       }
     }
 
-    List<TypeParameterType> getFreeParameters(DartType rootType) {
-      List<TypeParameterType> parameters = null;
+    List<TypeParameterElement> getFreeParameters(DartType rootType) {
+      List<TypeParameterElement> parameters = null;
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
@@ -407,9 +373,12 @@ class Dart2TypeSystem extends TypeSystem {
           return;
         }
         visitedTypes.add(type);
-        if (type is TypeParameterType && all.contains(type)) {
-          parameters ??= <TypeParameterType>[];
-          parameters.add(type);
+        if (type is TypeParameterType) {
+          var element = type.element;
+          if (all.contains(element)) {
+            parameters ??= <TypeParameterElement>[];
+            parameters.add(element);
+          }
         } else if (AnalysisDriver.useSummary2) {
           if (type is FunctionType) {
             appendParameters(type.returnType);
@@ -429,17 +398,17 @@ class Dart2TypeSystem extends TypeSystem {
     bool hasProgress = true;
     while (hasProgress) {
       hasProgress = false;
-      for (TypeParameterType parameter in partials.keys) {
+      for (TypeParameterElement parameter in partials.keys) {
         DartType value = partials[parameter];
-        List<TypeParameterType> freeParameters = getFreeParameters(value);
+        List<TypeParameterElement> freeParameters = getFreeParameters(value);
         if (freeParameters == null) {
           defaults[parameter] = value;
           partials.remove(parameter);
           hasProgress = true;
           break;
         } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] = value.substitute2(
-              defaults.values.toList(), defaults.keys.toList());
+          defaults[parameter] =
+              Substitution.fromMap(defaults).substituteType(value);
           partials.remove(parameter);
           hasProgress = true;
           break;
@@ -459,19 +428,20 @@ class Dart2TypeSystem extends TypeSystem {
       var range = defaults.values.toList();
       // Build a substitution Phi mapping each uncompleted type variable to
       // dynamic, and each completed type variable to its default.
-      for (TypeParameterType parameter in partials.keys) {
+      for (TypeParameterElement parameter in partials.keys) {
         domain.add(parameter);
         range.add(DynamicTypeImpl.instance);
       }
       // Set the default for an uncompleted type variable (T extends B)
       // to be Phi(B)
-      for (TypeParameterType parameter in partials.keys) {
-        defaults[parameter] = partials[parameter].substitute2(range, domain);
+      for (TypeParameterElement parameter in partials.keys) {
+        defaults[parameter] = Substitution.fromPairs(domain, range)
+            .substituteType(partials[parameter]);
       }
     }
 
     List<DartType> orderedArguments =
-        typeFormals.map((p) => defaults[p.type]).toList();
+        typeFormals.map((p) => defaults[p]).toList();
     return orderedArguments;
   }
 
@@ -705,7 +675,7 @@ class Dart2TypeSystem extends TypeSystem {
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var t1Future = typeProvider.futureType.instantiate([t1TypeArg]);
+      var t1Future = typeProvider.futureType2(t1TypeArg);
       return isSubtypeOf(t1Future, t2) && isSubtypeOf(t1TypeArg, t2);
     }
 
@@ -713,7 +683,7 @@ class Dart2TypeSystem extends TypeSystem {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
-      var t2Future = typeProvider.futureType.instantiate([t2TypeArg]);
+      var t2Future = typeProvider.futureType2(t2TypeArg);
       return isSubtypeOf(t1, t2Future) || isSubtypeOf(t1, t2TypeArg);
     }
 
@@ -1250,7 +1220,7 @@ class Dart2TypeSystem extends TypeSystem {
 class GenericInferrer {
   final Dart2TypeSystem _typeSystem;
   final TypeProvider typeProvider;
-  final Map<TypeParameterElement, List<_TypeConstraint>> constraints;
+  final Map<TypeParameterElement, List<_TypeConstraint>> constraints = {};
 
   /// Buffer recording constraints recorded while performing a recursive call to
   /// [_matchSubtypeOf] that might fail, so that any constraints recorded during
@@ -1258,10 +1228,7 @@ class GenericInferrer {
   final _undoBuffer = <_TypeConstraint>[];
 
   GenericInferrer(this.typeProvider, this._typeSystem,
-      Iterable<TypeParameterElement> typeFormals)
-      : constraints = new HashMap(
-            equals: (x, y) => x.location == y.location,
-            hashCode: (x) => x.location.hashCode) {
+      Iterable<TypeParameterElement> typeFormals) {
     for (var formal in typeFormals) {
       constraints[formal] = [];
     }
@@ -1271,10 +1238,10 @@ class GenericInferrer {
   /// is a subtype of the [parameterType].
   void constrainArgument(
       DartType argumentType, DartType parameterType, String parameterName,
-      {DartType genericType}) {
+      {ClassElement genericClass}) {
     var origin = new _TypeConstraintFromArgument(
         argumentType, parameterType, parameterName,
-        genericType: genericType);
+        genericClass: genericClass);
     tryMatchSubtypeOf(argumentType, parameterType, origin, covariant: false);
   }
 
@@ -1313,30 +1280,29 @@ class GenericInferrer {
       AstNode errorNode,
       bool failAtError: false,
       bool downwardsInferPhase: false}) {
-    var fnTypeParams = TypeParameterTypeImpl.getTypes(typeFormals);
-
     // Initialize the inferred type array.
     //
     // In the downwards phase, they all start as `?` to offer reasonable
     // degradation for f-bounded type parameters.
     var inferredTypes = new List<DartType>.filled(
-        fnTypeParams.length, UnknownInferredType.instance);
+        typeFormals.length, UnknownInferredType.instance);
     var _inferTypeParameter = downwardsInferPhase
         ? _inferTypeParameterFromContext
         : _inferTypeParameterFromAll;
 
-    for (int i = 0; i < fnTypeParams.length; i++) {
-      TypeParameterType typeParam = fnTypeParams[i];
+    for (int i = 0; i < typeFormals.length; i++) {
+      TypeParameterElement typeParam = typeFormals[i];
 
-      var typeParamBound = typeParam.bound;
       _TypeConstraint extendsClause;
-      if (considerExtendsClause && !typeParamBound.isDynamic) {
-        extendsClause = new _TypeConstraint.fromExtends(typeParam,
-            typeParam.bound.substitute2(inferredTypes, fnTypeParams));
+      if (considerExtendsClause && typeParam.bound != null) {
+        extendsClause = new _TypeConstraint.fromExtends(
+            typeParam,
+            Substitution.fromPairs(typeFormals, inferredTypes)
+                .substituteType(typeParam.bound));
       }
 
       inferredTypes[i] =
-          _inferTypeParameter(constraints[typeParam.element], extendsClause);
+          _inferTypeParameter(constraints[typeParam], extendsClause);
     }
 
     // If the downwards infer phase has failed, we'll catch this in the upwards
@@ -1346,14 +1312,14 @@ class GenericInferrer {
     }
 
     // Check the inferred types against all of the constraints.
-    var knownTypes = new HashMap<TypeParameterType, DartType>(
-        equals: (x, y) => x.element == y.element,
-        hashCode: (x) => x.element.hashCode);
-    for (int i = 0; i < fnTypeParams.length; i++) {
-      TypeParameterType typeParam = fnTypeParams[i];
-      var constraints = this.constraints[typeParam.element];
-      var typeParamBound =
-          typeParam.bound.substitute2(inferredTypes, fnTypeParams);
+    var knownTypes = <TypeParameterElement, DartType>{};
+    for (int i = 0; i < typeFormals.length; i++) {
+      TypeParameterElement typeParam = typeFormals[i];
+      var constraints = this.constraints[typeParam];
+      var typeParamBound = typeParam.bound != null
+          ? Substitution.fromPairs(typeFormals, inferredTypes)
+              .substituteType(typeParam.bound)
+          : typeProvider.dynamicType;
 
       var inferred = inferredTypes[i];
       bool success =
@@ -1371,7 +1337,7 @@ class GenericInferrer {
         errorReporter?.reportErrorForNode(
             StrongModeCode.COULD_NOT_INFER,
             errorNode,
-            [typeParam, _formatError(typeParam, inferred, constraints)]);
+            [typeParam.name, _formatError(typeParam, inferred, constraints)]);
 
         // Heuristic: even if we failed, keep the erroneous type.
         // It should satisfy at least some of the constraints (e.g. the return
@@ -1383,7 +1349,7 @@ class GenericInferrer {
         if (failAtError) return null;
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
-          typeParam,
+          typeParam.name,
           ' Inferred candidate type $inferred has type parameters'
               ' ${(inferred as FunctionType).typeFormals}, but a function with'
               ' type parameters cannot be used as a type argument.'
@@ -1398,11 +1364,25 @@ class GenericInferrer {
 
       if (UnknownInferredType.isKnown(inferred)) {
         knownTypes[typeParam] = inferred;
+      } else if (_typeSystem.strictInference) {
+        // [typeParam] could not be inferred. A result will still be returned
+        // by [infer], with [typeParam] filled in as its bounds. This is
+        // considered a failure of inference, under the "strict-inference"
+        // mode.
+        if (errorNode is ConstructorName) {
+          String constructorName = '${errorNode.type}.${errorNode.name}';
+          errorReporter?.reportTypeErrorForNode(
+              HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION,
+              errorNode,
+              [constructorName]);
+        }
+        // TODO(srawlins): More inference failure cases, like functions, and
+        // function expressions.
       }
     }
 
     // Use instantiate to bounds to finish things off.
-    var hasError = new List<bool>.filled(fnTypeParams.length, false);
+    var hasError = new List<bool>.filled(typeFormals.length, false);
     var result = _typeSystem.instantiateTypeFormalsToBounds(typeFormals,
         hasError: hasError, knownTypes: knownTypes);
 
@@ -1410,13 +1390,13 @@ class GenericInferrer {
     for (int i = 0; i < hasError.length; i++) {
       if (hasError[i]) {
         if (failAtError) return null;
-        TypeParameterType typeParam = fnTypeParams[i];
-        var typeParamBound =
-            typeParam.bound.substitute2(inferredTypes, fnTypeParams);
+        TypeParameterElement typeParam = typeFormals[i];
+        var typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
+            .substituteType(typeParam.bound ?? typeProvider.objectType);
         // TODO(jmesserly): improve this error message.
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
-          typeParam,
+          typeParam.name,
           "\nRecursive bound cannot be instantiated: '$typeParamBound'."
               "\nConsider passing explicit type argument(s) "
               "to the generic.\n\n'"
@@ -1504,9 +1484,9 @@ class GenericInferrer {
     return lower;
   }
 
-  String _formatError(TypeParameterType typeParam, DartType inferred,
+  String _formatError(TypeParameterElement typeParam, DartType inferred,
       Iterable<_TypeConstraint> constraints) {
-    var intro = "Tried to infer '$inferred' for '$typeParam'"
+    var intro = "Tried to infer '$inferred' for '${typeParam.name}'"
         " which doesn't work:";
 
     var constraintsByOrigin = <_TypeConstraintOrigin, List<_TypeConstraint>>{};
@@ -1552,14 +1532,14 @@ class GenericInferrer {
           //  GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
           if (t2.isDartAsyncFutureOr) {
             var t2TypeArg = t2.typeArguments[0];
-            return typeProvider.futureOrType
-                .instantiate([_getGreatestLowerBound(t1TypeArg, t2TypeArg)]);
+            return typeProvider
+                .futureOrType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
           }
           // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
           if (t2.isDartAsyncFuture) {
             var t2TypeArg = t2.typeArguments[0];
-            return typeProvider.futureType
-                .instantiate([_getGreatestLowerBound(t1TypeArg, t2TypeArg)]);
+            return typeProvider
+                .futureType2(_getGreatestLowerBound(t1TypeArg, t2TypeArg));
           }
         }
         // GLB(FutureOr<A>, B) == GLB(A, B)
@@ -1699,7 +1679,7 @@ class GenericInferrer {
       var constraints = this.constraints[t1.element];
       if (constraints != null) {
         if (!identical(t2, UnknownInferredType.instance)) {
-          var constraint = new _TypeConstraint(origin, t1, upper: t2);
+          var constraint = new _TypeConstraint(origin, t1.element, upper: t2);
           constraints.add(constraint);
           _undoBuffer.add(constraint);
         }
@@ -1710,7 +1690,7 @@ class GenericInferrer {
       var constraints = this.constraints[t2.element];
       if (constraints != null) {
         if (!identical(t1, UnknownInferredType.instance)) {
-          var constraint = new _TypeConstraint(origin, t2, lower: t1);
+          var constraint = new _TypeConstraint(origin, t2.element, lower: t1);
           constraints.add(constraint);
           _undoBuffer.add(constraint);
         }
@@ -1738,7 +1718,7 @@ class GenericInferrer {
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var t1Future = typeProvider.futureType.instantiate([t1TypeArg]);
+      var t1Future = typeProvider.futureType2(t1TypeArg);
       return matchSubtype(t1Future, t2) && matchSubtype(t1TypeArg, t2);
     }
 
@@ -1746,7 +1726,7 @@ class GenericInferrer {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
-      var t2Future = typeProvider.futureType.instantiate([t2TypeArg]);
+      var t2Future = typeProvider.futureType2(t2TypeArg);
 
       // First we try matching `t1 <: Future<A>`.  If that succeeds *and*
       // records at least one constraint, then we proceed using that constraint.
@@ -1850,7 +1830,7 @@ class GenericInferrer {
   void _rewindConstraints(int previousRewindBufferLength) {
     while (_undoBuffer.length > previousRewindBufferLength) {
       var constraint = _undoBuffer.removeLast();
-      var element = constraint.typeParameter.element;
+      var element = constraint.typeParameter;
       assert(identical(constraints[element].last, constraint));
       constraints[element].removeLast();
     }
@@ -2874,7 +2854,8 @@ abstract class TypeSystem implements public.TypeSystem {
   static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
     return new Dart2TypeSystem(context.typeProvider,
-        implicitCasts: options.implicitCasts);
+        implicitCasts: options.implicitCasts,
+        strictInference: options.strictInference);
   }
 }
 
@@ -3003,7 +2984,7 @@ class UnknownInferredTypeElement extends ElementImpl
 /// A constraint on a type parameter that we're inferring.
 class _TypeConstraint extends _TypeRange {
   /// The type parameter that is constrained by [lowerBound] or [upperBound].
-  final TypeParameterType typeParameter;
+  final TypeParameterElement typeParameter;
 
   /// Where this constraint comes from, used for error messages.
   ///
@@ -3014,8 +2995,10 @@ class _TypeConstraint extends _TypeRange {
       {DartType upper, DartType lower})
       : super(upper: upper, lower: lower);
 
-  _TypeConstraint.fromExtends(TypeParameterType type, DartType extendsType)
-      : this(new _TypeConstraintFromExtendsClause(type, extendsType), type,
+  _TypeConstraint.fromExtends(
+      TypeParameterElement element, DartType extendsType)
+      : this(
+            new _TypeConstraintFromExtendsClause(element, extendsType), element,
             upper: extendsType);
 
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
@@ -3034,11 +3017,11 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
   final DartType argumentType;
   final DartType parameterType;
   final String parameterName;
-  final DartType genericType;
+  final ClassElement genericClass;
 
   _TypeConstraintFromArgument(
       this.argumentType, this.parameterType, this.parameterName,
-      {this.genericType});
+      {this.genericClass});
 
   @override
   formatError() {
@@ -3046,14 +3029,14 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
     // However in summary code it doesn't look like the AST node with span is
     // available.
     String prefix;
-    if (genericType != null &&
-        (genericType.name == "List" || genericType.name == "Map") &&
-        genericType?.element?.library?.isDartCore == true) {
+    if (genericClass != null &&
+        (genericClass.name == "List" || genericClass.name == "Map") &&
+        genericClass.library.isDartCore == true) {
       // This will become:
       //     "List element"
       //     "Map key"
       //     "Map value"
-      prefix = "${genericType.name} $parameterName";
+      prefix = "${genericClass.name} $parameterName";
     } else {
       prefix = "Parameter '$parameterName'";
     }
@@ -3067,7 +3050,7 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
 }
 
 class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
-  final TypeParameterType typeParam;
+  final TypeParameterElement typeParam;
   final DartType extendsType;
 
   _TypeConstraintFromExtendsClause(this.typeParam, this.extendsType);
@@ -3075,7 +3058,7 @@ class _TypeConstraintFromExtendsClause extends _TypeConstraintOrigin {
   @override
   formatError() {
     return [
-      "Type parameter '$typeParam'",
+      "Type parameter '${typeParam.name}'",
       "declared to extend '$extendsType'."
     ];
   }

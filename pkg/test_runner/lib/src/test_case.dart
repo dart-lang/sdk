@@ -14,7 +14,6 @@ import 'command_output.dart';
 import 'configuration.dart';
 import 'output_log.dart';
 import 'process_queue.dart';
-import 'repository.dart';
 import 'test_file.dart';
 import 'utils.dart';
 
@@ -55,28 +54,20 @@ class TestCase extends UniqueObject {
 
   TestConfiguration configuration;
   String displayName;
-  int hash = 0;
   Set<Expectation> expectedOutcomes;
   final TestFile testFile;
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {TestFile testFile})
-      : testFile = testFile {
+      {this.testFile}) {
     // A test case should do something.
     assert(commands.isNotEmpty);
-
-    if (testFile != null) {
-      hash = (testFile.originPath?.relativeTo(Repository.dir)?.toString())
-          .hashCode;
-    }
   }
 
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
     return TestCase(displayName, newCommands, configuration, expectedOutcomes,
-        testFile: testFile)
-      ..hash = hash;
+        testFile: testFile);
   }
 
   bool get hasRuntimeError => testFile?.hasRuntimeError ?? false;

@@ -11,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,10 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class OptionalConstDriverResolutionTest extends DriverResolutionTest
-    with OptionalConstMixin {}
-
-mixin OptionalConstMixin implements ResolutionTest {
+class OptionalConstDriverResolutionTest extends DriverResolutionTest {
   Map<String, LibraryElement> libraries = {};
 
   LibraryElement get libraryA => libraries['package:test/a.dart'];

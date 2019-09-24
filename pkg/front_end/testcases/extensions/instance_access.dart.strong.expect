@@ -89,11 +89,13 @@ static method testExtension1() → dynamic {
   self::Class1* c1 = new self::Class1::•(1);
   self::expect(0, self::Extension1|method(c0));
   self::expect(1, self::Extension1|method(c1));
+  self::expect(1, let final self::Class1* #t3 = c1 in #t3.{core::Object::==}(null) ?{core::int*} null : self::Extension1|method(#t3));
   self::expect(42, self::Extension1|genericMethod<core::int*>(c0, 42));
   self::expect(43, self::Extension1|genericMethod<core::num*>(c0, 43));
   self::expect(88, self::Extension1|genericMethod<core::int*>(c1, 87));
   self::expect(89, self::Extension1|genericMethod<core::num*>(c1, 88));
   self::expect(0, self::Extension1|get#property(c0));
+  self::expect(0, let final self::Class1* #t4 = c0 in #t4.{core::Object::==}(null) ?{core::int*} null : self::Extension1|get#property(#t4));
   self::expect(42, self::Extension1|set#property(c0, 42));
   self::expect(1, self::Extension1|get#property(c1));
   self::expect(87, self::Extension1|set#property(c0, 87));
@@ -106,12 +108,14 @@ static method testExtension2() → dynamic {
   self::Class2* c0 = new self::Class2::•(0);
   self::Class2* c1 = new self::Class2::•(1);
   self::expect(3, self::Extension2|method(c0));
+  self::expect(3, let final self::Class2* #t5 = c0 in #t5.{core::Object::==}(null) ?{core::int*} null : self::Extension2|method(#t5));
   self::expect(4, self::Extension2|method(c1));
   self::expect(46, self::Extension2|genericMethod<core::int*>(c0, 42));
   self::expect(47, self::Extension2|genericMethod<core::num*>(c0, 43));
   self::expect(92, self::Extension2|genericMethod<core::int*>(c1, 87));
   self::expect(93, self::Extension2|genericMethod<core::num*>(c1, 88));
   self::expect(5, self::Extension2|get#property(c0));
+  self::expect(5, let final self::Class2* #t6 = c0 in #t6.{core::Object::==}(null) ?{core::int*} null : self::Extension2|get#property(#t6));
   self::expect(42, self::Extension2|set#property(c0, 42));
   self::expect(48, self::Extension2|get#property(c0));
   self::expect(6, self::Extension2|get#property(c1));

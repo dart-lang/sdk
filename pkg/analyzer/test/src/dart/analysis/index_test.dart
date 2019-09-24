@@ -67,6 +67,19 @@ class IndexTest extends BaseAnalysisDriverTest {
     return imports[index].importedLibrary.definingCompilationUnit;
   }
 
+  test_fieldFormalParameter_noSuchField() async {
+    await _indexTestUnit('''
+class B<T> {
+  B({this.x}) {}
+
+  foo() {
+    B<int>(x: 1);
+  }
+}
+''');
+    // No exceptions.
+  }
+
   test_hasAncestor_ClassDeclaration() async {
     await _indexTestUnit('''
 class A {}

@@ -231,6 +231,9 @@ dart/generic_field_invocation_test: SkipByDesign # DBC and KBC interpreters do n
 [ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed || $builder_tag == optimization_counter_threshold || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
 dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensible to when functions are optimized, so they are disabled on hotreload, optcounter and bytecode interpreter bots.
 
+[ $builder_tag == crossword || $compiler != dartkp || $system != linux && $system != macos && $system != windows ]
+dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
+
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.
 

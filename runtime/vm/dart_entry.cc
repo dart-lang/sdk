@@ -152,7 +152,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       }
 
       // If we have bytecode but no native code then invoke the interpreter.
-      if (function.HasBytecode()) {
+      if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
         ASSERT(thread->no_callback_scope_depth() == 0);
         SuspendLongJumpScope suspend_long_jump_scope(thread);
         TransitionToGenerated transition(thread);
@@ -160,7 +160,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                             arguments, thread);
       }
 
-      // No bytecode, fall back to compilation.
+      // Fall back to compilation.
     }
 
     const Object& result =

@@ -328,7 +328,9 @@ class LazyTypeEnvironment {
   TreeNode lookup(String name) {
     return name.length == 1
         ? typeParameters.putIfAbsent(
-            name, () => new TypeParameter(name, lookupClass('Object').rawType))
+            name,
+            () => new TypeParameter(
+                name, new InterfaceType(lookupClass('Object'))))
         : lookupClass(name);
   }
 

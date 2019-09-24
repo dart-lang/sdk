@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -12,6 +13,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -56,6 +58,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final NullabilityMigrationListener /*?*/ listener;
 
+  final NullabilityMigrationInstrumentation /*?*/ instrumentation;
+
   final NullabilityGraph _graph;
 
   final TypeProvider _typeProvider;
@@ -70,7 +74,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   final DecoratedType _nonNullableStackTraceType;
 
   NodeBuilder(this._variables, this.source, this.listener, this._graph,
-      this._typeProvider)
+      this._typeProvider,
+      {this.instrumentation})
       : _dynamicType = DecoratedType(_typeProvider.dynamicType, _graph.always),
         _nonNullableObjectType =
             DecoratedType(_typeProvider.objectType, _graph.never),
@@ -82,14 +87,21 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType exceptionType = node.exceptionType?.accept(this);
     if (node.exceptionParameter != null) {
       // If there is no `on Type` part of the catch clause, the type is dynamic.
-      exceptionType ??= _dynamicType;
+      if (exceptionType == null) {
+        exceptionType = _dynamicType;
+        instrumentation?.implicitType(
+            source, node.exceptionParameter, exceptionType);
+      }
       _variables.recordDecoratedElementType(
           node.exceptionParameter.staticElement, exceptionType);
     }
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
+      var stackTraceType = _nonNullableStackTraceType;
       _variables.recordDecoratedElementType(
-          node.stackTraceParameter.staticElement, _nonNullableStackTraceType);
+          node.stackTraceParameter.staticElement, stackTraceType);
+      instrumentation?.implicitType(
+          source, node.stackTraceParameter, stackTraceType);
     }
     node.stackTraceParameter?.accept(this);
     node.body?.accept(this);
@@ -152,6 +164,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
     _handleExecutableDeclaration(
+        node,
         node.declaredElement,
         node.metadata,
         null,
@@ -168,11 +181,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata.accept(this);
     DecoratedType type = node.type?.accept(this);
     if (node.identifier != null) {
+      if (type == null) {
+        type = DecoratedType.forImplicitType(
+            _typeProvider, node.declaredElement.type, _graph);
+        instrumentation?.implicitType(source, node, type);
+      }
       _variables.recordDecoratedElementType(
-          node.identifier.staticElement,
-          type ??
-              DecoratedType.forImplicitType(
-                  _typeProvider, node.declaredElement.type, _graph));
+          node.identifier.staticElement, type);
     }
     return type;
   }
@@ -204,6 +219,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     _handleExecutableDeclaration(
+        node,
         node.declaredElement,
         node.metadata,
         node.returnType,
@@ -217,7 +233,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitFunctionExpression(FunctionExpression node) {
-    _handleExecutableDeclaration(node.declaredElement, null, null,
+    _handleExecutableDeclaration(node, node.declaredElement, null, null,
         node.typeParameters, node.parameters, null, node.body, null);
     return null;
   }
@@ -235,6 +251,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Inferred return type.
       decoratedReturnType = DecoratedType.forImplicitType(
           _typeProvider, functionType.returnType, _graph);
+      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
     }
     var previousPositionalParameters = _positionalParameters;
     var previousNamedParameters = _namedParameters;
@@ -291,6 +308,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(
+        node,
         node.declaredElement,
         node.metadata,
         node.returnType,
@@ -325,7 +343,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
       _graph.connect(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node.offset));
+          AlwaysNullableTypeOrigin(source, node));
       var decoratedType = DecoratedType(type, nullabilityNode);
       _variables.recordDecoratedTypeAnnotation(
           source, node, decoratedType, null);
@@ -343,6 +361,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
               .map((t) =>
                   DecoratedType.forImplicitType(_typeProvider, t, _graph))
               .toList();
+          instrumentation?.implicitTypeArguments(source, node, typeArguments);
         } else {
           typeArguments =
               node.typeArguments.arguments.map((t) => t.accept(this)).toList();
@@ -353,10 +372,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     if (node is GenericFunctionType) {
       var returnType = node.returnType;
-      decoratedReturnType = returnType == null
-          ? DecoratedType.forImplicitType(
-              _typeProvider, DynamicTypeImpl.instance, _graph)
-          : returnType.accept(this);
+      if (returnType == null) {
+        decoratedReturnType = DecoratedType.forImplicitType(
+            _typeProvider, DynamicTypeImpl.instance, _graph);
+        instrumentation?.implicitReturnType(source, node, decoratedReturnType);
+      } else {
+        decoratedReturnType = returnType.accept(this);
+      }
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
       typeFormalBounds = <DecoratedType>[];
@@ -411,12 +433,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
         _graph.connect(decoratedType.node, _graph.never,
-            NullabilityCommentOrigin(source, commentToken.offset),
+            NullabilityCommentOrigin(source, node),
             hard: true);
         break;
       case _NullabilityComment.question:
         _graph.connect(_graph.always, decoratedType.node,
-            NullabilityCommentOrigin(source, commentToken.offset));
+            NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.none:
         break;
@@ -437,7 +459,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       var nullabilityNode = NullabilityNode.forInferredType();
       _graph.union(_graph.always, nullabilityNode,
-          AlwaysNullableTypeOrigin(source, node.offset));
+          AlwaysNullableTypeOrigin(source, node));
       decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
     }
     _typeFormalBounds?.add(decoratedBound);
@@ -453,11 +475,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var declaredElement = variable.declaredElement;
-      _variables.recordDecoratedElementType(
-          declaredElement,
-          type ??
-              DecoratedType.forImplicitType(
-                  _typeProvider, declaredElement.type, _graph));
+      if (type == null) {
+        type = DecoratedType.forImplicitType(
+            _typeProvider, declaredElement.type, _graph);
+        instrumentation?.implicitType(source, node, type);
+      }
+      _variables.recordDecoratedElementType(declaredElement, type);
       variable.initializer?.accept(this);
     }
     return null;
@@ -474,14 +497,23 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _createDecoratedTypeForClass(
       ClassElement classElement, AstNode node) {
     var typeArguments = classElement.typeParameters
-        .map((t) => DecoratedType(t.type, _graph.never))
+        .map((t) => t.instantiate(nullabilitySuffix: NullabilitySuffix.star))
         .toList();
-    return DecoratedType(classElement.type, _graph.never,
-        typeArguments: typeArguments);
+    var decoratedTypeArguments =
+        typeArguments.map((t) => DecoratedType(t, _graph.never)).toList();
+    return DecoratedType(
+      classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      _graph.never,
+      typeArguments: decoratedTypeArguments,
+    );
   }
 
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
+      AstNode node,
       ExecutableElement declaredElement,
       NodeList<Annotation> metadata,
       TypeAnnotation returnType,
@@ -500,10 +532,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // implicit return type.
       decoratedReturnType = _createDecoratedTypeForClass(
           declaredElement.enclosingElement, parameters.parent);
+      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
     } else {
       // Inferred return type.
       decoratedReturnType = DecoratedType.forImplicitType(
           _typeProvider, functionType.returnType, _graph);
+      instrumentation?.implicitReturnType(source, node, decoratedReturnType);
     }
     var previousPositionalParameters = _positionalParameters;
     var previousNamedParameters = _namedParameters;
@@ -541,15 +575,22 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     node.metadata?.accept(this);
     DecoratedType decoratedType;
     if (parameters == null) {
-      decoratedType = type != null
-          ? type.accept(this)
-          : DecoratedType.forImplicitType(
-              _typeProvider, declaredElement.type, _graph);
+      if (type != null) {
+        decoratedType = type.accept(this);
+      } else {
+        decoratedType = DecoratedType.forImplicitType(
+            _typeProvider, declaredElement.type, _graph);
+        instrumentation?.implicitType(source, node, decoratedType);
+      }
     } else {
-      var decoratedReturnType = type == null
-          ? DecoratedType.forImplicitType(
-              _typeProvider, DynamicTypeImpl.instance, _graph)
-          : type.accept(this);
+      DecoratedType decoratedReturnType;
+      if (type == null) {
+        decoratedReturnType = DecoratedType.forImplicitType(
+            _typeProvider, DynamicTypeImpl.instance, _graph);
+        instrumentation?.implicitReturnType(source, node, decoratedReturnType);
+      } else {
+        decoratedReturnType = type.accept(this);
+      }
       if (typeParameters != null) {
         // TODO(paulberry)
         _unimplemented(
@@ -707,7 +748,7 @@ abstract class VariableRepository {
 
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks);
+      Source source, Expression expression, ExpressionChecksOrigin origin);
 }
 
 /// Types of comments that can influence nullability

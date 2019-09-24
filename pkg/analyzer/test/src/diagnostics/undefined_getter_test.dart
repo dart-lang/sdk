@@ -18,6 +18,34 @@ main() {
 
 @reflectiveTest
 class UndefinedGetterTest extends DriverResolutionTest {
+  test_compoundAssignment_hasSetter_instance() async {
+    await assertErrorsInCode('''
+class C {
+  set foo(int _) {}
+}
+
+f(C c) {
+  c.foo += 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 3),
+    ]);
+  }
+
+  test_compoundAssignment_hasSetter_static() async {
+    await assertErrorsInCode('''
+class C {
+  static set foo(int _) {}
+}
+
+f() {
+  C.foo += 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 50, 3),
+    ]);
+  }
+
   test_ifElement_inList_notPromoted() async {
     await assertErrorsInCode('''
 f(int x) {
@@ -114,6 +142,29 @@ void f<X extends num, Y extends X>(Y y) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+    ]);
+  }
+
+  test_static_definedInSuperclass() async {
+    await assertErrorsInCode('''
+class S {
+  static int get g => 0;
+}
+class C extends S {}
+f(var p) {
+  f(C.g);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 75, 1),
+    ]);
+  }
+
+  test_static_undefined() async {
+    await assertErrorsInCode('''
+class C {}
+f(var p) {
+  f(C.m);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 1),
     ]);
   }
 }

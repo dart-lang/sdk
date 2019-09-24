@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -23,13 +23,17 @@ class TestTypeProvider extends TypeProviderImpl {
     context ??= _MockAnalysisContext();
     var sdkElements = MockSdkElements(context, nullabilitySuffix);
     return TestTypeProvider._(
+      nullabilitySuffix,
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,
     );
   }
 
-  TestTypeProvider._(LibraryElement coreLibrary, LibraryElement asyncLibrary)
-      : super(coreLibrary, asyncLibrary);
+  TestTypeProvider._(
+    NullabilitySuffix nullabilitySuffix,
+    LibraryElement coreLibrary,
+    LibraryElement asyncLibrary,
+  ) : super(coreLibrary, asyncLibrary, nullabilitySuffix: nullabilitySuffix);
 }
 
 class _MockAnalysisContext implements AnalysisContext {

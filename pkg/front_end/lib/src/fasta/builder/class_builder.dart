@@ -44,6 +44,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/src/bounds_checks.dart'
     show TypeArgumentIssue, findTypeArgumentIssues, getGenericTypeName;
+import 'package:kernel/text/text_serialization_verifier.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 
@@ -390,6 +391,10 @@ abstract class ClassBuilder extends DeclarationBuilder {
   /// For a patch class the origin class is returned.
   Class get cls;
 
+  InterfaceType _legacyRawType;
+  InterfaceType _nullableRawType;
+  InterfaceType _nonNullableRawType;
+
   // Deliberately unrelated return type to statically detect more accidental
   // use until Builder.target is fully retired.
   UnrelatedTarget get target => unsupported(
@@ -406,12 +411,50 @@ abstract class ClassBuilder extends DeclarationBuilder {
   @override
   InterfaceType get thisType => cls.thisType;
 
+  InterfaceType get legacyRawType {
+    // TODO(dmitryas): Use computeBound instead of DynamicType here?
+    return _legacyRawType ??= new InterfaceType(
+        cls,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
+        Nullability.legacy);
+  }
+
+  InterfaceType get nullableRawType {
+    // TODO(dmitryas): Use computeBound instead of DynamicType here?
+    return _nullableRawType ??= new InterfaceType(
+        cls,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
+        Nullability.nullable);
+  }
+
+  InterfaceType get nonNullableRawType {
+    // TODO(dmitryas): Use computeBound instead of DynamicType here?
+    return _nonNullableRawType ??= new InterfaceType(
+        cls,
+        new List<DartType>.filled(typeVariablesCount, const DynamicType()),
+        Nullability.nonNullable);
+  }
+
+  InterfaceType rawType(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.legacy:
+        return legacyRawType;
+      case Nullability.nullable:
+        return nullableRawType;
+      case Nullability.nonNullable:
+        return nonNullableRawType;
+      case Nullability.neither:
+      default:
+        return unhandled("$nullability", "rawType", noOffset, noUri);
+    }
+  }
+
   /// [arguments] have already been built.
   InterfaceType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
     return arguments == null
-        ? cls.rawType
+        ? rawType(nullability)
         : new InterfaceType(cls, arguments, nullability);
   }
 
@@ -436,11 +479,11 @@ abstract class ClassBuilder extends DeclarationBuilder {
       return result;
     }
 
-    if (arguments != null && arguments.length != (typeVariables?.length ?? 0)) {
+    if (arguments != null && arguments.length != typeVariablesCount) {
       // That should be caught and reported as a compile-time error earlier.
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(typeVariables.length)
+              .withArguments(typeVariablesCount)
               .message,
           "buildTypeArguments",
           -1,
@@ -1040,8 +1083,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
                         interfaceMember.fileOffset, noLength)
               ] +
               inheritedContext(isInterfaceCheck, declaredMember));
-    } else if (!library.loader.target.backendTarget.legacyMode &&
-        declaredFunction?.typeParameters != null) {
+    } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
       for (int i = 0; i < declaredFunction.typeParameters.length; ++i) {
@@ -1109,8 +1151,6 @@ abstract class ClassBuilder extends DeclarationBuilder {
       VariableDeclaration declaredParameter,
       bool isInterfaceCheck,
       {bool asIfDeclaredParameter = false}) {
-    if (library.loader.target.backendTarget.legacyMode) return;
-
     if (interfaceSubstitution != null) {
       interfaceType = interfaceSubstitution.substituteType(interfaceType);
     }
@@ -1619,7 +1659,7 @@ abstract class ClassBuilder extends DeclarationBuilder {
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
     FunctionType factoryType =
-        factory.procedure.function.functionType.withoutTypeParameters;
+        factory.procedure.function.thisFunctionType.withoutTypeParameters;
     FunctionType redirecteeType =
         computeRedirecteeType(factory, typeEnvironment);
 

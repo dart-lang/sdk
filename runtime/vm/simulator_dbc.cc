@@ -927,9 +927,10 @@ DART_FORCE_INLINE void Simulator::PrepareForTailCall(
   argdesc_ = args_desc;
 }
 
-// Note: functions below are marked DART_NOINLINE to recover performance on
-// ARM where inlining these functions into the interpreter loop seemed to cause
-// some code quality issues.
+// Note: functions below are marked DART_NOINLINE to recover performance where
+// inlining these functions into the interpreter loop seemed to cause some code
+// quality issues. Functions with the "returns_twice" attribute, such as setjmp,
+// prevent reusing spill slots and large frame sizes.
 DART_NOINLINE static bool InvokeRuntime(Thread* thread,
                                         Simulator* sim,
                                         RuntimeFunction drt,

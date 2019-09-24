@@ -41,7 +41,7 @@ import '../kernel/kernel_builder.dart'
         MetadataBuilder,
         TypeBuilder;
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
@@ -99,7 +99,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
     if (variable == null) {
-      variable = new VariableDeclarationJudgment(name, functionNestingLevel,
+      variable = new VariableDeclarationImpl(name, functionNestingLevel,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,

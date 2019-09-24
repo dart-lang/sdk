@@ -71,7 +71,7 @@ class CustomTestSuite extends TestSuite {
   CustomTestSuite(TestConfiguration configuration)
       : super(configuration, "CustomTestSuite", []);
 
-  Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) async {
+  void findTestCases(TestCaseEvent onTest, Map testCache) {
     void enqueueTestCase(TestCase testCase) {
       TestController.numTests++;
       onTest(testCase);
@@ -89,10 +89,6 @@ class CustomTestSuite extends TestSuite {
     enqueueTestCase(testCaseFail);
     enqueueTestCase(testCaseTimeout);
     enqueueTestCase(testCaseFailUnexpected);
-
-    if (onDone != null) {
-      onDone();
-    }
   }
 
   TestCase _makeNormalTestCase(

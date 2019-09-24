@@ -40,7 +40,8 @@ FlowGraphBuilder::FlowGraphBuilder(
     bool optimizing,
     intptr_t osr_id,
     intptr_t first_block_id,
-    bool inlining_unchecked_entry)
+    bool inlining_unchecked_entry,
+    GrowableObjectArray* record_yield_positions)
     : BaseFlowGraphBuilder(parsed_function,
                            first_block_id - 1,
                            osr_id,
@@ -68,6 +69,7 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(NULL) {
   const Script& script =
       Script::Handle(Z, parsed_function->function().script());
+  record_yield_positions_ = record_yield_positions;
   H.InitFromScript(script);
 }
 
@@ -226,7 +228,6 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
   LocalVariable* raw_stacktrace_var = CurrentRawStackTrace();
 
   CatchBlockEntryInstr* entry = new (Z) CatchBlockEntryInstr(
-      TokenPosition::kNoSource,  // Token position of catch block.
       is_synthesized,  // whether catch block was synthesized by FE compiler
       AllocateBlockId(), CurrentTryIndex(), graph_entry_, handler_types,
       handler_index, needs_stacktrace, GetNextDeoptId(), exception_var,
@@ -643,7 +644,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
   //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, kernel_data, kernel_data_program_offset);
+      this, kernel_data, kernel_data_program_offset, record_yield_positions_);
   return streaming_flow_graph_builder.BuildGraph();
 }
 

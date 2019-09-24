@@ -2,12 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -26,17 +29,25 @@ class NonNullableFix extends FixCodeTask {
 
   final DartFixListener listener;
 
-  final NullabilityMigration migration;
+  final String outputDir;
+
+  InstrumentationListener instrumentationListener;
+
+  NullabilityMigration migration;
 
   /// If this flag has a value of `false`, then something happened to prevent
   /// at least one package from being marked as non-nullable.
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener)
-      : migration = new NullabilityMigration(
-            new NullabilityMigrationAdapter(listener),
-            permissive: _usePermissiveMode);
+  NonNullableFix(this.listener, this.outputDir) {
+    instrumentationListener =
+        outputDir == null ? null : InstrumentationListener();
+    migration = new NullabilityMigration(
+        new NullabilityMigrationAdapter(listener),
+        permissive: _usePermissiveMode,
+        instrumentation: instrumentationListener);
+  }
 
   @override
   int get numPhases => 2;
@@ -44,6 +55,14 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     migration.finish();
+    if (outputDir != null) {
+      OverlayResourceProvider provider = listener.server.resourceProvider;
+      Folder outputFolder = provider.getFolder(outputDir);
+      if (!outputFolder.exists) {
+        outputFolder.create();
+      }
+      _generateOutput(outputFolder);
+    }
   }
 
   /// If the package contains an analysis_options.yaml file, then update the
@@ -176,8 +195,21 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
-    registrar.registerCodeTask(new NonNullableFix(listener));
+  /// Generate output into the given [folder].
+  void _generateOutput(Folder folder) {
+    File main = folder.getChildAssumingFile('main.html');
+    main.writeAsStringSync('''
+<html>
+<body>
+Generated output at ${DateTime.now()}.
+</body>
+</html>
+''');
+  }
+
+  static void task(DartFixRegistrar registrar, DartFixListener listener,
+      EditDartfixParams params) {
+    registrar.registerCodeTask(new NonNullableFix(listener, params.outputDir));
   }
 }
 

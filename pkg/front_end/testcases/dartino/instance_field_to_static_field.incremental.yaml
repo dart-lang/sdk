@@ -6,14 +6,14 @@ main.dart.patch: |
   // Test that instance field can be made static
 
   class C {
-  <<<< ["[instance] is null","[C.x] threw","v1"]
-    int x;
+  <<<< {"messages":[],"hasCompileTimeError":1}
+    String x;
   ==== ["v2","[instance.x] threw"]
-    static int x;
+    static String x;
   >>>>
   }
 
-  var instance;
+  dynamic instance;
 
   main() {
     if (instance == null) {

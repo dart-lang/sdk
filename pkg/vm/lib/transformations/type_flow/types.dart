@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
 
+import 'package:kernel/core_types.dart';
+
 import 'utils.dart';
 
 abstract class GenericInterfacesInfo {
@@ -46,6 +48,7 @@ abstract class TypeHierarchy implements GenericInterfacesInfo {
   Class get futureOrClass;
   Class get futureClass;
   Class get functionClass;
+  CoreTypes get coreTypes;
 }
 
 /// Basic normalization of Dart types.
@@ -53,7 +56,12 @@ abstract class TypeHierarchy implements GenericInterfacesInfo {
 DartType _normalizeDartType(DartType type) {
   if (type is InterfaceType) {
     // TODO(alexmarkov): take generic type arguments into account
-    return type.classNode.rawType;
+    // TODO(alexmarkov): cache the created raw type or use a CoreTypes object
+    return new InterfaceType(
+        type.classNode,
+        new List<DartType>.filled(
+            type.classNode.typeParameters.length, const DynamicType()),
+        Nullability.legacy);
   } else if (type is FunctionType) {
     // TODO(alexmarkov): support function types
     return const DynamicType();
@@ -536,7 +544,9 @@ class ConeType extends Type {
         return other;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.classNode.rawType, this.dartType)) {
+      if (typeHierarchy.isSubtype(
+          typeHierarchy.coreTypes.legacyRawType(other.classNode),
+          this.dartType)) {
         return this;
       }
     }
@@ -561,7 +571,9 @@ class ConeType extends Type {
         return this;
       }
     } else if (other is ConcreteType) {
-      if (typeHierarchy.isSubtype(other.classNode.rawType, this.dartType)) {
+      if (typeHierarchy.isSubtype(
+          typeHierarchy.coreTypes.legacyRawType(other.classNode),
+          this.dartType)) {
         return other;
       } else {
         return const EmptyType();
@@ -626,7 +638,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   @override
   bool isSubtypeOf(TypeHierarchy typeHierarchy, DartType dartType) =>
-      typeHierarchy.isSubtype(classNode.rawType, dartType);
+      typeHierarchy.isSubtype(
+          typeHierarchy.coreTypes.legacyRawType(classNode), dartType);
 
   bool isSubtypeOfRuntimeType(
       TypeHierarchy typeHierarchy, RuntimeType runtimeType) {
@@ -639,7 +652,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       return false;
     }
 
-    if (!typeHierarchy.isSubtype(this.classNode.rawType, runtimeType._type)) {
+    if (!typeHierarchy.isSubtype(
+        typeHierarchy.coreTypes.legacyRawType(this.classNode),
+        runtimeType._type)) {
       return false;
     }
 
@@ -649,7 +664,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
       if (runtimeDartType.typeArguments.isEmpty) return true;
       if (runtimeDartType.classNode == typeHierarchy.futureOrClass) {
         if (typeHierarchy.isSubtype(
-                classNode.rawType, typeHierarchy.futureClass.rawType) ||
+                typeHierarchy.coreTypes.legacyRawType(classNode),
+                typeHierarchy.coreTypes.futureLegacyRawType) ||
             classNode == typeHierarchy.futureOrClass) {
           final RuntimeType lhs =
               typeArgs == null ? RuntimeType(DynamicType(), null) : typeArgs[0];

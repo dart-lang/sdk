@@ -276,8 +276,8 @@ Function 'foo3', reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 2, r0
+  CheckStack           0
   Push                 FP[-5]
   PushNull
   Push                 r0
@@ -402,7 +402,6 @@ Function 'foo6', reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 2, r0
   JumpIfNotZeroTypeArgs L1
   Push                 FP[-6]
@@ -411,6 +410,7 @@ Bytecode {
   InstantiateTypeArgumentsTOS 0, CP#1
   PopLocal             r0
 L1:
+  CheckStack           0
   JumpIfUnchecked      L2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
@@ -496,13 +496,13 @@ Function 'foo7', reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
   JumpIfNotZeroTypeArgs L1
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0
   PopLocal             r0
 L1:
+  CheckStack           0
   JumpIfUnchecked      L2
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0
@@ -567,13 +567,13 @@ Function 'foo8', reflectable, debuggable
 
 Bytecode {
   Entry                1
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
   JumpIfNotZeroTypeArgs L1
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0
   PopLocal             r0
 L1:
+  CheckStack           0
   JumpIfUnchecked      L2
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0
@@ -614,8 +614,8 @@ Function 'foo7', reflectable, debuggable, forwarding-stub
 
 Bytecode {
   Entry                2
-  CheckStack           0
   CheckFunctionTypeArgs 1, r0
+  CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-8]
   LoadTypeArgumentsField CP#0

@@ -4,150 +4,150 @@
   "vm": {
     "libraries": {
       "_builtin": {
-        "uri": "../../runtime/bin/builtin.dart"
+        "uri": "_internal/vm/bin/builtin.dart"
       },
       "cli": {
         "patches": [
-          "../../runtime/bin/cli_patch.dart"
+          "_internal/vm/bin/cli_patch.dart"
         ],
         "uri": "cli/cli.dart"
       },
       "core": {
         "patches": [
-          "../../runtime/lib/core_patch.dart",
-          "../../runtime/lib/array.dart",
-          "../../runtime/lib/array_patch.dart",
-          "../../runtime/lib/bigint_patch.dart",
-          "../../runtime/lib/bool_patch.dart",
-          "../../runtime/lib/date_patch.dart",
-          "../../runtime/lib/double.dart",
-          "../../runtime/lib/double_patch.dart",
-          "../../runtime/lib/errors_patch.dart",
-          "../../runtime/lib/expando_patch.dart",
-          "../../runtime/lib/function.dart",
-          "../../runtime/lib/function_patch.dart",
-          "../../runtime/lib/growable_array.dart",
-          "../../runtime/lib/identical_patch.dart",
-          "../../runtime/lib/immutable_map.dart",
-          "../../runtime/lib/integers.dart",
-          "../../runtime/lib/integers_patch.dart",
-          "../../runtime/lib/invocation_mirror_patch.dart",
-          "../../runtime/lib/lib_prefix.dart",
-          "../../runtime/lib/map_patch.dart",
-          "../../runtime/lib/null_patch.dart",
-          "../../runtime/lib/object_patch.dart",
-          "../../runtime/lib/regexp_patch.dart",
-          "../../runtime/lib/stacktrace.dart",
-          "../../runtime/lib/stopwatch_patch.dart",
-          "../../runtime/lib/string_buffer_patch.dart",
-          "../../runtime/lib/string_patch.dart",
-          "../../runtime/lib/type_patch.dart",
-          "../../runtime/lib/uri_patch.dart",
-          "../../runtime/lib/weak_property.dart"
+          "_internal/vm/lib/core_patch.dart",
+          "_internal/vm/lib/array.dart",
+          "_internal/vm/lib/array_patch.dart",
+          "_internal/vm/lib/bigint_patch.dart",
+          "_internal/vm/lib/bool_patch.dart",
+          "_internal/vm/lib/date_patch.dart",
+          "_internal/vm/lib/double.dart",
+          "_internal/vm/lib/double_patch.dart",
+          "_internal/vm/lib/errors_patch.dart",
+          "_internal/vm/lib/expando_patch.dart",
+          "_internal/vm/lib/function.dart",
+          "_internal/vm/lib/function_patch.dart",
+          "_internal/vm/lib/growable_array.dart",
+          "_internal/vm/lib/identical_patch.dart",
+          "_internal/vm/lib/immutable_map.dart",
+          "_internal/vm/lib/integers.dart",
+          "_internal/vm/lib/integers_patch.dart",
+          "_internal/vm/lib/invocation_mirror_patch.dart",
+          "_internal/vm/lib/lib_prefix.dart",
+          "_internal/vm/lib/map_patch.dart",
+          "_internal/vm/lib/null_patch.dart",
+          "_internal/vm/lib/object_patch.dart",
+          "_internal/vm/lib/regexp_patch.dart",
+          "_internal/vm/lib/stacktrace.dart",
+          "_internal/vm/lib/stopwatch_patch.dart",
+          "_internal/vm/lib/string_buffer_patch.dart",
+          "_internal/vm/lib/string_patch.dart",
+          "_internal/vm/lib/type_patch.dart",
+          "_internal/vm/lib/uri_patch.dart",
+          "_internal/vm/lib/weak_property.dart"
         ],
         "uri": "core/core.dart"
       },
       "async": {
         "patches": [
-          "../../runtime/lib/async_patch.dart",
-          "../../runtime/lib/deferred_load_patch.dart",
-          "../../runtime/lib/schedule_microtask_patch.dart",
-          "../../runtime/lib/timer_patch.dart"
+          "_internal/vm/lib/async_patch.dart",
+          "_internal/vm/lib/deferred_load_patch.dart",
+          "_internal/vm/lib/schedule_microtask_patch.dart",
+          "_internal/vm/lib/timer_patch.dart"
         ],
         "uri": "async/async.dart"
       },
       "collection": {
         "patches": [
-          "../../runtime/lib/collection_patch.dart",
-          "../../runtime/lib/compact_hash.dart"
+          "_internal/vm/lib/collection_patch.dart",
+          "_internal/vm/lib/compact_hash.dart"
         ],
         "uri": "collection/collection.dart"
       },
       "ffi": {
         "patches": [
-          "../../runtime/lib/ffi_patch.dart",
-          "../../runtime/lib/ffi_dynamic_library_patch.dart",
-          "../../runtime/lib/ffi_native_type_patch.dart"
+          "_internal/vm/lib/ffi_patch.dart",
+          "_internal/vm/lib/ffi_dynamic_library_patch.dart",
+          "_internal/vm/lib/ffi_native_type_patch.dart"
         ],
         "uri": "ffi/ffi.dart"
       },
-      "wasm": {
-        "patches": [
-          "../../runtime/lib/wasm_patch.dart"
-        ],
-        "uri": "wasm/wasm.dart"
-      },
       "typed_data": {
-        "patches": "../../runtime/lib/typed_data_patch.dart",
+        "patches": "_internal/vm/lib/typed_data_patch.dart",
         "uri": "typed_data/typed_data.dart"
       },
       "nativewrappers": {
         "uri": "html/dartium/nativewrappers.dart"
       },
+      "mirrors": {
+        "patches": [
+          "_internal/vm/lib/mirrors_patch.dart",
+          "_internal/vm/lib/mirrors_impl.dart",
+          "_internal/vm/lib/mirror_reference.dart"
+        ],
+        "uri": "mirrors/mirrors.dart"
+      },
       "developer": {
         "patches": [
-          "../../runtime/lib/developer.dart",
-          "../../runtime/lib/profiler.dart",
-          "../../runtime/lib/timeline.dart"
+          "_internal/vm/lib/developer.dart",
+          "_internal/vm/lib/profiler.dart",
+          "_internal/vm/lib/timeline.dart"
         ],
         "uri": "developer/developer.dart"
       },
       "isolate": {
         "patches": [
-          "../../runtime/lib/isolate_patch.dart",
-          "../../runtime/lib/timer_impl.dart"
+          "_internal/vm/lib/isolate_patch.dart",
+          "_internal/vm/lib/timer_impl.dart"
         ],
         "uri": "isolate/isolate.dart"
-      },
-      "mirrors": {
-        "patches": [
-          "../../runtime/lib/mirrors_patch.dart",
-          "../../runtime/lib/mirrors_impl.dart",
-          "../../runtime/lib/mirror_reference.dart"
-        ],
-        "uri": "mirrors/mirrors.dart"
       },
       "_vmservice": {
         "uri": "vmservice/vmservice.dart"
       },
+      "wasm": {
+        "patches": [
+          "_internal/vm/lib/wasm_patch.dart"
+        ],
+        "uri": "wasm/wasm.dart"
+      },
       "io": {
         "patches": [
-          "../../runtime/bin/common_patch.dart",
-          "../../runtime/bin/directory_patch.dart",
-          "../../runtime/bin/eventhandler_patch.dart",
-          "../../runtime/bin/file_patch.dart",
-          "../../runtime/bin/file_system_entity_patch.dart",
-          "../../runtime/bin/filter_patch.dart",
-          "../../runtime/bin/io_service_patch.dart",
-          "../../runtime/bin/namespace_patch.dart",
-          "../../runtime/bin/platform_patch.dart",
-          "../../runtime/bin/process_patch.dart",
-          "../../runtime/bin/socket_patch.dart",
-          "../../runtime/bin/stdio_patch.dart",
-          "../../runtime/bin/secure_socket_patch.dart",
-          "../../runtime/bin/sync_socket_patch.dart"
+          "_internal/vm/bin/common_patch.dart",
+          "_internal/vm/bin/directory_patch.dart",
+          "_internal/vm/bin/eventhandler_patch.dart",
+          "_internal/vm/bin/file_patch.dart",
+          "_internal/vm/bin/file_system_entity_patch.dart",
+          "_internal/vm/bin/filter_patch.dart",
+          "_internal/vm/bin/io_service_patch.dart",
+          "_internal/vm/bin/namespace_patch.dart",
+          "_internal/vm/bin/platform_patch.dart",
+          "_internal/vm/bin/process_patch.dart",
+          "_internal/vm/bin/socket_patch.dart",
+          "_internal/vm/bin/stdio_patch.dart",
+          "_internal/vm/bin/secure_socket_patch.dart",
+          "_internal/vm/bin/sync_socket_patch.dart"
         ],
         "uri": "io/io.dart"
       },
       "_internal": {
         "patches": [
-          "../../runtime/lib/internal_patch.dart",
-          "../../runtime/lib/class_id_fasta.dart",
-          "../../runtime/lib/print_patch.dart",
-          "../../runtime/lib/symbol_patch.dart",
+          "_internal/vm/lib/internal_patch.dart",
+          "_internal/vm/lib/class_id_fasta.dart",
+          "_internal/vm/lib/print_patch.dart",
+          "_internal/vm/lib/symbol_patch.dart",
           "internal/patch.dart"
         ],
         "uri": "internal/internal.dart"
       },
       "convert": {
-        "patches": "../../runtime/lib/convert_patch.dart",
+        "patches": "_internal/vm/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
       "profiler": {
         "uri": "profiler/profiler.dart"
       },
       "math": {
-        "patches": "../../runtime/lib/math_patch.dart",
+        "patches": "_internal/vm/lib/math_patch.dart",
         "uri": "math/math.dart"
       },
       "_http": {

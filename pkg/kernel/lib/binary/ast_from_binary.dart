@@ -87,11 +87,21 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyReading = false;
 
+  /// If binary contains metadata section with payloads referencing other nodes
+  /// such Kernel binary can't be read lazily because metadata cross references
+  /// will not be resolved correctly.
+  bool _disableLazyClassReading = false;
+
+  /// Note that [disableLazyClassReading] is incompatible
+  /// with checkCanonicalNames on readComponent.
   BinaryBuilder(this._bytes,
       {this.filename,
       bool disableLazyReading = false,
+      bool disableLazyClassReading = false,
       bool alwaysCreateNewNamedNodes})
       : _disableLazyReading = disableLazyReading,
+        _disableLazyClassReading =
+            disableLazyReading || disableLazyClassReading,
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
   fail(String message) {
@@ -460,6 +470,7 @@ class BinaryBuilder {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
+      _disableLazyClassReading = true;
     }
     int componentFileIndex = 0;
     while (_byteOffset < _bytes.length) {
@@ -479,6 +490,7 @@ class BinaryBuilder {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
+      _disableLazyClassReading = true;
     }
     int componentFileIndex = 0;
     while (_byteOffset < _bytes.length) {
@@ -687,6 +699,8 @@ class BinaryBuilder {
     component.mainMethodName ??= mainMethod;
 
     _byteOffset = _componentStartOffset + componentFileSize;
+
+    assert(typeParameterStack.isEmpty);
   }
 
   /// Read a list of strings. If the list is empty, [null] is returned.
@@ -1016,7 +1030,9 @@ class BinaryBuilder {
     }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
-      node = new Class(reference: reference)..level = ClassLevel.Temporary;
+      node = new Class(reference: reference)
+        ..level = ClassLevel.Temporary
+        ..dirty = false;
     }
 
     var fileUri = readUriReference();
@@ -1036,6 +1052,9 @@ class BinaryBuilder {
       debugPath.add(node.name ?? 'normal-class');
       return true;
     }());
+
+    assert(typeParameterStack.length == 0);
+
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
@@ -1044,16 +1063,12 @@ class BinaryBuilder {
     } else {
       _skipNodeList(readSupertype);
     }
-    _mergeNamedNodeList(node.fields, (index) => readField(), node);
-    _mergeNamedNodeList(node.constructors, (index) => readConstructor(), node);
+    if (_disableLazyClassReading) {
+      readClassPartialContent(node, procedureOffsets);
+    } else {
+      _setLazyLoadClass(node, procedureOffsets);
+    }
 
-    _mergeNamedNodeList(node.procedures, (index) {
-      _byteOffset = procedureOffsets[index];
-      return readProcedure(procedureOffsets[index + 1]);
-    }, node);
-    _byteOffset = procedureOffsets.last;
-    _mergeNamedNodeList(node.redirectingFactoryConstructors,
-        (index) => readRedirectingFactoryConstructor(), node);
     typeParameterStack.length = 0;
     assert(debugPath.removeLast() != null);
     if (shouldWriteData) {
@@ -1118,6 +1133,39 @@ class BinaryBuilder {
       }
     }
     return node;
+  }
+
+  /// Reads the partial content of a class, namely fields, procedures,
+  /// constructors and redirecting factory constructors.
+  void readClassPartialContent(Class node, List<int> procedureOffsets) {
+    _mergeNamedNodeList(node.fieldsInternal, (index) => readField(), node);
+    _mergeNamedNodeList(
+        node.constructorsInternal, (index) => readConstructor(), node);
+
+    _mergeNamedNodeList(node.proceduresInternal, (index) {
+      _byteOffset = procedureOffsets[index];
+      return readProcedure(procedureOffsets[index + 1]);
+    }, node);
+    _byteOffset = procedureOffsets.last;
+    _mergeNamedNodeList(node.redirectingFactoryConstructorsInternal,
+        (index) => readRedirectingFactoryConstructor(), node);
+  }
+
+  /// Set the lazyBuilder on the class so it can be lazy loaded in the future.
+  void _setLazyLoadClass(Class node, List<int> procedureOffsets) {
+    final int savedByteOffset = _byteOffset;
+    final int componentStartOffset = _componentStartOffset;
+    final Library currentLibrary = _currentLibrary;
+    node.lazyBuilder = () {
+      _byteOffset = savedByteOffset;
+      _currentLibrary = currentLibrary;
+      assert(typeParameterStack.isEmpty);
+      _componentStartOffset = componentStartOffset;
+      typeParameterStack.addAll(node.typeParameters);
+
+      readClassPartialContent(node, procedureOffsets);
+      typeParameterStack.length = 0;
+    };
   }
 
   int getAndResetTransformerFlags() {
@@ -1416,8 +1464,7 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
 
     if (lazyLoadBody) {
-      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight,
-          typeParameterStackHeight);
+      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight);
     }
 
     labelStackBase = oldLabelStackBase;
@@ -1427,8 +1474,8 @@ class BinaryBuilder {
     return result;
   }
 
-  void _setLazyLoadFunction(FunctionNode result, int oldLabelStackBase,
-      int variableStackHeight, int typeParameterStackHeight) {
+  void _setLazyLoadFunction(
+      FunctionNode result, int oldLabelStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
@@ -1447,7 +1494,7 @@ class BinaryBuilder {
       result.body?.parent = result;
       labelStackBase = oldLabelStackBase;
       variableStack.length = variableStackHeight;
-      typeParameterStack.length = typeParameterStackHeight;
+      typeParameterStack.clear();
       if (result.parent is Procedure) {
         Procedure parent = result.parent;
         parent.transformerFlags |= getAndResetTransformerFlags();

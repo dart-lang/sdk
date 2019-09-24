@@ -336,7 +336,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
-          ..bound = objectClass.rawType
+          ..bound = new InterfaceType(objectClass)
           ..defaultType = const DynamicType();
       } else {
         DartType type =

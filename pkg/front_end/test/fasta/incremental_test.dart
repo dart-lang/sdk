@@ -225,7 +225,6 @@ Future<Context> createContext(
   final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
-    ..legacyMode = true
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary

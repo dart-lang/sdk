@@ -3478,8 +3478,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression recipe = encoding.recipe;
 
     for (TypeVariableType typeVariable in encoding.typeVariables) {
-      // TODO(fishythefish): Constraint the type variable to only be emitted on
-      // (subtypes of) the environment type.
       _registry.registerTypeUse(TypeUse.namedTypeVariableNewRti(typeVariable));
     }
 

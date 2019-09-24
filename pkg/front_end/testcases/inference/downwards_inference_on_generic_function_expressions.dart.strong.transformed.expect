@@ -66,7 +66,7 @@ static method test() → void {
     function f<S extends core::Object* = dynamic>(core::int* x) → core::String*
       return null;
     <S extends core::Object* = dynamic>(core::int*) →* core::String* v = f;
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null* => null;
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null? => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => "hello";
     v = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:14:68: Error: A value of type 'String Function<T>(String)' can't be assigned to a variable of type 'String Function<S>(int)'.
 Try changing the type of the left hand side, or casting the right hand side to 'String Function<S>(int)'.
@@ -87,7 +87,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     function f<S extends core::Object* = dynamic>(core::int* x) → core::String*
       return null;
     <S extends core::Object* = dynamic>(core::int*) →* core::String* v = f;
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null* => null;
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null? => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => "hello";
     v = <T extends core::Object* = dynamic>(core::int* x) → core::String* => let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:28:9: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the left hand side, or casting the right hand side to 'String'.
@@ -110,7 +110,7 @@ Try changing the type of the left hand side, or casting the right hand side to '
     function f<S extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>*
       return null;
     <S extends core::Object* = dynamic>(core::int*) →* core::List<core::String*>* v = f;
-    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null* => null;
+    v = <T extends core::Object* = dynamic>(core::int* x) → core::Null? => null;
     v = <T extends core::Object* = dynamic>(core::int* x) → core::List<core::String*>* => <core::String*>["hello"];
     v = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_function_expressions.dart:43:75: Error: A value of type 'List<String> Function<T>(String)' can't be assigned to a variable of type 'List<String> Function<S>(int)'.
  - 'List' is from 'dart:core'.

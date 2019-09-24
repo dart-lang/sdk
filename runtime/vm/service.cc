@@ -3902,6 +3902,18 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
   return GetAllocationProfileImpl(thread, js, true);
 }
 
+static const MethodParameter* collect_all_garbage_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  isolate->heap()->CollectAllGarbage(Heap::kDebugging);
+  PrintSuccess(js);
+  return true;
+}
+
 static const MethodParameter* get_heap_map_params[] = {
     RUNNABLE_ISOLATE_PARAMETER, NULL,
 };
@@ -4154,6 +4166,7 @@ static bool GetObject(Thread* thread, JSONStream* js) {
     // load the source before sending the response.
     if (obj.IsScript()) {
       const Script& script = Script::Cast(obj);
+      script.LookupSourceAndLineStarts(thread->zone());
       if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
           Service::HasDartLibraryKernelForSources()) {
         const uint8_t* kernel_buffer = Service::dart_library_kernel();
@@ -4747,6 +4760,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_vm_name_params },
   { "setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
+  { "_collectAllGarbage", CollectAllGarbage,
+    collect_all_garbage_params },
   { "_getDefaultClassesAliases", GetDefaultClassesAliases,
     get_default_classes_aliases_params },
 };

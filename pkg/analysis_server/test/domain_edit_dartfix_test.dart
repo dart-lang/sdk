@@ -49,9 +49,9 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<EditDartfixResult> performFix(
-      {List<String> includedFixes, bool pedantic}) async {
-    var response =
-        await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
+      {List<String> includedFixes, String outputDir, bool pedantic}) async {
+    var response = await performFixRaw(
+        includedFixes: includedFixes, outputDir: outputDir, pedantic: pedantic);
     expect(response.error, isNull);
     return EditDartfixResult.fromResponse(response);
   }
@@ -59,11 +59,13 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   Future<Response> performFixRaw(
       {List<String> includedFixes,
       List<String> excludedFixes,
+      String outputDir,
       bool pedantic}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
+    params.outputDir = outputDir;
     params.includePedanticFixes = pedantic;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
@@ -190,7 +192,7 @@ f(Iterable<int> i) {
 ''');
   }
 
-  test_dartfix_non_nullable() async {
+  test_dartfix_nonNullable() async {
     // Add analysis options to enable non-nullable analysis
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:
@@ -218,7 +220,7 @@ void test() {
 ''');
   }
 
-  test_dartfix_non_nullable_analysis_options_created() async {
+  test_dartfix_nonNullable_analysisOptions_created() async {
     // Add pubspec for nnbd migration to detect
     newFile('/project/pubspec.yaml', content: '''
 name: testnnbd
@@ -237,7 +239,7 @@ analyzer:
 ''');
   }
 
-  test_dartfix_non_nullable_analysis_options_experiments_added() async {
+  test_dartfix_nonNullable_analysisOptions_experimentsAdded() async {
     String originalOptions = '''
 analyzer:
   something:
@@ -265,7 +267,7 @@ linter:
 ''');
   }
 
-  test_dartfix_non_nullable_analysis_options_nnbd_added() async {
+  test_dartfix_nonNullable_analysisOptions_nnbdAdded() async {
     String originalOptions = '''
 analyzer:
   enable-experiment:
@@ -288,6 +290,28 @@ analyzer:
 linter:
   - boo
 ''');
+  }
+
+  test_dartfix_nonNullable_outputDir() async {
+    // Add analysis options to enable non-nullable analysis
+    newFile('/project/analysis_options.yaml', content: '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+''');
+    addTestFile('''
+int f(int i) => 0;
+int g(int i) => f(i);
+void test() {
+  g(null);
+}
+''');
+    createProject();
+    var outputDir = getFolder('/outputDir');
+    await performFix(
+        includedFixes: ['non-nullable'], outputDir: outputDir.path);
+    expect(outputDir.exists, true);
+    expect(outputDir.getChildren(), isNotEmpty);
   }
 
   test_dartfix_partFile() async {

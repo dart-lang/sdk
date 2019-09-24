@@ -69,7 +69,6 @@
 /// ddd //# 07: static type warning
 /// fff
 /// ```
-import "dart:async";
 import "dart:io";
 
 import "path.dart";
@@ -171,9 +170,9 @@ void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
 ///
 /// Writes the resulting tests to [outputDir] and returns a list of [TestFile]s
 /// for each of those generated tests.
-Future<List<TestFile>> splitMultitest(
+List<TestFile> splitMultitest(
     TestFile multitest, String outputDir, Path suiteDir,
-    {bool hotReload}) async {
+    {bool hotReload}) {
   // Each key in the map tests is a multitest tag or "none", and the texts of
   // the generated test is its value.
   var tests = <String, String>{};
@@ -186,7 +185,6 @@ Future<List<TestFile>> splitMultitest(
 
   // Copy all the relative imports of the multitest.
   var importsToCopy = _findAllRelativeImports(multitest.path);
-  var futureCopies = <Future>[];
   for (var relativeImport in importsToCopy) {
     var importPath = Path(relativeImport);
     // Make sure the target directory exists.
@@ -197,13 +195,10 @@ Future<List<TestFile>> splitMultitest(
 
     // Copy file. Because some test suites may be read-only, we don't
     // want to copy the permissions, so we create the copy by writing.
-    final source = File(sourceDir.join(importPath).toNativePath()).openRead();
-    final target = File(targetDir.join(importPath).toNativePath()).openWrite();
-    futureCopies.add(source.cast<List<int>>().pipe(target));
+    var contents =
+        File(sourceDir.join(importPath).toNativePath()).readAsBytesSync();
+    File(targetDir.join(importPath).toNativePath()).writeAsBytesSync(contents);
   }
-
-  // Wait until all imports are copied before scheduling test cases.
-  await Future.wait(futureCopies);
 
   var baseFilename = multitest.path.filenameWithoutExtension;
 

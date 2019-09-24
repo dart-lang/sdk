@@ -5806,30 +5806,6 @@ const MessageCode messageInternalProblemMissingContext = const MessageCode(
         r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateInternalProblemNoInferredTypeStored =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""There's no inferred type for '#name'.""",
-        withArguments: _withArgumentsInternalProblemNoInferredTypeStored);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeInternalProblemNoInferredTypeStored =
-    const Code<Message Function(String name)>(
-        "InternalProblemNoInferredTypeStored",
-        templateInternalProblemNoInferredTypeStored,
-        severity: Severity.internalProblem);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemNoInferredTypeStored(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeInternalProblemNoInferredTypeStored,
-      message: """There's no inferred type for '${name}'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Couldn't find '#name'.""",
@@ -5941,38 +5917,6 @@ Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
   return new Message(codeInternalProblemStackNotEmpty,
       message: """${name}.stack isn't empty:
   ${string}""", arguments: {'name': name, 'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(DartType _type, String name)>
-    templateInternalProblemStoringMultipleInferredTypes =
-    const Template<Message Function(DartType _type, String name)>(
-        messageTemplate:
-            r"""There's already an inferred type, '#type', for '#name'.""",
-        withArguments:
-            _withArgumentsInternalProblemStoringMultipleInferredTypes);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType _type, String name)>
-    codeInternalProblemStoringMultipleInferredTypes =
-    const Code<Message Function(DartType _type, String name)>(
-        "InternalProblemStoringMultipleInferredTypes",
-        templateInternalProblemStoringMultipleInferredTypes,
-        severity: Severity.internalProblem);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInternalProblemStoringMultipleInferredTypes(
-    DartType _type, String name) {
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  String type = typeParts.join();
-  return new Message(codeInternalProblemStoringMultipleInferredTypes,
-      message:
-          """There's already an inferred type, '${type}', for '${name}'.""" +
-              labeler.originMessages,
-      arguments: {'type': _type, 'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6982,6 +6926,16 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
         r"""Try adding the name of the type of the variable or the keyword 'var'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingExplicitConst = messageMissingExplicitConst;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingExplicitConst = const MessageCode(
+    "MissingExplicitConst",
+    analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
+    message: r"""Constant expression expected.""",
+    tip: r"""Try inserting 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(int count)>
     templateMissingExplicitTypeArguments =
     const Template<Message Function(int count)>(
@@ -7729,6 +7683,19 @@ Message _withArgumentsNotConstantExpression(String string) {
       message: """${string} is not a constant expression.""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNullAwareCascadeOutOfOrder =
+    messageNullAwareCascadeOutOfOrder;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
+    "NullAwareCascadeOutOfOrder",
+    index: 96,
+    message:
+        r"""The '?..' cascade operator must be first in the cascade sequence.""",
+    tip:
+        r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectExtends = messageObjectExtends;

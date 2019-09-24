@@ -96,8 +96,6 @@ class DillLibraryBuilder extends LibraryBuilder {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  bool exportsAlreadyFinalized = false;
-
   // TODO(jensj): These 4 booleans could potentially be merged into a single
   // state field.
   bool isReadyToBuild = false;
@@ -116,6 +114,11 @@ class DillLibraryBuilder extends LibraryBuilder {
 
   void ensureLoaded() {
     if (!isReadyToBuild) throw new StateError("Not ready to build.");
+    if (isBuilt && !isBuiltAndMarked) {
+      isBuiltAndMarked = true;
+      finalizeExports();
+      return;
+    }
     isBuiltAndMarked = true;
     if (isBuilt) return;
     isBuilt = true;
@@ -251,8 +254,6 @@ class DillLibraryBuilder extends LibraryBuilder {
   }
 
   void finalizeExports() {
-    if (exportsAlreadyFinalized) return;
-    exportsAlreadyFinalized = true;
     unserializableExports?.forEach((String name, String messageText) {
       Builder declaration;
       switch (name) {

@@ -11,7 +11,7 @@ class Foo extends core::Object {
 }
 static method main() → dynamic {
   self::Foo* foo = new self::Foo::•();
-  let final self::Foo* #t1 = foo in #t1.==(null) ?{core::int*} null : #t1.{self::Foo::field} = 5;
+  let final self::Foo* #t1 = foo in #t1.{core::Object::==}(null) ?{core::int*} null : #t1.{self::Foo::field} = 5;
   self::Foo::staticField = 5;
   let final self::Foo* #t2 = foo in #t2.{self::Foo::field}.{core::num::==}(null) ?{core::int*} #t2.{self::Foo::field} = 5 : null;
   self::Foo::staticField.{core::num::==}(null) ?{core::int*} self::Foo::staticField = 5 : null;

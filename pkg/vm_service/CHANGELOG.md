@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0
+- **breaking**: VM service objects which have fields now have constructors with
+  named parameters for each field. Required fields are annotated with `@required`.
+
 ## 1.2.0
 - Support service protocol version 3.27:
   - Added `getCpuSamples` and `clearCpuSamples` methods

@@ -48,8 +48,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         operatorType == TokenType.QUESTION_QUESTION_EQ) {
       return false;
     }
-    if (leftHandSide is PropertyAccess &&
-        leftHandSide.operator.type == TokenType.QUESTION_PERIOD) {
+    if (leftHandSide is PropertyAccess && leftHandSide.isNullAware) {
       return false;
     }
     return _nodeExits(node.rightHandSide);
@@ -419,7 +418,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (target.accept(this)) {
         return true;
       }
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (node.isNullAware) {
         return false;
       }
     }

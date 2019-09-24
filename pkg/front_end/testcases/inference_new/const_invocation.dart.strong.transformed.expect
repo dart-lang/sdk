@@ -34,14 +34,14 @@ class Bar<T extends core::Object* = dynamic> extends core::Object {
 static method main() → dynamic {}
 
 constants  {
-  #C1 = self::Bar<core::Null*> {}
-  #C2 = self::Bar<core::List<core::Null*>*> {}
-  #C3 = self::Bar<(core::Object*) →* core::Null*> {}
-  #C4 = self::Bar<((core::Null*) →* core::Object*) →* core::Null*> {}
-  #C5 = <core::Null*>[]
-  #C6 = <(core::Object*) →* core::Null*>[]
+  #C1 = self::Bar<core::Null?> {}
+  #C2 = self::Bar<core::List<core::Null?>*> {}
+  #C3 = self::Bar<(core::Object*) →* core::Null?> {}
+  #C4 = self::Bar<((core::Null?) →* core::Object*) →* core::Null?> {}
+  #C5 = <core::Null?>[]
+  #C6 = <(core::Object*) →* core::Null?>[]
   #C7 = <dynamic>[]
-  #C8 = core::_ImmutableMap<core::Null*, core::Null*> {_kvPairs:#C7}
-  #C9 = core::_ImmutableMap<(core::Object*) →* core::Null*, core::Null*> {_kvPairs:#C7}
-  #C10 = core::_ImmutableMap<core::Null*, (core::Object*) →* core::Null*> {_kvPairs:#C7}
+  #C8 = core::_ImmutableMap<core::Null?, core::Null?> {_kvPairs:#C7}
+  #C9 = core::_ImmutableMap<(core::Object*) →* core::Null?, core::Null?> {_kvPairs:#C7}
+  #C10 = core::_ImmutableMap<core::Null?, (core::Object*) →* core::Null?> {_kvPairs:#C7}
 }

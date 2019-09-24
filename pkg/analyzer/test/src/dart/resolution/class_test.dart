@@ -6,8 +6,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,9 +17,7 @@ main() {
 
 @reflectiveTest
 class ClassDriverResolutionTest extends DriverResolutionTest
-    with ClassResolutionMixin {}
-
-mixin ClassResolutionMixin implements ResolutionTest {
+    with ElementsTypesMixin {
   test_abstractSuperMemberReference_getter() async {
     addTestFile(r'''
 abstract class A {
@@ -209,25 +207,32 @@ class X5 extends A with B, C implements D, E {}
     var c = findElement.class_('C');
     var d = findElement.class_('D');
     var e = findElement.class_('E');
+
+    var typeA = interfaceType(a);
+    var typeB = interfaceType(b);
+    var typeC = interfaceType(c);
+    var typeD = interfaceType(d);
+    var typeE = interfaceType(e);
+
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
-      [a.type, objectType],
+      [typeA, objectType],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
-      [objectType, b.type],
+      [objectType, typeB],
     );
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
-      [a.type, objectType, b.type],
+      [typeA, objectType, typeB],
     );
     assertElementTypes(
       findElement.class_('X4').allSupertypes,
-      [a.type, b.type, objectType, c.type],
+      [typeA, typeB, objectType, typeC],
     );
     assertElementTypes(
       findElement.class_('X5').allSupertypes,
-      [a.type, b.type, c.type, objectType, d.type, e.type],
+      [typeA, typeB, typeC, objectType, typeD, typeE],
     );
   }
 
@@ -250,16 +255,16 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X1').allSupertypes,
       [
-        a.type.instantiate([stringType]),
+        interfaceType(a, typeArguments: [stringType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.class_('X2').allSupertypes,
       [
-        b.type.instantiate([
+        interfaceType(b, typeArguments: [
           stringType,
-          typeProvider.listType.instantiate([intType])
+          interfaceType(listElement, typeArguments: [intType])
         ]),
         objectType
       ],
@@ -267,8 +272,8 @@ class X3 extends C<double> {}
     assertElementTypes(
       findElement.class_('X3').allSupertypes,
       [
-        c.type.instantiate([doubleType]),
-        b.type.instantiate([intType, doubleType]),
+        interfaceType(c, typeArguments: [doubleType]),
+        interfaceType(b, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
@@ -290,7 +295,7 @@ class X extends A {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.class_('X').allSupertypes,
-      [a.type, b.type, c.type],
+      [interfaceType(a), interfaceType(b), interfaceType(c)],
     );
   }
 

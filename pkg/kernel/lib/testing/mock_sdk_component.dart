@@ -17,7 +17,7 @@ Component createMockSdkComponent() {
   }
 
   var objectClass = addClass(coreLib, new Class(name: 'Object'));
-  var objectType = objectClass.rawType;
+  var objectType = new InterfaceType(objectClass);
 
   TypeParameter typeParam(String name, [DartType bound]) {
     return new TypeParameter(name, bound ?? objectType);

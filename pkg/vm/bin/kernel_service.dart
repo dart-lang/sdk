@@ -23,7 +23,7 @@ library runtime.tools.kernel_service;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io' show File, Platform, stderr hide FileSystemEntity;
+import 'dart:io' show Directory, File, Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -535,7 +535,21 @@ Future _processLoadRequest(request) async {
   if (verbose) {
     for (int i = 0; i < request.length; i++) {
       var part = request[i];
-      String partToString = part.toString();
+      String partToString;
+      if (part is List && part.isNotEmpty) {
+        // Assume this is large and printing all of it takes a lot of time.
+        StringBuffer sb = new StringBuffer();
+        String prepend = "[";
+        for (int j = 0; j < part.length; j++) {
+          sb.write(prepend);
+          sb.write(part[j]);
+          prepend = ", ";
+          if (sb.length > 256) break;
+        }
+        partToString = sb.toString();
+      } else {
+        partToString = part.toString();
+      }
       if (partToString.length > 256) {
         partToString = partToString.substring(0, 255) + "...";
       }
@@ -683,7 +697,7 @@ Future _processLoadRequest(request) async {
     // In training mode make sure to read the sdk a few more times...
     ProcessedOptions p = new ProcessedOptions(options: compiler.options);
     var bytes = await p.loadSdkSummaryBytes();
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
       p.loadComponent(bytes, null);
     }
 
@@ -744,7 +758,32 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
   return fileSystem;
 }
 
-train(String scriptUri, String platformKernelPath, bool bytecode) {
+train(String scriptUri, String platformKernelPath, bool bytecode) async {
+  // Train on program asked to train on.
+  await trainInternal(scriptUri, platformKernelPath, bytecode);
+
+  // Also train a few times on a hello-world program to make sure we exercise
+  // the startup sequence.
+  Directory tmpDir =
+      Directory.systemTemp.createTempSync("kernel_service_train");
+  File helloDart = new File.fromUri(tmpDir.uri.resolve("hello.dart"));
+  helloDart.writeAsStringSync("""
+          main() {
+            print("Hello, World!");
+          }
+          """);
+  try {
+    for (int i = 0; i < 10; i++) {
+      await trainInternal(
+          helloDart.uri.toString(), platformKernelPath, bytecode);
+    }
+  } finally {
+    tmpDir.deleteSync(recursive: true);
+  }
+}
+
+Future trainInternal(
+    String scriptUri, String platformKernelPath, bool bytecode) async {
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -775,7 +814,7 @@ train(String scriptUri, String platformKernelPath, bool bytecode) {
     null /* multirootFilepaths */,
     null /* multirootScheme */,
   ];
-  _processLoadRequest(request);
+  await _processLoadRequest(request);
 }
 
 main([args]) {

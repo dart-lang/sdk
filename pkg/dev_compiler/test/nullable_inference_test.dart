@@ -43,7 +43,7 @@ void main() {
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String*, dart.core::Null*>{"x": null}, "x"');
+          '<dart.core::String*, dart.core::Null?>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -249,7 +249,7 @@ void main() {
 
   test('function expression', () async {
     await expectNotNull('main() { () => null; f() {}; f; }',
-        '() → dart.core::Null* => null, f');
+        '() → dart.core::Null? => null, f');
   });
 
   test('cascades (kernel let)', () async {
@@ -391,7 +391,7 @@ void main() {
         var x = () => 42;
         var y = (() => x = null);
       }''',
-          '() → dart.core::int* => 42, 42, () → dart.core::Null* => x = null');
+          '() → dart.core::int* => 42, 42, () → dart.core::Null? => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {
@@ -495,7 +495,19 @@ Future expectNotNull(String code, String expectedNotNull) async {
   var actualNotNull = collector.notNullExpressions
       // ConstantExpressions print the table offset - we want to compare
       // against the underlying constant value instead.
-      .map((e) => (e is ConstantExpression ? e.constant : e).toString())
+      .map((e) {
+        if (e is ConstantExpression) {
+          Constant c = e.constant;
+          if (c is DoubleConstant &&
+              c.value.isFinite &&
+              c.value.truncateToDouble() == c.value) {
+            // Print integer values as integers
+            return BigInt.from(c.value).toString();
+          }
+          return c.toString();
+        }
+        return e.toString();
+      })
       // Filter out our own NotNull annotations.  The library prefix changes
       // per test, so just filter on the suffix.
       .where((s) => !s.endsWith('::_NotNull {}'))

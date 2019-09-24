@@ -127,6 +127,10 @@ class FindNode {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
 
+  FunctionTypedFormalParameter functionTypedFormalParameter(String search) {
+    return _node(search, (n) => n is FunctionTypedFormalParameter);
+  }
+
   GenericFunctionType genericFunctionType(String search) {
     return _node(search, (n) => n is GenericFunctionType);
   }

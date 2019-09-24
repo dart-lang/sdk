@@ -494,6 +494,7 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
   }
 
   visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    prepareTypeParameters(node.typeParameters);
     return new RedirectingFactoryConstructor(node.targetReference,
         name: node.name,
         isConst: node.isConst,
@@ -510,12 +511,19 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
           : const <Expression>[];
   }
 
+  void prepareTypeParameters(List<TypeParameter> typeParameters) {
+    for (TypeParameter node in typeParameters) {
+      TypeParameter newNode = typeParams[node];
+      if (newNode == null) {
+        newNode = new TypeParameter(node.name);
+        typeParams[node] = newNode;
+        typeSubstitution[node] = new TypeParameterType(newNode);
+      }
+    }
+  }
+
   visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node];
-    if (newNode == null) {
-      newNode = new TypeParameter(node.name);
-      typeSubstitution[node] = new TypeParameterType(newNode);
-    }
     newNode.bound = visitType(node.bound);
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);
@@ -538,6 +546,7 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
   }
 
   visitFunctionNode(FunctionNode node) {
+    prepareTypeParameters(node.typeParameters);
     var typeParameters = node.typeParameters.map(clone).toList();
     var positional = node.positionalParameters.map(clone).toList();
     var named = node.namedParameters.map(clone).toList();

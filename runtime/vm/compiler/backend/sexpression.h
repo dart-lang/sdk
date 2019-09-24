@@ -115,6 +115,7 @@ class SExpAtom : public SExpression {
         : SExpAtom(start), val_(val) {}                                        \
     value_type value() const { return val_; }                                  \
     virtual bool Equals(SExpression* sexp) const;                              \
+    bool Equals(value_type val) const;                                         \
     virtual void SerializeToLine(TextBuffer* buffer) const;                    \
     DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                       \
    private:                                                                    \
@@ -147,6 +148,13 @@ class SExpList : public SExpression {
   bool ExtraHasKey(const char* cstr) const { return extra_info_.HasKey(cstr); }
   SExpression* ExtraLookupValue(const char* cstr) const {
     return extra_info_.LookupValue(cstr);
+  }
+
+  // Shortcut for retrieving the tag from a tagged list (list that contains an
+  // initial symbol). Returns nullptr if the list is not a tagged list.
+  SExpSymbol* Tag() const {
+    if (Length() == 0 || !At(0)->IsSymbol()) return nullptr;
+    return At(0)->AsSymbol();
   }
 
   DEFINE_S_EXPRESSION_TYPE_CHECK(List)

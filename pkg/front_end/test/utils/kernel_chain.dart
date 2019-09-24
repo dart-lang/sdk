@@ -35,8 +35,6 @@ import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:kernel/ast.dart' show Component, Library;
 
-import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/error_formatter.dart' show ErrorFormatter;
@@ -333,11 +331,7 @@ class WriteDill extends Step<Component, Uri, ChainContext> {
     File generated = new File.fromUri(uri);
     IOSink sink = generated.openWrite();
     try {
-      try {
-        new BinaryPrinter(sink).writeComponentFile(component);
-      } finally {
-        component.unbindCanonicalNames();
-      }
+      new BinaryPrinter(sink).writeComponentFile(component);
     } catch (e, s) {
       return fail(uri, e, s);
     } finally {
@@ -360,21 +354,6 @@ class ReadDill extends Step<Uri, Uri, ChainContext> {
       return fail(uri, e, s);
     }
     return pass(uri);
-  }
-}
-
-class Copy extends Step<Component, Component, ChainContext> {
-  const Copy();
-
-  String get name => "copy component";
-
-  Future<Result<Component>> run(Component component, _) async {
-    BytesCollector sink = new BytesCollector();
-    new BinaryPrinter(sink).writeComponentFile(component);
-    component.unbindCanonicalNames();
-    Uint8List bytes = sink.collect();
-    new BinaryBuilder(bytes).readComponent(component);
-    return pass(component);
   }
 }
 

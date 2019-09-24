@@ -212,7 +212,7 @@ class C {
 
   test_parameter_inFunctionLiteral() async {
     String code = r'''
-fn() {
+void fn() {
   var f = (var a) {};
 }
 ''';
@@ -223,7 +223,7 @@ fn() {
 
   test_parameter_inFunctionLiteral_withType() async {
     String code = r'''
-fn() {
+void fn() {
   var f = (int a) {};
 }
 ''';

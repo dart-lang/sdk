@@ -74,7 +74,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   struct HandlerDesc {
     intptr_t outer_try_index;    // Try block in which this try block is nested.
     intptr_t pc_offset;          // Handler PC offset value.
-    TokenPosition token_pos;     // Token position of handler.
     bool is_generated;           // False if this is directly from Dart code.
     const Array* handler_types;  // Catch clause guards.
     bool needs_stacktrace;
@@ -88,7 +87,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     struct HandlerDesc data;
     data.outer_try_index = -1;
     data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
-    data.token_pos = TokenPosition::kNoSource;
     data.is_generated = true;
     data.handler_types = NULL;
     data.needs_stacktrace = false;
@@ -98,7 +96,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
-                  TokenPosition token_pos,
                   bool is_generated,
                   const Array& handler_types,
                   bool needs_stacktrace) {
@@ -109,7 +106,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].outer_try_index = outer_try_index;
     ASSERT(list_[try_index].pc_offset == ExceptionHandlers::kInvalidPcOffset);
     list_[try_index].pc_offset = pc_offset;
-    list_[try_index].token_pos = token_pos;
     list_[try_index].is_generated = is_generated;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;

@@ -72,12 +72,12 @@ static method expect(core::Object* value, core::Object* expected) → void {
   }
 }
 static method test(self::I<core::Object*>* i) → void {
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::x} = "hello";
   });
   i.{self::I::x} = 1;
   self::expect(i.{self::I::x}, 1);
-  self::expectTypeError(() → core::Null* {
+  self::expectTypeError(() → core::Null? {
     i.{self::I::y} = "hello";
   });
   i.{self::I::y} = 2;

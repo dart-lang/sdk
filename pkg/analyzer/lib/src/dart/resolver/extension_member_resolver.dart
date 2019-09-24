@@ -418,6 +418,7 @@ class ExtensionMemberResolver {
   static bool _isValidContext(ExtensionOverride node) {
     AstNode parent = node.parent;
     return parent is BinaryExpression && parent.leftOperand == node ||
+        parent is CascadeExpression && parent.target == node ||
         parent is FunctionExpressionInvocation && parent.function == node ||
         parent is IndexExpression && parent.target == node ||
         parent is MethodInvocation && parent.target == node ||

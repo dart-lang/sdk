@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -68,7 +69,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     PropertyAccessorElement getterG =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -88,7 +90,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -108,7 +110,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -137,7 +139,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.supertype = classA.type;
+    classB.supertype = _interfaceType(classA);
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -157,7 +159,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -177,7 +179,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     Map<String, ExecutableElement> mapA =
@@ -202,7 +204,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA2.methods = <MethodElement>[methodA2M];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA1.type, classA2.type];
+    classB.mixins = <InterfaceType>[
+      _interfaceType(classA1),
+      _interfaceType(classA2)
+    ];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromClasses(classB);
     expect(mapB[methodName], same(methodA2M));
@@ -217,7 +222,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     PropertyAccessorElement getterG =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -237,7 +243,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -257,7 +263,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -279,10 +285,11 @@ class InheritanceManagerTest with ResourceProviderMixin {
     classA.fields = <FieldElement>[fieldF];
     classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
 
-    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', _interfaceType(classA));
 
     ClassElementImpl classC = ElementFactory.classElement2('C');
-    classC.mixins = <InterfaceType>[classB.type];
+    classC.mixins = <InterfaceType>[_interfaceType(classB)];
 
     Map<String, ExecutableElement> mapC =
         _inheritanceManager.getMembersInheritedFromInterfaces(classC);
@@ -309,7 +316,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -329,7 +337,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -349,7 +357,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     Map<String, ExecutableElement> mapB =
         _inheritanceManager.getMembersInheritedFromInterfaces(classB);
     Map<String, ExecutableElement> mapA =
@@ -375,7 +383,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
+    classA.interfaces = <InterfaceType>[
+      _interfaceType(classI1),
+      _interfaceType(classI2)
+    ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 2);
@@ -399,7 +410,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
         accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
+    classA.interfaces = <InterfaceType>[
+      _interfaceType(classI1),
+      _interfaceType(classI2)
+    ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
@@ -435,7 +449,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
     methodM2.parameters = <ParameterElement>[parameter2];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
+    classA.interfaces = <InterfaceType>[
+      _interfaceType(classI1),
+      _interfaceType(classI2)
+    ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
@@ -461,7 +478,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
         accessorName, false, _typeProvider.numType);
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
+    classA.interfaces = <InterfaceType>[
+      _interfaceType(classI1),
+      _interfaceType(classI2)
+    ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
@@ -483,33 +503,35 @@ class InheritanceManagerTest with ResourceProviderMixin {
     // class I3 { C get g; }
     // class D implements I1, I2, I3 {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
+    ClassElementImpl classC =
+        ElementFactory.classElement("C", _interfaceType(classB));
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "g";
-    PropertyAccessorElement getter1 =
-        ElementFactory.getterElement(accessorName, false, classA.type);
+    PropertyAccessorElement getter1 = ElementFactory.getterElement(
+        accessorName, false, _interfaceType(classA));
     classI1.accessors = <PropertyAccessorElement>[getter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    PropertyAccessorElement getter2 =
-        ElementFactory.getterElement(accessorName, false, classB.type);
+    PropertyAccessorElement getter2 = ElementFactory.getterElement(
+        accessorName, false, _interfaceType(classB));
     classI2.accessors = <PropertyAccessorElement>[getter2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
-    PropertyAccessorElement getter3 =
-        ElementFactory.getterElement(accessorName, false, classC.type);
+    PropertyAccessorElement getter3 = ElementFactory.getterElement(
+        accessorName, false, _interfaceType(classC));
     classI3.accessors = <PropertyAccessorElement>[getter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType>[
-      classI1.type,
-      classI2.type,
-      classI3.type
+      _interfaceType(classI1),
+      _interfaceType(classI2),
+      _interfaceType(classI3),
     ];
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElement syntheticAccessor;
-    syntheticAccessor =
-        ElementFactory.getterElement(accessorName, false, classC.type);
+    syntheticAccessor = ElementFactory.getterElement(
+        accessorName, false, _interfaceType(classC));
     expect(mapD[accessorName].type, syntheticAccessor.type);
   }
 
@@ -524,15 +546,17 @@ class InheritanceManagerTest with ResourceProviderMixin {
     // class I3 { dynamic m(C c); }
     // class D implements I1, I2, I3 {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
+    ClassElementImpl classC =
+        ElementFactory.classElement("C", _interfaceType(classB));
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
     MethodElementImpl methodM1 =
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter1 =
         new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
-    parameter1.type = classA.type;
+    parameter1.type = _interfaceType(classA);
     parameter1.parameterKind = ParameterKind.REQUIRED;
     methodM1.parameters = <ParameterElement>[parameter1];
     classI1.methods = <MethodElement>[methodM1];
@@ -541,7 +565,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter2 =
         new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
-    parameter2.type = classB.type;
+    parameter2.type = _interfaceType(classB);
     parameter2.parameterKind = ParameterKind.REQUIRED;
     methodM2.parameters = <ParameterElement>[parameter2];
     classI2.methods = <MethodElement>[methodM2];
@@ -550,22 +574,22 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.dynamicType);
     ParameterElementImpl parameter3 =
         new ParameterElementImpl.forNode(AstTestFactory.identifier3("a0"));
-    parameter3.type = classC.type;
+    parameter3.type = _interfaceType(classC);
     parameter3.parameterKind = ParameterKind.REQUIRED;
     methodM3.parameters = <ParameterElement>[parameter3];
     classI3.methods = <MethodElement>[methodM3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType>[
-      classI1.type,
-      classI2.type,
-      classI3.type
+      _interfaceType(classI1),
+      _interfaceType(classI2),
+      _interfaceType(classI3)
     ];
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     MethodElement syntheticMethod;
     syntheticMethod = ElementFactory.methodElement(
-        methodName, _typeProvider.dynamicType, [classA.type]);
+        methodName, _typeProvider.dynamicType, [_interfaceType(classA)]);
     expect(mapD[methodName].type, syntheticMethod.type);
   }
 
@@ -580,33 +604,35 @@ class InheritanceManagerTest with ResourceProviderMixin {
     // class I3 { set s(C); }
     // class D implements I1, I2, I3 {}
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
+    ClassElementImpl classC =
+        ElementFactory.classElement("C", _interfaceType(classB));
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String accessorName = "s";
-    PropertyAccessorElement setter1 =
-        ElementFactory.setterElement(accessorName, false, classA.type);
+    PropertyAccessorElement setter1 = ElementFactory.setterElement(
+        accessorName, false, _interfaceType(classA));
     classI1.accessors = <PropertyAccessorElement>[setter1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    PropertyAccessorElement setter2 =
-        ElementFactory.setterElement(accessorName, false, classB.type);
+    PropertyAccessorElement setter2 = ElementFactory.setterElement(
+        accessorName, false, _interfaceType(classB));
     classI2.accessors = <PropertyAccessorElement>[setter2];
     ClassElementImpl classI3 = ElementFactory.classElement2("I3");
-    PropertyAccessorElement setter3 =
-        ElementFactory.setterElement(accessorName, false, classC.type);
+    PropertyAccessorElement setter3 = ElementFactory.setterElement(
+        accessorName, false, _interfaceType(classC));
     classI3.accessors = <PropertyAccessorElement>[setter3];
     ClassElementImpl classD = ElementFactory.classElement2("D");
     classD.interfaces = <InterfaceType>[
-      classI1.type,
-      classI2.type,
-      classI3.type
+      _interfaceType(classI1),
+      _interfaceType(classI2),
+      _interfaceType(classI3)
     ];
     Map<String, ExecutableElement> mapD =
         _inheritanceManager.getMembersInheritedFromInterfaces(classD);
     expect(mapD.length, _numOfMembersInObject + 1);
     PropertyAccessorElementImpl syntheticAccessor;
-    syntheticAccessor =
-        ElementFactory.setterElement(accessorName, false, classA.type);
+    syntheticAccessor = ElementFactory.setterElement(
+        accessorName, false, _interfaceType(classA));
     syntheticAccessor.returnType = VoidTypeImpl.instance;
     expect(mapD["$accessorName="].type, syntheticAccessor.type);
   }
@@ -632,7 +658,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
     methodM2.parameters = <ParameterElement>[parameter1];
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
+    classA.interfaces = <InterfaceType>[
+      _interfaceType(classI1),
+      _interfaceType(classI2)
+    ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
     expect(mapA.length, _numOfMembersInObject + 1);
@@ -675,9 +704,9 @@ class InheritanceManagerTest with ResourceProviderMixin {
     classI3.methods = <MethodElement>[methodM3];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[
-      classI1.type,
-      classI2.type,
-      classI3.type
+      _interfaceType(classI1),
+      _interfaceType(classI2),
+      _interfaceType(classI3)
     ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
@@ -726,10 +755,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
     classI4.methods = <MethodElement>[methodM4];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[
-      classI1.type,
-      classI2.type,
-      classI3.type,
-      classI4.type
+      _interfaceType(classI1),
+      _interfaceType(classI2),
+      _interfaceType(classI3),
+      _interfaceType(classI4),
     ];
     Map<String, ExecutableElement> mapA =
         _inheritanceManager.getMembersInheritedFromInterfaces(classA);
@@ -749,10 +778,11 @@ class InheritanceManagerTest with ResourceProviderMixin {
     classA.fields = <FieldElement>[fieldF];
     classA.accessors = <PropertyAccessorElement>[fieldF.getter, fieldF.setter];
 
-    ClassElementImpl classB = ElementFactory.classElement('B', classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', _interfaceType(classA));
 
     ClassElementImpl classC = ElementFactory.classElement2('C');
-    classC.mixins = <InterfaceType>[classB.type];
+    classC.mixins = <InterfaceType>[_interfaceType(classB)];
 
     Map<String, ExecutableElement> mapC =
         _inheritanceManager.getMembersInheritedFromClasses(classC);
@@ -767,7 +797,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
   }
@@ -780,7 +810,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
   }
@@ -793,7 +823,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
   }
@@ -807,14 +837,14 @@ class InheritanceManagerTest with ResourceProviderMixin {
     (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
   }
 
   @deprecated
   void test_lookupInheritance_interfaces_infiniteLoop() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classA.type];
+    classA.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
   }
 
@@ -822,8 +852,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
   void test_lookupInheritance_interfaces_infiniteLoop2() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classA.interfaces = <InterfaceType>[classB.type];
-    classB.interfaces = <InterfaceType>[classA.type];
+    classA.interfaces = <InterfaceType>[_interfaceType(classB)];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
   }
 
@@ -839,9 +869,9 @@ class InheritanceManagerTest with ResourceProviderMixin {
     MethodElement methodM2 =
         ElementFactory.methodElement(methodName2, _typeProvider.intType);
     classI2.methods = <MethodElement>[methodM2];
-    classI2.interfaces = <InterfaceType>[classI1.type];
+    classI2.interfaces = <InterfaceType>[_interfaceType(classI1)];
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.interfaces = <InterfaceType>[classI2.type];
+    classA.interfaces = <InterfaceType>[_interfaceType(classI2)];
     expect(_inheritanceManager.lookupInheritance(classA, methodName1),
         same(methodM1));
     expect(_inheritanceManager.lookupInheritance(classA, methodName2),
@@ -856,7 +886,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
   }
@@ -869,7 +899,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
   }
@@ -882,7 +912,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
   }
@@ -896,7 +926,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
     (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.mixins = <InterfaceType>[classA.type];
+    classB.mixins = <InterfaceType>[_interfaceType(classA)];
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
   }
 
@@ -913,7 +943,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     PropertyAccessorElement getterG =
         ElementFactory.getterElement(getterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[getterG];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     expect(_inheritanceManager.lookupInheritance(classB, getterName),
         same(getterG));
   }
@@ -921,7 +952,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
   @deprecated
   void test_lookupInheritance_superclass_infiniteLoop() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    classA.supertype = classA.type;
+    classA.supertype = _interfaceType(classA);
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
   }
 
@@ -929,8 +960,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
   void test_lookupInheritance_superclass_infiniteLoop2() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classA.supertype = classB.type;
-    classB.supertype = classA.type;
+    classA.supertype = _interfaceType(classB);
+    classB.supertype = _interfaceType(classA);
     expect(_inheritanceManager.lookupInheritance(classA, "name"), isNull);
   }
 
@@ -941,7 +972,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     expect(_inheritanceManager.lookupInheritance(classB, methodName),
         same(methodM));
   }
@@ -953,7 +985,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     PropertyAccessorElement setterS =
         ElementFactory.setterElement(setterName, false, _typeProvider.intType);
     classA.accessors = <PropertyAccessorElement>[setterS];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     expect(_inheritanceManager.lookupInheritance(classB, "$setterName="),
         same(setterS));
   }
@@ -966,7 +999,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
   }
 
@@ -1056,7 +1090,8 @@ class InheritanceManagerTest with ResourceProviderMixin {
     MethodElementImpl methodMinA =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodMinA];
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", _interfaceType(classA));
     MethodElementImpl methodMinB =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement>[methodMinB];
@@ -1073,7 +1108,7 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classA.methods = <MethodElement>[methodMinA];
     ClassElementImpl classB = ElementFactory.classElement2("B");
-    classB.interfaces = <InterfaceType>[classA.type];
+    classB.interfaces = <InterfaceType>[_interfaceType(classA)];
     MethodElementImpl methodMinB =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
     classB.methods = <MethodElement>[methodMinB];
@@ -1094,7 +1129,10 @@ class InheritanceManagerTest with ResourceProviderMixin {
         ElementFactory.methodElement(methodName, _typeProvider.doubleType);
     classB.methods = <MethodElement>[methodMinB];
     ClassElementImpl classC = ElementFactory.classElement2("C");
-    classC.interfaces = <InterfaceType>[classA.type, classB.type];
+    classC.interfaces = <InterfaceType>[
+      _interfaceType(classA),
+      _interfaceType(classB)
+    ];
     MethodElementImpl methodMinC =
         ElementFactory.methodElement(methodName, _typeProvider.numType);
     classC.methods = <MethodElement>[methodMinC];
@@ -1119,5 +1157,12 @@ class InheritanceManagerTest with ResourceProviderMixin {
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     return new InheritanceManager(_definingLibrary);
+  }
+
+  static InterfaceType _interfaceType(ClassElement element) {
+    return element.instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 }

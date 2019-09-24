@@ -178,40 +178,43 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     const char* name = cls.ToCString();
     compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
-    if (thread->IsMutatorThread()) {
-      stub = Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
-                                         pool_attachment,
-                                         /*optimized1*/ false);
+    auto mutator_fun = [&]() {
+      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                /*optimized=*/false,
+                                /*stats=*/nullptr);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }
-    } else {
-      // This part of stub code generation must be at a safepoint.
-      // Stop mutator thread before creating the instruction object and
-      // installing code.
-      // Mutator thread may not run code while we are creating the
-      // instruction object, since the creation of instruction object
-      // changes code page access permissions (makes them temporary not
-      // executable).
-      {
-        ForceGrowthSafepointOperationScope safepoint_scope(thread);
-        stub = cls.allocation_stub();
-        // Check if stub was already generated.
-        if (!stub.IsNull()) {
-          return stub.raw();
-        }
-        stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                  /*optimized=*/false, /*stats=*/nullptr);
-        stub.set_owner(cls);
-        cls.set_allocation_stub(stub);
+    };
+    auto bg_compiler_fun = [&]() {
+      ForceGrowthSafepointOperationScope safepoint_scope(thread);
+      stub = cls.allocation_stub();
+      // Check if stub was already generated.
+      if (!stub.IsNull()) {
+        return;
       }
+      stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                /*optimized=*/false, /*stats=*/nullptr);
+      stub.set_owner(cls);
+      cls.set_allocation_stub(stub);
+    };
 
-      // We notify code observers after finalizing the code in order to be
-      // outside a [SafepointOperationScope].
-      Code::NotifyCodeObservers(name, stub, /*optimized=*/false);
-    }
+    // We have to ensure no mutators are running, because:
+    //
+    //   a) We allocate an instructions object, which might cause us to
+    //      temporarily flip page protections from (RX -> RW -> RX).
+    //
+    //   b) To ensure only one thread succeeds installing an allocation for the
+    //      given class.
+    //
+    thread->isolate_group()->RunWithStoppedMutators(
+        mutator_fun, bg_compiler_fun, /*use_force_growth=*/true);
+
+    // We notify code observers after finalizing the code in order to be
+    // outside a [SafepointOperationScope].
+    Code::NotifyCodeObservers(name, stub, /*optimized=*/false);
 #ifndef PRODUCT
     if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
       LogBlock lb;

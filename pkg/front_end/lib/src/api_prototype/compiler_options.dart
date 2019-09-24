@@ -110,9 +110,6 @@ class CompilerOptions {
   @deprecated
   bool chaseDependencies;
 
-  /// True if enabling legacy mode (Dart 1 compatibility).
-  bool legacyMode = false;
-
   /// Patch files to apply on the core libraries for a specific target platform.
   ///
   /// Keys in the map are the name of the library with no `dart:` prefix, for

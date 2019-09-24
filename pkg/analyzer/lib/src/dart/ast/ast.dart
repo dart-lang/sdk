@@ -5991,6 +5991,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   bool get isCascaded => period != null;
 
   @override
+  bool get isNullAware =>
+      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
   @deprecated
@@ -7183,6 +7187,9 @@ class MethodInvocationImpl extends InvocationExpressionImpl
       operator != null &&
       (operator.type == TokenType.PERIOD_PERIOD ||
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+
+  @override
+  bool get isNullAware => operator?.type == TokenType.QUESTION_PERIOD;
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -8442,6 +8449,10 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
       operator != null &&
       (operator.type == TokenType.PERIOD_PERIOD ||
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+
+  @override
+  bool get isNullAware =>
+      operator != null && operator.type == TokenType.QUESTION_PERIOD;
 
   @override
   Precedence get precedence => Precedence.postfix;

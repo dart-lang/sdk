@@ -24,38 +24,3 @@ core_runtime_cc_files = [
   "uri.cc",
   "weak_property.cc",
 ]
-
-core_runtime_dart_files = [
-  "core_patch.dart",
-
-  # The above file needs to be first as it imports required libraries.
-  "array.dart",
-  "array_patch.dart",
-  "bigint_patch.dart",
-  "bool_patch.dart",
-  "date_patch.dart",
-  "double.dart",
-  "double_patch.dart",
-  "errors_patch.dart",
-  "expando_patch.dart",
-  "function.dart",
-  "function_patch.dart",
-  "growable_array.dart",
-  "identical_patch.dart",
-  "immutable_map.dart",
-  "integers.dart",
-  "integers_patch.dart",
-  "invocation_mirror_patch.dart",
-  "lib_prefix.dart",
-  "map_patch.dart",
-  "null_patch.dart",
-  "object_patch.dart",
-  "regexp_patch.dart",
-  "stacktrace.dart",
-  "stopwatch_patch.dart",
-  "string_buffer_patch.dart",
-  "string_patch.dart",
-  "type_patch.dart",
-  "uri_patch.dart",
-  "weak_property.dart",
-]

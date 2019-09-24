@@ -232,8 +232,8 @@ main() {
     G<> t; //# 57: syntax error
     G<null> t; //# 58: syntax error
     A<void> a = null; //# 59: compile-time error
-    void v; //# 60: compile-time error
-    void v = null; //# 61: compile-time error
+    void v; //# 60: ok
+    void v = null; //# 61: ok
     print(null is void); //# 62: syntax error
     new A();
     new B();

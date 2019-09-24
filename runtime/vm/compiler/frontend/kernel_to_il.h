@@ -56,7 +56,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                    bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1,
-                   bool inlining_unchecked_entry = false);
+                   bool inlining_unchecked_entry = false,
+                   GrowableObjectArray* record_yield_position = nullptr);
   virtual ~FlowGraphBuilder();
 
   FlowGraph* BuildGraph();
@@ -376,6 +377,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   CatchBlock* catch_block_;
 
   ActiveClass active_class_;
+
+  GrowableObjectArray* record_yield_positions_;
 
   friend class BreakableBlock;
   friend class CatchBlock;

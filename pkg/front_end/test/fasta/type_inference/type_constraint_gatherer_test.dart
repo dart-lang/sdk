@@ -53,7 +53,7 @@ class TypeConstraintGathererTest {
 
   Class get functionClass => coreTypes.functionClass;
 
-  InterfaceType get functionType => functionClass.rawType;
+  InterfaceType get functionType => coreTypes.functionLegacyRawType;
 
   Class get iterableClass => coreTypes.iterableClass;
 
@@ -61,15 +61,15 @@ class TypeConstraintGathererTest {
 
   Class get mapClass => coreTypes.mapClass;
 
-  InterfaceType get nullType => coreTypes.nullClass.rawType;
+  InterfaceType get nullType => coreTypes.nullType;
 
   Class get objectClass => coreTypes.objectClass;
 
-  InterfaceType get objectType => objectClass.rawType;
+  InterfaceType get objectType => coreTypes.objectLegacyRawType;
 
-  InterfaceType get P => classP.rawType;
+  InterfaceType get P => coreTypes.legacyRawType(classP);
 
-  InterfaceType get Q => classQ.rawType;
+  InterfaceType get Q => coreTypes.legacyRawType(classQ);
 
   void test_any_subtype_parameter() {
     _checkConstraints(Q, T1, ['lib::Q* <: T1']);
@@ -180,7 +180,7 @@ class TypeConstraintGathererTest {
   }
 
   void test_null_subtype_any() {
-    _checkConstraints(nullType, T1, ['dart.core::Null* <: T1']);
+    _checkConstraints(nullType, T1, ['dart.core::Null? <: T1']);
     _checkConstraints(nullType, Q, []);
   }
 

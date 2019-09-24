@@ -11,9 +11,11 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
@@ -156,6 +158,18 @@ class _LocalVisitor extends LocalDeclarationVisitor {
               isDeprecated: isDeprecated(declaration));
         }
       }
+    }
+  }
+
+  @override
+  void declaredExtension(ExtensionDeclaration declaration) {
+    if (optype.includeReturnValueSuggestions) {
+      _addLocalSuggestion_includeReturnValueSuggestions(
+          declaration.documentationComment,
+          declaration.name,
+          NO_RETURN_TYPE,
+          protocol.ElementKind.EXTENSION,
+          isDeprecated: isDeprecated(declaration));
     }
   }
 
@@ -444,8 +458,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool isDeprecated = false,
       int relevance = DART_RELEVANCE_DEFAULT}) {
     ClassElement classElement = enumDeclaration.declaredElement;
-    relevance =
-        optype.returnValueSuggestionsFilter(classElement?.type, relevance);
+    relevance = optype.returnValueSuggestionsFilter(
+        _instantiateClassElement(classElement), relevance);
     if (relevance != null) {
       _addLocalSuggestion_enumConstant(constantDeclaration, enumDeclaration,
           isAbstract: isAbstract,
@@ -524,6 +538,26 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     addDefaultArgDetails(suggestion, null, requiredParameters, namedParameters);
   }
 
+  InterfaceType _instantiateClassElement(ClassElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var typeProvider = request.libraryElement.context.typeProvider;
+      typeArguments = typeParameters.map((t) {
+        return typeProvider.dynamicType;
+      }).toList();
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   bool _isVoid(TypeAnnotation returnType) {
     if (returnType is TypeName) {
       Identifier id = returnType.name;
@@ -536,7 +570,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   DartType _staticTypeOfIdentifier(Identifier id) {
     if (id.staticElement is ClassElement) {
-      return (id.staticElement as ClassElement).type;
+      return _instantiateClassElement(id.staticElement as ClassElement);
     } else {
       return id.staticType;
     }

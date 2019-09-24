@@ -325,6 +325,10 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
   } else {
     ASSERT(instruction->InputAt(use->use_index()) == use);
   }
+  // Make sure the reaching type, if any, has an owner consistent with this use.
+  if (auto const type = use->reaching_type()) {
+    ASSERT(type->owner() == nullptr || type->owner() == def);
+  }
   // Make sure each use appears in the graph and is properly dominated
   // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).
@@ -368,6 +372,7 @@ void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
   ASSERT(phi->InputCount() == current_block_->PredecessorCount());
   for (intptr_t i = 0, n = phi->InputCount(); i < n; ++i) {
     Definition* def = phi->InputAt(i)->definition();
+    ASSERT(def->HasSSATemp());  // phis have SSA defs
     BlockEntryInstr* edge = current_block_->PredecessorAt(i);
     ASSERT(DefDominatesUse(def, edge->last_instruction()));
   }

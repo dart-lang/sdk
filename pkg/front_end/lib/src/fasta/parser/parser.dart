@@ -3428,6 +3428,10 @@ class Parser {
       //
       // method
       //
+      if (varFinalOrConst != null) {
+        assert(optional('const', varFinalOrConst));
+        reportRecoverableError(varFinalOrConst, fasta.messageConstMethod);
+      }
       switch (kind) {
         case DeclarationKind.Class:
           // TODO(danrubel): Remove beginInitializers token from method events
@@ -4178,12 +4182,17 @@ class Parser {
     int tokenLevel = _computePrecedence(next);
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
+      Token lastCascade;
       while (identical(tokenLevel, level)) {
         Token operator = next;
         if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
           if (!allowCascades) {
             return token;
+          } else if (lastCascade != null && optional('?..', next)) {
+            reportRecoverableError(
+                next, fasta.messageNullAwareCascadeOutOfOrder);
           }
+          lastCascade = next;
           token = parseCascadeExpression(token);
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence

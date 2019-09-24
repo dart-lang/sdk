@@ -21,6 +21,6 @@ class Sub extends self::Base {
 }
 static method main() → dynamic {
   core::print(new self::Sub::•().{self::Sub::hashCode});
-  core::List<core::Null*>* l = <core::Null*>[null];
-  let final core::List<core::Null*>* #t2 = l in let final core::int* #t3 = 0 in #t2.{core::List::[]}(#t3).{core::Object::==}(null) ?{core::String*} let final core::String* #t4 = "fisk" as{TypeError} core::Null* in let final void #t5 = #t2.{core::List::[]=}(#t3, #t4) in #t4 : null;
+  core::List<core::Null?>* l = <core::Null?>[null];
+  let final core::List<core::Null?>* #t2 = l in let final core::int* #t3 = 0 in #t2.{core::List::[]}(#t3).{core::Object::==}(null) ?{core::String*} #t2.{core::List::[]=}(#t3, "fisk" as{TypeError} core::Null?) : null;
 }

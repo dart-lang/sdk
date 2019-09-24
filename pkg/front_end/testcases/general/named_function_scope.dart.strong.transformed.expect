@@ -98,14 +98,14 @@ static method test() → dynamic {
   self::T* t;
   self::V* v;
   {
-    function T() → core::Null* {}
+    function T() → core::Null? {}
   }
   {
     dynamic v;
   }
   {
     self::T* t;
-    () →* core::Null* x = let final () →* core::Null* T = () → core::Null* {} in T;
+    () →* core::Null? x = let final () →* core::Null? T = () → core::Null? {} in T;
   }
   {
     self::V* v;

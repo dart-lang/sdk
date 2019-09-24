@@ -407,10 +407,15 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// - Call [forEach_end].
   ///
   /// [loopAssigned] should be the set of variables that are assigned anywhere
-  /// in the loop's body.
-  void forEach_bodyBegin(Set<Variable> loopAssigned) {
+  /// in the loop's body.  [loopVariable] should be the loop variable, if it's a
+  /// local variable, or `null` otherwise.
+  void forEach_bodyBegin(Set<Variable> loopAssigned, Variable loopVariable) {
     _stack.add(_current);
     _current = _current.removePromotedAll(loopAssigned, _referencedVariables);
+    if (loopVariable != null) {
+      assert(loopAssigned.contains(loopVariable));
+      _current = _current.write(typeOperations, loopVariable);
+    }
   }
 
   /// Call this method just before visiting the body of a "for-in" statement or

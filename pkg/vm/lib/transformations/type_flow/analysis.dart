@@ -134,7 +134,7 @@ abstract class _Invocation extends _DependencyTracker
     final nsmArgs = new Args<Type>([
       receiver,
       new Type.cone(
-          typeFlowAnalysis.environment.coreTypes.invocationClass.rawType)
+          typeFlowAnalysis.environment.coreTypes.invocationLegacyRawType)
     ]);
 
     final nsmInvocation =
@@ -438,8 +438,9 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     if (selector is InterfaceSelector) {
-      final staticReceiverType =
-          new Type.fromStatic(selector.member.enclosingClass.rawType);
+      final staticReceiverType = new Type.fromStatic(typeFlowAnalysis
+          .environment.coreTypes
+          .legacyRawType(selector.member.enclosingClass));
       receiver = receiver.intersection(
           staticReceiverType, typeFlowAnalysis.hierarchyCache);
       assertx(receiver is! NullableType);
@@ -1239,6 +1240,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
   Class get futureOrClass => environment.coreTypes.futureOrClass;
   Class get futureClass => environment.coreTypes.futureClass;
   Class get functionClass => environment.coreTypes.functionClass;
+  CoreTypes get coreTypes => environment.coreTypes;
 }
 
 class _WorkList {

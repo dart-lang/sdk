@@ -8,6 +8,10 @@
 // VMOptions=--enable-testing-pragmas --stacktrace-every=100
 // VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code
 // VMOptions=--enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
+// VMOptions=--use-slow-path --enable-testing-pragmas
+// VMOptions=--use-slow-path --enable-testing-pragmas --stacktrace-every=100
+// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code
+// VMOptions=--use-slow-path --enable-testing-pragmas --write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
 library FfiTest;

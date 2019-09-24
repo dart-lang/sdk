@@ -131,10 +131,6 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
-String generateExpectationName(bool legacyMode) {
-  return legacyMode ? "legacy" : "strong";
-}
-
 const String experimentalFlagOptions = '--enable-experiment=';
 
 class TestOptions {

@@ -76,6 +76,9 @@ class JsClosedWorld implements JClosedWorld {
   final Set<MemberEntity> processedMembers;
 
   @override
+  final Set<ClassEntity> extractTypeArgumentsInterfacesNewRti;
+
+  @override
   final ClassHierarchy classHierarchy;
 
   final JsKernelToElementMap elementMap;
@@ -109,6 +112,7 @@ class JsClosedWorld implements JClosedWorld {
       this.liveInstanceMembers,
       this.assignedInstanceMembers,
       this.processedMembers,
+      this.extractTypeArgumentsInterfacesNewRti,
       this.mixinUses,
       this.typesImplementedBySubclasses,
       this.classHierarchy,
@@ -154,6 +158,8 @@ class JsClosedWorld implements JClosedWorld {
 
     Set<ClassEntity> implementedClasses = source.readClasses().toSet();
     Set<ClassEntity> liveNativeClasses = source.readClasses().toSet();
+    Set<ClassEntity> extractTypeArgumentsInterfacesNewRti =
+        source.readClasses().toSet();
     Set<MemberEntity> liveInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> assignedInstanceMembers = source.readMembers().toSet();
     Set<MemberEntity> processedMembers = source.readMembers().toSet();
@@ -191,6 +197,7 @@ class JsClosedWorld implements JClosedWorld {
         liveInstanceMembers,
         assignedInstanceMembers,
         processedMembers,
+        extractTypeArgumentsInterfacesNewRti,
         mixinUses,
         typesImplementedBySubclasses,
         classHierarchy,
@@ -217,6 +224,7 @@ class JsClosedWorld implements JClosedWorld {
     noSuchMethodData.writeToDataSink(sink);
     sink.writeClasses(implementedClasses);
     sink.writeClasses(liveNativeClasses);
+    sink.writeClasses(extractTypeArgumentsInterfacesNewRti);
     sink.writeMembers(liveInstanceMembers);
     sink.writeMembers(assignedInstanceMembers);
     sink.writeMembers(processedMembers);
@@ -557,6 +565,11 @@ class JsClosedWorld implements JClosedWorld {
   @override
   MemberAccess getMemberAccess(MemberEntity member) {
     return memberAccess[member];
+  }
+
+  @override
+  void registerExtractTypeArguments(ClassEntity interface) {
+    extractTypeArgumentsInterfacesNewRti.add(interface);
   }
 }
 

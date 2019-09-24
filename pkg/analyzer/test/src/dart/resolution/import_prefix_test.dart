@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,10 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class ImportPrefixDriverResolutionTest extends DriverResolutionTest
-    with ImportPrefixResolutionMixin {}
-
-mixin ImportPrefixResolutionMixin implements ResolutionTest {
+class ImportPrefixDriverResolutionTest extends DriverResolutionTest {
   test_asExpression_expressionStatement() async {
     addTestFile(r'''
 import 'dart:async' as p;

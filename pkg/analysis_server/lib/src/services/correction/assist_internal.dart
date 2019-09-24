@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -60,6 +62,7 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposals_addTypeAnnotation();
     }
+    await _addProposal_addNotNullAssert();
     await _addProposal_assignToLocalVariable();
     await _addProposal_convertClassToMixin();
     await _addProposal_convertDocumentationIntoBlock();
@@ -125,7 +128,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_flutterWrapWidget();
     await _addProposal_flutterWrapWidgets();
     await _addProposal_importAddShow();
-    await _addProposal_inlineAdd();
+    if (!_containsErrorCode(
+      {LintNames.prefer_inlined_adds},
+    )) {
+      await _addProposal_inlineAdd();
+    }
     await _addProposal_introduceLocalTestedType();
     await _addProposal_invertIf();
     await _addProposal_joinIfStatementInner();
@@ -136,7 +143,11 @@ class AssistProcessor extends BaseProcessor {
     await _addProposal_reparentFlutterList();
     await _addProposal_replaceConditionalWithIfElse();
     await _addProposal_replaceIfElseWithConditional();
-    await _addProposal_sortChildPropertyLast();
+    if (!_containsErrorCode(
+      {LintNames.sort_child_properties_last},
+    )) {
+      await _addProposal_sortChildPropertyLast();
+    }
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
@@ -159,10 +170,16 @@ class AssistProcessor extends BaseProcessor {
       }
     }
     if (experimentStatus.spread_collections) {
+      final preferSpreadsLintFound =
+          _containsErrorCode({LintNames.prefer_spread_collections});
+      final preferInlinedAddsLintFound =
+          _containsErrorCode({LintNames.prefer_inlined_adds});
       if (!_containsErrorCode(
         {LintNames.prefer_spread_collections},
       )) {
-        await _addProposal_convertAddAllToSpread();
+        await _addProposal_convertAddAllToSpread(
+            preferInlinedAdds: !preferInlinedAddsLintFound,
+            convertToSpreads: !preferSpreadsLintFound);
       }
     }
 
@@ -208,6 +225,60 @@ class AssistProcessor extends BaseProcessor {
     change.id = kind.id;
     change.message = formatList(kind.message, args);
     assists.add(new Assist(kind, change));
+  }
+
+  Future<void> _addProposal_addNotNullAssert() async {
+    final identifier = this.node;
+    if (identifier is SimpleIdentifier) {
+      if (identifier.parent is FormalParameter) {
+        final exp = identifier.parent.thisOrAncestorMatching(
+            (node) => node is FunctionExpression || node is MethodDeclaration);
+        var body;
+        if (exp is FunctionExpression) {
+          body = exp.body;
+        } else if (exp is MethodDeclaration) {
+          body = exp.body;
+        }
+        if (body is BlockFunctionBody) {
+          // Check for an obvious pre-existing assertion.
+          for (var statement in body.block.statements) {
+            if (statement is AssertStatement) {
+              final condition = statement.condition;
+              if (condition is BinaryExpression) {
+                final leftOperand = condition.leftOperand;
+                if (leftOperand is SimpleIdentifier) {
+                  if (leftOperand.staticElement == identifier.staticElement &&
+                      condition.operator.type == TokenType.BANG_EQ &&
+                      condition.rightOperand is NullLiteral) {
+                    return;
+                  }
+                }
+              }
+            }
+          }
+
+          final changeBuilder = _newDartChangeBuilder();
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            final id = identifier.name;
+            final prefix = utils.getNodePrefix(exp);
+            final indent = utils.getIndent(1);
+            // todo (pq): follow-ups:
+            // 1. if the end token is on the same line as the body
+            // we should add an `eol` before the assert as well.
+            // 2. also, consider asking the block for the list of statements and
+            // adding the statement to the beginning of the list, special casing
+            // when there are no statements (or when there's a single statement
+            // and the whole block is on the same line).
+            final int offset = min(utils.getLineNext(body.beginToken.offset),
+                body.endToken.offset);
+            builder.addSimpleInsertion(
+                offset, '$prefix${indent}assert($id != null);$eol');
+            _addAssistFromBuilder(
+                changeBuilder, DartAssistKind.ADD_NOT_NULL_ASSERT);
+          });
+        }
+      }
+    }
   }
 
   Future<void> _addProposal_assignToLocalVariable() async {
@@ -263,9 +334,13 @@ class AssistProcessor extends BaseProcessor {
     }
   }
 
-  Future<void> _addProposal_convertAddAllToSpread() async {
+  Future<void> _addProposal_convertAddAllToSpread(
+      {bool preferInlinedAdds = true, bool convertToSpreads = true}) async {
     final change = await createBuilder_convertAddAllToSpread();
     if (change != null) {
+      if (change.isLineInvocation && !preferInlinedAdds || !convertToSpreads) {
+        return;
+      }
       final kind = change.isLineInvocation
           ? DartAssistKind.INLINE_INVOCATION
           : DartAssistKind.CONVERT_TO_SPREAD;
@@ -497,7 +572,7 @@ class AssistProcessor extends BaseProcessor {
     InstanceCreationExpression creation = node.thisOrAncestorOfType();
     if (creation == null ||
         node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.listType.element ||
+        creation.staticType.element != typeProvider.listElement ||
         creation.constructorName.name != null ||
         creation.argumentList.arguments.isNotEmpty) {
       _coverageMarker();
@@ -576,7 +651,7 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_convertMapConstructorToMapLiteral() async {
     bool isMapClass(Element element) =>
         element is ClassElement &&
-        (element == typeProvider.mapType.element ||
+        (element == typeProvider.mapElement ||
             (element.name == 'LinkedHashMap' &&
                 element.library.name == 'dart.collection'));
     //
@@ -642,7 +717,7 @@ class AssistProcessor extends BaseProcessor {
     InstanceCreationExpression creation = node.thisOrAncestorOfType();
     if (creation == null ||
         node.offset > creation.argumentList.offset ||
-        creation.staticType.element != typeProvider.setType.element) {
+        creation.staticType.element != typeProvider.setElement) {
       // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
       _coverageMarker();
       return;
@@ -699,7 +774,7 @@ class AssistProcessor extends BaseProcessor {
       if (parent is VariableDeclaration) {
         AstNode parent2 = parent.parent;
         if (parent2 is VariableDeclarationList &&
-            parent2.type?.type?.element == typeProvider.setType.element) {
+            parent2.type?.type?.element == typeProvider.setElement) {
           return true;
         }
       }
@@ -944,9 +1019,8 @@ class AssistProcessor extends BaseProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.staticType;
-      InterfaceType listType = typeProvider.listType;
       if (iterableType is! InterfaceType ||
-          iterableType.element != listType.element) {
+          iterableType.element != typeProvider.listElement) {
         _coverageMarker();
         return;
       }
@@ -1585,12 +1659,11 @@ class AssistProcessor extends BaseProcessor {
     if (statefulWidgetClass == null || stateClass == null) {
       return;
     }
-    var stateType = stateClass.type.instantiate([widgetClassElement.type]);
 
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
       builder.addReplacement(range.node(superclass), (builder) {
-        builder.writeType(statefulWidgetClass.type);
+        builder.writeReference(statefulWidgetClass);
       });
 
       int replaceOffset = 0;
@@ -1661,6 +1734,16 @@ class AssistProcessor extends BaseProcessor {
 
       // Create the State subclass.
       builder.addInsertion(widgetClass.end, (builder) {
+        var stateType = stateClass.instantiate(
+          typeArguments: [
+            widgetClassElement.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
+          ],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+
         builder.writeln();
         builder.writeln();
         builder.writeClassDeclaration(stateName, superclass: stateType,
@@ -1867,7 +1950,7 @@ class AssistProcessor extends BaseProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (builder) {
       builder.addReplacement(range.node(widgetExpr), (builder) {
-        builder.writeType(streamBuilderElement.type);
+        builder.writeReference(streamBuilderElement);
 
         builder.write('<');
         builder.addSimpleLinkedEdit('type', 'Object');
@@ -1963,7 +2046,7 @@ class AssistProcessor extends BaseProcessor {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
         } else {
-          builder.writeType(parentClassElement.type);
+          builder.writeReference(parentClassElement);
         }
         builder.write('(');
         if (widgetSrc.contains(eol) || leadingLines.isNotEmpty) {
@@ -2038,7 +2121,7 @@ class AssistProcessor extends BaseProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addReplacement(selectedRange, (DartEditBuilder builder) {
-          builder.writeType(parentClassElement.type);
+          builder.writeReference(parentClassElement);
           builder.write('(');
 
           String indentOld = utils.getLinePrefix(firstWidget.offset);
@@ -2048,7 +2131,7 @@ class AssistProcessor extends BaseProcessor {
           builder.write(eol);
           builder.write(indentNew1);
           builder.write('children: <');
-          builder.writeType(widgetClassElement.type);
+          builder.writeReference(widgetClassElement);
           builder.write('>[');
           builder.write(eol);
 
@@ -2124,43 +2207,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_inlineAdd() async {
-    AstNode node = this.node;
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      _coverageMarker();
-      return;
-    }
-    SimpleIdentifier name = node;
-    MethodInvocation invocation = node.parent;
-    if (name != invocation.methodName ||
-        name.name != 'add' ||
-        !invocation.isCascaded ||
-        invocation.argumentList.arguments.length != 1) {
-      _coverageMarker();
-      return;
-    }
-    CascadeExpression cascade = invocation.thisOrAncestorOfType();
-    NodeList<Expression> sections = cascade.cascadeSections;
-    Expression target = cascade.target;
-    if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
-      _coverageMarker();
-      return;
-    }
-    ListLiteral list = target;
-    Expression argument = invocation.argumentList.arguments[0];
-    String elementText = utils.getNodeText(argument);
-
-    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      if (list.elements.isNotEmpty) {
-        // ['a']..add(e);
-        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
-      } else {
-        // []..add(e);
-        builder.addSimpleInsertion(list.leftBracket.end, elementText);
-      }
-      builder.addDeletion(range.node(invocation));
-    });
+    final changeBuilder = await createBuilder_inlineAdd();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.INLINE_INVOCATION,
         args: ['add']);
   }
@@ -2531,46 +2578,9 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_removeTypeAnnotation() async {
-    VariableDeclarationList declarationList =
-        node.thisOrAncestorOfType<VariableDeclarationList>();
-    if (declarationList == null) {
-      _coverageMarker();
-      return;
-    }
-    // we need a type
-    TypeAnnotation typeNode = declarationList.type;
-    if (typeNode == null) {
-      _coverageMarker();
-      return;
-    }
-    // ignore if an incomplete variable declaration
-    if (declarationList.variables.length == 1 &&
-        declarationList.variables[0].name.isSynthetic) {
-      _coverageMarker();
-      return;
-    }
-    // must be not after the name of the variable
-    VariableDeclaration firstVariable = declarationList.variables[0];
-    if (selectionOffset > firstVariable.name.end) {
-      _coverageMarker();
-      return;
-    }
-    // The variable must have an initializer, otherwise there is no other
-    // source for its type.
-    if (firstVariable.initializer == null) {
-      _coverageMarker();
-      return;
-    }
-    Token keyword = declarationList.keyword;
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      SourceRange typeRange = range.startStart(typeNode, firstVariable);
-      if (keyword != null && keyword.lexeme != 'var') {
-        builder.addSimpleReplacement(typeRange, '');
-      } else {
-        builder.addSimpleReplacement(typeRange, 'var ');
-      }
-    });
+    // todo (pq): unify w/ fix (and then add a guard to not assist on lints:
+    // avoid_return_types_on_setters, type_init_formals)
+    final changeBuilder = await createBuilder_removeTypeAnnotation();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.REMOVE_TYPE_ANNOTATION);
   }
 
@@ -2791,42 +2801,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addProposal_sortChildPropertyLast() async {
-    NamedExpression childProp = flutter.findNamedExpression(node, 'child');
-    if (childProp == null) {
-      childProp = flutter.findNamedExpression(node, 'children');
-    }
-    if (childProp == null) {
-      return;
-    }
-
-    var parent = childProp.parent?.parent;
-    if (parent is! InstanceCreationExpression ||
-        !flutter.isWidgetCreation(parent)) {
-      return;
-    }
-
-    InstanceCreationExpression creationExpression = parent;
-    var args = creationExpression.argumentList;
-
-    var last = args.arguments.last;
-    if (last == childProp) {
-      // Already sorted.
-      return;
-    }
-
-    var changeBuilder = _newDartChangeBuilder();
-    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      var start = childProp.beginToken.previous.end;
-      var end = childProp.endToken.next.end;
-      var childRange = range.startOffsetEndOffset(start, end);
-
-      var childText = utils.getRangeText(childRange);
-      builder.addSimpleReplacement(childRange, '');
-      builder.addSimpleInsertion(last.end + 1, childText);
-
-      changeBuilder.setSelection(new Position(file, last.end + 1));
-    });
-
+    final changeBuilder = await createBuilder_sortChildPropertyLast();
     _addAssistFromBuilder(
         changeBuilder, DartAssistKind.SORT_CHILD_PROPERTY_LAST);
   }

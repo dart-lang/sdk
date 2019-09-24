@@ -8,18 +8,18 @@ static method id<T extends core::Object* = dynamic>(self::id::T* t) → dynamic
 static method foo() → core::Null*
   return null;
 static method main() → dynamic {
-  self::map<core::Null*>(() → core::Null* {}, () → <BottomType>=> throw "hello");
-  self::map<core::Null*>(() → <BottomType>=> throw "hello", () → core::Null* {});
-  () →* core::Null* f = () → core::Null* {};
+  self::map<core::Null?>(() → core::Null? {}, () → <BottomType>=> throw "hello");
+  self::map<core::Null?>(() → <BottomType>=> throw "hello", () → core::Null? {});
+  () →* core::Null* f = () → core::Null? {};
   self::map<core::Null*>(#C1, () → <BottomType>=> throw "hello");
   self::map<core::Null*>(() → <BottomType>=> throw "hello", #C1);
-  self::map<core::Null*>(() → core::Null* {
+  self::map<core::Null?>(() → core::Null? {
     return null;
   }, () → <BottomType>=> throw "hello");
-  self::map<core::Null*>(() → <BottomType>=> throw "hello", () → core::Null* {
+  self::map<core::Null?>(() → <BottomType>=> throw "hello", () → core::Null? {
     return null;
   });
-  self::id<() →* core::Null*>(() → core::Null* {});
+  self::id<() →* core::Null?>(() → core::Null? {});
 }
 
 constants  {

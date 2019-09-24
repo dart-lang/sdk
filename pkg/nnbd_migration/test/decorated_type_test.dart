@@ -36,7 +36,7 @@ class DecoratedTypeTest extends Object
 
   NullabilityNode get always => graph.always;
 
-  ClassElement get listElement => typeProvider.listType.element;
+  ClassElement get listElement => typeProvider.listElement;
 
   void setUp() {
     NullabilityNode.clearDebugNames();

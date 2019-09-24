@@ -60,6 +60,10 @@ struct VmServiceConfiguration {
   // Default port. See enum above for special values.
   int port;
 
+  // If non-null, connection information for the VM service will be output to a
+  // file in JSON format at the location specified.
+  const char* write_service_info_filename;
+
   // TODO(vegorov) document these ones.
   bool dev_mode;
   bool deterministic;

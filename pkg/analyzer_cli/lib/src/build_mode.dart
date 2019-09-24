@@ -399,6 +399,16 @@ class BuildMode with HasContextMixin {
           if (directive is PartDirective) {
             var partUri = directive.uri.stringValue;
             var partSource = sourceFactory.resolveUri(librarySource, partUri);
+
+            // Add empty synthetic units for unresolved `part` URIs.
+            if (partSource == null) {
+              var unit = analysisDriver.fsState.unresolvedFile.parse();
+              inputUnits.add(
+                summary2.LinkInputUnit(partUri, null, true, unit),
+              );
+              continue;
+            }
+
             var partPath = partSource.fullName;
             var partParseResult = inputParsedUnitResults[partPath];
             if (partParseResult == null) {

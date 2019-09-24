@@ -1307,21 +1307,29 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 }
 
 void Assembler::EnterSafepoint(Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldxr(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
-    b(&slow_path, NE);
+  if (FLAG_use_slow_path) {
+    b(&slow_path);
+  }
 
-    movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
-    stxr(TMP, state, addr);
-    cbz(&done, TMP);  // 0 means stxr was successful.
+  movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 
@@ -1352,21 +1360,28 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 }
 
 void Assembler::ExitSafepoint(Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldxr(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_acquired()));
-    b(&slow_path, NE);
+  if (FLAG_use_slow_path) {
+    b(&slow_path);
+  }
 
-    movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
-    stxr(TMP, state, addr);
-    cbz(&done, TMP);  // 0 means stxr was successful.
+  movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 

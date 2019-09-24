@@ -89,8 +89,8 @@ class ObjectPointerVisitor;
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMProduct, "dart.vm.product")                                          \
-  V(DartVMServiceIO, "dart:vmservice_io")                                      \
   V(DartVMService, "dart:_vmservice")                                          \
+  V(DartVMServiceIO, "dart:vmservice_io")                                      \
   V(DebugClassName, "#DebugClass")                                             \
   V(DebugProcedureName, ":Eval")                                               \
   V(Default, "Default")                                                        \
@@ -158,6 +158,7 @@ class ObjectPointerVisitor;
   V(FutureValue, "Future.value")                                               \
   V(Get, "get")                                                                \
   V(GetCall, "get:call")                                                       \
+  V(GetLength, "get:length")                                                   \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(GetterPrefix, "get:")                                                      \
   V(GreaterEqualOperator, ">=")                                                \
@@ -191,7 +192,6 @@ class ObjectPointerVisitor;
   V(LanguageError, "LanguageError")                                            \
   V(LeftShiftOperator, "<<")                                                   \
   V(Length, "length")                                                          \
-  V(GetLength, "get:length")                                                   \
   V(LessEqualOperator, "<=")                                                   \
   V(LibraryClass, "Library")                                                   \
   V(LibraryPrefix, "LibraryPrefix")                                            \
@@ -262,8 +262,8 @@ class ObjectPointerVisitor;
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewInvocation, "_throwNewInvocation")                                 \
   V(TopLevel, "::")                                                            \
-  V(TruncDivOperator, "~/")                                                    \
   V(TransferableTypedData, "TransferableTypedData")                            \
+  V(TruncDivOperator, "~/")                                                    \
   V(TryFinallyReturnValue, ":try_finally_return_value")                        \
   V(TwoByteString, "_TwoByteString")                                           \
   V(TwoSpaces, "  ")                                                           \
@@ -285,6 +285,11 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(WasmInt32, "Int32")                                                        \
+  V(WasmInt64, "Int64")                                                        \
+  V(WasmFloat, "Float")                                                        \
+  V(WasmDouble, "Double")                                                      \
+  V(WasmVoid, "Void")                                                          \
   V(YieldKw, "yield")                                                          \
   V(_AsyncAwaitCompleter, "_AsyncAwaitCompleter")                              \
   V(_AsyncAwaitCompleterConstructor, "_AsyncAwaitCompleter.")                  \
@@ -298,8 +303,10 @@ class ObjectPointerVisitor;
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_ByteDataView, "_ByteDataView")                                            \
   V(_CapabilityImpl, "_CapabilityImpl")                                        \
+  V(_ClassMirror, "_ClassMirror")                                              \
   V(_Closure, "_Closure")                                                      \
   V(_ClosureCall, "_Closure.call")                                             \
+  V(_CombinatorMirror, "_CombinatorMirror")                                    \
   V(_CompileTimeError, "_CompileTimeError")                                    \
   V(_CompleteOnAsyncReturn, "_completeOnAsyncReturn")                          \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
@@ -333,6 +340,7 @@ class ObjectPointerVisitor;
   V(_Float64x2ArrayFactory, "Float64x2List.")                                  \
   V(_Float64x2ArrayView, "_Float64x2ArrayView")                                \
   V(_Float64x2List, "_Float64x2List")                                          \
+  V(_FunctionTypeMirror, "_FunctionTypeMirror")                                \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListWithData, "_GrowableList._withData")                          \
@@ -354,30 +362,23 @@ class ObjectPointerVisitor;
   V(_Int8ArrayView, "_Int8ArrayView")                                          \
   V(_Int8List, "_Int8List")                                                    \
   V(_IntegerImplementation, "_IntegerImplementation")                          \
+  V(_IsolateMirror, "_IsolateMirror")                                          \
+  V(_LibraryDependencyMirror, "_LibraryDependencyMirror")                      \
+  V(_LibraryMirror, "_LibraryMirror")                                          \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
   V(_LinkedHashSet, "_CompactLinkedHashSet")                                   \
   V(_List, "_List")                                                            \
   V(_ListFactory, "_List.")                                                    \
-  V(_LocalClassMirror, "_LocalClassMirror")                                    \
-  V(_LocalCombinatorMirror, "_LocalCombinatorMirror")                          \
-  V(_LocalFunctionTypeMirror, "_LocalFunctionTypeMirror")                      \
-  V(_LocalIsolateMirror, "_LocalIsolateMirror")                                \
-  V(_LocalLibraryDependencyMirror, "_LocalLibraryDependencyMirror")            \
-  V(_LocalLibraryMirror, "_LocalLibraryMirror")                                \
-  V(_LocalMethodMirror, "_LocalMethodMirror")                                  \
-  V(_LocalMirrorSystem, "_LocalMirrorSystem")                                  \
-  V(_LocalParameterMirror, "_LocalParameterMirror")                            \
-  V(_LocalTypeVariableMirror, "_LocalTypeVariableMirror")                      \
-  V(_LocalTypedefMirror, "_LocalTypedefMirror")                                \
-  V(_LocalVariableMirror, "_LocalVariableMirror")                              \
+  V(_MethodMirror, "_MethodMirror")                                            \
   V(_Mint, "_Mint")                                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
+  V(_MirrorSystem, "_MirrorSystem")                                            \
+  V(_ParameterMirror, "_ParameterMirror")                                      \
   V(_Random, "_Random")                                                        \
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_RegExp, "_RegExp")                                                        \
   V(_SendPortImpl, "_SendPortImpl")                                            \
-  V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Smi, "_Smi")                                                              \
   V(_SourceLocation, "_SourceLocation")                                        \
   V(_SpecialTypeMirror, "_SpecialTypeMirror")                                  \
@@ -387,9 +388,12 @@ class ObjectPointerVisitor;
   V(_SyncIterable, "_SyncIterable")                                            \
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
   V(_SyncIterator, "_SyncIterator")                                            \
+  V(_TransferableTypedDataImpl, "_TransferableTypedDataImpl")                  \
   V(_Type, "_Type")                                                            \
   V(_TypeParameter, "_TypeParameter")                                          \
   V(_TypeRef, "_TypeRef")                                                      \
+  V(_TypeVariableMirror, "_TypeVariableMirror")                                \
+  V(_TypedefMirror, "_TypedefMirror")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \
@@ -406,6 +410,7 @@ class ObjectPointerVisitor;
   V(_Uint8ClampedList, "_Uint8ClampedList")                                    \
   V(_Uint8List, "_Uint8List")                                                  \
   V(_UserTag, "_UserTag")                                                      \
+  V(_VariableMirror, "_VariableMirror")                                        \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \

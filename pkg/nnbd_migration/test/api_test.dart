@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_context.dart';
+import 'api_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -41,7 +40,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new _TestMigrationListener();
+    var listener = new TestMigrationListener();
     var migration =
         NullabilityMigration(listener, permissive: _usePermissiveMode);
     for (var path in input.keys) {
@@ -53,7 +52,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var entry in listener._edits.entries) {
+    for (var entry in listener.edits.entries) {
       var path = entry.key.fullName;
       expect(expectedOutput.keys, contains(path));
       sourceEdits[path] = entry.value;
@@ -77,6 +76,17 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38461')
+  test_add_required() async {
+    var content = '''
+int f({String s}) => s.length;
+''';
+    var expected = '''
+int f({required String s}) => s.length;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_assign_null_to_generic_type() async {
     var content = '''
 main() {
@@ -86,6 +96,37 @@ main() {
     var expected = '''
 main() {
   List<int>? x = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38341')
+  test_back_propagation_stops_at_implicitly_typed_variables() async {
+    var content = '''
+class C {
+  int v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v;
+  print(x + 1);
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v!;
+  print(x + 1);
+}
+main() {
+  C(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -435,6 +476,20 @@ class C {
   C({Key? key});
 }
 class Key {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
+  test_convert_required() async {
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({required String s}) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -878,6 +933,32 @@ int? g(int i) => f(i);
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_discard_simple_condition() async {
     var content = '''
 int f(int i) {
@@ -1207,6 +1288,32 @@ int f(int? x) {
 }
 main() {
   f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_for_each_basic() async {
+    var content = '''
+void f(List<int> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int x) {}
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+void f(List<int?> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int? x) {}
+main() {
+  f([null]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1629,6 +1736,32 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_is_promotion_implies_non_nullable() async {
+    var content = '''
+bool f(Object o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+bool f(Object? o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_isExpression_typeName_typeArguments() async {
+    var content = '''
+bool f(a) => a is List<int>;
+''';
+    var expected = '''
+bool f(a) => a is List<int?>;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_local_function() async {
     var content = '''
 int f(int i) {
@@ -2021,6 +2154,29 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38344')
+  test_not_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String? f(bool b) {
+  String? s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_null_aware_getter_invocation() async {
     var content = '''
 bool f(int i) => i?.isEven;
@@ -2092,6 +2248,25 @@ class C {
 int? f(C? c) => c?.x = 1;
 main() {
   f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
+  test_operator_eq_with_inferred_parameter_type() async {
+    var content = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
+}
+''';
+    var expected = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2918,6 +3093,27 @@ main() {
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38453')
+  test_unconditional_use_of_field_formal_param_does_not_create_hard_edge() async {
+    var content = '''
+class C {
+  int i;
+  int j;
+  C.one(this.i) : j = i + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  int j;
+  C.one(this.i) : j = i! + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
@@ -2945,25 +3141,5 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
   @override
   void _afterPrepare() {
     driver.resetUriResolution();
-  }
-}
-
-class _TestMigrationListener implements NullabilityMigrationListener {
-  final _edits = <Source, List<SourceEdit>>{};
-
-  List<String> details = [];
-
-  @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    (_edits[fix.source] ??= []).add(edit);
-  }
-
-  @override
-  void addFix(SingleNullabilityFix fix) {}
-
-  @override
-  void reportException(
-      Source source, AstNode node, Object exception, StackTrace stackTrace) {
-    fail('Exception reported: $exception');
   }
 }

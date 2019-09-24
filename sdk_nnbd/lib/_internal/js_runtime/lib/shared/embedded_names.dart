@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.5
+
 /// Contains the names of globals that are embedded into the output by the
 /// compiler.
 ///
@@ -325,6 +327,9 @@ enum JsGetName {
 
   /// String representation of the type of the function class.
   FUNCTION_CLASS_TYPE_NAME,
+
+  /// String representation of the type of the JavaScriptFunction class.
+  JS_FUNCTION_CLASS_TYPE_NAME,
 
   /// String recipe for the [bool] type.
   BOOL_RECIPE,

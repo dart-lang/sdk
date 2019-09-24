@@ -520,6 +520,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitExtensionOverride(ExtensionOverride node) {
+    var builder = LinkedNodeBuilder.extensionOverride(
+      extensionOverride_arguments: _writeNodeList(
+        node.argumentList.arguments,
+      ),
+      extensionOverride_extensionName: node.extensionName.accept(this),
+      extensionOverride_typeArguments: node.typeArguments?.accept(this),
+      extensionOverride_typeArgumentTypes:
+          node.typeArgumentTypes.map(_writeType).toList(),
+      extensionOverride_extendedType: _writeType(node.extendedType),
+    );
+    return builder;
+  }
+
+  @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_fields: node.fields.accept(this),

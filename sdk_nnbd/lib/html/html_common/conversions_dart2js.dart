@@ -1,3 +1,5 @@
+// @dart = 2.5
+
 part of html_common;
 
 /// Converts a JavaScript object with properties into a Dart Map.

@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Number extends core::Object {
+  final field core::int* value;
+  constructor •(core::int* value) → self::Number*
+    ;
+  get hashCode() → core::int*
+    ;
+  operator ==(core::Object* other) → core::bool*
+    ;
+  method toString() → core::String*
+    ;
+}
+class Class extends core::Object {
+  field self::Number* field;
+  constructor •(self::Number* field) → self::Class*
+    ;
+}
+extension NumberExtension on self::Number* {
+  operator + = self::NumberExtension|+;
+  operator - = self::NumberExtension|-;
+}
+extension ClassExtension on self::Class* {
+  get property = self::ClassExtension|get#property;
+  set property = self::ClassExtension|set#property;
+}
+static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number*
+  ;
+static method NumberExtension|-(final self::Number* #this, core::Object* other) → self::Number*
+  ;
+static method ClassExtension|get#property(final self::Class* #this) → self::Number*
+  ;
+static method ClassExtension|set#property(final self::Class* #this, self::Number* value) → void
+  ;
+static method main() → dynamic
+  ;
+static method testLocals() → dynamic
+  ;
+static method testProperties() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

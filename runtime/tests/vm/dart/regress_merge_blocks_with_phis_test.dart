@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=5 --use-bytecode-compiler
+// VMOptions=--optimization-counter-threshold=5 --use-bytecode-compiler
 //
 // Test that block merging takes phis into account.
 //

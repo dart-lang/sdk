@@ -32,6 +32,7 @@ class B<T> implements A<List<T>> {}
     ]);
   }
 
+  @failingTest
   test_accessPrivateEnumField() async {
     await assertErrorsInCode(r'''
 enum E { ONE }
@@ -375,8 +376,6 @@ void main(){
   }
 
   test_constConstructorWithFieldInitializedByNonConst() async {
-    // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
-    // redundant and ought to be suppressed.
     await assertErrorsInCode(r'''
 class A {
   final int i = f();
@@ -386,8 +385,6 @@ int f() {
   return 3;
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 26,
-          3),
       error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,

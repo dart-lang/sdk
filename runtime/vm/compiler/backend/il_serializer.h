@@ -95,6 +95,7 @@ class FlowGraphSerializer : ValueObject {
   // Methods for serializing IL-specific values.
   SExpression* LocalVariableToSExp(const LocalVariable& v);
   SExpression* SlotToSExp(const Slot& s);
+  SExpression* ICDataToSExp(const ICData* ic_data);
 
   // Helper methods for adding atoms to S-expression lists
   void AddBool(SExpList* sexp, bool b);
@@ -110,6 +111,7 @@ class FlowGraphSerializer : ValueObject {
   FlowGraphSerializer(Zone* zone, const FlowGraph* flow_graph)
       : flow_graph_(ASSERT_NOTNULL(flow_graph)),
         zone_(zone),
+        open_recursive_types_(zone_),
         tmp_string_(String::Handle(zone_)),
         array_type_args_((TypeArguments::Handle(zone_))),
         closure_context_(Context::Handle(zone_)),
@@ -119,6 +121,8 @@ class FlowGraphSerializer : ValueObject {
         context_parent_(Context::Handle(zone_)),
         context_elem_(Object::Handle(zone_)),
         function_type_args_(TypeArguments::Handle(zone_)),
+        ic_data_target_(Function::Handle(zone_)),
+        ic_data_type_(AbstractType::Handle(zone_)),
         instance_field_(Field::Handle(zone_)),
         instance_type_args_(TypeArguments::Handle(zone_)),
         serialize_library_(Library::Handle(zone_)),
@@ -126,6 +130,7 @@ class FlowGraphSerializer : ValueObject {
         serialize_parent_(Function::Handle(zone_)),
         type_arguments_elem_(AbstractType::Handle(zone_)),
         type_class_(Class::Handle(zone_)),
+        type_function_(Function::Handle(zone_)),
         type_ref_type_(AbstractType::Handle(zone_)) {
     // Double-check that the zone in the flow graph is a parent of the
     // zone we'll be using for serialization.
@@ -142,6 +147,10 @@ class FlowGraphSerializer : ValueObject {
 
   const FlowGraph* const flow_graph_;
   Zone* const zone_;
+
+  // A map of currently open (being serialized) recursive types. We use this
+  // to determine whether to serialize the referred types in TypeRefs.
+  IntMap<const Type*> open_recursive_types_;
 
   // Handles used across functions, where the contained value is used
   // immediately and does not need to live across calls to other serializer
@@ -165,6 +174,8 @@ class FlowGraphSerializer : ValueObject {
   Context& context_parent_;            // ContextToSExp
   Object& context_elem_;               // ContextToSExp
   TypeArguments& function_type_args_;  // FunctionToSExp
+  Function& ic_data_target_;           // ICDataToSExp
+  AbstractType& ic_data_type_;         // ICDataToSExp
   Field& instance_field_;              // InstanceToSExp
   TypeArguments& instance_type_args_;  // InstanceToSExp
   Library& serialize_library_;         // SerializeCanonicalName
@@ -172,6 +183,7 @@ class FlowGraphSerializer : ValueObject {
   Function& serialize_parent_;         // SerializeCanonicalName
   AbstractType& type_arguments_elem_;  // TypeArgumentsToSExp
   Class& type_class_;                  // AbstractTypeToSExp
+  Function& type_function_;            // AbstractTypeToSExp
   AbstractType& type_ref_type_;        // AbstractTypeToSExp
 };
 

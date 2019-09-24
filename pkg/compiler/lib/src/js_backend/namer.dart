@@ -2603,6 +2603,8 @@ abstract class ModularNamer {
         return runtimeTypeName(_commonElements.objectClass);
       case JsGetName.FUNCTION_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.functionClass);
+      case JsGetName.JS_FUNCTION_CLASS_TYPE_NAME:
+        return runtimeTypeName(_commonElements.jsJavaScriptFunctionClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.futureClass);
       case JsGetName.BOOL_RECIPE:

@@ -544,17 +544,6 @@ class PostfixCompletionProcessor {
     Expression expr = list.firstWhere((expr) {
       DartType type = expr.staticType;
       if (type == null) return false;
-      if (typeSystem.isSubtypeOf(type, builtInType)) return true;
-      Element element = type.element;
-      if (element is TypeDefiningElement) {
-        TypeDefiningElement typeDefElem = element;
-        type = typeDefElem.type;
-        if (type is ParameterizedType) {
-          ParameterizedType pType = type;
-          type = pType.instantiate(new List.filled(
-              pType.typeParameters.length, typeProvider.dynamicType));
-        }
-      }
       return typeSystem.isSubtypeOf(type, builtInType);
     }, orElse: () => null);
     if (expr is SimpleIdentifier && expr.parent is PropertyAccess) {

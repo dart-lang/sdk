@@ -209,6 +209,8 @@ class Keyword extends TokenType {
 
   static const Keyword IN = const Keyword("in", "IN");
 
+  static const Keyword INOUT = const Keyword("inout", "INOUT", isPseudo: true);
+
   static const Keyword INTERFACE =
       const Keyword("interface", "INTERFACE", isBuiltIn: true);
 
@@ -236,6 +238,8 @@ class Keyword extends TokenType {
 
   static const Keyword OPERATOR =
       const Keyword("operator", "OPERATOR", isBuiltIn: true);
+
+  static const Keyword OUT = const Keyword("out", "OUT", isPseudo: true);
 
   static const Keyword PART =
       const Keyword("part", "PART", isBuiltIn: true, isTopLevelKeyword: true);
@@ -321,6 +325,7 @@ class Keyword extends TokenType {
     IMPLEMENTS,
     IMPORT,
     IN,
+    INOUT,
     INTERFACE,
     IS,
     LATE,
@@ -332,6 +337,7 @@ class Keyword extends TokenType {
     OF,
     ON,
     OPERATOR,
+    OUT,
     PART,
     PATCH,
     REQUIRED,

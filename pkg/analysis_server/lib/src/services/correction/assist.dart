@@ -31,6 +31,8 @@ class DartAssistContextImpl implements DartAssistContext {
  * An enumeration of possible assist kinds.
  */
 class DartAssistKind {
+  static const ADD_NOT_NULL_ASSERT = const AssistKind(
+      'dart.assist.addNotNullAssert', 30, "Add a not-null assertion");
   static const ADD_TYPE_ANNOTATION = const AssistKind(
       'dart.assist.addTypeAnnotation', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
@@ -156,9 +158,7 @@ class DartAssistKind {
   static const IMPORT_ADD_SHOW = const AssistKind(
       'dart.assist.addShowCombinator', 30, "Add explicit 'show' combinator");
   static const INLINE_INVOCATION =
-      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'",
-          // todo (pq): migrate to (conditional) fix
-          associatedErrorCodes: <String>['prefer_inlined_adds']);
+      const AssistKind('dart.assist.inline', 30, "Inline invocation of '{0}'");
   static const INTRODUCE_LOCAL_CAST_TYPE = const AssistKind(
       'dart.assist.introduceLocalCast',
       30,
@@ -176,12 +176,10 @@ class DartAssistKind {
   static const JOIN_VARIABLE_DECLARATION = const AssistKind(
       'dart.assist.joinVariableDeclaration', 30, "Join variable declaration");
   static const REMOVE_TYPE_ANNOTATION = const AssistKind(
-      'dart.assist.removeTypeAnnotation', 29, "Remove type annotation",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>[
-        'avoid_return_types_on_setters',
-        'type_init_formals'
-      ]);
+      // todo (pq): unify w/ fix
+      'dart.assist.removeTypeAnnotation',
+      29,
+      "Remove type annotation");
   static const REPLACE_CONDITIONAL_WITH_IF_ELSE = const AssistKind(
       'dart.assist.convert.conditionalToIfElse',
       30,
@@ -193,11 +191,7 @@ class DartAssistKind {
   static const SORT_CHILD_PROPERTY_LAST = const AssistKind(
       'dart.assist.sort.child.properties.last',
       30,
-      "Move child property to end of arguments",
-      // todo (pq): migrate to (conditional) fix
-      associatedErrorCodes: <String>[
-        'sort_child_properties_last',
-      ]);
+      "Move child property to end of arguments");
   static const SPLIT_AND_CONDITION = const AssistKind(
       'dart.assist.splitIfConjunction', 30, "Split && condition");
   static const SPLIT_VARIABLE_DECLARATION = const AssistKind(

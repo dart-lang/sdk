@@ -219,7 +219,7 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
 }
 
 static constexpr intptr_t kSimarmX64InstructionsAlignment =
-    2 * compiler::target::ObjectAlignment::kObjectAlignment;
+    compiler::target::ObjectAlignment::kObjectAlignment;
 static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
   const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
                                               kSimarmX64InstructionsAlignment);
@@ -738,7 +738,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       uword next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
 
       for (uword cursor = entry; cursor < end;
-           cursor += sizeof(compiler::target::uword*)) {
+           cursor += sizeof(compiler::target::uword)) {
         compiler::target::uword data =
             *reinterpret_cast<compiler::target::uword*>(cursor);
         if ((cursor - entry) == next_reloc_offset) {

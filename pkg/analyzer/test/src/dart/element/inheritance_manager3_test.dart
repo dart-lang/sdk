@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -1165,7 +1167,7 @@ class B extends A {
     @required String name,
     String expected,
   }) {
-    var interfaceType = findElement.classOrMixin(className).type;
+    var interfaceType = _classInterfaceType(className);
 
     var member = manager.getInherited(
       interfaceType,
@@ -1182,7 +1184,7 @@ class B extends A {
     bool concrete = false,
     bool forSuper = false,
   }) {
-    var interfaceType = findElement.classOrMixin(className).type;
+    var interfaceType = _classInterfaceType(className);
 
     var memberType = manager.getMember(
       interfaceType,
@@ -1195,13 +1197,13 @@ class B extends A {
   }
 
   void _assertInheritedConcreteMap(String className, String expected) {
-    var type = findElement.class_(className).type;
+    var type = _classInterfaceType(className);
     var map = manager.getInheritedConcreteMap(type);
     _assertNameToExecutableMap(map, expected);
   }
 
   void _assertInheritedMap(String className, String expected) {
-    var type = findElement.class_(className).type;
+    var type = _classInterfaceType(className);
     var map = manager.getInheritedMap(type);
     _assertNameToExecutableMap(map, expected);
   }
@@ -1226,5 +1228,13 @@ class B extends A {
       print(actual);
     }
     expect(actual, expected);
+  }
+
+  InterfaceType _classInterfaceType(String className) {
+    var element = findElement.classOrMixin(className);
+    return element.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 }

@@ -79,6 +79,8 @@ import 'extension_override_access_to_static_member_test.dart'
     as extension_override_access_to_static_member;
 import 'extension_override_argument_not_assignable_test.dart'
     as extension_override_argument_not_assignable;
+import 'extension_override_with_cascade_test.dart'
+    as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
@@ -103,6 +105,10 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'inference_failure_on_collection_literal_test.dart'
+    as inference_failure_on_collection_literal;
+import 'inference_failure_on_function_return_type_test.dart'
+    as inference_failure_on_function_return_type;
 import 'inference_failure_on_uninitialized_variable_test.dart'
     as inference_failure_on_uninitialized_variable;
 import 'inference_failure_on_untyped_parameter_test.dart'
@@ -263,23 +269,37 @@ import 'spread_expression_from_deferred_library_test.dart'
     as spread_expression_from_deferred_library;
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
+import 'strict_raw_type_test.dart' as strict_raw_type;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'super_in_extension_test.dart' as super_in_extension;
+import 'switch_expression_not_assignable_test.dart'
+    as switch_expression_not_assignable;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
+import 'type_annotation_deferred_class_test.dart'
+    as type_annotation_deferred_class;
 import 'type_argument_not_matching_bounds_test.dart'
     as type_argument_not_matching_bounds;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
 import 'type_check_is_null_test.dart' as type_check_is_null;
+import 'type_parameter_referenced_by_static_test.dart'
+    as type_parameter_referenced_by_static;
+import 'type_test_with_non_type_test.dart' as type_test_with_non_type;
+import 'type_test_with_undefined_name_test.dart'
+    as type_test_with_undefined_name;
 import 'unchecked_use_of_nullable_value_test.dart'
     as unchecked_use_of_nullable_value;
+import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
+import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
+import 'undefined_identifier_await_test.dart' as undefined_identifier_await;
 import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_method_test.dart' as undefined_method;
+import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_setter_test.dart' as undefined_setter;
@@ -293,6 +313,8 @@ import 'unnecessary_null_aware_spread_test.dart'
     as unnecessary_null_aware_spread;
 import 'unnecessary_type_check_false_test.dart' as unnecessary_type_check_false;
 import 'unnecessary_type_check_true_test.dart' as unnecessary_type_check_true;
+import 'unqualified_reference_to_static_member_of_extended_type_test.dart'
+    as unqualified_reference_to_static_member_of_extended_type;
 import 'unused_catch_clause_test.dart' as unused_catch_clause;
 import 'unused_catch_stack_test.dart' as unused_catch_stack;
 import 'unused_element_test.dart' as unused_element;
@@ -362,6 +384,7 @@ main() {
     extension_declares_member_of_object.main();
     extension_override_access_to_static_member.main();
     extension_override_argument_not_assignable.main();
+    extension_override_with_cascade.main();
     extension_override_without_access.main();
     extra_positional_arguments.main();
     field_initialized_in_initializer_and_declaration.main();
@@ -376,6 +399,8 @@ main() {
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
     import_of_non_library.main();
+    inference_failure_on_collection_literal.main();
+    inference_failure_on_function_return_type.main();
     inference_failure_on_uninitialized_variable.main();
     inference_failure_on_untyped_parameter.main();
     instance_access_to_static_member.main();
@@ -484,21 +509,31 @@ main() {
     set_element_type_not_assignable.main();
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
+    strict_raw_type.main();
     subtype_of_sealed_class.main();
     super_in_extension.main();
+    switch_expression_not_assignable.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
+    type_annotation_deferred_class.main();
     type_argument_not_matching_bounds.main();
     type_check_is_not_null.main();
     type_check_is_null.main();
+    type_parameter_referenced_by_static.main();
+    type_test_with_non_type.main();
+    type_test_with_undefined_name.main();
     unchecked_use_of_nullable_value.main();
+    undefined_class_boolean.main();
+    undefined_class.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
     undefined_extension_setter.main();
     undefined_getter.main();
     undefined_hidden_name.main();
+    undefined_identifier_await.main();
     undefined_identifier.main();
     undefined_method.main();
+    undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
     undefined_setter.main();
@@ -510,6 +545,7 @@ main() {
     unnecessary_null_aware_spread.main();
     unnecessary_type_check_false.main();
     unnecessary_type_check_true.main();
+    unqualified_reference_to_static_member_of_extended_type.main();
     unused_catch_clause.main();
     unused_catch_stack.main();
     unused_element.main();

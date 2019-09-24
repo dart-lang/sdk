@@ -344,7 +344,7 @@ class TypeCheckingVisitor
         }
         final enclosingFunction = parent as FunctionNode;
         if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-          return coreTypes.boolClass.rawType;
+          return coreTypes.boolLegacyRawType;
         }
         return null;
 
@@ -424,7 +424,7 @@ class TypeCheckingVisitor
     Constructor target = node.target;
     Arguments arguments = node.arguments;
     Class class_ = target.enclosingClass;
-    handleCall(arguments, target.function.functionType,
+    handleCall(arguments, target.function.thisFunctionType,
         typeParameters: class_.typeParameters);
     return new InterfaceType(target.enclosingClass, arguments.types);
   }
@@ -458,7 +458,7 @@ class TypeCheckingVisitor
   @override
   DartType visitFunctionExpression(FunctionExpression node) {
     handleNestedFunctionNode(node.function);
-    return node.function.functionType;
+    return node.function.thisFunctionType;
   }
 
   @override

@@ -605,40 +605,6 @@ inline double MicrosecondsToMilliseconds(int64_t micros) {
 template <typename T>
 static inline void USE(T) {}
 
-// Use implicit_cast as a safe version of static_cast or const_cast
-// for upcasting in the type hierarchy (i.e. casting a pointer to Foo
-// to a pointer to SuperclassOfFoo or casting a pointer to Foo to
-// a const pointer to Foo).
-// When you use implicit_cast, the compiler checks that the cast is safe.
-// Such explicit implicit_casts are necessary in surprisingly many
-// situations where C++ demands an exact type match instead of an
-// argument type convertible to a target type.
-//
-// The From type can be inferred, so the preferred syntax for using
-// implicit_cast is the same as for static_cast etc.:
-//
-//   implicit_cast<ToType>(expr)
-//
-// implicit_cast would have been part of the C++ standard library,
-// but the proposal was submitted too late.  It will probably make
-// its way into the language in the future.
-template <typename To, typename From>
-inline To implicit_cast(From const& f) {
-  return f;
-}
-
-// Use like this: down_cast<T*>(foo);
-template <typename To, typename From>  // use like this: down_cast<T*>(foo);
-inline To down_cast(From* f) {         // so we only accept pointers
-  // Ensures that To is a sub-type of From *.  This test is here only
-  // for compile-time type checking, and has no overhead in an
-  // optimized build at run-time, as it will be optimized away completely.
-  if (false) {
-    implicit_cast<From, To>(0);
-  }
-  return static_cast<To>(f);
-}
-
 // The type-based aliasing rule allows the compiler to assume that
 // pointers of different types (for some definition of different)
 // never alias each other. Thus the following code does not work:

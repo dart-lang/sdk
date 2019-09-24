@@ -1003,10 +1003,10 @@ class CodeGenerator extends Object
       }
     }
     if (classElem.library.isDartAsync) {
-      if (classElem == types.futureOrType.element) {
+      if (classElem == types.futureOrElement) {
         var typeParamT = classElem.typeParameters[0].type;
         var typeT = _emitType(typeParamT);
-        var futureOfT = _emitType(types.futureType.instantiate([typeParamT]));
+        var futureOfT = _emitType(types.futureType2(typeParamT));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
               return #.is(o) || #.is(o);
@@ -1207,7 +1207,7 @@ class CodeGenerator extends Object
       List<js_ast.Method> methods,
       List<js_ast.Statement> body,
       List<js_ast.Statement> deferredSupertypes) {
-    if (classElem.type.isObject) {
+    if (classElem.isDartCoreObject) {
       body.add(_emitClassStatement(classElem, className, null, methods));
       return;
     }
@@ -1423,7 +1423,7 @@ class CodeGenerator extends Object
     bool hasJsPeer = _extensionTypes.isNativeClass(classElem);
     bool hasIterator = false;
 
-    if (type.isObject) {
+    if (classElem.isDartCoreObject) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
       jsMethods.add(
@@ -1788,7 +1788,7 @@ class CodeGenerator extends Object
   }
 
   bool _implementsIterable(InterfaceType t) =>
-      t.interfaces.any((i) => i.element.type == types.iterableType);
+      t.interfaces.any((i) => i.element == types.iterableElement);
 
   /// Support for adapting dart:core Iterable to ES6 versions.
   ///
@@ -2005,7 +2005,7 @@ class CodeGenerator extends Object
   /// Ensure `dartx.` symbols we will use are present.
   void _initExtensionSymbols(ClassElement classElem) {
     if (_extensionTypes.hasNativeSubtype(classElem.type) ||
-        classElem.type.isObject) {
+        classElem.isDartCoreObject) {
       for (var members in [classElem.methods, classElem.accessors]) {
         for (var m in members) {
           if (!m.isAbstract && !m.isStatic && m.isPublic) {
@@ -2055,7 +2055,7 @@ class CodeGenerator extends Object
       if (elements.isEmpty) return;
 
       if (!name.startsWith('Static')) {
-        var proto = classElem.type.isObject
+        var proto = classElem.isDartCoreObject
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
@@ -2347,7 +2347,7 @@ class CodeGenerator extends Object
     // Get the supertype's unnamed constructor.
     superCtor ??= element.supertype?.element?.unnamedConstructor;
     if (superCtor == null) {
-      assert(element.type.isObject ||
+      assert(element.isDartCoreObject ||
           element.isMixin ||
           options.unsafeForceCompile);
       return null;
@@ -2381,7 +2381,7 @@ class CodeGenerator extends Object
   }
 
   bool _hasUnnamedConstructor(ClassElement e) {
-    if (e.type.isObject) return false;
+    if (e.isDartCoreObject) return false;
     var ctor = e.unnamedConstructor;
     if (ctor != null && !ctor.isSynthetic) return true;
     return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
@@ -2966,7 +2966,7 @@ class CodeGenerator extends Object
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn([]);
-    var dartAsync = types.futureType.element.library;
+    var dartAsync = types.futureElement.library;
     return js.call('#.async(#, #)',
         [emitLibraryName(dartAsync), _emitType(returnType), gen]);
   }
@@ -4458,15 +4458,15 @@ class CodeGenerator extends Object
       return _emitType(value.toTypeValue());
     }
     if (type is InterfaceType) {
-      if (type.element == types.listType.element) {
+      if (type.element == types.listElement) {
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.setType.element) {
+      if (type.element == types.setElement) {
         return _emitConstSet(type.typeArguments[0],
             value.toSetValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.mapType.element) {
+      if (type.element == types.mapElement) {
         var entries = <js_ast.Expression>[];
         value.toMapValue().forEach((key, value) {
           entries.add(_emitDartObject(key));
@@ -5866,7 +5866,7 @@ class CodeGenerator extends Object
       body.accept(finder);
       if (finder.hasYield) {
         var genFn = js_ast.Fun([], body, isGenerator: true);
-        var asyncLibrary = emitLibraryName(types.futureType.element.library);
+        var asyncLibrary = emitLibraryName(types.futureElement.library);
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
       }
@@ -6278,19 +6278,19 @@ class CodeGenerator extends Object
     }
     var type = functionType.returnType;
 
-    InterfaceType expectedType;
+    ClassElement expectedElement;
     if (element.isAsynchronous) {
       if (element.isGenerator) {
         // Stream<T> -> T
-        expectedType = types.streamType;
+        expectedElement = types.streamElement;
       } else {
         // Future<T> -> T
-        expectedType = types.futureType;
+        expectedElement = types.futureElement;
       }
     } else {
       if (element.isGenerator) {
         // Iterable<T> -> T
-        expectedType = types.iterableType;
+        expectedElement = types.iterableElement;
       } else {
         // T -> T
         return type;
@@ -6298,9 +6298,9 @@ class CodeGenerator extends Object
     }
     if (type.isDynamic) return type;
     if (type is InterfaceType &&
-        (type.element == expectedType.element ||
-            expectedType == types.futureType &&
-                type.element == types.futureOrType.element)) {
+        (type.element == expectedElement ||
+            expectedElement == types.futureElement &&
+                type.element == types.futureOrElement)) {
       return type.typeArguments[0];
     }
     // TODO(leafp): The above only handles the case where the return type
@@ -6311,8 +6311,12 @@ class CodeGenerator extends Object
   js_ast.Expression _throwUnsafe(String message) => runtimeCall(
       'throw(Error(#))', [js.escapedString("compile error: $message")]);
 
-  Null _unreachable(Object node) {
-    throw UnsupportedError('tried to generate an unreachable node: `$node`');
+  js_ast.Expression _unreachable(Object node) {
+    var message = 'tried to generate an unreachable node: `$node`';
+    if (options.unsafeForceCompile) {
+      return _throwUnsafe(message);
+    }
+    throw UnsupportedError(message);
   }
 
   /// Unused, see methods for emitting declarations.
@@ -6584,7 +6588,7 @@ class CodeGenerator extends Object
         return _emitAwaitFor(forParts, jsBody);
       }
     }
-    return _unreachable(forParts);
+    return _unreachable(forParts).toStatement();
   }
 
   @override

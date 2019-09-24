@@ -696,7 +696,7 @@ abstract class ExpressionVisitor1<R, T> {
   R visitTypeLiteral(TypeLiteral node, T arg) => defaultExpression(node, arg);
   R visitThisExpression(ThisExpression node, T arg) =>
       defaultExpression(node, arg);
-  R visitConstantExpression(ConstantExpression node, arg) =>
+  R visitConstantExpression(ConstantExpression node, T arg) =>
       defaultExpression(node, arg);
   R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
   R visitThrow(Throw node, T arg) => defaultExpression(node, arg);

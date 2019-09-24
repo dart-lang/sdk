@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -31,6 +30,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
+import 'elements_types_mixin.dart';
 import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_analysis_context.dart';
@@ -38,13 +38,11 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalysisDeltaTest);
     defineReflectiveTests(ChangeSetTest);
     defineReflectiveTests(EnclosedScopeTest);
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(LibraryImportScopeTest);
     defineReflectiveTests(LibraryScopeTest);
-    defineReflectiveTests(NonNullableTypeProviderTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
@@ -60,46 +58,6 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
-}
-
-@reflectiveTest
-class AnalysisDeltaTest extends EngineTestCase {
-  TestSource source1 = new TestSource('/1.dart');
-  TestSource source2 = new TestSource('/2.dart');
-  TestSource source3 = new TestSource('/3.dart');
-
-  void test_getAddedSources() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
-    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
-    delta.setAnalysisLevel(source3, AnalysisLevel.NONE);
-    List<Source> addedSources = delta.addedSources;
-    expect(addedSources, hasLength(2));
-    expect(addedSources, unorderedEquals([source1, source2]));
-  }
-
-  void test_getAnalysisLevels() {
-    AnalysisDelta delta = new AnalysisDelta();
-    expect(delta.analysisLevels.length, 0);
-  }
-
-  void test_setAnalysisLevel() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(source1, AnalysisLevel.ALL);
-    delta.setAnalysisLevel(source2, AnalysisLevel.ERRORS);
-    Map<Source, AnalysisLevel> levels = delta.analysisLevels;
-    expect(levels.length, 2);
-    expect(levels[source1], AnalysisLevel.ALL);
-    expect(levels[source2], AnalysisLevel.ERRORS);
-  }
-
-  void test_toString() {
-    AnalysisDelta delta = new AnalysisDelta();
-    delta.setAnalysisLevel(new TestSource(), AnalysisLevel.ALL);
-    String result = delta.toString();
-    expect(result, isNotNull);
-    expect(result.isNotEmpty, isTrue);
-  }
 }
 
 @reflectiveTest
@@ -526,132 +484,6 @@ class LibraryScopeTest extends ResolverTestCase {
 
     var libraryExtensions = LibraryScope(importingLibrary).extensions;
     expect(libraryExtensions, orderedEquals([ext1]));
-  }
-}
-
-@reflectiveTest
-class NonNullableTypeProviderTest extends EngineTestCase {
-  void assertNonNullable(InterfaceType type) {
-    expect((type as TypeImpl).nullabilitySuffix, NullabilitySuffix.none);
-  }
-
-  void test_creation() {
-    //
-    // Create a mock library element with the types expected to be in dart:core.
-    // We cannot use either ElementFactory or TestTypeProvider (which uses
-    // ElementFactory) because we side-effect the elements in ways that would
-    // break other tests.
-    //
-    InterfaceType objectType = _classElement("Object", null).type;
-    InterfaceType boolType = _classElement("bool", objectType).type;
-    InterfaceType numType = _classElement("num", objectType).type;
-    InterfaceType deprecatedType = _classElement('Deprecated', objectType).type;
-    InterfaceType doubleType = _classElement("double", numType).type;
-    InterfaceType functionType = _classElement("Function", objectType).type;
-    InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
-    InterfaceType futureOrType =
-        _classElement("FutureOr", objectType, ["T"]).type;
-    InterfaceType intType = _classElement("int", numType).type;
-    InterfaceType iterableType =
-        _classElement("Iterable", objectType, ["T"]).type;
-    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
-    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
-    InterfaceType nullType = _classElement('Null', objectType).type;
-    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
-    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
-    InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
-    InterfaceType stringType = _classElement("String", objectType).type;
-    InterfaceType symbolType = _classElement("Symbol", objectType).type;
-    InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
-    coreUnit.types = <ClassElement>[
-      boolType.element,
-      deprecatedType.element,
-      doubleType.element,
-      functionType.element,
-      intType.element,
-      iterableType.element,
-      listType.element,
-      mapType.element,
-      nullType.element,
-      numType.element,
-      setType.element,
-      objectType.element,
-      stackTraceType.element,
-      stringType.element,
-      symbolType.element,
-      typeType.element
-    ];
-    coreUnit.source = new TestSource('dart:core');
-    coreUnit.librarySource = coreUnit.source;
-    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
-    asyncUnit.types = <ClassElement>[
-      futureType.element,
-      futureOrType.element,
-      streamType.element
-    ];
-    asyncUnit.source = new TestSource('dart:async');
-    asyncUnit.librarySource = asyncUnit.source;
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
-    coreLibrary.definingCompilationUnit = coreUnit;
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
-    asyncLibrary.definingCompilationUnit = asyncUnit;
-    //
-    // Create a type provider and ensure that it can return the expected types.
-    //
-    TypeProvider provider = new TypeProviderImpl(
-      coreLibrary,
-      asyncLibrary,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    assertNonNullable(provider.boolType);
-    expect(provider.bottomType, isNotNull);
-    assertNonNullable(provider.deprecatedType);
-    assertNonNullable(provider.doubleType);
-    expect(provider.dynamicType, isNotNull);
-    assertNonNullable(provider.functionType);
-    assertNonNullable(provider.futureType);
-    assertNonNullable(provider.futureOrType);
-    assertNonNullable(provider.intType);
-    assertNonNullable(provider.listType);
-    assertNonNullable(provider.mapType);
-    expect(provider.neverType, isNotNull);
-    assertNonNullable(provider.nullType);
-    assertNonNullable(provider.numType);
-    assertNonNullable(provider.objectType);
-    assertNonNullable(provider.stackTraceType);
-    assertNonNullable(provider.streamType);
-    assertNonNullable(provider.stringType);
-    assertNonNullable(provider.symbolType);
-    assertNonNullable(provider.typeType);
-  }
-
-  ClassElement _classElement(String typeName, InterfaceType superclassType,
-      [List<String> parameterNames]) {
-    ClassElementImpl element =
-        new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
-    element.supertype = superclassType;
-    if (parameterNames != null) {
-      int count = parameterNames.length;
-      if (count > 0) {
-        List<TypeParameterElementImpl> typeParameters =
-            new List<TypeParameterElementImpl>(count);
-        List<TypeParameterTypeImpl> typeArguments =
-            new List<TypeParameterTypeImpl>(count);
-        for (int i = 0; i < count; i++) {
-          TypeParameterElementImpl typeParameter =
-              new TypeParameterElementImpl.forNode(
-                  AstTestFactory.identifier3(parameterNames[i]));
-          typeParameters[i] = typeParameter;
-          typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
-          typeParameter.type = typeArguments[i];
-        }
-        element.typeParameters = typeParameters;
-      }
-    }
-    return element;
   }
 }
 
@@ -1332,7 +1164,7 @@ main() {
 
 @reflectiveTest
 class TypeResolverVisitorTest extends ParserTestCase
-    with ResourceProviderMixin {
+    with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -1353,6 +1185,8 @@ class TypeResolverVisitorTest extends ParserTestCase
    */
   TypeResolverVisitor _visitor;
 
+  TypeProvider get typeProvider => _typeProvider;
+
   fail_visitConstructorDeclaration() async {
     _fail("Not yet tested");
     _listener.assertNoErrors();
@@ -1370,7 +1204,7 @@ class TypeResolverVisitorTest extends ParserTestCase
     AstTestFactory.variableDeclarationList(
         null, AstTestFactory.typeName(type), [node]);
     //resolve(node);
-    expect(node.name.staticType, same(type.type));
+    expect(node.name.staticType, interfaceType(type));
     _listener.assertNoErrors();
   }
 
@@ -1818,7 +1652,7 @@ A v = new A();
     exceptionParameter.staticElement =
         new LocalVariableElementImpl.forNode(exceptionParameter);
     _resolveCatchClause(
-        clause, exceptionElement.type, null, [exceptionElement]);
+        clause, interfaceType(exceptionElement), null, [exceptionElement]);
     _listener.assertNoErrors();
   }
 
@@ -1834,7 +1668,7 @@ A v = new A();
     SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
     stackTraceParameter.staticElement =
         new LocalVariableElementImpl.forNode(stackTraceParameter);
-    _resolveCatchClause(clause, exceptionElement.type,
+    _resolveCatchClause(clause, interfaceType(exceptionElement),
         _typeProvider.stackTraceType, [exceptionElement]);
     _listener.assertNoErrors();
   }
@@ -1859,13 +1693,13 @@ A v = new A();
         null, "A", null, extendsClause, withClause, implementsClause);
     declaration.name.staticElement = elementA;
     _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
-    expect(elementA.supertype, elementB.type);
+    expect(elementA.supertype, interfaceType(elementB));
     List<InterfaceType> mixins = elementA.mixins;
     expect(mixins, hasLength(1));
-    expect(mixins[0], elementC.type);
+    expect(mixins[0], interfaceType(elementC));
     List<InterfaceType> interfaces = elementA.interfaces;
     expect(interfaces, hasLength(1));
-    expect(interfaces[0], elementD.type);
+    expect(interfaces[0], interfaceType(elementD));
     _listener.assertNoErrors();
   }
 
@@ -1886,7 +1720,7 @@ A v = new A();
         null, "B", null, extendsClause, null, null);
     declaration.name.staticElement = elementB;
     _resolveNode(declaration, [elementA, elementB]);
-    expect(elementB.supertype, elementA.type);
+    expect(elementB.supertype, interfaceType(elementA));
     _listener.assertNoErrors();
   }
 
@@ -1958,10 +1792,10 @@ A v = new A();
             null));
     declaration.name.staticElement = elementF;
     _resolveNode(declaration, [elementR, elementP]);
-    expect(declaration.returnType.type, elementR.type);
+    expect(declaration.returnType.type, interfaceType(elementR));
     SimpleFormalParameter parameter =
         declaration.functionExpression.parameters.parameters[0];
-    expect(parameter.type.type, elementP.type);
+    expect(parameter.type.type, interfaceType(elementP));
     _listener.assertNoErrors();
   }
 
@@ -1982,10 +1816,10 @@ A v = new A();
             null));
     declaration.name.staticElement = elementF;
     _resolveNode(declaration, []);
-    expect(declaration.returnType.type, elementE.type);
+    expect(declaration.returnType.type, typeParameterType(elementE));
     SimpleFormalParameter parameter =
         declaration.functionExpression.parameters.parameters[0];
-    expect(parameter.type.type, elementE.type);
+    expect(parameter.type.type, typeParameterType(elementE));
     _listener.assertNoErrors();
   }
 
@@ -2022,10 +1856,10 @@ A v = new A();
 
     _resolveNode(fNode, [elementR, elementP]);
 
-    expect(fNode.returnType.type, elementR.type);
-    expect(gType.returnType, elementR.type);
-    expect(gNode.returnType.type, elementR.type);
-    expect(pNode.type.type, elementP.type);
+    expect(fNode.returnType.type, interfaceType(elementR));
+    expect(gType.returnType, interfaceType(elementR));
+    expect(gNode.returnType.type, interfaceType(elementR));
+    expect(pNode.type.type, interfaceType(elementP));
 
     _listener.assertNoErrors();
   }
@@ -2063,10 +1897,10 @@ A v = new A();
 
     _resolveNode(fNode, [elementR]);
 
-    expect(fNode.returnType.type, elementR.type);
-    expect(gType.returnType, elementR.type);
-    expect(gNode.returnType.type, elementR.type);
-    expect(eNode.type.type, elementE.type);
+    expect(fNode.returnType.type, interfaceType(elementR));
+    expect(gType.returnType, interfaceType(elementR));
+    expect(gNode.returnType.type, interfaceType(elementR));
+    expect(eNode.type.type, typeParameterType(elementE));
 
     _listener.assertNoErrors();
   }
@@ -2094,9 +1928,9 @@ A v = new A();
         ]));
     declaration.name.staticElement = elementM;
     _resolveNode(declaration, [elementA, elementR, elementP]);
-    expect(declaration.returnType.type, elementR.type);
+    expect(declaration.returnType.type, interfaceType(elementR));
     SimpleFormalParameter parameter = declaration.parameters.parameters[0];
-    expect(parameter.type.type, elementP.type);
+    expect(parameter.type.type, interfaceType(elementP));
     _listener.assertNoErrors();
   }
 
@@ -2121,9 +1955,9 @@ A v = new A();
         ]));
     declaration.name.staticElement = elementM;
     _resolveNode(declaration, [elementA]);
-    expect(declaration.returnType.type, elementE.type);
+    expect(declaration.returnType.type, typeParameterType(elementE));
     SimpleFormalParameter parameter = declaration.parameters.parameters[0];
-    expect(parameter.type.type, elementE.type);
+    expect(parameter.type.type, typeParameterType(elementE));
     _listener.assertNoErrors();
   }
 
@@ -2154,7 +1988,7 @@ A v = new A();
     TypeName typeName = AstTestFactory.typeName(classA);
     typeName.type = null;
     _resolveNode(typeName, [classA]);
-    expect(typeName.type, classA.type);
+    expect(typeName.type, interfaceType(classA));
     _listener.assertNoErrors();
   }
 
@@ -2179,7 +2013,7 @@ A v = new A();
     expect(resultType.element, same(classA));
     List<DartType> resultArguments = resultType.typeArguments;
     expect(resultArguments, hasLength(1));
-    expect(resultArguments[0], classB.type);
+    expect(resultArguments[0], interfaceType(classB));
     _listener.assertNoErrors();
   }
 

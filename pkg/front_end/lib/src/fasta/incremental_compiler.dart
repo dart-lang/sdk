@@ -6,6 +6,9 @@ library fasta.incremental_compiler;
 
 import 'dart:async' show Future;
 
+import 'package:front_end/src/fasta/dill/dill_class_builder.dart'
+    show DillClassBuilder;
+
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_from_binary.dart'
@@ -48,7 +51,7 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart' show ClassBuilder, LibraryBuilder;
+import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -74,7 +77,7 @@ import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
 
-import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
 
@@ -311,7 +314,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         // Reset dill loaders and kernel class hierarchy.
         for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
           if (builder is DillLibraryBuilder) {
-            builder.isBuiltAndMarked = false;
+            if (builder.isBuiltAndMarked) {
+              // Clear cached calculations in classes which upon calculation can
+              // mark things as needed.
+              for (Builder builder in builder.scope.local.values) {
+                if (builder is DillClassBuilder) {
+                  builder.supertype = null;
+                  builder.interfaces = null;
+                }
+              }
+              builder.isBuiltAndMarked = false;
+            }
           }
         }
 
@@ -717,7 +730,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (summaryBytes != null) {
       ticker.logMs("Read ${c.options.sdkSummary}");
       data.component = c.options.target.configureComponent(new Component());
-      new BinaryBuilder(summaryBytes, disableLazyReading: false)
+      new BinaryBuilder(summaryBytes,
+              disableLazyReading: false, disableLazyClassReading: true)
           .readComponent(data.component);
       ticker.logMs("Deserialized ${c.options.sdkSummary}");
       bytesLength += summaryBytes.length;
@@ -905,7 +919,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
           positionalParameters: definitions.keys
-              .map((name) => new VariableDeclarationJudgment(name, 0))
+              .map((name) => new VariableDeclarationImpl(name, 0))
               .toList());
 
       debugLibrary.build(userCode.loader.coreLibrary, modifyTarget: false);

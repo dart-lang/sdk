@@ -58,7 +58,7 @@ class _TypeSchemaEliminationVisitor extends DartTypeVisitor<DartType> {
   bool isLeastClosure;
 
   _TypeSchemaEliminationVisitor(CoreTypes coreTypes, this.isLeastClosure)
-      : nullType = coreTypes.nullClass.rawType;
+      : nullType = coreTypes.nullType;
 
   @override
   DartType visitFunctionType(FunctionType node) {

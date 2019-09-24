@@ -71,7 +71,7 @@ class AstRewriteVisitor extends ScopedVisitor {
       }
     } else if (target is SimpleIdentifier) {
       // Possible cases: C.n(), p.C() or p.C<>()
-      if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (node.isNullAware) {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }

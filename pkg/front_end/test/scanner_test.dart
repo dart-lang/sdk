@@ -544,6 +544,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("in");
   }
 
+  void test_keyword_inout() {
+    _assertKeywordToken("inout",
+        configuration: ScannerConfiguration(enableVariance: true));
+  }
+
+  void test_keyword_inout_old() {
+    _assertNotKeywordToken("inout",
+        configuration: ScannerConfiguration(enableVariance: false));
+  }
+
   void test_keyword_is() {
     _assertKeywordToken("is");
   }
@@ -588,6 +598,16 @@ abstract class ScannerTestBase {
 
   void test_keyword_operator() {
     _assertKeywordToken("operator");
+  }
+
+  void test_keyword_out() {
+    _assertKeywordToken("out",
+        configuration: ScannerConfiguration(enableVariance: true));
+  }
+
+  void test_keyword_out_old() {
+    _assertNotKeywordToken("out",
+        configuration: ScannerConfiguration(enableVariance: false));
   }
 
   void test_keyword_part() {

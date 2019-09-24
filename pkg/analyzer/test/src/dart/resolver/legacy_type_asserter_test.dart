@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
@@ -66,10 +67,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    identifier.staticType = typeProvider.listType.instantiate([
-      (typeProvider.intType as TypeImpl)
-          .withNullability(NullabilitySuffix.question)
-    ]);
+    identifier.staticType = typeProvider.listType2(
+        (typeProvider.intType as TypeImpl)
+            .withNullability(NullabilitySuffix.question));
 
     expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
@@ -79,17 +79,14 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
   test_nullableUnit_expressionStaticType_nonNullTypeParameter() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    final listType = typeProvider.listType;
-    listType.typeParameters[0] = TypeParameterElementImpl('E', 0)
-      ..type = (listType.typeParameters[0].type as TypeImpl)
-          .withNullability(NullabilitySuffix.none) as TypeParameterTypeImpl;
-    identifier.staticType = listType;
-    expect(
-        (listType as dynamic)
-            .typeParameters[0]
-            .type
-            .toString(withNullability: true),
-        'E');
+    identifier.staticType = typeProvider.listElement.instantiate(
+      typeArguments: [
+        TypeParameterElementImpl('E', 0).instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      ],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
     expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
     }, throwsStateError);
@@ -98,18 +95,13 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
   test_nullableUnit_expressionStaticType_nonNullTypeParameterBound() async {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
-    final listType = typeProvider.listType;
-    (listType.typeParameters[0] as TypeParameterElementImpl).bound =
-        (typeProvider.intType as TypeImpl)
-            .withNullability(NullabilitySuffix.none);
-    identifier.staticType = listType;
-    expect(
-        (listType as dynamic)
-            .typeParameters[0]
-            .type
-            .bound
-            .toString(withNullability: true),
-        'int');
+    var T = TypeParameterElementImpl.synthetic('T');
+    T.bound = (typeProvider.intType as TypeImpl)
+        .withNullability(NullabilitySuffix.none);
+    identifier.staticType = TypeParameterTypeImpl(
+      T,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
     }, throwsStateError);

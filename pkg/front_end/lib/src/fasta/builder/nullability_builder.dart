@@ -35,6 +35,19 @@ class NullabilityBuilder {
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
+  factory NullabilityBuilder.fromNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.nullable:
+        return const NullabilityBuilder.nullable();
+      case Nullability.legacy:
+        return const NullabilityBuilder.legacy();
+      case Nullability.nonNullable:
+      case Nullability.neither:
+      default:
+        return const NullabilityBuilder.omitted();
+    }
+  }
+
   /// Used temporarily in the places that need proper handling of NNBD features.
   ///
   /// Over time the uses of [NullabilityBuilder.pendingImplementation] should be
@@ -42,7 +55,7 @@ class NullabilityBuilder {
   /// it redirects to [NullabilityBuilder.legacy] as a conservative safety
   /// measure for the pre-NNBD code and as a visible reminder of the feature
   /// implementation being in progress in the NNBD code.
-  // TODO(dmitryas): Remove this constructor.
+  // TODO(38286): Remove this constructor.
   const NullabilityBuilder.pendingImplementation() : this.legacy();
 
   Nullability build(LibraryBuilder libraryBuilder, {Nullability ifOmitted}) {

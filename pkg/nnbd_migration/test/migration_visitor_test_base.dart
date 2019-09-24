@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -28,8 +29,12 @@ class AnyNodeMatcher implements NodeMatcher {
   NullabilityNode get matchingNode => _matchingNodes.single;
 
   @override
-  bool matches(NullabilityNode node) {
+  void matched(NullabilityNode node) {
     _matchingNodes.add(node);
+  }
+
+  @override
+  bool matches(NullabilityNode node) {
     return true;
   }
 }
@@ -80,15 +85,14 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   }
 
   DecoratedType future(DecoratedType parameter, {NullabilityNode node}) {
-    return DecoratedType(typeProvider.futureType.instantiate([parameter.type]),
-        node ?? newNode(),
+    return DecoratedType(
+        typeProvider.futureType2(parameter.type), node ?? newNode(),
         typeArguments: [parameter]);
   }
 
   DecoratedType futureOr(DecoratedType parameter, {NullabilityNode node}) {
     return DecoratedType(
-        typeProvider.futureOrType.instantiate([parameter.type]),
-        node ?? newNode(),
+        typeProvider.futureOrType2(parameter.type), node ?? newNode(),
         typeArguments: [parameter]);
   }
 
@@ -96,8 +100,7 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
       DecoratedType(typeProvider.intType, node ?? newNode());
 
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
-      DecoratedType(typeProvider.listType.instantiate([elementType.type]),
-          node ?? newNode(),
+      DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
@@ -113,8 +116,14 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   }
 
   DecoratedType typeParameterType(TypeParameterElement typeParameter,
-          {NullabilityNode node}) =>
-      DecoratedType(typeParameter.type, node ?? newNode());
+      {NullabilityNode node}) {
+    return DecoratedType(
+      typeParameter.instantiate(
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      node ?? newNode(),
+    );
+  }
 }
 
 /// Base functionality that must be implemented by classes mixing in
@@ -159,7 +168,7 @@ mixin EdgeTester {
       fail('Found multiple edges $source -> $destination');
     } else {
       var edge = edges[0];
-      expect(edge.hard, hard);
+      expect(edge.isHard, hard);
       expect(edge.guards, unorderedEquals(guards));
       return edge;
     }
@@ -187,7 +196,7 @@ mixin EdgeTester {
     var edges = getEdges(x, y);
     for (var edge in edges) {
       if (edge.isUnion) {
-        expect(edge.sources, hasLength(1));
+        expect(edge.upstreamNodes, hasLength(1));
         return;
       }
     }
@@ -203,12 +212,16 @@ mixin EdgeTester {
   List<NullabilityEdge> getEdges(Object source, Object destination) {
     var sourceMatcher = NodeMatcher(source);
     var destinationMatcher = NodeMatcher(destination);
-    return graph
-        .getAllEdges()
-        .where((e) =>
-            sourceMatcher.matches(e.primarySource) &&
-            destinationMatcher.matches(e.destinationNode))
-        .toList();
+    var result = <NullabilityEdge>[];
+    for (var edge in graph.getAllEdges()) {
+      if (sourceMatcher.matches(edge.sourceNode) &&
+          destinationMatcher.matches(edge.destinationNode)) {
+        sourceMatcher.matched(edge.sourceNode);
+        destinationMatcher.matched(edge.destinationNode);
+        result.add(edge);
+      }
+    }
+    return result;
   }
 
   /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
@@ -227,7 +240,7 @@ class InstrumentedVariables extends Variables {
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _expressionChecks = <Expression, ExpressionChecks>{};
+  final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
@@ -235,7 +248,7 @@ class InstrumentedVariables extends Variables {
       : super(graph, typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
-  ExpressionChecks checkExpression(Expression expression) =>
+  ExpressionChecksOrigin checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];
 
   /// Gets the [conditionalDiscard] associated with the given [expression].
@@ -265,9 +278,9 @@ class InstrumentedVariables extends Variables {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(source, expression, checks);
-    _expressionChecks[_normalizeExpression(expression)] = checks;
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    super.recordExpressionChecks(source, expression, origin);
+    _expressionChecks[_normalizeExpression(expression)] = origin;
   }
 
   @override
@@ -360,6 +373,8 @@ abstract class NodeMatcher {
         'Unclear how to match node expectation of type ${expectation.runtimeType}');
   }
 
+  void matched(NullabilityNode node);
+
   bool matches(NullabilityNode node);
 }
 
@@ -368,6 +383,9 @@ class _ExactNodeMatcher implements NodeMatcher {
   final NullabilityNode _expectation;
 
   _ExactNodeMatcher(this._expectation);
+
+  @override
+  void matched(NullabilityNode node) {}
 
   @override
   bool matches(NullabilityNode node) => node == _expectation;
@@ -380,6 +398,18 @@ class _SubstitutionNodeMatcher implements NodeMatcher {
   final NodeMatcher outer;
 
   _SubstitutionNodeMatcher(this.inner, this.outer);
+
+  @override
+  void matched(NullabilityNode node) {
+    if (node is NullabilityNodeForSubstitution) {
+      inner.matched(node.innerNode);
+      outer.matched(node.outerNode);
+    } else {
+      throw StateError(
+          'matched should only be called on nodes for which matches returned '
+          'true');
+    }
+  }
 
   @override
   bool matches(NullabilityNode node) {

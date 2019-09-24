@@ -312,7 +312,6 @@ Future<CompilerResult> _compile(List<String> args,
     var converter = AnalyzerToKernel(sdkSummaryPath, summaryPaths);
     opts.sdkSummaryComponent = converter.convertSdk();
     opts.inputSummariesComponents = converter.convertSummaries();
-    converter.dispose();
   }
 
   fe.DdcResult result;

@@ -406,6 +406,7 @@ NotAType/example: Fail
 NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
+NullAwareCascadeOutOfOrder/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

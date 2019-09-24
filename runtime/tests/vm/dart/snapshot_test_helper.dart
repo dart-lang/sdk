@@ -46,8 +46,11 @@ final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String buildDir = p.dirname(Platform.executable);
 final String platformDill = p.join(buildDir, "vm_platform_strong.dill");
 final String genSnapshot = p.join(buildDir, "gen_snapshot${executableSuffix}");
-final String genKernel =
-    p.join("pkg", "vm", "tool", "gen_kernel${scriptSuffix}");
+final String dartPrecompiledRuntime =
+    p.join(buildDir, "dart_precompiled_runtime${executableSuffix}");
+final String genKernel = p.join("pkg", "vm", "bin", "gen_kernel.dart");
+final String checkedInDartVM =
+    p.join("tools", "sdks", "dart-sdk", "bin", "dart${executableSuffix}");
 
 Future<Result> runDart(String prefix, List<String> arguments) {
   final augmentedArguments = <String>[]
@@ -58,10 +61,11 @@ Future<Result> runDart(String prefix, List<String> arguments) {
 
 Future<Result> runGenKernel(String prefix, List<String> arguments) {
   final augmentedArguments = <String>[]
+    ..add(genKernel)
     ..add("--platform")
     ..add(platformDill)
     ..addAll(arguments);
-  return runBinary(prefix, genKernel, augmentedArguments);
+  return runBinary(prefix, checkedInDartVM, augmentedArguments);
 }
 
 Future<Result> runGenSnapshot(String prefix, List<String> arguments) {

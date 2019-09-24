@@ -585,6 +585,13 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
     functions = cls.functions();
     for (int i = 0; i < functions.Length(); i++) {
       func ^= functions.At(i);
+      // Skip getter functions of static const field.
+      if (func.kind() == RawFunction::kImplicitStaticGetter) {
+        field ^= func.accessor_field();
+        if (field.is_const() && field.is_static()) {
+          continue;
+        }
+      }
       VisitFunction(jsarr, func);
     }
 

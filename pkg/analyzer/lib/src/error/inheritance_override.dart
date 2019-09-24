@@ -135,7 +135,7 @@ class _ClassVerifier {
       return;
     }
 
-    InterfaceTypeImpl type = classElement.type;
+    InterfaceTypeImpl type = classElement.thisType;
 
     // Add all superinterfaces of the direct supertype.
     if (type.superclass != null) {
@@ -169,11 +169,11 @@ class _ClassVerifier {
         var fieldList = member.fields;
         for (var field in fieldList.variables) {
           FieldElement fieldElement = field.declaredElement;
-          _checkDeclaredMember(fieldList, libraryUri, fieldElement.getter);
-          _checkDeclaredMember(fieldList, libraryUri, fieldElement.setter);
+          _checkDeclaredMember(field.name, libraryUri, fieldElement.getter);
+          _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
         }
       } else if (member is MethodDeclaration) {
-        _checkDeclaredMember(member, libraryUri, member.declaredElement,
+        _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
       }
     }
@@ -221,6 +221,13 @@ class _ClassVerifier {
         // 2. if the class contains no member named `m`, and the class member
         //    for `noSuchMethod` is the one declared in `Object`, then it's a
         //    compile-time error.
+        // TODO(brianwilkerson) This code catches some cases not caught in
+        //  _checkDeclaredMember, but also duplicates the diagnostic reported
+        //  there in some other cases.
+        // TODO(brianwilkerson) In the case of methods inherited via mixins, the
+        //  diagnostic should be reported on the name of the mixin defining the
+        //  method. In other cases, it should be reported on the name of the
+        //  overriding method. The classNameNode is always wrong.
         if (!typeSystem.isOverrideSubtypeOf(
             concreteElement.type, interfaceElement.type)) {
           reporter.reportErrorForNode(
@@ -228,10 +235,10 @@ class _ClassVerifier {
             classNameNode,
             [
               name.name,
-              concreteElement.enclosingElement.name,
-              concreteElement.displayName,
               interfaceElement.enclosingElement.name,
-              interfaceElement.displayName,
+              interfaceElement.type.displayName,
+              concreteElement.enclosingElement.name,
+              concreteElement.type.displayName,
             ],
           );
         }
@@ -284,7 +291,7 @@ class _ClassVerifier {
               member.enclosingElement.name,
               member.type.displayName,
               superMember.enclosingElement.name,
-              superMember.displayName
+              superMember.type.displayName
             ],
           );
         }

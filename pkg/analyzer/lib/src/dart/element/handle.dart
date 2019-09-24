@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A handle to a [ClassElement].
@@ -70,6 +72,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isAbstract => actualElement.isAbstract;
 
   @override
+  bool get isDartCoreObject => actualElement.isDartCoreObject;
+
+  @override
   bool get isEnum => actualElement.isEnum;
 
   @override
@@ -113,6 +118,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   InterfaceType get supertype => actualElement.supertype;
 
   @override
+  InterfaceType get thisType => actualElement.thisType;
+
+  @override
   InterfaceType get type => actualElement.type;
 
   @override
@@ -143,6 +151,17 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   @override
   PropertyAccessorElement getSetter(String setterName) =>
       actualElement.getSetter(setterName);
+
+  @override
+  InterfaceType instantiate({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return actualElement.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 
   @override
   MethodElement lookUpConcreteMethod(
@@ -763,6 +782,17 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   @override
   FunctionType instantiate(List<DartType> argumentTypes) =>
       actualElement.instantiate(argumentTypes);
+
+  @override
+  FunctionType instantiate2({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return actualElement.instantiate2(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 }
 
 /**
@@ -810,6 +840,17 @@ class GenericTypeAliasElementHandle extends ElementHandle
   @override
   FunctionType instantiate(List<DartType> argumentTypes) =>
       actualElement.instantiate(argumentTypes);
+
+  @override
+  FunctionType instantiate2({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return actualElement.instantiate2(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 }
 
 /**
@@ -1234,6 +1275,13 @@ class TypeParameterElementHandle extends ElementHandle
 
   @override
   TypeParameterType get type => actualElement.type;
+
+  @override
+  TypeParameterType instantiate({
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return actualElement.instantiate(nullabilitySuffix: nullabilitySuffix);
+  }
 }
 
 /**

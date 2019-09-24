@@ -215,7 +215,7 @@ class ClassHierarchyBuilder {
 
   final List<DelayedMember> delayedMemberChecks = <DelayedMember>[];
 
-  // TODO(ahe): Remove this.
+  // TODO(dmitryas): Consider removing this.
   final CoreTypes coreTypes;
 
   Types types;
@@ -275,20 +275,20 @@ class ClassHierarchyBuilder {
     if (kernelClass == superclass) return type;
     if (kernelClass == nullClass) {
       if (superclass.typeParameters.isEmpty) {
-        return superclass.rawType;
+        return coreTypes.legacyRawType(superclass);
       } else {
         // This is a safe fall-back for dealing with `Null`. It will likely be
         // faster to check for `Null` before calling this method.
         return new InterfaceType(
             superclass,
             new List<DartType>.filled(
-                superclass.typeParameters.length, nullClass.rawType));
+                superclass.typeParameters.length, coreTypes.nullType));
       }
     }
     NamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
     if (supertype == null) return null;
     if (supertype.arguments == null && superclass.typeParameters.isEmpty) {
-      return superclass.rawType;
+      return coreTypes.legacyRawType(superclass);
     }
     return Substitution.fromInterfaceType(type)
         .substituteType(supertype.build(null));
@@ -317,7 +317,7 @@ class ClassHierarchyBuilder {
       }
     }
 
-    if (common.length == 1) return objectClass.rawType;
+    if (common.length == 1) return coreTypes.objectLegacyRawType;
     common.sort(ClassHierarchyNode.compareMaxInheritancePath);
 
     for (int i = 0; i < common.length - 1; i++) {
@@ -330,7 +330,7 @@ class ClassHierarchyBuilder {
         } while (node.maxInheritancePath == common[i + 1].maxInheritancePath);
       }
     }
-    return objectClass.rawType;
+    return coreTypes.objectLegacyRawType;
   }
 
   Member getInterfaceMemberKernel(Class cls, Name name, bool isSetter) {
@@ -1961,13 +1961,14 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   Class get nullClass => hierarchy.nullClass;
 
   @override
-  InterfaceType get nullType => nullClass.rawType;
+  InterfaceType get nullType => hierarchy.coreTypes.nullType;
 
   @override
-  InterfaceType get objectType => objectClass.rawType;
+  InterfaceType get objectType => hierarchy.coreTypes.objectLegacyRawType;
 
   @override
-  InterfaceType get rawFunctionType => functionClass.rawType;
+  InterfaceType get rawFunctionType =>
+      hierarchy.coreTypes.functionLegacyRawType;
 
   @override
   void addLowerBound(TypeConstraint constraint, DartType lower) {

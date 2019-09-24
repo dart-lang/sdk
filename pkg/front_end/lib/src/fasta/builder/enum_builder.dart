@@ -265,8 +265,7 @@ class EnumBuilder extends SourceClassBuilder {
 
   InterfaceType buildType(LibraryBuilder library, Nullability nullability,
       List<TypeBuilder> arguments) {
-    // TODO(dmitryas): Use [nullability].
-    return cls.rawType;
+    return rawType(nullability);
   }
 
   @override
@@ -300,8 +299,8 @@ class EnumBuilder extends SourceClassBuilder {
     }
     FieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
-    valuesBuilder.initializer =
-        new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
+    valuesBuilder.initializer = new ListLiteral(values,
+        typeArgument: rawType(library.nonNullable), isConst: true);
     ConstructorBuilder constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(

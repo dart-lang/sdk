@@ -168,7 +168,7 @@ class ExtensionTypeSet {
   /// For example for dart:_interceptors `JSArray` this will return "Array",
   /// referring to the JavaScript built-in `Array` type.
   List<String> getNativePeers(ClassElement classElem) {
-    if (classElem.type.isObject) return ['Object'];
+    if (classElem.isDartCoreObject) return ['Object'];
     var names = getAnnotationName(
         classElem,
         (a) =>

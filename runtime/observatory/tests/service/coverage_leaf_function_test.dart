@@ -44,12 +44,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(392, 26),
-      'endPos': ifKernel(442, 38),
+      'startPos': 392,
+      'endPos': 442,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([], []),
-        'misses': ifKernel([392], [26])
+        'hits': [],
+        'misses': [392]
       }
     };
 
@@ -85,12 +85,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(392, 26),
-      'endPos': ifKernel(442, 38),
+      'startPos': 392,
+      'endPos': 442,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([392], [26]),
-        'misses': ifKernel([], [])
+        'hits': [392],
+        'misses': []
       }
     };
 

@@ -5,6 +5,8 @@
 ///
 /// For more information on these APIs, see the
 /// [chrome.* API documentation](http://developer.chrome.com/apps/api_index.html).
+// @dart = 2.5
+
 library _chrome;
 
 import 'dart:_foreign_helper' show JS;

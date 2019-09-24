@@ -130,6 +130,8 @@ class JsClosedWorldBuilder {
     Set<MemberEntity> processedMembers =
         map.toBackendMemberSet(closedWorld.liveMemberUsage.keys);
 
+    Set<ClassEntity> extractTypeArgumentsInterfacesNewRti = {};
+
     RuntimeTypesNeed rtiNeed;
 
     List<FunctionEntity> callMethods = <FunctionEntity>[];
@@ -223,6 +225,7 @@ class JsClosedWorldBuilder {
         liveInstanceMembers /*..addAll(callMethods)*/,
         assignedInstanceMembers,
         processedMembers,
+        extractTypeArgumentsInterfacesNewRti,
         mixinUses,
         typesImplementedBySubclasses,
         new ClassHierarchyImpl(

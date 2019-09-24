@@ -1330,6 +1330,10 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
   }
 
+  Future collectAllGarbage() {
+    return invokeRpc('_collectAllGarbage', {});
+  }
+
   /// Fetches and builds the class hierarchy for this isolate. Returns the
   /// Object class object.
   Future<Class> getClassHierarchy() async {

@@ -6,7 +6,7 @@
 library test;
 
 class C<T> {
-  void Function(T) f<U>(U x) => /*@ returnType=Null* */ (/*@ type=C::T* */ y) {};
+  void Function(T) f<U>(U x) => /*@ returnType=Null? */ (/*@ type=C::T* */ y) {};
 }
 
 void test(C<String> c) {

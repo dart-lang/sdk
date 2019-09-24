@@ -30,6 +30,7 @@ main() {
     String normalOut,
     bool pedanticFixes = false,
     bool requiredFixes = false,
+    String outputDir,
     bool overwrite = false,
     String serverSnapshot,
     List<String> targetSuffixes,
@@ -55,6 +56,7 @@ main() {
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
     expect(options.requiredFixes, requiredFixes);
+    expect(options.outputDir, outputDir);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
     expect(options.showHelp, showHelp);
@@ -115,6 +117,10 @@ main() {
         errorOut: 'Expected directory, but found', exitCode: 21);
   });
 
+  test('outputDir', () {
+    parse(['--outputDir=bar', 'foo'], outputDir: 'bar');
+  });
+
   test('overwrite', () {
     parse(['--overwrite', 'foo'], overwrite: true, targetSuffixes: ['foo']);
   });
@@ -145,12 +151,6 @@ main() {
   });
 }
 
-void expectOneFileTarget(Options options, String fileName) {
-  expect(options.targets, hasLength(1));
-  final target = options.targets[0];
-  expect(target.endsWith(fileName), isTrue);
-}
-
 void expectContains(Iterable<String> collection, String suffix) {
   for (String elem in collection) {
     if (elem.endsWith(suffix)) {
@@ -158,4 +158,10 @@ void expectContains(Iterable<String> collection, String suffix) {
     }
   }
   fail('Expected one of $collection\n  to end with "$suffix"');
+}
+
+void expectOneFileTarget(Options options, String fileName) {
+  expect(options.targets, hasLength(1));
+  final target = options.targets[0];
+  expect(target.endsWith(fileName), isTrue);
 }

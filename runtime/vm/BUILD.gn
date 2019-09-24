@@ -13,7 +13,6 @@ import("../../sdk/lib/internal/internal_sources.gni")
 import("../../sdk/lib/isolate/isolate_sources.gni")
 import("../../sdk/lib/math/math_sources.gni")
 import("../../sdk/lib/mirrors/mirrors_sources.gni")
-import("../../sdk/lib/profiler/profiler_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
 import("../../sdk/lib/wasm/wasm_sources.gni")
@@ -69,7 +68,7 @@ library_for_all_configs("libdart_vm") {
   extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg/lib/sys/cpp" ]
+      extra_deps += [ "$fuchsia_sdk_root/pkg:sys_cpp" ]
     } else {
       extra_deps += [
         # TODO(US-399): Remove time_service specific code when it is no longer
@@ -101,6 +100,9 @@ library_for_all_configs("libdart_lib") {
         "//zircon/public/lib/trace-engine",
       ]
     }
+  }
+  if (dart_enable_wasm) {
+    defines = [ "DART_ENABLE_WASM" ]
   }
   include_dirs = [ ".." ]
   allsources = async_runtime_cc_files + collection_runtime_cc_files +

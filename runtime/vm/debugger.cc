@@ -1060,41 +1060,18 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
 
   ASSERT(!IsInterpreted());
   ASSERT(script.kind() == RawScript::kKernelTag);
-  const Array& await_to_token_map =
-      Array::Handle(zone, script.yield_positions());
-  if (await_to_token_map.IsNull()) {
-    // No mapping.
-    return;
-  }
   const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
   }
   intptr_t await_to_token_map_index = await_jump_var - 1;
-  // yield_positions returns all yield positions for the script (in sorted
-  // order).
-  // We thus need to offset the function start to get the actual index.
-  if (!function_.token_pos().IsReal()) {
-    return;
-  }
-  const intptr_t function_start = function_.token_pos().value();
-  for (intptr_t i = 0;
-       i < await_to_token_map.Length() &&
-       Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
-           function_start;
-       i++) {
-    await_to_token_map_index++;
-  }
-
-  if (await_to_token_map_index >= await_to_token_map.Length()) {
-    return;
-  }
-
+  const auto& array =
+      GrowableObjectArray::Handle(zone, script.GetYieldPositions(function_));
+  // await_jump_var is non zero means that array should not be empty
+  // index also fall into the correct range
+  ASSERT(array.Length() > 0 && await_to_token_map_index < array.Length());
   const Object& token_pos =
-      Object::Handle(await_to_token_map.At(await_to_token_map_index));
-  if (token_pos.IsNull()) {
-    return;
-  }
+      Object::Handle(zone, array.At(await_to_token_map_index));
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
@@ -1156,7 +1133,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).raw();
       } else {
-        ASSERT(obj.IsNull());
+        ASSERT(obj.IsNull() || obj.raw() == Symbols::OptimizedOut().raw());
+        ctx_ = Context::null();
       }
       return ctx_;
     }
@@ -1431,7 +1409,12 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
                                                   intptr_t ctx_slot,
                                                   intptr_t frame_ctx_level) {
   const Context& ctx = GetSavedCurrentContext();
-  ASSERT(!ctx.IsNull());
+
+  // It's possible that ctx was optimized out as no locals were captured by the
+  // context. See issue #38182.
+  if (ctx.IsNull()) {
+    return Symbols::OptimizedOut().raw();
+  }
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
   if (level_diff == 0) {
@@ -1440,8 +1423,7 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
     }
     ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
     return ctx.At(ctx_slot);
-  } else {
-    ASSERT(level_diff > 0);
+  } else if (level_diff > 0) {
     Context& var_ctx = Context::Handle(ctx.raw());
     while (level_diff > 0 && !var_ctx.IsNull()) {
       level_diff--;
@@ -1454,6 +1436,9 @@ RawObject* ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
     ASSERT(!var_ctx.IsNull());
     ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
     return var_ctx.At(ctx_slot);
+  } else {
+    PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
+    return Object::null();
   }
 }
 
@@ -1607,7 +1592,7 @@ const char* ActivationFrame::ToCString() {
   }
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
-  const char* func_name = Debugger::QualifiedFunctionName(function());
+  const char* func_name = function().ToFullyQualifiedCString();
   if (live_frame_) {
     return Thread::Current()->zone()->PrintToString(
         "[ Frame pc(0x%" Px " %s offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
@@ -1802,6 +1787,7 @@ CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
 #endif
 {
   ASSERT(!bytecode.IsNull());
+  ASSERT(FLAG_enable_interpreter);
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
 }
@@ -3171,7 +3157,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   ASSERT(!func.HasOptimizedCode());
   ASSERT(func.HasCode() || func.HasBytecode());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (func.HasBytecode()) {
+  if (func.HasBytecode() && FLAG_enable_interpreter) {
     Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
     uword pc = 0;
@@ -3293,7 +3279,7 @@ void Debugger::FindCompiledFunctions(
         (function.end_token_pos() == end_pos) &&
         (function.script() == script.raw())) {
       if (function.is_debuggable()) {
-        if (function.HasBytecode()) {
+        if (FLAG_enable_interpreter && function.HasBytecode()) {
           bytecode_function_list->Add(function);
         }
         if (function.HasCode()) {
@@ -3303,7 +3289,7 @@ void Debugger::FindCompiledFunctions(
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
         if (function.is_debuggable()) {
-          if (function.HasBytecode()) {
+          if (FLAG_enable_interpreter && function.HasBytecode()) {
             bytecode_function_list->Add(function);
           }
           if (function.HasCode()) {
@@ -3337,11 +3323,12 @@ void Debugger::FindCompiledFunctions(
           ASSERT(!function.IsNull());
           bool function_added = false;
           if (function.is_debuggable() &&
-              (function.HasCode() || function.HasBytecode()) &&
+              (function.HasCode() ||
+               (FLAG_enable_interpreter && function.HasBytecode())) &&
               function.token_pos() == start_pos &&
               function.end_token_pos() == end_pos &&
               function.script() == script.raw()) {
-            if (function.HasBytecode()) {
+            if (FLAG_enable_interpreter && function.HasBytecode()) {
               bytecode_function_list->Add(function);
             }
             if (function.HasCode()) {
@@ -3352,7 +3339,7 @@ void Debugger::FindCompiledFunctions(
           if (function_added && function.HasImplicitClosureFunction()) {
             function = function.ImplicitClosureFunction();
             if (function.is_debuggable()) {
-              if (function.HasBytecode()) {
+              if (FLAG_enable_interpreter && function.HasBytecode()) {
                 bytecode_function_list->Add(function);
               }
               if (function.HasCode()) {
@@ -3498,6 +3485,7 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t requested_column,
     TokenPosition exact_token_pos,
     const GrowableObjectArray& functions) {
+  ASSERT(!in_bytecode || FLAG_enable_interpreter);
   Function& function = Function::Handle();
   function ^= functions.At(0);
   TokenPosition breakpoint_pos =
@@ -4398,12 +4386,16 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
     ASSERT(script.kind() == RawScript::kKernelTag);
-    // Are we at a yield point (previous await)?
-    const Array& yields = Array::Handle(script.yield_positions());
+    const auto& yield_positions = GrowableObjectArray::Handle(
+        zone, script.GetYieldPositions(top_frame->function()));
+    // No yield statements
+    if (yield_positions.IsNull() || (yield_positions.Length() == 0)) {
+      return false;
+    }
     intptr_t looking_for = top_frame->TokenPos().value();
     Smi& value = Smi::Handle(zone);
-    for (int i = 0; i < yields.Length(); i++) {
-      value ^= yields.At(i);
+    for (int i = 0; i < yield_positions.Length(); i++) {
+      value ^= yield_positions.At(i);
       if (value.Value() == looking_for) {
         return true;
       }
@@ -4720,6 +4712,10 @@ TokenPosition Debugger::FindExactTokenPosition(const Script& script,
 void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
   if (breakpoint_locations_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
+    return;
+  }
+  if (bytecode_loaded && !FLAG_enable_interpreter) {
+    // We do not set breakpoints in bytecode if the interpreter is not used.
     return;
   }
   if (!func.is_debuggable()) {

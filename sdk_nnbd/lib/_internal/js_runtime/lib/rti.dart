@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.5
+
 /// This library contains support for runtime type information.
 library rti;
 
@@ -2147,11 +2149,16 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     }
   }
 
+  // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
+  // types using features inaccessible from JavaScript.
+
   if (isGenericFunctionKind(t)) {
+    if (isJsFunctionType(s)) return true;
     return _isGenericFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
   if (isFunctionKind(t)) {
+    if (isJsFunctionType(s)) return true;
     return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
@@ -2397,6 +2404,11 @@ bool isNullType(Rti t) =>
 bool isFunctionType(Rti t) =>
     Rti._getKind(t) == Rti.kindInterface &&
     Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME);
+
+bool isJsFunctionType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) ==
+        JS_GET_NAME(JsGetName.JS_FUNCTION_CLASS_TYPE_NAME);
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);

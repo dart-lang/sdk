@@ -996,8 +996,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
-    if (node.leftBracket.type !=
-        TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
+    if (!node.isNullAware) {
       _checkForNullableDereference(node.target);
     }
     super.visitIndexExpression(node);
@@ -1106,7 +1105,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _checkForNullableDereference(methodName);
     _requiredParametersVerifier.visitMethodInvocation(node);
-    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+    if (!node.isNullAware &&
         methodName.name != 'toString' &&
         methodName.name != 'noSuchMethod') {
       _checkForNullableDereference(target);
@@ -1219,7 +1218,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForStaticAccessToInstanceMember(typeReference, propertyName);
     _checkForInstanceAccessToStaticMember(
         typeReference, node.target, propertyName);
-    if (node.operator?.type != TokenType.QUESTION_PERIOD &&
+    if (!node.isNullAware &&
         !_objectPropertyNames.contains(propertyName.name)) {
       _checkForNullableDereference(node.target);
     }
@@ -2245,7 +2244,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingClass == null) {
       return;
     }
-    InterfaceType enclosingType = _enclosingClass.type;
+    InterfaceType enclosingType = _enclosingClass.thisType;
     Uri libraryUri = _currentLibrary.source.uri;
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -2329,7 +2328,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       visitedClasses.removeLast();
     }
 
-    visit(_enclosingClass.type);
+    visit(_enclosingClass.thisType);
   }
 
   /**
@@ -2726,9 +2725,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (parent is ForElement) {
       awaitKeyword = parent.awaitKeyword;
     }
-    DartType loopType = awaitKeyword != null
-        ? _typeProvider.streamType
-        : _typeProvider.iterableType;
 
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopTypeName = awaitKeyword != null ? "Stream" : "Iterable";
@@ -2737,13 +2733,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // is assignable to the variable's type.
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-    DartType bestIterableType =
-        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+
+    ClassElement sequenceElement = awaitKeyword != null
+        ? _typeProvider.streamElement
+        : _typeProvider.iterableElement;
+
+    DartType bestIterableType;
+    if (iterableType is InterfaceTypeImpl) {
+      var sequenceType = iterableType.asInstanceOf(sequenceElement);
+      if (sequenceType != null) {
+        bestIterableType = sequenceType.typeArguments[0];
+      }
+    }
 
     // Allow it to be a supertype of Iterable<T> (basically just Object) and do
     // an implicit downcast to Iterable<dynamic>.
     if (bestIterableType == null) {
-      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
+      if (iterableType == _typeProvider.objectType) {
         bestIterableType = DynamicTypeImpl.instance;
       }
     }
@@ -3906,7 +3912,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    InterfaceTypeImpl enclosingType = _enclosingClass.type;
+    InterfaceTypeImpl enclosingType = _enclosingClass.thisType;
     Uri mixinLibraryUri = mixinElement.librarySource.uri;
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = new Name(mixinLibraryUri, name);
@@ -4782,9 +4788,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     if (!expectedType.isVoid && !fromType.isVoid) {
-      var checkWithType = (!_inAsync)
-          ? fromType
-          : _typeProvider.futureType.instantiate(<DartType>[fromType]);
+      var checkWithType =
+          !_inAsync ? fromType : _typeProvider.futureType2(fromType);
       if (_typeSystem.isAssignableTo(checkWithType, expectedType,
           featureSet: _featureSet)) {
         return;
@@ -5074,10 +5079,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        name,
-        [enclosingElement.name]);
+    if (element is MethodElement) {
+      // Invalid methods are reported in
+      // [MethodInvocationResolver._resolveReceiverNull].
+      return;
+    }
+    if (_enclosingExtension != null) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          name,
+          [enclosingElement.displayName]);
+    } else {
+      _errorReporter.reportErrorForNode(
+          StaticTypeWarningCode
+              .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          name,
+          [enclosingElement.displayName]);
+    }
   }
 
   /**
@@ -5311,11 +5330,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (isYieldEach) {
       impliedReturnType = staticYieldedType;
     } else if (_enclosingFunction.isAsynchronous) {
-      impliedReturnType =
-          _typeProvider.streamType.instantiate(<DartType>[staticYieldedType]);
+      impliedReturnType = _typeProvider.streamType2(staticYieldedType);
     } else {
-      impliedReturnType =
-          _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
+      impliedReturnType = _typeProvider.iterableType2(staticYieldedType);
     }
     if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
         declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {
@@ -5375,7 +5392,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     ClassElement classElement = node.declaredElement;
-    var type = classElement.type;
+    var type = classElement.thisType;
     var supertype = classElement.supertype;
     List<InterfaceType> supertypesForMixinInference = <InterfaceType>[];
     ClassElementImpl.collectAllSupertypes(

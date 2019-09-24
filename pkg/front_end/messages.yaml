@@ -195,6 +195,16 @@ NotAConstantExpression:
   template: "Not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
 
+MissingExplicitConst:
+  template: "Constant expression expected."
+  tip: "Try inserting 'const'."
+  analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: >
+    class A {
+      final x;
+      const A(): x = [];
+    }
+
 NonAsciiIdentifier:
   template: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   tip: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
@@ -1249,6 +1259,12 @@ SuperNullAware:
   tip: "Try replacing '?.' with '.'"
   analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
 
+NullAwareCascadeOutOfOrder:
+  index: 96
+  template: "The '?..' cascade operator must be first in the cascade sequence."
+  tip: "Try moving the '?..' operator to be the first cascade operator in the sequence."
+  analyzerCode: ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER
+
 ConstFieldWithoutInitializer:
   template: "The const variable '#name' must be initialized."
   tip: "Try adding an initializer ('= <expression>') to the declaration."
@@ -1678,14 +1694,6 @@ InternalProblemVerificationError:
 
 InternalProblemDebugAbort:
   template: "Compilation aborted due to fatal '#name' at:\n#string"
-  severity: INTERNAL_PROBLEM
-
-InternalProblemNoInferredTypeStored:
-  template: "There's no inferred type for '#name'."
-  severity: INTERNAL_PROBLEM
-
-InternalProblemStoringMultipleInferredTypes:
-  template: "There's already an inferred type, '#type', for '#name'."
   severity: INTERNAL_PROBLEM
 
 InternalProblemLabelUsageInVariablesDeclaration:

@@ -619,6 +619,24 @@ class AstBinaryReader {
     }
   }
 
+  ExtensionOverride _read_extensionOverride(LinkedNode data) {
+    var node = astFactory.extensionOverride(
+      extensionName: _readNode(data.extensionOverride_extensionName),
+      argumentList: astFactory.argumentList(
+        _Tokens.OPEN_PAREN,
+        _readNodeList(
+          data.extensionOverride_arguments,
+        ),
+        _Tokens.CLOSE_PAREN,
+      ),
+      typeArguments: _readNode(data.extensionOverride_typeArguments),
+    ) as ExtensionOverrideImpl;
+    node.extendedType = _readType(data.extensionOverride_extendedType);
+    node.typeArgumentTypes =
+        data.extensionOverride_typeArgumentTypes.map(_readType).toList();
+    return node;
+  }
+
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
       comment: _readDocumentationComment(data),
@@ -1719,6 +1737,8 @@ class AstBinaryReader {
         return _read_extendsClause(data);
       case LinkedNodeKind.extensionDeclaration:
         return _read_extensionDeclaration(data);
+      case LinkedNodeKind.extensionOverride:
+        return _read_extensionOverride(data);
       case LinkedNodeKind.fieldDeclaration:
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:

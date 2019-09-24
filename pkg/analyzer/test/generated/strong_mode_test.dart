@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1133,7 +1134,6 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
   AsserterBuilder<DartType, DartType> _isType;
 
   AsserterBuilder<Element, DartType> _hasElement;
-  AsserterBuilder<DartType, DartType> _hasElementOf;
 
   @override
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
@@ -1152,15 +1152,14 @@ class StrongModeLocalInferenceTest extends ResolverTestCase {
       _isListOf = _assertions.isListOf;
       _isMapOf = _assertions.isMapOf;
       _isFunction2Of = _assertions.isFunction2Of;
-      _hasElementOf = _assertions.hasElementOf;
-      _isFutureOf = _isInstantiationOf(_hasElementOf(typeProvider.futureType));
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf =
-          _isInstantiationOf(_hasElementOf(typeProvider.futureOrType));
+          _isInstantiationOf(_hasElement(typeProvider.futureOrElement));
       _isFutureOfDynamic = _isFutureOf([_isDynamic]);
       _isFutureOfInt = _isFutureOf([_isInt]);
       _isFutureOfNull = _isFutureOf([_isNull]);
       _isFutureOrOfInt = _isFutureOrOf([_isInt]);
-      _isStreamOf = _isInstantiationOf(_hasElementOf(typeProvider.streamType));
+      _isStreamOf = _isInstantiationOf(_hasElement(typeProvider.streamElement));
     }
     return result;
   }
@@ -1821,8 +1820,10 @@ class E extends D implements C<int> {}
     ClassElement elementB = AstFinder.getClass(unit, "B").declaredElement;
     ClassElement elementA = AstFinder.getClass(unit, "A").declaredElement;
     expect(exp.constructorName.type.type.element, elementB);
-    _isInstantiationOf(_hasElement(elementB))(
-        [_isType(elementA.typeParameters[0].type)])(exp.staticType);
+    _isInstantiationOf(_hasElement(elementB))([
+      _isType(elementA.typeParameters[0]
+          .instantiate(nullabilitySuffix: NullabilitySuffix.star))
+    ])(exp.staticType);
   }
 
   test_fieldDeclaration_propagation() async {
@@ -4354,8 +4355,7 @@ main() {
     expect(ft.toString(), 'List<int> Function(String)');
 
     SimpleIdentifier x = findIdentifier('x');
-    expect(x.staticType,
-        typeProvider.listType.instantiate([typeProvider.intType]));
+    expect(x.staticType, typeProvider.listType2(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {

@@ -121,9 +121,6 @@ class AnalyzerToKernel {
     return result;
   }
 
-  /// Dispose the Analysis Context used for summary conversion.
-  void dispose() => _resynth.context.dispose();
-
   void verifyReferences() {
     _references.forEach((element, reference) {
       // Ensure each reference has a corresponding node.
@@ -799,11 +796,11 @@ class AnalyzerToKernel {
       return TypeLiteral(_visitDartType(obj.toTypeValue()));
     }
     if (type is a.InterfaceType) {
-      if (type.element == types.listType.element) {
+      if (type.element == types.listElement) {
         return ListLiteral(obj.toListValue().map(_visitConstant).toList(),
             typeArgument: _visitDartType(type.typeArguments[0]), isConst: true);
       }
-      if (type.element == types.mapType.element) {
+      if (type.element == types.mapElement) {
         var entries = obj
             .toMapValue()
             .entries
@@ -898,7 +895,6 @@ a.AnalysisContextImpl _createContextForSummaries(
       as a.AnalysisContextImpl;
   context.sourceFactory = a.SourceFactory(
       [a.DartUriResolver(sdk), a.InSummaryUriResolver(null, summaryData)]);
-  context.useSdkCachePartition = false;
   // TODO(jmesserly): do we need to set analysisOptions or declaredVariables?
   return context;
 }

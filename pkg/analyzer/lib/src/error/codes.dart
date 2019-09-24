@@ -146,13 +146,69 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "explicitly hiding the name in one of the export directives.");
 
   /**
-   * It is a compile time error if there are two applicable extensions defining
-   * the same member and neither is more specific than the other.
-   *
    * Parameters:
    * 0: the name of the member
    * 1: the name of the first declaring extension
    * 2: the name of the second declaring extension
+   */
+  // #### Description
+  //
+  // When code refers to a member of an object (for example, `o.m()` or `o.m` or
+  // `o[i]`) where the static type of `o` doesn't declare the member (`m` or
+  // `[]`, for example), then the analyzer tries to find the member in an
+  // extension. For example, if the member is `m`, then the analyzer looks for
+  // extensions that declare a member named `m` and have an extended type that
+  // the static type of `o` can be assigned to. When there's more than one such
+  // extension in scope, the extension whose extended type is most specific is
+  // selected.
+  //
+  // The analyzer produces this diagnostic when none of the extensions has an
+  // extended type that's more specific than the extended types of all of the
+  // other extensions, making the reference to the member ambiguous.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because there's no way to
+  // choose between the member in `E1` and the member in `E2`:
+  //
+  // ```dart
+  // extension E1 on String {
+  //   int get charCount => 1;
+  // }
+  //
+  // extension E2 on String {
+  //   int get charCount => 2;
+  // }
+  //
+  // void f(String s) {
+  //   print(s.[!charCount!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need both extensions, then you can delete or hide one of them.
+  //
+  // If you need both, then explicitly select the one you want to use by using
+  // an extension override:
+  //
+  // ```dart
+  // extension E1 on String {
+  //   int get charCount => length;
+  // }
+  //
+  // extension E2 on String {
+  //   int get charCount => length;
+  // }
+  //
+  // void f(String s) {
+  //   print(E2(s).charCount);
+  // }
+  // ```
+  /*
+   * TODO(brianwilkerson) This message doesn't handle the possible case where
+   *  there are more than 2 extensions, nor does it handle well the case where
+   *  one or more of the extensions is unnamed.
    */
   static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_MEMBER_ACCESS =
       const CompileTimeErrorCode(
@@ -282,7 +338,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // ```dart
   // union(a, b) {
-  //   var x = {...a, ...b};
+  //   var x = [!{...a, ...b}!];
   //   return x;
   // }
   // ```
@@ -661,6 +717,86 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "changing the import to not be deferred.");
 
   /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a boolean
+   * value.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_INT',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool' or 'int'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
+   * e1 and e2 are constant expressions that evaluate to a numeric, string or
+   * boolean value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_BOOL_NUM_STRING',
+          "In constant expressions, operands of this operator must be of type "
+              "'bool', 'num', 'String' or 'null'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
+   * e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
+   * that evaluate to an integer value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_INT',
+          "In constant expressions, operands of this operator must be of type "
+              "'int'.");
+
+  /**
+   * 16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
+   * e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
+   * where e, e1 and e2 are constant expressions that evaluate to a numeric
+   * value or to null.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_NUM',
+          "In constant expressions, operands of this operator must be of type "
+              "'num'.");
+
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_TYPE_TYPE',
+          "In constant expressions, operands of this operator must be of type "
+              "'Type'.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
+      const CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
+          "Evaluation of this constant expression throws an exception.");
+
+  /**
+   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
+   * object results in an uncaught exception being thrown.
+   */
+  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
+      const CompileTimeErrorCode(
+          'CONST_EVAL_THROWS_IDBZE',
+          "Evaluation of this constant expression throws an "
+              "IntegerDivisionByZeroException.");
+
+  /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is
    * declared as a constant variable.
    */
@@ -740,14 +876,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try declaring the field as final, or adding the keyword "
               "'static'.");
 
-  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
-      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
-          "A list or a set is expected in this spread.");
-
-  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
-      const CompileTimeErrorCode(
-          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
-
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
    * map literal is an instance of a class that implements the operator
@@ -789,85 +917,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a different value for the element, or "
               "removing the keyword 'const' from the set.");
 
-  /**
-   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a boolean
-   * value.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool'.");
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
+      const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
+          "A list or a set is expected in this spread.");
 
-  /**
-   * 16.12.2 Const: An expression of one of the forms !e, e1 && e2 or e1 || e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a boolean
-   * value.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_INT =
+  static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
       const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL_INT',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool' or 'int'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms e1 == e2 or e1 != e2 where
-   * e1 and e2 are constant expressions that evaluate to a numeric, string or
-   * boolean value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_BOOL_NUM_STRING',
-          "In constant expressions, operands of this operator must be of type "
-              "'bool', 'num', 'String' or 'null'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms ~e, e1 ^ e2, e1 & e2,
-   * e1 | e2, e1 >> e2 or e1 << e2, where e, e1 and e2 are constant expressions
-   * that evaluate to an integer value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_INT =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_INT',
-          "In constant expressions, operands of this operator must be of type "
-              "'int'.");
-
-  /**
-   * 16.12.2 Const: An expression of one of the forms e, e1 + e2, e1 - e2, e1 *
-   * e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
-   * where e, e1 and e2 are constant expressions that evaluate to a numeric
-   * value or to null.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_NUM',
-          "In constant expressions, operands of this operator must be of type "
-              "'num'.");
-
-  static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_TYPE_TYPE',
-          "In constant expressions, operands of this operator must be of type "
-              "'Type'.");
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
-      const CompileTimeErrorCode('CONST_EVAL_THROWS_EXCEPTION',
-          "Evaluation of this constant expression throws an exception.");
-
-  /**
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   */
-  static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
-      const CompileTimeErrorCode(
-          'CONST_EVAL_THROWS_IDBZE',
-          "Evaluation of this constant expression throws an "
-              "IntegerDivisionByZeroException.");
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>,
@@ -968,15 +1024,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try calling a different constructor.");
 
   /**
-   * 15.3.1 Typedef: It is a compile-time error if any default values are
-   * specified in the signature of a function type alias.
-   */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS =
-      const CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS',
-          "Default parameter values aren't allowed in typedefs.",
-          correction: "Try removing the default value.");
-
-  /**
    * It is an error to call the default List constructor with a length argument
    * and a type argument which is potentially non-nullable.
    */
@@ -986,6 +1033,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "A list whose values can't be 'null' can't be given an initial "
               "length because the initial values would all be 'null'.",
           correction: "Try removing the argument or using 'List.filled'.");
+
+  /**
+   * 15.3.1 Typedef: It is a compile-time error if any default values are
+   * specified in the signature of a function type alias.
+   */
+  static const CompileTimeErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS =
+      const CompileTimeErrorCode('DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS',
+          "Default parameter values aren't allowed in typedefs.",
+          correction: "Try removing the default value.");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the
@@ -1116,6 +1172,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "parameter.");
 
   /**
+   * 16.11 Sets: It is a compile-time error if two elements of a constant set
+   * literal are equal according to their `==` operator (16.27).
+   */
+  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
+      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
+          "Two values in a constant set can't be equal.");
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -1151,14 +1215,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Two keys in a constant map literal can't be equal.",
           correction: "Change or remove the duplicate key.",
           hasPublishedDocs: true);
-
-  /**
-   * 16.11 Sets: It is a compile-time error if two elements of a constant set
-   * literal are equal according to their `==` operator (16.27).
-   */
-  static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
-      const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
-          "Two values in a constant set can't be equal.");
 
   /**
    * SDK implementation libraries can be exported only by other SDK libraries.
@@ -1198,7 +1254,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the expression is intended to compute either a key or a value in an
   // entry, fix the issue by replacing the expression with the key or the value.
@@ -1214,21 +1270,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try removing the expression or converting it to be a map "
               "entry.",
           hasPublishedDocs: true);
-
-  /**
-   * 7.9 Superclasses: It is a compile-time error if the extends clause of a
-   * class <i>C</i> includes a type expression that does not denote a class
-   * available in the lexical scope of <i>C</i>.
-   *
-   * Parameters:
-   * 0: the name of the superclass that was not found
-   */
-  static const CompileTimeErrorCode EXTENDS_NON_CLASS =
-      const CompileTimeErrorCode(
-          'EXTENDS_NON_CLASS', "Classes can only extend other classes.",
-          correction:
-              "Try specifying a different superclass, or removing the extends "
-              "clause.");
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or
@@ -1280,6 +1321,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "removing the extends clause.");
 
   /**
+   * 7.9 Superclasses: It is a compile-time error if the extends clause of a
+   * class <i>C</i> includes a type expression that does not denote a class
+   * available in the lexical scope of <i>C</i>.
+   *
+   * Parameters:
+   * 0: the name of the superclass that was not found
+   */
+  static const CompileTimeErrorCode EXTENDS_NON_CLASS =
+      const CompileTimeErrorCode(
+          'EXTENDS_NON_CLASS', "Classes can only extend other classes.",
+          correction:
+              "Try specifying a different superclass, or removing the extends "
+              "clause.");
+
+  /**
    * Parameters:
    * 0: the name of the extension
    */
@@ -1289,17 +1345,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try replacing it with a valid expression.");
 
   /**
-   * It is for an extension to define a static member and an instance member
-   * with the same base name.
-   *
    * Parameters:
    * 0: the name of the extension defining the conflicting member
    * 1: the name of the conflicting static member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension declaration
+  // contains both an instance member and a static member that have the same
+  // name. The instance member and the static member can't have the same name
+  // because it's unclear which member is being referenced by an unqualified use
+  // of the name within the body of the extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on Object {
+  //   int get a => 0;
+  //   static int [!a!]() => 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Rename or remove one of the members:
+  //
+  // ```dart
+  // extension E on Object {
+  //   int get a => 0;
+  //   static int b() => 0;
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_CONFLICTING_STATIC_AND_INSTANCE =
       const CompileTimeErrorCode(
           'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-          "Extension '{0}' can't define static member '{1}' and instance "
+          "Extension '{0}' can't define static member '{1}' and an instance "
               "member with the same name.",
           correction:
               "Try renaming the member to a name that doesn't conflict.");
@@ -1307,6 +1389,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension declaration
+  // declares a member with the same name as a member declared in the class
+  // `Object`. Such a member can never be used because the member in `Object` is
+  // always found first.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   String [!toString!]() => this;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the member or rename it so that the name doesn't conflict with the
+  // member in `Object`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String displayString() => this;
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_DECLARES_MEMBER_OF_OBJECT =
       const CompileTimeErrorCode(
           'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
@@ -1317,6 +1426,40 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is the
+  // target of the invocation of a static member. Similar to static members in
+  // classes, the static members of an extension should be accessed using the
+  // name of the extension, not an extension override.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   static void staticMethod() {}
+  // }
+  //
+  // void f() {
+  //   E('').[!staticMethod!]();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the extension override with the name of the extension:
+  //
+  // ```dart
+  // extension E on String {
+  //   static void staticMethod() {}
+  // }
+  //
+  // void f() {
+  //   E.staticMethod();
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
@@ -1329,6 +1472,43 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the type of the argument
    * 1: the extended type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the argument to an extension
+  // override isn't assignable to the type being extended by the extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   void method() {}
+  // }
+  //
+  // void f() {
+  //   E([!3!]).method();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're using the correct extension, then update the argument to have the
+  // correct type:
+  //
+  // ```dart
+  // extension E on String {
+  //   void method() {}
+  // }
+  //
+  // void f() {
+  //   E(3.toString()).method();
+  // }
+  // ```
+  //
+  // If there's a different extension that's valid for the type of the argument,
+  // then either replace the name of the extension or unwrap the target so that
+  // the correct extension is found.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
@@ -1338,6 +1518,63 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITH_CASCADE =
+      const CompileTimeErrorCode(
+          'EXTENSION_OVERRIDE_WITH_CASCADE',
+          "Extension overrides have no value so they can't be used as the "
+              "target of a cascade expression.",
+          correction: "Try using '.' instead of '..'.");
+
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is found
+  // that isn't being used to access one of the members of the extension. The
+  // extension override syntax doesn't have any runtime semantics; it only
+  // controls which member is selected at compile time.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print([!E(i)!]);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you want to invoke one of the members of the extension, then add the
+  // invocation:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print(E(i).a);
+  // }
+  // ```
+  //
+  // If you don't want to invoke a member, then unwrap the target:
+  //
+  // ```dart
+  // extension E on int {
+  //   int get a => 0;
+  // }
+  //
+  // void f(int i) {
+  //   print(i);
+  // }
+  // ```
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITHOUT_ACCESS =
       const CompileTimeErrorCode('EXTENSION_OVERRIDE_WITHOUT_ACCESS',
           "An extension override can only be used to access instance members.",
@@ -1404,19 +1641,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing one of the initializations.");
 
   /**
-   * 5 Variables: It is a compile-time error if a final instance variable that
-   * has is initialized by means of an initializing formal of a constructor is
-   * also initialized elsewhere in the same constructor.
-   *
-   * Parameters:
-   * 0: the name of the field in question
-   */
-  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
-      const CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
-          "'{0}' is a final field and so can only be set once.",
-          correction: "Try removing all but one of the initializations.");
-
-  /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an
    * initializing formal is used by a function other than a non-redirecting
    * generative constructor.
@@ -1450,6 +1674,47 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
           "The redirecting constructor can't have a field initializer.",
           correction: "Try using a normal parameter.");
+
+  /**
+   * 5 Variables: It is a compile-time error if a final instance variable that
+   * has is initialized by means of an initializing formal of a constructor is
+   * also initialized elsewhere in the same constructor.
+   *
+   * Parameters:
+   * 0: the name of the field in question
+   */
+  static const CompileTimeErrorCode FINAL_INITIALIZED_MULTIPLE_TIMES =
+      const CompileTimeErrorCode('FINAL_INITIALIZED_MULTIPLE_TIMES',
+          "'{0}' is a final field and so can only be set once.",
+          correction: "Try removing all but one of the initializations.");
+
+  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
+      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
+          "A for-in loop-variable can't be 'const'.",
+          correction: "Try removing the 'const' modifier from the variable, or "
+              "use a different variable.");
+
+  /**
+   * It is a compile-time error if a generic function type is used as a bound
+   * for a formal type parameter of a class or a function.
+   */
+  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
+      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
+          "Generic function types can't be used as type parameter bounds",
+          correction: "Try making the free variable in the function type part"
+              " of the larger declaration signature");
+
+  /**
+   * It is a compile-time error if a generic function type is used as an actual
+   * type argument.
+   */
+  static const CompileTimeErrorCode
+      GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT =
+      const CompileTimeErrorCode(
+          'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
+          "A generic function type can't be a type argument.",
+          correction: "Try removing type parameters from the generic function "
+              "type, or using 'dynamic' as the type argument here.");
 
   /**
    * Temporary error to work around dartbug.com/28515.
@@ -1814,24 +2079,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a top-level variable or a field.");
 
   /**
-   * 9. Functions: It is a compile-time error if an async, async* or sync*
-   * modifier is attached to the body of a setter or constructor.
-   */
-  static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
-      const CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
-          "The modifier '{0}' can't be applied to the body of a constructor.",
-          correction: "Try removing the modifier.");
-
-  /**
-   * 9. Functions: It is a compile-time error if an async, async* or sync*
-   * modifier is attached to the body of a setter or constructor.
-   */
-  static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
-      const CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
-          "The modifier '{0}' can't be applied to the body of a setter.",
-          correction: "Try removing the modifier.");
-
-  /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report
    * errors in compile-time constants. Until then, this acts as a placeholder
    * for more informative errors.
@@ -1852,6 +2099,53 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override doesn't
+  // have exactly one argument. The argument is the expression used to compute
+  // the value of `this` within the extension method, so there must be one
+  // argument.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because there are no arguments:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E[!()!].join('b');
+  // }
+  // ```
+  //
+  // And, the following code produces this diagnostic because there's more than
+  // one argument:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E[!('a', 'b')!].join('c');
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Provide one argument for the extension override:
+  //
+  // ```dart
+  // extension E on String {
+  //   String join(String other) => '$this $other';
+  // }
+  //
+  // void f() {
+  //   E('a').join('b');
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_EXTENSION_ARGUMENT_COUNT =
       const CompileTimeErrorCode(
           'INVALID_EXTENSION_ARGUMENT_COUNT',
@@ -1876,6 +2170,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "function type.",
           correction: "Try using a generic function type "
               "(returnType 'Function(' parameters ')').");
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync*
+   * modifier is attached to the body of a setter or constructor.
+   */
+  static const CompileTimeErrorCode INVALID_MODIFIER_ON_CONSTRUCTOR =
+      const CompileTimeErrorCode('INVALID_MODIFIER_ON_CONSTRUCTOR',
+          "The modifier '{0}' can't be applied to the body of a constructor.",
+          correction: "Try removing the modifier.");
+
+  /**
+   * 9. Functions: It is a compile-time error if an async, async* or sync*
+   * modifier is attached to the body of a setter or constructor.
+   */
+  static const CompileTimeErrorCode INVALID_MODIFIER_ON_SETTER =
+      const CompileTimeErrorCode('INVALID_MODIFIER_ON_SETTER',
+          "The modifier '{0}' can't be applied to the body of a setter.",
+          correction: "Try removing the modifier.");
 
   /**
    * It is an error if an optional parameter (named or otherwise) with no
@@ -1972,9 +2284,35 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member declared inside an
+  // extension uses the keyword `covariant` in the declaration of a parameter.
+  // Extensions aren't classes and don't have subclasses, so the keyword serves
+  // no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a([!covariant!] int i) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the 'covariant' keyword:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a(int i) {}
+  // }
+  // ```
   static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
-          "The 'covariant' keyword can't be used in extensions.",
+          "The 'covariant' keyword can't be used in an extension.",
           correction: "Try removing the 'covariant' keyword.");
 
   /**
@@ -2513,8 +2851,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // even though it appears in an implicitly constant list literal:
   //
   // ```dart
-  // int x = 2;
-  // const y = <int>[0, 1, [!x!]];
+  // var x = 2;
+  // var y = const <int>[0, 1, [!x!]];
   // ```
   //
   // #### Common fixes
@@ -2524,17 +2862,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // declaration of `x`:
   //
   // ```dart
-  // const int x = 2;
-  // const y = <int>[0, 1, x];
+  // const x = 2;
+  // var y = const <int>[0, 1, x];
   // ```
   //
   // If the expression can't be made a constant, then the list can't be a
   // constant either, so you must change the code so that the list isn't a
-  // constant. In the example above this means removing the `const` keyword from
-  // the declaration of `y`:
+  // constant. In the example above this means removing the `const` keyword
+  // before the list literal:
   //
   // ```dart
-  // int x = 2;
+  // var x = 2;
   // var y = <int>[0, 1, x];
   // ```
   static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT =
@@ -2643,6 +2981,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Initializer expressions in constant constructors must be "
               "constants.");
 
+  /**
+   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
+   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
+   * Let <i>k</i> be a generative constructor. It is a compile-time error if
+   * class <i>S</i> does not declare a generative constructor named <i>S</i>
+   * (respectively <i>S.id</i>)
+   */
+  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
+      const CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
+          "The generative constructor '{0}' expected, but factory found.",
+          correction:
+              "Try calling a different constructor in the superclass, or "
+              "making the called constructor not be a factory constructor.");
+
   static const CompileTimeErrorCode NON_SYNC_FACTORY =
       const CompileTimeErrorCode('NON_SYNC_FACTORY',
           "Factory bodies can't use 'async', 'async*', or 'sync*'.");
@@ -2746,7 +3098,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var s = <String>{...[!m!]};
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // The most common fix is to replace the expression with one that produces an
   // iterable object:
@@ -2769,20 +3121,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'NOT_NULL_AWARE_NULL_SPREAD',
           "The Null typed expression can't be used with a non-null-aware "
               "spread.");
-
-  /**
-   * 7.6.1 Generative Constructors: Let <i>C</i> be the class in which the
-   * superinitializer appears and let <i>S</i> be the superclass of <i>C</i>.
-   * Let <i>k</i> be a generative constructor. It is a compile-time error if
-   * class <i>S</i> does not declare a generative constructor named <i>S</i>
-   * (respectively <i>S.id</i>)
-   */
-  static const CompileTimeErrorCode NON_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode('NON_GENERATIVE_CONSTRUCTOR',
-          "The generative constructor '{0}' expected, but factory found.",
-          correction:
-              "Try calling a different constructor in the superclass, or "
-              "making the called constructor not be a factory constructor.");
 
   /**
    * It is an error if the type `T` in the on-catch clause `on T catch` is
@@ -3053,6 +3391,29 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "'{0}' can't use itself as a mixin.");
 
   /**
+   * 7.6.1 Generative constructors: A generative constructor may be
+   * <i>redirecting</i>, in which case its only action is to invoke another
+   * generative constructor.
+   */
+  static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
+      const CompileTimeErrorCode('REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
+          "The constructor '{0}' couldn't be found in '{1}'.",
+          correction: "Try redirecting to a different constructor, or "
+              "defining the constructor named '{0}'.");
+
+  /**
+   * 7.6.1 Generative constructors: A generative constructor may be
+   * <i>redirecting</i>, in which case its only action is to invoke another
+   * generative constructor.
+   */
+  static const CompileTimeErrorCode
+      REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
+          "Generative constructor can't redirect to a factory constructor.",
+          correction: "Try redirecting to a different constructor.");
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> is prefixed with
    * the const modifier but <i>k'</i> is not a constant constructor.
    */
@@ -3078,7 +3439,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic because `f` is a function:
   //
   // ```dart
-  // C f() {}
+  // C f() => null;
   //
   // class C {
   //   factory C() = [!f!];
@@ -3097,7 +3458,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // the constructor to return the value from the constructor's body:
   //
   // ```dart
-  // C f() {}
+  // C f() => null;
   //
   // class C {
   //   factory C() => f();
@@ -3120,29 +3481,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
           "Constant factory constructor can't delegate to a non-constant "
               "constructor.",
-          correction: "Try redirecting to a different constructor.");
-
-  /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
-   */
-  static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR =
-      const CompileTimeErrorCode('REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
-          "The constructor '{0}' couldn't be found in '{1}'.",
-          correction: "Try redirecting to a different constructor, or "
-              "defining the constructor named '{0}'.");
-
-  /**
-   * 7.6.1 Generative constructors: A generative constructor may be
-   * <i>redirecting</i>, in which case its only action is to invoke another
-   * generative constructor.
-   */
-  static const CompileTimeErrorCode
-      REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode(
-          'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-          "Generative constructor can't redirect to a factory constructor.",
           correction: "Try redirecting to a different constructor.");
 
   /**
@@ -3219,11 +3557,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member declared inside an
+  // extension uses the `super` keyword . Extensions aren't classes and don't
+  // have superclasses, so the `super` keyword serves no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on Object {
+  //   String get displayString => [!super!].toString();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the `super` keyword :
+  //
+  // ```dart
+  // extension E on Object {
+  //   String get displayString => toString();
+  // }
+  // ```
   static const CompileTimeErrorCode SUPER_IN_EXTENSION =
       const CompileTimeErrorCode(
           'SUPER_IN_EXTENSION',
-          "You can't reference 'super' in an extension because extensions do "
-              "not have a superclass.");
+          "The 'super' keyword can't be used in an extension because an "
+              "extension doesn't have a superclass.");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -3292,34 +3655,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
-   * It is a compile-time error if a generic function type is used as a bound
-   * for a formal type parameter of a class or a function.
-   */
-  static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
-      const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-          "Generic function types can't be used as type parameter bounds",
-          correction: "Try making the free variable in the function type part"
-              " of the larger declaration signature");
-
-  static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
-      const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
-          "A for-in loop-variable can't be 'const'.",
-          correction: "Try removing the 'const' modifier from the variable, or "
-              "use a different variable.");
-
-  /**
-   * It is a compile-time error if a generic function type is used as an actual
-   * type argument.
-   */
-  static const CompileTimeErrorCode
-      GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT =
-      const CompileTimeErrorCode(
-          'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
-          "A generic function type can't be a type argument.",
-          correction: "Try removing type parameters from the generic function "
-              "type, or using 'dynamic' as the type argument here.");
-
-  /**
    * 15.3.1 Typedef: Any self reference, either directly, or recursively via
    * another typedef, is a compile time error.
    */
@@ -3364,9 +3699,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // class Point {}
   //
-  // void main() {
-  //   [!Piont!] p;
-  // }
+  // void f([!Piont!] p) {}
   // ```
   //
   // #### Common fixes
@@ -3378,9 +3711,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // class Point {}
   //
-  // void main() {
-  //   Point p;
-  // }
+  // void f(Point p) {}
   // ```
   //
   // If the class is defined but isn't visible, then you probably need to add an
@@ -3432,6 +3763,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the getter that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a getter, but the getter isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static getter is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance getter named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!];
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static getter named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // var x = E.[!a!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the getter is incorrect, then change it to the name of an
+  // existing getter:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').a;
+  // }
+  // ```
+  //
+  // If the name of the getter is correct but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   F('c').b;
+  // }
+  // ```
+  //
+  // If the name of the getter and extension are both correct, but the getter
+  // isn't defined, then define the getter:
+  //
+  // ```dart
+  // extension E on String {
+  //   String get a => 'a';
+  //   String get b => 'z';
+  // }
+  //
+  // extension F on String {
+  //   String get b => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').b;
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_GETTER =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_GETTER',
           "The getter '{0}' isn't defined for the extension '{1}'.",
@@ -3444,6 +3863,94 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the method that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a method, but the method isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static method is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance method named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!]();
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static method named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // var x = E.[!a!]();
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the method is incorrect, then change it to the name of an
+  // existing method:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').a();
+  // }
+  // ```
+  //
+  // If the name of the method is correct, but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   F('c').b();
+  // }
+  // ```
+  //
+  // If the name of the method and extension are both correct, but the method
+  // isn't defined, then define the method:
+  //
+  // ```dart
+  // extension E on String {
+  //   String a() => 'a';
+  //   String b() => 'z';
+  // }
+  //
+  // extension F on String {
+  //   String b() => 'b';
+  // }
+  //
+  // void f() {
+  //   E('c').b();
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_METHOD =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_METHOD',
           "The method '{0}' isn't defined for the extension '{1}'.",
@@ -3456,6 +3963,96 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the name of the setter that is undefined
    * 1: the name of the extension that was explicitly specified
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used to
+  // invoke a setter, but the setter isn't defined by the specified extension.
+  // The analyzer also produces this diagnostic when a static setter is
+  // referenced but isn't defined by the specified extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare an instance setter named `b`:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').[!b!] = 'd';
+  // }
+  // ```
+  //
+  // The following code produces this diagnostic because the extension `E`
+  // doesn't declare a static setter named `a`:
+  //
+  // ```dart
+  // extension E on String {}
+  //
+  // void f() {
+  //   E.[!a!] = 3;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name of the setter is incorrect, then change it to the name of an
+  // existing setter:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').a = 'd';
+  // }
+  // ```
+  //
+  // If the name of the setter is correct, but the name of the extension is
+  // wrong, then change the name of the extension to the correct name:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   F('c').b = 'd';
+  // }
+  // ```
+  //
+  // If the name of the setter and extension are both correct, but the setter
+  // isn't defined, then define the setter:
+  //
+  // ```dart
+  // extension E on String {
+  //   set a(String v) {}
+  //   set b(String v) {}
+  // }
+  //
+  // extension F on String {
+  //   set b(String v) {}
+  // }
+  //
+  // void f() {
+  //   E('c').b = 'd';
+  // }
+  // ```
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_SETTER =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_SETTER',
           "The setter '{0}' isn't defined for the extension '{1}'.",
@@ -3470,7 +4067,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a method or function invocation
-  // has a named argument, but the method or function being invoked doesn’t
+  // has a named argument, but the method or function being invoked doesn't
   // define a parameter with the same name.
   //
   // #### Example
@@ -3537,6 +4134,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try correcting the name to an existing named parameter's name, "
               "or defining a named parameter with the name '{0}'.",
           hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the defining type
+   */
+  static const CompileTimeErrorCode
+      UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE =
+      const CompileTimeErrorCode(
+          'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
+          "Static members from the extended type or one of its superclasses must "
+              "be qualified by the name of the defining type.",
+          correction: "Try adding '{0}.' before the name.");
 
   /**
    * Parameters:
@@ -4111,7 +4720,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // int f(String s) => s.[!len!];
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a getter that is defined. The example above can be corrected by
@@ -4149,7 +4758,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // int f(List<int> l) => l.[!removeMiddle!]();
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a method that is defined. The example above can be corrected by
@@ -4216,31 +4825,25 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // class Point {
-  //   int x;
-  //   int y;
-  //   Point(this.x, this.y);
-  //   void shiftBy(Point other) {
-  //     this.x += other.x;
-  //     this.[!z!] += other.y;
+  // class C {
+  //   int x = 0;
+  //   void m(int y) {
+  //     this.[!z!] = y;
   //   }
   // }
   // ```
   //
-  // #### Common fix
+  // #### Common fixes
   //
   // If the identifier isn't defined, then either define it or replace it with
   // the name of a setter that is defined. The example above can be corrected by
   // fixing the spelling of the setter:
   //
   // ```dart
-  // class Point {
-  //   int x;
-  //   int y;
-  //   Point(this.x, this.y);
-  //   void shiftBy(Point other) {
-  //     this.x += other.x;
-  //     this.y += other.y;
+  // class C {
+  //   int x = 0;
+  //   void m(int y) {
+  //     this.x = y;
   //   }
   // }
   // ```
@@ -4509,8 +5112,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f([!y!]);
+  // String f(String x) => x;
+  // String g(num y) => f([!y!]);
   // ```
   //
   // #### Common fixes
@@ -4519,8 +5122,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // example above you might be able to change the type of the parameter `y`:
   //
   // ```dart
-  // int f(int x) => x;
-  // int g(int y) => f(y);
+  // String f(String x) => x;
+  // String g(String y) => f(y);
   // ```
   //
   // If that fix isn't possible, then add code to handle the case where the
@@ -4528,15 +5131,15 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // types to the required type:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y.floor());
+  // String f(String x) => x;
+  // String g(num y) => f(y.toString());
   // ```
   //
   // Another approach is to add explicit type tests and fallback code:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y is int ? y : 0);
+  // String f(String x) => x;
+  // String g(num y) => f(y is String ? y : '');
   // ```
   //
   // If you believe that the runtime type of the argument will always be the
@@ -4544,8 +5147,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // an exception thrown at runtime if you're wrong, then add an explicit cast:
   //
   // ```dart
-  // int f(int x) => x;
-  // num g(num y) => f(y as int);
+  // String f(String x) => x;
+  // String g(num y) => f(y as String);
   // ```
   static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
       const StaticWarningCode(
@@ -4832,10 +5435,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * 2: the number of additional not initialized variables that aren't listed
    */
   static const StaticWarningCode FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS =
-      const StaticWarningCode(
-          'FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
-          "The final variables '{0}', '{1}' and '{2}' more must be "
-              "initialized.",
+      const StaticWarningCode('FINAL_NOT_INITIALIZED_CONSTRUCTOR_3',
+          "The final variables '{0}', '{1}' and {2} more must be initialized.",
           correction: "Try adding initializers for the fields.");
 
   /**
@@ -5264,9 +5865,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // ```dart
   // f() {}
-  // main() {
-  //   [!f!] v = null;
-  // }
+  // g([!f!] v) {}
   // ```
   //
   // #### Common fixes
@@ -5550,7 +6149,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "dynamic.");
 
   /**
-   * It is an error to call a method or getter on an expression of type [Never],
+   * It is an error to call a method or getter on an expression of type `Never`,
    * or to invoke it as if it were a function.
    *
    * Go out of our way to provide a *little* more information here because many
@@ -5588,7 +6187,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'USE_OF_VOID_RESULT',
       "The expression here has a type of 'void', and therefore can't be used.",
       correction:
-          "Try checking to see if you are using the correct API; there might "
+          "Try checking to see if you're using the correct API; there might "
           "be a function or call that returns void you didn't expect. Also "
           "check type parameters and variables which might also be void.");
 

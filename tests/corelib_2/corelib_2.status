@@ -50,9 +50,6 @@ regexp/pcre_test: Pass, Slow # Issue 22008
 [ $runtime == jsshell ]
 string_case_test/01: Fail, OK # German double S.
 
-[ $runtime != none ]
-nsm_invocation_generic_test: RuntimeError # Not implemented yet. Issue 27323.
-
 [ $runtime == safari ]
 double_round3_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.
 double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1.

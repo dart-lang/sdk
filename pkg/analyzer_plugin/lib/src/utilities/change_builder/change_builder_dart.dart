@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
-import 'package:analyzer_plugin/src/utilities/change_builder/dart/import_library_element.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -26,7 +25,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:meta/meta.dart';
 
 /**
  * A [ChangeBuilder] used to build changes in Dart files.
@@ -1291,34 +1289,19 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  ImportLibraryElementResult importLibraryElement({
-    @required ResolvedLibraryResult targetLibrary,
-    @required String targetPath,
-    @required int targetOffset,
-    @required LibraryElement requestedLibrary,
-    @required Element requestedElement,
-  }) {
-    if (librariesToImport.isNotEmpty ||
-        librariesToRelativelyImport.isNotEmpty) {
-      throw StateError('Only one library can be safely imported.');
+  ImportLibraryElementResult importLibraryElement(Uri uri) {
+    if (resolvedUnit.libraryElement.source.uri == uri) {
+      return ImportLibraryElementResultImpl(null);
     }
 
-    var request = importLibraryElementImpl(
-      targetResolvedLibrary: targetLibrary,
-      targetPath: targetPath,
-      targetOffset: targetOffset,
-      requestedLibrary: requestedLibrary,
-      requestedElement: requestedElement,
-    );
-
-    var prefix = request.prefix;
-    if (request.uri != null) {
-      var uriText = _getLibraryUriText(request.uri);
-      (libraryChangeBuilder ?? this).librariesToImport[request.uri] =
-          _LibraryToImport(uriText, prefix);
+    for (var import in resolvedUnit.libraryElement.imports) {
+      if (import.importedLibrary.source.uri == uri) {
+        return ImportLibraryElementResultImpl(import.prefix?.name);
+      }
     }
 
-    return ImportLibraryElementResultImpl(prefix);
+    importLibrary(uri);
+    return ImportLibraryElementResultImpl(null);
   }
 
   String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
@@ -1328,23 +1311,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   void replaceTypeWithFuture(
       TypeAnnotation typeAnnotation, TypeProvider typeProvider) {
-    InterfaceType futureType = typeProvider.futureType;
     //
     // Check whether the type needs to be replaced.
     //
     DartType type = typeAnnotation?.type;
-    if (type == null ||
-        type.isDynamic ||
-        type is InterfaceType && type.element == futureType.element) {
+    if (type == null || type.isDynamic || type.isDartAsyncFuture) {
       return;
     }
-    // TODO(brianwilkerson) Unconditionally execute the body of the 'if' when
-    // Future<void> is fully supported.
-    if (!type.isVoid) {
-      futureType = futureType.instantiate(<DartType>[type]);
-    }
-    // prepare code for the types
+
     addReplacement(range.node(typeAnnotation), (EditBuilder builder) {
+      var futureType = typeProvider.futureType2(type);
       if (!(builder as DartEditBuilder).writeType(futureType)) {
         builder.write('void');
       }

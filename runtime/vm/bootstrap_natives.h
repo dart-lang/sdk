@@ -391,6 +391,14 @@ namespace dart {
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
+  V(Wasm_initModule, 2)                                                        \
+  V(Wasm_initImports, 2)                                                       \
+  V(Wasm_addMemoryImport, 3)                                                   \
+  V(Wasm_addGlobalImport, 5)                                                   \
+  V(Wasm_initMemory, 3)                                                        \
+  V(Wasm_growMemory, 2)                                                        \
+  V(Wasm_initInstance, 3)                                                      \
+  V(Wasm_initFunction, 4)                                                      \
   V(Wasm_callFunction, 2)
 
 // List of bootstrap native entry points used in the dart:mirror library.

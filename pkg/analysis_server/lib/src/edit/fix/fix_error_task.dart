@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
@@ -62,8 +63,8 @@ class FixErrorTask {
     }
   }
 
-  static void fixNamedConstructorTypeArgs(
-      DartFixRegistrar registrar, DartFixListener listener) {
+  static void fixNamedConstructorTypeArgs(DartFixRegistrar registrar,
+      DartFixListener listener, EditDartfixParams params) {
     registrar.registerErrorTask(
         StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         new FixErrorTask(listener));

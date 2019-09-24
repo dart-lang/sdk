@@ -97,13 +97,10 @@ abstract class RuntimeConfiguration {
   bool get shouldSkipNegativeTests => false;
 
   /// Returns the path to the Dart VM executable.
-  String get dartVmBinaryFileName {
-    // Controlled by user with the option "--dart".
-    var dartExecutable = _configuration.dartPath ?? dartVmExecutableFileName;
-
-    TestUtils.ensureExists(dartExecutable, _configuration);
-    return dartExecutable;
-  }
+  ///
+  /// Controlled by user with the option "--dart".
+  String get dartVmBinaryFileName =>
+      _configuration.dartPath ?? dartVmExecutableFileName;
 
   String get dartVmExecutableFileName {
     return _configuration.useSdk

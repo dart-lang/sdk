@@ -51,10 +51,7 @@ class Dart2jsTarget extends Target {
   Dart2jsTarget(this.name, this.flags);
 
   @override
-  bool get legacyMode => flags.legacyMode;
-
-  @override
-  bool get enableNoSuchMethodForwarders => !flags.legacyMode;
+  bool get enableNoSuchMethodForwarders => true;
 
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
@@ -120,7 +117,7 @@ class Dart2jsTarget extends Target {
                 new ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
                 arg.value)
               ..fileOffset = arg.fileOffset;
-          })), keyType: coreTypes.stringClass.rawType)
+          })), keyType: coreTypes.stringLegacyRawType)
             ..isConst = (arguments.named.length == 0)
             ..fileOffset = arguments.fileOffset,
           new ir.IntLiteral(kind)..fileOffset = offset,

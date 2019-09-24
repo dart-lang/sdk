@@ -474,17 +474,6 @@ class SourceLoader extends Loader {
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void finalizeInitializingFormals() {
-    int formalCount = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
-        formalCount += sourceLibrary.finalizeInitializingFormals();
-      }
-    });
-    ticker.logMs("Finalized $formalCount initializing formals");
-  }
-
   void finishDeferredLoadTearoffs() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
@@ -890,8 +879,6 @@ class SourceLoader extends Loader {
   }
 
   void checkBounds() {
-    if (target.legacyMode) return;
-
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
@@ -935,7 +922,6 @@ class SourceLoader extends Loader {
 
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
-    if (target.legacyMode) return;
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         builder.checkRedirectingFactories(
@@ -999,13 +985,10 @@ class SourceLoader extends Loader {
   }
 
   void createTypeInferenceEngine() {
-    if (target.legacyMode) return;
     typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    if (target.legacyMode) return;
-
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that
     /// might be subject to type inference, and records dependencies between

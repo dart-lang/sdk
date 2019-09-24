@@ -2582,6 +2582,12 @@ main() {
     expect(indexExpression.toSource(), '?..[27]');
   }
 
+  void test_cascade_withNullCheck_invalid() {
+    parseCompilationUnit('main() { a..[27]?..x; }', errors: [
+      expectedError(ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER, 16, 3),
+    ]);
+  }
+
   void test_cascade_withNullCheck_methodInvocation() {
     var unit = parseCompilationUnit('main() { a?..foo(); }');
     FunctionDeclaration funct = unit.declarations[0];

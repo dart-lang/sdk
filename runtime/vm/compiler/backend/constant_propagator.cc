@@ -780,7 +780,7 @@ void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
     Instance& obj = Instance::Handle(Z, field.StaticValue());
     if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw())) {
-      if (obj.IsSmi() || obj.IsOld()) {
+      if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
         SetValue(instr, obj);
         return;
       }

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -411,8 +410,9 @@ class MethodInvocationResolver {
     }
 
     if (node.isCascaded) {
-      // TODO(brianwilkerson) Report this error and decide how to recover.
-      throw new UnsupportedError('cascaded extension override');
+      // Report this error and recover by treating it like a non-cascade.
+      _resolver.errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, node.operator);
     }
 
     nameNode.staticElement = member;
@@ -552,7 +552,7 @@ class MethodInvocationResolver {
       }
       enclosingClass = receiverType.element;
     } else {
-      receiverType = enclosingClass.type;
+      receiverType = enclosingClass.thisType;
     }
     var target = _inheritance.getMember(receiverType, _currentName);
 
@@ -566,11 +566,19 @@ class MethodInvocationResolver {
     if (targetElement != null && targetElement.isStatic) {
       nameNode.staticElement = targetElement;
       _setDynamicResolution(node);
-      _resolver.errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
-        nameNode,
-        [receiverType.displayName],
-      );
+      if (_resolver.enclosingExtension != null) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+            nameNode,
+            [targetElement.enclosingElement.displayName]);
+      } else {
+        _resolver.errorReporter.reportErrorForNode(
+            StaticTypeWarningCode
+                .UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+            nameNode,
+            [targetElement.enclosingElement.displayName]);
+      }
       return;
     }
 
@@ -590,9 +598,7 @@ class MethodInvocationResolver {
 
   void _resolveReceiverPrefix(MethodInvocation node, SimpleIdentifier receiver,
       PrefixElement prefix, SimpleIdentifier nameNode, String name) {
-    if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _reportPrefixIdentifierNotFollowedByDot(receiver);
-    }
+    // Note: prefix?.bar is reported as an error in ElementResolver.
 
     if (name == FunctionElement.LOAD_LIBRARY_NAME) {
       var imports = _definingLibrary.getImportsWithPrefix(prefix);
@@ -633,7 +639,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    var receiverType = enclosingClass.type;
+    var receiverType = enclosingClass.thisType;
     var target = _inheritance.getMember(
       receiverType,
       _currentName,

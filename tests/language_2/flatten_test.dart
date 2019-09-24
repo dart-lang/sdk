@@ -12,13 +12,9 @@ class FixedPoint<T> implements Future<FixedPoint<T>> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-// TODO(vsm): Restore when https://github.com/dart-lang/sdk/issues/25611
-// is fixed.
-/*
 class Divergent<T> implements Future<Divergent<Divergent<T>>> {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-*/
 
 test() async {
   // flatten(Derived<int>) = int
@@ -27,9 +23,6 @@ test() async {
   Future<int> f() async { return new Derived<int>(); } //# 03: ok
   Future<int> x = (() async => new Derived<int>())(); //# 04: runtime error
 
-  // TODO(vsm): Restore when https://github.com/dart-lang/sdk/issues/25611
-  // is fixed.
-  /*
   // flatten(FixedPoint<int>) = FixedPoint<int>
   FixedPoint<int> x = await new FixedPoint<int>(); //# 05: runtime error
   Future<FixedPoint<int>> f() async => new FixedPoint<int>(); //# 06: ok
@@ -41,7 +34,6 @@ test() async {
   Future<Divergent<Divergent<int>>> f() async => new Divergent<int>(); //# 10: ok
   Future<Divergent<Divergent<int>>> f() async { return new Divergent<int>(); } //# 11: ok
   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())(); //# 12: runtime error
-  */
 }
 
 main() {

@@ -11,15 +11,13 @@ config("sdk") {
     "-lc++",
     "-lc",
     "-lm",
+    "-lpthread",
     "-lclang_rt.builtins",
     "-Wl,--exclude-libs=libc++.a",
   ]
 
   if (is_asan) {
-    ldflags += [
-      "-lpthread",
-      "-lrt",
-    ]
+    ldflags += [ "-lrt" ]
   }
 
   if (sysroot != "") {

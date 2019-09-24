@@ -209,7 +209,8 @@ TypeBuilder substituteRange(
     }
 
     if (changed) {
-      return new FunctionTypeBuilder(returnType, variables, formals);
+      return new FunctionTypeBuilder(
+          returnType, variables, formals, type.nullabilityBuilder);
     }
 
     return type;

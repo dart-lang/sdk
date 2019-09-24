@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -51,7 +52,7 @@ class _AlreadyMigratedCodeDecoratorTest {
       DecoratedType decoratedType,
       NullabilityNode expectedNullability,
       void Function(DecoratedType) checkArgument) {
-    expect(decoratedType.type.element, typeProvider.futureOrType.element);
+    expect(decoratedType.type.element, typeProvider.futureOrElement);
     expect(decoratedType.node, expectedNullability);
     checkArgument(decoratedType.typeArguments[0]);
   }
@@ -215,7 +216,7 @@ class _AlreadyMigratedCodeDecoratorTest {
   }
 
   test_getImmediateSupertypes_future() {
-    var element = typeProvider.futureType.element;
+    var element = typeProvider.futureElement;
     var decoratedSupertypes =
         decorator.getImmediateSupertypes(element).toList();
     var typeParam = element.typeParameters[0];
@@ -231,9 +232,12 @@ class _AlreadyMigratedCodeDecoratorTest {
   test_getImmediateSupertypes_generic() {
     var t = ElementFactory.typeParameterElement('T');
     var class_ = ElementFactory.classElement3(
-        name: 'C',
-        typeParameters: [t],
-        supertype: typeProvider.iterableType.instantiate([t.type]));
+      name: 'C',
+      typeParameters: [t],
+      supertype: typeProvider.iterableType2(
+        t.instantiate(nullabilitySuffix: NullabilitySuffix.star),
+      ),
+    );
     var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
     expect(decoratedSupertypes, hasLength(1));
     checkIterable(decoratedSupertypes[0], never,

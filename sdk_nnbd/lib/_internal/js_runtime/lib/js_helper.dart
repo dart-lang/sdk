@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.5
+
 library _js_helper;
 
 import 'dart:_js_embedded_names'
@@ -366,7 +368,7 @@ class JSInvocationMirror implements Invocation {
         list.add(createRuntimeType(_arguments[start + index]));
       }
     }
-    return list;
+    return JSArray.markUnmodifiableList(list);
   }
 
   List get positionalArguments {

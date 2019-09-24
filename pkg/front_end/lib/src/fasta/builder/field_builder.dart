@@ -91,9 +91,7 @@ class FieldBuilder extends MemberBuilder {
   }
 
   bool get isEligibleForInference {
-    return !library.legacyMode &&
-        type == null &&
-        (hasInitializer || isClassInstanceMember);
+    return type == null && (hasInitializer || isClassInstanceMember);
   }
 
   Field build(SourceLibraryBuilder libraryBuilder) {
@@ -167,7 +165,7 @@ class FieldBuilder extends MemberBuilder {
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
-          isConst ? ConstantContext.inferred : ConstantContext.none;
+          isConst ? ConstantContext.inferred : ConstantContext.required;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
         ..parent = field;
       bodyBuilder.typeInferrer

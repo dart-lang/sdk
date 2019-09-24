@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -91,6 +92,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// Is `true` if NNBD is enabled for the library being analyzed.
   final bool _isNonNullable;
 
+  /// True if inference failures should be reported, otherwise false.
+  final bool _strictInference;
+
   /// Create a new instance of the [BestPracticesVerifier].
   ///
   /// @param errorReporter the error reporter
@@ -108,6 +112,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
         _isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable),
+        _strictInference =
+            (analysisOptions as AnalysisOptionsImpl).strictInference,
         _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
@@ -305,10 +311,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       _checkForMissingReturn(
           node.returnType, node.functionExpression.body, element, node);
+
+      // Return types are inferred only on non-recursive local functions.
+      if (node.parent is CompilationUnit) {
+        _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+      }
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    // TODO(srawlins): Check strict-inference return type on recursive
+    // local functions.
+    super.visitFunctionDeclarationStatement(node);
   }
 
   @override
@@ -317,6 +335,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(null, node.body, node.declaredElement, node);
     }
     super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    _checkStrictInferenceReturnType(
+        node.returnType, node, node.identifier.name);
+    super.visitFunctionTypedFormalParameter(node);
   }
 
   @override
@@ -360,6 +385,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
+      _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       super.visitMethodDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -934,7 +960,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     // CAN_BE_NULL_AFTER_NULL_AWARE
     if (parent is MethodInvocation &&
-        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        !parent.isNullAware &&
         _nullType.lookUpMethod(parent.methodName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
@@ -942,7 +968,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     if (parent is PropertyAccess &&
-        parent.operator.type != TokenType.QUESTION_PERIOD &&
+        !parent.isNullAware &&
         _nullType.lookUpGetter(parent.propertyName.name, _currentLibrary) ==
             null) {
       _errorReporter.reportErrorForNode(
@@ -1056,7 +1082,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           Element classElement = methodElement?.enclosingElement;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
-              !classElement.type.isObject;
+              !classElement.isDartCoreObject;
         }
       }
       return false;
@@ -1107,6 +1133,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (final param in namedParamsWithRequiredAndDefault) {
       _errorReporter.reportErrorForNode(HintCode.INVALID_REQUIRED_NAMED_PARAM,
           param, [param.identifier.name]);
+    }
+  }
+
+  /// In "strict-inference" mode, check that [returnNode]'s return type is specified.
+  void _checkStrictInferenceReturnType(
+      AstNode returnType, AstNode reportNode, String displayName) {
+    if (!_strictInference) {
+      return;
+    }
+    if (returnType == null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode,
+          [displayName]);
     }
   }
 
@@ -2246,95 +2286,6 @@ class ElementHolder {
   }
 }
 
-/// Instances of the class `EnumMemberBuilder` build the members in enum
-/// declarations.
-class EnumMemberBuilder extends RecursiveAstVisitor<void> {
-  /// The type provider used to access the types needed to build an element
-  /// model for enum declarations.
-  final TypeProvider _typeProvider;
-
-  /// Initialize a newly created enum member builder.
-  ///
-  /// @param typeProvider the type provider used to access the types needed to
-  ///        build an element model for enum declarations
-  EnumMemberBuilder(this._typeProvider);
-
-  @override
-  void visitEnumDeclaration(EnumDeclaration node) {
-    //
-    // Finish building the enum.
-    //
-    EnumElementImpl enumElement = node.name.staticElement as EnumElementImpl;
-    InterfaceType enumType = enumElement.type;
-    //
-    // Populate the fields.
-    //
-    List<FieldElement> fields = new List<FieldElement>();
-    List<PropertyAccessorElement> getters = new List<PropertyAccessorElement>();
-    InterfaceType intType = _typeProvider.intType;
-    String indexFieldName = "index";
-    FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
-    indexField.isFinal = true;
-    indexField.isSynthetic = true;
-    indexField.type = intType;
-    fields.add(indexField);
-    getters.add(_createGetter(indexField));
-    ConstFieldElementImpl valuesField = new ConstFieldElementImpl("values", -1);
-    valuesField.isStatic = true;
-    valuesField.isConst = true;
-    valuesField.isSynthetic = true;
-    valuesField.type = _typeProvider.listType.instantiate(<DartType>[enumType]);
-    fields.add(valuesField);
-    getters.add(_createGetter(valuesField));
-    //
-    // Build the enum constants.
-    //
-    NodeList<EnumConstantDeclaration> constants = node.constants;
-    List<DartObjectImpl> constantValues = new List<DartObjectImpl>();
-    int constantCount = constants.length;
-    for (int i = 0; i < constantCount; i++) {
-      EnumConstantDeclaration constant = constants[i];
-      FieldElementImpl constantField = constant.name.staticElement;
-      //
-      // Create a value for the constant.
-      //
-      Map<String, DartObjectImpl> fieldMap =
-          new HashMap<String, DartObjectImpl>();
-      fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
-      DartObjectImpl value =
-          new DartObjectImpl(enumType, new GenericState(fieldMap));
-      constantValues.add(value);
-      constantField.evaluationResult = new EvaluationResultImpl(value);
-      fields.add(constantField);
-      getters.add(constantField.getter);
-    }
-    //
-    // Build the value of the 'values' field.
-    //
-    valuesField.evaluationResult = new EvaluationResultImpl(
-        new DartObjectImpl(valuesField.type, new ListState(constantValues)));
-    // Update toString() return type.
-    {
-      MethodElementImpl toStringMethod = enumElement.methods[0];
-      toStringMethod.returnType = _typeProvider.stringType;
-      toStringMethod.type = new FunctionTypeImpl(toStringMethod);
-    }
-    //
-    // Finish building the enum.
-    //
-    enumElement.fields = fields;
-    enumElement.accessors = getters;
-    // Client code isn't allowed to invoke the constructor, so we do not model
-    // it.
-    super.visitEnumDeclaration(node);
-  }
-
-  /// Create a getter that corresponds to the given [field].
-  PropertyAccessorElement _createGetter(FieldElementImpl field) {
-    return new PropertyAccessorElementImpl_ImplicitGetter(field);
-  }
-}
-
 /// An [AstVisitor] that fills [UsedLocalElements].
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   final UsedLocalElements usedElements = new UsedLocalElements();
@@ -2715,7 +2666,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
     Scope outerScope = nameScope;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       if (enclosingClass == null) {
         AnalysisEngine.instance.logger.logInformation(
             "Missing element for class declaration ${node.name.name} in ${definingLibrary.source.fullName}",
@@ -2735,7 +2686,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       }
     } finally {
       nameScope = outerScope;
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -2780,7 +2731,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _currentType = node.declaredElement.type;
+    _currentType = node.declaredElement.thisType;
     super.visitClassDeclaration(node);
     _currentType = null;
   }
@@ -2831,7 +2782,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
 
   @override
   visitMixinDeclaration(MixinDeclaration node) {
-    _currentType = node.declaredElement.type;
+    _currentType = node.declaredElement.thisType;
     super.visitMixinDeclaration(node);
     _currentType = null;
   }
@@ -2843,7 +2794,7 @@ class OverrideVerifier extends RecursiveAstVisitor {
   }
 }
 
-/// An AST visitor that is used to resolve the some of the nodes within a single
+/// An AST visitor that is used to resolve some of the nodes within a single
 /// compilation unit. The nodes that are skipped are those that are within
 /// function bodies.
 class PartialResolverVisitor extends ResolverVisitor {
@@ -3008,7 +2959,7 @@ class ResolverVisitor extends ScopedVisitor {
   StaticTypeAnalyzer typeAnalyzer;
 
   /// The type system in use during resolution.
-  TypeSystem typeSystem;
+  Dart2TypeSystem typeSystem;
 
   /// The class declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a class.
@@ -3227,7 +3178,7 @@ class ResolverVisitor extends ScopedVisitor {
   }) {
     _enclosingClassDeclaration = null;
     enclosingClass = enclosingClassElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
+    typeAnalyzer.thisType = enclosingClass?.thisType;
     _enclosingFunction = enclosingExecutableElement;
   }
 
@@ -3235,7 +3186,7 @@ class ResolverVisitor extends ScopedVisitor {
   void prepareToResolveMembersInClass(ClassDeclaration node) {
     _enclosingClassDeclaration = node;
     enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
+    typeAnalyzer.thisType = enclosingClass?.thisType;
   }
 
   /// Visit the given [comment] if it is not `null`.
@@ -3495,12 +3446,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitClassDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -3717,12 +3668,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitEnumDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
@@ -3810,27 +3761,28 @@ class ResolverVisitor extends ScopedVisitor {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
       DartType valueType;
+      Element identifierElement;
       if (forLoopParts is ForEachPartsWithDeclaration) {
         loopVariable = forLoopParts.loopVariable;
         valueType = loopVariable?.type?.type ?? UnknownInferredType.instance;
       } else if (forLoopParts is ForEachPartsWithIdentifier) {
         SimpleIdentifier identifier = forLoopParts.identifier;
         identifier?.accept(this);
-        Element element = identifier?.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
+        identifierElement = identifier?.staticElement;
+        if (identifierElement is VariableElement) {
+          valueType = identifierElement.type;
+        } else if (identifierElement is PropertyAccessorElement) {
+          if (identifierElement.parameters.isNotEmpty) {
+            valueType = identifierElement.parameters[0].type;
           }
         }
       }
 
       if (valueType != null) {
         InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+            ? typeProvider.iterableType2(valueType)
+            : typeProvider.streamType2(valueType);
+        InferenceContext.setType(iterable, targetType);
       }
       //
       // We visit the iterator before the loop variable because the loop
@@ -3840,7 +3792,10 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
       _flowAnalysis?.flow?.forEach_bodyBegin(
-          _flowAnalysis.assignedVariables.writtenInNode(node));
+          _flowAnalysis.assignedVariables.writtenInNode(node),
+          identifierElement is VariableElement
+              ? identifierElement
+              : loopVariable.declaredElement);
       node.body?.accept(this);
       _flowAnalysis?.flow?.forEach_end();
 
@@ -3880,6 +3835,7 @@ class ResolverVisitor extends ScopedVisitor {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
       SimpleIdentifier identifier;
+      Element identifierElement;
       if (forLoopParts is ForEachPartsWithDeclaration) {
         loopVariable = forLoopParts.loopVariable;
       } else if (forLoopParts is ForEachPartsWithIdentifier) {
@@ -3893,20 +3849,20 @@ class ResolverVisitor extends ScopedVisitor {
         valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
       }
       if (identifier != null) {
-        Element element = identifier.staticElement;
-        if (element is VariableElement) {
-          valueType = element.type;
-        } else if (element is PropertyAccessorElement) {
-          if (element.parameters.isNotEmpty) {
-            valueType = element.parameters[0].type;
+        identifierElement = identifier.staticElement;
+        if (identifierElement is VariableElement) {
+          valueType = identifierElement.type;
+        } else if (identifierElement is PropertyAccessorElement) {
+          if (identifierElement.parameters.isNotEmpty) {
+            valueType = identifierElement.parameters[0].type;
           }
         }
       }
       if (valueType != null) {
         InterfaceType targetType = (node.awaitKeyword == null)
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        InferenceContext.setType(iterable, targetType.instantiate([valueType]));
+            ? typeProvider.iterableType2(valueType)
+            : typeProvider.streamType2(valueType);
+        InferenceContext.setType(iterable, targetType);
       }
       //
       // We visit the iterator before the loop variable because the loop variable
@@ -3917,8 +3873,10 @@ class ResolverVisitor extends ScopedVisitor {
       loopVariable?.accept(this);
 
       _flowAnalysis?.flow?.forEach_bodyBegin(
-        _flowAnalysis.assignedVariables.writtenInNode(node),
-      );
+          _flowAnalysis.assignedVariables.writtenInNode(node),
+          identifierElement is VariableElement
+              ? identifierElement
+              : loopVariable.declaredElement);
 
       Statement body = node.body;
       if (body != null) {
@@ -4124,7 +4082,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (typeArguments.arguments.length == 1) {
         DartType elementType = typeArguments.arguments[0].type;
         if (!elementType.isDynamic) {
-          listType = typeProvider.listType.instantiate([elementType]);
+          listType = typeProvider.listType2(elementType);
         }
       }
     } else {
@@ -4132,8 +4090,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     if (listType != null) {
       DartType elementType = listType.typeArguments[0];
-      DartType iterableType =
-          typeProvider.iterableType.instantiate([elementType]);
+      DartType iterableType = typeProvider.iterableType2(elementType);
       _pushCollectionTypesDownToAll(node.elements,
           elementType: elementType, iterableType: iterableType);
       InferenceContext.setType(node, listType);
@@ -4192,12 +4149,12 @@ class ResolverVisitor extends ScopedVisitor {
     ClassElement outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      typeAnalyzer.thisType = enclosingClass?.type;
+      typeAnalyzer.thisType = enclosingClass?.thisType;
       super.visitMixinDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     } finally {
-      typeAnalyzer.thisType = outerType?.type;
+      typeAnalyzer.thisType = outerType?.thisType;
       enclosingClass = outerType;
       _enclosingMixinDeclaration = null;
     }
@@ -4300,7 +4257,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (literalResolution.kind == _LiteralResolutionKind.set) {
       if (typeArguments != null && typeArguments.length == 1) {
         var elementType = typeArguments[0].type;
-        literalType = typeProvider.setType.instantiate([elementType]);
+        literalType = typeProvider.setType2(elementType);
       } else {
         literalType = typeAnalyzer.inferSetTypeDownwards(
             node, literalResolution.contextType);
@@ -4309,7 +4266,7 @@ class ResolverVisitor extends ScopedVisitor {
       if (typeArguments != null && typeArguments.length == 2) {
         var keyType = typeArguments[0].type;
         var valueType = typeArguments[1].type;
-        literalType = typeProvider.mapType.instantiate([keyType, valueType]);
+        literalType = typeProvider.mapType2(keyType, valueType);
       } else {
         literalType = typeAnalyzer.inferMapTypeDownwards(
             node, literalResolution.contextType);
@@ -4322,8 +4279,7 @@ class ResolverVisitor extends ScopedVisitor {
       List<DartType> typeArguments = literalType.typeArguments;
       if (typeArguments.length == 1) {
         DartType elementType = literalType.typeArguments[0];
-        DartType iterableType =
-            typeProvider.iterableType.instantiate([elementType]);
+        DartType iterableType = typeProvider.iterableType2(elementType);
         _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
         if (!_uiAsCodeEnabled &&
@@ -4561,10 +4517,9 @@ class ResolverVisitor extends ScopedVisitor {
       if (node.star != null) {
         // If this is a yield*, then we wrap the element return type
         // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        InterfaceType wrapperType = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
-        type = wrapperType.instantiate(<DartType>[type]);
+        type = _enclosingFunction.isSynchronous
+            ? typeProvider.iterableType2(type)
+            : typeProvider.streamType2(type);
       }
       InferenceContext.setType(e, type);
     }
@@ -4575,12 +4530,12 @@ class ResolverVisitor extends ScopedVisitor {
       if (node.star != null) {
         // If this is a yield*, then we unwrap the element return type
         // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-        InterfaceType wrapperType = _enclosingFunction.isSynchronous
-            ? typeProvider.iterableType
-            : typeProvider.streamType;
         if (type is InterfaceType) {
+          ClassElement wrapperElement = _enclosingFunction.isSynchronous
+              ? typeProvider.iterableElement
+              : typeProvider.streamElement;
           var asInstanceType =
-              (type as InterfaceTypeImpl).asInstanceOf(wrapperType.element);
+              (type as InterfaceTypeImpl).asInstanceOf(wrapperElement);
           if (asInstanceType != null) {
             type = asInstanceType.typeArguments[0];
           }
@@ -4607,13 +4562,19 @@ class ResolverVisitor extends ScopedVisitor {
       if (isGenerator) {
         // If it's sync* we expect Iterable<T>
         // If it's async* we expect Stream<T>
-        InterfaceType rawType = isAsynchronous
-            ? typeProvider.streamType
-            : typeProvider.iterableType;
         // Match the types to instantiate the type arguments if possible
         List<DartType> targs = declaredType.typeArguments;
-        if (targs.length == 1 && rawType.instantiate(targs) == declaredType) {
-          return targs[0];
+        if (targs.length == 1) {
+          var arg = targs[0];
+          if (isAsynchronous) {
+            if (typeProvider.streamType2(arg) == declaredType) {
+              return arg;
+            }
+          } else {
+            if (typeProvider.iterableType2(arg) == declaredType) {
+              return arg;
+            }
+          }
         }
       }
       // async functions expect `Future<T> | T`
@@ -4673,8 +4634,8 @@ class ResolverVisitor extends ScopedVisitor {
     } else if (literal.elements.isEmpty) {
       return _LiteralResolution(
           _LiteralResolutionKind.map,
-          typeProvider.mapType.instantiate(
-              [typeProvider.dynamicType, typeProvider.dynamicType]));
+          typeProvider.mapType2(
+              typeProvider.dynamicType, typeProvider.dynamicType));
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
@@ -4691,7 +4652,7 @@ class ResolverVisitor extends ScopedVisitor {
     if (type.isDartAsyncFutureOr) {
       return type;
     }
-    return typeProvider.futureOrType.instantiate([type]);
+    return typeProvider.futureOrType2(type);
   }
 
   /// If [contextType] is defined and is a subtype of `Iterable<Object>` and
@@ -4736,12 +4697,10 @@ class ResolverVisitor extends ScopedVisitor {
       NodeList<TypeAnnotation> arguments = typeArgumentList.arguments;
       if (arguments.length == 1) {
         return _LiteralResolution(_LiteralResolutionKind.set,
-            typeProvider.setType.instantiate([arguments[0].type]));
+            typeProvider.setType2(arguments[0].type));
       } else if (arguments.length == 2) {
-        return _LiteralResolution(
-            _LiteralResolutionKind.map,
-            typeProvider.mapType
-                .instantiate([arguments[0].type, arguments[1].type]));
+        return _LiteralResolution(_LiteralResolutionKind.map,
+            typeProvider.mapType2(arguments[0].type, arguments[1].type));
       }
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
@@ -4765,20 +4724,23 @@ class ResolverVisitor extends ScopedVisitor {
       DartType uninstantiatedType, TypeArgumentList typeArguments,
       {AstNode errorNode, bool isConst: false}) {
     errorNode ??= inferenceNode;
-    TypeSystem ts = typeSystem;
     if (typeArguments == null &&
         uninstantiatedType is FunctionType &&
-        uninstantiatedType.typeFormals.isNotEmpty &&
-        ts is Dart2TypeSystem) {
-      return ts.inferGenericFunctionOrType<FunctionType>(
-          uninstantiatedType,
-          const <ParameterElement>[],
-          const <DartType>[],
-          InferenceContext.getContext(inferenceNode),
-          downwards: true,
-          isConst: isConst,
-          errorReporter: errorReporter,
-          errorNode: errorNode);
+        uninstantiatedType.typeFormals.isNotEmpty) {
+      var typeArguments = typeSystem.inferGenericFunctionOrType(
+        typeParameters: uninstantiatedType.typeFormals,
+        parameters: const <ParameterElement>[],
+        declaredReturnType: uninstantiatedType.returnType,
+        argumentTypes: const <DartType>[],
+        contextReturnType: InferenceContext.getContext(inferenceNode),
+        downwards: true,
+        isConst: isConst,
+        errorReporter: errorReporter,
+        errorNode: errorNode,
+      );
+      if (typeArguments != null) {
+        return uninstantiatedType.instantiate(typeArguments);
+      }
     }
     return null;
   }
@@ -5809,7 +5771,7 @@ class ToDoFinder {
 ///
 /// The client must set [nameScope] before calling [resolveTypeName].
 class TypeNameResolver {
-  final TypeSystem typeSystem;
+  final Dart2TypeSystem typeSystem;
   final DartType dynamicType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
@@ -6064,7 +6026,9 @@ class TypeNameResolver {
       type = DynamicTypeImpl.instance;
     } else if (element is NeverElementImpl) {
       _setElement(typeName, element);
-      type = element.type;
+      type = element.instantiate(
+        nullabilitySuffix: _getNullability(node.question != null),
+      );
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type as TypeImpl;
@@ -6141,9 +6105,8 @@ class TypeNameResolver {
       }
     } else {
       if (element is GenericTypeAliasElementImpl) {
-        var ts = typeSystem as Dart2TypeSystem;
         List<DartType> typeArguments =
-            ts.instantiateTypeFormalsToBounds2(element);
+            typeSystem.instantiateTypeFormalsToBounds2(element);
         type = GenericTypeAliasElementImpl.typeAfterSubstitution(
                 element, typeArguments) ??
             dynamicType;
@@ -6255,24 +6218,25 @@ class TypeNameResolver {
   /// If the [node] is the type name in a redirected factory constructor,
   /// infer type arguments using the enclosing class declaration. Return `null`
   /// otherwise.
-  InterfaceTypeImpl _inferTypeArgumentsForRedirectedConstructor(
-      TypeName node, DartType type) {
+  List<DartType> _inferTypeArgumentsForRedirectedConstructor(
+      TypeName node, ClassElement typeElement) {
     AstNode constructorName = node.parent;
     AstNode enclosingConstructor = constructorName?.parent;
-    TypeSystem ts = typeSystem;
     if (constructorName is ConstructorName &&
         enclosingConstructor is ConstructorDeclaration &&
-        enclosingConstructor.redirectedConstructor == constructorName &&
-        type is InterfaceType &&
-        ts is Dart2TypeSystem) {
+        enclosingConstructor.redirectedConstructor == constructorName) {
       ClassOrMixinDeclaration enclosingClassNode = enclosingConstructor.parent;
-      ClassElement enclosingClassElement = enclosingClassNode.declaredElement;
-      if (enclosingClassElement == type.element) {
-        return type;
+      var enclosingClassElement = enclosingClassNode.declaredElement;
+      if (enclosingClassElement == typeElement) {
+        return typeElement.thisType.typeArguments;
       } else {
-        InterfaceType contextType = enclosingClassElement.type;
-        return ts.inferGenericFunctionOrType(
-            type, const <ParameterElement>[], const <DartType>[], contextType);
+        return typeSystem.inferGenericFunctionOrType(
+          typeParameters: typeElement.typeParameters,
+          parameters: const [],
+          declaredReturnType: typeElement.thisType,
+          argumentTypes: const [],
+          contextReturnType: enclosingClassElement.thisType,
+        );
       }
     }
     return null;
@@ -6382,13 +6346,10 @@ class TypeNameResolver {
     } else if (parameterCount == 0) {
       typeArguments = const <DartType>[];
     } else {
-      var redirectedType =
-          _inferTypeArgumentsForRedirectedConstructor(node, element.type);
-      if (redirectedType != null) {
-        typeArguments = redirectedType.typeArguments;
-      } else {
-        var ts = typeSystem as Dart2TypeSystem;
-        typeArguments = ts.instantiateTypeFormalsToBounds2(element);
+      typeArguments =
+          _inferTypeArgumentsForRedirectedConstructor(node, element);
+      if (typeArguments == null) {
+        typeArguments = typeSystem.instantiateTypeFormalsToBounds2(element);
       }
     }
 
@@ -6618,16 +6579,24 @@ abstract class TypeProvider {
   /// Return the type representing 'Future<dynamic>'.
   InterfaceType get futureDynamicType;
 
+  /// Return the element representing the built-in class 'Future'.
+  ClassElement get futureElement;
+
   /// Return the type representing 'Future<Null>'.
   InterfaceType get futureNullType;
+
+  /// Return the element representing the built-in class 'FutureOr'.
+  ClassElement get futureOrElement;
 
   /// Return the type representing 'FutureOr<Null>'.
   InterfaceType get futureOrNullType;
 
   /// Return the type representing the built-in type 'FutureOr'.
+  @Deprecated('Use futureOrType2() instead.')
   InterfaceType get futureOrType;
 
   /// Return the type representing the built-in type 'Future'.
+  @Deprecated('Use futureType2() instead.')
   InterfaceType get futureType;
 
   /// Return the type representing the built-in type 'int'.
@@ -6636,19 +6605,31 @@ abstract class TypeProvider {
   /// Return the type representing the type 'Iterable<dynamic>'.
   InterfaceType get iterableDynamicType;
 
+  /// Return the element representing the built-in class 'Iterable'.
+  ClassElement get iterableElement;
+
   /// Return the type representing the type 'Iterable<Object>'.
   InterfaceType get iterableObjectType;
 
   /// Return the type representing the built-in type 'Iterable'.
+  @Deprecated('Use iterableType2() instead.')
   InterfaceType get iterableType;
 
+  /// Return the element representing the built-in class 'List'.
+  ClassElement get listElement;
+
   /// Return the type representing the built-in type 'List'.
+  @Deprecated('Use listType2() instead.')
   InterfaceType get listType;
+
+  /// Return the element representing the built-in class 'Map'.
+  ClassElement get mapElement;
 
   /// Return the type representing 'Map<Object, Object>'.
   InterfaceType get mapObjectObjectType;
 
   /// Return the type representing the built-in type 'Map'.
+  @Deprecated('Use mapType2() instead.')
   InterfaceType get mapType;
 
   /// Return the type representing the built-in type 'Never'.
@@ -6670,7 +6651,11 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Object'.
   InterfaceType get objectType;
 
+  /// Return the element representing the built-in class 'Set'.
+  ClassElement get setElement;
+
   /// Return the type representing the built-in type 'Set'.
+  @Deprecated('Use setType2() instead.')
   InterfaceType get setType;
 
   /// Return the type representing the built-in type 'StackTrace'.
@@ -6679,11 +6664,18 @@ abstract class TypeProvider {
   /// Return the type representing 'Stream<dynamic>'.
   InterfaceType get streamDynamicType;
 
+  /// Return the element representing the built-in class 'Stream'.
+  ClassElement get streamElement;
+
   /// Return the type representing the built-in type 'Stream'.
+  @Deprecated('Use streamType2() instead.')
   InterfaceType get streamType;
 
   /// Return the type representing the built-in type 'String'.
   InterfaceType get stringType;
+
+  /// Return the element representing the built-in class 'Symbol'.
+  ClassElement get symbolElement;
 
   /// Return the type representing the built-in type 'Symbol'.
   InterfaceType get symbolType;
@@ -6693,6 +6685,14 @@ abstract class TypeProvider {
 
   /// Return the type representing the built-in type `void`.
   VoidType get voidType;
+
+  /// Return the instantiation of the built-in class 'FutureOr' with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureOrType2(DartType valueType);
+
+  /// Return the instantiation of the built-in class 'Future' with the
+  /// given [valueType]. The type has the nullability suffix of this provider.
+  InterfaceType futureType2(DartType valueType);
 
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
@@ -6705,6 +6705,27 @@ abstract class TypeProvider {
   /// Return 'true' if [id] is the name of a method on
   /// the Object type.
   bool isObjectMethod(String id);
+
+  /// Return the instantiation of the built-in class 'Iterable' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType iterableType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'List' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType listType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'List' with the
+  /// given [keyType] and [valueType]. The type has the nullability suffix of
+  /// this provider.
+  InterfaceType mapType2(DartType keyType, DartType valueType);
+
+  /// Return the instantiation of the built-in class 'Set' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType setType2(DartType elementType);
+
+  /// Return the instantiation of the built-in class 'Stream' with the
+  /// given [elementType]. The type has the nullability suffix of this provider.
+  InterfaceType streamType2(DartType elementType);
 }
 
 /// Modes in which [TypeResolverVisitor] works.

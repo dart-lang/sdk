@@ -1,3 +1,18 @@
+## 0.38.3
+* Deprecated the following codes from `StaticWarningCode`.  Please use the
+  corresponding error codes from `CompileTimeErrorCode` instead:
+  * `EXTRA_POSITIONAL_ARGUMENTS`
+  * `EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED`
+  * `IMPORT_OF_NON_LIBRARY`
+  * `NOT_ENOUGH_REQUIRED_ARGUMENTS`
+  * `REDIRECT_TO_MISSING_CONSTRUCTOR`
+  * `REDIRECT_TO_NON_CLASS`
+  * `UNDEFINED_CLASS`
+  * `UNDEFINED_NAMED_PARAMETER`
+* Bug fixes: #33749, #35985, #37708, #37857, #37858, #37859, #37945, #38022,
+  #38057, #38071, #38091, #38095, #38105, #38113, #38198, #38202, #38203,
+  #38261, #38282, #38365, #38417, #38448, #38449.
+
 ## 0.38.2
 * The type of `FunctionTypeAlias.declaredElement` has been refined to
   `FunctionTypeAliasElement`.  Since the new type is a refinement of

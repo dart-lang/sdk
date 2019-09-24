@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -43,6 +44,15 @@ class TypeProviderImpl extends TypeProviderBase {
   final NullabilitySuffix _nullabilitySuffix;
   final LibraryElement _coreLibrary;
   final LibraryElement _asyncLibrary;
+
+  ClassElement _futureElement;
+  ClassElement _futureOrElement;
+  ClassElement _iterableElement;
+  ClassElement _listElement;
+  ClassElement _mapElement;
+  ClassElement _setElement;
+  ClassElement _streamElement;
+  ClassElement _symbolElement;
 
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
@@ -119,19 +129,39 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get futureDynamicType {
-    _futureDynamicType ??= futureType.instantiate(<DartType>[dynamicType]);
+    _futureDynamicType ??= InterfaceTypeImpl.explicit(
+      futureElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureDynamicType;
+  }
+
+  ClassElement get futureElement {
+    return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
   @override
   InterfaceType get futureNullType {
-    _futureNullType ??= futureType.instantiate(<DartType>[nullType]);
+    _futureNullType ??= InterfaceTypeImpl.explicit(
+      futureElement,
+      [nullType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureNullType;
+  }
+
+  ClassElement get futureOrElement {
+    return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
   @override
   InterfaceType get futureOrNullType {
-    _futureOrNullType ??= futureOrType.instantiate(<DartType>[nullType]);
+    _futureOrNullType ??= InterfaceTypeImpl.explicit(
+      futureOrElement,
+      [nullType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _futureOrNullType;
   }
 
@@ -155,13 +185,26 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get iterableDynamicType {
-    _iterableDynamicType ??= iterableType.instantiate(<DartType>[dynamicType]);
+    _iterableDynamicType ??= InterfaceTypeImpl.explicit(
+      iterableElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _iterableDynamicType;
   }
 
   @override
+  ClassElement get iterableElement {
+    return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
+  }
+
+  @override
   InterfaceType get iterableObjectType {
-    _iterableObjectType ??= iterableType.instantiate(<DartType>[objectType]);
+    _iterableObjectType ??= InterfaceTypeImpl.explicit(
+      iterableElement,
+      [objectType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _iterableObjectType;
   }
 
@@ -172,15 +215,29 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement get listElement {
+    return _listElement ??= _getClassElement(_coreLibrary, 'List');
+  }
+
+  @override
   InterfaceType get listType {
     _listType ??= _getType(_coreLibrary, "List");
     return _listType;
   }
 
   @override
+  ClassElement get mapElement {
+    return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
+  }
+
+  @override
   InterfaceType get mapObjectObjectType {
-    return _mapObjectObjectType ??=
-        mapType.instantiate(<DartType>[objectType, objectType]);
+    _mapObjectObjectType ??= InterfaceTypeImpl.explicit(
+      mapElement,
+      [objectType, objectType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+    return _mapObjectObjectType;
   }
 
   @override
@@ -219,6 +276,11 @@ class TypeProviderImpl extends TypeProviderBase {
   }
 
   @override
+  ClassElement get setElement {
+    return _setElement ??= _getClassElement(_coreLibrary, 'Set');
+  }
+
+  @override
   InterfaceType get setType {
     return _setType ??= _getType(_coreLibrary, "Set");
   }
@@ -231,8 +293,17 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get streamDynamicType {
-    _streamDynamicType ??= streamType.instantiate(<DartType>[dynamicType]);
+    _streamDynamicType ??= InterfaceTypeImpl.explicit(
+      streamElement,
+      [dynamicType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
     return _streamDynamicType;
+  }
+
+  @override
+  ClassElement get streamElement {
+    return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
   @override
@@ -245,6 +316,11 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get stringType {
     _stringType ??= _getType(_coreLibrary, "String");
     return _stringType;
+  }
+
+  @override
+  ClassElement get symbolElement {
+    return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
   }
 
   @override
@@ -262,6 +338,62 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   VoidType get voidType => VoidTypeImpl.instance;
 
+  @override
+  InterfaceType futureOrType2(DartType valueType) {
+    return futureOrElement.instantiate(
+      typeArguments: [valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType futureType2(DartType valueType) {
+    return futureElement.instantiate(
+      typeArguments: [valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType iterableType2(DartType elementType) {
+    return iterableElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType listType2(DartType elementType) {
+    return listElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType mapType2(DartType keyType, DartType valueType) {
+    return mapElement.instantiate(
+      typeArguments: [keyType, valueType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType setType2(DartType elementType) {
+    return setElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
+  @override
+  InterfaceType streamType2(DartType elementType) {
+    return streamElement.instantiate(
+      typeArguments: [elementType],
+      nullabilitySuffix: _nullabilitySuffix,
+    );
+  }
+
   TypeProviderImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (_nullabilitySuffix == nullabilitySuffix) {
       return this;
@@ -270,13 +402,20 @@ class TypeProviderImpl extends TypeProviderBase {
         nullabilitySuffix: nullabilitySuffix);
   }
 
-  /// Return the type with the given [name] from the given [library], or
+  /// Return the class with the given [name] from the given [library], or
   /// throw a [StateError] if there is no class with the given name.
-  InterfaceType _getType(LibraryElement library, String name) {
+  ClassElement _getClassElement(LibraryElement library, String name) {
     var element = library.getType(name);
     if (element == null) {
       throw StateError('No definition of type $name');
     }
+    return element;
+  }
+
+  /// Return the type with the given [name] from the given [library], or
+  /// throw a [StateError] if there is no class with the given name.
+  InterfaceType _getType(LibraryElement library, String name) {
+    var element = _getClassElement(library, name);
 
     var typeArguments = const <DartType>[];
     var typeParameters = element.typeParameters;

@@ -6,8 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:test/test.dart';
 
 /**
@@ -237,12 +237,12 @@ class TypeAssertions {
   /**
    * Primitive assertion for the list type
    */
-  Asserter<DartType> get isList => hasElementOf(_typeProvider.listType);
+  Asserter<DartType> get isList => hasElement(_typeProvider.listElement);
 
   /**
    * Primitive assertion for the map type
    */
-  Asserter<DartType> get isMap => hasElementOf(_typeProvider.mapType);
+  Asserter<DartType> get isMap => hasElement(_typeProvider.mapElement);
 
   /**
    * Primitive assertion for the Null type
@@ -269,12 +269,6 @@ class TypeAssertions {
    */
   Asserter<DartType> hasElement(Element expected) =>
       (DartType type) => expect(expected, type.element);
-
-  /**
-   * Assert that a type has the element that is equal to the element of the
-   * given [type].
-   */
-  Asserter<DartType> hasElementOf(DartType type) => hasElement(type.element);
 
   /**
    * Given assertions for the argument and return types, produce an

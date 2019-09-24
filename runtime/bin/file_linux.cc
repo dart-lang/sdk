@@ -572,24 +572,34 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL) && (pathname[0] == '/');
 }
 
-const char* File::ReadLink(const char* pathname) {
+intptr_t File::ReadLinkInto(const char* pathname,
+                            char* result,
+                            size_t result_size) {
   ASSERT(pathname != NULL);
   ASSERT(IsAbsolutePath(pathname));
   struct stat64 link_stats;
   if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) {
-    return NULL;
+    return -1;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
-    return NULL;
+    return -1;
   }
+  const size_t target_size =
+      TEMP_FAILURE_RETRY(readlink(pathname, result, result_size));
+  if (target_size <= 0) {
+    return -1;
+  }
+  return target_size;
+}
+
+const char* File::ReadLink(const char* pathname) {
   // Don't rely on the link_stats.st_size for the size of the link
   // target. For some filesystems, e.g. procfs, this value is always
   // 0. Also the link might have changed before the readlink call.
   const int kBufferSize = PATH_MAX + 1;
   char target[kBufferSize];
-  size_t target_size =
-      TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
+  size_t target_size = ReadLinkInto(pathname, target, kBufferSize);
   if (target_size <= 0) {
     return NULL;
   }

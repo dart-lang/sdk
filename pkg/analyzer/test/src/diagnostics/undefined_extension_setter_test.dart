@@ -44,13 +44,26 @@ f() {
     ]);
   }
 
-  test_override_undefined_hasGetter() async {
+  test_override_undefined_hasGetter_eq() async {
     await assertErrorsInCode('''
 extension E on int {
   int get foo => 0;
 }
 f() {
   E(0).foo = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3),
+    ]);
+  }
+
+  test_override_undefined_hasGetter_plusEq() async {
+    await assertErrorsInCode('''
+extension E on int {
+  int get foo => 0;
+}
+f() {
+  E(0).foo += 1;
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 56, 3),

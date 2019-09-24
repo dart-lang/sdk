@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -831,7 +832,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    if (constructor.enclosingElement.type == typeProvider.symbolType) {
+    if (constructor.enclosingElement == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -1256,7 +1257,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
+    InterfaceType listType = _typeProvider.listType2(elementType);
     return new DartObjectImpl(listType, new ListState(list));
   }
 
@@ -1390,8 +1391,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           valueType = typeArguments[1];
         }
       }
-      InterfaceType mapType =
-          _typeProvider.mapType.instantiate([keyType, valueType]);
+      InterfaceType mapType = _typeProvider.mapType2(keyType, valueType);
       return new DartObjectImpl(mapType, new MapState(map));
     } else {
       if (!node.isConst) {
@@ -1412,7 +1412,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
-      InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+      InterfaceType setType = _typeProvider.setType2(elementType);
       return new DartObjectImpl(setType, new SetState(set));
     }
   }
@@ -1640,13 +1640,36 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
         return new DartObjectImpl(functionType, new FunctionState(function));
       }
-    } else if (variableElement is TypeDefiningElement) {
+    } else if (variableElement is ClassElement) {
+      var type = variableElement.instantiate(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is DynamicElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.dynamicType),
+      );
+    } else if (variableElement is FunctionTypeAliasElement) {
+      var type = variableElement.instantiate2(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is NeverElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.neverType),
+      );
+    } else if (variableElement is TypeParameterElement) {
       // Constants may not refer to type parameters.
-      if (variableElement is! TypeParameterElement) {
-        return new DartObjectImpl(
-            _typeProvider.typeType, new TypeState(variableElement.type));
-      }
     }
+
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;

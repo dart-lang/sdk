@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart = 2.5
+
 part of dart._http;
 
 const String _webSocketGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -601,11 +603,11 @@ class _WebSocketPerMessageDeflate {
     data.addAll(const [0x00, 0x00, 0xff, 0xff]);
 
     decoder.process(data, 0, data.length);
-    var result = <int>[];
+    final result = new BytesBuilder();
     List<int> out;
 
     while ((out = decoder.processed()) != null) {
-      result.addAll(out);
+      result.add(out);
     }
 
     if ((serverSide && clientNoContextTakeover) ||
@@ -613,7 +615,7 @@ class _WebSocketPerMessageDeflate {
       decoder = null;
     }
 
-    return new Uint8List.fromList(result);
+    return result.takeBytes();
   }
 
   List<int> processOutgoingMessage(List<int> msg) {

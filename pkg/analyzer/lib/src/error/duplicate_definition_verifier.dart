@@ -343,6 +343,9 @@ class DuplicateDefinitionVerifier {
   void _checkDuplicateIdentifier(
       Map<String, Element> getterScope, SimpleIdentifier identifier,
       {Element element, Map<String, Element> setterScope}) {
+    if (identifier.isSynthetic) {
+      return;
+    }
     element ??= identifier.staticElement;
 
     // Fields define getters and setters, so check them separately.

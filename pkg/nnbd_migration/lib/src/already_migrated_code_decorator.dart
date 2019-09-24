@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -89,11 +90,10 @@ class AlreadyMigratedCodeDecorator {
     allSupertypes.addAll(class_.superclassConstraints);
     allSupertypes.addAll(class_.interfaces);
     allSupertypes.addAll(class_.mixins);
-    var type = class_.type;
+    var type = class_.thisType;
     if (type.isDartAsyncFuture) {
       // Add FutureOr<T> as a supertype of Future<T>.
-      allSupertypes
-          .add(_typeProvider.futureOrType.instantiate(type.typeArguments));
+      allSupertypes.add(_typeProvider.futureOrType2(type.typeArguments.single));
     }
     return allSupertypes.map(decorate);
   }

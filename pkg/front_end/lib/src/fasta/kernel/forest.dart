@@ -28,34 +28,14 @@ import 'collections.dart'
 
 import 'kernel_shadow_ast.dart'
     show
-        ArgumentsJudgment,
-        AssertInitializerJudgment,
-        AssertStatementJudgment,
-        BlockJudgment,
-        CatchJudgment,
-        DoJudgment,
-        DoubleJudgment,
-        EmptyStatementJudgment,
-        ExpressionStatementJudgment,
-        ForJudgment,
-        FunctionNodeJudgment,
-        IfJudgment,
+        ArgumentsImpl,
         IntJudgment,
-        ListLiteralJudgment,
-        LoadLibraryJudgment,
-        MapLiteralJudgment,
-        MethodInvocationJudgment,
-        ReturnJudgment,
-        SetLiteralJudgment,
+        LoadLibraryImpl,
+        MethodInvocationImpl,
+        ReturnStatementImpl,
         ShadowLargeIntLiteral,
-        SymbolLiteralJudgment,
         SyntheticExpressionJudgment,
-        TryCatchJudgment,
-        TryFinallyJudgment,
-        TypeLiteralJudgment,
-        VariableDeclarationJudgment,
-        WhileJudgment,
-        YieldJudgment;
+        VariableDeclarationImpl;
 
 /// A shadow tree factory.
 class Forest {
@@ -63,7 +43,7 @@ class Forest {
 
   Arguments createArguments(int fileOffset, List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named}) {
-    return new ArgumentsJudgment(positional, types: types, named: named)
+    return new ArgumentsImpl(positional, types: types, named: named)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
@@ -76,7 +56,7 @@ class Forest {
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[]}) {
-    return new ArgumentsJudgment.forExtensionMethod(
+    return new ArgumentsImpl.forExtensionMethod(
         extensionTypeParameterCount, typeParameterCount, receiver,
         extensionTypeArguments: extensionTypeArguments,
         typeArguments: typeArguments,
@@ -102,7 +82,7 @@ class Forest {
   }
 
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types) {
-    ArgumentsJudgment.setNonInferrableArgumentTypes(arguments, types);
+    ArgumentsImpl.setNonInferrableArgumentTypes(arguments, types);
   }
 
   StringLiteral asLiteralString(Expression value) => value;
@@ -116,7 +96,7 @@ class Forest {
   /// Return a representation of a double literal at the given [location]. The
   /// literal has the given [value].
   DoubleLiteral createDoubleLiteral(double value, Token token) {
-    return new DoubleJudgment(value)..fileOffset = offsetForToken(token);
+    return new DoubleLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   /// Return a representation of an integer literal at the given [location]. The
@@ -151,7 +131,7 @@ class Forest {
       Token rightBracket) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new ListLiteralJudgment(expressions,
+    return new ListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBracket);
   }
@@ -177,7 +157,7 @@ class Forest {
       Token rightBrace) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new SetLiteralJudgment(expressions,
+    return new SetLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
   }
@@ -206,7 +186,7 @@ class Forest {
       Token rightBrace) {
     // TODO(brianwilkerson): The file offset computed below will not be correct
     // if there are type arguments but no `const` keyword.
-    return new MapLiteralJudgment(entries,
+    return new MapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
       ..fileOffset = offsetForToken(constKeyword ?? leftBrace);
   }
@@ -225,11 +205,11 @@ class Forest {
 
   /// Return a representation of a symbol literal defined by [value].
   SymbolLiteral createSymbolLiteral(String value, Token token) {
-    return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(token);
+    return new SymbolLiteral(value)..fileOffset = offsetForToken(token);
   }
 
   TypeLiteral createTypeLiteral(DartType type, Token token) {
-    return new TypeLiteralJudgment(type)..fileOffset = offsetForToken(token);
+    return new TypeLiteral(type)..fileOffset = offsetForToken(token);
   }
 
   /// Return a representation of a key/value pair in a literal map. The [key] is
@@ -244,7 +224,7 @@ class Forest {
 
   Expression createLoadLibrary(
       LibraryDependency dependency, Arguments arguments) {
-    return new LoadLibraryJudgment(dependency, arguments);
+    return new LoadLibraryImpl(dependency, arguments);
   }
 
   Expression checkLibraryIsLoaded(LibraryDependency dependency) {
@@ -328,7 +308,7 @@ class Forest {
       Expression condition,
       Token comma,
       Expression message) {
-    return new AssertInitializerJudgment(createAssertStatement(
+    return new AssertInitializer(createAssertStatement(
         assertKeyword, leftParenthesis, condition, comma, message, null));
   }
 
@@ -368,7 +348,7 @@ class Forest {
         endOffset = conditionLastToken.offset + conditionLastToken.length;
       }
     }
-    return new AssertStatementJudgment(condition,
+    return new AssertStatement(condition,
         conditionStartOffset: startOffset,
         conditionEndOffset: endOffset,
         message: message);
@@ -392,7 +372,7 @@ class Forest {
         copy.add(statement);
       }
     }
-    return new BlockJudgment(copy ?? statements)
+    return new Block(copy ?? statements)
       ..fileOffset = offsetForToken(openBrace);
   }
 
@@ -411,7 +391,7 @@ class Forest {
       VariableDeclaration stackTraceParameter,
       DartType stackTraceType,
       Statement body) {
-    return new CatchJudgment(exceptionParameter, body,
+    return new Catch(exceptionParameter, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = offsetForToken(onKeyword ?? catchKeyword);
   }
@@ -437,19 +417,19 @@ class Forest {
   /// Return a representation of a do statement.
   Statement createDoStatement(Token doKeyword, Statement body,
       Token whileKeyword, Expression condition, Token semicolon) {
-    return new DoJudgment(body, condition)..fileOffset = doKeyword.charOffset;
+    return new DoStatement(body, condition)..fileOffset = doKeyword.charOffset;
   }
 
   /// Return a representation of an expression statement composed from the
   /// [expression] and [semicolon].
   Statement createExpressionStatement(Expression expression, Token semicolon) {
-    return new ExpressionStatementJudgment(expression);
+    return new ExpressionStatement(expression);
   }
 
   /// Return a representation of an empty statement consisting of the given
   /// [semicolon].
   Statement createEmptyStatement(Token semicolon) {
-    return new EmptyStatementJudgment();
+    return new EmptyStatement();
   }
 
   /// Return a representation of a for statement.
@@ -463,14 +443,14 @@ class Forest {
       List<Expression> updaters,
       Token rightParenthesis,
       Statement body) {
-    return new ForJudgment(variables, condition, updaters, body)
+    return new ForStatement(variables ?? [], condition, updaters, body)
       ..fileOffset = forKeyword.charOffset;
   }
 
   /// Return a representation of an `if` statement.
   Statement createIfStatement(Token ifKeyword, Expression condition,
       Statement thenStatement, Token elseKeyword, Statement elseStatement) {
-    return new IfJudgment(condition, thenStatement, elseStatement)
+    return new IfStatement(condition, thenStatement, elseStatement)
       ..fileOffset = ifKeyword.charOffset;
   }
 
@@ -511,14 +491,14 @@ class Forest {
   /// Return a representation of a rethrow statement consisting of the
   /// [rethrowKeyword] followed by the [semicolon].
   Statement createRethrowStatement(Token rethrowKeyword, Token semicolon) {
-    return new ExpressionStatementJudgment(
+    return new ExpressionStatement(
         new Rethrow()..fileOffset = offsetForToken(rethrowKeyword));
   }
 
   /// Return a representation of a return statement.
   Statement createReturnStatement(int fileOffset, Expression expression,
       {bool isArrow: true}) {
-    return new ReturnJudgment(isArrow, expression)
+    return new ReturnStatementImpl(isArrow, expression)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
 
@@ -559,10 +539,10 @@ class Forest {
       List<Catch> catchClauses, Token finallyKeyword, Statement finallyBlock) {
     Statement result = body;
     if (catchClauses != null) {
-      result = new TryCatchJudgment(result, catchClauses);
+      result = new TryCatch(result, catchClauses);
     }
     if (finallyBlock != null) {
-      result = new TryFinallyJudgment(result, finallyBlock);
+      result = new TryFinally(result, finallyBlock);
     }
     return result;
   }
@@ -579,11 +559,11 @@ class Forest {
 
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
-      return new BlockJudgment(
+      return new Block(
           new List<Statement>.from(statement.declarations, growable: true))
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
-      return new BlockJudgment(<Statement>[statement])
+      return new Block(<Statement>[statement])
         ..fileOffset = statement.fileOffset;
     } else {
       return statement;
@@ -594,7 +574,7 @@ class Forest {
   /// [whileKeyword] and consisting of the given [condition] and [body].
   Statement createWhileStatement(
       Token whileKeyword, Expression condition, Statement body) {
-    return new WhileJudgment(condition, body)
+    return new WhileStatement(condition, body)
       ..fileOffset = whileKeyword.charOffset;
   }
 
@@ -603,7 +583,7 @@ class Forest {
   /// when no star was included in the source code.
   Statement createYieldStatement(
       Token yieldKeyword, Token star, Expression expression, Token semicolon) {
-    return new YieldJudgment(star != null, expression)
+    return new YieldStatement(expression, isYieldStar: star != null)
       ..fileOffset = yieldKeyword.charOffset;
   }
 
@@ -658,7 +638,7 @@ class Forest {
       bool isFieldFormal: false,
       bool isCovariant: false,
       bool isLocalFunction: false}) {
-    return new VariableDeclarationJudgment(name, functionNestingLevel,
+    return new VariableDeclarationImpl(name, functionNestingLevel,
         type: type,
         initializer: initializer,
         isFinal: isFinal,
@@ -671,7 +651,7 @@ class Forest {
   VariableDeclaration createVariableDeclarationForValue(
       int fileOffset, Expression initializer,
       {DartType type = const DynamicType()}) {
-    return new VariableDeclarationJudgment.forValue(initializer)
+    return new VariableDeclarationImpl.forValue(initializer)
       ..type = type
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
   }
@@ -688,7 +668,7 @@ class Forest {
       DartType returnType: const DynamicType(),
       AsyncMarker asyncMarker: AsyncMarker.Sync,
       AsyncMarker dartAsyncMarker}) {
-    return new FunctionNodeJudgment(body,
+    return new FunctionNode(body,
         typeParameters: typeParameters,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,
@@ -714,8 +694,17 @@ class Forest {
 
   MethodInvocation createFunctionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
-    return new MethodInvocationJudgment(expression, callName, arguments)
+    return new MethodInvocationImpl(expression, callName, arguments)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
+  MethodInvocation createMethodInvocation(
+      int fileOffset, Expression expression, Name name, Arguments arguments,
+      {bool isImplicitCall: false, Member interfaceTarget}) {
+    return new MethodInvocationImpl(expression, name, arguments,
+        isImplicitCall: isImplicitCall)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset
+      ..interfaceTarget = interfaceTarget;
   }
 
   NamedExpression createNamedExpression(String name, Expression expression) {

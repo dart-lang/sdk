@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,9 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
-
-mixin ConstantMixin implements ResolutionTest {
+class ConstantDriverTest extends DriverResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {

@@ -2644,14 +2644,10 @@ ISOLATE_UNIT_TEST_CASE(ExceptionHandlers) {
   exception_handlers ^= ExceptionHandlers::New(kNumEntries);
   const bool kNeedsStackTrace = true;
   const bool kNoStackTrace = false;
-  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
-  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true,
-                                    TokenPosition::kNoSource, true);
+  exception_handlers.SetHandlerInfo(0, -1, 20u, kNeedsStackTrace, false, true);
+  exception_handlers.SetHandlerInfo(1, 0, 30u, kNeedsStackTrace, false, true);
+  exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStackTrace, true, true);
+  exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStackTrace, true, true);
 
   extern void GenerateIncrement(compiler::Assembler * assembler);
   compiler::ObjectPoolBuilder object_pool_builder;

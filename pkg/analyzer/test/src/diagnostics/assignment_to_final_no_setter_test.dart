@@ -12,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignmentToFinalNoSetterTest);
+    defineReflectiveTests(AssignmentToFinalNoSetterWithExtensionMethodsTest);
   });
 }
 
@@ -47,7 +48,7 @@ main() {
 }
 
 @reflectiveTest
-class AssignmentToMethodWithExtensionMethodsTest
+class AssignmentToFinalNoSetterWithExtensionMethodsTest
     extends AssignmentToFinalNoSetterTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
@@ -63,7 +64,7 @@ f() {
   0.foo = 1;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 53, 3),
+      error(StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
     ]);
   }
 }

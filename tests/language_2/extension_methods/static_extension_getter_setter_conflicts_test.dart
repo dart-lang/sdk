@@ -50,8 +50,7 @@ void test0() {
 
 // Conflicting extensions.
 
-class C1<T> {
-}
+class C1<T> {}
 
 extension E1A<T> on C1<T> {
   int get m1 => 0;
@@ -79,7 +78,7 @@ void test1() {
 
   c1a.m2 = 0;
 
-  C1<Object> c1b = C1<Null>();  // Neither extension is more specific.
+  C1<Object> c1b = C1<Null>(); // Neither extension is more specific.
 
   c1b.m1;
   //  ^^
@@ -133,25 +132,6 @@ extension E2 on C2 {
     this.mc.toRadixString(16);
     // Check that `this.me` refers to `E2.me`.
     this.me.substring(0);
-
-    // An unqualified identifier is matched against the extension (by basename).
-
-    m1 = 0;
-    1 + m1;
-    //  ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
-    // [cfe] unspecified
-
-    1 + m2;
-    if (true) m2 = 0; // for the indent!
-    //        ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_SETTER
-    // [cfe] unspecified
-
-    // Check that `mc` refers to `C2.me`.
-    mc.toRadixString(16);
-    // Check that `me` refers to `E2.me`.
-    me.substring(0);
   }
 }
 

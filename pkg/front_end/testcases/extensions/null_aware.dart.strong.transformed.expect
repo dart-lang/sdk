@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class* {
+  get property = self::Extension|get#property;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  set property = self::Extension|set#property;
+}
+static method Extension|get#property(final self::Class* #this) → core::int*
+  return #this.{self::Class::field};
+static method Extension|set#property(final self::Class* #this, core::int* value) → core::int* {
+  final core::int* #t1 = value;
+  #this.{self::Class::field} = value;
+  return #t1;
+}
+static method Extension|method(final self::Class* #this) → core::int*
+  return #this.{self::Class::field};
+static method Extension|get#method(final self::Class* #this) → () →* core::int*
+  return () → core::int* => self::Extension|method(#this);
+static method main() → dynamic {
+  self::Class* c;
+  self::expect(null, let final self::Class* #t2 = c in #t2.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t2));
+  self::expect(null, let final self::Class* #t3 = c in #t3.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t3));
+  self::expect(null, let final self::Class* #t4 = c in #t4.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t4));
+  self::expect(null, let final self::Class* #t5 = c in #t5.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t5, 42));
+  c = new self::Class::•();
+  self::expect(null, let final self::Class* #t6 = c in #t6.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t6));
+  self::expect(null, let final self::Class* #t7 = c in #t7.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t7));
+  () →* core::int* tearOff = let final self::Class* #t8 = c in #t8.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t8);
+  self::expect(null, tearOff.call());
+  self::expect(42, let final self::Class* #t9 = c in #t9.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t9, 42));
+  self::expect(42, tearOff.call());
+  self::expect(null, let final self::Class* #t10 = c in #t10.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t10, null));
+  self::expect(42, let final self::Class* #t11 = c in let final core::int* #t12 = self::Extension|get#property(#t11) in #t12.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t11, 42) : #t12);
+  self::expect(42, let final self::Class* #t13 = c in let final core::int* #t14 = self::Extension|get#property(#t13) in #t14.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t13, 87) : #t14);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

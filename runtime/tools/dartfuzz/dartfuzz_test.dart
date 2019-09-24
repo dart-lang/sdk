@@ -138,14 +138,10 @@ abstract class TestRunner {
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
-    if (mode.endsWith('debug-dbc32')) return 'DebugSIMDBC';
-    if (mode.endsWith('debug-dbc64')) return 'DebugSIMDBC64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
-    if (mode.endsWith('dbc32')) return 'ReleaseSIMDBC';
-    if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
 
@@ -315,6 +311,14 @@ class DartFuzzTest {
     print('\n${isolate}: done');
     showStatistics();
     print('');
+    if (timeoutSeeds.isNotEmpty) {
+      print('\n${isolate} timeout: ' + timeoutSeeds.join(", "));
+      print('');
+    }
+    if (skippedSeeds.isNotEmpty) {
+      print('\n${isolate} skipped: ' + skippedSeeds.join(", "));
+      print('');
+    }
 
     cleanup();
     return numDivergences;
@@ -348,6 +352,8 @@ class DartFuzzTest {
     numRerun = 0;
     numTimeout = 0;
     numDivergences = 0;
+    timeoutSeeds = {};
+    skippedSeeds = {};
   }
 
   bool samePrecision(String mode1, String mode2) =>
@@ -427,10 +433,12 @@ class DartFuzzTest {
         case -sigkill:
           // Both had a time out.
           numTimeout++;
+          timeoutSeeds.add(seed);
           break;
         default:
           // Both had an error.
           numSkipped++;
+          skippedSeeds.add(seed);
           break;
       }
     } else {
@@ -440,6 +448,7 @@ class DartFuzzTest {
         // with at least one time out is treated as a regular time out.
         if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
           numTimeout++;
+          timeoutSeeds.add(seed);
           return ReportStatus.ignored;
         }
       }
@@ -531,6 +540,8 @@ class DartFuzzTest {
   int numRerun;
   int numTimeout;
   int numDivergences;
+  Set<int> timeoutSeeds;
+  Set<int> skippedSeeds;
 }
 
 /// Class to start fuzz testing session.
@@ -686,11 +697,6 @@ class DartFuzzTestSession {
 
   // Modes not used on cluster runs because they have outstanding issues.
   static const List<String> nonClusterModes = [
-    // Deprecated.
-    'jit-debug-dbc32',
-    'jit-debug-dbc64',
-    'jit-dbc32',
-    'jit-dbc64',
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',

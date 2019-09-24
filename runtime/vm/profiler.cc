@@ -57,6 +57,15 @@ DEFINE_FLAG(bool,
             false,
             "Collect native stack traces when tracing Dart allocations.");
 
+DEFINE_FLAG(
+    int,
+    sample_buffer_duration,
+    0,
+    "Defines the size of the profiler sample buffer to contain at least "
+    "N seconds of samples at a given sample rate. If not provided, the "
+    "default is ~4 seconds. Large values will greatly increase memory "
+    "consumption.");
+
 #ifndef PRODUCT
 
 bool Profiler::initialized_ = false;
@@ -72,12 +81,13 @@ void Profiler::Init() {
     return;
   }
   ASSERT(!initialized_);
-  sample_buffer_ = new SampleBuffer();
+  SetSamplePeriod(FLAG_profile_period);
+  intptr_t capacity = CalculateSampleBufferCapacity();
+  sample_buffer_ = new SampleBuffer(capacity);
   Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
   ThreadInterrupter::Init();
-  SetSamplePeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
 }
@@ -114,6 +124,25 @@ void Profiler::SetSampleDepth(intptr_t depth) {
   } else {
     FLAG_max_profile_depth = depth;
   }
+}
+
+static intptr_t SamplesPerSecond() {
+  const intptr_t kMicrosPerSec = 1000000;
+  return kMicrosPerSec / FLAG_profile_period;
+}
+
+intptr_t Profiler::CalculateSampleBufferCapacity() {
+  if (FLAG_sample_buffer_duration <= 0) {
+    return SampleBuffer::kDefaultBufferCapacity;
+  }
+  // Deeper stacks require more than a single Sample object to be represented
+  // correctly. These samples are chained, so we need to determine the worst
+  // case sample chain length for a single stack.
+  const intptr_t max_sample_chain_length =
+      FLAG_max_profile_depth / kMaxSamplesPerTick;
+  const intptr_t buffer_size = FLAG_sample_buffer_duration *
+                               SamplesPerSecond() * max_sample_chain_length;
+  return buffer_size;
 }
 
 void Profiler::SetSamplePeriod(intptr_t period) {
@@ -162,6 +191,18 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
     OS::PrintErr("Profiler holds %" Pd " samples\n", capacity);
     OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
     OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
+  }
+  if (FLAG_sample_buffer_duration != 0) {
+    OS::PrintErr(
+        "** WARNING ** Custom sample buffer size provided via "
+        "--sample-buffer-duration\n");
+    OS::PrintErr(
+        "The sample buffer can hold at least %ds worth of "
+        "samples with stacks depths of up to %d, collected at "
+        "a sample rate of %" Pd "Hz.\n",
+        FLAG_sample_buffer_duration, FLAG_max_profile_depth,
+        SamplesPerSecond());
+    OS::PrintErr("The resulting sample buffer size is %" Pd " bytes.\n", size);
   }
 }
 

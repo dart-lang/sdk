@@ -249,6 +249,8 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--omit-platform": false,
   "--fatal": ",",
   "--help": false,
+  // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
+  // supported.
   "--legacy": "--legacy-mode",
   "--legacy-mode": false,
   "--libraries-json": Uri,
@@ -299,11 +301,9 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool legacyMode = options["--legacy-mode"];
-
   final String targetName = options["--target"] ?? "vm";
 
-  final TargetFlags flags = new TargetFlags(legacyMode: legacyMode);
+  final TargetFlags flags = new TargetFlags();
 
   final Target target = getTarget(targetName, flags);
   if (target == null) {
@@ -377,7 +377,6 @@ ProcessedOptions analyzeCommandLine(
           ..setExitCodeOnProblem = true
           ..fileSystem = fileSystem
           ..packagesFileUri = packages
-          ..legacyMode = legacyMode
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
@@ -410,7 +409,9 @@ ProcessedOptions analyzeCommandLine(
       case 'dart2js_server':
         return 'dart2js_platform.dill';
       case 'vm':
-        return legacyMode ? 'vm_platform.dill' : "vm_platform_strong.dill";
+        // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
+        // 'vm_platform_strong.dill' to 'vm_platform.dill'.
+        return "vm_platform_strong.dill";
       case 'none':
         return "vm_platform_strong.dill";
       default:
@@ -432,7 +433,6 @@ ProcessedOptions analyzeCommandLine(
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
-    ..legacyMode = legacyMode
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal

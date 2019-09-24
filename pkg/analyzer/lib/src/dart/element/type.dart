@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -92,11 +93,7 @@ class BottomTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   BottomTypeImpl._(this.nullabilitySuffix)
-      : super(new NeverElementImpl(), "Never") {
-    if (nullabilitySuffix == NullabilitySuffix.none) {
-      (element as NeverElementImpl).type = this;
-    }
-  }
+      : super(new NeverElementImpl(), "Never");
 
   @override
   int get hashCode => 0;
@@ -393,10 +390,7 @@ class DynamicTypeImpl extends TypeImpl {
   /**
    * Prevent the creation of instances of this class.
    */
-  DynamicTypeImpl._()
-      : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme) {
-    (element as DynamicElementImpl).type = this;
-  }
+  DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
 
   /**
    * Constructor used by [CircularTypeImpl].
@@ -529,7 +523,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       var freshElement =
           new TypeParameterElementImpl.synthetic(typeParamElement.name);
       var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-      freshElement.type = freshTypeVar;
 
       typeVars.add(typeParamElement.type);
       freshTypeVars.add(freshTypeVar);
@@ -1407,20 +1400,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InterfaceType> get interfaces {
-    ClassElement classElement = element;
-    List<InterfaceType> interfaces = classElement.interfaces;
-    List<TypeParameterElement> typeParameters = classElement.typeParameters;
-    List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.isEmpty) {
-      return interfaces;
-    }
-    int count = interfaces.length;
-    List<InterfaceType> typedInterfaces = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedInterfaces[i] =
-          interfaces[i].substitute2(typeArguments, parameterTypes);
-    }
-    return typedInterfaces;
+    return _instantiateSuperTypes(element.interfaces);
   }
 
   @override
@@ -1574,17 +1554,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   InterfaceType get superclass {
-    ClassElement classElement = element;
-    InterfaceType supertype = classElement.supertype;
+    InterfaceType supertype = element.supertype;
     if (supertype == null) {
       return null;
     }
-    List<DartType> typeParameters = classElement.type.typeArguments;
-    if (typeArguments.isEmpty ||
-        typeArguments.length != typeParameters.length) {
-      return supertype;
-    }
-    return supertype.substitute2(typeArguments, typeParameters);
+
+    return Substitution.fromInterfaceType(this).substituteType(supertype);
   }
 
   @override
@@ -2341,17 +2316,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {
-    List<TypeParameterElement> typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return defined;
+    if (defined.isEmpty) return defined;
+
+    var typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) return defined;
+
+    var substitution = Substitution.fromInterfaceType(this);
+    var result = List<InterfaceType>(defined.length);
+    for (int i = 0; i < defined.length; i++) {
+      result[i] = substitution.substituteType(defined[i]);
     }
-    List<DartType> instantiated = element.type.typeArguments;
-    int count = defined.length;
-    List<InterfaceType> typedConstraints = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      typedConstraints[i] = defined[i].substitute2(typeArguments, instantiated);
-    }
-    return typedConstraints;
+    return result;
   }
 
   /**
@@ -2576,38 +2551,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return _lookUpMemberInInterfaces(
         superclass, true, library, visitedInterfaces, getMember);
   }
-}
-
-/**
- * Suffix indicating the nullability of a type.
- *
- * This enum describes whether a `?` or `*` would be used at the end of the
- * canonical representation of a type.  It's subtly different the notions of
- * "nullable", "non-nullable", "potentially nullable", and "potentially
- * non-nullable" defined by the spec.  For example, the type `Null` is nullable,
- * even though it lacks a trailing `?`.
- */
-enum NullabilitySuffix {
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration ends with `?`.  Types having this nullability suffix should
-   * be interpreted as being unioned with the Null type.
-   */
-  question,
-
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration ends with `*`.  Types having this nullability suffix are
-   * called "legacy types"; it has not yet been determined whether they should
-   * be unioned with the Null type.
-   */
-  star,
-
-  /**
-   * An indication that the canonical representation of the type under
-   * consideration does not end with either `?` or `*`.
-   */
-  none
 }
 
 /**
@@ -3675,7 +3618,6 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       if (identical(bound, newBound)) return p;
       var element = new TypeParameterElementImpl.synthetic(p.name);
       element.bound = newBound;
-      element.type = new TypeParameterTypeImpl(element);
       return element;
     }
 

@@ -307,7 +307,7 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        this.interfaceType = classElement.type;
+        this.interfaceType = classElement.thisType;
         for (FieldElement field in classElement.fields) {
           _inferField(field);
         }

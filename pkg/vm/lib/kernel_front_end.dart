@@ -212,7 +212,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
     ..embedSourceText = embedSources;
 
-  final component = await compileToKernel(mainUri, compilerOptions,
+  final results = await compileToKernel(mainUri, compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
@@ -223,7 +223,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   errorPrinter.printCompilationMessages();
 
-  if (errorDetector.hasCompilationErrors || (component == null)) {
+  if (errorDetector.hasCompilationErrors || (results.component == null)) {
     return compileTimeErrorExitCode;
   }
 
@@ -233,7 +233,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
-  printer.writeComponentFile(component);
+  printer.writeComponentFile(results.component);
   await sink.close();
 
   if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
@@ -241,14 +241,15 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   if (depfile != null) {
-    await writeDepfile(fileSystem, component, outputFileName, depfile);
+    await writeDepfile(
+        fileSystem, results.compiledSources, outputFileName, depfile);
   }
 
   if (splitOutputByPackages) {
     await writeOutputSplitByPackages(
       mainUri,
       compilerOptions,
-      component,
+      results.component,
       outputFileName,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
@@ -259,12 +260,22 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   return successExitCode;
 }
 
+/// Results of [compileToKernel]: generated kernel [Component] and
+/// collection of compiled sources.
+class KernelCompilationResults {
+  final Component component;
+  final Iterable<Uri> compiledSources;
+
+  KernelCompilationResults(this.component, this.compiledSources);
+}
+
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source]. Intended for whole program (non-modular) compilation.
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
-Future<Component> compileToKernel(Uri source, CompilerOptions options,
+Future<KernelCompilationResults> compileToKernel(
+    Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
@@ -280,6 +291,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   setVMEnvironmentDefines(environmentDefines, options);
   CompilerResult compilerResult = await kernelForProgram(source, options);
   Component component = compilerResult?.component;
+  final compiledSources = component?.uriToSource?.keys;
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -306,7 +318,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return component;
+  return new KernelCompilationResults(component, compiledSources);
 }
 
 void setVMEnvironmentDefines(
@@ -686,12 +698,12 @@ String _escapePath(String path) {
 
 /// Create ninja dependencies file, as described in
 /// https://ninja-build.org/manual.html#_depfile
-Future<void> writeDepfile(FileSystem fileSystem, Component component,
+Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
     String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
-  for (Uri dep in component.uriToSource.keys) {
+  for (Uri dep in compiledSources) {
     // Skip empty or corelib dependencies.
     if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
     Uri uri = await asFileUri(fileSystem, dep);

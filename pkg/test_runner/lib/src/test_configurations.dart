@@ -116,7 +116,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     // If we specifically pass in a suite only run that.
     if (configuration.suiteDirectory != null) {
       var suitePath = Path(configuration.suiteDirectory);
-      testSuites.add(PKGTestSuite(configuration, suitePath));
+      testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in TEST_SUITE_DIRECTORIES) {
         var name = testSuiteDir.filename;

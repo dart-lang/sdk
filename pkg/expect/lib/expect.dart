@@ -540,10 +540,11 @@ class Expect {
    */
   static void throws<T>(void f(),
       [bool check(T error) = _defaultCheck, String reason = ""]) {
-    // TODO(vsm): Make check nullable.  Existing tests pass null to set
-    // a reason.
-    check = check ?? _defaultCheck;
-    reason = reason ?? "";
+    // TODO(vsm): Make check and reason nullable or change call sites.
+    // Existing tests pass null to set a reason and/or pass them through
+    // via helpers.
+    check ??= _defaultCheck;
+    reason ??= "";
     String msg = reason.isEmpty ? "" : "($reason)";
     if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.

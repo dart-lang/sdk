@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
+import 'feature.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
@@ -346,6 +347,33 @@ class TestConfiguration {
 
   CompilerConfiguration get compilerConfiguration =>
       _compilerConfiguration ??= CompilerConfiguration(this);
+
+  Set<Feature> _supportedFeatures;
+
+  /// The set of [Feature]s supported by this configuration.
+  Set<Feature> get supportedFeatures {
+    if (_supportedFeatures != null) return _supportedFeatures;
+
+    _supportedFeatures = {};
+    switch (nnbdMode) {
+      case NnbdMode.legacy:
+        _supportedFeatures.add(Feature.nnbdLegacy);
+        break;
+      case NnbdMode.weak:
+        _supportedFeatures.add(Feature.nnbd);
+        _supportedFeatures.add(Feature.nnbdWeak);
+        break;
+      case NnbdMode.strong:
+        _supportedFeatures.add(Feature.nnbd);
+        _supportedFeatures.add(Feature.nnbdStrong);
+        break;
+    }
+
+    // TODO(rnystrom): Define more features for things like "dart:io", separate
+    // int/double representation, etc.
+
+    return _supportedFeatures;
+  }
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.

@@ -613,6 +613,13 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   const intptr_t num_type_params = reader_.ReadUInt();
   ASSERT(num_type_params > 0);
 
+  intptr_t offset;
+  if (!parameterized_class.IsNull()) {
+    offset = parameterized_class.NumTypeArguments() - num_type_params;
+  } else {
+    offset = parameterized_function.NumParentTypeParameters();
+  }
+
   // First setup the type parameters, so if any of the following code uses it
   // (in a recursive way) we're fine.
   //
@@ -628,6 +635,8 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     parameter = TypeParameter::New(
         parameterized_class, parameterized_function, i, name, bound,
         /* is_generic_covariant_impl = */ false, TokenPosition::kNoSource);
+    parameter.set_index(offset + i);
+    parameter.SetIsFinalized();
     type_parameters.SetTypeAt(i, parameter);
   }
 
@@ -984,15 +993,14 @@ void BytecodeReaderHelper::ReadExceptionsTable(const Bytecode& bytecode,
                                          TokenPosition::kNoSource, try_index);
       pc_descriptors_list->AddDescriptor(RawPcDescriptors::kOther, end_pc,
                                          DeoptId::kNone,
-                                         TokenPosition::kNoSource, -1);
+                                         TokenPosition::kNoSource, try_index);
 
       // The exception handler keeps a zone handle of the types array, rather
       // than a raw pointer. Do not share the handle across iterations to avoid
       // clobbering the array.
       exception_handlers_list->AddHandler(
-          try_index, outer_try_index, handler_pc, TokenPosition::kNoSource,
-          is_generated, Array::ZoneHandle(Z, handler_types.raw()),
-          needs_stacktrace);
+          try_index, outer_try_index, handler_pc, is_generated,
+          Array::ZoneHandle(Z, handler_types.raw()), needs_stacktrace);
     }
     const PcDescriptors& descriptors = PcDescriptors::Handle(
         Z, pc_descriptors_list->FinalizePcDescriptors(bytecode.PayloadStart()));
@@ -1622,7 +1630,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
       return AbstractType::void_type().raw();
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       return cls.DeclarationType();
     }
     case kTypeParameter: {
@@ -1646,14 +1656,13 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
       } else {
         UNREACHABLE();
       }
-      AbstractType& type =
-          AbstractType::Handle(Z, type_parameters.TypeAt(index_in_parent));
-      // TODO(alexmarkov): skip type finalization
-      return ClassFinalizer::FinalizeType(*active_class_->klass, type);
+      return type_parameters.TypeAt(index_in_parent);
     }
     case kGenericType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
       const Type& type = Type::Handle(
@@ -1664,7 +1673,9 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
     case kRecursiveGenericType: {
       const intptr_t id = reader_.ReadUInt();
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      cls.EnsureDeclarationLoaded();
+      if (!cls.is_declaration_loaded()) {
+        LoadReferencedClass(cls);
+      }
       const auto saved_pending_recursive_types = pending_recursive_types_;
       if (id == 0) {
         pending_recursive_types_ = &GrowableObjectArray::Handle(
@@ -1808,16 +1819,17 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
     source = ReadString(/* is_canonical = */ false);
   }
 
-  if (source.IsNull() && line_starts.IsNull()) {
-    // This script provides a uri only, but no source or line_starts array.
-    // The source is set to the empty symbol, indicating that source and
-    // line_starts array are lazily looked up if needed.
-    source = Symbols::Empty().raw();  // Lookup is postponed.
-  }
-
   const Script& script = Script::Handle(
       Z, Script::New(import_uri, uri, source, RawScript::kKernelTag));
   script.set_line_starts(line_starts);
+
+  if (source.IsNull() && line_starts.IsNull()) {
+    // This script provides a uri only, but no source or line_starts array.
+    // This could be a reference to a Script in another kernel binary.
+    // Make an attempt to find source and line starts when needed.
+    script.SetLazyLookupSourceAndLineStarts(true);
+  }
+
   return script.raw();
 }
 
@@ -2301,6 +2313,27 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   functions_ = nullptr;
 }
 
+void BytecodeReaderHelper::LoadReferencedClass(const Class& cls) {
+  ASSERT(!cls.is_declaration_loaded());
+
+  if (!cls.is_declared_in_bytecode()) {
+    cls.EnsureDeclarationLoaded();
+    return;
+  }
+
+  const auto& script = Script::Handle(Z, cls.script());
+  if (H.GetKernelProgramInfo().raw() != script.kernel_program_info()) {
+    // Class comes from a different binary.
+    cls.EnsureDeclarationLoaded();
+    return;
+  }
+
+  // We can reuse current BytecodeReaderHelper.
+  ActiveClassScope active_class_scope(active_class_, &cls);
+  AlternativeReadingScope alt(&reader_, cls.bytecode_offset());
+  ReadClassDeclaration(cls);
+}
+
 void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   // Class flags, must be in sync with ClassDeclaration constants in
   // pkg/vm/lib/bytecode/declarations.dart.
@@ -2769,10 +2802,8 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
                              Function::Handle(Z, function.parent_function()));
       return;
     case RawFunction::kDynamicInvocationForwarder:
-      ParseForwarderFunction(
-          parsed_function, function,
-          Function::Handle(Z,
-                           function.GetTargetOfDynamicInvocationForwarder()));
+      ParseForwarderFunction(parsed_function, function,
+                             Function::Handle(Z, function.ForwardingTarget()));
       return;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:

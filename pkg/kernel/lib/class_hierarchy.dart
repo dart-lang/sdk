@@ -8,6 +8,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'ast.dart';
+import 'core_types.dart';
 import 'src/heap.dart';
 import 'type_algebra.dart';
 
@@ -62,7 +63,7 @@ abstract class ClassHierarchy {
   /// one type is a subtype of the other, or where both types are based on the
   /// same class.
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2);
+      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes);
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
@@ -540,7 +541,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+      InterfaceType type1, InterfaceType type2, CoreTypes coreTypes) {
     // The algorithm is: first we compute a list of superclasses for both types,
     // ordered from greatest to least depth, and ordered by topological sort
     // index within each depth.  Due to the sort order, we can find the
@@ -614,7 +615,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       //   immediately.  Since all interface types are subtypes of Object, this
       //   ensures the loop terminates.
       if (next.classNode.typeParameters.isEmpty) {
-        candidate = next.classNode.rawType;
+        // TODO(dmitryas): Update nullability as necessary for the LUB spec.
+        candidate = coreTypes.legacyRawType(next.classNode);
         if (currentDepth == 0) return candidate;
         ++numCandidatesAtThisDepth;
       } else {
@@ -660,16 +662,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   Member getDispatchTarget(Class class_, Name name, {bool setter: false}) {
-    _ClassInfo info = infoFor(class_);
     List<Member> list =
-        setter ? info.implementedSetters : info.implementedGettersAndCalls;
+        _buildImplementedMembers(class_, infoFor(class_), setters: setter);
     return ClassHierarchy.findMemberByName(list, name);
   }
 
   @override
   List<Member> getDispatchTargets(Class class_, {bool setters: false}) {
-    _ClassInfo info = infoFor(class_);
-    return setters ? info.implementedSetters : info.implementedGettersAndCalls;
+    return _buildImplementedMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
@@ -685,8 +685,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
 
   @override
   List<Member> getDeclaredMembers(Class class_, {bool setters: false}) {
-    var info = infoFor(class_);
-    return setters ? info.declaredSetters : info.declaredGettersAndCalls;
+    return _buildDeclaredMembers(class_, infoFor(class_), setters: setters);
   }
 
   @override
@@ -698,8 +697,10 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       var superclass = supertype.classNode;
       var superGetters = getInterfaceMembers(superclass);
       var superSetters = getInterfaceMembers(superclass, setters: true);
-      _reportOverrides(info.declaredGettersAndCalls, superGetters, callback);
-      _reportOverrides(info.declaredSetters, superSetters, callback,
+      _reportOverrides(_buildDeclaredMembers(class_, info, setters: false),
+          superGetters, callback);
+      _reportOverrides(_buildDeclaredMembers(class_, info, setters: true),
+          superSetters, callback,
           isSetter: true);
     }
   }
@@ -835,13 +836,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     });
 
     for (_ClassInfo info in infos) {
-      Class class_ = info.classNode;
-      _buildDeclaredMembers(class_, info);
-      _buildImplementedMembers(class_, info);
-      info.interfaceSetters = null;
-      info.interfaceGettersAndCalls = null;
-      _buildInterfaceMembers(class_, info, setters: true);
-      _buildInterfaceMembers(class_, info, setters: false);
+      info.lazyDeclaredGettersAndCalls = null;
+      info.lazyDeclaredSetters = null;
+      info.lazyImplementedGettersAndCalls = null;
+      info.lazyImplementedSetters = null;
+      info.lazyInterfaceGettersAndCalls = null;
+      info.lazyInterfaceSetters = null;
     }
 
     assert(sanityCheckAlsoKnowsParentAndLibrary());
@@ -921,9 +921,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         _recordSuperTypes(info, supertype);
       }
 
-      _buildInterfaceMembers(class_, info, setters: true);
-      _buildInterfaceMembers(class_, info, setters: false);
-
       if (info == null) {
         throw "No info for ${class_.name} from ${class_.fileUri}.";
       }
@@ -973,8 +970,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
           _topologicalSortVisit(supertype.classNode, beingVisited,
               orderedList: orderedList));
     }
-    _buildDeclaredMembers(classNode, info);
-    _buildImplementedMembers(classNode, info);
+
     info.topologicalIndex = _topSortIndex++;
 
     _infoMap[classNode] = info;
@@ -983,71 +979,92 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return info.depth = superDepth + 1;
   }
 
-  void _buildDeclaredMembers(Class classNode, _ClassInfo info) {
-    if (classNode.mixedInType != null) {
-      _ClassInfo mixedInfo = _infoMap[classNode.mixedInType.classNode];
+  List<Member> _buildImplementedMembers(Class classNode, _ClassInfo info,
+      {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
+    List<Member> members = setters
+        ? info.lazyImplementedSetters
+        : info.lazyImplementedGettersAndCalls;
+    if (members != null) return members;
 
-      List<Member> declaredGettersAndCalls = <Member>[];
-      for (Member mixinMember in mixedInfo.declaredGettersAndCalls) {
-        if (mixinMember is! Procedure ||
-            (mixinMember is Procedure &&
-                !mixinMember.isNoSuchMethodForwarder)) {
-          declaredGettersAndCalls.add(mixinMember);
-        }
-      }
-
-      List<Member> declaredSetters = <Member>[];
-      for (Member mixinMember in mixedInfo.declaredSetters) {
-        if (mixinMember is! Procedure ||
-            (mixinMember is Procedure &&
-                !mixinMember.isNoSuchMethodForwarder)) {
-          declaredSetters.add(mixinMember);
-        }
-      }
-
-      info.declaredGettersAndCalls = declaredGettersAndCalls;
-      info.declaredSetters = declaredSetters;
+    List<Member> inherited;
+    if (classNode.supertype == null) {
+      inherited = const <Member>[];
     } else {
-      var members = info.declaredGettersAndCalls = <Member>[];
-      var setters = info.declaredSetters = <Member>[];
+      Class superClassNode = classNode.supertype.classNode;
+      _ClassInfo superInfo = _infoMap[superClassNode];
+      inherited =
+          _buildImplementedMembers(superClassNode, superInfo, setters: setters);
+    }
+    members = _inheritMembers(
+        _buildDeclaredMembers(classNode, info, setters: setters), inherited,
+        skipAbstractMembers: true);
+    if (setters) {
+      info.lazyImplementedSetters = members;
+    } else {
+      info.lazyImplementedGettersAndCalls = members;
+    }
+    return members;
+  }
+
+  List<Member> _buildDeclaredMembers(Class classNode, _ClassInfo info,
+      {bool setters}) {
+    if (info == null) {
+      throw "${classNode.fileUri}: No class info for ${classNode.name}";
+    }
+    List<Member> members =
+        setters ? info.lazyDeclaredSetters : info.lazyDeclaredGettersAndCalls;
+    if (members != null) return members;
+
+    if (classNode.mixedInType != null) {
+      Class mixedInClassNode = classNode.mixedInType.classNode;
+      _ClassInfo mixedInInfo = _infoMap[mixedInClassNode];
+
+      members = <Member>[];
+      for (Member mixinMember in _buildDeclaredMembers(
+          mixedInClassNode, mixedInInfo,
+          setters: setters)) {
+        if (mixinMember is! Procedure ||
+            (mixinMember is Procedure &&
+                !mixinMember.isNoSuchMethodForwarder)) {
+          members.add(mixinMember);
+        }
+      }
+    } else {
+      members = new List<Member>();
       for (Procedure procedure in classNode.procedures) {
         if (procedure.isStatic) continue;
         if (procedure.kind == ProcedureKind.Setter) {
-          setters.add(procedure);
+          if (setters) {
+            members.add(procedure);
+          }
         } else {
-          members.add(procedure);
+          if (!setters) {
+            members.add(procedure);
+          }
         }
       }
       for (Field field in classNode.fields) {
         if (field.isStatic) continue;
-        if (field.hasImplicitGetter) {
+        if (!setters && field.hasImplicitGetter) {
           members.add(field);
         }
-        if (field.hasImplicitSetter) {
-          setters.add(field);
+        if (setters && field.hasImplicitSetter) {
+          members.add(field);
         }
       }
-      members.sort(ClassHierarchy.compareMembers);
-      setters.sort(ClassHierarchy.compareMembers);
-    }
-  }
 
-  void _buildImplementedMembers(Class classNode, _ClassInfo info) {
-    List<Member> inheritedMembers;
-    List<Member> inheritedSetters;
-    if (classNode.supertype == null) {
-      inheritedMembers = inheritedSetters = const <Member>[];
-    } else {
-      _ClassInfo superInfo = _infoMap[classNode.supertype.classNode];
-      inheritedMembers = superInfo.implementedGettersAndCalls;
-      inheritedSetters = superInfo.implementedSetters;
+      members.sort(ClassHierarchy.compareMembers);
     }
-    info.implementedGettersAndCalls = _inheritMembers(
-        info.declaredGettersAndCalls, inheritedMembers,
-        skipAbstractMembers: true);
-    info.implementedSetters = _inheritMembers(
-        info.declaredSetters, inheritedSetters,
-        skipAbstractMembers: true);
+
+    if (setters) {
+      info.lazyDeclaredSetters = members;
+    } else {
+      info.lazyDeclaredGettersAndCalls = members;
+    }
+    return members;
   }
 
   List<Member> _buildInterfaceMembers(Class classNode, _ClassInfo info,
@@ -1056,11 +1073,12 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       throw "${classNode.fileUri}: No class info for ${classNode.name}";
     }
     List<Member> members =
-        setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
+        setters ? info.lazyInterfaceSetters : info.lazyInterfaceGettersAndCalls;
     if (members != null) return members;
     List<Member> allInheritedMembers = <Member>[];
     List<Member> declared =
-        setters ? info.declaredSetters : info.declaredGettersAndCalls;
+        _buildDeclaredMembers(classNode, info, setters: setters);
+
     void inheritFrom(Supertype type) {
       if (type == null) return;
       List<Member> inherited = _buildInterfaceMembers(
@@ -1076,9 +1094,9 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     classNode.implementedTypes.forEach(inheritFrom);
     members = _inheritMembers(declared, allInheritedMembers);
     if (setters) {
-      info.interfaceSetters = members;
+      info.lazyInterfaceSetters = members;
     } else {
-      info.interfaceGettersAndCalls = members;
+      info.lazyInterfaceGettersAndCalls = members;
     }
     return members;
   }
@@ -1399,22 +1417,22 @@ class _ClassInfo {
 
   /// Instance fields, getters, methods, and operators declared in this class
   /// or its mixed-in class, sorted according to [_compareMembers].
-  List<Member> declaredGettersAndCalls;
+  List<Member> lazyDeclaredGettersAndCalls;
 
   /// Non-final instance fields and setters declared in this class or its
   /// mixed-in class, sorted according to [_compareMembers].
-  List<Member> declaredSetters;
+  List<Member> lazyDeclaredSetters;
 
   /// Instance fields, getters, methods, and operators implemented by this class
   /// (declared or inherited).
-  List<Member> implementedGettersAndCalls;
+  List<Member> lazyImplementedGettersAndCalls;
 
   /// Non-final instance fields and setters implemented by this class
   /// (declared or inherited).
-  List<Member> implementedSetters;
+  List<Member> lazyImplementedSetters;
 
-  List<Member> interfaceGettersAndCalls;
-  List<Member> interfaceSetters;
+  List<Member> lazyInterfaceGettersAndCalls;
+  List<Member> lazyInterfaceSetters;
 
   _ClassInfo(this.classNode);
 

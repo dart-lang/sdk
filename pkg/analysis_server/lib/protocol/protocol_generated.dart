@@ -7964,6 +7964,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
+ *   "outputDir": optional FilePath
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -7978,6 +7979,8 @@ class EditDartfixParams implements RequestParams {
   bool _includeRequiredFixes;
 
   List<String> _excludedFixes;
+
+  String _outputDir;
 
   /**
    * A list of the files and directories for which edits should be suggested.
@@ -8066,16 +8069,36 @@ class EditDartfixParams implements RequestParams {
     this._excludedFixes = value;
   }
 
+  /**
+   * The absolute and normalized path to a directory to which non-nullability
+   * migration output will be written. The output is only produced if the
+   * non-nullable fix is included. Files in the directory might be overwritten,
+   * but no previously existing files will be deleted.
+   */
+  String get outputDir => _outputDir;
+
+  /**
+   * The absolute and normalized path to a directory to which non-nullability
+   * migration output will be written. The output is only produced if the
+   * non-nullable fix is included. Files in the directory might be overwritten,
+   * but no previously existing files will be deleted.
+   */
+  void set outputDir(String value) {
+    this._outputDir = value;
+  }
+
   EditDartfixParams(List<String> included,
       {List<String> includedFixes,
       bool includePedanticFixes,
       bool includeRequiredFixes,
-      List<String> excludedFixes}) {
+      List<String> excludedFixes,
+      String outputDir}) {
     this.included = included;
     this.includedFixes = includedFixes;
     this.includePedanticFixes = includePedanticFixes;
     this.includeRequiredFixes = includeRequiredFixes;
     this.excludedFixes = excludedFixes;
+    this.outputDir = outputDir;
   }
 
   factory EditDartfixParams.fromJson(
@@ -8111,11 +8134,17 @@ class EditDartfixParams implements RequestParams {
         excludedFixes = jsonDecoder.decodeList(jsonPath + ".excludedFixes",
             json["excludedFixes"], jsonDecoder.decodeString);
       }
+      String outputDir;
+      if (json.containsKey("outputDir")) {
+        outputDir = jsonDecoder.decodeString(
+            jsonPath + ".outputDir", json["outputDir"]);
+      }
       return new EditDartfixParams(included,
           includedFixes: includedFixes,
           includePedanticFixes: includePedanticFixes,
           includeRequiredFixes: includeRequiredFixes,
-          excludedFixes: excludedFixes);
+          excludedFixes: excludedFixes,
+          outputDir: outputDir);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix params", json);
     }
@@ -8142,6 +8171,9 @@ class EditDartfixParams implements RequestParams {
     if (excludedFixes != null) {
       result["excludedFixes"] = excludedFixes;
     }
+    if (outputDir != null) {
+      result["outputDir"] = outputDir;
+    }
     return result;
   }
 
@@ -8163,7 +8195,8 @@ class EditDartfixParams implements RequestParams {
           includePedanticFixes == other.includePedanticFixes &&
           includeRequiredFixes == other.includeRequiredFixes &&
           listEqual(excludedFixes, other.excludedFixes,
-              (String a, String b) => a == b);
+              (String a, String b) => a == b) &&
+          outputDir == other.outputDir;
     }
     return false;
   }
@@ -8176,6 +8209,7 @@ class EditDartfixParams implements RequestParams {
     hash = JenkinsSmiHash.combine(hash, includePedanticFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outputDir.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

@@ -235,17 +235,12 @@ class TestCaseEnqueuer {
     // system, generate tests, and search test files for options.
     var testCache = <String, List<TestFile>>{};
 
-    var iterator = testSuites.iterator;
-    void enqueueNextSuite() {
-      if (!iterator.moveNext()) {
-        // We're finished with building the dependency graph.
-        graph.seal();
-      } else {
-        iterator.current.forEachTest(_newTest, testCache, enqueueNextSuite);
-      }
+    for (var suite in testSuites) {
+      suite.findTestCases(_add, testCache);
     }
 
-    enqueueNextSuite();
+    // We're finished with building the dependency graph.
+    graph.seal();
   }
 
   /// Adds a test case to the list of active test cases, and adds its commands
@@ -259,14 +254,14 @@ class TestCaseEnqueuer {
   /// command of the previous copy of the test case. This dependency is
   /// marked as a "timingDependency", so that it doesn't depend on the previous
   /// test completing successfully, just on it completing.
-  void _newTest(TestCase testCase) {
+  void _add(TestCase testCase) {
     Node<Command> lastNode;
     for (var i = 0; i < testCase.configuration.repeat; ++i) {
       if (i > 0) {
         testCase = testCase.indexedCopy(i);
       }
       remainingTestCases.add(testCase);
-      bool isFirstCommand = true;
+      var isFirstCommand = true;
       for (var command in testCase.commands) {
         // Make exactly *one* node in the dependency graph for every command.
         // This ensures that we never have two commands c1 and c2 in the graph
@@ -280,7 +275,7 @@ class TestCaseEnqueuer {
           command2node[command] = node;
           command2testCases[command] = <TestCase>[];
         }
-        // Keep mapping from command to all testCases that refer to it
+        // Keep mapping from command to all testCases that refer to it.
         command2testCases[command].add(testCase);
 
         lastNode = node;

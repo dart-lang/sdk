@@ -21,7 +21,6 @@ extension E2 on int {}
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [cfe] unspecified
 
-
 class E2 {}
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
@@ -107,7 +106,6 @@ extension E4 on int {
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
   // [cfe] unspecified
 }
-
 
 // Check static members colliding with static members (of the same kind).
 extension E5 on int {

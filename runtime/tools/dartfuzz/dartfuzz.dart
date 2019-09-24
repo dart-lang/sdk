@@ -14,12 +14,18 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.42';
+const String version = '1.49';
 
 // Restriction on statements and expressions.
-const int stmtLength = 2;
 const int stmtDepth = 1;
 const int exprDepth = 2;
+const int numStatements = 2;
+const int numGlobalVars = 4;
+const int numLocalVars = 4;
+const int numGlobalMethods = 4;
+const int numClassMethods = 3;
+const int numMethodParams = 4;
+const int numClasses = 4;
 
 // Naming conventions.
 const varName = 'var';
@@ -27,6 +33,32 @@ const paramName = 'par';
 const localName = 'loc';
 const fieldName = 'fld';
 const methodName = 'foo';
+
+// Class that tracks the state of the filter applied to the
+// right-hand-side of an assignment in order to avoid generating
+// left-hand-side variables.
+class RhsFilter {
+  RhsFilter(this._remaining, this.lhsVar);
+  factory RhsFilter.fromDartType(DartType tp, String lhsVar) {
+    if (tp == DartType.STRING ||
+        tp == DartType.INT_LIST ||
+        tp == DartType.INT_SET ||
+        tp == DartType.INT_STRING_MAP) {
+      return RhsFilter(1, lhsVar);
+    }
+    return null;
+  }
+  // Clone the current RhsFilter instance and set remaining to 0.
+  // This is used for parameter expressions.
+  factory RhsFilter.cloneEmpty(RhsFilter rhsFilter) =>
+      rhsFilter == null ? null : RhsFilter(0, rhsFilter.lhsVar);
+  void consume() => _remaining--;
+  bool get shouldFilter => _remaining <= 0;
+  // Number of times the lhs variable can still be used on the rhs.
+  int _remaining;
+  // The name of the lhs variable to be filtered from the rhs.
+  final String lhsVar;
+}
 
 /// Class that specifies the api for calling library and ffi functions (if
 /// enabled).
@@ -97,16 +129,22 @@ class DartFuzz {
     // Setup the types.
     localVars = <DartType>[];
     iterVars = <String>[];
-    globalVars = fillTypes1();
+
+    globalVars = fillTypes1(limit: numGlobalVars);
     globalVars.addAll(DartType.allTypes); // always one each
-    globalMethods = fillTypes2();
-    classFields = fillTypes2(limit: 8);
-    classMethods = fillTypes3(classFields.length);
+    globalMethods =
+        fillTypes2(limit2: numGlobalMethods, limit1: numMethodParams);
+    classFields = fillTypes2(limit2: numClasses, limit1: numLocalVars);
+    classMethods = fillTypes3(classFields.length,
+        limit2: numClassMethods, limit1: numMethodParams);
+
+    virtualClassMethods = <Map<int, List<int>>>[];
     classParents = <int>[];
     // Setup optional ffi methods and types.
     final ffiStatus = <bool>[for (final _ in globalMethods) false];
     if (ffi) {
-      List<List<DartType>> globalMethodsFfi = fillTypes2(isFfi: true);
+      List<List<DartType>> globalMethodsFfi = fillTypes2(
+          limit2: numGlobalMethods, limit1: numMethodParams, isFfi: true);
       for (var m in globalMethodsFfi) {
         globalMethods.add(m);
         ffiStatus.add(true);
@@ -214,14 +252,17 @@ class DartFuzz {
   void emitVirtualMethods() {
     final currentClassTmp = currentClass;
     int parentClass = classParents[currentClass];
+    final vcm = <int, List<int>>{};
     // Chase randomly up in class hierarchy.
     while (parentClass >= 0) {
+      vcm[parentClass] = <int>[];
       for (int j = 0, n = classMethods[parentClass].length; j < n; j++) {
         if (rand.nextInt(8) == 0) {
           currentClass = parentClass;
           currentMethod = j;
           emitMethod('$methodName${parentClass}_', j,
               classMethods[parentClass][j], false);
+          vcm[parentClass].add(currentMethod);
           currentMethod = null;
           currentClass = null;
         }
@@ -233,6 +274,7 @@ class DartFuzz {
       }
     }
     currentClass = currentClassTmp;
+    virtualClassMethods.add(vcm);
   }
 
   void emitClasses() {
@@ -296,6 +338,27 @@ class DartFuzz {
     }
   }
 
+  void emitTryCatchFinally(Function tryBody, Function catchBody,
+      {Function finallyBody}) {
+    emitLn('try {');
+    indent += 2;
+    emitLn("", newline: false);
+    tryBody();
+    emit(";", newline: true);
+    indent -= 2;
+    emitLn('} catch (e, st) {');
+    indent += 2;
+    catchBody();
+    indent -= 2;
+    if (finallyBody != null) {
+      emitLn('} finally {');
+      indent += 2;
+      finallyBody();
+      indent -= 2;
+    }
+    emitLn('}');
+  }
+
   void emitMain() {
     emitLn('main() {');
     indent += 2;
@@ -304,53 +367,51 @@ class DartFuzz {
 
     // Call each global method once.
     for (int i = 0; i < globalMethods.length; i++) {
-      emitLn('try {');
-      indent += 2;
-      emitLn("", newline: false);
-      emitCall(1, "$methodName${i}", globalMethods[i]);
-      emit(";", newline: true);
-      indent -= 2;
-      emitLn('} catch (exception, stackTrace) {');
-      indent += 2;
-      emitLn("print('$methodName$i throws');");
-      indent -= 2;
-      emitLn('}');
+      emitTryCatchFinally(() {
+        emitCall(1, "$methodName${i}", globalMethods[i]);
+      }, () {
+        emitLn("print('$methodName$i throws');");
+      });
     }
 
     // Call each class method once.
     for (int i = 0; i < classMethods.length; i++) {
       for (int j = 0; j < classMethods[i].length; j++) {
-        emitLn('try {');
-        indent += 2;
-        emitLn("", newline: false);
-        emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j]);
-        emit(";", newline: true);
-        indent -= 2;
-        emitLn('} catch (exception, stackTrace) {');
-        indent += 2;
-        emitLn("print('X${i}().$methodName${i}_${j}() throws');");
-        indent -= 2;
-        emitLn('}');
+        emitTryCatchFinally(() {
+          emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j]);
+        }, () {
+          emitLn("print('X${i}().$methodName${i}_${j}() throws');");
+        });
+      }
+      // Call each virtual class method once.
+      int parentClass = classParents[i];
+      while (parentClass >= 0) {
+        if (virtualClassMethods[i].containsKey(parentClass)) {
+          for (int j = 0; j < virtualClassMethods[i][parentClass].length; j++) {
+            emitTryCatchFinally(() {
+              emitCall(1, "X${i}().$methodName${parentClass}_${j}",
+                  classMethods[parentClass][j]);
+            }, () {
+              emitLn(
+                  "print('X${i}().$methodName${parentClass}_${j}() throws');");
+            });
+          }
+        }
+        parentClass = classParents[parentClass];
       }
     }
 
-    emitLn('try {');
-    indent += 2;
-    emitLn('X${classFields.length - 1}().run();');
-    indent -= 2;
-    emitLn('} catch (exception, stackTrace) {');
-    indent += 2;
-    emitLn("print('X${classFields.length - 1}().run() throws');");
-    indent -= 2;
-    emitLn('} finally {');
-    indent += 2;
-    emitLn("print('", newline: false);
-    for (int i = 0; i < globalVars.length; i++) {
-      emit('\$$varName$i\\n');
-    }
-    emit("');", newline: true);
-    indent -= 2;
-    emitLn('}');
+    emitTryCatchFinally(() {
+      emit('X${classFields.length - 1}().run()');
+    }, () {
+      emitLn("print('X${classFields.length - 1}().run() throws');");
+    }, finallyBody: () {
+      emitLn("print('", newline: false);
+      for (int i = 0; i < globalVars.length; i++) {
+        emit('\$$varName$i\\n');
+      }
+      emit("');", newline: true);
+    });
     indent -= 2;
     emitLn('}');
   }
@@ -415,9 +476,13 @@ class DartFuzz {
   bool emitAssign() {
     DartType tp = getType();
     emitLn('', newline: false);
-    emitVar(0, tp, isLhs: true);
-    emitAssignOp(tp);
-    emitExpr(0, tp);
+    final emittedVar = emitVar(0, tp, isLhs: true);
+    RhsFilter rhsFilter = RhsFilter.fromDartType(tp, emittedVar);
+    final assignOp = emitAssignOp(tp);
+    if ({'*=', '+='}.contains(assignOp)) {
+      rhsFilter?.consume();
+    }
+    emitExpr(0, tp, rhsFilter: rhsFilter);
     emit(';', newline: true);
     return true;
   }
@@ -504,7 +569,9 @@ class DartFuzz {
   bool emitForIn(int depth) {
     final int i = localVars.length;
     emitLn('for (int $localName$i in ', newline: false);
+    localVars.add(null); // declared, but don't use
     emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
+    localVars.removeLast(); // will get type
     emit(') {', newline: true);
     indent += 2;
     nest++;
@@ -520,10 +587,11 @@ class DartFuzz {
   // Emit a simple membership forEach loop.
   bool emitForEach(int depth) {
     final int i = localVars.length;
+    final int j = i + 1;
     emitLn("", newline: false);
     final emittedVar = emitScalarVar(DartType.INT_STRING_MAP, isLhs: false);
     iterVars.add(emittedVar);
-    emit('.forEach(($localName$i, $localName${i + 1}) {\n');
+    emit('.forEach(($localName$i, $localName$j) {\n');
     indent += 2;
     final int nestTmp = nest;
     // Reset, since forEach cannot break out of own or enclosing context.
@@ -628,8 +696,11 @@ class DartFuzz {
   // Emit a new program scope that introduces a new local variable.
   bool emitScope(int depth) {
     DartType tp = getType();
-    emitLn('{ ${tp.name} $localName${localVars.length} = ', newline: false);
+    final int i = localVars.length;
+    emitLn('{ ${tp.name} $localName$i = ', newline: false);
+    localVars.add(null); // declared, but don't use
     emitExpr(0, tp);
+    localVars.removeLast(); // will get type
     emit(';', newline: true);
     indent += 2;
     localVars.add(tp);
@@ -709,7 +780,7 @@ class DartFuzz {
 
   // Emit statements. Returns true if code may fall-through.
   bool emitStatements(int depth) {
-    int s = 1 + rand.nextInt(stmtLength);
+    int s = 1 + rand.nextInt(numStatements);
     for (int i = 0; i < s; i++) {
       if (!emitStatement(depth)) {
         return false; // rest would be dead code
@@ -726,8 +797,8 @@ class DartFuzz {
     emit(rand.nextInt(2) == 0 ? 'true' : 'false');
   }
 
-  void emitSmallPositiveInt() {
-    emit('${rand.nextInt(100)}');
+  void emitSmallPositiveInt({int limit = 100}) {
+    emit('${rand.nextInt(limit)}');
   }
 
   void emitSmallNegativeInt() {
@@ -778,25 +849,25 @@ class DartFuzz {
     emit("'");
   }
 
-  void emitElementExpr(int depth, DartType tp) {
+  void emitElementExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (currentMethod != null) {
-      emitExpr(depth, tp);
+      emitExpr(depth, tp, rhsFilter: rhsFilter);
     } else {
-      emitLiteral(depth, tp);
+      emitLiteral(depth, tp, rhsFilter: rhsFilter);
     }
   }
 
-  void emitElement(int depth, DartType tp) {
+  void emitElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.INT_STRING_MAP) {
       emitSmallPositiveInt();
       emit(' : ');
-      emitElementExpr(depth, DartType.STRING);
+      emitElementExpr(depth, DartType.STRING, rhsFilter: rhsFilter);
     } else {
-      emitElementExpr(depth, DartType.INT);
+      emitElementExpr(depth, DartType.INT, rhsFilter: rhsFilter);
     }
   }
 
-  void emitCollectionElement(int depth, DartType tp) {
+  void emitCollectionElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
     switch (r) {
       // Favors elements over control-flow collections.
@@ -804,19 +875,19 @@ class DartFuzz {
         // TODO (ajcbik): Remove restriction once compiler is fixed.
         if (depth < 2) {
           emit('...'); // spread
-          emitCollection(depth + 1, tp);
+          emitCollection(depth + 1, tp, rhsFilter: rhsFilter);
         } else {
-          emitElement(depth, tp);
+          emitElement(depth, tp, rhsFilter: rhsFilter);
         }
         break;
       case 1:
         emit('if (');
-        emitElementExpr(depth + 1, DartType.BOOL);
+        emitElementExpr(depth + 1, DartType.BOOL, rhsFilter: rhsFilter);
         emit(') ');
-        emitCollectionElement(depth + 1, tp);
+        emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
         if (rand.nextBool()) {
           emit(' else ');
-          emitCollectionElement(depth + 1, tp);
+          emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
         }
         break;
       case 2:
@@ -824,40 +895,45 @@ class DartFuzz {
           final int i = localVars.length;
           emit('for (int $localName$i ');
           // For-loop (induction, list, set).
+          localVars.add(null); // declared, but don't use
           switch (rand.nextInt(3)) {
             case 0:
               emit('= 0; $localName$i < ');
-              emitSmallPositiveInt();
+              emitSmallPositiveInt(limit: 16);
               emit('; $localName$i++) ');
               break;
             case 1:
               emit('in ');
-              emitCollection(depth + 1, DartType.INT_LIST);
+              emitCollection(depth + 1, DartType.INT_LIST,
+                  rhsFilter: rhsFilter);
               emit(') ');
               break;
             default:
               emit('in ');
-              emitCollection(depth + 1, DartType.INT_SET);
+              emitCollection(depth + 1, DartType.INT_SET, rhsFilter: rhsFilter);
               emit(') ');
               break;
           }
+          localVars.removeLast(); // will get type
           nest++;
+          iterVars.add("$localName$i");
           localVars.add(DartType.INT);
-          emitCollectionElement(depth + 1, tp);
+          emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
           localVars.removeLast();
+          iterVars.removeLast();
           nest--;
           break;
         }
       default:
-        emitElement(depth, tp);
+        emitElement(depth, tp, rhsFilter: rhsFilter);
         break;
     }
   }
 
-  void emitCollection(int depth, DartType tp) {
+  void emitCollection(int depth, DartType tp, {RhsFilter rhsFilter}) {
     emit(tp == DartType.INT_LIST ? '[ ' : '{ ');
     for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
-      emitCollectionElement(depth, tp);
+      emitCollectionElement(depth, tp, rhsFilter: rhsFilter);
       if (i != (n - 1)) {
         emit(', ');
       }
@@ -865,7 +941,8 @@ class DartFuzz {
     emit(tp == DartType.INT_LIST ? ' ]' : ' }');
   }
 
-  void emitLiteral(int depth, DartType tp, {bool smallPositiveValue = false}) {
+  void emitLiteral(int depth, DartType tp,
+      {bool smallPositiveValue = false, RhsFilter rhsFilter}) {
     if (tp == DartType.BOOL) {
       emitBool();
     } else if (tp == DartType.INT) {
@@ -881,13 +958,13 @@ class DartFuzz {
     } else if (tp == DartType.INT_LIST ||
         tp == DartType.INT_SET ||
         tp == DartType.INT_STRING_MAP) {
-      emitCollection(depth, tp);
+      emitCollection(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
     } else {
       assert(false);
     }
   }
 
-  String emitScalarVar(DartType tp, {bool isLhs = false}) {
+  String emitScalarVar(DartType tp, {bool isLhs = false, RhsFilter rhsFilter}) {
     // Collect all choices from globals, fields, locals, and parameters.
     Set<String> choices = <String>{};
     for (int i = 0; i < globalVars.length; i++) {
@@ -918,55 +995,84 @@ class DartFuzz {
         }
       }
     }
+    // Filter out the current lhs of the expression to avoid recursive
+    // assignments of the form x = x * x.
+    if (rhsFilter != null && rhsFilter.shouldFilter) {
+      Set<String> cleanChoices = choices.difference({rhsFilter.lhsVar});
+      // If we have other choices of variables, use those.
+      if (cleanChoices.isNotEmpty) {
+        choices = cleanChoices;
+      } else if (!isLhs) {
+        // If we are emitting an RHS variable, we can emit a terminal.
+        // note that if the variable type is a collection, this might
+        // still result in a recursion.
+        emitLiteral(0, tp);
+        return null;
+      }
+      // Otherwise we have to risk creating a recursion.
+    }
     // Then pick one.
-    assert(choices.isNotEmpty);
+    if (choices.isEmpty) {
+      throw 'No variable to emit for type ${tp.name}';
+    }
     final emittedVar = '${choices.elementAt(rand.nextInt(choices.length))}';
+    if (rhsFilter != null && (emittedVar == rhsFilter.lhsVar)) {
+      rhsFilter.consume();
+    }
     emit(emittedVar);
     return emittedVar;
   }
 
-  void emitSubscriptedVar(int depth, DartType tp, {bool isLhs = false}) {
+  String emitSubscriptedVar(int depth, DartType tp,
+      {bool isLhs = false, RhsFilter rhsFilter}) {
+    String ret;
     if (tp == DartType.INT) {
-      emitScalarVar(DartType.INT_LIST, isLhs: isLhs);
+      ret =
+          emitScalarVar(DartType.INT_LIST, isLhs: isLhs, rhsFilter: rhsFilter);
       emit('[');
       emitExpr(depth + 1, DartType.INT);
       emit(']');
     } else if (tp == DartType.STRING) {
-      emitScalarVar(DartType.INT_STRING_MAP, isLhs: isLhs);
+      ret = emitScalarVar(DartType.INT_STRING_MAP,
+          isLhs: isLhs, rhsFilter: rhsFilter);
       emit('[');
       emitExpr(depth + 1, DartType.INT);
       emit(']');
     } else {
-      emitScalarVar(tp, isLhs: isLhs); // resort to scalar
+      ret = emitScalarVar(tp,
+          isLhs: isLhs, rhsFilter: rhsFilter); // resort to scalar
     }
+    return ret;
   }
 
-  void emitVar(int depth, DartType tp, {bool isLhs = false}) {
+  String emitVar(int depth, DartType tp,
+      {bool isLhs = false, RhsFilter rhsFilter}) {
     switch (rand.nextInt(2)) {
       case 0:
-        emitScalarVar(tp, isLhs: isLhs);
+        return emitScalarVar(tp, isLhs: isLhs, rhsFilter: rhsFilter);
         break;
       default:
-        emitSubscriptedVar(depth, tp, isLhs: isLhs);
+        return emitSubscriptedVar(depth, tp,
+            isLhs: isLhs, rhsFilter: rhsFilter);
         break;
     }
   }
 
-  void emitTerminal(int depth, DartType tp) {
+  void emitTerminal(int depth, DartType tp, {RhsFilter rhsFilter}) {
     switch (rand.nextInt(2)) {
       case 0:
-        emitLiteral(depth, tp);
+        emitLiteral(depth, tp, rhsFilter: rhsFilter);
         break;
       default:
-        emitVar(depth, tp);
+        emitVar(depth, tp, rhsFilter: rhsFilter);
         break;
     }
   }
 
-  void emitExprList(int depth, List<DartType> proto) {
+  void emitExprList(int depth, List<DartType> proto, {RhsFilter rhsFilter}) {
     emit('(');
     for (int i = 1; i < proto.length; i++) {
-      emitExpr(depth, proto[i]);
+      emitExpr(depth, proto[i], rhsFilter: rhsFilter);
       if (i != (proto.length - 1)) {
         emit(', ');
       }
@@ -975,62 +1081,52 @@ class DartFuzz {
   }
 
   // Emit expression with unary operator: (~(x))
-  void emitUnaryExpr(int depth, DartType tp) {
+  void emitUnaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.BOOL || tp == DartType.INT || tp == DartType.DOUBLE) {
       emit('(');
       emitUnaryOp(tp);
       emit('(');
-      emitExpr(depth + 1, tp);
+      emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
       emit('))');
     } else {
-      emitTerminal(depth, tp); // resort to terminal
+      emitTerminal(depth, tp, rhsFilter: rhsFilter); // resort to terminal
     }
   }
 
   // Emit expression with binary operator: (x + y)
-  void emitBinaryExpr(int depth, DartType tp) {
+  void emitBinaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.BOOL) {
       // For boolean, allow type switch with relational op.
       if (rand.nextInt(2) == 0) {
         DartType deeper_tp = getType();
         emit('(');
-        emitExpr(depth + 1, deeper_tp);
+        emitExpr(depth + 1, deeper_tp, rhsFilter: rhsFilter);
         emitRelOp(deeper_tp);
-        emitExpr(depth + 1, deeper_tp);
+        emitExpr(depth + 1, deeper_tp, rhsFilter: rhsFilter);
         emit(')');
         return;
       }
-    } else if (tp == DartType.STRING || tp == DartType.INT_LIST) {
-      // For strings and lists, a construct like x = x + x; inside a loop
-      // yields an exponentially growing data structure. We avoid this
-      // situation by forcing a literal on the rhs of each +.
-      emit('(');
-      emitExpr(depth + 1, tp);
-      emitBinaryOp(tp);
-      emitLiteral(depth + 1, tp);
-      emit(')');
-      return;
     }
     emit('(');
-    emitExpr(depth + 1, tp);
+    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
     emitBinaryOp(tp);
-    emitExpr(depth + 1, tp);
+    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
     emit(')');
   }
 
   // Emit expression with ternary operator: (b ? x : y)
-  void emitTernaryExpr(int depth, DartType tp) {
+  void emitTernaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     emit('(');
-    emitExpr(depth + 1, DartType.BOOL);
+    emitExpr(depth + 1, DartType.BOOL, rhsFilter: rhsFilter);
     emit(' ? ');
-    emitExpr(depth + 1, tp);
+    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
     emit(' : ');
-    emitExpr(depth + 1, tp);
+    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
     emit(')');
   }
 
   // Emit expression with pre/post-increment/decrement operator: (x++)
-  void emitPreOrPostExpr(int depth, DartType tp) {
+  void emitPreOrPostExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.INT) {
       int r = rand.nextInt(2);
       emit('(');
@@ -1039,18 +1135,18 @@ class DartFuzz {
       if (r == 1) emitPreOrPostOp(tp);
       emit(')');
     } else {
-      emitTerminal(depth, tp); // resort to terminal
+      emitTerminal(depth, tp, rhsFilter: rhsFilter); // resort to terminal
     }
   }
 
   // Emit library call.
-  void emitLibraryCall(int depth, DartType tp) {
+  void emitLibraryCall(int depth, DartType tp, {RhsFilter rhsFilter}) {
     DartLib lib = getLibraryMethod(tp);
     final String proto = lib.proto;
     // Receiver.
     if (proto[0] != 'V') {
       emit('(');
-      emitArg(depth + 1, proto[0]);
+      emitArg(depth + 1, proto[0], rhsFilter: rhsFilter);
       emit(').');
     }
     // Call.
@@ -1060,7 +1156,7 @@ class DartFuzz {
       emit('(');
       if (proto[1] != 'V') {
         for (int i = 1; i < proto.length; i++) {
-          emitArg(depth + 1, proto[i]);
+          emitArg(depth + 1, proto[i], rhsFilter: rhsFilter);
           if (i != (proto.length - 1)) {
             emit(', ');
           }
@@ -1071,17 +1167,19 @@ class DartFuzz {
   }
 
   // Emit call to a specific method.
-  void emitCall(int depth, String name, List<DartType> proto) {
+  void emitCall(int depth, String name, List<DartType> proto,
+      {RhsFilter rhsFilter}) {
     emit(name);
-    emitExprList(depth + 1, proto);
+    emitExprList(depth + 1, proto, rhsFilter: rhsFilter);
   }
 
   // Helper for a method call.
   bool pickedCall(
-      int depth, DartType tp, String name, List<List<DartType>> protos, int m) {
+      int depth, DartType tp, String name, List<List<DartType>> protos, int m,
+      {RhsFilter rhsFilter}) {
     for (int i = m - 1; i >= 0; i--) {
       if (tp == protos[i][0]) {
-        emitCall(depth + 1, "$name$i", protos[i]);
+        emitCall(depth + 1, "$name$i", protos[i], rhsFilter: rhsFilter);
         return true;
       }
     }
@@ -1089,12 +1187,13 @@ class DartFuzz {
   }
 
   // Emit method call within the program.
-  void emitMethodCall(int depth, DartType tp) {
+  void emitMethodCall(int depth, DartType tp, {RhsFilter rhsFilter}) {
     // Only call backward to avoid infinite recursion.
     if (currentClass == null) {
       // Outside a class but inside a method: call backward in global methods.
       if (currentMethod != null &&
-          pickedCall(depth, tp, methodName, globalMethods, currentMethod)) {
+          pickedCall(depth, tp, methodName, globalMethods, currentMethod,
+              rhsFilter: rhsFilter)) {
         return;
       }
     } else {
@@ -1121,43 +1220,44 @@ class DartFuzz {
       }
       final int m2 = globalMethods.length;
       if (pickedCall(depth, tp, '$methodName${classIndex}_',
-              classMethods[classIndex], m1) ||
-          pickedCall(depth, tp, methodName, globalMethods, m2)) {
+              classMethods[classIndex], m1, rhsFilter: rhsFilter) ||
+          pickedCall(depth, tp, methodName, globalMethods, m2,
+              rhsFilter: rhsFilter)) {
         return;
       }
     }
-    emitTerminal(depth, tp); // resort to terminal.
+    emitTerminal(depth, tp, rhsFilter: rhsFilter); // resort to terminal.
   }
 
   // Emit expression.
-  void emitExpr(int depth, DartType tp) {
+  void emitExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     // Continuing nested expressions becomes less likely as the depth grows.
     if (rand.nextInt(depth + 1) > exprDepth) {
-      emitTerminal(depth, tp);
+      emitTerminal(depth, tp, rhsFilter: rhsFilter);
       return;
     }
     // Possibly nested expression.
     switch (rand.nextInt(7)) {
       case 0:
-        emitUnaryExpr(depth, tp);
+        emitUnaryExpr(depth, tp, rhsFilter: rhsFilter);
         break;
       case 1:
-        emitBinaryExpr(depth, tp);
+        emitBinaryExpr(depth, tp, rhsFilter: rhsFilter);
         break;
       case 2:
-        emitTernaryExpr(depth, tp);
+        emitTernaryExpr(depth, tp, rhsFilter: rhsFilter);
         break;
       case 3:
-        emitPreOrPostExpr(depth, tp);
+        emitPreOrPostExpr(depth, tp, rhsFilter: rhsFilter);
         break;
       case 4:
-        emitLibraryCall(depth, tp);
+        emitLibraryCall(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
         break;
       case 5:
-        emitMethodCall(depth, tp);
+        emitMethodCall(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
         break;
       default:
-        emitTerminal(depth, tp);
+        emitTerminal(depth, tp, rhsFilter: rhsFilter);
         break;
     }
   }
@@ -1167,9 +1267,9 @@ class DartFuzz {
   //
 
   // Emit same type in-out assignment operator.
-  void emitAssignOp(DartType tp) {
+  String emitAssignOp(DartType tp) {
     if (tp == DartType.INT) {
-      emit(oneOf(const <String>[
+      final assignOp = oneOf(const <String>[
         ' += ',
         ' -= ',
         ' *= ',
@@ -1182,12 +1282,18 @@ class DartFuzz {
         ' <<= ',
         ' ??= ',
         ' = '
-      ]));
+      ]);
+      emit(assignOp);
+      return assignOp;
     } else if (tp == DartType.DOUBLE) {
-      emit(oneOf(
-          const <String>[' += ', ' -= ', ' *= ', ' /= ', ' ??= ', ' = ']));
+      final assignOp =
+          oneOf(const <String>[' += ', ' -= ', ' *= ', ' /= ', ' ??= ', ' = ']);
+      emit(assignOp);
+      return assignOp;
     } else {
-      emit(oneOf(const <String>[' ??= ', ' = ']));
+      final assignOp = oneOf(const <String>[' ??= ', ' = ']);
+      emit(assignOp);
+      return assignOp;
     }
   }
 
@@ -1274,7 +1380,7 @@ class DartFuzz {
   }
 
   // Emit a library argument, possibly subject to restrictions.
-  void emitArg(int depth, String p) {
+  void emitArg(int depth, String p, {RhsFilter rhsFilter}) {
     switch (p) {
       case 'B':
         emitExpr(depth, DartType.BOOL);
@@ -1289,19 +1395,19 @@ class DartFuzz {
         emitExpr(depth, fp ? DartType.DOUBLE : DartType.INT);
         break;
       case 'S':
-        emitExpr(depth, DartType.STRING);
+        emitExpr(depth, DartType.STRING, rhsFilter: rhsFilter);
         break;
       case 's': // emit small string
         emitString(length: 2);
         break;
       case 'L':
-        emitExpr(depth, DartType.INT_LIST);
+        emitExpr(depth, DartType.INT_LIST, rhsFilter: rhsFilter);
         break;
       case 'X':
-        emitExpr(depth, DartType.INT_SET);
+        emitExpr(depth, DartType.INT_SET, rhsFilter: rhsFilter);
         break;
       case 'M':
-        emitExpr(depth, DartType.INT_STRING_MAP);
+        emitExpr(depth, DartType.INT_STRING_MAP, rhsFilter: rhsFilter);
         break;
       default:
         throw ArgumentError('Invalid p value: $p');
@@ -1332,9 +1438,9 @@ class DartFuzz {
     }
   }
 
-  List<DartType> fillTypes1({bool isFfi = false}) {
+  List<DartType> fillTypes1({int limit = 4, bool isFfi = false}) {
     final list = <DartType>[];
-    for (int i = 0, n = 1 + rand.nextInt(4); i < n; i++) {
+    for (int i = 0, n = 1 + rand.nextInt(limit); i < n; i++) {
       if (isFfi) {
         list.add(fp ? oneOf([DartType.INT, DartType.DOUBLE]) : DartType.INT);
       } else {
@@ -1344,18 +1450,20 @@ class DartFuzz {
     return list;
   }
 
-  List<List<DartType>> fillTypes2({bool isFfi = false, int limit = 4}) {
+  List<List<DartType>> fillTypes2(
+      {bool isFfi = false, int limit2 = 4, int limit1 = 4}) {
     final list = <List<DartType>>[];
-    for (int i = 0, n = 1 + rand.nextInt(limit); i < n; i++) {
-      list.add(fillTypes1(isFfi: isFfi));
+    for (int i = 0, n = 1 + rand.nextInt(limit2); i < n; i++) {
+      list.add(fillTypes1(limit: limit1, isFfi: isFfi));
     }
     return list;
   }
 
-  List<List<List<DartType>>> fillTypes3(int n) {
+  List<List<List<DartType>>> fillTypes3(int n,
+      {int limit2 = 4, int limit1 = 4}) {
     final list = <List<List<DartType>>>[];
     for (int i = 0; i < n; i++) {
-      list.add(fillTypes2());
+      list.add(fillTypes2(limit2: limit2, limit1: limit1));
     }
     return list;
   }
@@ -1453,7 +1561,7 @@ class DartFuzz {
   // Types of global variables.
   List<DartType> globalVars;
 
-  // Names of currenty active iterator variables.
+  // Names of currently active iterator variables.
   // These are tracked to avoid modifications within the loop body,
   // which can lead to infinite loops.
   List<String> iterVars;
@@ -1466,6 +1574,10 @@ class DartFuzz {
 
   // Prototypes of all methods over all classes (first element is return type).
   List<List<List<DartType>>> classMethods;
+
+  // List of virtual functions per class. Map is from parent class index to List
+  // of overloaded functions from that parent.
+  List<Map<int, List<int>>> virtualClassMethods;
 
   // Parent class indices for all classes.
   List<int> classParents;

@@ -225,6 +225,10 @@ class BytecodeReaderHelper : public ValueObject {
            expression_evaluation_library_->raw() == library.raw();
   }
 
+  // Similar to cls.EnsureClassDeclaration, but may be more efficient if
+  // class is from the current kernel binary.
+  void LoadReferencedClass(const Class& cls);
+
   Reader reader_;
   TranslationHelper& translation_helper_;
   ActiveClass* const active_class_;
@@ -436,10 +440,11 @@ class BytecodeLocalVariablesIterator : ValueObject {
   }
 
   bool MoveNext() {
-    if (entries_remaining_ == 0) {
+    if (entries_remaining_ <= 0) {
+      // Finished looking at the last entry, now we're done.
+      entries_remaining_ = -1;
       return false;
     }
-    ASSERT(entries_remaining_ > 0);
     --entries_remaining_;
     cur_kind_and_flags_ = reader_.ReadByte();
     cur_start_pc_ += reader_.ReadSLEB128();
@@ -464,7 +469,10 @@ class BytecodeLocalVariablesIterator : ValueObject {
     return true;
   }
 
-  bool IsDone() const { return entries_remaining_ == 0; }
+  // Returns true after iterator moved past the last entry and
+  // MoveNext() returned false.
+  bool IsDone() const { return entries_remaining_ < 0; }
+
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }

@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -412,7 +413,7 @@ abstract class BaseProcessor {
     ConstructorElement element = creation.staticElement;
     if (element == null ||
         element.name != 'fromIterable' ||
-        element.enclosingElement != typeProvider.mapType.element) {
+        element.enclosingElement != typeProvider.mapElement) {
       _coverageMarker();
       return null;
     }
@@ -816,6 +817,132 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
     return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_inlineAdd() async {
+    AstNode node = this.node;
+    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
+      _coverageMarker();
+      return null;
+    }
+    SimpleIdentifier name = node;
+    MethodInvocation invocation = node.parent;
+    if (name != invocation.methodName ||
+        name.name != 'add' ||
+        !invocation.isCascaded ||
+        invocation.argumentList.arguments.length != 1) {
+      _coverageMarker();
+      return null;
+    }
+    CascadeExpression cascade = invocation.thisOrAncestorOfType();
+    NodeList<Expression> sections = cascade.cascadeSections;
+    Expression target = cascade.target;
+    if (target is! ListLiteral || sections[0] != invocation) {
+      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      _coverageMarker();
+      return null;
+    }
+    ListLiteral list = target;
+    Expression argument = invocation.argumentList.arguments[0];
+    String elementText = utils.getNodeText(argument);
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      if (list.elements.isNotEmpty) {
+        // ['a']..add(e);
+        builder.addSimpleInsertion(list.elements.last.end, ', $elementText');
+      } else {
+        // []..add(e);
+        builder.addSimpleInsertion(list.leftBracket.end, elementText);
+      }
+      builder.addDeletion(range.node(invocation));
+    });
+    return changeBuilder;
+  }
+
+  Future<ChangeBuilder> createBuilder_sortChildPropertyLast() async {
+    NamedExpression childProp = flutter.findNamedExpression(node, 'child');
+    if (childProp == null) {
+      childProp = flutter.findNamedExpression(node, 'children');
+    }
+    if (childProp == null) {
+      return null;
+    }
+
+    var parent = childProp.parent?.parent;
+    if (parent is! InstanceCreationExpression ||
+        !flutter.isWidgetCreation(parent)) {
+      return null;
+    }
+
+    InstanceCreationExpression creationExpression = parent;
+    var args = creationExpression.argumentList;
+
+    var last = args.arguments.last;
+    if (last == childProp) {
+      // Already sorted.
+      return null;
+    }
+
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      var start = childProp.beginToken.previous.end;
+      var end = childProp.endToken.next.end;
+      var childRange = range.startOffsetEndOffset(start, end);
+
+      var childText = utils.getRangeText(childRange);
+      builder.addSimpleReplacement(childRange, '');
+      builder.addSimpleInsertion(last.end + 1, childText);
+
+      changeBuilder.setSelection(new Position(file, last.end + 1));
+    });
+
+    return changeBuilder;
+  }
+
+  /// todo (pq): unify with similar behavior in fix.
+  Future<ChangeBuilder> createBuilder_removeTypeAnnotation() async {
+    VariableDeclarationList declarationList =
+        node.thisOrAncestorOfType<VariableDeclarationList>();
+    if (declarationList == null) {
+      _coverageMarker();
+      return null;
+    }
+    // we need a type
+    TypeAnnotation typeNode = declarationList.type;
+    if (typeNode == null) {
+      _coverageMarker();
+      return null;
+    }
+    // ignore if an incomplete variable declaration
+    if (declarationList.variables.length == 1 &&
+        declarationList.variables[0].name.isSynthetic) {
+      _coverageMarker();
+      return null;
+    }
+    // must be not after the name of the variable
+    VariableDeclaration firstVariable = declarationList.variables[0];
+    if (selectionOffset > firstVariable.name.end) {
+      _coverageMarker();
+      return null;
+    }
+    // The variable must have an initializer, otherwise there is no other
+    // source for its type.
+    if (firstVariable.initializer == null) {
+      _coverageMarker();
+      return null;
+    }
+    Token keyword = declarationList.keyword;
+    var changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+      SourceRange typeRange = range.startStart(typeNode, firstVariable);
+      if (keyword != null && keyword.lexeme != 'var') {
+        builder.addSimpleReplacement(typeRange, '');
+      } else {
+        builder.addSimpleReplacement(typeRange, 'var ');
+      }
+    });
+    return changeBuilder;
   }
 
   @protected

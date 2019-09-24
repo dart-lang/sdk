@@ -103,6 +103,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTENSION_DECLARES_INSTANCE_FIELD,
   _EXTENSION_DECLARES_ABSTRACT_MEMBER,
   _MIXIN_DECLARES_CONSTRUCTOR,
+  _NULL_AWARE_CASCADE_OUT_OF_ORDER,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -480,6 +481,12 @@ const ParserErrorCode _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION = const ParserErrorCod
     r"Native clause in this form is deprecated.",
     correction:
         "Try removing this native clause and adding @native() or @native('native-name') before the declaration.");
+
+const ParserErrorCode _NULL_AWARE_CASCADE_OUT_OF_ORDER = const ParserErrorCode(
+    'NULL_AWARE_CASCADE_OUT_OF_ORDER',
+    r"The '?..' cascade operator must be first in the cascade sequence.",
+    correction:
+        "Try moving the '?..' operator to be the first cascade operator in the sequence.");
 
 const ParserErrorCode _PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
     'PREFIX_AFTER_COMBINATOR',
