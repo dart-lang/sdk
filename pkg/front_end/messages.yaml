@@ -3706,3 +3706,9 @@ ExplicitExtensionArgumentMismatch:
 
 ExplicitExtensionTypeArgumentMismatch:
   template: "Explicit extension application of extension '#name' takes '#count' type argument(s)."
+
+ExplicitExtensionAsExpression:
+  template: "Explicit extension application cannot be used as an expression."
+
+ExplicitExtensionAsLvalue:
+  template: "Explicit extension application cannot be a target for assignment."

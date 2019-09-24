@@ -3318,6 +3318,26 @@ const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
         r"""Explicit extension application requires exactly 1 positional argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionAsExpression =
+    messageExplicitExtensionAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionAsExpression = const MessageCode(
+    "ExplicitExtensionAsExpression",
+    message:
+        r"""Explicit extension application cannot be used as an expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionAsLvalue =
+    messageExplicitExtensionAsLvalue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionAsLvalue = const MessageCode(
+    "ExplicitExtensionAsLvalue",
+    message:
+        r"""Explicit extension application cannot be a target for assignment.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

@@ -1859,11 +1859,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Builder setter =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       // TODO(johnniwinther): Check for constantContext like below?
-      return new ExtensionInstanceAccessGenerator.fromBuilder(this,
+      return new ExtensionInstanceAccessGenerator.fromBuilder(this, name,
           extensionThis, extensionTypeParameters, declaration, token, setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
-      return new StaticAccessGenerator(this, token, declaration.target, null);
+      return new StaticAccessGenerator(
+          this, token, name, declaration.target, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       return new PrefixUseGenerator(this, token, declaration);
@@ -1875,7 +1876,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Builder setter =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
-          this, declaration, token, setter);
+          this, name, declaration, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||

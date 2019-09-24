@@ -1367,6 +1367,9 @@ class SuperIndexedAccessGenerator extends Generator {
 ///   }
 ///
 class StaticAccessGenerator extends Generator {
+  /// The name of the original target;
+  final String targetName;
+
   /// The static [Member] used for performing a read or invocation on this
   /// subexpression.
   ///
@@ -1383,12 +1386,17 @@ class StaticAccessGenerator extends Generator {
   final Member writeTarget;
 
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.readTarget, this.writeTarget)
-      : assert(readTarget != null || writeTarget != null),
+      this.targetName, this.readTarget, this.writeTarget)
+      : assert(targetName != null),
+        assert(readTarget != null || writeTarget != null),
         super(helper, token);
 
-  factory StaticAccessGenerator.fromBuilder(ExpressionGeneratorHelper helper,
-      Builder declaration, Token token, Builder builderSetter) {
+  factory StaticAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper helper,
+      String targetName,
+      Builder declaration,
+      Token token,
+      Builder builderSetter) {
     if (declaration is AccessErrorBuilder) {
       AccessErrorBuilder error = declaration;
       declaration = error.builder;
@@ -1409,14 +1417,14 @@ class StaticAccessGenerator extends Generator {
         setter = builderSetter.target;
       }
     }
-    return new StaticAccessGenerator(helper, token, getter, setter);
+    return new StaticAccessGenerator(helper, token, targetName, getter, setter);
   }
 
   @override
   String get _debugName => "StaticAccessGenerator";
 
   @override
-  String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
+  String get _plainNameForRead => targetName;
 
   @override
   Expression buildSimpleRead() {
@@ -1524,6 +1532,8 @@ class StaticAccessGenerator extends Generator {
   @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
+    sink.write(", targetName: ");
+    sink.write(targetName);
     sink.write(", readTarget: ");
     printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
     sink.write(", writeTarget: ");
@@ -1550,6 +1560,9 @@ class StaticAccessGenerator extends Generator {
 ///
 /// These can only occur within an extension instance member.
 class ExtensionInstanceAccessGenerator extends Generator {
+  /// The original name of the target.
+  final String targetName;
+
   /// The static [Member] generated for an instance extension member which is
   /// used for performing a read on this subexpression.
   ///
@@ -1586,17 +1599,20 @@ class ExtensionInstanceAccessGenerator extends Generator {
   ExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.targetName,
       this.readTarget,
       this.invokeTarget,
       this.writeTarget,
       this.extensionThis,
       this.extensionTypeParameters)
-      : assert(readTarget != null || writeTarget != null),
+      : assert(targetName != null),
+        assert(readTarget != null || writeTarget != null),
         assert(extensionThis != null),
         super(helper, token);
 
   factory ExtensionInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
+      String targetName,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
       Builder declaration,
@@ -1628,15 +1644,22 @@ class ExtensionInstanceAccessGenerator extends Generator {
     if (builderSetter != null && builderSetter.isSetter) {
       writeTarget = builderSetter.target;
     }
-    return new ExtensionInstanceAccessGenerator(helper, token, readTarget,
-        invokeTarget, writeTarget, extensionThis, extensionTypeParameters);
+    return new ExtensionInstanceAccessGenerator(
+        helper,
+        token,
+        targetName,
+        readTarget,
+        invokeTarget,
+        writeTarget,
+        extensionThis,
+        extensionTypeParameters);
   }
 
   @override
   String get _debugName => "InstanceExtensionAccessGenerator";
 
   @override
-  String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
+  String get _plainNameForRead => targetName;
 
   int get _extensionTypeParameterCount => extensionTypeParameters?.length ?? 0;
 
@@ -1785,6 +1808,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
   @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
+    sink.write(", targetName: ");
+    sink.write(targetName);
     sink.write(", readTarget: ");
     printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
     sink.write(", writeTarget: ");
@@ -1814,6 +1839,9 @@ class ExtensionInstanceAccessGenerator extends Generator {
 ///   }
 ///
 class ExplicitExtensionInstanceAccessGenerator extends Generator {
+  /// The name of the original target;
+  final String targetName;
+
   /// The static [Member] generated for an instance extension member which is
   /// used for performing a read on this subexpression.
   ///
@@ -1850,13 +1878,15 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   ExplicitExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.targetName,
       this.readTarget,
       this.invokeTarget,
       this.writeTarget,
       this.receiver,
       this.explicitTypeArguments,
       this.extensionTypeParameterCount)
-      : assert(readTarget != null || writeTarget != null),
+      : assert(targetName != null),
+        assert(readTarget != null || writeTarget != null),
         assert(receiver != null),
         super(helper, token);
 
@@ -1868,6 +1898,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       Expression receiver,
       List<DartType> explicitTypeArguments,
       int extensionTypeParameterCount) {
+    String targetName;
     Procedure readTarget;
     Procedure invokeTarget;
     if (getterBuilder != null) {
@@ -1878,11 +1909,14 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         // when not explicitly looking for a setter.
         assert(getterBuilder.isSetter);
       } else if (getterBuilder.isGetter) {
-        readTarget = getterBuilder.target;
+        MemberBuilder memberBuilder = getterBuilder;
+        readTarget = memberBuilder.member;
+        targetName = memberBuilder.name;
       } else if (getterBuilder.isRegularMethod) {
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
+        targetName = procedureBuilder.name;
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -1892,12 +1926,17 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       }
     }
     Procedure writeTarget;
-    if (setterBuilder != null && setterBuilder.isSetter) {
-      writeTarget = setterBuilder.target;
+    if (setterBuilder is AccessErrorBuilder) {
+      targetName ??= setterBuilder.name;
+    } else if (setterBuilder != null && setterBuilder.isSetter) {
+      MemberBuilder memberBuilder = setterBuilder;
+      writeTarget = memberBuilder.member;
+      targetName ??= memberBuilder.name;
     }
     return new ExplicitExtensionInstanceAccessGenerator(
         helper,
         token,
+        targetName,
         readTarget,
         invokeTarget,
         writeTarget,
@@ -1910,7 +1949,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   String get _debugName => "InstanceExtensionAccessGenerator";
 
   @override
-  String get _plainNameForRead => (readTarget ?? writeTarget).name.name;
+  String get _plainNameForRead => targetName;
 
   List<DartType> _createExtensionTypeArguments() {
     return explicitTypeArguments ?? const <DartType>[];
@@ -2065,6 +2104,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
+    sink.write(", targetName: ");
+    sink.write(targetName);
     sink.write(", readTarget: ");
     printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
     sink.write(", writeTarget: ");
@@ -2181,6 +2222,18 @@ class ExplicitExtensionAccessGenerator extends Generator {
   doInvocation(int offset, Arguments arguments) {
     return unimplemented(
         "ExplicitExtensionAccessGenerator.doInvocation", fileOffset, _uri);
+  }
+
+  @override
+  Expression _makeInvalidRead() {
+    return _helper.buildProblem(messageExplicitExtensionAsExpression,
+        fileOffset, lengthForToken(token));
+  }
+
+  @override
+  Expression _makeInvalidWrite(Expression value) {
+    return _helper.buildProblem(
+        messageExplicitExtensionAsLvalue, fileOffset, lengthForToken(token));
   }
 
   @override
@@ -2445,8 +2498,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
 
   TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.declaration, String plainNameForRead)
-      : super(helper, token, null, plainNameForRead);
+      this.declaration, String targetName)
+      : super(helper, token, null, targetName);
 
   @override
   String get _debugName => "TypeUseGenerator";
@@ -2489,7 +2542,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       }
     }
     return new NamedTypeBuilder(
-        _plainNameForRead, nullabilityBuilder, argumentBuilders)
+        targetName, nullabilityBuilder, argumentBuilders)
       ..bind(declaration);
   }
 
@@ -2540,16 +2593,6 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       }
     }
     return super.expression;
-  }
-
-  @override
-  Expression _makeInvalidWrite(Expression value) {
-    return _helper.throwNoSuchMethodError(
-        _forest.createNullLiteral(fileOffset),
-        _plainNameForRead,
-        _forest.createArguments(fileOffset, <Expression>[value]),
-        fileOffset,
-        isSetter: true);
   }
 
   @override
@@ -2604,7 +2647,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
           }
         }
         generator = new StaticAccessGenerator.fromBuilder(
-            _helper, member, send.token, setter);
+            _helper, name.name, member, send.token, setter);
       }
 
       return arguments == null
@@ -2673,19 +2716,21 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 ///   }
 ///
 class ReadOnlyAccessGenerator extends Generator {
-  @override
-  final String _plainNameForRead;
+  final String targetName;
 
   Expression expression;
 
   VariableDeclaration value;
 
   ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.expression, this._plainNameForRead)
+      this.expression, this.targetName)
       : super(helper, token);
 
   @override
   String get _debugName => "ReadOnlyAccessGenerator";
+
+  @override
+  String get _plainNameForRead => targetName;
 
   @override
   Expression buildSimpleRead() => expression;
@@ -2736,7 +2781,7 @@ class ReadOnlyAccessGenerator extends Generator {
   @override
   doInvocation(int offset, Arguments arguments) {
     return _helper.buildMethodInvocation(buildSimpleRead(), callName, arguments,
-        adjustForImplicitCall(_plainNameForRead, offset),
+        adjustForImplicitCall(targetName, offset),
         isImplicitCall: true);
   }
 
@@ -2746,7 +2791,7 @@ class ReadOnlyAccessGenerator extends Generator {
     sink.write(", expression: ");
     printNodeOn(expression, sink, syntheticNames: syntheticNames);
     sink.write(", plainNameForRead: ");
-    sink.write(_plainNameForRead);
+    sink.write(targetName);
     sink.write(", value: ");
     printNodeOn(value, sink, syntheticNames: syntheticNames);
   }
@@ -3380,9 +3425,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       : super(helper, token);
 
   @override
-  String get _plainNameForRead {
-    return "${prefixGenerator._plainNameForRead}.${token.lexeme}";
-  }
+  String get _plainNameForRead =>
+      "${prefixGenerator._plainNameForRead}.${token.lexeme}";
 
   @override
   String get _debugName => "UnexpectedQualifiedUseGenerator";

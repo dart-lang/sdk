@@ -18,6 +18,7 @@ extensions/dynamic_invoke: TextSerializationFailure
 extensions/explicit_extension_access: TextSerializationFailure
 extensions/explicit_extension_inference: TextSerializationFailure
 extensions/explicit_generic_extension_access: TextSerializationFailure
+extensions/explicit_invalid_access: TextSerializationFailure
 extensions/explicit_this: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
 extensions/extension_setter: TextSerializationFailure
