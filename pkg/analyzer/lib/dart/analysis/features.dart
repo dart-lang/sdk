@@ -32,6 +32,9 @@ abstract class Feature {
   /// Feature information for the triple-shift operator.
   static const triple_shift = ExperimentalFeatures.triple_shift;
 
+  /// Feature information for variance.
+  static const variance = ExperimentalFeatures.variance;
+
   /// If the feature may be enabled or disabled on the command line, the
   /// experimental flag that may be used to enable it.  Otherwise `null`.
   ///

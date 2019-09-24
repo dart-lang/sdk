@@ -4788,6 +4788,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void handleVarianceModifier(Token variance) {
+    if (!libraryBuilder.loader.target.enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
+    }
+  }
+
+  @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
     enterFunctionTypeScope(null);

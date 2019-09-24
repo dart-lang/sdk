@@ -46,6 +46,7 @@ main() {
     defineReflectiveTests(SimpleParserTest_Fasta);
     defineReflectiveTests(StatementParserTest_Fasta);
     defineReflectiveTests(TopLevelParserTest_Fasta);
+    defineReflectiveTests(VarianceParserTest_Fasta);
   });
 }
 
@@ -1798,6 +1799,119 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'void');
     expect(extension.members, hasLength(0));
+  }
+}
+
+@reflectiveTest
+class VarianceParserTest_Fasta extends FastaParserTestCase {
+  @override
+  CompilationUnit parseCompilationUnit(String content,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      FeatureSet featureSet}) {
+    return super.parseCompilationUnit(content,
+        codes: codes,
+        errors: errors,
+        featureSet: featureSet ??
+            FeatureSet.forTesting(
+              sdkVersion: '2.5.0',
+              additionalFeatures: [Feature.variance],
+            ));
+  }
+
+  void test_class_enabled_single() {
+    var unit = parseCompilationUnit('class A<in T> { }');
+    expect(unit.declarations, hasLength(1));
+    var classDecl = unit.declarations[0] as ClassDeclaration;
+    expect(classDecl.name.name, "A");
+    expect(classDecl.typeParameters.typeParameters, hasLength(1));
+  }
+
+  void test_class_disabled_single() {
+    parseCompilationUnit('class A<out T> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_class_disabled_multiple() {
+    parseCompilationUnit('class A<in T, inout U, out V> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 2),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_mixin_enabled_single() {
+    var unit = parseCompilationUnit('mixin A<inout T> { }');
+    expect(unit.declarations, hasLength(1));
+    var mixinDecl = unit.declarations[0] as MixinDeclaration;
+    expect(mixinDecl.name.name, "A");
+    expect(mixinDecl.typeParameters.typeParameters, hasLength(1));
+  }
+
+  void test_mixin_disabled_single() {
+    parseCompilationUnit('mixin A<inout T> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_mixin_disabled_multiple() {
+    parseCompilationUnit('mixin A<inout T, out U> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_typedef_enabled() {
+    parseCompilationUnit('typedef A<inout X> = X Function(X);', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+    ]);
+  }
+
+  void test_typedef_disabled() {
+    parseCompilationUnit('typedef A<inout X> = X Function(X);',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_list_enabled() {
+    parseCompilationUnit('List<out String> stringList = [];', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
+    ]);
+  }
+
+  void test_list_disabled() {
+    parseCompilationUnit('List<out String> stringList = [];',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_function_enabled() {
+    parseCompilationUnit('void A(in int value) {}', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+    ]);
+  }
+
+  void test_function_disabled() {
+    parseCompilationUnit('void A(in int value) {}',
+        errors: [
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
   }
 }
 

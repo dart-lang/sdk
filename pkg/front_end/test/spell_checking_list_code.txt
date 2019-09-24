@@ -446,6 +446,7 @@ json
 juxtaposition
 juxtapositions
 k
+kallentu
 kernel's
 kernel2kernel
 klass

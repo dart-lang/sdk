@@ -2,40 +2,75 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests that since `variance` flag is disabled, correct variance modifier usage will issue an error.
+// Tests with `variance` flag disabled
+// Correct variance modifier usage will issue an error.
 
-class A<in X> {}
-//      ^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
-// [cfe] Expected an identifier, but got 'in'.
-//      ^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-//         ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+import 'package:expect/expect.dart';
+
+abstract class A<in X> {
+//               ^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+  int foo(X bar);
+}
 
 class B<out X, in Y, inout Z> {}
-//          ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+//      ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
 //             ^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME
-// [cfe] Expected an identifier, but got 'in'.
-//             ^^
-// [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
-//                ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
-//                         ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+//                   ^^^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
 
-mixin C<inout T> {}
-//            ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+class C<in T> extends A<T> {
+//      ^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+  @override
+  int foo(T bar) {
+    return 2;
+  }
+}
 
-typedef D<out T> = T Function();
-//            ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+mixin D<out T> {}
+//      ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+
+class E1 {}
+
+mixin E<in T extends E1> {}
+//      ^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+
+class F<out T> = Object with D<T>;
+//      ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+
+class G<out out> {}
+//      ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+
+class H<out inout> {}
+//      ^^^
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the 'variance' experiment to be enabled.
+
+main() {
+  B<int, String, bool> b = B();
+
+  C<int> c = C();
+  Expect.equals(2, c.foo(3));
+
+  F<int> f = F();
+
+  G<int> g = G();
+
+  H<int> h = H();
+}

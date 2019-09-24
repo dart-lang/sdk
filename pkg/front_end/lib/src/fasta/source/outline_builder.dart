@@ -1644,6 +1644,13 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
+  void handleVarianceModifier(Token variance) {
+    if (!library.loader.target.enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
+    }
+  }
+
+  @override
   void endPartOf(
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");

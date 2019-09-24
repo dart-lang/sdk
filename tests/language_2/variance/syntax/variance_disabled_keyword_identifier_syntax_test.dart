@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests identifier usage of keywords `out` and `inout`, correct usage of `in`
-// with the experimental flag `variance` enabled.
-
-// SharedOptions=--enable-experiment=variance
+// Tests identifier usage of keywords `out` and `inout`, correct usage of `in`.
 
 import "package:expect/expect.dart";
 
