@@ -53,7 +53,7 @@ Future generateAotKernel(
     platformDill,
     '--aot',
     '-Ddart.vm.product=true',
-    ...defines,
+    ...(defines.map((d) => '-D${d}')),
     if (packages != null) ...['--packages', packages],
     '-o',
     kernelFile,

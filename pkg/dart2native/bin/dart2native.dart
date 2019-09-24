@@ -109,9 +109,9 @@ Future<void> main(List<String> args) async {
         help:
             'Whether to generate a stand-alone executable or an AOT snapshot.')
     ..addOption('packages',
-        valueHelp: 'path', help: 'Where to find a package spec file.')
+        abbr: 'p', valueHelp: 'path', help: 'Path to .packages file.')
     ..addFlag('verbose',
-        abbr: 'v', negatable: false, help: 'Enables more verbose output.');
+        abbr: 'v', negatable: false, help: 'Show verbose output.');
 
   ArgResults parsedArgs;
   try {
