@@ -505,7 +505,11 @@ const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 
 word Instructions::HeaderSize() {
-  return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
+  intptr_t alignment = OS::PreferredCodeAlignment();
+  intptr_t aligned_size =
+      Utils::RoundUp(Instructions::UnalignedHeaderSize(), alignment);
+  ASSERT(aligned_size == alignment);
+  return aligned_size;
 }
 
 #if !defined(TARGET_ARCH_DBC)
