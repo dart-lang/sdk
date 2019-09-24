@@ -56,6 +56,10 @@ class InfoBuilder {
   UnitInfo _explainUnit(ParsedUnitResult result, SourceFileEdit fileEdit) {
     List<RegionInfo> regions = [];
     String content = result.content;
+    // [fileEdit] is null when a file has no edits.
+    if (fileEdit == null) {
+      return UnitInfo(result.path, content, regions);
+    }
     List<SourceEdit> edits = fileEdit.edits;
     edits.sort((first, second) => first.offset.compareTo(second.offset));
     // Compute the deltas for the regions that will be computed as we apply the

@@ -6,7 +6,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -61,7 +64,7 @@ class NonNullableFix extends FixCodeTask {
       if (!outputFolder.exists) {
         outputFolder.create();
       }
-      _generateOutput(outputFolder);
+      await _generateOutput(provider, outputFolder);
     }
   }
 
@@ -196,15 +199,26 @@ analyzer:
   }
 
   /// Generate output into the given [folder].
-  void _generateOutput(Folder folder) {
-    File main = folder.getChildAssumingFile('main.html');
-    main.writeAsStringSync('''
-<html>
-<body>
-Generated output at ${DateTime.now()}.
-</body>
-</html>
-''');
+  void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
+    List<LibraryInfo> libraryInfos = await InfoBuilder(listener.server)
+        .explainMigration(instrumentationListener.data, listener);
+    listener.addDetail('libraryInfos has ${libraryInfos.length} libs');
+    for (LibraryInfo info in libraryInfos) {
+      var pathContext = provider.pathContext;
+      var libraryPath =
+          pathContext.setExtension(info.units.first.path, '.html');
+      // TODO(srawlins): Choose a better scheme than the double underscores,
+      // likely with actual directories, which need to be individually created.
+      // TODO(srawlins): Choose a better root for the relative paths. These
+      // could be complex, as dartfix can be executed with multiple directories
+      // (relative, absolute) and/or files.
+      var relativePath = pathContext
+          .relative(libraryPath, from: provider.pathContext.current)
+          .replaceAll('/', '__');
+      File output = folder.getChildAssumingFile(relativePath);
+      String rendered = InstrumentationRenderer(info).render();
+      output.writeAsStringSync(rendered);
+    }
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
