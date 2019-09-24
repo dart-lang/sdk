@@ -994,7 +994,7 @@ class OutlineBuilder extends StackListener {
         }
       }
       synthesizedFormals.add(new FormalParameterBuilder(
-          null, finalMask, thisType, "#this", null, charOffset));
+          null, finalMask, thisType, "#this", null, charOffset, uri));
       if (formals != null) {
         synthesizedFormals.addAll(formals);
       }

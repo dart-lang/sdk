@@ -12,9 +12,9 @@ library error_location_05;
 // pkg/front_end/testcases/general/error_locations/error_location_05_lib1.dart:10:9: Error: 'z' is already declared in this scope.
 //   y(z, {z}) {}
 //         ^
-// pkg/front_end/testcases/general/error_locations/error_location_05.dart:7:27: Context: Previous declaration of 'z'.
-// part 'error_location_05_lib1.dart';
-//                           ^
+// pkg/front_end/testcases/general/error_locations/error_location_05_lib1.dart:10:5: Context: Previous declaration of 'z'.
+//   y(z, {z}) {}
+//     ^
 //
 import self as self;
 import "dart:core" as core;

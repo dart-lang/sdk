@@ -203,7 +203,8 @@ TypeBuilder substituteRange(
               parameterType,
               formal.name,
               formal.parent,
-              formal.charOffset);
+              formal.charOffset,
+              formal.fileUri);
           changed = true;
         } else {
           formals[i] = formal;

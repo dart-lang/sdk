@@ -69,8 +69,9 @@ class FormalParameterBuilder extends ModifierBuilder {
   Token initializerToken;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      LibraryBuilder compilationUnit, int charOffset)
-      : super(compilationUnit, charOffset);
+      LibraryBuilder compilationUnit, int charOffset,
+      [Uri fileUri])
+      : super(compilationUnit, charOffset, fileUri);
 
   String get debugName => "FormalParameterBuilder";
 
@@ -114,8 +115,8 @@ class FormalParameterBuilder extends ModifierBuilder {
   FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FormalParameterBuilder(
-        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset)
+    return new FormalParameterBuilder(metadata, modifiers,
+        type?.clone(newTypes), name, parent, charOffset, fileUri)
       ..kind = kind;
   }
 
@@ -129,7 +130,8 @@ class FormalParameterBuilder extends ModifierBuilder {
             type,
             name,
             null,
-            charOffset)
+            charOffset,
+            fileUri)
           ..parent = parent
           ..variable = variable);
   }

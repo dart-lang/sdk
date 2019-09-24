@@ -2024,7 +2024,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset);
+        metadata, modifiers, type, name, this, charOffset, uri);
     formal.initializerToken = initializerToken;
     return formal;
   }

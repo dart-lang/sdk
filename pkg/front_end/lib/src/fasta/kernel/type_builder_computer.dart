@@ -104,15 +104,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FormalParameterBuilder(null, 0, type, null, null, -1)
-        ..kind = kind;
+      formals[i] =
+          new FormalParameterBuilder(null, 0, type, null, null, -1, null)
+            ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = positionalParameters[i].accept(this);
-      formals[i + positionalParameters.length] =
-          new FormalParameterBuilder(null, 0, type, parameter.name, null, -1)
-            ..kind = FormalParameterKind.optionalNamed;
+      formals[i + positionalParameters.length] = new FormalParameterBuilder(
+          null, 0, type, parameter.name, null, -1, null)
+        ..kind = FormalParameterKind.optionalNamed;
     }
     return new FunctionTypeBuilder(returnType, typeVariables, formals,
         new NullabilityBuilder.fromNullability(node.nullability));

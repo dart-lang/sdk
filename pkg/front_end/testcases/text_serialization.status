@@ -132,7 +132,7 @@ general/error_locations/error_location_02: TextSerializationFailure
 general/error_locations/error_location_03: TextSerializationFailure
 general/error_locations/error_location_04: TextSerializationFailure
 general/error_locations/error_location_05: TextSerializationFailure
-general/error_locations/error_location_06: Crash
+general/error_locations/error_location_06: TextSerializationFailure
 general/escape: TextSerializationFailure # Was: Pass
 general/export_main: TextSerializationFailure # Was: Pass
 general/export_test: TextSerializationFailure # Was: Pass
