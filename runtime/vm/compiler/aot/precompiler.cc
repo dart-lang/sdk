@@ -17,6 +17,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -67,10 +68,6 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
-DEFINE_FLAG(charp,
-            serialize_flow_graphs_to,
-            nullptr,
-            "Serialize flow graphs to the given file");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -89,6 +86,17 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(bool, print_instruction_stats);
+
+DEFINE_FLAG(charp,
+            serialize_flow_graphs_to,
+            nullptr,
+            "Serialize flow graphs to the given file");
+
+DEFINE_FLAG(bool,
+            populate_llvm_constant_pool,
+            false,
+            "Add constant pool entries from flow graphs to a special pool "
+            "serialized in AOT snapshots (with --serialize_flow_graphs_to)");
 
 Precompiler* Precompiler::singleton_ = nullptr;
 
@@ -199,6 +207,16 @@ void Precompiler::DoCompileAll() {
       if (auto file_open = Dart::file_open_callback()) {
         auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
         set_il_serialization_stream(file);
+      }
+      if (FLAG_populate_llvm_constant_pool) {
+        auto const object_store = I->object_store();
+        auto& llvm_constants = GrowableObjectArray::Handle(
+            zone_, GrowableObjectArray::New(16, Heap::kOld));
+        auto& llvm_constants_hash_table = Array::Handle(
+            zone_, HashTables::New<FlowGraphSerializer::LLVMConstantsMap>(
+                       16, Heap::kOld));
+        object_store->set_llvm_constant_pool(llvm_constants);
+        object_store->set_llvm_constant_hash_table(llvm_constants_hash_table);
       }
     }
 
@@ -324,6 +342,19 @@ void Precompiler::DoCompileAll() {
 
       I->set_compilation_allowed(false);
 
+      if (FLAG_serialize_flow_graphs_to != nullptr &&
+          Dart::file_write_callback() != nullptr) {
+        if (auto file_close = Dart::file_close_callback()) {
+          file_close(il_serialization_stream());
+          set_il_serialization_stream(nullptr);
+        }
+        if (FLAG_populate_llvm_constant_pool) {
+          // We don't want the Array backing for the map from constants to
+          // indices in the snapshot, only the constant pool itself.
+          I->object_store()->set_llvm_constant_hash_table(Array::null_array());
+        }
+      }
+
       TraceForRetainedFunctions();
       DropFunctions();
       DropFields();
@@ -363,13 +394,6 @@ void Precompiler::DoCompileAll() {
     Obfuscate();
 
     ProgramVisitor::Dedup();
-
-    if (il_serialization_stream() != nullptr) {
-      auto file_close = Dart::file_close_callback();
-      ASSERT(file_close != nullptr);
-      file_close(il_serialization_stream());
-      set_il_serialization_stream(nullptr);
-    }
 
     zone_ = NULL;
   }

@@ -9,6 +9,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -16,22 +17,61 @@ namespace dart {
 DEFINE_FLAG(bool,
             serialize_flow_graph_types,
             true,
-            "Serialize inferred type information in flow graphs"
-            " (with --serialize_flow_graphs_to)");
+            "Serialize inferred type information in flow graphs");
 
 DEFINE_FLAG(bool,
             verbose_flow_graph_serialization,
             false,
-            "Serialize extra information useful for debugging"
-            " (with --serialize_flow_graphs_to)");
+            "Serialize extra information useful for debugging");
 
 DEFINE_FLAG(bool,
             pretty_print_serialization,
             false,
-            "Format serialized output nicely"
-            " (with --serialize_flow_graphs_to)");
+            "Format serialized output nicely");
+
+DECLARE_FLAG(bool, populate_llvm_constant_pool);
 
 const char* const FlowGraphSerializer::initial_indent = "";
+
+FlowGraphSerializer::FlowGraphSerializer(Zone* zone,
+                                         const FlowGraph* flow_graph)
+    : flow_graph_(ASSERT_NOTNULL(flow_graph)),
+      zone_(zone),
+      object_store_(flow_graph->thread()->isolate()->object_store()),
+      open_recursive_types_(zone_),
+      llvm_pool_(
+          GrowableObjectArray::Handle(zone_,
+                                      object_store_->llvm_constant_pool())),
+      llvm_map_(zone_, object_store_->llvm_constant_hash_table()),
+      llvm_index_(Smi::Handle(zone_)),
+      tmp_string_(String::Handle(zone_)),
+      array_type_args_((TypeArguments::Handle(zone_))),
+      closure_context_(Context::Handle(zone_)),
+      closure_function_(Function::Handle(zone_)),
+      closure_type_args_(TypeArguments::Handle(zone_)),
+      code_owner_(Object::Handle(zone_)),
+      context_parent_(Context::Handle(zone_)),
+      context_elem_(Object::Handle(zone_)),
+      function_type_args_(TypeArguments::Handle(zone_)),
+      ic_data_target_(Function::Handle(zone_)),
+      ic_data_type_(AbstractType::Handle(zone_)),
+      instance_field_(Field::Handle(zone_)),
+      instance_type_args_(TypeArguments::Handle(zone_)),
+      serialize_library_(Library::Handle(zone_)),
+      serialize_owner_(Class::Handle(zone_)),
+      serialize_parent_(Function::Handle(zone_)),
+      type_arguments_elem_(AbstractType::Handle(zone_)),
+      type_class_(Class::Handle(zone_)),
+      type_function_(Function::Handle(zone_)),
+      type_ref_type_(AbstractType::Handle(zone_)) {
+  // Double-check that the zone in the flow graph is a parent of the
+  // zone we'll be using for serialization.
+  ASSERT(flow_graph->zone()->ContainsNestedZone(zone));
+}
+
+FlowGraphSerializer::~FlowGraphSerializer() {
+  object_store_->set_llvm_constant_hash_table(llvm_map_.Release());
+}
 
 void FlowGraphSerializer::SerializeToBuffer(const FlowGraph* flow_graph,
                                             TextBuffer* buffer) {
@@ -695,7 +735,8 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
     AddSymbol(elem, "def");
     elem->Add(UseToSExp(definition));
     // Use ObjectToSExp here, not DartValueToSExp!
-    elem->Add(ObjectToSExp(definition->AsConstant()->value()));
+    const auto& value = definition->AsConstant()->value();
+    elem->Add(ObjectToSExp(value));
     // Check this first, otherwise Type() can have the side effect of setting
     // a new CompileType!
     if (definition->HasType()) {
@@ -703,6 +744,16 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
       if (ShouldSerializeType(type)) {
         elem->AddExtra("type", type->ToSExpression(this));
       }
+    }
+    if (FLAG_populate_llvm_constant_pool) {
+      auto const pool_len = llvm_pool_.Length();
+      llvm_index_ = Smi::New(pool_len);
+      llvm_index_ =
+          Smi::RawCast(llvm_map_.InsertOrGetValue(value, llvm_index_));
+      if (llvm_index_.Value() == pool_len) {
+        llvm_pool_.Add(value);
+      }
+      AddExtraInteger(elem, "llvm_index", llvm_index_.Value());
     }
     constant_list->Add(elem);
   }
