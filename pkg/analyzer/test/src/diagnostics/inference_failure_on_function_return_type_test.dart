@@ -26,7 +26,7 @@ class InferenceFailureOnFunctionReturnType_InExtensionTest
     ..strictInference = true;
 
   test_extensionMethod() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 extension E on List {
   e() {
     return 7;
