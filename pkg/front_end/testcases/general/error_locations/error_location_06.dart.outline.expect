@@ -1,0 +1,18 @@
+library error_location_06;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_locations/error_location_06_lib1.dart:12:8: Error: Duplicated parameter name 'z'.
+// x1(z, {z}) {}
+//        ^
+// pkg/front_end/testcases/general/error_locations/error_location_06_lib1.dart:12:4: Context: Other parameter named 'z'.
+// x1(z, {z}) {}
+//    ^
+//
+import self as self;
+
+part error_location_06_lib1.dart;
+static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x1(dynamic z, {dynamic z}) → dynamic
+  ;
+static method /* from org-dartlang-testcase:///error_location_06_lib1.dart */ x2() → dynamic
+  ;

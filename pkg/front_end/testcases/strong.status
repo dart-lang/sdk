@@ -6,6 +6,9 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+general/error_locations/error_location_05: RuntimeError # Has errors in it.
+general/error_locations/error_location_06: Crash # Has errors in it.
+
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError
 extensions/static_access_of_instance: RuntimeError
