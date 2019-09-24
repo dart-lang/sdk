@@ -4,75 +4,7 @@
 # Sections in this file should contain "$compiler == dart2js".
 
 [ $compiler == dart2js ]
-arithmetic_int64_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-bit_operations_test: RuntimeError, OK # non JS number semantics
-bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
-call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
-canonical_const2_test: RuntimeError, OK # non JS number semantics
-closure_type_arguments_test: Crash # Issue 34272
-const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.
-const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
-const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
-const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
-covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
-deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-deopt_inlined_function_lazy_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-deopt_smi_op_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-double_identical_test: RuntimeError # Negative and positive zero are distinct, but not in dart2js; bug #11551.
-double_int_to_string_test: RuntimeError, OK # non JS number semantics
-expect_test: RuntimeError, OK # Issue 13080
-full_stacktrace1_test: RuntimeError # Issue 12698
-full_stacktrace2_test: RuntimeError # Issue 12698
-full_stacktrace3_test: RuntimeError # Issue 12698
-guess_cid_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-identical_closure2_test: RuntimeError # non JS number semantics
-identical_closure2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-infinity_test: RuntimeError # non JS number semantics - Issue 4984
-int2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/01: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/02: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/04: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/05: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/06: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/11: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/12: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/14: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/16: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/17: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/19: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-int64_literal_test/none: RuntimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-integer_division_by_zero_test: RuntimeError # Issue 8301
-issue23244_test: RuntimeError # Isolates - enum canonicalization - Issue 23244
-left_shift_test: RuntimeError # non JS number semantics
-library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
-library_env_test/has_mirror_support: Fail # mirrors not supported on web
-library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-mint_arithmetic_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_arithmetic_test: RuntimeError # non JS number semantics
-mint_compares_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-mint_identical_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 mixin_method_override_test/G5: Skip # Issue 34354
-mock_writable_final_field_test: RuntimeError # Issue 30847
-modulo_test: RuntimeError # non JS number semantics
-nan_identical_test: RuntimeError # Issue 11551
-number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-numbers_test: RuntimeError, OK # non JS number semantics
-partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
-partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
-partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
-partial_tearoff_instantiation_test/07: Pass # for the wrong reason.
-partial_tearoff_instantiation_test/08: Pass # for the wrong reason.
-regress_24283_test: RuntimeError, OK # non JS number semantics
-stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
-stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
-stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
-truncdiv_zero_test: RuntimeError # non JS number semantics - Issue 15246
-type_constants_test/none: RuntimeError # Issue 35052
 vm/*: SkipByDesign # Tests for the VM.
 
 [ $compiler != dart2js ]
@@ -81,108 +13,19 @@ minify_closure_variable_collision_test: SkipByDesign # Regression test for dart2
 [ $builder_tag == dart2js_production && $compiler == dart2js ]
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-await_future_test: Pass, Timeout # Issue 26735
-
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.
+override_field_test/02: Slow # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
 conditional_import_string_test: SkipByDesign # No XHR in d8
 conditional_import_test: SkipByDesign # No XHR in d8
 
-[ $compiler == dart2js && $runtime == ff ]
-round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round bug.
-
 [ $compiler == dart2js && $runtime == jsshell ]
-async_call_test: RuntimeError # Timer interface not supported: Issue 7728.
-async_star_await_pauses_test: RuntimeError # Need triage
-async_star_no_cancel2_test: RuntimeError # Need triage
-async_star_no_cancel_test: RuntimeError # Need triage
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
-regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
-
-[ $compiler == dart2js && $runtime != none && $checked ]
-syncstar_covariant_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
-syncstar_dcall_type_test: RuntimeError # dart2js misplaces check in Iterator, not Iterable.
-
-[ $compiler == dart2js && $runtime == safari ]
-round_test: Fail, OK # Common JavaScript engine Math.round bug.
 
 [ $compiler == dart2js && $system == windows ]
 canonicalization_hashing_memoize_array_test: Skip # Issue 37631
 canonicalization_hashing_memoize_instance_test: Skip # Issue 37631
 canonicalization_hashing_shallow_collision_array_test: Skip # Issue 37631
 canonicalization_hashing_shallow_collision_instance_test: Skip # Issue 37631
-string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
-[ $compiler == dart2js && $checked ]
-canonical_const2_test: RuntimeError, OK # non JS number semantics
-const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
-const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
-deferred_not_loaded_check_test: RuntimeError # Test out of date. Issue 31933
-double_int_to_string_test: RuntimeError, OK # non JS number semantics
-expect_test: RuntimeError, OK # Issue 13080
-full_stacktrace1_test: RuntimeError # Issue 12698
-full_stacktrace2_test: RuntimeError # Issue 12698
-full_stacktrace3_test: RuntimeError # Issue 12698
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
-generic_function_dcall_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
-generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
-identical_closure2_test: RuntimeError # non JS number semantics
-infinity_test: RuntimeError # non JS number semantics - Issue 4984
-integer_division_by_zero_test: RuntimeError # Issue 8301
-invocation_mirror2_test: RuntimeError # mirrors not supported
-left_shift_test: RuntimeError # non JS number semantics
-mint_arithmetic_test: RuntimeError # non JS number semantics
-mock_writable_final_field_test: RuntimeError # Issue 30847
-modulo_test: RuntimeError # non JS number semantics
-nan_identical_test: RuntimeError # Issue 11551
-numbers_test: RuntimeError, OK # non JS number semantics
-regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
-stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
-stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
-stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
-stacktrace_test: RuntimeError # Issue 12698
-truncdiv_zero_test: RuntimeError # non JS number semantics - Issue 15246
-type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
-type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
-type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
-
-[ $compiler == dart2js && $host_checked ]
-async_return_types_test/nestedFuture: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-async_star_cancel_while_paused_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-issue23244_test: Crash # 'file:*/pkg/compiler/lib/src/js_emitter/runtime_type_generator.dart': Failed assertion: line 208 pos 18: '!(_useKernel && _strongMode && !_disableRtiOptimization) ||
-partial_tearoff_instantiation_test/05: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-partial_tearoff_instantiation_test/06: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-partial_tearoff_instantiation_test/07: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-partial_tearoff_instantiation_test/08: Crash # Assertion failure: kind=special,memberName=instantiate,callStructure:CallStructure(arity=0, types=1)
-
-[ $compiler == dart2js && $minified ]
-async_return_types_test/nestedFuture: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-async_star_cancel_while_paused_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-await_not_started_immediately_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(bindCallback.R) in (local(_RootZone.bindCallback#)) for j:closure_call(_RootZone_bindCallback_closure.call).
-cyclic_type2_test: RuntimeError # Issue 31054
-cyclic_type_test/0*: RuntimeError # Issue 31054
-f_bounded_quantification4_test: RuntimeError # Issue 31054
-f_bounded_quantification5_test: RuntimeError # Issue 31054
-generic_closure_test/01: RuntimeError # Uses runtimeType.toString()
-invocation_mirror2_test: RuntimeError # mirrors not supported
-issue23244_test: Crash # Interpolated value #1 is not an Expression or List of Expressions: [VariableUse(f), Instance of 'LiteralNull', null]
-mixin_generic_test: RuntimeError # Issue 12605
-mixin_mixin2_test: RuntimeError # Issue 31054
-mixin_mixin3_test: RuntimeError # Issue 31054
-mixin_mixin4_test: RuntimeError # Issue 31054
-mixin_mixin5_test: RuntimeError # Issue 31054
-mixin_mixin6_test: RuntimeError # Issue 31054
-mixin_mixin_bound2_test: RuntimeError # Issue 31054
-mixin_mixin_bound_test: RuntimeError # Issue 31054
-mixin_mixin_type_arguments_test: RuntimeError # Issue 31054
-regress_21795_test: RuntimeError # Issue 12605
-runtime_type_function_test: RuntimeError # Uses runtimeType.toString()
-stack_trace_test: RuntimeError, OK # Stack trace not preserved in minified code.
-symbol_conflict_test: RuntimeError # Issue 23857
