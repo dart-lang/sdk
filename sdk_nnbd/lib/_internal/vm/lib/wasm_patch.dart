@@ -62,6 +62,7 @@ class _NativeWasmModule extends NativeFieldWrapperClass1 implements WasmModule {
   }
 
   void _init(Uint8List data) native 'Wasm_initModule';
+  String describe() native 'Wasm_describeModule';
 }
 
 class _NativeWasmImports extends NativeFieldWrapperClass1

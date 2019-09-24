@@ -17,7 +17,6 @@
 namespace dart {
 
 static void ThrowWasmerError() {
-  TransitionNativeToVM transition(Thread::Current());
   String& error = String::Handle();
   {
     int len = wasmer_last_error_length();
@@ -27,6 +26,7 @@ static void ThrowWasmerError() {
     error = String::NewFormatted("Wasmer error: %s", raw_error.get());
   }
   Exceptions::ThrowArgumentError(error);
+  UNREACHABLE();
 }
 
 template <typename T>
@@ -107,6 +107,57 @@ RawExternalTypedData* WasmMemoryToExternalTypedData(wasmer_memory_t* memory) {
   return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, size);
 }
 
+std::ostream& operator<<(std::ostream& o, const wasmer_byte_array& str) {
+  for (uint32_t i = 0; i < str.bytes_len; ++i) {
+    o << str.bytes[i];
+  }
+  return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const wasmer_import_export_kind& io) {
+  switch (io) {
+    case wasmer_import_export_kind::WASM_FUNCTION:
+      return o << "WASM_FUNCTION";
+    case wasmer_import_export_kind::WASM_GLOBAL:
+      return o << "WASM_GLOBAL";
+    case wasmer_import_export_kind::WASM_MEMORY:
+      return o << "WASM_MEMORY";
+    case wasmer_import_export_kind::WASM_TABLE:
+      return o << "WASM_TABLE";
+  }
+}
+
+RawString* DescribeModule(const wasmer_module_t* module) {
+  std::stringstream desc;
+
+  desc << "Imports:\n";
+  wasmer_import_descriptors_t* imports;
+  wasmer_import_descriptors(module, &imports);
+  unsigned num_imports = wasmer_import_descriptors_len(imports);
+  for (unsigned i = 0; i < num_imports; ++i) {
+    wasmer_import_descriptor_t* imp = wasmer_import_descriptors_get(imports, i);
+    desc << "\t" << wasmer_import_descriptor_module_name(imp);
+    desc << "\t" << wasmer_import_descriptor_name(imp);
+    desc << "\t" << wasmer_import_descriptor_kind(imp);
+    desc << "\n";
+  }
+  wasmer_import_descriptors_destroy(imports);
+
+  desc << "\nExports:\n";
+  wasmer_export_descriptors_t* exports;
+  wasmer_export_descriptors(module, &exports);
+  unsigned num_exports = wasmer_export_descriptors_len(exports);
+  for (unsigned i = 0; i < num_exports; ++i) {
+    wasmer_export_descriptor_t* exp = wasmer_export_descriptors_get(exports, i);
+    desc << "\t" << wasmer_export_descriptor_name(exp);
+    desc << "\t" << wasmer_export_descriptor_kind(exp);
+    desc << "\n";
+  }
+  wasmer_export_descriptors_destroy(exports);
+
+  return String::New(desc.str().c_str());
+}
+
 class WasmImports {
  public:
   explicit WasmImports(std::unique_ptr<char[]> module_name)
@@ -183,10 +234,9 @@ class WasmFunction {
     return dart_ret == _ret;
   }
 
-  bool Call(const wasmer_value_t* params, wasmer_value_t* result) {
+  wasmer_result_t Call(const wasmer_value_t* params, wasmer_value_t* result) {
     return wasmer_export_func_call(_fn, params, _args.length(), result,
-                                   IsVoid() ? 0 : 1) ==
-           wasmer_result_t::WASMER_OK;
+                                   IsVoid() ? 0 : 1);
   }
 
   void Print(std::ostream& o, const char* name) const {
@@ -380,13 +430,15 @@ DEFINE_NATIVE_ENTRY(Wasm_initModule, 0, 2) {
   }
 
   wasmer_module_t* module;
+  wasmer_result_t result;
   {
     TransitionVMToNative transition(thread);
-    if (wasmer_compile(&module, data_copy.get(), len) !=
-        wasmer_result_t::WASMER_OK) {
-      data_copy.reset();
-      ThrowWasmerError();
-    }
+    result = wasmer_compile(&module, data_copy.get(), len);
+  }
+  if (result != wasmer_result_t::WASMER_OK) {
+    data_copy.reset();
+    ThrowWasmerError();
+    UNREACHABLE();
   }
 
   mod_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(module));
@@ -394,6 +446,17 @@ DEFINE_NATIVE_ENTRY(Wasm_initModule, 0, 2) {
                                    FinalizeWasmModule, len);
 
   return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(Wasm_describeModule, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, mod_wrap, arguments->NativeArgAt(0));
+
+  ASSERT(mod_wrap.NumNativeFields() == 1);
+
+  wasmer_module_t* module =
+      reinterpret_cast<wasmer_module_t*>(mod_wrap.GetNativeField(0));
+
+  return DescribeModule(module);
 }
 
 DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 2) {
@@ -444,6 +507,7 @@ DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
   if (!ToWasmValue(value, type.type_class_id(), &wasm_value)) {
     Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
         "Can't convert dart value to WASM global variable")));
+    UNREACHABLE();
   }
 
   imports->AddGlobal(ToUTF8(name), wasm_value, mutable_.value());
@@ -458,19 +522,19 @@ DEFINE_NATIVE_ENTRY(Wasm_initMemory, 0, 3) {
 
   ASSERT(mem_wrap.NumNativeFields() == 1);
   const int64_t init_size = init.AsInt64Value();
-  const int64_t max_size = max.AsInt64Value();
 
   wasmer_memory_t* memory;
   wasmer_limits_t descriptor;
   descriptor.min = init_size;
-  if (max_size < 0) {
+  if (max.IsNull()) {
     descriptor.max.has_some = false;
   } else {
     descriptor.max.has_some = true;
-    descriptor.max.some = max_size;
+    descriptor.max.some = max.AsInt64Value();
   }
   if (wasmer_memory_new(&memory, descriptor) != wasmer_result_t::WASMER_OK) {
     ThrowWasmerError();
+    UNREACHABLE();
   }
   mem_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(memory));
   FinalizablePersistentHandle::New(thread->isolate(), mem_wrap, memory,
@@ -489,6 +553,7 @@ DEFINE_NATIVE_ENTRY(Wasm_growMemory, 0, 2) {
   if (wasmer_memory_grow(memory, delta.AsInt64Value()) !=
       wasmer_result_t::WASMER_OK) {
     ThrowWasmerError();
+    UNREACHABLE();
   }
   return WasmMemoryToExternalTypedData(memory);
 }
@@ -518,6 +583,7 @@ DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
   }
   if (inst == nullptr) {
     ThrowWasmerError();
+    UNREACHABLE();
   }
 
   inst_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(inst));
@@ -560,6 +626,7 @@ DEFINE_NATIVE_ENTRY(Wasm_initFunction, 0, 4) {
 
   if (fn == nullptr) {
     Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
   }
 
   fn_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(fn));
@@ -579,6 +646,7 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
     Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
         "Wrong number of args. Expected %" Pu " but found %" Pd ".",
         fn->args().length(), args.Length())));
+    UNREACHABLE();
   }
   auto params = std::unique_ptr<wasmer_value_t[]>(
       new wasmer_value_t[fn->args().length()]);
@@ -588,16 +656,20 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
       params.reset();
       Exceptions::ThrowArgumentError(String::Handle(
           String::NewFormatted("Arg %" Pd " is the wrong type.", i)));
+      UNREACHABLE();
     }
   }
 
   wasmer_value_t ret;
+  wasmer_result_t result;
   {
     TransitionVMToNative transition(thread);
-    if (!fn->Call(params.get(), &ret)) {
-      params.reset();
-      ThrowWasmerError();
-    }
+    result = fn->Call(params.get(), &ret);
+  }
+  if (result != wasmer_result_t::WASMER_OK) {
+    params.reset();
+    ThrowWasmerError();
+    UNREACHABLE();
   }
   return fn->IsVoid() ? Object::null() : ToDartObject(ret);
 }
@@ -613,6 +685,11 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Wasm_initModule, 0, 2) {
+  Exceptions::ThrowUnsupportedError("WASM is disabled");
+  return nullptr;
+}
+
+DEFINE_NATIVE_ENTRY(Wasm_describeModule, 0, 1) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }
