@@ -26,15 +26,7 @@ import 'collections.dart'
         IfMapEntry,
         SpreadElement;
 
-import 'kernel_shadow_ast.dart'
-    show
-        ArgumentsImpl,
-        IntJudgment,
-        LoadLibraryImpl,
-        MethodInvocationImpl,
-        ReturnStatementImpl,
-        ShadowLargeIntLiteral,
-        VariableDeclarationImpl;
+import 'kernel_shadow_ast.dart';
 
 /// A shadow tree factory.
 class Forest {
@@ -721,6 +713,14 @@ class Forest {
 
   NullCheck createNullCheck(int fileOffset, Expression expression) {
     return new NullCheck(expression)..fileOffset = fileOffset;
+  }
+
+  PropertySet createPropertySet(
+      int fileOffset, Expression receiver, Name name, Expression value,
+      {Member interfaceTarget, bool forEffect}) {
+    return new PropertySetImpl(receiver, name, value,
+        interfaceTarget: interfaceTarget, forEffect: forEffect)
+      ..fileOffset = fileOffset;
   }
 }
 

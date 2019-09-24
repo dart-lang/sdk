@@ -1729,6 +1729,7 @@ mutable
 mutate
 mutated
 mutates
+mutating
 mutation
 mutations
 mutual

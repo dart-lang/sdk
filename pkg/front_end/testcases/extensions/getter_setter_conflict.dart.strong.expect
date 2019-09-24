@@ -59,24 +59,15 @@ extension Extension1 on self::Class* {
   get m3 = self::Extension1|get#m3;
   set m4 = self::Extension1|set#m4;
 }
-static method Extension0|set#m1(final self::Class* #this, core::int* x) → core::int* {
-  final core::int* #t1 = x;
-  return #t1;
-}
+static method Extension0|set#m1(final self::Class* #this, core::int* x) → void {}
 static method Extension0|get#m2(final self::Class* #this) → core::int*
   return 0;
-static method Extension0|set#m3(final self::Class* #this, core::int* x) → core::int* {
-  final core::int* #t2 = x;
-  return #t2;
-}
+static method Extension0|set#m3(final self::Class* #this, core::int* x) → void {}
 static method Extension0|get#m4(final self::Class* #this) → core::int*
   return 0;
 static method Extension1|get#m3(final self::Class* #this) → core::int*
   return 0;
-static method Extension1|set#m4(final self::Class* #this, core::int* x) → core::int* {
-  final core::int* #t3 = x;
-  return #t3;
-}
+static method Extension1|set#m4(final self::Class* #this, core::int* x) → void {}
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
   self::expect(0, c.{self::Class::m1});

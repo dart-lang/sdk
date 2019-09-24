@@ -188,6 +188,7 @@ enum InternalExpressionKind {
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  ExtensionSet,
   IfNull,
   IfNullIndexSet,
   IfNullPropertySet,
@@ -2108,6 +2109,71 @@ class CompoundSuperIndexSet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+}
+
+/// Internal expression representing an assignment to an extension setter.
+///
+/// An extension set of the form `receiver.target = value` is, if used for
+/// value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///     let valueVariable = value in
+///     let writeVariable = target(receiverVariable, valueVariable) in
+///        valueVariable
+///
+/// or if the receiver is read-only, like `this` or a final variable,
+///
+///     let valueVariable = value in
+///     let writeVariable = target(receiver, valueVariable) in
+///        valueVariable
+///
+/// and, if used for effect, encoded as a [StaticInvocation]:
+///
+///     target(receiver, value)
+///
+// TODO(johnniwinther): Rename read-only to side-effect-free.
+class ExtensionSet extends InternalExpression {
+  Expression receiver;
+  ObjectAccessTarget target;
+  Expression value;
+
+  bool readOnlyReceiver;
+
+  ExtensionSet(this.receiver, this.target, this.value, {this.readOnlyReceiver})
+      : assert(readOnlyReceiver != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+class PropertySetImpl extends PropertySet {
+  final bool forEffect;
+
+  PropertySetImpl(Expression receiver, Name name, Expression value,
+      {Member interfaceTarget, this.forEffect})
+      : assert(forEffect != null),
+        super(receiver, name, value, interfaceTarget);
 }
 
 /// Creates a [Let] of [variable] with the given [body] using

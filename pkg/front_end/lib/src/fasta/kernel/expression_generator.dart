@@ -82,6 +82,8 @@ import 'kernel_builder.dart'
 
 import 'kernel_shadow_ast.dart';
 
+import '../type_inference/type_inferrer.dart';
+
 /// A generator represents a subexpression for which we can't yet build an
 /// expression because we don't yet know the context in which it's used.
 ///
@@ -494,8 +496,8 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return new PropertySet(receiver, name, value, setter)
-      ..fileOffset = fileOffset;
+    return _helper.forest.createPropertySet(fileOffset, receiver, name, value,
+        interfaceTarget: setter, forEffect: voidContext);
   }
 
   @override
@@ -506,9 +508,9 @@ class PropertyAccessGenerator extends Generator {
     PropertyGet read = new PropertyGet(
         _helper.createVariableGet(variable, receiver.fileOffset), name)
       ..fileOffset = fileOffset;
-    PropertySet write = new PropertySet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name, value)
-      ..fileOffset = fileOffset;
+    PropertySet write = _helper.forest.createPropertySet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name, value,
+        forEffect: voidContext);
     return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -530,9 +532,9 @@ class PropertyAccessGenerator extends Generator {
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
-    PropertySet write = new PropertySet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name, binary)
-      ..fileOffset = fileOffset;
+    PropertySet write = _helper.forest.createPropertySet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name, binary,
+        forEffect: voidContext);
     return new CompoundPropertySet(variable, write)..fileOffset = offset;
   }
 
@@ -565,11 +567,12 @@ class PropertyAccessGenerator extends Generator {
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
             offset,
-            new PropertySet(
+            _helper.forest.createPropertySet(
+                fileOffset,
                 _helper.createVariableGet(variable, receiver.fileOffset),
                 name,
-                binary)
-              ..fileOffset = fileOffset);
+                binary,
+                forEffect: true));
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 
@@ -668,19 +671,20 @@ class ThisPropertyAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _createWrite(fileOffset, value);
+    return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
-  Expression _createWrite(int offset, Expression value) {
-    return new PropertySet(
-        _forest.createThisExpression(fileOffset), name, value, setter)
-      ..fileOffset = fileOffset;
+  Expression _createWrite(int offset, Expression value, {bool forEffect}) {
+    return _helper.forest.createPropertySet(
+        fileOffset, _forest.createThisExpression(fileOffset), name, value,
+        interfaceTarget: setter, forEffect: forEffect);
   }
 
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return new IfNullSet(_createRead(), _createWrite(offset, value),
+    return new IfNullSet(
+        _createRead(), _createWrite(offset, value, forEffect: voidContext),
         forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -699,9 +703,7 @@ class ThisPropertyAccessGenerator extends Generator {
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
-    return new PropertySet(
-        _forest.createThisExpression(fileOffset), name, binary)
-      ..fileOffset = fileOffset;
+    return _createWrite(fileOffset, binary, forEffect: voidContext);
   }
 
   @override
@@ -729,10 +731,7 @@ class ThisPropertyAccessGenerator extends Generator {
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
-            offset,
-            new PropertySet(
-                _forest.createThisExpression(fileOffset), name, binary)
-              ..fileOffset = fileOffset);
+            offset, _createWrite(fileOffset, binary, forEffect: true));
     return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
   }
 
@@ -811,11 +810,12 @@ class NullAwarePropertyAccessGenerator extends Generator {
     VariableDeclaration variable = _helper.forest
         .createVariableDeclarationForValue(
             receiverExpression.fileOffset, receiverExpression);
-    PropertySet read = new PropertySet(
+    PropertySet read = _helper.forest.createPropertySet(
+        fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset),
         name,
-        value)
-      ..fileOffset = fileOffset;
+        value,
+        forEffect: voidContext);
     return new NullAwarePropertySet(variable, read)
       ..fileOffset = receiverExpression.fileOffset;
   }
@@ -1677,14 +1677,14 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _createWrite(fileOffset, value);
+    return _createWrite(fileOffset, value, forEffect: voidContext);
   }
 
-  Expression _createWrite(int offset, Expression value) {
+  Expression _createWrite(int offset, Expression value, {bool forEffect}) {
     Expression write;
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
-    } else {
+    } else if (forEffect) {
       write = _helper.buildExtensionMethodInvocation(
           offset,
           writeTarget,
@@ -1695,6 +1695,13 @@ class ExtensionInstanceAccessGenerator extends Generator {
               _helper.createVariableGet(extensionThis, fileOffset),
               extensionTypeArguments: _createExtensionTypeArguments(),
               positionalArguments: [value]));
+    } else {
+      write = new ExtensionSet(
+          _helper.createVariableGet(extensionThis, fileOffset),
+          new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
+              _createExtensionTypeArguments()),
+          value,
+          readOnlyReceiver: true);
     }
     write.fileOffset = offset;
     return write;
@@ -1703,7 +1710,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return new IfNullSet(_createRead(), _createWrite(fileOffset, value),
+    return new IfNullSet(
+        _createRead(), _createWrite(fileOffset, value, forEffect: voidContext),
         forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -1721,7 +1729,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
-    return _createWrite(fileOffset, binary);
+    return _createWrite(fileOffset, binary, forEffect: voidContext);
   }
 
   @override
@@ -1747,7 +1755,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
-            offset, _createWrite(fileOffset, binary));
+            offset, _createWrite(fileOffset, binary, forEffect: true));
     return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
   }
 
@@ -1930,14 +1938,16 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _createWrite(fileOffset, receiver, value);
+    return _createWrite(fileOffset, receiver, value,
+        forEffect: voidContext, readOnlyReceiver: false);
   }
 
-  Expression _createWrite(int offset, Expression receiver, Expression value) {
+  Expression _createWrite(int offset, Expression receiver, Expression value,
+      {bool readOnlyReceiver, bool forEffect}) {
     Expression write;
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
-    } else {
+    } else if (forEffect) {
       write = _helper.buildExtensionMethodInvocation(
           offset,
           writeTarget,
@@ -1945,6 +1955,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               offset, extensionTypeParameterCount, 0, receiver,
               extensionTypeArguments: _createExtensionTypeArguments(),
               positionalArguments: [value]));
+    } else {
+      write = new ExtensionSet(
+          receiver,
+          new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
+              _createExtensionTypeArguments()),
+          value,
+          readOnlyReceiver: readOnlyReceiver);
     }
     write.fileOffset = offset;
     return write;
@@ -1958,7 +1975,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Expression read =
         _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
     Expression write = _createWrite(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), value);
+        _helper.createVariableGet(variable, receiver.fileOffset), value,
+        forEffect: voidContext, readOnlyReceiver: true);
     return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -1979,7 +1997,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     Expression write = _createWrite(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), binary);
+        _helper.createVariableGet(variable, receiver.fileOffset), binary,
+        forEffect: voidContext, readOnlyReceiver: true);
     return new CompoundPropertySet(variable, write)..fileOffset = offset;
   }
 
@@ -2013,7 +2032,9 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
             _createWrite(
                 fileOffset,
                 _helper.createVariableGet(variable, receiver.fileOffset),
-                binary)
+                binary,
+                forEffect: voidContext,
+                readOnlyReceiver: true)
               ..fileOffset = fileOffset);
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
@@ -2949,7 +2970,8 @@ class UnlinkedGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return new PropertySet(receiver, name, value)..fileOffset = fileOffset;
+    return _helper.forest.createPropertySet(fileOffset, receiver, name, value,
+        forEffect: voidContext);
   }
 
   @override
@@ -2965,9 +2987,9 @@ class UnlinkedGenerator extends Generator {
     PropertyGet read = new PropertyGet(
         _helper.createVariableGet(variable, receiver.fileOffset), name)
       ..fileOffset = fileOffset;
-    PropertySet write = new PropertySet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name, value)
-      ..fileOffset = fileOffset;
+    PropertySet write = _helper.forest.createPropertySet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name, value,
+        forEffect: voidContext);
     return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -2989,9 +3011,9 @@ class UnlinkedGenerator extends Generator {
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
-    PropertySet write = new PropertySet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name, binary)
-      ..fileOffset = fileOffset;
+    PropertySet write = _helper.forest.createPropertySet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name, binary,
+        forEffect: voidContext);
     return new CompoundPropertySet(variable, write)..fileOffset = offset;
   }
 
@@ -3024,11 +3046,12 @@ class UnlinkedGenerator extends Generator {
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
             offset,
-            new PropertySet(
+            _helper.forest.createPropertySet(
+                fileOffset,
                 _helper.createVariableGet(variable, receiver.fileOffset),
                 name,
-                binary)
-              ..fileOffset = fileOffset);
+                binary,
+                forEffect: true));
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 

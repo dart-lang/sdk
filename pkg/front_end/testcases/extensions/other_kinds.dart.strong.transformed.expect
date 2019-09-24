@@ -30,10 +30,8 @@ extension A2 on self::A1* {
 static field core::int* A2|staticField = self::A1::getStaticField();
 static method A2|get#instanceProperty(final self::A1* #this) → core::int*
   return #this.{self::A1::getInstanceField}();
-static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → core::int* {
-  final core::int* #t1 = value;
+static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → void {
   #this.{self::A1::setInstanceField}(value);
-  return #t1;
 }
 static method A2|+(final self::A1* #this, core::int* value) → core::int* {
   return #this.{self::A1::getInstanceField}().{core::num::+}(value);

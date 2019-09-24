@@ -488,6 +488,8 @@ class OutlineBuilder extends StackListener {
       if (extensionThisType is TypeBuilder) {
         library.currentTypeParameterScopeBuilder
             .registerExtensionThisType(extensionThisType);
+      } else {
+        // TODO(johnniwinther): Supply an invalid type as the extension on type.
       }
     }
     debugEvent("beginClassOrMixinBody");

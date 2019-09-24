@@ -485,60 +485,6 @@ class ProcedureBuilder extends FunctionBuilder {
     return _body;
   }
 
-  /// If this is an extension instance setter, wrap the setter body to return
-  /// the rhs value from the method.
-  ///
-  /// That is, this setter
-  ///
-  ///     extension E on A {
-  ///       void set property(B value) {
-  ///         value++;
-  ///       }
-  ///     }
-  ///
-  /// is converted into this top level method
-  ///
-  ///    B E|property(A #this, B value) {
-  ///      final #t1 = value;
-  ///      value++;
-  ///      return #t1;
-  ///    }
-  ///
-  void _updateExtensionSetterBody() {
-    if (isExtensionInstanceMember && isSetter) {
-      // TODO(johnniwinther): Avoid the synthetic variable if the parameter is
-      // never modified.
-      // TODO(johnniwinther): Handle setter bodies with return statements.
-      VariableDeclaration value = procedure.function.positionalParameters[1];
-      procedure.function.returnType = value.type;
-      Statement body = procedure.function.body;
-      List<Statement> statements = [];
-      Block block = new Block(statements);
-      VariableDeclaration variableDeclaration =
-          new VariableDeclarationImpl.forValue(
-              new VariableGet(value)..fileOffset = procedure.fileOffset)
-            ..type = value.type;
-      statements.add(variableDeclaration);
-      if (body is Block) {
-        statements.addAll(body.statements);
-      } else {
-        statements.add(body);
-      }
-      ReturnStatement returnStatement = new ReturnStatement(
-          new VariableGet(variableDeclaration)
-            ..fileOffset = procedure.fileEndOffset);
-      statements.add(returnStatement);
-      setParents(block.statements, block);
-      procedure.function.body = block;
-      block.parent = procedure.function;
-    }
-  }
-
-  void set body(Statement newBody) {
-    super.body = newBody;
-    _updateExtensionSetterBody();
-  }
-
   void set asyncModifier(AsyncMarker newModifier) {
     actualAsyncModifier = newModifier;
     if (function != null) {

@@ -97,10 +97,8 @@ static method Extension|get#tearOffGetterNamed(final self::Class* #this) → dyn
   return self::Extension|get#writeSetterNamed(#this);
 static method Extension|get#property(final self::Class* #this) → dynamic
   return #this.{self::Class::field};
-static method Extension|set#property(final self::Class* #this, dynamic value) → dynamic {
-  final dynamic #t1 = value;
+static method Extension|set#property(final self::Class* #this, dynamic value) → void {
   #this.{self::Class::field} = value;
-  return #t1;
 }
 static method Extension|invocations(final self::Class* #this, dynamic value) → dynamic {
   self::Extension|readGetter(#this);
@@ -173,10 +171,8 @@ static method GenericExtension|genericWriteSetterNamed<T extends core::Object* =
 }
 static method GenericExtension|get#property<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#property::T*>* #this) → self::GenericExtension|get#property::T*
   return #this.{self::GenericClass::field};
-static method GenericExtension|set#property<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|set#property::T*>* #this, self::GenericExtension|set#property::T* value) → self::GenericExtension|set#property::T* {
-  final self::GenericExtension|set#property::T* #t2 = value;
+static method GenericExtension|set#property<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|set#property::T*>* #this, self::GenericExtension|set#property::T* value) → void {
   #this.{self::GenericClass::field} = value;
-  return #t2;
 }
 static method GenericExtension|get#tearOffGetterNoArgs<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#tearOffGetterNoArgs::T*>* #this) → dynamic
   return self::GenericExtension|get#readGetter<self::GenericExtension|get#tearOffGetterNoArgs::T*>(#this);
