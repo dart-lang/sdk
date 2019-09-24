@@ -62,8 +62,8 @@ main() {
   // Both EIT.e1 and ELO.e1 apply, but their instantiated on
   // types are incomparable, and hence this is an error.
   ln.e1();
-  // ^
-  // [analyzer] unspecified
+  // ^^
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] The method 'e1' isn't defined for the class 'List<num>'.
 }
 
