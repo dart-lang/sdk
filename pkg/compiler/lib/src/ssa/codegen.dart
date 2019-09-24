@@ -31,7 +31,6 @@ import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart';
@@ -3400,8 +3399,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     FunctionEntity helperElement = _commonElements.findType;
     _registry.registerStaticUse(
         new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    js.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
-        _emitter, TypeExpressionRecipe(node.typeExpression));
+    js.Expression recipe =
+        _rtiRecipeEncoder.encodeGroundRecipe(_emitter, node.typeExpression);
     js.Expression helper = _emitter.staticFunctionAccess(helperElement);
     push(js.js(r'#(#)', [helper, recipe]).withSourceInformation(
         node.sourceInformation));

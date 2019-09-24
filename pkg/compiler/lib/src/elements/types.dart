@@ -174,7 +174,8 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType(this.element, this.typeArguments);
+  InterfaceType(this.element, this.typeArguments)
+      : assert(typeArguments.every((e) => e != null));
 
   @override
   bool get isInterfaceType => true;
@@ -942,7 +943,7 @@ class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
 }
 
 /// A visitor that by default visits the substructure of the type until some
-/// visit returns`true`.  The default handers return `false` which will search
+/// visit returns `true`.  The default handers return `false` which will search
 /// the whole structure unless overridden.
 abstract class DartTypeStructuralPredicateVisitor
     extends DartTypeVisitor<bool, List<FunctionTypeVariable>> {
