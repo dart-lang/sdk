@@ -267,8 +267,6 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
     copy_args_prologue += Drop();
 
     for (intptr_t i = 0; param < num_params; ++param, ++i) {
-      JoinEntryInstr* join = BuildJoinEntry();
-
       copy_args_prologue += IntConstant(
           compiler::target::ArgumentsDescriptor::named_entry_size() /
           compiler::target::kWordSize);
@@ -298,6 +296,9 @@ Fragment PrologueBuilder::BuildOptionalParameterHandling(
       // from running out-of-bounds.
       TargetEntryInstr *supplied, *missing;
       copy_args_prologue += BranchIfStrictEqual(&supplied, &missing);
+
+      // Join good/not_good.
+      JoinEntryInstr* join = BuildJoinEntry();
 
       // Let's load position from arg descriptor (to see which parameter is the
       // name) and move kEntrySize forward in ArgDescriptopr names array.

@@ -661,8 +661,8 @@ Fragment BaseFlowGraphBuilder::MakeTemp() {
 }
 
 TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry() {
-  return new (Z)
-      TargetEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
+  return new (Z) TargetEntryInstr(AllocateBlockId(), CurrentTryIndex(),
+                                  GetNextDeoptId(), GetStackDepth());
 }
 
 FunctionEntryInstr* BaseFlowGraphBuilder::BuildFunctionEntry(
@@ -672,12 +672,13 @@ FunctionEntryInstr* BaseFlowGraphBuilder::BuildFunctionEntry(
 }
 
 JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry(intptr_t try_index) {
-  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId());
+  return new (Z) JoinEntryInstr(AllocateBlockId(), try_index, GetNextDeoptId(),
+                                GetStackDepth());
 }
 
 JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
-  return new (Z)
-      JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(), GetNextDeoptId());
+  return new (Z) JoinEntryInstr(AllocateBlockId(), CurrentTryIndex(),
+                                GetNextDeoptId(), GetStackDepth());
 }
 
 ArgumentArray BaseFlowGraphBuilder::GetArguments(int count) {

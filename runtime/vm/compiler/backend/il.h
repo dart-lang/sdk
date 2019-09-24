@@ -1384,6 +1384,10 @@ class BlockEntryInstr : public Instruction {
   intptr_t offset() const { return offset_; }
   void set_offset(intptr_t offset) { offset_ = offset; }
 
+  // Stack-based IR bookkeeping.
+  intptr_t stack_depth() const { return stack_depth_; }
+  void set_stack_depth(intptr_t s) { stack_depth_ = s; }
+
   // For all instruction in this block: Remove all inputs (including in the
   // environment) from their definition's use lists for all instructions.
   void ClearAllInstructions();
@@ -1395,12 +1399,16 @@ class BlockEntryInstr : public Instruction {
   ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  protected:
-  BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
+  BlockEntryInstr(intptr_t block_id,
+                  intptr_t try_index,
+                  intptr_t deopt_id,
+                  intptr_t stack_depth)
       : Instruction(deopt_id),
         block_id_(block_id),
         try_index_(try_index),
         preorder_number_(-1),
         postorder_number_(-1),
+        stack_depth_(stack_depth),
         dominator_(nullptr),
         dominated_blocks_(1),
         last_instruction_(NULL),
@@ -1428,6 +1436,8 @@ class BlockEntryInstr : public Instruction {
   intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
+  // Expected stack depth on entry (for stack-based IR only).
+  intptr_t stack_depth_;
   // Starting and ending lifetime positions for this block.  Used by
   // the linear scan register allocator.
   intptr_t start_pos_;
@@ -1512,8 +1522,9 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
  public:
   BlockEntryWithInitialDefs(intptr_t block_id,
                             intptr_t try_index,
-                            intptr_t deopt_id)
-      : BlockEntryInstr(block_id, try_index, deopt_id) {}
+                            intptr_t deopt_id,
+                            intptr_t stack_depth)
+      : BlockEntryInstr(block_id, try_index, deopt_id, stack_depth) {}
 
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
@@ -1630,8 +1641,11 @@ class GraphEntryInstr : public BlockEntryWithInitialDefs {
 
 class JoinEntryInstr : public BlockEntryInstr {
  public:
-  JoinEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
-      : BlockEntryInstr(block_id, try_index, deopt_id),
+  JoinEntryInstr(intptr_t block_id,
+                 intptr_t try_index,
+                 intptr_t deopt_id,
+                 intptr_t stack_depth = 0)
+      : BlockEntryInstr(block_id, try_index, deopt_id, stack_depth),
         predecessors_(2),  // Two is the assumed to be the common case.
         phis_(NULL) {}
 
@@ -1698,8 +1712,11 @@ class PhiIterator : public ValueObject {
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
-      : BlockEntryInstr(block_id, try_index, deopt_id),
+  TargetEntryInstr(intptr_t block_id,
+                   intptr_t try_index,
+                   intptr_t deopt_id,
+                   intptr_t stack_depth = 0)
+      : BlockEntryInstr(block_id, try_index, deopt_id, stack_depth),
         predecessor_(NULL),
         edge_weight_(0.0) {}
 
@@ -1749,7 +1766,10 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
                      intptr_t block_id,
                      intptr_t try_index,
                      intptr_t deopt_id)
-      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+      : BlockEntryWithInitialDefs(block_id,
+                                  try_index,
+                                  deopt_id,
+                                  /*stack_depth=*/0),
         graph_entry_(graph_entry) {}
 
   DECLARE_INSTRUCTION(FunctionEntry)
@@ -1815,8 +1835,7 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
                 intptr_t try_index,
                 intptr_t deopt_id,
                 intptr_t stack_depth)
-      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
-        stack_depth_(stack_depth),
+      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id, stack_depth),
         graph_entry_(graph_entry) {}
 
   DECLARE_INSTRUCTION(OsrEntry)
@@ -1829,7 +1848,6 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     return graph_entry_;
   }
 
-  intptr_t stack_depth() const { return stack_depth_; }
   GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   PRINT_TO_SUPPORT
@@ -1841,7 +1859,6 @@ class OsrEntryInstr : public BlockEntryWithInitialDefs {
     graph_entry_ = predecessor->AsGraphEntry();
   }
 
-  const intptr_t stack_depth_;
   GraphEntryInstr* graph_entry_;
 
   DISALLOW_COPY_AND_ASSIGN(OsrEntryInstr);
@@ -1880,7 +1897,10 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
                        const LocalVariable* stacktrace_var,
                        const LocalVariable* raw_exception_var,
                        const LocalVariable* raw_stacktrace_var)
-      : BlockEntryWithInitialDefs(block_id, try_index, deopt_id),
+      : BlockEntryWithInitialDefs(block_id,
+                                  try_index,
+                                  deopt_id,
+                                  /*stack_depth=*/0),
         graph_entry_(graph_entry),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
