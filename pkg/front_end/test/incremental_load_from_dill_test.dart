@@ -116,8 +116,11 @@ class RunCompilations extends Step<TestData, TestData, Context> {
 
   Future<Result<TestData>> run(TestData data, Context context) async {
     YamlMap map = data.map;
+    Set<String> keys = new Set<String>.from(map.keys.cast<String>());
+    keys.remove("type");
     switch (map["type"]) {
       case "basic":
+        keys.removeAll(["sources", "entry", "invalidate"]);
         await basicTest(
           map["sources"],
           map["entry"],
@@ -126,6 +129,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
         );
         break;
       case "newworld":
+        keys.removeAll(["worlds", "modules", "omitPlatform", "target"]);
         await newWorldTest(
           map["worlds"],
           map["modules"],
@@ -136,6 +140,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
       default:
         throw "Unexpected type: ${map['type']}";
     }
+
+    if (keys.isNotEmpty) throw "Unknown toplevel keys: $keys";
     return pass(data);
   }
 }

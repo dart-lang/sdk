@@ -8,7 +8,6 @@
 # Remove said file again and the error should go away.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

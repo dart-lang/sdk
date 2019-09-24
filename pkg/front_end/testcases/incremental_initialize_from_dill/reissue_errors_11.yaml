@@ -8,7 +8,6 @@
 # Fixing that should fix everything.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:
