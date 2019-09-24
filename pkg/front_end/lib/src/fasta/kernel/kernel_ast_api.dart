@@ -89,7 +89,6 @@ export 'kernel_shadow_ast.dart'
         DeferredCheck,
         FactoryConstructorInvocationJudgment,
         FunctionDeclarationImpl,
-        IfNullJudgment,
         InvalidSuperInitializerJudgment,
         LoadLibraryTearOff,
         MethodInvocationImpl,

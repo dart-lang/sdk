@@ -49,6 +49,8 @@ class InferenceVisitor
           return visitCompoundSuperIndexSet(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.IfNull:
+          return visitIfNull(node, typeContext);
         case InternalExpressionKind.IfNullIndexSet:
           return visitIfNullIndexSet(node, typeContext);
         case InternalExpressionKind.IfNullPropertySet:
@@ -684,13 +686,17 @@ class InferenceVisitor
         skipTypeArgumentInference: true);
   }
 
-  ExpressionInferenceResult visitIfNullJudgment(
-      IfNullJudgment node, DartType typeContext) {
+  ExpressionInferenceResult visitIfNull(
+      IfNullExpression node, DartType typeContext) {
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
     DartType lhsType =
         inferrer.inferExpression(node.left, typeContext, true).inferredType;
-    node.variable.type = lhsType;
+
+    Member equalsMember = inferrer
+        .findInterfaceMember(lhsType, equalsName, node.fileOffset)
+        .member;
+
     // - Let J = T0 if K is `?` else K.
     // - Infer e1 in context J to get T1
     DartType rhsType;
@@ -708,8 +714,15 @@ class InferenceVisitor
     // - Then the inferred type is T.
     DartType inferredType =
         inferrer.typeSchemaEnvironment.getStandardUpperBound(lhsType, rhsType);
-    node.body.staticType = inferredType;
-    return new ExpressionInferenceResult(inferredType);
+    VariableDeclaration variable = createVariable(node.left, lhsType);
+    MethodInvocation equalsNull = createEqualsNull(
+        node.left.fileOffset, createVariableGet(variable), equalsMember);
+    ConditionalExpression conditional = new ConditionalExpression(
+        equalsNull, node.right, createVariableGet(variable), inferredType);
+    Expression replacement = new Let(variable, conditional)
+      ..fileOffset = node.fileOffset;
+    node.replaceWith(replacement);
+    return new ExpressionInferenceResult(inferredType, replacement);
   }
 
   @override

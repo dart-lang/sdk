@@ -188,6 +188,7 @@ enum InternalExpressionKind {
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  IfNull,
   IfNullIndexSet,
   IfNullPropertySet,
   IfNullSet,
@@ -495,29 +496,40 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing an if-null expression.
+/// Internal expression representing an if-null expression.
 ///
-/// An if-null expression of the form `a ?? b` is represented as the kernel
-/// expression:
+/// An if-null expression of the form `a ?? b` is encoded as:
 ///
 ///     let v = a in v == null ? b : v
-class IfNullJudgment extends Let implements ExpressionJudgment {
-  IfNullJudgment(VariableDeclaration variable, Expression body)
-      : super(variable, body);
+///
+class IfNullExpression extends InternalExpression {
+  Expression left;
+  Expression right;
+
+  IfNullExpression(this.left, this.right) {
+    left?.parent = this;
+    right?.parent = this;
+  }
 
   @override
-  ConditionalExpression get body => super.body;
-
-  /// Returns the expression to the left of `??`.
-  Expression get left => variable.initializer;
-
-  /// Returns the expression to the right of `??`.
-  Expression get right => body.then;
+  InternalExpressionKind get kind => InternalExpressionKind.IfNull;
 
   @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIfNullJudgment(this, typeContext);
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
+    }
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
   }
 }
 
