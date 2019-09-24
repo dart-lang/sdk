@@ -69,7 +69,7 @@ class AstCloneComparator extends AstComparator {
 }
 
 @reflectiveTest
-class AstClonerTest extends EngineTestCase {
+class AstClonerTest {
   void test_visitAdjacentStrings() {
     _assertCloneExpression("'a' 'b'");
   }
@@ -1337,7 +1337,7 @@ class BooleanArrayTest {
 }
 
 @reflectiveTest
-class ExceptionHandlingDelegatingAstVisitorTest extends EngineTestCase {
+class ExceptionHandlingDelegatingAstVisitorTest {
   void test_handlerIsCalled() {
     AstVisitor exceptionThrowingVisitor = new _ExceptionThrowingVisitor();
     bool handlerInvoked = false;
@@ -2608,7 +2608,7 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2
 }
 
 @reflectiveTest
-class MultipleMapIteratorTest extends EngineTestCase {
+class MultipleMapIteratorTest {
   void test_multipleMaps_firstEmpty() {
     Map<String, String> map1 = new HashMap<String, String>();
     Map<String, String> map2 = new HashMap<String, String>();
@@ -2714,7 +2714,7 @@ class MultipleMapIteratorTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class NodeReplacerTest extends EngineTestCase {
+class NodeReplacerTest {
   /**
    * An empty list of tokens.
    */
@@ -3700,7 +3700,7 @@ abstract class NodeReplacerTest_ListGetter<P extends AstNode, C extends AstNode>
 }
 
 @reflectiveTest
-class SingleMapIteratorTest extends EngineTestCase {
+class SingleMapIteratorTest {
   void test_empty() {
     Map<String, String> map = new HashMap<String, String>();
     SingleMapIterator<String, String> iterator =

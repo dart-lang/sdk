@@ -15,7 +15,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../embedder_tests.dart';
-import '../../../generated/test_support.dart';
 import '../../../resource_utils.dart';
 
 main() {
@@ -356,7 +355,7 @@ class SdkExtensionFinderTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class SdkLibrariesReaderTest extends EngineTestCase with ResourceProviderMixin {
+class SdkLibrariesReaderTest with ResourceProviderMixin {
   void test_readFrom_dart2js() {
     LibraryMap libraryMap =
         new SdkLibrariesReader(true).readFromFile(getFile("/libs.dart"), r'''

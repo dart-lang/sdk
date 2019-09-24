@@ -869,7 +869,7 @@ class ClassElementImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class CompilationUnitElementImplTest extends EngineTestCase {
+class CompilationUnitElementImplTest {
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -1049,7 +1049,7 @@ class ElementImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class ElementLocationImplTest extends EngineTestCase {
+class ElementLocationImplTest {
   void test_create_encoding() {
     String encoding = "a;b;c";
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);

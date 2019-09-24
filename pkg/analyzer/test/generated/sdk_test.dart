@@ -9,8 +9,6 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartSdkManagerTest);
@@ -19,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class DartSdkManagerTest extends EngineTestCase with ResourceProviderMixin {
+class DartSdkManagerTest with ResourceProviderMixin {
   void test_anySdk() {
     DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     expect(manager.anySdk, isNull);
@@ -63,7 +61,7 @@ class DartSdkManagerTest extends EngineTestCase with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class SdkDescriptionTest extends EngineTestCase {
+class SdkDescriptionTest {
   void test_equals_differentPaths_nested() {
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription left = new SdkDescription(<String>['/a/b/c'], options);

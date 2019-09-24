@@ -21,7 +21,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/parser_test.dart' show ParserTestCase;
-import '../../../generated/test_support.dart';
 import '../../../util/ast_type_matchers.dart';
 
 main() {
@@ -922,7 +921,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
 }
 
 @reflectiveTest
-class ToSourceVisitor2Test extends EngineTestCase {
+class ToSourceVisitor2Test {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",
@@ -3738,7 +3737,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
 
 @deprecated
 @reflectiveTest
-class ToSourceVisitorTest extends EngineTestCase {
+class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",

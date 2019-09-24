@@ -61,7 +61,7 @@ void _fail(String message) {
 }
 
 @reflectiveTest
-class ChangeSetTest extends EngineTestCase {
+class ChangeSetTest {
   void test_changedContent() {
     TestSource source = new TestSource();
     String content = "";
