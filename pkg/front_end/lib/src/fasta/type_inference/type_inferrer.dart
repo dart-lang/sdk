@@ -717,13 +717,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
 
     if (target.isUnresolved && includeExtensionMethods) {
+      Member otherMember =
+          _getInterfaceMember(classNode, name, !setter, fileOffset);
+      if (otherMember != null) {
+        // If we're looking for `foo` and `foo=` can be found or vice-versa then
+        // extension methods should not be found.
+        return target;
+      }
+
       ExtensionAccessCandidate bestSoFar;
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
       library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
-        MemberBuilder memberBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: setter);
-        if (memberBuilder != null && !memberBuilder.isStatic) {
-          Extension extension = extensionBuilder.extension;
+        MemberBuilder getterBuilder =
+            extensionBuilder.lookupLocalMember(name.name, setter: false);
+        MemberBuilder setterBuilder =
+            extensionBuilder.lookupLocalMember(name.name, setter: true);
+        if ((getterBuilder != null && !getterBuilder.isStatic) ||
+            (setterBuilder != null && !setterBuilder.isStatic)) {
           DartType onType;
           DartType onTypeInstantiateToBounds;
           List<DartType> inferredTypeArguments;
@@ -762,15 +772,20 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           }
 
           if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
+            MemberBuilder memberBuilder =
+                setter ? setterBuilder : getterBuilder;
+
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
-                extension,
                 onType,
                 onTypeInstantiateToBounds,
-                new ObjectAccessTarget.extensionMember(
-                    memberBuilder.procedure,
-                    memberBuilder.extensionTearOff,
-                    memberBuilder.kind,
-                    inferredTypeArguments));
+                memberBuilder != null
+                    ? new ObjectAccessTarget.extensionMember(
+                        memberBuilder.procedure,
+                        memberBuilder.extensionTearOff,
+                        memberBuilder.kind,
+                        inferredTypeArguments)
+                    : const ObjectAccessTarget.missing(),
+                isPlatform: extensionBuilder.library.uri.scheme == 'dart');
             if (noneMoreSpecific.isNotEmpty) {
               bool isMostSpecific = true;
               for (ExtensionAccessCandidate other in noneMoreSpecific) {
@@ -2839,11 +2854,11 @@ class ExtensionAccessCandidate {
   final bool isPlatform;
   final DartType onType;
   final DartType onTypeInstantiateToBounds;
-  final ExtensionAccessTarget target;
+  final ObjectAccessTarget target;
 
-  ExtensionAccessCandidate(Extension extension, this.onType,
-      this.onTypeInstantiateToBounds, this.target)
-      : isPlatform = extension.enclosingLibrary.importUri.scheme == 'dart';
+  ExtensionAccessCandidate(
+      this.onType, this.onTypeInstantiateToBounds, this.target,
+      {this.isPlatform});
 
   bool isMoreSpecificThan(TypeSchemaEnvironment typeSchemaEnvironment,
       ExtensionAccessCandidate other) {

@@ -103,6 +103,9 @@ abstract class LibraryBuilder extends ModifierBuilder {
   /// Returns the [Library] built by this builder.
   Library get library;
 
+  /// Returns the import uri for the library.
+  ///
+  /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get uri;
 
   Iterator<Builder> get iterator {
