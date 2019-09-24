@@ -25459,15 +25459,7 @@ class RtcDtmfToneChangeEvent extends Event {
 @Native("RTCIceCandidate,mozRTCIceCandidate")
 class RtcIceCandidate extends Interceptor {
   factory RtcIceCandidate(Map dictionary) {
-    // TODO(efortuna): Remove this check if when you can actually construct with
-    // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
-    // but one can't be used as a constructor).
-    var constructorName = JS(
-        '',
-        'window[#]',
-        Device.isFirefox
-            ? '${Device.propertyPrefix}RTCIceCandidate'
-            : 'RTCIceCandidate');
+    var constructorName = JS('', 'window[#]', 'RTCIceCandidate');
     return JS('RtcIceCandidate', 'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));
   }
@@ -25513,8 +25505,8 @@ class RtcLegacyStatsReport extends Interceptor {
 @Native("RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection")
 class RtcPeerConnection extends EventTarget {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
-    var constructorName = JS('RtcPeerConnection', 'window[#]',
-        '${Device.propertyPrefix}RTCPeerConnection');
+    var constructorName =
+        JS('RtcPeerConnection', 'window[#]', 'RTCPeerConnection');
     if (mediaConstraints != null) {
       return JS(
           'RtcPeerConnection',
@@ -25849,15 +25841,7 @@ class RtcRtpSender extends Interceptor {
 @Native("RTCSessionDescription,mozRTCSessionDescription")
 class RtcSessionDescription extends Interceptor {
   factory RtcSessionDescription(Map dictionary) {
-    // TODO(efortuna): Remove this check if when you can actually construct with
-    // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
-    // but one can't be used as a constructor).
-    var constructorName = JS(
-        '',
-        'window[#]',
-        Device.isFirefox
-            ? '${Device.propertyPrefix}RTCSessionDescription'
-            : 'RTCSessionDescription');
+    var constructorName = JS('', 'window[#]', 'RTCSessionDescription');
     return JS('RtcSessionDescription', 'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));
   }
