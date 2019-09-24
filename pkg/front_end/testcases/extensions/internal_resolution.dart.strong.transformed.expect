@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+extension _extension#0 on self::Class* {
+  get property1 = self::_extension#0|get#property1;
+  set property1 = self::_extension#0|set#property1;
+}
+extension _extension#1 on self::Class* {
+  get property2 = self::_extension#1|get#property2;
+  set property2 = self::_extension#1|set#property2;
+}
+static method _extension#0|get#property1(final self::Class* #this) → core::int*
+  return self::_extension#1|get#property2(#this);
+static method _extension#0|set#property1(final self::Class* #this, core::int* value) → core::int* {
+  final core::int* #t1 = value;
+  return #this.{self::Class::field} = value;
+  return #t1;
+}
+static method _extension#1|get#property2(final self::Class* #this) → core::int*
+  return #this.{self::Class::field};
+static method _extension#1|set#property2(final self::Class* #this, core::int* value) → core::int* {
+  final core::int* #t2 = value;
+  return self::_extension#0|set#property1(#this, value);
+  return #t2;
+}
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(null, self::_extension#0|get#property1(c));
+  self::expect(null, self::_extension#1|get#property2(c));
+  self::expect(42, self::_extension#0|set#property1(c, 42));
+  self::expect(42, self::_extension#1|get#property2(c));
+  self::expect(87, self::_extension#1|set#property2(c, 87));
+  self::expect(87, self::_extension#0|get#property1(c));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

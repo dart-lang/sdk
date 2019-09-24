@@ -20,6 +20,7 @@ extensions/extension_methods: TextSerializationFailure
 extensions/implicit_extension_inference: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
 extensions/index: TextSerializationFailure
+extensions/internal_resolution: TextSerializationFailure
 extensions/instance_access: TextSerializationFailure
 extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure

@@ -661,9 +661,6 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
-    if (getter == null) {
-      _helper.warnUnresolvedGet(name, fileOffset);
-    }
     return new PropertyGet(
         _forest.createThisExpression(fileOffset), name, getter)
       ..fileOffset = fileOffset;
@@ -675,9 +672,6 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   Expression _createWrite(int offset, Expression value) {
-    if (setter == null) {
-      _helper.warnUnresolvedSet(name, fileOffset);
-    }
     return new PropertySet(
         _forest.createThisExpression(fileOffset), name, value, setter)
       ..fileOffset = fileOffset;
@@ -745,9 +739,6 @@ class ThisPropertyAccessGenerator extends Generator {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     Member interfaceTarget = getter;
-    if (interfaceTarget == null) {
-      _helper.warnUnresolvedMethod(name, offset);
-    }
     if (interfaceTarget is Field) {
       // TODO(ahe): In strong mode we should probably rewrite this to
       // `this.name.call(arguments)`.
