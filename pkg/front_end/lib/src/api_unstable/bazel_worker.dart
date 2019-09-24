@@ -77,6 +77,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   WorkerInputComponent cachedSdkInput;
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
+  Map<Uri, Uri> workerInputCacheLibs =
+      oldState?.workerInputCacheLibs ?? new Map<Uri, Uri>();
+
   bool startOver = false;
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experiments),
@@ -92,6 +95,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
     // We'll load a new sdk, anything loaded already will have a wrong root.
     workerInputCache.clear();
+    workerInputCacheLibs.clear();
   } else {
     // We do have a previous state.
     cachedSdkInput = workerInputCache[sdkSummary];
@@ -101,6 +105,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       startOver = true;
       // We'll load a new sdk, anything loaded already will have a wrong root.
       workerInputCache.clear();
+      workerInputCacheLibs.clear();
     }
   }
 
@@ -120,6 +125,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     cachedSdkInput = new WorkerInputComponent(
         sdkDigest, await processedOpts.loadSdkSummary(null));
     workerInputCache[sdkSummary] = cachedSdkInput;
+    for (Library lib in cachedSdkInput.component.libraries) {
+      if (workerInputCacheLibs.containsKey(lib.importUri)) {
+        throw new StateError("Duplicate sources in sdk.");
+      }
+      workerInputCacheLibs[lib.importUri] = sdkSummary;
+    }
 
     incrementalCompiler = new IncrementalCompiler.fromComponent(
         new CompilerContext(processedOpts),
@@ -166,7 +177,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     libraryToInputDill = new Map<Uri, Uri>();
   }
   List<Uri> loadFromDill = new List<Uri>();
+  Set<Uri> inputSummariesSet = new Set<Uri>();
   for (Uri summary in summaryInputs) {
+    inputSummariesSet.add(summary);
     WorkerInputComponent cachedInput = workerInputCache[summary];
     List<int> summaryDigest = workerInputDigests[summary];
     if (summaryDigest == null) {
@@ -175,6 +188,14 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     if (cachedInput == null ||
         cachedInput.component.root != nameRoot ||
         !digestsEqual(cachedInput.digest, summaryDigest)) {
+      // Remove any old libraries from workerInputCacheLibs.
+      Component component = cachedInput?.component;
+      if (component != null) {
+        for (Library lib in component.libraries) {
+          workerInputCacheLibs.remove(lib.importUri);
+        }
+      }
+
       loadFromDill.add(summary);
     } else {
       // Need to reset cached components so they are usable again.
@@ -202,8 +223,24 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
-    if (trackNeededDillLibraries) {
-      for (Library lib in cachedInput.component.libraries) {
+    for (Library lib in cachedInput.component.libraries) {
+      if (workerInputCacheLibs.containsKey(lib.importUri)) {
+        Uri fromSummary = workerInputCacheLibs[lib.importUri];
+        if (inputSummariesSet.contains(fromSummary)) {
+          throw new StateError(
+              "Asked to load several summaries that contain the same library.");
+        } else {
+          // Library contained in old cached component. Flush that cache.
+          Component component = workerInputCache.remove(fromSummary).component;
+          for (Library lib in component.libraries) {
+            workerInputCacheLibs.remove(lib.importUri);
+          }
+        }
+      } else {
+        workerInputCacheLibs[lib.importUri] = summary;
+      }
+
+      if (trackNeededDillLibraries) {
         libraryToInputDill[lib.importUri] = summary;
       }
     }
@@ -213,6 +250,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
+      workerInputCacheLibs: workerInputCacheLibs,
       incrementalCompiler: incrementalCompiler,
       tags: tags,
       libraryToInputDill: libraryToInputDill);

@@ -157,6 +157,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
+  Map<Uri, Uri> workerInputCacheLibs =
+      oldState?.workerInputCacheLibs ?? new Map<Uri, Uri>();
+
   final List<int> sdkDigest = workerInputDigests[sdkSummary];
   if (sdkDigest == null) {
     throw new StateError("Expected to get sdk digest at $sdkSummary");
@@ -187,12 +190,20 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
     // We'll load a new sdk, anything loaded already will have a wrong root.
     workerInputCache.clear();
+    workerInputCacheLibs.clear();
 
     processedOpts = new ProcessedOptions(options: options);
 
     cachedSdkInput = new WorkerInputComponent(
         sdkDigest, await processedOpts.loadSdkSummary(null));
     workerInputCache[sdkSummary] = cachedSdkInput;
+    for (Library lib in cachedSdkInput.component.libraries) {
+      if (workerInputCacheLibs.containsKey(lib.importUri)) {
+        throw new StateError("Duplicate sources in sdk.");
+      }
+      workerInputCacheLibs[lib.importUri] = sdkSummary;
+    }
+
     incrementalCompiler = new IncrementalCompiler.fromComponent(
         new CompilerContext(processedOpts), cachedSdkInput.component);
     incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
@@ -234,8 +245,10 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   if (doneInputSummaries.length != inputSummaries.length) {
     throw new ArgumentError("Invalid length.");
   }
+  Set<Uri> inputSummariesSet = new Set<Uri>();
   for (int i = 0; i < inputSummaries.length; i++) {
     Uri inputSummary = inputSummaries[i];
+    inputSummariesSet.add(inputSummary);
     WorkerInputComponent cachedInput = workerInputCache[inputSummary];
     List<int> digest = workerInputDigests[inputSummary];
     if (digest == null) {
@@ -244,6 +257,14 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     if (cachedInput == null ||
         cachedInput.component.root != nameRoot ||
         !digestsEqual(digest, cachedInput.digest)) {
+      // Remove any old libraries from workerInputCacheLibs.
+      Component component = cachedInput?.component;
+      if (component != null) {
+        for (Library lib in component.libraries) {
+          workerInputCacheLibs.remove(lib.importUri);
+        }
+      }
+
       loadFromDillIndexes.add(i);
     } else {
       // Need to reset cached components so they are usable again.
@@ -273,8 +294,24 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
             .loadComponent(bytes, nameRoot, alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
-    if (trackNeededDillLibraries) {
-      for (Library lib in cachedInput.component.libraries) {
+    for (Library lib in cachedInput.component.libraries) {
+      if (workerInputCacheLibs.containsKey(lib.importUri)) {
+        Uri fromSummary = workerInputCacheLibs[lib.importUri];
+        if (inputSummariesSet.contains(fromSummary)) {
+          throw new StateError(
+              "Asked to load several summaries that contain the same library.");
+        } else {
+          // Library contained in old cached component. Flush that cache.
+          Component component = workerInputCache.remove(fromSummary).component;
+          for (Library lib in component.libraries) {
+            workerInputCacheLibs.remove(lib.importUri);
+          }
+        }
+      } else {
+        workerInputCacheLibs[lib.importUri] = summary;
+      }
+
+      if (trackNeededDillLibraries) {
         libraryToInputDill[lib.importUri] = summary;
       }
     }
@@ -284,6 +321,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   return new InitializedCompilerState(options, processedOpts,
       workerInputCache: workerInputCache,
+      workerInputCacheLibs: workerInputCacheLibs,
       incrementalCompiler: incrementalCompiler,
       tags: tags,
       libraryToInputDill: libraryToInputDill);
