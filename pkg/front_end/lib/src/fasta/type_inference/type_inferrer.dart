@@ -852,11 +852,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       expression.parent.replaceChild(
           expression,
-          helper.desugarSyntheticExpression(helper.buildProblem(
+          helper.buildProblem(
               errorTemplate.withArguments(
                   name.name, resolveTypeParameter(receiverType)),
               fileOffset,
-              length)));
+              length));
     }
     return target;
   }
@@ -1772,11 +1772,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         String name = named[1].name;
-        Expression error = helper.desugarSyntheticExpression(
-            helper.buildProblem(
-                templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset,
-                name.length));
+        Expression error = helper.buildProblem(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length);
         arguments.named = [new NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1791,11 +1790,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           NamedExpression prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper.desugarSyntheticExpression(
-              helper.buildProblem(
-                  templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset,
-                  name.length))
+          prevNamedExpression.value = helper.buildProblem(
+              templateDuplicatedNamedArgument.withArguments(name),
+              expression.fileOffset,
+              name.length)
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);

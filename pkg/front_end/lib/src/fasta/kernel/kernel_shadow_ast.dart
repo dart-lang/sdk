@@ -59,7 +59,7 @@ import '../fasta_codes.dart'
 
 import '../names.dart';
 
-import '../problems.dart' show getFileUri, unhandled, unsupported;
+import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -80,7 +80,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 import '../type_inference/type_schema_elimination.dart' show greatestClosure;
 
 import '../type_inference/type_schema_environment.dart'
-    show TypeSchemaEnvironment, getPositionalParameterType;
+    show TypeSchemaEnvironment;
 
 import 'body_builder.dart' show combineStatements;
 
@@ -397,216 +397,6 @@ class Cascade extends InternalExpression {
   }
 }
 
-/// Abstract shadow object representing a complex assignment in kernel form.
-///
-/// Since there are many forms a complex assignment might have been desugared
-/// to, this class wraps the desugared assignment rather than extending it.
-///
-/// TODO(paulberry): once we know exactly what constitutes a "complex
-/// assignment", document it here.
-abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
-  /// In a compound assignment, the expression that reads the old value, or
-  /// `null` if this is not a compound assignment.
-  Expression read;
-
-  /// The expression appearing on the RHS of the assignment.
-  Expression rhs;
-
-  /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
-  /// `++a[b]`).
-  Expression write;
-
-  /// In a compound assignment without shortcut semantics, the expression that
-  /// combines the old and new values, or `null` if this is not a compound
-  /// assignment.
-  ///
-  /// Note that in a compound assignment with shortcut semantics, this is not
-  /// used; [nullAwareCombiner] is used instead.
-  MethodInvocation combiner;
-
-  /// In a compound assignment with shortcut semantics, the conditional
-  /// expression that determines whether the assignment occurs.
-  ///
-  /// Note that in a compound assignment without shortcut semantics, this is not
-  /// used; [combiner] is used instead.
-  ConditionalExpression nullAwareCombiner;
-
-  /// Indicates whether the expression arose from a post-increment or
-  /// post-decrement.
-  bool isPostIncDec = false;
-
-  /// Indicates whether the expression arose from a pre-increment or
-  /// pre-decrement.
-  bool isPreIncDec = false;
-
-  ComplexAssignmentJudgment._(this.rhs) : super._(null);
-
-  String toString() {
-    List<String> parts = _getToStringParts();
-    return '${runtimeType}(${parts.join(', ')})';
-  }
-
-  List<String> _getToStringParts() {
-    List<String> parts = [];
-    if (desugared != null) parts.add('desugared=$desugared');
-    if (read != null) parts.add('read=$read');
-    if (rhs != null) parts.add('rhs=$rhs');
-    if (write != null) parts.add('write=$write');
-    if (combiner != null) parts.add('combiner=$combiner');
-    if (nullAwareCombiner != null) {
-      parts.add('nullAwareCombiner=$nullAwareCombiner');
-    }
-    if (isPostIncDec) parts.add('isPostIncDec=true');
-    if (isPreIncDec) parts.add('isPreIncDec=true');
-    return parts;
-  }
-
-  _ComplexAssignmentInferenceResult _inferRhs(
-      ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
-    assert(writeContext != null);
-    if (readType is VoidType &&
-        (combiner != null || nullAwareCombiner != null)) {
-      inferrer.helper
-          ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
-    }
-    int writeOffset = write == null ? -1 : write.fileOffset;
-    ObjectAccessTarget combinerTarget = const ObjectAccessTarget.unresolved();
-    DartType combinedType;
-    if (combiner != null) {
-      bool isOverloadedArithmeticOperator = false;
-      combinerTarget = inferrer.findMethodInvocationMember(readType, combiner,
-          instrumented: false);
-      assert(!combinerTarget.isCallFunction);
-      if (combinerTarget.isInstanceMember &&
-          combinerTarget.member is Procedure) {
-        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperatorAndType(
-                combinerTarget.member, readType);
-      }
-      DartType rhsType;
-      FunctionType combinerType =
-          inferrer.getFunctionType(combinerTarget, readType, false);
-      if (isPreIncDec || isPostIncDec) {
-        rhsType = inferrer.coreTypes.intRawType(inferrer.library.nonNullable);
-      } else {
-        // It's not necessary to call _storeLetType for [rhs] because the RHS
-        // is always passed directly to the combiner; it's never stored in a
-        // temporary variable first.
-        assert(identical(combiner.arguments.positional.first, rhs));
-        // Analyzer uses a null context for the RHS here.
-        // TODO(paulberry): improve on this.
-        ExpressionInferenceResult rhsResult =
-            inferrer.inferExpression(rhs, const UnknownType(), true);
-        if (rhsResult.replacement != null) {
-          rhs = rhsResult.replacement;
-        }
-        rhsType = rhsResult.inferredType;
-        // Do not use rhs after this point because it may be a Shadow node
-        // that has been replaced in the tree with its desugaring.
-        DartType expectedType = getPositionalParameterType(combinerType, 0);
-        inferrer.ensureAssignable(expectedType, rhsType,
-            combiner.arguments.positional.first, combiner.fileOffset);
-      }
-      if (isOverloadedArithmeticOperator) {
-        combinedType = inferrer.typeSchemaEnvironment
-            .getTypeOfOverloadedArithmetic(readType, rhsType);
-      } else {
-        combinedType = combinerType.returnType;
-      }
-      MethodContravarianceCheckKind checkKind =
-          inferrer.preCheckInvocationContravariance(readType, combinerTarget,
-              isThisReceiver: read is ThisExpression);
-      Expression replacedCombiner = inferrer.handleInvocationContravariance(
-          checkKind,
-          combiner,
-          combiner.arguments,
-          combiner,
-          combinedType,
-          combinerType,
-          combiner.fileOffset);
-      Expression replacedCombiner2 = inferrer.ensureAssignable(
-          writeContext, combinedType, replacedCombiner, writeOffset);
-      if (replacedCombiner2 != null) {
-        replacedCombiner = replacedCombiner2;
-      }
-      _storeLetType(inferrer, replacedCombiner, combinedType);
-    } else {
-      ExpressionInferenceResult rhsResult = inferrer.inferExpression(
-          rhs, writeContext ?? const UnknownType(), true,
-          isVoidAllowed: true);
-      if (rhsResult.replacement != null) {
-        rhs = rhsResult.replacement;
-      }
-      DartType rhsType = rhsResult.inferredType;
-      Expression replacedRhs = inferrer.ensureAssignable(
-          writeContext, rhsType, rhs, writeOffset,
-          isVoidAllowed: writeContext is VoidType);
-      _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
-      if (nullAwareCombiner != null) {
-        MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-        inferrer.findMethodInvocationMember(
-            greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
-            instrumented: false);
-        // Note: the case of readType=null only happens for erroneous code.
-        combinedType = readType == null
-            ? rhsType
-            : inferrer.typeSchemaEnvironment
-                .getStandardUpperBound(readType, rhsType);
-        nullAwareCombiner.staticType = combinedType;
-      } else {
-        combinedType = rhsType;
-      }
-    }
-    if (this is IndexAssignmentJudgment) {
-      _storeLetType(inferrer, write, const VoidType());
-    } else {
-      _storeLetType(inferrer, write, combinedType);
-    }
-    DartType inferredType =
-        isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
-    return new _ComplexAssignmentInferenceResult(
-        combinerTarget.member, inferredType);
-  }
-}
-
-/// Abstract shadow object representing a complex assignment involving a
-/// receiver.
-abstract class ComplexAssignmentJudgmentWithReceiver
-    extends ComplexAssignmentJudgment {
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  final Expression receiver;
-
-  /// Indicates whether this assignment uses `super`.
-  final bool isSuper;
-
-  ComplexAssignmentJudgmentWithReceiver._(
-      this.receiver, Expression rhs, this.isSuper)
-      : super._(rhs);
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
-    if (isSuper) parts.add('isSuper=true');
-    return parts;
-  }
-
-  DartType _inferReceiver(ShadowTypeInferrer inferrer) {
-    if (receiver != null) {
-      DartType receiverType = inferrer
-          .inferExpression(receiver, const UnknownType(), true)
-          .inferredType;
-      _storeLetType(inferrer, receiver, receiverType);
-      return receiverType;
-    } else if (isSuper) {
-      return inferrer.classHierarchy.getTypeAsInstanceOf(
-          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
-    } else {
-      return inferrer.thisType;
-    }
-  }
-}
-
 /// Internal expression representing a deferred check.
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in [replace].
@@ -731,61 +521,6 @@ class IfNullJudgment extends Let implements ExpressionJudgment {
   }
 }
 
-/// Concrete shadow object representing an assignment to a target for which
-/// assignment is not allowed.
-class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  /// The offset at which the invalid assignment should be stored.
-  /// If `-1`, then there is no separate location for invalid assignment.
-  final int assignmentOffset;
-
-  IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
-      : super._(rhs) {
-    rhs.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIllegalAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an assignment to a target of the form
-/// `a[b]`.
-class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// In an assignment to an index expression, the index expression.
-  Expression index;
-
-  IndexAssignmentJudgment._(Expression receiver, this.index, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  Arguments _getInvocationArguments(
-      ShadowTypeInferrer inferrer, Expression invocation) {
-    if (invocation is MethodInvocation) {
-      return invocation.arguments;
-    } else if (invocation is SuperMethodInvocation) {
-      return invocation.arguments;
-    } else {
-      throw unhandled("${invocation.runtimeType}", "_getInvocationArguments",
-          fileOffset, inferrer.uri);
-    }
-  }
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (index != null) parts.add('index=$index');
-    return parts;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIndexAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Common base class for shadow objects representing initializers in kernel
 /// form.
 abstract class InitializerJudgment implements Initializer {
@@ -808,12 +543,10 @@ Expression checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper.desugarSyntheticExpression(inferrer.helper
-      .buildProblem(
-          templateWebLiteralCannotBeRepresentedExactly.withArguments(
-              text, nearest),
-          charOffset,
-          length));
+  return inferrer.helper.buildProblem(
+      templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
+      charOffset,
+      length);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -1049,175 +782,12 @@ class NullAwarePropertySet extends InternalExpression {
   }
 }
 
-/// Concrete shadow object representing an assignment to a property.
-class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// If this assignment uses null-aware access (`?.`), the conditional
-  /// expression that guards the access; otherwise `null`.
-  ConditionalExpression nullAwareGuard;
-
-  PropertyAssignmentJudgment._(Expression receiver, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
-    return parts;
-  }
-
-  ObjectAccessTarget _handleWriteContravariance(
-      ShadowTypeInferrer inferrer, DartType receiverType) {
-    return inferrer.findPropertySetMember(receiverType, write);
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitPropertyAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [ReturnStatement].
 class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
   ReturnStatementImpl(this.isArrow, [Expression expression])
       : super(expression);
-}
-
-/// Concrete shadow object representing an assignment to a static variable.
-class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
-  StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitStaticAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// constructor, or a constructor that cannot be invoked, or a resolved
-/// constructor with wrong number of arguments.
-// TODO(ahe): Remove this?
-class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
-  final Member constructor;
-  final Arguments arguments;
-
-  InvalidConstructorInvocationJudgment._(
-      Expression desugared, this.constructor, this.arguments)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidConstructorInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to the
-/// [expression] which is not assignable.
-class InvalidWriteJudgment extends SyntheticExpressionJudgment {
-  final Expression expression;
-
-  InvalidWriteJudgment._(Expression desugared, this.expression)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidWriteJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for expressions that are introduced by the front end as part
-/// of desugaring or the handling of error conditions.
-///
-/// These expressions are removed by type inference and replaced with their
-/// desugared equivalents.
-class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
-  SyntheticExpressionJudgment._(Expression desugared)
-      : super(new VariableDeclaration('_', initializer: new NullLiteral()),
-            desugared);
-
-  /// The desugared kernel representation of this synthetic expression.
-  Expression get desugared => body;
-
-  void set desugared(Expression value) {
-    this.body = value;
-    value.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSyntheticExpressionJudgment(this, typeContext);
-  }
-
-  /// Removes this expression from the expression tree, replacing it with
-  /// [desugared].
-  Expression _replaceWithDesugared() {
-    Expression replacement = desugared;
-    if (replacement is InternalExpression) {
-      // This is needed because some (StaticAssignmentJudgment at least) do
-      // not visit their desugared expression during inference.
-      InternalExpression internalExpression = replacement;
-      replacement = internalExpression.replace();
-    }
-    parent.replaceChild(this, replacement);
-    parent = null;
-    return replacement;
-  }
-
-  /// Updates any [Let] nodes in the desugared expression to account for the
-  /// fact that [expression] has the given [type].
-  void _storeLetType(
-      TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    Expression desugared = this.desugared;
-    while (true) {
-      if (desugared is Let) {
-        Let desugaredLet = desugared;
-        VariableDeclaration variable = desugaredLet.variable;
-        if (identical(variable.initializer, expression)) {
-          variable.type = type;
-          return;
-        }
-        desugared = desugaredLet.body;
-      } else if (desugared is ConditionalExpression) {
-        // When a null-aware assignment is desugared, often the "then" or "else"
-        // branch of the conditional expression often contains "let" nodes that
-        // need to be updated.
-        ConditionalExpression desugaredConditionalExpression = desugared;
-        if (desugaredConditionalExpression.then is Let) {
-          desugared = desugaredConditionalExpression.then;
-        } else {
-          desugared = desugaredConditionalExpression.otherwise;
-        }
-      } else {
-        break;
-      }
-    }
-  }
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // This is designed to throw an exception during serialization. It can also
-    // lead to exceptions during transformations, but we have to accept a
-    // [Transformer] as this is used to implement `replaceChild`.
-    if (v is Transformer) return super.accept(v);
-    throw unsupported("${runtimeType}.accept", fileOffset, getFileUri(this));
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    throw unsupported("${runtimeType}.accept1", fileOffset, getFileUri(this));
-  }
-
-  @override
-  visitChildren(Visitor<dynamic> v) {
-    unsupported("${runtimeType}.visitChildren", fileOffset, getFileUri(this));
-  }
 }
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
@@ -1391,16 +961,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 }
 
-class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
-  VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [VariableDeclaration].
 class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
@@ -1477,39 +1037,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
       variable._isLocalFunction;
 }
 
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// target.
-class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  final ArgumentsImpl argumentsJudgment;
-
-  UnresolvedTargetInvocationJudgment._(
-      Expression desugared, this.argumentsJudgment)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedTargetInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to an unresolved
-/// variable.
-class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
-  final bool isCompound;
-  final Expression rhs;
-
-  UnresolvedVariableAssignmentJudgment._(
-      Expression desugared, this.isCompound, this.rhs)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [VariableGet].
 class VariableGetImpl extends VariableGet {
   final TypePromotionFact _fact;
@@ -1562,18 +1089,6 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 }
 
-/// The result of inference for a RHS of an assignment.
-class _ComplexAssignmentInferenceResult {
-  /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or
-  /// `null` if the assignment is not compound.
-  final Procedure combiner;
-
-  /// The inferred type of the RHS.
-  final DartType inferredType;
-
-  _ComplexAssignmentInferenceResult(this.combiner, this.inferredType);
-}
-
 class _UnfinishedCascade extends Expression {
   R accept<R>(v) => unsupported("accept", -1, null);
 
@@ -1584,67 +1099,6 @@ class _UnfinishedCascade extends Expression {
   void transformChildren(v) => unsupported("transformChildren", -1, null);
 
   void visitChildren(v) => unsupported("visitChildren", -1, null);
-}
-
-class SyntheticWrapper {
-  static Expression wrapIllegalAssignment(Expression rhs,
-      {int assignmentOffset: -1}) {
-    return new IllegalAssignmentJudgment._(rhs,
-        assignmentOffset: assignmentOffset)
-      ..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapIndexAssignment(
-      Expression receiver, Expression index, Expression rhs,
-      {bool isSuper: false}) {
-    return new IndexAssignmentJudgment._(receiver, index, rhs, isSuper: isSuper)
-      ..fileOffset = index.fileOffset;
-  }
-
-  static Expression wrapInvalidConstructorInvocation(
-      Expression desugared, Member constructor, Arguments arguments) {
-    return new InvalidConstructorInvocationJudgment._(
-        desugared, constructor, arguments)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapInvalidWrite(
-      Expression desugared, Expression expression) {
-    return new InvalidWriteJudgment._(desugared, expression)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
-      {bool isSuper: false}) {
-    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper)
-      ..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapStaticAssignment(Expression rhs) {
-    return new StaticAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapSyntheticExpression(Expression desugared) {
-    return new SyntheticExpressionJudgment._(desugared)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment._(desugared, arguments)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs) {
-    return new UnresolvedVariableAssignmentJudgment._(
-        desugared, isCompound, rhs)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapVariableAssignment(Expression rhs) {
-    return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
-  }
 }
 
 /// Internal expression representing an if-null property set.

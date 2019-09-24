@@ -86,7 +86,6 @@ export 'kernel_shadow_ast.dart'
     show
         ArgumentsImpl,
         Cascade,
-        ComplexAssignmentJudgment,
         DeferredCheck,
         FactoryConstructorInvocationJudgment,
         FunctionDeclarationImpl,

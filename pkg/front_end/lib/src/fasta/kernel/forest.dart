@@ -34,7 +34,6 @@ import 'kernel_shadow_ast.dart'
         MethodInvocationImpl,
         ReturnStatementImpl,
         ShadowLargeIntLiteral,
-        SyntheticExpressionJudgment,
         VariableDeclarationImpl;
 
 /// A shadow tree factory.
@@ -607,10 +606,6 @@ class Forest {
     if (node is VariableDeclaration) {
       VariableDeclaration variable = node;
       node = variable.initializer;
-    }
-    if (node is SyntheticExpressionJudgment) {
-      SyntheticExpressionJudgment synth = node;
-      node = synth.desugared;
     }
     if (node is Let) {
       Let let = node;

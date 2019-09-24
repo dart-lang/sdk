@@ -940,9 +940,7 @@ class ConstructorBuilder extends FunctionBuilder {
     assert(lastInitializer == superInitializer ||
         lastInitializer == redirectingInitializer);
     Initializer error = helper.buildInvalidInitializer(
-        helper.desugarSyntheticExpression(
-            helper.buildProblem(message, charOffset, noLength)),
-        charOffset);
+        helper.buildProblem(message, charOffset, noLength));
     initializers.add(error..parent = _constructor);
     initializers.add(lastInitializer);
   }
@@ -964,10 +962,8 @@ class ConstructorBuilder extends FunctionBuilder {
             initializer.fileOffset, helper);
       } else if (_constructor.initializers.isNotEmpty) {
         Initializer first = _constructor.initializers.first;
-        Initializer error = helper.buildInvalidInitializer(
-            helper.desugarSyntheticExpression(helper.buildProblem(
-                messageThisInitializerNotAlone, first.fileOffset, noLength)),
-            first.fileOffset);
+        Initializer error = helper.buildInvalidInitializer(helper.buildProblem(
+            messageThisInitializerNotAlone, first.fileOffset, noLength));
         initializers.add(error..parent = _constructor);
       } else {
         initializers.add(initializer..parent = _constructor);

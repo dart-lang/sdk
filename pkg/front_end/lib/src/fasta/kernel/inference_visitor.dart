@@ -196,7 +196,9 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitInvalidExpression(
       InvalidExpression node, DartType typeContext) {
-    return const ExpressionInferenceResult(const BottomType());
+    // TODO(johnniwinther): The inferred type should be an InvalidType. Using
+    // BottomType leads to cascading errors so we use DynamicType for now.
+    return const ExpressionInferenceResult(const DynamicType());
   }
 
   @override
@@ -533,18 +535,13 @@ class InferenceVisitor
     DartType elementType;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     DartType syntheticWriteType;
-    Expression syntheticAssignment;
     Expression rhs;
     // If `true`, the synthetic statement should not be visited.
     bool skipStatement = false;
     ExpressionStatement syntheticStatement =
         body is Block ? body.statements.first : body;
     Expression statementExpression = syntheticStatement.expression;
-    if (statementExpression is SyntheticExpressionJudgment) {
-      syntheticAssignment = statementExpression.desugared;
-    } else {
-      syntheticAssignment = statementExpression;
-    }
+    Expression syntheticAssignment = statementExpression;
     if (syntheticAssignment is VariableSet) {
       syntheticWriteType = elementType = syntheticAssignment.variable.type;
       rhs = syntheticAssignment.value;
@@ -730,85 +727,6 @@ class InferenceVisitor
     }
   }
 
-  ExpressionInferenceResult visitIllegalAssignmentJudgment(
-      IllegalAssignmentJudgment node, DartType typeContext) {
-    if (node.write != null) {
-      inferrer.inferExpression(
-          node.write, const UnknownType(), !inferrer.isTopLevel);
-    }
-    inferrer.inferExpression(
-        node.rhs, const UnknownType(), !inferrer.isTopLevel);
-    node._replaceWithDesugared();
-    return const ExpressionInferenceResult(const DynamicType());
-  }
-
-  ExpressionInferenceResult visitIndexAssignmentJudgment(
-      IndexAssignmentJudgment node, DartType typeContext) {
-    DartType receiverType = node._inferReceiver(inferrer);
-    ObjectAccessTarget writeTarget =
-        inferrer.findMethodInvocationMember(receiverType, node.write);
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member
-    // when doing compound assignment?
-    DartType indexContext = const UnknownType();
-    DartType expectedIndexTypeForWrite =
-        inferrer.getIndexKeyType(writeTarget, receiverType);
-    DartType writeContext =
-        inferrer.getIndexSetValueType(writeTarget, receiverType);
-    ExpressionInferenceResult indexResult =
-        inferrer.inferExpression(node.index, indexContext, true);
-    DartType indexType = indexResult.inferredType;
-    node._storeLetType(inferrer, node.index, indexType);
-    if (indexResult.replacement != null) {
-      node.index = indexResult.replacement;
-    }
-    Expression writeIndexExpression =
-        node._getInvocationArguments(inferrer, node.write).positional[0];
-    if (writeTarget.isExtensionMember) {
-      MethodInvocation write = node.write;
-      Expression replacement = inferrer.transformExtensionMethodInvocation(
-          writeTarget, write, write.receiver, write.arguments);
-      node.write = replacement;
-    }
-    if (writeContext is! UnknownType) {
-      inferrer.ensureAssignable(expectedIndexTypeForWrite, indexType,
-          writeIndexExpression, node.write.fileOffset);
-    }
-
-    InvocationExpression read = node.read;
-    DartType readType;
-    if (read != null) {
-      ObjectAccessTarget readMember = inferrer
-          .findMethodInvocationMember(receiverType, read, instrumented: false);
-      FunctionType calleeFunctionType =
-          inferrer.getFunctionType(readMember, receiverType, false);
-      inferrer.ensureAssignable(
-          getPositionalParameterType(calleeFunctionType, 0),
-          indexType,
-          node._getInvocationArguments(inferrer, read).positional[0],
-          read.fileOffset);
-      readType = calleeFunctionType.returnType;
-      MethodInvocation desugaredInvocation =
-          read is MethodInvocation ? read : null;
-      MethodContravarianceCheckKind checkKind =
-          inferrer.preCheckInvocationContravariance(receiverType, readMember,
-              isThisReceiver: node.receiver is ThisExpression);
-      Expression replacedRead = inferrer.handleInvocationContravariance(
-          checkKind,
-          desugaredInvocation,
-          read.arguments,
-          read,
-          readType,
-          calleeFunctionType,
-          read.fileOffset);
-      node._storeLetType(inferrer, replacedRead, readType);
-    }
-    DartType inferredType =
-        node._inferRhs(inferrer, readType, writeContext).inferredType;
-    node._replaceWithDesugared();
-    return new ExpressionInferenceResult(inferredType);
-  }
-
   ExpressionInferenceResult visitIntJudgment(
       IntJudgment node, DartType typeContext) {
     if (inferrer.isDoubleContext(typeContext)) {
@@ -848,11 +766,10 @@ class InferenceVisitor
 
     int intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = inferrer.helper.desugarSyntheticExpression(
-          inferrer.helper.buildProblem(
-              templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
-              node.fileOffset,
-              node.literal.length));
+      Expression replacement = inferrer.helper.buildProblem(
+          templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
+          node.fileOffset,
+          node.literal.length);
       node.parent.replaceChild(node, replacement);
       return const ExpressionInferenceResult(const BottomType());
     }
@@ -932,28 +849,25 @@ class InferenceVisitor
               !element.isNullAware) {
             parent.replaceChild(
                 element,
-                inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                    .buildProblem(messageNonNullAwareSpreadIsNull,
-                        element.expression.fileOffset, 1)));
+                inferrer.helper.buildProblem(messageNonNullAwareSpreadIsNull,
+                    element.expression.fileOffset, 1));
           } else {
             parent.replaceChild(
                 element,
-                inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                    .buildProblem(
-                        templateSpreadTypeMismatch.withArguments(spreadType),
-                        element.expression.fileOffset,
-                        1)));
+                inferrer.helper.buildProblem(
+                    templateSpreadTypeMismatch.withArguments(spreadType),
+                    element.expression.fileOffset,
+                    1));
           }
         } else if (spreadType is InterfaceType) {
           if (!inferrer.isAssignable(inferredTypeArgument, spreadElementType)) {
             parent.replaceChild(
                 element,
-                inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                    .buildProblem(
-                        templateSpreadElementTypeMismatch.withArguments(
-                            spreadElementType, inferredTypeArgument),
-                        element.expression.fileOffset,
-                        1)));
+                inferrer.helper.buildProblem(
+                    templateSpreadElementTypeMismatch.withArguments(
+                        spreadElementType, inferredTypeArgument),
+                    element.expression.fileOffset,
+                    1));
           }
         }
       }
@@ -1272,9 +1186,10 @@ class InferenceVisitor
             parent.replaceChild(
                 entry,
                 new MapEntry(
-                    inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                        .buildProblem(messageNonNullAwareSpreadIsNull,
-                            entry.expression.fileOffset, 1)),
+                    inferrer.helper.buildProblem(
+                        messageNonNullAwareSpreadIsNull,
+                        entry.expression.fileOffset,
+                        1),
                     new NullLiteral())
                   ..fileOffset = entry.fileOffset);
           } else if (actualElementType != null) {
@@ -1285,12 +1200,11 @@ class InferenceVisitor
             parent.replaceChild(
                 entry,
                 new MapEntry(
-                    inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                        .buildProblem(
-                            templateSpreadMapEntryTypeMismatch
-                                .withArguments(spreadType),
-                            entry.expression.fileOffset,
-                            1)),
+                    inferrer.helper.buildProblem(
+                        templateSpreadMapEntryTypeMismatch
+                            .withArguments(spreadType),
+                        entry.expression.fileOffset,
+                        1),
                     new NullLiteral())
                   ..fileOffset = entry.fileOffset);
           }
@@ -1298,20 +1212,18 @@ class InferenceVisitor
           Expression keyError;
           Expression valueError;
           if (!inferrer.isAssignable(inferredKeyType, actualKeyType)) {
-            keyError = inferrer.helper.desugarSyntheticExpression(
-                inferrer.helper.buildProblem(
-                    templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
-                        actualKeyType, inferredKeyType),
-                    entry.expression.fileOffset,
-                    1));
+            keyError = inferrer.helper.buildProblem(
+                templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+                    actualKeyType, inferredKeyType),
+                entry.expression.fileOffset,
+                1);
           }
           if (!inferrer.isAssignable(inferredValueType, actualValueType)) {
-            valueError = inferrer.helper.desugarSyntheticExpression(
-                inferrer.helper.buildProblem(
-                    templateSpreadMapEntryElementValueTypeMismatch
-                        .withArguments(actualValueType, inferredValueType),
-                    entry.expression.fileOffset,
-                    1));
+            valueError = inferrer.helper.buildProblem(
+                templateSpreadMapEntryElementValueTypeMismatch.withArguments(
+                    actualValueType, inferredValueType),
+                entry.expression.fileOffset,
+                1);
           }
           if (keyError != null || valueError != null) {
             keyError ??= new NullLiteral();
@@ -1512,12 +1424,11 @@ class InferenceVisitor
       parent.replaceChild(
           entry,
           new MapEntry(
-              inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                  .buildProblem(
-                      templateSpreadMapEntryTypeMismatch
-                          .withArguments(iterableSpreadType),
-                      iterableSpreadOffset,
-                      1)),
+              inferrer.helper.buildProblem(
+                  templateSpreadMapEntryTypeMismatch
+                      .withArguments(iterableSpreadType),
+                  iterableSpreadOffset,
+                  1),
               new NullLiteral()));
     }
     if (entry is SpreadMapEntry) {
@@ -1724,18 +1635,20 @@ class InferenceVisitor
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
         node.parent.replaceChild(
             node,
-            inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                .buildProblem(messageCantDisambiguateNotEnoughInformation,
-                    node.fileOffset, 1)));
+            inferrer.helper.buildProblem(
+                messageCantDisambiguateNotEnoughInformation,
+                node.fileOffset,
+                1));
         return const ExpressionInferenceResult(const BottomType());
       }
       if (!canBeSet && !canBeMap) {
         if (!inferrer.isTopLevel) {
           node.parent.replaceChild(
               node,
-              inferrer.helper.desugarSyntheticExpression(inferrer.helper
-                  .buildProblem(messageCantDisambiguateAmbiguousInformation,
-                      node.fileOffset, 1)));
+              inferrer.helper.buildProblem(
+                  messageCantDisambiguateAmbiguousInformation,
+                  node.fileOffset,
+                  1));
         }
         return const ExpressionInferenceResult(const BottomType());
       }
@@ -1834,12 +1747,11 @@ class InferenceVisitor
           }
           int intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = inferrer.helper.desugarSyntheticExpression(
-                inferrer.helper.buildProblem(
-                    templateIntegerLiteralIsOutOfRange
-                        .withArguments(receiver.literal),
-                    receiver.fileOffset,
-                    receiver.literal.length));
+            Expression error = inferrer.helper.buildProblem(
+                templateIntegerLiteralIsOutOfRange
+                    .withArguments(receiver.literal),
+                receiver.fileOffset,
+                receiver.literal.length);
             node.parent.replaceChild(node, error);
             return const ExpressionInferenceResult(const BottomType());
           }
@@ -2164,8 +2076,7 @@ class InferenceVisitor
       assignment = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]=', receiverType),
           node.fileOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else if (indexSetTarget.isExtensionMember) {
       assignment = new StaticInvocation(
           indexSetTarget.member,
@@ -2239,8 +2150,7 @@ class InferenceVisitor
       assignment = inferrer.helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments('[]='),
           node.fileOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else {
       assert(indexSetTarget.isInstanceMember);
       inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
@@ -2337,8 +2247,7 @@ class InferenceVisitor
       read = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]', receiverType),
           node.readOffset,
-          '[]'.length,
-          wrapInSyntheticExpression: false);
+          '[]'.length);
     } else if (readTarget.isExtensionMember) {
       read = new StaticInvocation(
           readTarget.member,
@@ -2385,8 +2294,7 @@ class InferenceVisitor
       write = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]=', receiverType),
           node.writeOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
@@ -2527,8 +2435,7 @@ class InferenceVisitor
       read = inferrer.helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments('[]'),
           node.readOffset,
-          '[]'.length,
-          wrapInSyntheticExpression: false);
+          '[]'.length);
     } else {
       assert(readTarget.isInstanceMember);
       inferrer.instrumentation?.record(inferrer.uri, node.readOffset, 'target',
@@ -2558,8 +2465,7 @@ class InferenceVisitor
       write = inferrer.helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments('[]='),
           node.writeOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else {
       assert(writeTarget.isInstanceMember);
       inferrer.instrumentation?.record(inferrer.uri, node.writeOffset, 'target',
@@ -2666,8 +2572,7 @@ class InferenceVisitor
       read = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]', receiverType),
           node.readOffset,
-          '[]'.length,
-          wrapInSyntheticExpression: false);
+          '[]'.length);
     } else if (readTarget.isExtensionMember) {
       read = new StaticInvocation(
           readTarget.member,
@@ -2737,8 +2642,7 @@ class InferenceVisitor
       binary = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(node.binaryName.name, readType),
           node.binaryOffset,
-          node.binaryName.name.length,
-          wrapInSyntheticExpression: false);
+          node.binaryName.name.length);
     } else if (binaryTarget.isExtensionMember) {
       binary = new StaticInvocation(
           binaryTarget.member,
@@ -2806,8 +2710,7 @@ class InferenceVisitor
       write = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments('[]=', receiverType),
           node.writeOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
@@ -2913,8 +2816,7 @@ class InferenceVisitor
           templateUndefinedMethod.withArguments(
               node.propertyName.name, receiverType),
           node.readOffset,
-          node.propertyName.name.length,
-          wrapInSyntheticExpression: false);
+          node.propertyName.name.length);
     } else if (readTarget.isExtensionMember) {
       read = new StaticInvocation(
           readTarget.member,
@@ -2976,8 +2878,7 @@ class InferenceVisitor
       binary = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(node.binaryName.name, readType),
           node.binaryOffset,
-          node.binaryName.name.length,
-          wrapInSyntheticExpression: false);
+          node.binaryName.name.length);
     } else if (binaryTarget.isExtensionMember) {
       binary = new StaticInvocation(
           binaryTarget.member,
@@ -3036,8 +2937,7 @@ class InferenceVisitor
           templateUndefinedMethod.withArguments(
               node.propertyName.name, receiverType),
           node.writeOffset,
-          node.propertyName.name.length,
-          wrapInSyntheticExpression: false);
+          node.propertyName.name.length);
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
@@ -3161,8 +3061,7 @@ class InferenceVisitor
       read = inferrer.helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments('[]'),
           node.readOffset,
-          '[]'.length,
-          wrapInSyntheticExpression: false);
+          '[]'.length);
     } else {
       assert(readTarget.isInstanceMember);
       inferrer.instrumentation?.record(inferrer.uri, node.readOffset, 'target',
@@ -3216,8 +3115,7 @@ class InferenceVisitor
       binary = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(node.binaryName.name, readType),
           node.binaryOffset,
-          node.binaryName.name.length,
-          wrapInSyntheticExpression: false);
+          node.binaryName.name.length);
     } else if (binaryTarget.isExtensionMember) {
       binary = new StaticInvocation(
           binaryTarget.member,
@@ -3285,8 +3183,7 @@ class InferenceVisitor
       write = inferrer.helper.buildProblem(
           templateSuperclassHasNoMethod.withArguments('[]='),
           node.writeOffset,
-          '[]='.length,
-          wrapInSyntheticExpression: false);
+          '[]='.length);
     } else {
       assert(writeTarget.isInstanceMember);
       inferrer.instrumentation?.record(inferrer.uri, node.writeOffset, 'target',
@@ -3357,9 +3254,6 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitLet(Let node, DartType typeContext) {
     DartType variableType = node.variable.type;
-    if (variableType == const DynamicType()) {
-      return defaultExpression(node, typeContext);
-    }
     inferrer.inferExpression(node.variable.initializer, variableType, true,
         isVoidAllowed: true);
     ExpressionInferenceResult result = inferrer
@@ -3441,8 +3335,7 @@ class InferenceVisitor
       read = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(node.name.name, receiverType),
           node.readOffset,
-          node.name.name.length,
-          wrapInSyntheticExpression: false);
+          node.name.name.length);
     } else if (readTarget.isExtensionMember) {
       read = new StaticInvocation(
           readTarget.member,
@@ -3488,8 +3381,7 @@ class InferenceVisitor
       write = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(node.name.name, receiverType),
           node.writeOffset,
-          node.name.name.length,
-          wrapInSyntheticExpression: false);
+          node.name.name.length);
     } else if (writeTarget.isExtensionMember) {
       write = new StaticInvocation(
           writeTarget.member,
@@ -3562,57 +3454,6 @@ class InferenceVisitor
     }
 
     node.replaceWith(replacement);
-    return new ExpressionInferenceResult(inferredType, replacement);
-  }
-
-  ExpressionInferenceResult visitPropertyAssignmentJudgment(
-      PropertyAssignmentJudgment node, DartType typeContext) {
-    DartType receiverType = node._inferReceiver(inferrer);
-
-    DartType readType;
-    if (node.read != null) {
-      ObjectAccessTarget readTarget = inferrer
-          .findPropertyGetMember(receiverType, node.read, instrumented: false);
-      readType = inferrer.getGetterType(readTarget, receiverType);
-      inferrer.handlePropertyGetContravariance(
-          node.receiver,
-          readTarget,
-          node.read is PropertyGet ? node.read : null,
-          node.read,
-          readType,
-          node.read.fileOffset);
-      node._storeLetType(inferrer, node.read, readType);
-    }
-    ObjectAccessTarget writeTarget;
-    if (node.write != null) {
-      writeTarget = node._handleWriteContravariance(inferrer, receiverType);
-    }
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member when
-    // doing compound assignment?
-    DartType writeContext = inferrer.getSetterType(writeTarget, receiverType);
-    DartType inferredType =
-        node._inferRhs(inferrer, readType, writeContext).inferredType;
-    node.nullAwareGuard?.staticType = inferredType;
-    Expression replacement;
-    if (writeTarget.isExtensionMember) {
-      node.parent.replaceChild(
-          node,
-          replacement = inferrer.helper.forest.createStaticInvocation(
-              node.fileOffset,
-              writeTarget.member,
-              inferrer.helper.forest.createArgumentsForExtensionMethod(
-                  node.fileOffset,
-                  writeTarget.inferredExtensionTypeArguments.length,
-                  0,
-                  node.receiver,
-                  extensionTypeArguments:
-                      writeTarget.inferredExtensionTypeArguments,
-                  positionalArguments: [node.rhs])));
-    } else {
-      node._replaceWithDesugared();
-    }
-
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -3762,28 +3603,6 @@ class InferenceVisitor
         writeContext, rhsType, node.value, node.fileOffset,
         isVoidAllowed: writeContext is VoidType);
     return new ExpressionInferenceResult(rhsType);
-  }
-
-  ExpressionInferenceResult visitStaticAssignmentJudgment(
-      StaticAssignmentJudgment node, DartType typeContext) {
-    DartType readType = const DynamicType(); // Only used in error recovery
-    Expression read = node.read;
-    if (read is StaticGet) {
-      readType = read.target.getterType;
-      node._storeLetType(inferrer, read, readType);
-    }
-    Member writeMember;
-    DartType writeContext = const UnknownType();
-    Expression write = node.write;
-    if (write is StaticSet) {
-      writeContext = write.target.setterType;
-      writeMember = write.target;
-      TypeInferenceEngine.resolveInferenceNode(writeMember);
-    }
-    DartType inferredType =
-        node._inferRhs(inferrer, readType, writeContext).inferredType;
-    node._replaceWithDesugared();
-    return new ExpressionInferenceResult(inferredType);
   }
 
   @override
@@ -3949,41 +3768,6 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType);
   }
 
-  ExpressionInferenceResult visitInvalidConstructorInvocationJudgment(
-      InvalidConstructorInvocationJudgment node, DartType typeContext) {
-    FunctionType calleeType;
-    DartType returnType;
-    if (node.constructor != null) {
-      calleeType = node.constructor.function.thisFunctionType;
-      returnType = computeConstructorReturnType(node.constructor);
-    } else {
-      calleeType = new FunctionType([], const DynamicType());
-      returnType = const DynamicType();
-    }
-    DartType inferredType = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, returnType, node.arguments);
-    node._replaceWithDesugared();
-    return new ExpressionInferenceResult(inferredType);
-  }
-
-  ExpressionInferenceResult visitInvalidWriteJudgment(
-      InvalidWriteJudgment node, DartType typeContext) {
-    // When a compound assignment, the expression is already wrapping in
-    // VariableDeclaration in _makeRead(). Otherwise, temporary associate
-    // the expression with this node.
-    node.expression.parent ??= node;
-
-    inferrer.inferExpression(
-        node.expression, const UnknownType(), !inferrer.isTopLevel);
-    return visitSyntheticExpressionJudgment(node, typeContext);
-  }
-
-  ExpressionInferenceResult visitSyntheticExpressionJudgment(
-      SyntheticExpressionJudgment node, DartType typeContext) {
-    node._replaceWithDesugared();
-    return const ExpressionInferenceResult(const DynamicType());
-  }
-
   ExpressionInferenceResult visitThisExpression(
       ThisExpression node, DartType typeContext) {
     return new ExpressionInferenceResult(inferrer.thisType);
@@ -4036,27 +3820,6 @@ class InferenceVisitor
     return new ExpressionInferenceResult(rhsType);
   }
 
-  ExpressionInferenceResult visitVariableAssignmentJudgment(
-      VariableAssignmentJudgment node, DartType typeContext) {
-    DartType readType;
-    Expression read = node.read;
-    if (read is VariableGet) {
-      readType = read.promotedType ?? read.variable.type;
-    }
-    DartType writeContext = const UnknownType();
-    Expression write = node.write;
-    if (write is VariableSet) {
-      writeContext = write.variable.type;
-      if (read != null) {
-        node._storeLetType(inferrer, read, writeContext);
-      }
-    }
-    DartType inferredType =
-        node._inferRhs(inferrer, readType, writeContext).inferredType;
-    node._replaceWithDesugared();
-    return new ExpressionInferenceResult(inferredType);
-  }
-
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     DartType declaredType =
@@ -4095,29 +3858,6 @@ class InferenceVisitor
             inferred: true);
       }
     }
-  }
-
-  ExpressionInferenceResult visitUnresolvedTargetInvocationJudgment(
-      UnresolvedTargetInvocationJudgment node, DartType typeContext) {
-    ExpressionInferenceResult result =
-        visitSyntheticExpressionJudgment(node, typeContext);
-    inferrer.inferInvocation(
-        typeContext,
-        node.fileOffset,
-        TypeInferrerImpl.unknownFunction,
-        const DynamicType(),
-        node.argumentsJudgment);
-    return result;
-  }
-
-  ExpressionInferenceResult visitUnresolvedVariableAssignmentJudgment(
-      UnresolvedVariableAssignmentJudgment node, DartType typeContext) {
-    DartType rhsType = inferrer
-        .inferExpression(node.rhs, const UnknownType(), true)
-        .inferredType;
-    DartType inferredType = node.isCompound ? const DynamicType() : rhsType;
-    node._replaceWithDesugared();
-    return new ExpressionInferenceResult(inferredType);
   }
 
   @override
