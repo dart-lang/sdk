@@ -1074,7 +1074,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
 
-    const intptr_t real_bss_base = elf_->AddBSSData("_kDartVMBSSData", 8);
+    const intptr_t real_bss_base =
+        elf_->AddBSSData("_kDartVMBSSData", sizeof(compiler::target::uword));
     ASSERT(bss_base == real_bss_base);
   }
 #endif

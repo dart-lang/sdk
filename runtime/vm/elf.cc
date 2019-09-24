@@ -391,8 +391,16 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
 }
 
 intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
-  ProgramBits* image = new (zone_)
-      ProgramBits(true, false, true, nullptr, /*filesz=*/0, /*memsz=*/size);
+  // Ideally the BSS segment would take no space in the object, but Android's
+  // "strip" utility truncates the memory-size of our segments to their
+  // file-size.
+  //
+  // Therefore we must insert zero-filled pages for the BSS.
+  uint8_t* const bytes = Thread::Current()->zone()->Alloc<uint8_t>(size);
+  memset(bytes, 0, size);
+
+  ProgramBits* const image = new (zone_)
+      ProgramBits(true, false, true, bytes, /*filesz=*/size, /*memsz=*/size);
   image->section_name = shstrtab_->AddString(".bss");
   AddSection(image);
   AddSegment(image);
