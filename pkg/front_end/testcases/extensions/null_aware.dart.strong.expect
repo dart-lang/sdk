@@ -12,6 +12,8 @@ extension Extension on self::Class* {
   get property = self::Extension|get#property;
   method method = self::Extension|method;
   tearoff method = self::Extension|get#method;
+  method testImplicitThis = self::Extension|testImplicitThis;
+  tearoff testImplicitThis = self::Extension|get#testImplicitThis;
   set property = self::Extension|set#property;
 }
 static method Extension|get#property(final self::Class* #this) → core::int*
@@ -25,22 +27,49 @@ static method Extension|method(final self::Class* #this) → core::int*
   return #this.{self::Class::field};
 static method Extension|get#method(final self::Class* #this) → () →* core::int*
   return () → core::int* => self::Extension|method(#this);
+static method Extension|testImplicitThis(final self::Class* #this) → dynamic {
+  self::expect(null, self::Extension|get#property(#this));
+  self::expect(42, let final core::int* #t2 = self::Extension|get#property(#this) in #t2.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#this, 42) : #t2);
+  self::expect(42, let final core::int* #t3 = self::Extension|get#property(#this) in #t3.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#this, 87) : #t3);
+}
+static method Extension|get#testImplicitThis(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|testImplicitThis(#this);
 static method main() → dynamic {
   self::Class* c;
-  self::expect(null, let final self::Class* #t2 = c in #t2.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t2));
-  self::expect(null, let final self::Class* #t3 = c in #t3.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t3));
-  self::expect(null, let final self::Class* #t4 = c in #t4.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t4));
-  self::expect(null, let final self::Class* #t5 = c in #t5.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t5, 42));
+  self::expect(null, let final self::Class* #t4 = c in #t4.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t4));
+  self::expect(null, let final self::Class* #t5 = c in #t5.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t5));
+  self::expect(null, let final self::Class* #t6 = c in #t6.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t6));
+  self::expect(null, let final self::Class* #t7 = c in #t7.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t7, 42));
   c = new self::Class::•();
-  self::expect(null, let final self::Class* #t6 = c in #t6.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t6));
-  self::expect(null, let final self::Class* #t7 = c in #t7.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t7));
-  () →* core::int* tearOff = let final self::Class* #t8 = c in #t8.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t8);
+  self::expect(null, let final self::Class* #t8 = c in #t8.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t8));
+  self::expect(null, let final self::Class* #t9 = c in #t9.{core::Object::==}(null) ?{core::int*} null : self::Extension|method(#t9));
+  () →* core::int* tearOff = let final self::Class* #t10 = c in #t10.{core::Object::==}(null) ?{() →* core::int*} null : self::Extension|get#method(#t10);
   self::expect(null, tearOff.call());
-  self::expect(42, let final self::Class* #t9 = c in #t9.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t9, 42));
+  self::expect(42, let final self::Class* #t11 = c in #t11.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t11, 42));
   self::expect(42, tearOff.call());
-  self::expect(null, let final self::Class* #t10 = c in #t10.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t10, null));
-  self::expect(42, let final self::Class* #t11 = c in let final core::int* #t12 = self::Extension|get#property(#t11) in #t12.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t11, 42) : #t12);
-  self::expect(42, let final self::Class* #t13 = c in let final core::int* #t14 = self::Extension|get#property(#t13) in #t14.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t13, 87) : #t14);
+  self::expect(null, let final self::Class* #t12 = c in #t12.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t12, null));
+  self::expect(42, let final self::Class* #t13 = c in #t13.{core::Object::==}(null) ?{core::int*} null : self::Extension|set#property(#t13, 42));
+  let final self::Class* #t14 = c in #t14.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t14, null);
+  self::expect(null, let final self::Class* #t15 = c in #t15.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t15));
+  self::expect(42, let final self::Class* #t16 = c in let final core::int* #t17 = self::Extension|get#property(#t16) in #t17.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t16, 42) : #t17);
+  self::expect(42, let final self::Class* #t18 = c in let final core::int* #t19 = self::Extension|get#property(#t18) in #t19.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t18, 87) : #t19);
+  self::expect(null, let final self::Class* #t20 = c in #t20.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t20, null));
+  let final self::Class* #t21 = c in self::Extension|get#property(#t21).{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t21, 42) : null;
+  self::expect(42, let final self::Class* #t22 = c in #t22.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t22));
+  let final self::Class* #t23 = c in self::Extension|get#property(#t23).{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t23, 87) : null;
+  self::expect(42, let final self::Class* #t24 = c in #t24.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t24));
+  let final self::Class* #t25 = c in #t25.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t25, null);
+  self::expect(null, let final self::Class* #t26 = c in #t26.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t26));
+  self::expect(42, let final self::Class* #t27 = c in let final core::int* #t28 = self::Extension|get#property(#t27) in #t28.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t27, 42) : #t28);
+  self::expect(42, let final self::Class* #t29 = c in let final core::int* #t30 = self::Extension|get#property(#t29) in #t30.{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t29, 87) : #t30);
+  let final self::Class* #t31 = c in #t31.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t31, null);
+  self::expect(null, let final self::Class* #t32 = c in #t32.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t32));
+  let final self::Class* #t33 = c in self::Extension|get#property(#t33).{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t33, 42) : null;
+  self::expect(42, let final self::Class* #t34 = c in #t34.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t34));
+  let final self::Class* #t35 = c in self::Extension|get#property(#t35).{core::num::==}(null) ?{core::int*} self::Extension|set#property(#t35, 87) : null;
+  self::expect(42, let final self::Class* #t36 = c in #t36.{core::Object::==}(null) ?{core::int*} null : self::Extension|get#property(#t36));
+  let final self::Class* #t37 = c in #t37.{core::Object::==}(null) ?{core::Null?} null : self::Extension|set#property(#t37, null);
+  self::Extension|testImplicitThis(c);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual)) {

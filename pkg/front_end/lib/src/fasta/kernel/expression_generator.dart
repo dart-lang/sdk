@@ -144,31 +144,7 @@ abstract class Generator {
   ///
   /// [type] is the static type of the RHS.
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext: false}) {
-    ComplexAssignmentJudgment complexAssignment = startComplexAssignment(value);
-    if (voidContext) {
-      Expression nullAwareCombiner = _forest.createConditionalExpression(
-          buildIsNull(_makeRead(complexAssignment), offset, _helper),
-          null,
-          _makeWrite(value, false, complexAssignment),
-          null,
-          _forest.createNullLiteral(null)..fileOffset = offset)
-        ..fileOffset = offset;
-      complexAssignment?.nullAwareCombiner = nullAwareCombiner;
-      return _finish(nullAwareCombiner, complexAssignment);
-    }
-    VariableDeclaration tmp =
-        new VariableDeclaration.forValue(_makeRead(complexAssignment));
-    Expression nullAwareCombiner = _forest.createConditionalExpression(
-        buildIsNull(new VariableGet(tmp), offset, _helper),
-        null,
-        _makeWrite(value, false, complexAssignment),
-        null,
-        new VariableGet(tmp))
-      ..fileOffset = offset;
-    complexAssignment?.nullAwareCombiner = nullAwareCombiner;
-    return _finish(makeLet(tmp, nullAwareCombiner), complexAssignment);
-  }
+      {bool voidContext: false});
 
   /// Returns a [Expression] representing a compound assignment (e.g. `+=`)
   /// with the generator on the LHS and [value] on the RHS.
@@ -2210,7 +2186,25 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _makeRead(null);
+    return _createRead();
+  }
+
+  Expression _createRead() {
+    Expression read;
+    if (readTarget == null) {
+      read = _makeInvalidRead();
+    } else {
+      read = _helper.buildExtensionMethodInvocation(
+          fileOffset,
+          readTarget,
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset,
+              _extensionTypeParameterCount,
+              0,
+              _helper.createVariableGet(extensionThis, fileOffset),
+              extensionTypeArguments: _createExtensionTypeArguments()));
+    }
+    return read;
   }
 
   @override
@@ -2238,7 +2232,34 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _makeWrite(value, voidContext, null);
+    return _createWrite(fileOffset, value);
+  }
+
+  Expression _createWrite(int offset, Expression value) {
+    Expression write;
+    if (writeTarget == null) {
+      write = _makeInvalidWrite(value);
+    } else {
+      write = _helper.buildExtensionMethodInvocation(
+          offset,
+          writeTarget,
+          _helper.forest.createArgumentsForExtensionMethod(
+              offset,
+              _extensionTypeParameterCount,
+              0,
+              _helper.createVariableGet(extensionThis, fileOffset),
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              positionalArguments: [value]));
+    }
+    write.fileOffset = offset;
+    return write;
+  }
+
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullSet(_createRead(), _createWrite(fileOffset, value),
+        forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override
@@ -2430,7 +2451,22 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _makeRead(null);
+    return _createRead(receiver);
+  }
+
+  Expression _createRead(Expression receiver) {
+    Expression read;
+    if (readTarget == null) {
+      read = _makeInvalidRead();
+    } else {
+      read = _helper.buildExtensionMethodInvocation(
+          fileOffset,
+          readTarget,
+          _helper.forest.createArgumentsForExtensionMethod(
+              fileOffset, extensionTypeParameterCount, 0, receiver,
+              extensionTypeArguments: _createExtensionTypeArguments()));
+    }
+    return read;
   }
 
   @override
@@ -2455,7 +2491,37 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _makeWrite(value, voidContext, null);
+    return _createWrite(fileOffset, receiver, value);
+  }
+
+  Expression _createWrite(int offset, Expression receiver, Expression value) {
+    Expression write;
+    if (writeTarget == null) {
+      write = _makeInvalidWrite(value);
+    } else {
+      write = _helper.buildExtensionMethodInvocation(
+          offset,
+          writeTarget,
+          _helper.forest.createArgumentsForExtensionMethod(
+              offset, extensionTypeParameterCount, 0, receiver,
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              positionalArguments: [value]));
+    }
+    write.fileOffset = offset;
+    return write;
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    VariableDeclaration variable = _helper.forest
+        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    Expression read =
+        _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
+    Expression write = _createWrite(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), value);
+    return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
+      ..fileOffset = offset;
   }
 
   @override
