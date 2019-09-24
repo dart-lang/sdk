@@ -11,19 +11,21 @@
 class C0 {
   int get m1 => 0;
   void set m2(int x) {}
+  int operator[](int index) => 0;
 }
 
 extension E0 on C0 {
   void set m1(int x) {}
   int get m2 => 0;
+  void operator[]=(int index, int value) {}
 }
 
 void test0() {
   C0 c0 = C0();
   c0.m1;
   c0.m1 = 0;
-  // ^^^^^^
-  // [analyzer] unspecified
+  // ^^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] unspecified
   E0(c0).m1 = 0;
   E0(c0).m1;
@@ -32,20 +34,59 @@ void test0() {
   // [cfe] unspecified
 
   c0.m1 += 0;
-  // ^^^^^^
-  // [analyzer] unspecified
+  // ^^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [cfe] unspecified
+
+  c0.m1++;
+  // ^^
+  // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
   // [cfe] unspecified
 
   c0.m2 = 0;
   c0.m2;
   // ^^
-  // [analyzer] unspecified
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
   // [cfe] unspecified
   c0.m2 += 0;
-  // ^^^^^^^
+  // ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] unspecified
+  c0.m2++;
+  // ^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+  // [cfe] unspecified
+
+  E0(c0).m2;
+
+  c0[0];
+  c0[0] = 0;
+  // ^^^^^^
   // [analyzer] unspecified
   // [cfe] unspecified
-  E0(c0).m2;
+  E0(c0)[0];
+  // ^^^^^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+  E0(c0)[0] = 0;
+
+  c0[0] += 0;
+  // ^^^^^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+  c0[0]++;
+  // ^^^^^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  E0(c0)[0] += 0;
+  // ^^^^^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+  E0(c0)[0]++;
+  // ^^^^^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
 
 // Conflicting extensions.
@@ -55,11 +96,13 @@ class C1<T> {}
 extension E1A<T> on C1<T> {
   int get m1 => 0;
   void set m2(int x) {}
+  int operator[](int index) => 0;
 }
 
 extension E1B on C1<Object> {
   void set m1(int x) {}
   int get m2 => 0;
+  void operator[]=(int index, int value) {}
 }
 
 void test1() {
@@ -78,6 +121,23 @@ void test1() {
 
   c1a.m2 = 0;
 
+  c1a[0] = 0;
+  //  ^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1a[0] += 0;
+  //  ^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1a[0]++;
+  //  ^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1a[0];
+
   C1<Object> c1b = C1<Null>(); // Neither extension is more specific.
 
   c1b.m1;
@@ -90,14 +150,40 @@ void test1() {
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] unspecified
 
+  c1b.m1 += 0;
+  //  ^^
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // [cfe] unspecified
+
+  c1b.m1++;
+  //  ^^
+  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // [cfe] unspecified
+
   c1b.m2;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] unspecified
 
-  c1b.m2 = 0;
+
+  c1b[0];
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1b[0] = 0;
+  //  ^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1b[0] += 0;
+  //  ^^
+  // [analyzer] unspecified
+  // [cfe] unspecified
+
+  c1b[0]++;
+  //  ^^
+  // [analyzer] unspecified
   // [cfe] unspecified
 }
 
@@ -106,12 +192,15 @@ class C2 {
   int get m1 => 0;
   void set m2(int x) {}
   int get mc => 0;
+  void operator[]=(int index, int value) {}
 }
 
 extension E2 on C2 {
   void set m1(int x) {}
   int get m2 => 0;
   String get me => "";
+  int operator[](int index) => 0;
+
 
   void test2() {
     // Using `this.member` means using the `on` type.
@@ -126,6 +215,22 @@ extension E2 on C2 {
     this.m2;
     //   ^^
     // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
+    // [cfe] unspecified
+
+    this[0] = 0;
+    this[0];
+    //   ^^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+
+    this[0] += 0;
+    //   ^^
+    // [analyzer] unspecified
+    // [cfe] unspecified
+
+    this[0] ++;
+    //   ^^
+    // [analyzer] unspecified
     // [cfe] unspecified
 
     // Check that `this.mc` refers to `C2.mc`.
