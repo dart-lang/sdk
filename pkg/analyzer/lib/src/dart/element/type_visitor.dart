@@ -23,7 +23,7 @@ class DartTypeVisitor<R> {
 
   R visitInterfaceType(InterfaceType type) => defaultDartType(type);
 
-  R visitNamedType(NamedTypeBuilder type) => defaultDartType(type);
+  R visitNamedTypeBuilder(NamedTypeBuilder type) => defaultDartType(type);
 
   R visitTypeParameterType(TypeParameterType type) => defaultDartType(type);
 
@@ -48,7 +48,7 @@ class DartTypeVisitor<R> {
       return visitor.visitInterfaceType(type);
     }
     if (type is NamedTypeBuilder) {
-      return visitor.visitNamedType(type);
+      return visitor.visitNamedTypeBuilder(type);
     }
     if (type is TypeParameterType) {
       return visitor.visitTypeParameterType(type);

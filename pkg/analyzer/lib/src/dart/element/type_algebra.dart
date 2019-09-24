@@ -449,7 +449,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitNamedType(NamedTypeBuilder type) {
+  DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
     if (type.arguments.isEmpty) {
       return type;
     }
