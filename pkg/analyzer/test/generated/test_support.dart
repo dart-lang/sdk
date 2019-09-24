@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -53,28 +52,6 @@ class EngineTestCase {
 
   AnalysisContext createAnalysisContext() {
     return TestAnalysisContext();
-  }
-
-  /// Return the getter in the given [type] with the given [name]. Inherited
-  /// getters are ignored.
-  PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
-    for (PropertyAccessorElement accessor in type.element.accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    fail("Could not find getter named $getterName in ${type.displayName}");
-  }
-
-  /// Return the method in the given [type] with the given [name]. Inherited
-  /// methods are ignored.
-  MethodElement getMethod(InterfaceType type, String methodName) {
-    for (MethodElement method in type.element.methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    fail("Could not find method named $methodName in ${type.displayName}");
   }
 
   void setUp() {}

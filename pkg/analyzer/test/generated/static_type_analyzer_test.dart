@@ -220,8 +220,7 @@ void useMap(Map<int, int> m) {
 }
 
 @reflectiveTest
-class StaticTypeAnalyzerTest extends EngineTestCase
-    with ResourceProviderMixin, ElementsTypesMixin {
+class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -264,9 +263,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     _listener.assertNoErrors();
   }
 
-  @override
   void setUp() {
-    super.setUp();
     _listener = new GatheringErrorListener();
     _analyzer = _createAnalyzer();
   }
@@ -508,7 +505,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 + 2.0
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = getMethod(_typeProvider.numType, "+");
+    node.staticElement = _typeProvider.numType.getMethod('+');
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
@@ -517,7 +514,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 + 2
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
-    node.staticElement = getMethod(_typeProvider.numType, "+");
+    node.staticElement = _typeProvider.numType.getMethod('+');
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -526,7 +523,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 2 / 2
     BinaryExpressionImpl node = AstTestFactory.binaryExpression(
         _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
-    node.staticElement = getMethod(_typeProvider.numType, "/");
+    node.staticElement = _typeProvider.numType.getMethod('/');
     node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), _typeProvider.doubleType);
     _listener.assertNoErrors();
@@ -559,7 +556,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 * 2.0
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = getMethod(_typeProvider.numType, "*");
+    node.staticElement = _typeProvider.numType.getMethod('*');
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
@@ -1111,7 +1108,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // -0
     PrefixExpression node =
         AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
+    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
     node.staticElement = minusMethod;
     expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
@@ -1121,7 +1118,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // --0
     PrefixExpression node = AstTestFactory.prefixExpression(
         TokenType.MINUS_MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
+    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
     node.staticElement = minusMethod;
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -1139,7 +1136,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // ++0
     PrefixExpression node = AstTestFactory.prefixExpression(
         TokenType.PLUS_PLUS, _resolvedInteger(0));
-    MethodElement plusMethod = getMethod(_typeProvider.numType, "+");
+    MethodElement plusMethod = _typeProvider.numType.getMethod('+');
     node.staticElement = plusMethod;
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -1149,7 +1146,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // ~0
     PrefixExpression node =
         AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
-    MethodElement tildeMethod = getMethod(_typeProvider.intType, "~");
+    MethodElement tildeMethod = _typeProvider.intType.getMethod('~');
     node.staticElement = tildeMethod;
     expect(_analyze(node), _typeProvider.intType);
     _listener.assertNoErrors();

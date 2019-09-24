@@ -298,8 +298,7 @@ class C {}
 }
 
 @reflectiveTest
-class ElementResolverTest extends EngineTestCase
-    with ResourceProviderMixin, ElementsTypesMixin {
+class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -376,9 +375,7 @@ class ElementResolverTest extends EngineTestCase
     _listener.assertNoErrors();
   }
 
-  @override
   void setUp() {
-    super.setUp();
     _listener = new GatheringErrorListener();
     _createResolver();
   }
@@ -427,7 +424,7 @@ class ElementResolverTest extends EngineTestCase
         leftHandSide, TokenType.PLUS_EQ, AstTestFactory.integer(1));
     _resolveNode(assignment);
     expect(
-        assignment.staticElement, same(getMethod(_typeProvider.numType, "+")));
+        assignment.staticElement, same(_typeProvider.numType.getMethod('+')));
     _listener.assertNoErrors();
   }
 
@@ -488,7 +485,7 @@ class ElementResolverTest extends EngineTestCase
     BinaryExpression expression = AstTestFactory.binaryExpression(
         left, TokenType.PLUS, AstTestFactory.identifier3("j"));
     _resolveNode(expression);
-    expect(expression.staticElement, getMethod(numType, "+"));
+    expect(expression.staticElement, numType.getMethod('+'));
     _listener.assertNoErrors();
   }
 
@@ -793,7 +790,7 @@ class ElementResolverTest extends EngineTestCase
         AstTestFactory.methodInvocation(left, methodName);
     _resolveNode(invocation);
     expect(invocation.methodName.staticElement,
-        same(getMethod(numType, methodName)));
+        same(numType.getMethod(methodName)));
     _listener.assertNoErrors();
   }
 
@@ -804,7 +801,7 @@ class ElementResolverTest extends EngineTestCase
     PostfixExpression expression =
         AstTestFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
     _resolveNode(expression);
-    expect(expression.staticElement, getMethod(numType, "+"));
+    expect(expression.staticElement, numType.getMethod('+'));
     _listener.assertNoErrors();
   }
 
@@ -830,8 +827,10 @@ class ElementResolverTest extends EngineTestCase
         AstTestFactory.postfixExpression(operand, TokenType.BANG);
     _resolveNode(expression);
     // TODO(danrubel): fails with Unsupported operation
-    expect(expression.staticElement, getMethod(numType, "!"));
+    expect(expression.staticElement, numType.getMethod('!'));
     _listener.assertNoErrors();
+    // TODO(scheglov) This is wrong: `expr!` should not be resolved to `num.!`.
+    fail('Expectations are wrong.');
   }
 
   test_visitPrefixedIdentifier_dynamic() async {
@@ -942,7 +941,7 @@ class ElementResolverTest extends EngineTestCase
     PrefixExpression expression =
         AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
     _resolveNode(expression);
-    expect(expression.staticElement, getMethod(numType, "+"));
+    expect(expression.staticElement, numType.getMethod('+'));
     _listener.assertNoErrors();
   }
 
@@ -1012,7 +1011,7 @@ class ElementResolverTest extends EngineTestCase
     String fieldName = 'nan';
     SimpleIdentifier node = AstTestFactory.identifier3(fieldName);
     _resolveInClass(node, doubleType.element);
-    expect(node.staticElement, getGetter(doubleType, fieldName));
+    expect(node.staticElement, doubleType.getGetter(fieldName));
     _listener.assertNoErrors();
   }
 
