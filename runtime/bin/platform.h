@@ -13,8 +13,8 @@ namespace bin {
 
 class Platform {
  public:
-  // Perform process wide platform specific initialization.
-  static bool InitOnce();
+  // Perform platform specific initialization.
+  static bool Initialize();
 
   // Returns the number of processors on the machine.
   static int NumberOfProcessors();

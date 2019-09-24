@@ -20,7 +20,6 @@ void BootstrapDartIo() {
   // Bootstrap 'dart:io' event handler.
   TimerUtils::InitOnce();
   EventHandler::Start();
-  Platform::InitOnce();
 }
 
 void CleanupDartIo() {

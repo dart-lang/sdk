@@ -293,7 +293,7 @@ static int Main(int argc, const char** argv) {
   const char** dart_argv = nullptr;
 
   // Perform platform specific initialization.
-  if (!dart::bin::Platform::InitOnce()) {
+  if (!dart::bin::Platform::Initialize()) {
     Syslog::PrintErr("Initialization failed\n");
     return 1;
   }

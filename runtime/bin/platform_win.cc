@@ -103,7 +103,7 @@ class PlatformWin {
   DISALLOW_IMPLICIT_CONSTRUCTORS(PlatformWin);
 };
 
-bool Platform::InitOnce() {
+bool Platform::Initialize() {
   PlatformWin::InitOnce();
   return true;
 }

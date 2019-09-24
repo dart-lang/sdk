@@ -44,7 +44,7 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
   abort();
 }
 
-bool Platform::InitOnce() {
+bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
   // handler error EPIPE is set instead.
