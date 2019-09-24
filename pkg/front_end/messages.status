@@ -314,6 +314,8 @@ ImplementsBeforeWith/script: Fail
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsFutureOr/part_wrapped_script1: Fail # Importing file in the (now) part.
 ImplicitCallOfNonMethod/example: Fail
+ImplicitMixinOverride/analyzerCode: Fail
+ImplicitMixinOverride/example: Fail
 ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
@@ -323,6 +325,8 @@ InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
+InterfaceCheck/analyzerCode: Fail
+InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 IntersectionTypeAsTypeArgument/analyzerCode: Fail # Analyzer doesn't catch this error.
 InvalidBreakTarget/analyzerCode: Fail
@@ -392,6 +396,8 @@ MultipleOnClauses/script: Fail
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
 NamedFunctionExpression/example: Fail
+NamedMixinOverride/analyzerCode: Fail
+NamedMixinOverride/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail

@@ -86,15 +86,15 @@ import '../fasta_codes.dart'
         templateGenericFunctionTypeInferredAsActualTypeArgument,
         templateImplementsRepeated,
         templateImplementsSuperClass,
-        templateImplicitMixinOverrideContext,
+        templateImplicitMixinOverride,
         templateIncompatibleRedirecteeFunctionType,
         templateIncorrectTypeArgument,
         templateIncorrectTypeArgumentInSupertype,
         templateIncorrectTypeArgumentInSupertypeInferred,
-        templateInterfaceCheckContext,
+        templateInterfaceCheck,
         templateInternalProblemNotFoundIn,
         templateMixinApplicationIncompatibleSupertype,
-        templateNamedMixinOverrideContext,
+        templateNamedMixinOverride,
         templateOverriddenMethodCause,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
@@ -1067,7 +1067,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
     }
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
-      library.addProblem(
+      reportInvalidOverride(
+          isInterfaceCheck,
+          declaredMember,
           templateOverrideTypeVariablesMismatch.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
@@ -1075,14 +1077,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          declaredMember.fileUri,
           context: [
-                templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
-                    .withLocation(_getMemberUri(interfaceMember),
-                        interfaceMember.fileOffset, noLength)
-              ] +
-              inheritedContext(isInterfaceCheck, declaredMember));
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(_getMemberUri(interfaceMember),
+                    interfaceMember.fileOffset, noLength)
+          ]);
     } else if (declaredFunction?.typeParameters != null) {
       Map<TypeParameter, DartType> substitutionMap =
           <TypeParameter, DartType>{};
@@ -1103,7 +1103,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
                 interfaceSubstitution.substituteType(interfaceBound);
           }
           if (declaredBound != substitution.substituteType(interfaceBound)) {
-            library.addProblem(
+            reportInvalidOverride(
+                isInterfaceCheck,
+                declaredMember,
                 templateOverrideTypeVariablesMismatch.withArguments(
                     "${declaredMember.enclosingClass.name}."
                         "${declaredMember.name.name}",
@@ -1111,14 +1113,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                         "${interfaceMember.name.name}"),
                 declaredMember.fileOffset,
                 noLength,
-                declaredMember.fileUri,
                 context: [
-                      templateOverriddenMethodCause
-                          .withArguments(interfaceMember.name.name)
-                          .withLocation(_getMemberUri(interfaceMember),
-                              interfaceMember.fileOffset, noLength)
-                    ] +
-                    inheritedContext(isInterfaceCheck, declaredMember));
+                  templateOverriddenMethodCause
+                      .withArguments(interfaceMember.name.name)
+                      .withLocation(_getMemberUri(interfaceMember),
+                          interfaceMember.fileOffset, noLength)
+                ]);
           }
         }
       }
@@ -1203,14 +1203,14 @@ abstract class ClassBuilder extends DeclarationBuilder {
             interfaceMemberName);
         fileOffset = declaredParameter.fileOffset;
       }
-      library.addProblem(message, fileOffset, noLength, declaredMember.fileUri,
+      reportInvalidOverride(
+          isInterfaceCheck, declaredMember, message, fileOffset, noLength,
           context: [
-                templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
-                    .withLocation(_getMemberUri(interfaceMember),
-                        interfaceMember.fileOffset, noLength)
-              ] +
-              inheritedContext(isInterfaceCheck, declaredMember));
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(_getMemberUri(interfaceMember),
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
   }
 
@@ -1248,7 +1248,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
         isInterfaceCheck);
     if (declaredFunction.positionalParameters.length <
         interfaceFunction.positionalParameters.length) {
-      library.addProblem(
+      reportInvalidOverride(
+          isInterfaceCheck,
+          declaredMember,
           templateOverrideFewerPositionalArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
@@ -1256,18 +1258,18 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          declaredMember.fileUri,
           context: [
-                templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
-                    .withLocation(interfaceMember.fileUri,
-                        interfaceMember.fileOffset, noLength)
-              ] +
-              inheritedContext(isInterfaceCheck, declaredMember));
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     if (interfaceFunction.requiredParameterCount <
         declaredFunction.requiredParameterCount) {
-      library.addProblem(
+      reportInvalidOverride(
+          isInterfaceCheck,
+          declaredMember,
           templateOverrideMoreRequiredArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
@@ -1275,14 +1277,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          declaredMember.fileUri,
           context: [
-                templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
-                    .withLocation(interfaceMember.fileUri,
-                        interfaceMember.fileOffset, noLength)
-              ] +
-              inheritedContext(isInterfaceCheck, declaredMember));
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     for (int i = 0;
         i < declaredFunction.positionalParameters.length &&
@@ -1311,7 +1311,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
     }
     if (declaredFunction.namedParameters.length <
         interfaceFunction.namedParameters.length) {
-      library.addProblem(
+      reportInvalidOverride(
+          isInterfaceCheck,
+          declaredMember,
           templateOverrideFewerNamedArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
                   "${declaredMember.name.name}",
@@ -1319,14 +1321,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                   "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
-          declaredMember.fileUri,
           context: [
-                templateOverriddenMethodCause
-                    .withArguments(interfaceMember.name.name)
-                    .withLocation(interfaceMember.fileUri,
-                        interfaceMember.fileOffset, noLength)
-              ] +
-              inheritedContext(isInterfaceCheck, declaredMember));
+            templateOverriddenMethodCause
+                .withArguments(interfaceMember.name.name)
+                .withLocation(interfaceMember.fileUri,
+                    interfaceMember.fileOffset, noLength)
+          ]);
     }
     int compareNamedParameters(VariableDeclaration p0, VariableDeclaration p1) {
       return p0.name.compareTo(p1.name);
@@ -1348,7 +1348,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
       while (declaredNamedParameters.current.name !=
           interfaceNamedParameters.current.name) {
         if (!declaredNamedParameters.moveNext()) {
-          library.addProblem(
+          reportInvalidOverride(
+              isInterfaceCheck,
+              declaredMember,
               templateOverrideMismatchNamedParameter.withArguments(
                   "${declaredMember.enclosingClass.name}."
                       "${declaredMember.name.name}",
@@ -1357,14 +1359,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
                       "${interfaceMember.name.name}"),
               declaredMember.fileOffset,
               noLength,
-              declaredMember.fileUri,
               context: [
-                    templateOverriddenMethodCause
-                        .withArguments(interfaceMember.name.name)
-                        .withLocation(interfaceMember.fileUri,
-                            interfaceMember.fileOffset, noLength)
-                  ] +
-                  inheritedContext(isInterfaceCheck, declaredMember));
+                templateOverriddenMethodCause
+                    .withArguments(interfaceMember.name.name)
+                    .withLocation(interfaceMember.fileUri,
+                        interfaceMember.fileOffset, noLength)
+              ]);
           break outer;
         }
       }
@@ -1440,38 +1440,52 @@ abstract class ClassBuilder extends DeclarationBuilder {
     return isCovariant;
   }
 
-  // Extra context on override messages when the overriding member is inherited
-  List<LocatedMessage> inheritedContext(
-      bool isInterfaceCheck, Member declaredMember) {
+  // When the overriding member is inherited, report the class containing
+  // the conflict as the main error.
+  void reportInvalidOverride(bool isInterfaceCheck, Member declaredMember,
+      Message message, int fileOffset, int length,
+      {List<LocatedMessage> context}) {
     if (declaredMember.enclosingClass == cls) {
       // Ordinary override
-      return const [];
-    }
-    if (isInterfaceCheck) {
-      // Interface check
-      return [
-        templateInterfaceCheckContext
-            .withArguments(cls.name)
-            .withLocation(cls.fileUri, cls.fileOffset, cls.name.length)
-      ];
+      library.addProblem(message, fileOffset, length, declaredMember.fileUri,
+          context: context);
     } else {
-      if (cls.isAnonymousMixin) {
-        // Implicit mixin application class
-        String baseName = cls.superclass.demangledName;
-        String mixinName = cls.mixedInClass.name;
-        int classNameLength = cls.nameAsMixinApplicationSubclass.length;
-        return [
-          templateImplicitMixinOverrideContext
-              .withArguments(mixinName, baseName)
-              .withLocation(cls.fileUri, cls.fileOffset, classNameLength)
-        ];
+      context = [
+        message.withLocation(declaredMember.fileUri, fileOffset, length),
+        ...?context
+      ];
+      if (isInterfaceCheck) {
+        // Interface check
+        library.addProblem(
+            templateInterfaceCheck.withArguments(
+                declaredMember.name.name, cls.name),
+            cls.fileOffset,
+            cls.name.length,
+            cls.fileUri,
+            context: context);
       } else {
-        // Named mixin application class
-        return [
-          templateNamedMixinOverrideContext
-              .withArguments(cls.name)
-              .withLocation(cls.fileUri, cls.fileOffset, cls.name.length)
-        ];
+        if (cls.isAnonymousMixin) {
+          // Implicit mixin application class
+          String baseName = cls.superclass.demangledName;
+          String mixinName = cls.mixedInClass.name;
+          int classNameLength = cls.nameAsMixinApplicationSubclass.length;
+          library.addProblem(
+              templateImplicitMixinOverride.withArguments(
+                  mixinName, baseName, declaredMember.name.name),
+              cls.fileOffset,
+              classNameLength,
+              cls.fileUri,
+              context: context);
+        } else {
+          // Named mixin application class
+          library.addProblem(
+              templateNamedMixinOverride.withArguments(
+                  cls.name, declaredMember.name.name),
+              cls.fileOffset,
+              cls.name.length,
+              cls.fileUri,
+              context: context);
+        }
       }
     }
   }

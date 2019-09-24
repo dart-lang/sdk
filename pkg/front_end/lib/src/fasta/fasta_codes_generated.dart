@@ -4797,30 +4797,35 @@ Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
 const Template<
     Message Function(
         String name,
+        String name2,
         String
-            name2)> templateImplicitMixinOverrideContext = const Template<
-        Message Function(String name, String name2)>(
+            name3)> templateImplicitMixinOverride = const Template<
+        Message Function(String name, String name2, String name3)>(
     messageTemplate:
-        r"""Override was introduced when the mixin '#name' was applied to '#name2'.""",
-    withArguments: _withArgumentsImplicitMixinOverrideContext);
+        r"""Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'.""",
+    withArguments: _withArgumentsImplicitMixinOverride);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeImplicitMixinOverrideContext =
-    const Code<Message Function(String name, String name2)>(
-        "ImplicitMixinOverrideContext", templateImplicitMixinOverrideContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2, String name3)>
+    codeImplicitMixinOverride =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "ImplicitMixinOverride",
+  templateImplicitMixinOverride,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitMixinOverrideContext(String name, String name2) {
+Message _withArgumentsImplicitMixinOverride(
+    String name, String name2, String name3) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  return new Message(codeImplicitMixinOverrideContext,
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeImplicitMixinOverride,
       message:
-          """Override was introduced when the mixin '${name}' was applied to '${name2}'.""",
-      arguments: {'name': name, 'name2': name2});
+          """Applying the mixin '${name}' to '${name2}' introduces an erroneous override of '${name3}'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5676,27 +5681,31 @@ Message _withArgumentsIntegerLiteralIsOutOfRange(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String name,
         String
-            name)> templateInterfaceCheckContext = const Template<
-        Message Function(String name)>(
+            name2)> templateInterfaceCheck = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""Both members are inherited by the non-abstract class '#name'.""",
-    withArguments: _withArgumentsInterfaceCheckContext);
+        r"""The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface.""",
+    withArguments: _withArgumentsInterfaceCheck);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeInterfaceCheckContext =
-    const Code<Message Function(String name)>(
-        "InterfaceCheckContext", templateInterfaceCheckContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2)> codeInterfaceCheck =
+    const Code<Message Function(String name, String name2)>(
+  "InterfaceCheck",
+  templateInterfaceCheck,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInterfaceCheckContext(String name) {
+Message _withArgumentsInterfaceCheck(String name, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeInterfaceCheckContext,
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInterfaceCheck,
       message:
-          """Both members are inherited by the non-abstract class '${name}'.""",
-      arguments: {'name': name});
+          """The implementation of '${name}' in the non-abstract class '${name2}' does not conform to its interface.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7340,27 +7349,31 @@ const MessageCode messageNamedFunctionExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String name,
         String
-            name)> templateNamedMixinOverrideContext = const Template<
-        Message Function(String name)>(
+            name2)> templateNamedMixinOverride = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""Override was introduced in the mixin application class '#name'.""",
-    withArguments: _withArgumentsNamedMixinOverrideContext);
+        r"""The mixin application class '#name' introduces an erroneous override of '#name2'.""",
+    withArguments: _withArgumentsNamedMixinOverride);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeNamedMixinOverrideContext =
-    const Code<Message Function(String name)>(
-        "NamedMixinOverrideContext", templateNamedMixinOverrideContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2)> codeNamedMixinOverride =
+    const Code<Message Function(String name, String name2)>(
+  "NamedMixinOverride",
+  templateNamedMixinOverride,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNamedMixinOverrideContext(String name) {
+Message _withArgumentsNamedMixinOverride(String name, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeNamedMixinOverrideContext,
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeNamedMixinOverride,
       message:
-          """Override was introduced in the mixin application class '${name}'.""",
-      arguments: {'name': name});
+          """The mixin application class '${name}' introduces an erroneous override of '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
