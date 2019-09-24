@@ -151,6 +151,10 @@ class FindNode {
     return _node(search, (n) => n is IntegerLiteral);
   }
 
+  Label label(String search) {
+    return _node(search, (n) => n is Label);
+  }
+
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
   }

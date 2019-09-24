@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -90,16 +90,6 @@ class EngineTestCase {
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.thisOrAncestorMatching(predicate);
-  }
-
-  /// Find the [SimpleIdentifier] with at offset of the [prefix].
-  static SimpleIdentifier findSimpleIdentifier(
-      AstNode root, String code, String prefix) {
-    int offset = code.indexOf(prefix);
-    if (offset == -1) {
-      throw new ArgumentError("Not found '$prefix'.");
-    }
-    return new NodeLocator(offset).searchWithin(root);
   }
 }
 
