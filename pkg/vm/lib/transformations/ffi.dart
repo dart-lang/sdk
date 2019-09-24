@@ -253,9 +253,9 @@ class FfiTransformer extends Transformer {
     if (nativeType is! InterfaceType) {
       return null;
     }
-    InterfaceType native = nativeType;
-    Class nativeClass = native.classNode;
-    NativeType nativeType_ = getType(nativeClass);
+    final InterfaceType native = nativeType;
+    final Class nativeClass = native.classNode;
+    final NativeType nativeType_ = getType(nativeClass);
 
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {
       return allowStructs ? nativeType : null;
@@ -281,17 +281,17 @@ class FfiTransformer extends Transformer {
       return null;
     }
 
-    FunctionType fun = native.typeArguments[0];
+    final FunctionType fun = native.typeArguments[0];
     if (fun.namedParameters.isNotEmpty) return null;
     if (fun.positionalParameters.length != fun.requiredParameterCount) {
       return null;
     }
     if (fun.typeParameters.length != 0) return null;
     // TODO(36730): Structs cannot appear in native function signatures.
-    DartType returnType =
+    final DartType returnType =
         convertNativeTypeToDartType(fun.returnType, /*allowStructs=*/ false);
     if (returnType == null) return null;
-    List<DartType> argumentTypes = fun.positionalParameters
+    final List<DartType> argumentTypes = fun.positionalParameters
         .map((t) => convertNativeTypeToDartType(t, /*allowStructs=*/ false))
         .toList();
     if (argumentTypes.contains(null)) return null;
@@ -299,7 +299,7 @@ class FfiTransformer extends Transformer {
   }
 
   NativeType getType(Class c) {
-    int index = nativeTypesClasses.indexOf(c);
+    final int index = nativeTypesClasses.indexOf(c);
     if (index == -1) {
       return null;
     }
