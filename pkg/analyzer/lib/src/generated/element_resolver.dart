@@ -396,7 +396,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Expression function = node.function;
     DartType functionType;
     if (function is ExtensionOverride) {
-      var member = _extensionResolver.getOverrideMember(function, 'call');
+      var result = _extensionResolver.getOverrideMember(function, 'call');
+      var member = result.getter;
       if (member == null) {
         _resolver.errorReporter.reportErrorForNode(
             CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
@@ -478,8 +479,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
     String getterMethodName = TokenType.INDEX.lexeme;
     String setterMethodName = TokenType.INDEX_EQ.lexeme;
 
-    var result = _newPropertyResolver()
-        .resolve(target, staticType, getterMethodName, target);
+    ResolutionResult result;
+    if (target is ExtensionOverride) {
+      result = _extensionResolver.getOverrideMember(target, getterMethodName);
+    } else {
+      result = _newPropertyResolver()
+          .resolve(target, staticType, getterMethodName, target);
+    }
 
     bool isInGetterContext = node.inGetterContext();
     bool isInSetterContext = node.inSetterContext();
@@ -694,12 +700,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
       SimpleIdentifier propertyName = node.propertyName;
       String memberName = propertyName.name;
       ExecutableElement member;
+      var result = _extensionResolver.getOverrideMember(target, memberName);
       if (propertyName.inSetterContext()) {
-        member = _extensionResolver.getOverrideMember(
-          target,
-          memberName,
-          setter: true,
-        );
+        member = result.setter;
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
@@ -707,8 +710,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
-          PropertyAccessorElement getter =
-              _extensionResolver.getOverrideMember(target, memberName);
+          PropertyAccessorElement getter = result.getter;
           if (getter == null) {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -718,7 +720,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
         }
       } else if (propertyName.inGetterContext()) {
-        member = _extensionResolver.getOverrideMember(target, memberName);
+        member = result.getter;
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
@@ -984,30 +986,43 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (element != null) {
       return;
     }
-    if (staticType == null || staticType.isDynamic) {
-      return;
+    if (target is! ExtensionOverride) {
+      if (staticType == null || staticType.isDynamic) {
+        return;
+      }
     }
 
-    Token leftBracket = expression.leftBracket;
-    Token rightBracket = expression.rightBracket;
-    ErrorCode errorCode;
-    var errorArguments = [methodName, staticType.displayName];
-    if (target is SuperExpression) {
-      errorCode = StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR;
-    } else if (staticType != null && staticType.isVoid) {
-      errorCode = StaticWarningCode.USE_OF_VOID_RESULT;
-      errorArguments = [];
+    var leftBracket = expression.leftBracket;
+    var rightBracket = expression.rightBracket;
+    var offset = leftBracket.offset;
+    var length = rightBracket.end - offset;
+    if (target is ExtensionOverride) {
+      _resolver.errorReporter.reportErrorForOffset(
+        CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+        offset,
+        length,
+        [methodName, target.staticElement.name],
+      );
+    } else if (target is SuperExpression) {
+      _resolver.errorReporter.reportErrorForOffset(
+        StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+        offset,
+        length,
+        [methodName, staticType.displayName],
+      );
+    } else if (staticType.isVoid) {
+      _resolver.errorReporter.reportErrorForOffset(
+        StaticWarningCode.USE_OF_VOID_RESULT,
+        offset,
+        length,
+      );
     } else {
-      errorCode = StaticTypeWarningCode.UNDEFINED_OPERATOR;
-    }
-    if (leftBracket == null || rightBracket == null) {
-      _recordUndefinedNode(
-          staticType.element, errorCode, expression, errorArguments);
-    } else {
-      int offset = leftBracket.offset;
-      int length = rightBracket.offset - offset + 1;
-      _recordUndefinedOffset(
-          staticType.element, errorCode, offset, length, errorArguments);
+      _resolver.errorReporter.reportErrorForOffset(
+        StaticTypeWarningCode.UNDEFINED_OPERATOR,
+        offset,
+        length,
+        [methodName, staticType.displayName],
+      );
     }
   }
 
@@ -1223,20 +1238,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   void _recordUndefinedNode(Element declaringElement, ErrorCode errorCode,
       AstNode node, List<Object> arguments) {
     _resolver.errorReporter.reportErrorForNode(errorCode, node, arguments);
-  }
-
-  /**
-   * Record that the given [offset]/[length] is undefined, causing an error to
-   * be reported if appropriate. The [declaringElement] is the element inside
-   * which no declaration was found. If this element is a proxy, no error will
-   * be reported. If null, then an error will always be reported. The
-   * [errorCode] is the error code to report. The [arguments] are arguments to
-   * the error message.
-   */
-  void _recordUndefinedOffset(Element declaringElement, ErrorCode errorCode,
-      int offset, int length, List<Object> arguments) {
-    _resolver.errorReporter
-        .reportErrorForOffset(errorCode, offset, length, arguments);
   }
 
   /**

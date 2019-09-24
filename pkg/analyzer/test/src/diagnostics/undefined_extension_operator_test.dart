@@ -47,4 +47,154 @@ f() {
     assertInvokeTypeNull(binaryExpression);
     assertTypeDynamic(binaryExpression);
   }
+
+  test_index_get_hasGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  int operator[](int index) => 0;
+}
+
+f(A a) {
+  E(a)[0];
+}
+''');
+  }
+
+  test_index_get_hasNone() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {}
+
+f(A a) {
+  E(a)[0];
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+    ]);
+  }
+
+  test_index_get_hasSetter() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  E(a)[0];
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3),
+    ]);
+  }
+
+  test_index_getSet_hasBoth() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  int operator[](int index) => 0;
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  E(a)[0] += 1;
+}
+''');
+  }
+
+  test_index_getSet_hasGetter() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  int operator[](int index) => 0;
+}
+
+f(A a) {
+  E(a)[0] += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3),
+    ]);
+  }
+
+  test_index_getSet_hasNone() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {}
+
+f(A a) {
+  E(a)[0] += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+    ]);
+  }
+
+  test_index_getSet_hasSetter() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  E(a)[0] += 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3),
+    ]);
+  }
+
+  test_index_set_hasGetter() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  int operator[](int index) => 0;
+}
+
+f(A a) {
+  E(a)[0] = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3),
+    ]);
+  }
+
+  test_index_set_hasNone() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {}
+
+f(A a) {
+  E(a)[0] = 1;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+    ]);
+  }
+
+  test_index_set_hasSetter() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void operator[]=(int index, int value) {}
+}
+
+f(A a) {
+  E(a)[0] = 1;
+}
+''');
+  }
 }

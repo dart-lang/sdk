@@ -69,34 +69,38 @@ class ExtensionMemberResolver {
     return ResolutionResult.ambiguous;
   }
 
-  /// Return the member with the [name] (without `=`).
+  /// Resolve the [name] (without `=`) to the corresponding getter and setter
+  /// members of the extension [node].
   ///
   /// The [node] is fully resolved, and its type arguments are set.
-  ExecutableElement getOverrideMember(
-    ExtensionOverride node,
-    String name, {
-    bool setter = false,
-  }) {
+  ResolutionResult getOverrideMember(ExtensionOverride node, String name) {
     ExtensionElement element = node.extensionName.staticElement;
 
-    ExecutableElement member;
-    if (setter) {
-      member = element.getSetter(name);
+    ExecutableElement getter;
+    ExecutableElement setter;
+    if (name == '[]') {
+      getter = element.getMethod('[]');
+      setter = element.getMethod('[]=');
     } else {
-      member = element.getGetter(name) ?? element.getMethod(name);
+      getter = element.getGetter(name) ?? element.getMethod(name);
+      setter = element.getSetter(name);
     }
 
-    if (member == null) {
-      return null;
+    if (getter == null && setter == null) {
+      return ResolutionResult.none;
     }
 
-    return ExecutableMember.from2(
-      member,
-      Substitution.fromPairs(
-        element.typeParameters,
-        node.typeArgumentTypes,
-      ),
+    var substitution = Substitution.fromPairs(
+      element.typeParameters,
+      node.typeArgumentTypes,
     );
+
+    var getterMember =
+        getter != null ? ExecutableMember.from2(getter, substitution) : null;
+    var setterMember =
+        setter != null ? ExecutableMember.from2(setter, substitution) : null;
+
+    return ResolutionResult(getter: getterMember, setter: setterMember);
   }
 
   /// Perform upward inference for the override.
