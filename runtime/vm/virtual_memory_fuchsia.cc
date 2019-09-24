@@ -40,8 +40,15 @@ DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
 
+intptr_t VirtualMemory::CalculatePageSize() {
+  const intptr_t page_size = getpagesize();
+  ASSERT(page_size != 0);
+  ASSERT(Utils::IsPowerOfTwo(page_size));
+  return page_size;
+}
+
 void VirtualMemory::Init() {
-  page_size_ = getpagesize();
+  page_size_ = CalculatePageSize();
 }
 
 static void Unmap(zx_handle_t vmar, uword start, uword end) {

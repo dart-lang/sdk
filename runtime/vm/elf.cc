@@ -4,65 +4,12 @@
 
 #include "vm/elf.h"
 
+#include "platform/elf.h"
 #include "platform/text_buffer.h"
 #include "vm/cpu.h"
 #include "vm/thread.h"
 
 namespace dart {
-
-#define ELFCLASS32 1
-#define ELFCLASS64 2
-
-static const intptr_t ELFDATA2LSB = 1;
-
-static const intptr_t ELFOSABI_SYSV = 0;
-
-#define EF_ARM_ABI_FLOAT_HARD 0x00000400
-#define EF_ARM_ABI_FLOAT_SOFT 0x00000200
-#define EF_ARM_ABI 0x05000000
-
-static const intptr_t ET_DYN = 3;
-
-#define EM_386 3
-#define EM_ARM 40
-#define EM_X86_64 62
-#define EM_AARCH64 183
-
-static const intptr_t EV_CURRENT = 1;
-
-static const intptr_t SHT_PROGBITS = 1;
-static const intptr_t SHT_STRTAB = 3;
-static const intptr_t SHT_HASH = 5;
-static const intptr_t SHT_DYNSYM = 11;
-static const intptr_t SHT_DYNAMIC = 6;
-
-static const intptr_t SHF_WRITE = 0x1;
-static const intptr_t SHF_ALLOC = 0x2;
-static const intptr_t SHF_EXECINSTR = 0x4;
-
-static const intptr_t SHN_UNDEF = 0;
-
-static const intptr_t STN_UNDEF = 0;
-
-static const intptr_t PT_LOAD = 1;
-static const intptr_t PT_DYNAMIC = 2;
-static const intptr_t PT_PHDR = 6;
-
-static const intptr_t PF_X = 1;
-static const intptr_t PF_W = 2;
-static const intptr_t PF_R = 4;
-
-static const intptr_t STB_GLOBAL = 1;
-
-static const intptr_t STT_OBJECT = 1;  // I.e., data.
-static const intptr_t STT_FUNC = 2;
-
-static const intptr_t DT_NULL = 0;
-static const intptr_t DT_HASH = 4;
-static const intptr_t DT_STRTAB = 5;
-static const intptr_t DT_SYMTAB = 6;
-static const intptr_t DT_STRSZ = 10;
-static const intptr_t DT_SYMENT = 11;
 
 #if defined(TARGET_ARCH_IS_32_BIT)
 static const intptr_t kElfHeaderSize = 52;
@@ -94,7 +41,7 @@ class Section : public ZoneAllocated {
   intptr_t section_type = 0;
   intptr_t section_flags = 0;
   intptr_t section_index = -1;
-  intptr_t section_link = SHN_UNDEF;
+  intptr_t section_link = elf::SHN_UNDEF;
   intptr_t section_info = 0;
   intptr_t section_entry_size = 0;
   intptr_t file_size = 0;
@@ -119,16 +66,16 @@ class ProgramBits : public Section {
               intptr_t memsz = -1) {
     if (memsz == -1) memsz = filesz;
 
-    section_type = SHT_PROGBITS;
+    section_type = elf::SHT_PROGBITS;
     if (allocate) {
-      section_flags = SHF_ALLOC;
-      if (executable) section_flags |= SHF_EXECINSTR;
-      if (writable) section_flags |= SHF_WRITE;
+      section_flags = elf::SHF_ALLOC;
+      if (executable) section_flags |= elf::SHF_EXECINSTR;
+      if (writable) section_flags |= elf::SHF_WRITE;
 
-      segment_type = PT_LOAD;
-      segment_flags = PF_R;
-      if (executable) segment_flags |= PF_X;
-      if (writable) segment_flags |= PF_W;
+      segment_type = elf::PT_LOAD;
+      segment_flags = elf::PF_R;
+      if (executable) segment_flags |= elf::PF_X;
+      if (writable) segment_flags |= elf::PF_W;
     }
 
     bytes_ = bytes;
@@ -148,10 +95,10 @@ class ProgramBits : public Section {
 class StringTable : public Section {
  public:
   explicit StringTable(bool allocate) : text_(128) {
-    section_type = SHT_STRTAB;
-    section_flags = allocate ? SHF_ALLOC : 0;
-    segment_type = PT_LOAD;
-    segment_flags = PF_R;
+    section_type = elf::SHT_STRTAB;
+    section_flags = allocate ? elf::SHF_ALLOC : 0;
+    segment_type = elf::PT_LOAD;
+    segment_flags = elf::PF_R;
 
     text_.AddChar('\0');
     memory_size = file_size = text_.length();
@@ -186,10 +133,10 @@ class Symbol : public ZoneAllocated {
 class SymbolTable : public Section {
  public:
   SymbolTable() {
-    section_type = SHT_DYNSYM;
-    section_flags = SHF_ALLOC;
-    segment_type = PT_LOAD;
-    segment_flags = PF_R;
+    section_type = elf::SHT_DYNSYM;
+    section_flags = elf::SHF_ALLOC;
+    segment_type = elf::PT_LOAD;
+    segment_flags = elf::PF_R;
 
     section_entry_size = kElfSymbolTableEntrySize;
     AddSymbol(NULL);
@@ -268,24 +215,24 @@ static uint32_t ElfHash(const unsigned char* name) {
 class SymbolHashTable : public Section {
  public:
   SymbolHashTable(StringTable* strtab, SymbolTable* symtab) {
-    section_type = SHT_HASH;
-    section_flags = SHF_ALLOC;
+    section_type = elf::SHT_HASH;
+    section_flags = elf::SHF_ALLOC;
     section_link = symtab->section_index;
     section_entry_size = kElfSymbolHashTableEntrySize;
-    segment_type = PT_LOAD;
-    segment_flags = PF_R;
+    segment_type = elf::PT_LOAD;
+    segment_flags = elf::PF_R;
 
     nchain_ = symtab->length();
     nbucket_ = symtab->length();
 
     bucket_ = Thread::Current()->zone()->Alloc<int32_t>(nbucket_);
     for (intptr_t i = 0; i < nbucket_; i++) {
-      bucket_[i] = STN_UNDEF;
+      bucket_[i] = elf::STN_UNDEF;
     }
 
     chain_ = Thread::Current()->zone()->Alloc<int32_t>(nchain_);
     for (intptr_t i = 0; i < nchain_; i++) {
-      chain_[i] = STN_UNDEF;
+      chain_[i] = elf::STN_UNDEF;
     }
 
     for (intptr_t i = 1; i < symtab->length(); i++) {
@@ -322,20 +269,20 @@ class DynamicTable : public Section {
   DynamicTable(StringTable* strtab,
                SymbolTable* symtab,
                SymbolHashTable* hash) {
-    section_type = SHT_DYNAMIC;
+    section_type = elf::SHT_DYNAMIC;
     section_link = strtab->section_index;
-    section_flags = SHF_ALLOC | SHF_WRITE;
+    section_flags = elf::SHF_ALLOC | elf::SHF_WRITE;
     section_entry_size = kElfDynamicTableEntrySize;
 
-    segment_type = PT_LOAD;
-    segment_flags = PF_R | PF_W;
+    segment_type = elf::PT_LOAD;
+    segment_flags = elf::PF_R | elf::PF_W;
 
-    AddEntry(DT_HASH, hash->memory_offset);
-    AddEntry(DT_STRTAB, strtab->memory_offset);
-    AddEntry(DT_STRSZ, strtab->memory_size);
-    AddEntry(DT_SYMTAB, symtab->memory_offset);
-    AddEntry(DT_SYMENT, kElfSymbolTableEntrySize);
-    AddEntry(DT_NULL, 0);
+    AddEntry(elf::DT_HASH, hash->memory_offset);
+    AddEntry(elf::DT_STRTAB, strtab->memory_offset);
+    AddEntry(elf::DT_STRSZ, strtab->memory_size);
+    AddEntry(elf::DT_SYMTAB, symtab->memory_offset);
+    AddEntry(elf::DT_SYMENT, kElfSymbolTableEntrySize);
+    AddEntry(elf::DT_NULL, 0);
   }
 
   void Write(Elf* stream) {
@@ -432,7 +379,7 @@ intptr_t Elf::AddText(const char* name, const uint8_t* bytes, intptr_t size) {
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
   symbol->name = symstrtab_->AddString(name);
-  symbol->info = (STB_GLOBAL << 4) | STT_FUNC;
+  symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_FUNC;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
@@ -453,7 +400,7 @@ intptr_t Elf::AddBSSData(const char* name, intptr_t size) {
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
   symbol->name = symstrtab_->AddString(name);
-  symbol->info = (STB_GLOBAL << 4) | STT_OBJECT;
+  symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_OBJECT;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
@@ -473,7 +420,7 @@ intptr_t Elf::AddROData(const char* name, const uint8_t* bytes, intptr_t size) {
   Symbol* symbol = new (zone_) Symbol();
   symbol->cstr = name;
   symbol->name = symstrtab_->AddString(name);
-  symbol->info = (STB_GLOBAL << 4) | STT_OBJECT;
+  symbol->info = (elf::STB_GLOBAL << 4) | elf::STT_OBJECT;
   symbol->section = image->section_index;
   // For shared libraries, this is the offset from the DSO base. For static
   // libraries, this is section relative.
@@ -550,39 +497,52 @@ void Elf::ComputeFileOffsets() {
 
 void Elf::WriteHeader() {
 #if defined(TARGET_ARCH_IS_32_BIT)
-  uint8_t size = ELFCLASS32;
+  uint8_t size = elf::ELFCLASS32;
 #else
-  uint8_t size = ELFCLASS64;
+  uint8_t size = elf::ELFCLASS64;
 #endif
-  uint8_t e_ident[16] = {
-      0x7f, 'E', 'L', 'F', size, ELFDATA2LSB, EV_CURRENT, ELFOSABI_SYSV,
-      0,    0,   0,   0,   0,    0,           0,          0};
+  uint8_t e_ident[16] = {0x7f,
+                         'E',
+                         'L',
+                         'F',
+                         size,
+                         elf::ELFDATA2LSB,
+                         elf::EV_CURRENT,
+                         elf::ELFOSABI_SYSV,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0};
   stream_->WriteBytes(e_ident, 16);
 
-  WriteHalf(ET_DYN);  // Shared library.
+  WriteHalf(elf::ET_DYN);  // Shared library.
 
 #if defined(TARGET_ARCH_IA32)
-  WriteHalf(EM_386);
+  WriteHalf(elf::EM_386);
 #elif defined(TARGET_ARCH_X64)
-  WriteHalf(EM_X86_64);
+  WriteHalf(elf::EM_X86_64);
 #elif defined(TARGET_ARCH_ARM)
-  WriteHalf(EM_ARM);
+  WriteHalf(elf::EM_ARM);
 #elif defined(TARGET_ARCH_ARM64)
-  WriteHalf(EM_AARCH64);
+  WriteHalf(elf::EM_AARCH64);
 #else
   // E.g., DBC.
   FATAL("Unknown ELF architecture");
 #endif
 
-  WriteWord(EV_CURRENT);  // Version
+  WriteWord(elf::EV_CURRENT);  // Version
   WriteAddr(0);           // "Entry point"
   WriteOff(program_table_file_offset_);
   WriteOff(section_table_file_offset_);
 
 #if defined(TARGET_ARCH_ARM)
-  uword flags = EF_ARM_ABI |
-                (TargetCPUFeatures::hardfp_supported() ? EF_ARM_ABI_FLOAT_HARD
-                                                       : EF_ARM_ABI_FLOAT_SOFT);
+  uword flags = elf::EF_ARM_ABI | (TargetCPUFeatures::hardfp_supported()
+                                       ? elf::EF_ARM_ABI_FLOAT_HARD
+                                       : elf::EF_ARM_ABI_FLOAT_SOFT);
 #else
   uword flags = 0;
 #endif
@@ -607,17 +567,17 @@ void Elf::WriteProgramTable() {
     ASSERT(kNumImplicitSegments == 3);
     const intptr_t start = stream_->position();
 #if defined(TARGET_ARCH_IS_32_BIT)
-    WriteWord(PT_PHDR);
+    WriteWord(elf::PT_PHDR);
     WriteOff(program_table_file_offset_);   // File offset.
     WriteAddr(program_table_file_offset_);  // Virtual address.
     WriteAddr(program_table_file_offset_);  // Physical address, not used.
     WriteWord(program_table_file_size_);
     WriteWord(program_table_file_size_);
-    WriteWord(PF_R);
+    WriteWord(elf::PF_R);
     WriteWord(kPageSize);
 #else
-    WriteWord(PT_PHDR);
-    WriteWord(PF_R);
+    WriteWord(elf::PT_PHDR);
+    WriteWord(elf::PF_R);
     WriteOff(program_table_file_offset_);   // File offset.
     WriteAddr(program_table_file_offset_);  // Virtual address.
     WriteAddr(program_table_file_offset_);  // Physical address, not used.
@@ -642,17 +602,17 @@ void Elf::WriteProgramTable() {
     ASSERT(kNumImplicitSegments == 3);
     const intptr_t start = stream_->position();
 #if defined(TARGET_ARCH_IS_32_BIT)
-    WriteWord(PT_LOAD);
+    WriteWord(elf::PT_LOAD);
     WriteOff(0);   // File offset.
     WriteAddr(0);  // Virtual address.
     WriteAddr(0);  // Physical address, not used.
     WriteWord(program_table_file_offset_ + program_table_file_size_);
     WriteWord(program_table_file_offset_ + program_table_file_size_);
-    WriteWord(PF_R);
+    WriteWord(elf::PF_R);
     WriteWord(kPageSize);
 #else
-    WriteWord(PT_LOAD);
-    WriteWord(PF_R);
+    WriteWord(elf::PT_LOAD);
+    WriteWord(elf::PF_R);
     WriteOff(0);   // File offset.
     WriteAddr(0);  // Virtual address.
     WriteAddr(0);  // Physical address, not used.
@@ -696,7 +656,7 @@ void Elf::WriteProgramTable() {
     ASSERT(kNumImplicitSegments == 3);
     const intptr_t start = stream_->position();
 #if defined(TARGET_ARCH_IS_32_BIT)
-    WriteWord(PT_DYNAMIC);
+    WriteWord(elf::PT_DYNAMIC);
     WriteOff(dynamic_->file_offset);
     WriteAddr(dynamic_->memory_offset);  // Virtual address.
     WriteAddr(dynamic_->memory_offset);  // Physical address, not used.
@@ -705,7 +665,7 @@ void Elf::WriteProgramTable() {
     WriteWord(dynamic_->segment_flags);
     WriteWord(dynamic_->alignment);
 #else
-    WriteWord(PT_DYNAMIC);
+    WriteWord(elf::PT_DYNAMIC);
     WriteWord(dynamic_->segment_flags);
     WriteOff(dynamic_->file_offset);
     WriteAddr(dynamic_->memory_offset);  // Virtual address.

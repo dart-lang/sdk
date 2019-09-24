@@ -57,11 +57,14 @@ class VirtualMemory {
                                         bool is_executable,
                                         const char* name);
 
+  // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
-    ASSERT(Utils::IsPowerOfTwo(page_size_));
     return page_size_;
   }
+
+  // Use only if Init() might not have been called.
+  static intptr_t CalculatePageSize();
 
   static bool InSamePage(uword address0, uword address1);
 

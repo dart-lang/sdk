@@ -75,7 +75,10 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
@@ -86,14 +89,16 @@ MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
     case kReadExecute:
       prot = PROT_READ | PROT_EXEC;
       break;
-    default:
-      return NULL;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
+  const int flags = MAP_PRIVATE | (start != nullptr ? MAP_FIXED : 0);
+  void* addr = mmap(start, length, prot, flags, handle_->fd(), position);
   if (addr == MAP_FAILED) {
     return NULL;
   }
-  return new MappedMemory(addr, length);
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {

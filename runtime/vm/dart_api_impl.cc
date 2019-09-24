@@ -6182,10 +6182,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("AOT compilation is not supported on DBC.");
-#elif defined(TARGET_OS_WINDOWS)
-  return Api::NewError("Windows cannot load ELF.");
-#elif defined(TARGET_OS_MACOS)
-  return Api::NewError("macOS/iOS cannot load ELF.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");

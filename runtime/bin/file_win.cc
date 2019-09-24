@@ -73,7 +73,10 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(File::MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   DWORD prot_alloc;
   DWORD prot_final;
   switch (type) {
@@ -85,31 +88,48 @@ MappedMemory* File::Map(File::MapType type, int64_t position, int64_t length) {
       prot_alloc = PAGE_EXECUTE_READWRITE;
       prot_final = PAGE_EXECUTE_READ;
       break;
-    default:
-      return NULL;
+    case File::kReadWrite:
+      prot_alloc = PAGE_READWRITE;
+      prot_final = PAGE_READWRITE;
+      break;
   }
 
-  void* addr = VirtualAlloc(NULL, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
-  if (addr == NULL) {
-    Syslog::PrintErr("VirtualAlloc failed %d\n", GetLastError());
-    return NULL;
+  void* addr = start;
+  if (addr == nullptr) {
+    addr = VirtualAlloc(nullptr, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+    if (addr == nullptr) {
+      Syslog::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+      return nullptr;
+    }
   }
 
+  const int64_t remaining_length = Length() - position;
   SetPosition(position);
-  if (!ReadFully(addr, length)) {
+  if (!ReadFully(addr, Utils::Minimum(length, remaining_length))) {
     Syslog::PrintErr("ReadFully failed %d\n", GetLastError());
-    VirtualFree(addr, 0, MEM_RELEASE);
-    return NULL;
+    if (start == nullptr) {
+      VirtualFree(addr, 0, MEM_RELEASE);
+    }
+    return nullptr;
+  }
+
+  // If the requested mapping is larger than the file size, we should fill the
+  // extra memory with zeros.
+  if (length > remaining_length) {
+    memset(reinterpret_cast<uint8_t*>(addr) + remaining_length, 0,
+           length - remaining_length);
   }
 
   DWORD old_prot;
   bool result = VirtualProtect(addr, length, prot_final, &old_prot);
   if (!result) {
     Syslog::PrintErr("VirtualProtect failed %d\n", GetLastError());
-    VirtualFree(addr, 0, MEM_RELEASE);
-    return NULL;
+    if (start == nullptr) {
+      VirtualFree(addr, 0, MEM_RELEASE);
+    }
+    return nullptr;
   }
-  return new MappedMemory(addr, length);
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {

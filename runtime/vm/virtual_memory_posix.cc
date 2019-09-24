@@ -42,8 +42,15 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 
 uword VirtualMemory::page_size_ = 0;
 
+intptr_t VirtualMemory::CalculatePageSize() {
+  const intptr_t page_size = getpagesize();
+  ASSERT(page_size != 0);
+  ASSERT(Utils::IsPowerOfTwo(page_size));
+  return page_size;
+}
+
 void VirtualMemory::Init() {
-  page_size_ = getpagesize();
+  page_size_ = CalculatePageSize();
 
 #if defined(DUAL_MAPPING_SUPPORTED)
 // Perf is Linux-specific and the flags aren't defined in Product.
@@ -62,7 +69,7 @@ void VirtualMemory::Init() {
   // such as on docker containers, and disable dual mapping in this case.
   // Also detect for missing support of memfd_create syscall.
   if (FLAG_dual_map_code) {
-    intptr_t size = page_size_;
+    intptr_t size = PageSize();
     intptr_t alignment = 256 * 1024;  // e.g. heap page size.
     VirtualMemory* vm = AllocateAligned(size, alignment, true, NULL);
     if (vm == NULL) {
@@ -167,10 +174,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   //
   // If FLAG_dual_map_code is active, the executable mapping will be mapped RX
   // immediately and never changes protection until it is eventually unmapped.
-  ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(Utils::IsAligned(alignment, page_size_));
-  const intptr_t allocated_size = size + alignment - page_size_;
+  ASSERT(Utils::IsAligned(alignment, PageSize()));
+  const intptr_t allocated_size = size + alignment - PageSize();
 #if defined(DUAL_MAPPING_SUPPORTED)
   int fd = -1;
   const bool dual_mapping =
