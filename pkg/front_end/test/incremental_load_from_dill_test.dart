@@ -43,7 +43,8 @@ import 'package:kernel/kernel.dart'
         Name,
         Procedure;
 
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart'
+    show NoneTarget, Target, TargetFlags;
 
 import 'package:kernel/text/ast_to_text.dart' show componentToString;
 
@@ -129,6 +130,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           map["worlds"],
           map["modules"],
           map["omitPlatform"],
+          map["target"],
         );
         break;
       default:
@@ -198,7 +200,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
 }
 
 Future<Map<String, List<int>>> createModules(
-    Map module, final List<int> sdkSummaryData) async {
+    Map module, final List<int> sdkSummaryData, String targetName) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
 
@@ -230,7 +232,7 @@ Future<Map<String, List<int>>> createModules(
         moduleSources.add(uri);
       }
     }
-    CompilerOptions options = getOptions();
+    CompilerOptions options = getOptions(targetName: targetName);
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -264,7 +266,8 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
-Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
+Future<Null> newWorldTest(
+    List worlds, Map modules, bool omitPlatform, String targetName) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
@@ -284,7 +287,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
   Map<String, Component> moduleComponents;
   Component sdk;
   if (modules != null) {
-    moduleData = await createModules(modules, sdkSummaryData);
+    moduleData = await createModules(modules, sdkSummaryData, targetName);
     sdk = newestWholeComponent = new Component();
     new BinaryBuilder(sdkSummaryData, filename: null, disableLazyReading: false)
         .readComponent(newestWholeComponent);
@@ -370,7 +373,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
     }
 
     if (brandNewWorld) {
-      options = getOptions();
+      options = getOptions(targetName: targetName);
       options.fileSystem = fs;
       options.sdkRoot = null;
       options.sdkSummary = sdkSummary;
@@ -800,11 +803,21 @@ void checkIsEqual(List<int> a, List<int> b) {
   Expect.equals(a.length, b.length);
 }
 
-CompilerOptions getOptions() {
+CompilerOptions getOptions({String targetName}) {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+  Target target = new VmTarget(new TargetFlags());
+  if (targetName != null) {
+    if (targetName == "None") {
+      target = new NoneTarget(new TargetFlags());
+    } else if (targetName == "VM") {
+      // default.
+    } else {
+      throw "Unknown target name '$targetName'";
+    }
+  }
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..target = new VmTarget(new TargetFlags())
+    ..target = target
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
     ..onDiagnostic = (DiagnosticMessage message) {

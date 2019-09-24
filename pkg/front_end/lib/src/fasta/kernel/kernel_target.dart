@@ -465,7 +465,7 @@ class KernelTarget extends TargetImplementation {
       unhandled("${type.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
-    if (supertype.isMixinApplication) {
+    if (supertype.isMixinApplication && supertype is SourceClassBuilder) {
       installForwardingConstructors(supertype);
     }
     if (supertype is ClassBuilder) {
