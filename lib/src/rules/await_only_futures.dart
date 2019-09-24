@@ -47,6 +47,9 @@ class AwaitOnlyFutures extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const LintCode _errorCode = LintCode('await_only_futures',
+      "'await' applied to '{0}', which is not a 'Future'.");
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -62,7 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         DartTypeUtilities.extendsClass(type, 'Future', 'dart.async') ||
         DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async') ||
         DartTypeUtilities.isClass(type, 'FutureOr', 'dart.async'))) {
-      rule.reportLintForToken(node.awaitKeyword);
+      rule.reportLintForToken(node.awaitKeyword,
+          errorCode: _errorCode, arguments: [type]);
     }
   }
 }
