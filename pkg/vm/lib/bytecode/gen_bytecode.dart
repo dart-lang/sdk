@@ -4168,7 +4168,7 @@ ast.Component createFreshComponentWithBytecode(ast.Component component) {
   final newRepository = new BytecodeMetadataRepository();
   newComponent.addMetadataRepository(newRepository);
 
-  final oldRepository = component.metadata[newRepository.tag];
+  final oldRepository = component.metadata.remove(newRepository.tag);
   final metadata = oldRepository.mapping[component];
   newRepository.mapping[newComponent] = metadata;
 
