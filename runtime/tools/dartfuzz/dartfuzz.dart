@@ -258,6 +258,10 @@ class DartFuzz {
   // in emask.
   // Returns true is the expression is skipped.
   bool processExprOpen(DartType tp) {
+    // Do nothing if we are not in minimization mode.
+    if (!minimize) {
+      return false;
+    }
     // Check whether the bit for the current expression number is set in the
     // expression bitmap. If so skip this expression.
     final newMask = genMask(exprCntr);
@@ -272,7 +276,7 @@ class DartFuzz {
       emask |= newMask;
     }
     exprCntr++;
-    if (!minimize || skipStmt) {
+    if (skipStmt) {
       return false;
     }
     if (!skipExpr && maskBitSet) {
