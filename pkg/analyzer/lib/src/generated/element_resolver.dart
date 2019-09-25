@@ -19,7 +19,9 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -266,10 +268,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
         }
         if (node.newKeyword == null) {
           if (element is ClassElement) {
-            var propertyResolver = _newPropertyResolver();
-            propertyResolver.resolve(prefix, element.type, name.name, name);
-            name.staticElement = propertyResolver.result.getter ??
-                propertyResolver.result.setter ??
+            name.staticElement = element.getMethod(name.name) ??
+                element.getGetter(name.name) ??
+                element.getSetter(name.name) ??
                 element.getNamedConstructor(name.name);
           } else {
             // TODO(brianwilkerson) Report this error.
@@ -1253,6 +1254,44 @@ class ElementResolver extends SimpleAstVisitor<void> {
     _resolver.errorReporter.reportErrorForToken(errorCode, token, arguments);
   }
 
+  /// Resolve the [constructorName] to the constructor in the class [element].
+  /// Perform inference using [argumentList].
+  ConstructorElement _resolveAnnotationConstructor(
+    ClassElement element,
+    String constructorName,
+    ArgumentList argumentList,
+  ) {
+    var constructor = constructorName != null
+        ? element.getNamedConstructor(constructorName)
+        : element.unnamedConstructor;
+    if (constructor == null) {
+      return null;
+    }
+    if (!constructor.isAccessibleIn(_definingLibrary)) {
+      return null;
+    }
+
+    var typeParameters = element.typeParameters;
+    if (typeParameters.isEmpty) {
+      return constructor;
+    }
+
+    var typeArgs = _resolver.typeSystem.inferGenericFunctionOrType(
+      typeParameters: typeParameters,
+      parameters: constructor.parameters,
+      declaredReturnType: null,
+      argumentTypes: argumentList.arguments.map((a) => a.staticType).toList(),
+      contextReturnType: null,
+      isConst: true,
+      errorReporter: _resolver.errorReporter,
+      errorNode: argumentList,
+    );
+    return ExecutableMember.from2(
+      constructor,
+      Substitution.fromPairs(typeParameters, typeArgs),
+    );
+  }
+
   void _resolveAnnotationConstructorInvocationArguments(
       Annotation annotation, ConstructorElement constructor) {
     ArgumentList argumentList = annotation.arguments;
@@ -1299,7 +1338,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class(args)
       if (element1 is ClassElement) {
-        constructor = element1.type.lookUpConstructor(null, _definingLibrary);
+        constructor = _resolveAnnotationConstructor(
+          element1,
+          null,
+          annotation.arguments,
+        );
       } else if (element1 == null) {
         undefined = true;
       }
@@ -1327,8 +1370,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
-        constructor =
-            element1.type.lookUpConstructor(nameNode2.name, _definingLibrary);
+        constructor = _resolveAnnotationConstructor(
+          element1,
+          nameNode2.name,
+          annotation.arguments,
+        );
         nameNode2.staticElement = constructor;
       }
       if (element1 == null && element2 == null) {
@@ -1353,7 +1399,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
           return;
         }
         // prefix.Class.constructor(args)
-        constructor = element2.type.lookUpConstructor(name3, _definingLibrary);
+        constructor = _resolveAnnotationConstructor(
+          element2,
+          name3,
+          annotation.arguments,
+        );
         nameNode3.staticElement = constructor;
       } else if (element2 == null) {
         undefined = true;
