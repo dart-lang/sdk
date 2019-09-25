@@ -247,8 +247,8 @@ class ClassHierarchyBuilder {
   TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
-      return new NamedTypeBuilder(clsNode.classBuilder.name,
-          const NullabilityBuilder.pendingImplementation(), null)
+      return new NamedTypeBuilder(
+          clsNode.classBuilder.name, const NullabilityBuilder.omitted(), null)
         ..bind(clsNode.classBuilder);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);

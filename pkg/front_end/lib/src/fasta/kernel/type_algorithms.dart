@@ -242,7 +242,7 @@ TypeBuilder substituteRange(
               functionTypeLowerSubstitution[variable] =
                   new NamedTypeBuilder.fromTypeDeclarationBuilder(
                       newTypeVariableBuilder,
-                      const NullabilityBuilder.pendingImplementation());
+                      const NullabilityBuilder.omitted());
           changed = true;
         } else {
           variables[i] = variable;

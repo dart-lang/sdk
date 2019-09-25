@@ -142,8 +142,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   }
 
   TypeBuilder asTypeBuilder() {
-    return new NamedTypeBuilder(
-        name, const NullabilityBuilder.pendingImplementation(), null)
+    return new NamedTypeBuilder(name, const NullabilityBuilder.omitted(), null)
       ..bind(this);
   }
 

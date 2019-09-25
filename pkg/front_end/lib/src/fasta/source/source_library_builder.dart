@@ -1657,11 +1657,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments.add(addNamedType(
-                  typeVariable.name,
-                  const NullabilityBuilder.pendingImplementation(),
-                  null,
-                  charOffset)
+              applicationTypeArguments.add(addNamedType(typeVariable.name,
+                  const NullabilityBuilder.omitted(), null, charOffset)
                 ..bind(
                     // The type variable types passed as arguments to the
                     // generic class representing the anonymous mixin
@@ -1712,11 +1709,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset);
-        supertype = addNamedType(
-            fullname,
-            const NullabilityBuilder.pendingImplementation(),
-            applicationTypeArguments,
-            charOffset);
+        supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
+            applicationTypeArguments, charOffset);
       }
       return supertype;
     } else {

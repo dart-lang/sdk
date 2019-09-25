@@ -4042,14 +4042,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.buildFunctionNode(
-        libraryBuilder,
-        returnType,
-        typeParameters,
-        asyncModifier,
-        body,
-        const NullabilityBuilder.pendingImplementation(),
-        token.charOffset);
+    FunctionNode function = formals.buildFunctionNode(libraryBuilder,
+        returnType, typeParameters, asyncModifier, body, token.charOffset);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -4128,14 +4122,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     exitFunction();
     List<TypeVariableBuilder> typeParameters = pop();
-    FunctionNode function = formals.buildFunctionNode(
-        libraryBuilder,
-        null,
-        typeParameters,
-        asyncModifier,
-        body,
-        const NullabilityBuilder.pendingImplementation(),
-        token.charOffset)
+    FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
+        typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
     if (constantContext != ConstantContext.none) {
@@ -5516,12 +5504,11 @@ class FormalParameters {
       List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
-      NullabilityBuilder nullabilityBuilder,
       int fileEndOffset) {
-    FunctionType type =
-        toFunctionType(returnType, nullabilityBuilder, typeParameters)
-            .builder
-            .build(library);
+    FunctionType type = toFunctionType(
+            returnType, const NullabilityBuilder.omitted(), typeParameters)
+        .builder
+        .build(library);
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {

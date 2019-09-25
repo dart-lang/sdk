@@ -978,7 +978,7 @@ class OutlineBuilder extends StackListener {
           substitution[extension.typeVariables[i]] =
               new NamedTypeBuilder.fromTypeDeclarationBuilder(
                   synthesizedTypeVariables[i],
-                  const NullabilityBuilder.pendingImplementation());
+                  const NullabilityBuilder.omitted());
         }
         if (typeVariables != null) {
           typeVariables = synthesizedTypeVariables..addAll(typeVariables);
@@ -1631,8 +1631,8 @@ class OutlineBuilder extends StackListener {
                 : templateCycleInTypeVariables.withArguments(
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
-            builder.bound = new NamedTypeBuilder(builder.name,
-                const NullabilityBuilder.pendingImplementation(), null)
+            builder.bound = new NamedTypeBuilder(
+                builder.name, const NullabilityBuilder.omitted(), null)
               ..bind(new InvalidTypeBuilder(
                   builder.name,
                   message.withLocation(

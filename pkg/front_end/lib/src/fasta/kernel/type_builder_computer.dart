@@ -81,10 +81,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    // TODO(dmitryas): Compute the nullabilityBuilder field for the result from
-    //  the nullability field of 'node'.
-    return new NamedTypeBuilder(
-        cls.name, const NullabilityBuilder.pendingImplementation(), arguments)
+    return new NamedTypeBuilder(cls.name,
+        new NullabilityBuilder.fromNullability(node.nullability), arguments)
       ..bind(cls);
   }
 

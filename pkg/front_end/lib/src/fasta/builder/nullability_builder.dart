@@ -48,16 +48,6 @@ class NullabilityBuilder {
     }
   }
 
-  /// Used temporarily in the places that need proper handling of NNBD features.
-  ///
-  /// Over time the uses of [NullabilityBuilder.pendingImplementation] should be
-  /// eliminated, and the constructor should be eventually removed.  Currently,
-  /// it redirects to [NullabilityBuilder.legacy] as a conservative safety
-  /// measure for the pre-NNBD code and as a visible reminder of the feature
-  /// implementation being in progress in the NNBD code.
-  // TODO(38286): Remove this constructor.
-  const NullabilityBuilder.pendingImplementation() : this.legacy();
-
   Nullability build(LibraryBuilder libraryBuilder, {Nullability ifOmitted}) {
     // TODO(dmitryas): Ensure that either ifOmitted is set or libraryBuilder is
     // provided;
