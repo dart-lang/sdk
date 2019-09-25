@@ -123,7 +123,7 @@ main() {
 ''');
     _createRefactoringForString('abc');
     // check conditions
-    _assertInitialConditions_fatal_selection();
+    await _assertInitialConditions_fatal_selection();
   }
 
   test_checkInitialConditions_notPartOfFunction() async {

@@ -129,7 +129,7 @@ main() {
     ExecutableElement element = findElement('test', ElementKind.GETTER);
     _createRefactoringForElement(element);
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
   }
 
@@ -142,7 +142,7 @@ main() {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only methods without parameters can be converted to getters.');
   }
 
@@ -156,7 +156,7 @@ main() {
     ExecutableElement element = findElementsByName(testUnit, 'test').single;
     _createRefactoringForElement(element);
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only top-level functions can be converted to getters.');
   }
 
@@ -168,7 +168,7 @@ class A {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only class methods or top-level functions can be converted to getters.');
   }
 
@@ -178,7 +178,8 @@ void test() {}
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal('Cannot convert function returning void.');
+    await _assertInitialConditions_fatal(
+        'Cannot convert function returning void.');
   }
 
   Future _assertInitialConditions_fatal(String message) async {
