@@ -79,7 +79,7 @@ class InfoBuilder {
       int offset = edit.offset;
       int length = edit.length;
       String replacement = edit.replacement;
-      int end = offset + length - 1;
+      int end = offset + length;
       int delta = deltas[index--];
       // Insert the replacement text without deleting the replaced text.
       content = content.replaceRange(end, end, replacement);

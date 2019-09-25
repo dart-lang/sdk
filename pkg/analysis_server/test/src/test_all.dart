@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'computer/test_all.dart' as computer;
 import 'domain_abstract_test.dart' as domain_abstract;
 import 'domains/test_all.dart' as domains;
+import 'edit/test_all.dart' as edit;
 import 'flutter/test_all.dart' as flutter;
 import 'lsp/test_all.dart' as lsp;
 import 'plugin/test_all.dart' as plugin;
@@ -22,6 +23,7 @@ main() {
     computer.main();
     domain_abstract.main();
     domains.main();
+    edit.main();
     flutter.main();
     lsp.main();
     plugin.main();
