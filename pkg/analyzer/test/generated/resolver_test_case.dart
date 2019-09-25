@@ -309,7 +309,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
+class ResolverTestCase with ResourceProviderMixin {
   /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
    * [HintCode.UNUSED_FIELD].
@@ -383,16 +383,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   Source addSource(String contents) =>
       addNamedSource(_defaultSourceName, contents);
-
-  /**
-   * The [code] that assigns the value to the variable "v", no matter how. We
-   * check that "v" has expected static type.
-   */
-  void assertAssignedType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
-    expect(identifier.staticType, expectedStaticType);
-  }
 
   /**
    * Assert that the number of errors reported against the given
@@ -475,26 +465,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  /**
-   * The [code] that iterates using variable "v". We check that "v" has expected
-   * static type.
-   */
-  void assertPropagatedIterationType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
-  /**
-   * Check the static type of the expression marked with "; // marker" comment.
-   */
-  void assertTypeOfMarkedExpression(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier =
-        findMarkedIdentifier(code, unit, "; // marker");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     ResolvedUnitResult result = await driver.getResult(source.fullName);
@@ -572,16 +542,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
-  }
-
-  /**
-   * Return the [SimpleIdentifier] from [unit] marked by [marker] in [code].
-   * The source code must have no errors and be verifiable.
-   */
-  SimpleIdentifier findMarkedIdentifier(
-      String code, CompilationUnit unit, String marker) {
-    return EngineTestCase.findNode(
-        unit, code, marker, (node) => node is SimpleIdentifier);
   }
 
   Expression findTopLevelConstantExpression(
@@ -707,17 +667,13 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  @override
   void setUp() {
     ElementFactory.flushStaticState();
-    super.setUp();
     reset();
   }
 
-  @override
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    super.tearDown();
   }
 
   /**

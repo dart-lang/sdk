@@ -20,7 +20,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/test_analysis_context.dart';
-import '../../../generated/test_support.dart';
 import '../resolution/driver_resolution.dart';
 
 main() {
@@ -3430,16 +3429,16 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class LibraryElementImplTest extends EngineTestCase {
+class LibraryElementImplTest {
   void test_creation() {
     expect(
-        new LibraryElementImpl.forNode(createAnalysisContext(), null,
+        new LibraryElementImpl.forNode(TestAnalysisContext(), null,
             AstTestFactory.libraryIdentifier2(["l"]), true),
         isNotNull);
   }
 
   void test_getImportedLibraries() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library1 = ElementFactory.library(context, "l1");
     LibraryElementImpl library2 = ElementFactory.library(context, "l2");
     LibraryElementImpl library3 = ElementFactory.library(context, "l3");
@@ -3463,7 +3462,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_getPrefixes() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "l1");
     PrefixElement prefixA =
         new PrefixElementImpl.forNode(AstTestFactory.identifier3("a"));
@@ -3488,7 +3487,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_getUnits() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "test");
     CompilationUnitElement unitLib = library.definingCompilationUnit;
     CompilationUnitElementImpl unitA =
@@ -3501,7 +3500,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_setImports() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
         context, null, AstTestFactory.libraryIdentifier2(["l1"]), true);
     List<ImportElementImpl> expectedImports = [
@@ -3518,7 +3517,7 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class PropertyAccessorElementImplTest extends EngineTestCase {
+class PropertyAccessorElementImplTest {
   void test_matchesHandle_getter() {
     CompilationUnitElementImpl compilationUnitElement =
         ElementFactory.compilationUnit('foo.dart');

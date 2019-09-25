@@ -20,6 +20,7 @@ import 'package:front_end/src/base/errors.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/dart/resolution/driver_resolution.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
@@ -5558,76 +5559,71 @@ main() {
 }
 
 @reflectiveTest
-class StrongModeTypePropagationTest extends ResolverTestCase {
+class StrongModeTypePropagationTest extends DriverResolutionTest {
   test_foreachInference_dynamic_disabled() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var list = <int>[];
   for (dynamic v in list) {
     v; // marker
   }
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.dynamicType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
+}''');
+    assertTypeDynamic(findNode.simple('v in'));
+    assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
   test_foreachInference_reusedVar_disabled() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var list = <int>[];
   var v;
   for (v in list) {
     v; // marker
   }
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.dynamicType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
+}''');
+    assertTypeDynamic(findNode.simple('v in'));
+    assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
   test_foreachInference_var() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var list = <int>[];
   for (var v in list) {
     v; // marker
   }
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v in'), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_foreachInference_var_iterable() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   Iterable<int> list = <int>[];
   for (var v in list) {
     v; // marker
   }
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v in'), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_foreachInference_var_stream() async {
-    String code = r'''
+    await resolveTestCode(r'''
 import 'dart:async';
 main() async {
   Stream<int> stream = null;
   await for (var v in stream) {
     v; // marker
   }
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertPropagatedIterationType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v in'), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_inconsistentMethodInheritance_inferFunctionTypeFromTypedef() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 typedef bool F<E>(E argument);
 
 abstract class Base {
@@ -5643,58 +5639,51 @@ abstract class Override implements Base, BaseCopy {
 
 class C extends Override implements Base {}
 ''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
   }
 
   test_localVariableInference_bottom_disabled() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var v = null;
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
+}''');
+    assertTypeDynamic(findNode.simple('v ='));
+    assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_constant() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var v = 3;
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_declaredType_disabled() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   dynamic v = 3;
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
+}''');
+    assertTypeDynamic(findNode.simple('v ='));
+    assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_noInitializer_disabled() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var v;
   v = 3;
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.dynamicType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.dynamicType);
+}''');
+    assertTypeDynamic(findNode.simple('v ='));
+    assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
-    String code = r'''
+    await resolveTestCode(r'''
 class A {
   final x = 3;
   f() {
@@ -5704,14 +5693,13 @@ class A {
 }
 main() {
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
-    String code = r'''
+    await resolveTestCode(r'''
 class A {
   f() {
     var v = x;
@@ -5721,14 +5709,13 @@ class A {
 }
 main() {
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_lexical() async {
-    String code = r'''
+    await resolveTestCode(r'''
 class A {
   int x = 3;
   f() {
@@ -5738,14 +5725,13 @@ class A {
 }
 main() {
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_field_reversed() async {
-    String code = r'''
+    await resolveTestCode(r'''
 class A {
   f() {
     var v = x;
@@ -5755,85 +5741,78 @@ class A {
 }
 main() {
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_list_local() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var x = <int>[3];
   var v = x[0];
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_local() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var x = 3;
   var v = x;
   v; // marker
-}''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+}''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
-  test_localVariableInference_transitive_toplevel_inferred_lexical() async {
-    String code = r'''
+  test_localVariableInference_transitive_topLevel_inferred_lexical() async {
+    await resolveTestCode(r'''
 final x = 3;
 main() {
   var v = x;
   v; // marker
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
-    String code = r'''
+    await resolveTestCode(r'''
 main() {
   var v = x;
   v; // marker
 }
 final x = 3;
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
-  test_localVariableInference_transitive_toplevel_lexical() async {
-    String code = r'''
+  test_localVariableInference_transitive_topLevel_lexical() async {
+    await resolveTestCode(r'''
 int x = 3;
 main() {
   var v = x;
   v; // marker
 }
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 
-  test_localVariableInference_transitive_toplevel_reversed() async {
-    String code = r'''
+  test_localVariableInference_transitive_topLevel_reversed() async {
+    await resolveTestCode(r'''
 main() {
   var v = x;
   v; // marker
 }
 int x = 3;
-''';
-    CompilationUnit unit = await resolveSource(code);
-    assertAssignedType(code, unit, typeProvider.intType);
-    assertTypeOfMarkedExpression(code, unit, typeProvider.intType);
+''');
+    assertType(findNode.simple('v ='), 'int');
+    assertType(findNode.simple('v; // marker'), 'int');
   }
 }
