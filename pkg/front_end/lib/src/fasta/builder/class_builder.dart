@@ -62,6 +62,7 @@ import 'builder.dart'
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
+        NullabilityBuilder,
         Scope,
         ScopeBuilder,
         TypeBuilder,
@@ -500,10 +501,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
   }
 
   /// If [arguments] are null, the default types for the variables are used.
-  InterfaceType buildType(LibraryBuilder library, Nullability nullability,
-      List<TypeBuilder> arguments) {
+  InterfaceType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(
-        library, nullability, buildTypeArguments(library, arguments));
+        library,
+        nullabilityBuilder.build(library),
+        buildTypeArguments(library, arguments));
   }
 
   Supertype buildSupertype(

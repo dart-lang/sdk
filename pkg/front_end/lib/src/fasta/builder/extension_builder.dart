@@ -58,8 +58,8 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
       fileUri);
 
   @override
-  DartType buildType(LibraryBuilder library, Nullability nullability,
-      List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
   }
 

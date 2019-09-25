@@ -19,7 +19,6 @@ import 'package:kernel/ast.dart'
         IntLiteral,
         InterfaceType,
         ListLiteral,
-        Nullability,
         ProcedureKind,
         ReturnStatement,
         StaticGet,
@@ -263,9 +262,9 @@ class EnumBuilder extends SourceClassBuilder {
 
   TypeBuilder get mixedInType => null;
 
-  InterfaceType buildType(LibraryBuilder library, Nullability nullability,
-      List<TypeBuilder> arguments) {
-    return rawType(nullability);
+  InterfaceType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+    return rawType(nullabilityBuilder.build(library));
   }
 
   @override
