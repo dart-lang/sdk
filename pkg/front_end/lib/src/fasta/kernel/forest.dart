@@ -717,9 +717,11 @@ class Forest {
 
   PropertySet createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
-      {Member interfaceTarget, bool forEffect}) {
+      {Member interfaceTarget, bool forEffect, bool readOnlyReceiver: false}) {
     return new PropertySetImpl(receiver, name, value,
-        interfaceTarget: interfaceTarget, forEffect: forEffect)
+        interfaceTarget: interfaceTarget,
+        forEffect: forEffect,
+        readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = fileOffset;
   }
 }

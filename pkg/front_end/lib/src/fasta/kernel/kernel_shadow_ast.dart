@@ -198,6 +198,7 @@ enum InternalExpressionKind {
   LoadLibraryTearOff,
   LocalPostIncDec,
   NullAwareCompoundSet,
+  NullAwareExtension,
   NullAwareIfNullSet,
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
@@ -2133,14 +2134,27 @@ class CompoundSuperIndexSet extends InternalExpression {
 ///
 // TODO(johnniwinther): Rename read-only to side-effect-free.
 class ExtensionSet extends InternalExpression {
+  /// The receiver for the assignment.
   Expression receiver;
+
+  /// The extension member called for the assignment.
   ObjectAccessTarget target;
+
+  /// The right-hand side value of the assignment.
   Expression value;
 
-  bool readOnlyReceiver;
+  /// If `true` the assignment is only needed for effect and not its result
+  /// value.
+  final bool forEffect;
 
-  ExtensionSet(this.receiver, this.target, this.value, {this.readOnlyReceiver})
-      : assert(readOnlyReceiver != null) {
+  /// If `true` the receiver can be cloned instead of creating a temporary
+  /// variable.
+  final bool readOnlyReceiver;
+
+  ExtensionSet(this.receiver, this.target, this.value,
+      {this.readOnlyReceiver, this.forEffect})
+      : assert(readOnlyReceiver != null),
+        assert(forEffect != null) {
     receiver?.parent = this;
     value?.parent = this;
   }
@@ -2167,11 +2181,56 @@ class ExtensionSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing an null-aware extension expression.
+///
+/// An null-aware extension expression of the form `Extension(receiver)?.target`
+/// is encoded as the expression:
+///
+///     let variable = receiver in
+///       variable == null ? null : expression
+///
+/// where `expression` is an encoding of `receiverVariable.target`.
+class NullAwareExtension extends InternalExpression {
+  VariableDeclaration variable;
+  Expression expression;
+
+  NullAwareExtension(this.variable, this.expression) {
+    variable?.parent = this;
+    expression?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareExtension;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+}
+
 class PropertySetImpl extends PropertySet {
+  /// If `true` the assignment is need for its effect and not for its value.
   final bool forEffect;
 
+  /// If `true` the receiver can be cloned and doesn't need a temporary variable
+  /// for multiple reads.
+  final bool readOnlyReceiver;
+
   PropertySetImpl(Expression receiver, Name name, Expression value,
-      {Member interfaceTarget, this.forEffect})
+      {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
       : assert(forEffect != null),
         super(receiver, name, value, interfaceTarget);
 }

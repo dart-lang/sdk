@@ -48,5 +48,7 @@ static method testProperties() → dynamic
   ;
 static method testExplicitProperties() → dynamic
   ;
-static method expect(dynamic expected, dynamic actual) → dynamic
+static method testExplicitNullAwareProperties(self::Class* v) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual, [dynamic expectNull]) → dynamic
   ;

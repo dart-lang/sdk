@@ -8,13 +8,22 @@ class Class {
 
 extension Extension on Class {
   int get property => field;
+  void set property(int value) {
+    field = value;
+  }
+  int method() => field;
 }
 
 main() {
   Class c;
   c?.property ?? 0;
-  // TODO(johnniwinther): Handle null-aware explicit extension access.
-  // Extension(c)?.property ?? 0;
+  Extension(c)?.property ?? 0;
+  c?.property = 42 ?? 0;
+  Extension(c)?.property = 42 ?? 0;
+  (c?.property = 42) ?? 0;
+  (Extension(c)?.property = 42) ?? 0;
+  c?.method() ?? 0;
+  Extension(c)?.method() ?? 0;
   c = new Class();
   c.property ?? 0;
   Extension(c).property ?? 0;

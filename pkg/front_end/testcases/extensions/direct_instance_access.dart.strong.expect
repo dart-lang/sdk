@@ -195,6 +195,21 @@ static method GenericExtension|invocations<T extends core::Object* = dynamic, S 
   self::GenericExtension|writeSetterOptional<self::GenericExtension|invocations::T*>(#this, value);
   self::GenericExtension|writeSetterNamed<self::GenericExtension|invocations::T*>(#this);
   self::GenericExtension|writeSetterNamed<self::GenericExtension|invocations::T*>(#this, value: value);
+  self::GenericExtension|genericWriteSetterRequired<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value);
+  self::GenericExtension|genericWriteSetterRequired<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this, value);
+  self::GenericExtension|genericWriteSetterRequired<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this, value);
+  self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value: value);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::T*>(#this, value: value);
+  self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|invocations::T*, self::GenericExtension|invocations::S*>(#this, value: value);
 }
 static method GenericExtension|get#invocations<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#invocations::T*>* #this) → <S extends self::GenericExtension|get#invocations::T* = dynamic>(S*) →* dynamic
   return <S extends self::GenericExtension|get#invocations::T* = dynamic>(S* value) → dynamic => self::GenericExtension|invocations<self::GenericExtension|get#invocations::T*, S*>(#this, value);

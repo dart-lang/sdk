@@ -53,14 +53,14 @@ class SourceExtensionBuilder extends ExtensionBuilder {
   /// Builds the [Extension] for this extension build and inserts the members
   /// into the [Library] of [libraryBuilder].
   ///
-  /// If [isAddedToLibrary] is `true`, the extension is added to library by the
-  /// caller. This is `false` if the extension is in conflict with another
-  /// library member. When this is the case, this method will not add extension
-  /// members to the library to avoid name clashes with other members in the
+  /// [addMembersToLibrary] is `true` if the extension members should be added
+  /// to the library. This is `false` if the extension is in conflict with
+  /// another library member. In this case, the extension member should not be
+  /// added to the library to avoid name clashes with other members in the
   /// library.
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
-      {bool isAddedToLibrary}) {
+      {bool addMembersToLibrary}) {
     void buildBuilders(String name, Builder declaration) {
       do {
         if (declaration.parent != this) {
@@ -73,7 +73,7 @@ class SourceExtensionBuilder extends ExtensionBuilder {
           }
         } else if (declaration is FieldBuilder) {
           Field field = declaration.build(libraryBuilder);
-          if (isAddedToLibrary && declaration.next == null) {
+          if (addMembersToLibrary && declaration.next == null) {
             libraryBuilder.library.addMember(field);
             _extension.members.add(new ExtensionMemberDescriptor(
                 name: new Name(declaration.name, libraryBuilder.library),
@@ -83,7 +83,7 @@ class SourceExtensionBuilder extends ExtensionBuilder {
           }
         } else if (declaration is ProcedureBuilder) {
           Member function = declaration.build(libraryBuilder);
-          if (isAddedToLibrary && declaration.next == null) {
+          if (addMembersToLibrary && declaration.next == null) {
             libraryBuilder.library.addMember(function);
             ExtensionMemberKind kind;
             switch (declaration.kind) {

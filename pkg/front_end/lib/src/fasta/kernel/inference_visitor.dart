@@ -69,6 +69,8 @@ class InferenceVisitor
           return visitLocalPostIncDec(node, typeContext);
         case InternalExpressionKind.NullAwareCompoundSet:
           return visitNullAwareCompoundSet(node, typeContext);
+        case InternalExpressionKind.NullAwareExtension:
+          return visitNullAwareExtension(node, typeContext);
         case InternalExpressionKind.NullAwareIfNullSet:
           return visitNullAwareIfNullSet(node, typeContext);
         case InternalExpressionKind.NullAwareMethodInvocation:
@@ -396,12 +398,18 @@ class InferenceVisitor
     inferrer.ensureAssignable(
         valueType, valueResult.inferredType, node.value, node.value.fileOffset);
 
-    VariableDeclaration valueVariable =
-        createVariable(node.value, valueResult.inferredType);
+    Expression value;
+    VariableDeclaration valueVariable;
+    if (node.forEffect) {
+      value = node.value;
+    } else {
+      valueVariable = createVariable(node.value, valueResult.inferredType);
+      value = createVariableGet(valueVariable);
+    }
 
     VariableDeclaration receiverVariable;
     Expression receiver;
-    if (node.readOnlyReceiver) {
+    if (node.forEffect || node.readOnlyReceiver) {
       receiver = node.receiver;
     } else {
       receiverVariable =
@@ -410,16 +418,25 @@ class InferenceVisitor
     }
     Expression assignment = new StaticInvocation(
         node.target.member,
-        new Arguments(<Expression>[receiver, createVariableGet(valueVariable)],
+        new Arguments(<Expression>[receiver, value],
             types: node.target.inferredExtensionTypeArguments)
           ..fileOffset = node.fileOffset)
       ..fileOffset = node.fileOffset;
-    VariableDeclaration assignmentVariable =
-        createVariable(assignment, const VoidType());
-    Expression replacement = createLet(valueVariable,
-        createLet(assignmentVariable, createVariableGet(valueVariable)));
-    if (receiverVariable != null) {
-      replacement = createLet(receiverVariable, replacement);
+
+    Expression replacement;
+    if (node.forEffect) {
+      assert(receiverVariable == null);
+      assert(valueVariable == null);
+      replacement = assignment;
+    } else {
+      assert(valueVariable != null);
+      VariableDeclaration assignmentVariable =
+          createVariable(assignment, const VoidType());
+      replacement = createLet(valueVariable,
+          createLet(assignmentVariable, createVariableGet(valueVariable)));
+      if (receiverVariable != null) {
+        replacement = createLet(receiverVariable, replacement);
+      }
     }
     replacement.fileOffset = node.fileOffset;
     node.replaceWith(replacement);
@@ -1964,6 +1981,32 @@ class InferenceVisitor
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
+  ExpressionInferenceResult visitNullAwareExtension(
+      NullAwareExtension node, DartType typeContext) {
+    inferrer.inferStatement(node.variable);
+    ExpressionInferenceResult expressionResult =
+        inferrer.inferExpression(node.expression, const UnknownType(), true);
+    Member equalsMember = inferrer
+        .findInterfaceMember(node.variable.type, equalsName, node.fileOffset)
+        .member;
+
+    DartType inferredType = expressionResult.inferredType;
+
+    Expression replacement;
+    MethodInvocation equalsNull = createEqualsNull(
+        node.fileOffset,
+        new VariableGet(node.variable)..fileOffset = node.fileOffset,
+        equalsMember);
+    ConditionalExpression condition = new ConditionalExpression(
+        equalsNull,
+        new NullLiteral()..fileOffset = node.fileOffset,
+        node.expression,
+        inferredType);
+    node.replaceWith(replacement = new Let(node.variable, condition)
+      ..fileOffset = node.fileOffset);
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitStaticPostIncDec(
       StaticPostIncDec node, DartType typeContext) {
     inferrer.inferStatement(node.read);
@@ -3369,40 +3412,32 @@ class InferenceVisitor
               ..fileOffset = node.fileOffset)
           ..fileOffset = node.fileOffset;
       } else {
-        VariableDeclaration receiverVariable =
-            createVariable(node.receiver, receiverType);
+        Expression receiver;
+        VariableDeclaration receiverVariable;
+        if (node.readOnlyReceiver) {
+          receiver = node.receiver;
+        } else {
+          receiverVariable = createVariable(node.receiver, receiverType);
+          receiver = createVariableGet(receiverVariable);
+        }
         VariableDeclaration valueVariable = createVariable(node.value, rhsType);
         VariableDeclaration assignmentVariable = createVariable(
             new StaticInvocation(
                 target.member,
-                new Arguments(<Expression>[
-                  createVariableGet(receiverVariable),
-                  createVariableGet(valueVariable)
-                ], types: target.inferredExtensionTypeArguments)
+                new Arguments(
+                    <Expression>[receiver, createVariableGet(valueVariable)],
+                    types: target.inferredExtensionTypeArguments)
                   ..fileOffset = node.fileOffset)
               ..fileOffset = node.fileOffset,
             const VoidType());
-        replacement = createLet(
-            receiverVariable,
-            createLet(
-                valueVariable,
-                createLet(
-                    assignmentVariable, createVariableGet(valueVariable))))
-          ..fileOffset = node.fileOffset;
+        replacement = createLet(valueVariable,
+            createLet(assignmentVariable, createVariableGet(valueVariable)));
+        if (receiverVariable != null) {
+          replacement = createLet(receiverVariable, replacement);
+        }
+        replacement..fileOffset = node.fileOffset;
       }
       node.replaceWith(replacement);
-      /*node.replaceWith(replacement = inferrer.helper.forest
-            .createStaticInvocation(
-                node.fileOffset,
-                target.member,
-                inferrer.helper.forest.createArgumentsForExtensionMethod(
-                    node.fileOffset,
-                    target.inferredExtensionTypeArguments.length,
-                    0,
-                    node.receiver,
-                    extensionTypeArguments:
-                        target.inferredExtensionTypeArguments,
-                    positionalArguments: [node.value])));*/
     }
     return new ExpressionInferenceResult(rhsType, replacement);
   }

@@ -90,6 +90,8 @@ main() {
   testLocals();
   testProperties();
   testExplicitProperties();
+  testExplicitNullAwareProperties(null);
+  testExplicitNullAwareProperties(new Class(new Number(0)));
   new Class(new Number(0)).testImplicitProperties();
 }
 
@@ -240,7 +242,48 @@ testExplicitProperties() {
   expect(n0, ClassExtension(v).property);
 }
 
-expect(expected, actual) {
+testExplicitNullAwareProperties(Class v) {
+  Number n0 = new Number(0);
+  Number n1 = new Number(1);
+  Number n2 = new Number(2);
+
+  expect(n0, ClassExtension(v)?.property, v == null);
+  expect(n1, ClassExtension(v)?.property += n1, v == null);
+  expect(n2, ClassExtension(v)?.property += n1, v == null);
+  expect(n0, ClassExtension(v)?.property -= n2, v == null);
+  expect(n1, ClassExtension(v)?.property += n1, v == null);
+  expect(n0, ClassExtension(v)?.property -= n1, v == null);
+  expect(n1, ++ClassExtension(v)?.property, v == null);
+  expect(n0, --ClassExtension(v)?.property, v == null);
+  expect(n0, ClassExtension(v)?.property++, v == null);
+  expect(n1, ClassExtension(v)?.property--, v == null);
+  expect(n0, ClassExtension(v)?.property, v == null);
+
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n2, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property -= n2;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property -= n1;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ++ClassExtension(v)?.property;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  --ClassExtension(v)?.property;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property++;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property--;
+  expect(n0, ClassExtension(v)?.property, v == null);
+}
+
+expect(expected, actual, [expectNull = false]) {
+  if (expectNull) {
+    expected = null;
+  }
   if (expected != actual) {
     throw 'Mismatch: expected=$expected, actual=$actual';
   }

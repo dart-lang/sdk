@@ -815,7 +815,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
         _helper.createVariableGet(variable, receiverExpression.fileOffset),
         name,
         value,
-        forEffect: voidContext);
+        forEffect: voidContext,
+        readOnlyReceiver: true);
     return new NullAwarePropertySet(variable, read)
       ..fileOffset = receiverExpression.fileOffset;
   }
@@ -1707,23 +1708,13 @@ class ExtensionInstanceAccessGenerator extends Generator {
     Expression write;
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
-    } else if (forEffect) {
-      write = _helper.buildExtensionMethodInvocation(
-          offset,
-          writeTarget,
-          _helper.forest.createArgumentsForExtensionMethod(
-              offset,
-              _extensionTypeParameterCount,
-              0,
-              _helper.createVariableGet(extensionThis, fileOffset),
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              positionalArguments: [value]));
     } else {
       write = new ExtensionSet(
           _helper.createVariableGet(extensionThis, fileOffset),
           new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
               _createExtensionTypeArguments()),
           value,
+          forEffect: forEffect,
           readOnlyReceiver: true);
     }
     write.fileOffset = offset;
@@ -1873,7 +1864,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   /// like `<int>` in `Extension<int>(a).method<String>()`.
   final List<DartType> explicitTypeArguments;
 
+  /// The number of type parameters declared on the extension declaration.
   final int extensionTypeParameterCount;
+
+  /// If `true` the access is null-aware, like `Extension(c)?.foo`.
+  final bool isNullAware;
 
   ExplicitExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
@@ -1884,10 +1879,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       this.writeTarget,
       this.receiver,
       this.explicitTypeArguments,
-      this.extensionTypeParameterCount)
+      this.extensionTypeParameterCount,
+      {this.isNullAware})
       : assert(targetName != null),
         assert(readTarget != null || writeTarget != null),
         assert(receiver != null),
+        assert(isNullAware != null),
         super(helper, token);
 
   factory ExplicitExtensionInstanceAccessGenerator.fromBuilder(
@@ -1897,7 +1894,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       Builder setterBuilder,
       Expression receiver,
       List<DartType> explicitTypeArguments,
-      int extensionTypeParameterCount) {
+      int extensionTypeParameterCount,
+      {bool isNullAware}) {
     String targetName;
     Procedure readTarget;
     Procedure invokeTarget;
@@ -1942,7 +1940,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         writeTarget,
         receiver,
         explicitTypeArguments,
-        extensionTypeParameterCount);
+        extensionTypeParameterCount,
+        isNullAware: isNullAware);
   }
 
   @override
@@ -1957,7 +1956,15 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return _createRead(receiver);
+    if (isNullAware) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      return new NullAwareExtension(variable,
+          _createRead(_helper.createVariableGet(variable, variable.fileOffset)))
+        ..fileOffset = fileOffset;
+    } else {
+      return _createRead(receiver);
+    }
   }
 
   Expression _createRead(Expression receiver) {
@@ -1977,8 +1984,19 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return _createWrite(fileOffset, receiver, value,
-        forEffect: voidContext, readOnlyReceiver: false);
+    if (isNullAware) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      return new NullAwareExtension(
+          variable,
+          _createWrite(fileOffset,
+              _helper.createVariableGet(variable, variable.fileOffset), value,
+              forEffect: voidContext, readOnlyReceiver: true))
+        ..fileOffset = fileOffset;
+    } else {
+      return _createWrite(fileOffset, receiver, value,
+          forEffect: voidContext, readOnlyReceiver: false);
+    }
   }
 
   Expression _createWrite(int offset, Expression receiver, Expression value,
@@ -1986,21 +2004,14 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Expression write;
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
-    } else if (forEffect) {
-      write = _helper.buildExtensionMethodInvocation(
-          offset,
-          writeTarget,
-          _helper.forest.createArgumentsForExtensionMethod(
-              offset, extensionTypeParameterCount, 0, receiver,
-              extensionTypeArguments: _createExtensionTypeArguments(),
-              positionalArguments: [value]));
     } else {
       write = new ExtensionSet(
           receiver,
           new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
               _createExtensionTypeArguments()),
           value,
-          readOnlyReceiver: readOnlyReceiver);
+          readOnlyReceiver: readOnlyReceiver,
+          forEffect: forEffect);
     }
     write.fileOffset = offset;
     return write;
@@ -2009,15 +2020,31 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
-    Expression read =
-        _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
-    Expression write = _createWrite(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), value,
-        forEffect: voidContext, readOnlyReceiver: true);
-    return new IfNullPropertySet(variable, read, write, forEffect: voidContext)
-      ..fileOffset = offset;
+    if (isNullAware) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      Expression read =
+          _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
+      Expression write = _createWrite(fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset), value,
+          forEffect: voidContext, readOnlyReceiver: true);
+      return new NullAwareExtension(
+          variable,
+          new IfNullSet(read, write, forEffect: voidContext)
+            ..fileOffset = offset)
+        ..fileOffset = fileOffset;
+    } else {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      Expression read =
+          _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
+      Expression write = _createWrite(fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset), value,
+          forEffect: voidContext, readOnlyReceiver: true);
+      return new IfNullPropertySet(variable, read, write,
+          forEffect: voidContext)
+        ..fileOffset = offset;
+    }
   }
 
   @override
@@ -2027,18 +2054,33 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
-    Expression write = _createWrite(fileOffset,
-        _helper.createVariableGet(variable, receiver.fileOffset), binary,
-        forEffect: voidContext, readOnlyReceiver: true);
-    return new CompoundPropertySet(variable, write)..fileOffset = offset;
+    if (isNullAware) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      Expression write = _createWrite(fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset), binary,
+          forEffect: voidContext, readOnlyReceiver: true);
+      return new NullAwareExtension(variable, write)..fileOffset = offset;
+    } else {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      Expression write = _createWrite(fileOffset,
+          _helper.createVariableGet(variable, receiver.fileOffset), binary,
+          forEffect: voidContext, readOnlyReceiver: true);
+      return new CompoundPropertySet(variable, write)..fileOffset = offset;
+    }
   }
 
   @override
@@ -2053,35 +2095,74 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           voidContext: voidContext,
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
+    } else if (isNullAware) {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration read = _helper.forest
+          .createVariableDeclarationForValue(
+              fileOffset,
+              _createRead(
+                  _helper.createVariableGet(variable, receiver.fileOffset)));
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          _helper.createVariableGet(read, fileOffset),
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      VariableDeclaration write = _helper.forest
+          .createVariableDeclarationForValue(
+              offset,
+              _createWrite(
+                  fileOffset,
+                  _helper.createVariableGet(variable, receiver.fileOffset),
+                  binary,
+                  forEffect: voidContext,
+                  readOnlyReceiver: true)
+                ..fileOffset = fileOffset);
+      return new NullAwareExtension(
+          variable, new LocalPostIncDec(read, write)..fileOffset = offset)
+        ..fileOffset = fileOffset;
+    } else {
+      VariableDeclaration variable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration read = _helper.forest
+          .createVariableDeclarationForValue(
+              fileOffset,
+              _createRead(
+                  _helper.createVariableGet(variable, receiver.fileOffset)));
+      MethodInvocation binary = _helper.forest.createMethodInvocation(
+          offset,
+          _helper.createVariableGet(read, fileOffset),
+          binaryOperator,
+          _helper.forest.createArguments(offset, <Expression>[value]),
+          interfaceTarget: interfaceTarget);
+      VariableDeclaration write = _helper.forest
+          .createVariableDeclarationForValue(
+              offset,
+              _createWrite(
+                  fileOffset,
+                  _helper.createVariableGet(variable, receiver.fileOffset),
+                  binary,
+                  forEffect: voidContext,
+                  readOnlyReceiver: true)
+                ..fileOffset = fileOffset);
+      return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
     }
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
-    VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        fileOffset,
-        _createRead(_helper.createVariableGet(variable, receiver.fileOffset)));
-    MethodInvocation binary = _helper.forest.createMethodInvocation(
-        offset,
-        _helper.createVariableGet(read, fileOffset),
-        binaryOperator,
-        _helper.forest.createArguments(offset, <Expression>[value]),
-        interfaceTarget: interfaceTarget);
-    VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset,
-            _createWrite(
-                fileOffset,
-                _helper.createVariableGet(variable, receiver.fileOffset),
-                binary,
-                forEffect: voidContext,
-                readOnlyReceiver: true)
-              ..fileOffset = fileOffset);
-    return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
+    VariableDeclaration receiverVariable;
+    Expression receiverExpression = receiver;
+    if (isNullAware) {
+      receiverVariable = _helper.forest
+          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      receiverExpression = _helper.createVariableGet(
+          receiverVariable, receiverVariable.fileOffset);
+    }
+    Expression invocation;
     if (invokeTarget != null) {
-      return _helper.buildExtensionMethodInvocation(
+      invocation = _helper.buildExtensionMethodInvocation(
           fileOffset,
           invokeTarget,
           _forest.createArgumentsForExtensionMethod(
@@ -2089,15 +2170,25 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               extensionTypeParameterCount,
               invokeTarget.function.typeParameters.length -
                   extensionTypeParameterCount,
-              receiver,
+              receiverExpression,
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
               namedArguments: arguments.named));
     } else {
-      return _helper.buildMethodInvocation(buildSimpleRead(), callName,
-          arguments, adjustForImplicitCall(_plainNameForRead, offset),
+      invocation = _helper.buildMethodInvocation(
+          _createRead(receiverExpression),
+          callName,
+          arguments,
+          adjustForImplicitCall(_plainNameForRead, offset),
           isImplicitCall: true);
+    }
+    if (isNullAware) {
+      assert(receiverVariable != null);
+      return new NullAwareExtension(receiverVariable, invocation)
+        ..fileOffset = fileOffset;
+    } else {
+      return invocation;
     }
   }
 
@@ -2210,7 +2301,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
             setter,
             receiver,
             explicitTypeArguments,
-            extensionBuilder.typeParameters?.length ?? 0);
+            extensionBuilder.typeParameters?.length ?? 0,
+            isNullAware: isNullAware);
     if (send.arguments != null) {
       return generator.doInvocation(offsetForToken(send.token), send.arguments);
     } else {

@@ -2051,7 +2051,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       cls = declaration.build(this, coreLibrary);
     } else if (declaration is SourceExtensionBuilder) {
       extension = declaration.build(this, coreLibrary,
-          isAddedToLibrary: declaration.next == null);
+          addMembersToLibrary: declaration.next == null);
     } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {

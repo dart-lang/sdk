@@ -26,6 +26,8 @@ main() {
   expect(null, c?.method);
   expect(null, c?.method());
   expect(null, c?.property = 42);
+  expect(null, Extension(c)?.property ??= 42);
+
   c = new Class();
   expect(null, c?.property);
   expect(null, c?.method());
