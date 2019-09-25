@@ -2125,7 +2125,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitPushConstant(cp.addType(type));
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.addString(name));
-    bool isIntOk = typeEnvironment.isSubtypeOf(typeEnvironment.intType, type);
+    bool isIntOk = typeEnvironment.isSubtypeOf(
+        typeEnvironment.coreTypes.intLegacyRawType, type);
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }

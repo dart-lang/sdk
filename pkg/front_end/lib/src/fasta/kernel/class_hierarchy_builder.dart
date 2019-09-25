@@ -1964,10 +1964,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   InterfaceType get nullType => hierarchy.coreTypes.nullType;
 
   @override
-  InterfaceType get objectType => hierarchy.coreTypes.objectLegacyRawType;
+  InterfaceType get objectLegacyRawType =>
+      hierarchy.coreTypes.objectLegacyRawType;
 
   @override
-  InterfaceType get rawFunctionType =>
+  InterfaceType get functionLegacyRawType =>
       hierarchy.coreTypes.functionLegacyRawType;
 
   @override

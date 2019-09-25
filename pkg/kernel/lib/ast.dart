@@ -2739,9 +2739,9 @@ class PropertyGet extends Expression {
     // Treat the properties of Object specially.
     String nameString = name.name;
     if (nameString == 'hashCode') {
-      return types.intType;
+      return types.coreTypes.intLegacyRawType;
     } else if (nameString == 'runtimeType') {
-      return types.typeType;
+      return types.coreTypes.typeLegacyRawType;
     }
     return const DynamicType();
   }
@@ -3257,7 +3257,7 @@ class MethodInvocation extends InvocationExpression {
     }
     if (name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return types.boolType;
+      return types.coreTypes.boolLegacyRawType;
     }
     return const DynamicType();
   }
@@ -3497,7 +3497,8 @@ class Not extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNot(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitNot(this, arg);
@@ -3525,7 +3526,8 @@ class LogicalExpression extends Expression {
     right?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLogicalExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3610,7 +3612,8 @@ class StringConcatenation extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringConcatenation(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3838,7 +3841,8 @@ class IsExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIsExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3945,7 +3949,8 @@ class StringLiteral extends BasicLiteral {
 
   StringLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3961,7 +3966,8 @@ class IntLiteral extends BasicLiteral {
 
   IntLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.intType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.intLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3973,7 +3979,8 @@ class DoubleLiteral extends BasicLiteral {
 
   DoubleLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.doubleType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3985,7 +3992,8 @@ class BoolLiteral extends BasicLiteral {
 
   BoolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4007,7 +4015,8 @@ class SymbolLiteral extends Expression {
 
   SymbolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.symbolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSymbolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4022,7 +4031,8 @@ class TypeLiteral extends Expression {
 
   TypeLiteral(this.type);
 
-  DartType getStaticType(TypeEnvironment types) => types.typeType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.typeLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitTypeLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4395,7 +4405,7 @@ class CheckLibraryIsLoaded extends Expression {
   CheckLibraryIsLoaded(this.import);
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.objectType;
+    return types.coreTypes.objectLegacyRawType;
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitCheckLibraryIsLoaded(this);
@@ -6190,7 +6200,7 @@ class BoolConstant extends PrimitiveConstant<bool> {
   R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.boolType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.boolLegacyRawType;
 }
 
 /// An integer constant on a non-JS target.
@@ -6201,7 +6211,7 @@ class IntConstant extends PrimitiveConstant<int> {
   R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.intType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.intLegacyRawType;
 }
 
 /// A double constant on a non-JS target or any numeric constant on a JS target.
@@ -6216,7 +6226,8 @@ class DoubleConstant extends PrimitiveConstant<double> {
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
-  DartType getType(TypeEnvironment types) => types.doubleType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 }
 
 class StringConstant extends PrimitiveConstant<String> {
@@ -6228,7 +6239,8 @@ class StringConstant extends PrimitiveConstant<String> {
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.stringType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 }
 
 class SymbolConstant extends Constant {
@@ -6256,7 +6268,8 @@ class SymbolConstant extends Constant {
           other.name == name &&
           other.libraryReference == libraryReference);
 
-  DartType getType(TypeEnvironment types) => types.symbolType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 }
 
 class MapConstant extends Constant {
@@ -6530,7 +6543,7 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
-  DartType getType(TypeEnvironment types) => types.typeType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.typeLegacyRawType;
 }
 
 class UnevaluatedConstant extends Constant {

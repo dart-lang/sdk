@@ -32,22 +32,13 @@ abstract class TypeEnvironment extends SubtypeTester {
     return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
   }
 
-  // TODO(dmitryas): Remove these getters, use the appropriate member of
-  //  CoreTypes at the call sites instead.
-  InterfaceType get objectType => coreTypes.objectLegacyRawType;
-  InterfaceType get nullType => coreTypes.nullType;
-  InterfaceType get boolType => coreTypes.boolLegacyRawType;
-  InterfaceType get intType => coreTypes.intLegacyRawType;
-  InterfaceType get numType => coreTypes.numLegacyRawType;
-  InterfaceType get doubleType => coreTypes.doubleLegacyRawType;
-  InterfaceType get stringType => coreTypes.stringLegacyRawType;
-  InterfaceType get symbolType => coreTypes.symbolLegacyRawType;
-  InterfaceType get typeType => coreTypes.typeLegacyRawType;
-  InterfaceType get rawFunctionType => coreTypes.functionLegacyRawType;
-
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
   Class get futureOrClass => coreTypes.futureOrClass;
+
+  InterfaceType get objectLegacyRawType => coreTypes.objectLegacyRawType;
+  InterfaceType get nullType => coreTypes.nullType;
+  InterfaceType get functionLegacyRawType => coreTypes.functionLegacyRawType;
 
   InterfaceType literalListType(DartType elementType) {
     return new InterfaceType(coreTypes.listClass, <DartType>[elementType]);
@@ -144,8 +135,10 @@ abstract class TypeEnvironment extends SubtypeTester {
   /// Otherwise `num` is returned.
   DartType getTypeOfOverloadedArithmetic(DartType type1, DartType type2) {
     if (type1 == type2) return type1;
-    if (type1 == doubleType || type2 == doubleType) return doubleType;
-    return numType;
+    if (type1 == coreTypes.doubleLegacyRawType ||
+        type2 == coreTypes.doubleLegacyRawType)
+      return coreTypes.doubleLegacyRawType;
+    return coreTypes.numLegacyRawType;
   }
 }
 
@@ -153,9 +146,9 @@ abstract class TypeEnvironment extends SubtypeTester {
 ///
 /// This lives in a separate class so it can be tested independently of the SDK.
 abstract class SubtypeTester {
-  InterfaceType get objectType;
+  InterfaceType get objectLegacyRawType;
   InterfaceType get nullType;
-  InterfaceType get rawFunctionType;
+  InterfaceType get functionLegacyRawType;
   Class get futureOrClass;
   InterfaceType futureType(DartType type);
 
@@ -165,8 +158,11 @@ abstract class SubtypeTester {
 
   /// Determines if the given type is at the top of the type hierarchy.  May be
   /// overridden in subclasses.
-  bool isTop(DartType type) =>
-      type is DynamicType || type is VoidType || type == objectType;
+  bool isTop(DartType type) {
+    return type is DynamicType ||
+        type is VoidType ||
+        type == objectLegacyRawType;
+  }
 
   /// Can be use to collect type checks. To use:
   /// 1. Rename `isSubtypeOf` to `_isSubtypeOf`.
@@ -251,7 +247,7 @@ abstract class SubtypeTester {
       return isSubtypeOf(subtype.bound, supertype);
     }
     if (subtype is FunctionType) {
-      if (supertype == rawFunctionType) return true;
+      if (supertype == functionLegacyRawType) return true;
       if (supertype is FunctionType) {
         return _isFunctionSubtypeOf(subtype, supertype);
       }

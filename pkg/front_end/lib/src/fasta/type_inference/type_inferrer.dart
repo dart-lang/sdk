@@ -2564,7 +2564,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       expectedType = (expectedType as InterfaceType).typeArguments[0];
     }
     if (expectedType is FunctionType) return true;
-    if (expectedType == typeSchemaEnvironment.rawFunctionType) {
+    if (expectedType == typeSchemaEnvironment.functionLegacyRawType) {
       if (!typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
         return true;
       }

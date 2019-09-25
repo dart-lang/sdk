@@ -399,7 +399,7 @@ DartType convertSuperBoundedToRegularBounded(
     return const BottomType();
   } else if ((type is BottomType || isNull(typeEnvironment, type)) &&
       !isCovariant) {
-    return typeEnvironment.objectType;
+    return typeEnvironment.coreTypes.objectLegacyRawType;
   } else if (type is InterfaceType && type.classNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
         new List<DartType>(type.typeArguments.length);
@@ -449,7 +449,7 @@ DartType convertSuperBoundedToRegularBounded(
 
 bool isObject(TypeEnvironment typeEnvironment, DartType type) {
   return type is InterfaceType &&
-      type.classNode == typeEnvironment.objectType.classNode;
+      type.classNode == typeEnvironment.coreTypes.objectClass;
 }
 
 bool isNull(TypeEnvironment typeEnvironment, DartType type) {

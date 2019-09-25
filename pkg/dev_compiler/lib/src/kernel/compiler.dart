@@ -2651,7 +2651,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
       /// explicit bounds by looking for anything *except* that.
       typeParameterHasExplicitBound(TypeParameter t) =>
-          t.bound != _types.objectType || t.defaultType != const DynamicType();
+          t.bound != _types.coreTypes.objectLegacyRawType ||
+          t.defaultType != const DynamicType();
 
       // If any explicit bounds were passed, emit them.
       if (typeFormals.any(typeParameterHasExplicitBound)) {
@@ -3147,7 +3148,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (node is AsExpression && node.isTypeError) {
-      assert(node.getStaticType(_types) == _types.boolType);
+      assert(node.getStaticType(_types) == _types.coreTypes.boolLegacyRawType);
       return runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
@@ -4317,7 +4318,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var rightType = right.getStaticType(_types);
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
-          leftType == _types.stringType && op == '+') {
+          leftType == _types.coreTypes.stringLegacyRawType && op == '+') {
         // Inline operations on primitive types where possible.
         // TODO(jmesserly): inline these from dart:core instead of hardcoding
         // the implementation details here.
@@ -4923,9 +4924,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      parts.add(e.getStaticType(_types) == _types.stringType && !isNullable(e)
-          ? jsExpr
-          : runtimeCall('str(#)', [jsExpr]));
+      parts.add(
+          e.getStaticType(_types) == _types.coreTypes.stringLegacyRawType &&
+                  !isNullable(e)
+              ? jsExpr
+              : runtimeCall('str(#)', [jsExpr]));
     }
     if (parts.isEmpty) return js.string('');
     return js_ast.Expression.binary(parts, '+');
@@ -4971,7 +4974,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
-    if (typeofName != null && type != _types.intType) {
+    if (typeofName != null && type != _types.coreTypes.intLegacyRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       return js.call('#.is(#)', [_emitType(type), lhs]);

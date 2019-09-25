@@ -27,8 +27,8 @@ abstract class StandardBounds {
   Class get futureClass;
   Class get futureOrClass;
   InterfaceType get nullType;
-  InterfaceType get objectType;
-  InterfaceType get rawFunctionType;
+  InterfaceType get objectLegacyRawType;
+  InterfaceType get functionLegacyRawType;
 
   bool isSubtypeOf(DartType subtype, DartType supertype);
 
@@ -74,10 +74,10 @@ abstract class StandardBounds {
     }
 
     // SLB(Object, T) = SLB(T, Object) = T if T is not void or dynamic.
-    if (type1 == objectType) {
+    if (type1 == objectLegacyRawType) {
       return type2;
     }
-    if (type2 == objectType) {
+    if (type2 == objectLegacyRawType) {
       return type1;
     }
 
@@ -182,10 +182,10 @@ abstract class StandardBounds {
     }
 
     // SUB(Object, T) = SUB(T, Object) = Object if T is not void or dynamic.
-    if (type1 == objectType) {
+    if (type1 == objectLegacyRawType) {
       return type1;
     }
-    if (type2 == objectType) {
+    if (type2 == objectLegacyRawType) {
       return type2;
     }
 
@@ -202,10 +202,10 @@ abstract class StandardBounds {
     // The standard upper bound of a function type and an interface type T is
     // the standard upper bound of Function and T.
     if (type1 is FunctionType && type2 is InterfaceType) {
-      type1 = rawFunctionType;
+      type1 = functionLegacyRawType;
     }
     if (type2 is FunctionType && type1 is InterfaceType) {
-      type2 = rawFunctionType;
+      type2 = functionLegacyRawType;
     }
 
     // At this point type1 and type2 should both either be interface types or
@@ -474,13 +474,13 @@ abstract class StandardBounds {
       // C<T extends U, U extends List>, T gets resolved directly to List.  Do
       // we need to replicate that behavior?
       return getStandardUpperBound(
-          Substitution.fromMap({type1.parameter: objectType})
+          Substitution.fromMap({type1.parameter: objectLegacyRawType})
               .substituteType(type1.parameter.bound),
           type2);
     } else if (type2 is TypeParameterType) {
       return getStandardUpperBound(
           type1,
-          Substitution.fromMap({type2.parameter: objectType})
+          Substitution.fromMap({type2.parameter: objectLegacyRawType})
               .substituteType(type2.parameter.bound));
     } else {
       // We should only be called when at least one of the types is a

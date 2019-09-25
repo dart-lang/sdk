@@ -120,11 +120,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // TODO(paulberry): this matches what is defined in the spec.  It would be
     // nice if we could change kernel to match the spec and not have to
     // override.
-    if (type1 == intType) {
-      if (type2 == intType) return type2;
-      if (type2 == doubleType) return type2;
+    if (type1 == coreTypes.intLegacyRawType) {
+      if (type2 == coreTypes.intLegacyRawType) return type2;
+      if (type2 == coreTypes.doubleLegacyRawType) return type2;
     }
-    return numType;
+    return coreTypes.numLegacyRawType;
   }
 
   /// Infers a generic type, function, method, or list/map literal
