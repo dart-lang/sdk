@@ -1618,7 +1618,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Return the constant value of the static constant represented by the given
   /// [element]. The [node] is the node to be used if an error needs to be
   /// reported.
-  DartObjectImpl _getConstantValue(Expression node, Element element) {
+  DartObjectImpl _getConstantValue(AstNode node, Element element) {
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
@@ -1634,8 +1634,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        var functionType = node.staticType;
-        return DartObjectImpl(functionType, FunctionState(function));
+        ParameterizedType functionType = function.type;
+        if (functionType == null) {
+          functionType = _typeProvider.functionType;
+        }
+        return new DartObjectImpl(functionType, new FunctionState(function));
       }
     } else if (variableElement is ClassElement) {
       var type = variableElement.instantiate(
