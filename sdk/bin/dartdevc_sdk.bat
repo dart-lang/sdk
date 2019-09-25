@@ -22,7 +22,14 @@ if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
 set SDK_ARG=--dart-sdk=%SDK_DIR%
 
-"%DART%" "%SNAPSHOT%" "%SDK_ARG%" %*
+set EXTRA_VM_OPTIONS=
+
+rem We allow extra vm options to be passed in through an environment variable.
+if not "_%DART_VM_OPTIONS%_" == "__" (
+  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% %DART_VM_OPTIONS%
+)
+
+"%DART%" %EXTRA_VM_OPTIONS% "%SNAPSHOT%" "%SDK_ARG%" %*
 
 endlocal
 
