@@ -5764,14 +5764,21 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// A type variable has an optional bound because type promotion can change the
 /// bound.  A bound of `null` indicates that the bound has not been promoted and
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
-/// whether the bound has been promoted.
+/// whether the bound has been promoted.  The case of promoted bound can be
+/// viewed as representing an intersection type between the type-parameter type
+/// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// The nullability declared on the type.
+  /// Nullability of the type-parameter type or of its part of the intersection.
   ///
-  /// Declarations of type-parameter types can set it to [Nullability.nullable]
-  /// or [Nullability.legacy].  Otherwise, it's computed from the nullability
-  /// of the type parameter bound.
-  Nullability declaredNullability;
+  /// Declarations of type-parameter types can set the nullability of a
+  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
+  /// or [Nullability.legacy] (if the type comes from a library opted out from
+  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
+  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
+  /// intersection between a type-parameter type and [promotedBound],
+  /// [typeParameterTypeNullability] represents the nullability of the left-hand
+  /// side of the intersection.
+  Nullability typeParameterTypeNullability;
 
   TypeParameter parameter;
 
@@ -5782,7 +5789,8 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, this.declaredNullability = Nullability.legacy]);
+      [this.promotedBound,
+      this.typeParameterTypeNullability = Nullability.legacy]);
 
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
@@ -5799,97 +5807,108 @@ class TypeParameterType extends DartType {
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
 
-  /// Actual nullability of the type, calculated from its parts.
+  /// Nullability of the type, calculated from its parts.
   ///
-  /// [nullability] is calculated from [declaredNullability] and the
-  /// nullabilities of [promotedBound] and the bound of [parameter].
+  /// [nullability] is calculated from [typeParameterTypeNullability] and the
+  /// nullability of [promotedBound] if it's present.
   ///
-  /// For example, in the following program [declaredNullability] both `x` and
-  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
-  /// However, despite [nullability] of `x` is [Nullability.nullable],
-  /// [nullability] of `y` is [Nullability.nonNullable] because of its
-  /// [promotedBound].
+  /// For example, in the following program [typeParameterTypeNullability] of
+  /// both `x` and `y` is [Nullability.neither], because it's copied from that
+  /// of `bar` and T has a nullable type as its bound.  However, despite
+  /// [nullability] of `x` is [Nullability.neither], [nullability] of `y` is
+  /// [Nullability.nonNullable] because of its [promotedBound].
   ///
   ///     class A<T extends Object?> {
-  ///       foo(T? bar) {
+  ///       foo(T bar) {
   ///         var x = bar;
   ///         if (bar is int) {
   ///           var y = bar;
   ///         }
   ///       }
   ///     }
-  Nullability get nullability =>
-      getNullability(parameter, promotedBound, declaredNullability);
+  Nullability get nullability {
+    return getNullability(
+        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        promotedBound);
+  }
 
+  /// Gets the nullability of a type-parameter type based on the bound.
+  ///
+  /// This is a helper function to be used when the bound of the type parameter
+  /// is changing or is being set for the first time, and the update on some
+  /// type-parameter types is required.
   static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
-    // If the bound is nullable, both nullable and non-nullable types can be
-    // passed in for the type parameter, making the corresponding type
-    // parameter types 'neither.'  Otherwise, the nullability matches that of
-    // the bound.
+    // If the bound is nullable or 'neither', both nullable and non-nullable
+    // types can be passed in for the type parameter, making the corresponding
+    // type parameter types 'neither.'  Otherwise, the nullability matches that
+    // of the bound.
     DartType bound = typeParameter.bound;
     if (bound == null) {
-      throw new StateError("Can't compute nullability from absent bound.");
+      throw new StateError("Can't compute nullability from an absent bound.");
     }
     Nullability boundNullability =
         bound is InvalidType ? Nullability.neither : bound.nullability;
-    return boundNullability == Nullability.nullable
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.neither
         ? Nullability.neither
         : boundNullability;
   }
 
-  /// Get nullability of [TypeParameterType] from arguments to its constructor.
+  /// Gets nullability of [TypeParameterType] from arguments to its constructor.
   ///
-  /// This method is supposed to be used only in the constructor of
-  /// [TypeParameterType] to compute the value of
-  /// [TypeParameterType.nullability] from the arguments passed to the constructor.
-  static Nullability getNullability(TypeParameter parameter,
-      DartType promotedBound, Nullability declaredNullability) {
-    // If promotedBound is null, getNullability returns the nullability of
-    // either T or T? where T is parameter and the presence of '?' is determined
-    // by nullability.
-
-    // If promotedBound isn't null, getNullability returns the nullability of an
-    // intersection of the left-hand side (referred to as LHS below) and the
-    // right-hand side (referred to as RHS below).  LHS is parameter followed by
-    // nullability, and RHS is promotedBound.  That is, getNullability returns
-    // the nullability of either T & P or T? & P where T is parameter, P is
-    // promotedBound, and the presence of '?' is determined by nullability.
-    // Note that RHS is always a subtype of the bound of the type parameter.
-
-    Nullability lhsNullability;
-
-    // If the nullability is declared explicitly, use it as the nullability of
-    // the LHS of the intersection.  Otherwise, compute it from the bound.
-    if (declaredNullability != null) {
-      lhsNullability = declaredNullability;
-    } else {
-      lhsNullability = computeNullabilityFromBound(parameter);
-    }
+  /// The method combines [typeParameterTypeNullability] and the nullability of
+  /// [promotedBound] to yield the nullability of the intersection type.  If the
+  /// right-hand side of the intersection is absent (that is, if [promotedBound]
+  /// is null), the nullability of the intersection type is simply
+  /// [typeParameterTypeNullability].
+  static Nullability getNullability(
+      Nullability typeParameterTypeNullability, DartType promotedBound) {
+    // If promotedBound is null, getNullability simply returns the nullability
+    // of the type parameter type.
+    Nullability lhsNullability = typeParameterTypeNullability;
     if (promotedBound == null) {
       return lhsNullability;
     }
 
-    // In practice a type parameter of legacy type can only be used in type
-    // annotations within the corresponding class declaration.  If it's legacy,
-    // then the entire library containing the class is opt-out, and any RHS is
-    // deemed to be legacy too.  So, it's necessary to only check LHS for being
-    // legacy.
-    if (lhsNullability == Nullability.legacy) {
-      return Nullability.legacy;
-    }
+    // If promotedBound isn't null, getNullability returns the nullability of an
+    // intersection of the left-hand side (referred to as LHS below) and the
+    // right-hand side (referred to as RHS below).  Note that RHS is always a
+    // subtype of the bound of the type parameter.
 
-    // Intersection is non-nullable if and only if RHS is non-nullable.
+    // The code below implements the rule for the nullability of an intersection
+    // type as per the following table:
     //
-    // The proof is as follows.  Intersection is non-nullable if at least one of
-    // LHS or RHS is non-nullable.  The case of non-nullable RHS is trivial.  In
-    // the case of non-nullable LHS, its bound should be non-nullable.  RHS is
-    // known to always be a subtype of the bound of LHS; therefore, RHS is
-    // non-nullable.
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  | N/A | N/A |  !  |
+    // |     ?     | N/A | N/A | N/A | N/A |
+    // |     *     | N/A | N/A |  *  | N/A |
+    // |     %     |  !  |  %  | N/A |  %  |
     //
-    // Note that it also follows from the above that non-nullable RHS implies
-    // non-nullable LHS, so the check below covers the case lhsNullability ==
-    // Nullability.nonNullable.
-    if (promotedBound.nullability == Nullability.nonNullable) {
+    // In the table, LHS corresponds to lhsNullability in the code below; RHS
+    // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
+    // nonNullable, nullable, legacy, and neither values of the Nullability
+    // enum.
+    //
+    // Whenever there's N/A in the table, it means that the corresponding
+    // combination of the LHS and RHS nullability is not possible when compiling
+    // from Dart source files, so we can define it to be whatever is faster and
+    // more convenient to implement.  The verifier should check that the cases
+    // marked as N/A never occur in the output of the CFE.
+    //
+    // The code below uses the following extension of the table function:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |  !  |
+    // |     ?     |  !  |  *  |  *  |  %  |
+    // |     *     |  !  |  *  |  *  |  %  |
+    // |     %     |  !  |  %  |  %  |  %  |
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (lhsNullability == Nullability.nonNullable ||
+        promotedBound.nullability == Nullability.nonNullable) {
       return Nullability.nonNullable;
     }
 
@@ -5910,30 +5929,12 @@ class TypeParameterType extends DartType {
     //         }
     //       }
     //     }
-    //
-    // Note that RHS can't be 'legacy' or non-nullable at this point due to the
-    // checks above.
-    if (lhsNullability == Nullability.neither) {
+    if (lhsNullability == Nullability.neither ||
+        promotedBound.nullability == Nullability.neither) {
       return Nullability.neither;
     }
 
-    // At this point the only possibility for LHS is to be nullable, and for RHS
-    // is to be either nullable or legacy.  Both combinations for LHS and RHS
-    // should yield the nullability of RHS as the nullability for the
-    // intersection.  Consider the following code for clarification:
-    //
-    //   class A<X extends Object?, Y extends X> {
-    //     foo(X? x) {
-    //       if (x is Y) {
-    //         x = null;     // Compile-time error.  Consider X = Y = int.
-    //         Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //       }
-    //       if (x is int?) {
-    //         x = null;     // Ok.  Both X? and int? are nullable.
-    //       }
-    //     }
-    //   }
-    return promotedBound.nullability;
+    return Nullability.legacy;
   }
 }
 

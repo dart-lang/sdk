@@ -2298,6 +2298,7 @@ restored
 restores
 restrict
 restricted
+restrictive
 result
 resulting
 results
@@ -2946,6 +2947,7 @@ vertices
 very
 via
 view
+viewed
 violate
 violates
 violation
