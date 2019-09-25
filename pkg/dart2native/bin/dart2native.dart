@@ -82,34 +82,35 @@ Future<void> generateNative(
 }
 
 void printUsage(final ArgParser parser) {
-  print('Usage: dart2native <dart-script-file> [<options>]');
-  print('');
-  print('Generates an executable or an AOT snapshot from <dart-script-file>.');
-  print('');
+  print('''
+Usage: dart2native <main-dart-file> [<options>]
+
+Generates an executable or an AOT snapshot from <main-dart-file>.
+''');
   print(parser.usage);
 }
 
 Future<void> main(List<String> args) async {
   final ArgParser parser = ArgParser()
-    ..addMultiOption('define',
-        abbr: 'D',
-        valueHelp: 'key=value',
-        help: 'The values for the environment constants.')
+    ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
+Set values of environment variables.
+To specify multiple variables, use multiple flags or use commas to separate pairs.
+Example:
+dart2native -Da=1,b=2 -Dc=3 --define=d=4 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')
     ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Displays the help message.')
+        abbr: 'h', negatable: false, help: 'Displays this help message.')
     ..addOption('output',
-        abbr: 'o', valueHelp: 'path', help: 'Path to output file.')
+        abbr: 'o', valueHelp: 'path', help: 'Put the output in file <path>.')
     ..addOption('output-kind',
         abbr: 'k',
         allowed: ['exe', 'aot'],
         defaultsTo: 'exe',
         valueHelp: 'exe|aot',
-        help:
-            'Whether to generate a stand-alone executable or an AOT snapshot.')
+        help: 'Generate a standalone executable or an AOT snapshot.')
     ..addOption('packages',
-        abbr: 'p', valueHelp: 'path', help: 'Path to .packages file.')
+        abbr: 'p', valueHelp: 'path', help: 'Use the .packages file at <path>.')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
 
