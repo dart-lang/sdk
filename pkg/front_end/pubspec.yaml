@@ -10,6 +10,7 @@ environment:
 dependencies:
   kernel: 0.3.25
   package_config: '^1.1.0'
+  meta: ^1.0.2
 dev_dependencies:
   analyzer: 0.38.3
   args: '>=0.13.0 <2.0.0'
