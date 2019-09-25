@@ -568,13 +568,12 @@ dart_vm_extra_builder(
     "vm-kernel-precomp-obfuscate-linux-release-x64",
     category="vm|kernel-precomp|o")
 dart_vm_extra_builder(
-    "vm-kernel-precomp-mac-debug-simarm_x64",
-    category="vm|kernel-precomp|ad",
-    dimensions=mac(),
+    "vm-kernel-precomp-linux-debug-simarm_x64",
+    category="vm|kernel-precomp|adx",
     properties={"shard_timeout": 5400})  # 1.5h
 dart_vm_extra_builder(
     "vm-kernel-precomp-mac-release-simarm_x64",
-    category="vm|kernel-precomp|ar",
+    category="vm|kernel-precomp|arx",
     dimensions=mac())
 dart_vm_extra_builder(
     "vm-kernel-precomp-mac-release-simarm64",
