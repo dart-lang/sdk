@@ -14,38 +14,15 @@ import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/src/version_constraint.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/diagnostics/generate.dart';
 import 'src/dart/resolution/driver_resolution.dart';
 
-/// Validate the documentation associated with the declarations of the error
-/// codes.
-void main() async {
-  Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
-  List<CodePath> codePaths = computeCodePaths();
-  //
-  // Validate that the input to the generator is correct.
-  //
-  DocumentationValidator validator = DocumentationValidator(codePaths);
-  await validator.validate();
-  //
-  // Validate that the generator has been run.
-  //
-  if (pathContext.style != Style.windows) {
-    String actualContent = PhysicalResourceProvider.INSTANCE
-        .getFile(computeOutputPath())
-        .readAsStringSync();
-
-    StringBuffer sink = StringBuffer();
-    DocumentationGenerator generator = DocumentationGenerator(codePaths);
-    generator.writeDocumentation(sink);
-    String expectedContent = sink.toString();
-
-    if (actualContent != expectedContent) {
-      fail('The diagnostic documentation needs to be regenerated.\n'
-          'Please run tool/diagnostics/generate.dart.');
-    }
-  }
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(VerifyDiagnosticsTest);
+  });
 }
 
 /// A class used to validate diagnostic documentation.
@@ -308,6 +285,39 @@ class DocumentationValidator {
       } else {
         _reportProblem('Expected one error but found $errorCount:',
             errors: errors);
+      }
+    }
+  }
+}
+
+/// Validate the documentation associated with the declarations of the error
+/// codes.
+@reflectiveTest
+class VerifyDiagnosticsTest {
+  test_diagnostics() async {
+    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    List<CodePath> codePaths = computeCodePaths();
+    //
+    // Validate that the input to the generator is correct.
+    //
+    DocumentationValidator validator = DocumentationValidator(codePaths);
+    await validator.validate();
+    //
+    // Validate that the generator has been run.
+    //
+    if (pathContext.style != Style.windows) {
+      String actualContent = PhysicalResourceProvider.INSTANCE
+          .getFile(computeOutputPath())
+          .readAsStringSync();
+
+      StringBuffer sink = StringBuffer();
+      DocumentationGenerator generator = DocumentationGenerator(codePaths);
+      generator.writeDocumentation(sink);
+      String expectedContent = sink.toString();
+
+      if (actualContent != expectedContent) {
+        fail('The diagnostic documentation needs to be regenerated.\n'
+            'Please run tool/diagnostics/generate.dart.');
       }
     }
   }

@@ -344,6 +344,7 @@ class List<E> implements Iterable<E> {
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
+  Map<int, E> asMap() {}
   void clear() {}
   int indexOf(Object element);
   E removeLast() {}
