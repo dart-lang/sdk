@@ -345,7 +345,11 @@
       "options": {
         "use-blobs": true
     }},
-    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
+    "dartkp-linux-(debug|product|release)-(simarm|simarm64)-crossword": {
+      "options": {
+        "builder-tag": "crossword"
+    }},
+    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
       "options": {
         "builder-tag": "crossword",
         "use-blobs": true
@@ -2274,7 +2278,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-mac-debug-simarm_x64",
+        "vm-kernel-precomp-linux-debug-simarm_x64",
         "vm-kernel-precomp-mac-release-simarm_x64"
       ],
       "meta": {

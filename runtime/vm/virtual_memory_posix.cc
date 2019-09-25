@@ -50,6 +50,11 @@ intptr_t VirtualMemory::CalculatePageSize() {
 }
 
 void VirtualMemory::Init() {
+  if (page_size_ != 0) {
+    // Already initialized.
+    return;
+  }
+
   page_size_ = CalculatePageSize();
 
 #if defined(DUAL_MAPPING_SUPPORTED)

@@ -53,7 +53,7 @@ class LoadedElf {
   bool ReadSectionStringTable();
   bool ReadSections();
 
-  static uword PageSize();
+  static uword PageSize() { return VirtualMemory::PageSize(); }
 
   // Unlike File::Map, allows non-aligned 'start' and 'length'.
   MappedMemory* MapFilePiece(uword start,
@@ -112,12 +112,9 @@ class LoadedElf {
     return false;                                                              \
   }
 
-uword LoadedElf::PageSize() {
-  static uword page_size_ = VirtualMemory::CalculatePageSize();
-  return page_size_;
-}
-
 bool LoadedElf::Load() {
+  VirtualMemory::Init();
+
   if (error_ != nullptr) {
     return false;
   }

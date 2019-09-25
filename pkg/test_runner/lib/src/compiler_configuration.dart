@@ -586,7 +586,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm => _configuration.architecture == Architecture.arm;
 
+  bool get _isSimArm => _configuration.architecture == Architecture.simarm;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
+
+  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
 
   bool get _isX64 => _configuration.architecture == Architecture.x64;
 
@@ -701,12 +705,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
-    if (_isAndroid) {
+    if (_isAndroid || _isSimArm || _isSimArm64) {
       var ndk = "third_party/android_tools/ndk";
       String triple;
-      if (_isArm) {
+      if (_isArm || _isSimArm) {
         triple = "arm-linux-androideabi";
-      } else if (_isArm64) {
+      } else if (_isArm64 || _isSimArm64) {
         triple = "aarch64-linux-android";
       }
       String host;

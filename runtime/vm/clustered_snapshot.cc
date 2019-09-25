@@ -90,6 +90,7 @@ void Deserializer::InitializeHeader(RawObject* raw,
 #endif
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
   if (LOG_SECTION_BOUNDARIES) {
     OS::PrintErr("Data + %" Px ": Alloc %s\n", serializer->bytes_written(),
@@ -115,7 +116,6 @@ void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
   size_ += (stop - start);
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 class ClassSerializationCluster : public SerializationCluster {
  public:
   explicit ClassSerializationCluster(intptr_t num_cids)
@@ -4336,6 +4336,10 @@ class FakeSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
+#if defined(DEBUG)
+static const int32_t kSectionMarker = 0xABAB;
+#endif
+
 Serializer::Serializer(Thread* thread,
                        Snapshot::Kind kind,
                        uint8_t** buffer,
@@ -4551,6 +4555,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 #endif  // !DART_PRECOMPILED_RUNTIME
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   ASSERT(code != Code::null());
 
@@ -4740,11 +4745,6 @@ void Serializer::WriteVersionAndFeatures(bool is_vm_snapshot) {
   free(const_cast<char*>(expected_features));
 }
 
-#if defined(DEBUG)
-static const int32_t kSectionMarker = 0xABAB;
-#endif
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
 static int CompareClusters(SerializationCluster* const* a,
                            SerializationCluster* const* b) {
   if ((*a)->size() > (*b)->size()) {
@@ -4755,7 +4755,6 @@ static int CompareClusters(SerializationCluster* const* a,
     return 0;
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Serializer::Serialize() {
   while (stack_.length() > 0) {
@@ -5019,6 +5018,7 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
 
   heap_->ResetObjectIdTable();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 Deserializer::Deserializer(Thread* thread,
                            Snapshot::Kind kind,
@@ -5519,6 +5519,7 @@ DEFINE_FLAG(charp,
             "Write a snapshot profile in V8 format to a file.");
 #endif
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
                                        uint8_t** vm_snapshot_data_buffer,
                                        uint8_t** isolate_snapshot_data_buffer,
@@ -5655,6 +5656,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   }
 #endif
 }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 FullSnapshotReader::FullSnapshotReader(const Snapshot* snapshot,
                                        const uint8_t* instructions_buffer,

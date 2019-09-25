@@ -63,9 +63,6 @@ class VirtualMemory {
     return page_size_;
   }
 
-  // Use only if Init() might not have been called.
-  static intptr_t CalculatePageSize();
-
   static bool InSamePage(uword address0, uword address1);
 
   // Truncate this virtual memory segment.
@@ -79,6 +76,8 @@ class VirtualMemory {
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
  private:
+  static intptr_t CalculatePageSize();
+
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
   static void FreeSubSegment(void* address, intptr_t size);

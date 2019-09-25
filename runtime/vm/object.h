@@ -4799,11 +4799,9 @@ class Instructions : public Object {
   }
 
   static intptr_t HeaderSize() {
-    intptr_t alignment = OS::PreferredCodeAlignment();
-    intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
-#if !defined(IS_SIMARM_X64)
-    ASSERT(aligned_size == alignment);
-#endif  // !defined(IS_SIMARM_X64)
+    const intptr_t alignment = OS::PreferredCodeAlignment();
+    const intptr_t aligned_size =
+        Utils::RoundUp(sizeof(RawInstructions), alignment);
     return aligned_size;
   }
 

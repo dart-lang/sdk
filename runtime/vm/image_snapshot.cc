@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
 #include "vm/hash.h"
@@ -80,6 +81,7 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
                      reinterpret_cast<const void*>(body_b), body_size);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 ImageWriter::ImageWriter(Heap* heap,
                          const void* shared_objects,
                          const void* shared_instructions,
@@ -677,7 +679,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += WriteByteSequence(beginning, entry);
 #endif  // defined(IS_SIMARM_X64)
 
-      ASSERT((text_offset - instr_start) == insns.HeaderSize());
+      ASSERT((text_offset - instr_start) ==
+             compiler::target::Instructions::HeaderSize());
     }
 
     // 2. Write a label at the entry point.
@@ -753,9 +756,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #else
       text_offset += WriteByteSequence(entry, end);
 #endif
+      ASSERT(kWordSize != compiler::target::kWordSize ||
+             (text_offset - instr_start) == insns.raw()->HeapSize());
     }
-
-    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
   }
 
   FrameUnwindEpilogue();
@@ -1081,6 +1084,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 #endif
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ImageReader::ImageReader(const uint8_t* data_image,
                          const uint8_t* instructions_image,
@@ -1144,6 +1148,7 @@ RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
   return result;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
    public:
@@ -1243,5 +1248,6 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   ProgramVisitor::VisitClasses(&visitor);
   ProgramVisitor::VisitFunctions(&visitor);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart
