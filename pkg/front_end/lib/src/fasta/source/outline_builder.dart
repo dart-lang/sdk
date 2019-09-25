@@ -1153,7 +1153,7 @@ class OutlineBuilder extends StackListener {
     } else {
       push(library.addNamedType(
           name,
-          library.computeNullabilityFromToken(isMarkedAsNullable),
+          library.nullableBuilderIfTrue(isMarkedAsNullable),
           arguments,
           charOffset));
     }
@@ -1399,7 +1399,7 @@ class OutlineBuilder extends StackListener {
         returnType,
         typeVariables,
         formals,
-        library.computeNullabilityFromToken(questionMark != null),
+        library.nullableBuilderIfTrue(questionMark != null),
         functionToken.charOffset));
   }
 
@@ -1414,7 +1414,7 @@ class OutlineBuilder extends StackListener {
       reportErrorIfNullableType(question);
     }
     push(library.addFunctionType(returnType, typeVariables, formals,
-        library.computeNullabilityFromToken(question != null), formalsOffset));
+        library.nullableBuilderIfTrue(question != null), formalsOffset));
   }
 
   @override

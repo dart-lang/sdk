@@ -2677,7 +2677,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
             _helper.buildDartType(
                 new UnresolvedType(
                     buildTypeWithResolvedArguments(
-                        const NullabilityBuilder.legacy(), null),
+                        _helper.libraryBuilder.nonNullableBuilder, null),
                     fileOffset,
                     _uri),
                 nonInstanceAccessIsError: true),

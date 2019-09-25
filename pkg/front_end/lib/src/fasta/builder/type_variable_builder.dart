@@ -124,9 +124,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   void finish(
       LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
-    // TODO(dmitryas): Set the nullability of objectType correctly.
     DartType objectType =
-        object.buildType(library, const NullabilityBuilder.legacy(), null);
+        object.buildType(library, library.nullableBuilder, null);
     parameter.bound ??= bound?.build(library) ?? objectType;
     // If defaultType is not set, initialize it to dynamic, unless the bound is
     // explicitly specified as Object, in which case defaultType should also be

@@ -2768,10 +2768,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(
-                name,
-                libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
-                null)
+            new NamedTypeBuilder(name,
+                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
               ..bind(new InvalidTypeBuilder(
                   name,
                   message.withLocation(
@@ -2784,8 +2782,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeBuilder result;
     if (name is Generator) {
       result = name.buildTypeWithResolvedArguments(
-          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
-          arguments);
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments);
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
@@ -2794,7 +2791,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilder(name.name,
-          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable), null)
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
         ..bind(new InvalidTypeBuilder(
             name.name,
             name.message.withLocation(
@@ -2840,7 +2837,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeVariableBuilder> typeVariables = pop();
     UnresolvedType type = formals.toFunctionType(
         returnType,
-        libraryBuilder.computeNullabilityFromToken(questionMark != null),
+        libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         typeVariables);
     exitLocalScope();
     push(type);
@@ -3062,10 +3059,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportErrorIfNullableType(question);
     }
-    UnresolvedType type = formals.toFunctionType(
-        returnType,
-        libraryBuilder.computeNullabilityFromToken(question != null),
-        typeVariables);
+    UnresolvedType type = formals.toFunctionType(returnType,
+        libraryBuilder.nullableBuilderIfTrue(question != null), typeVariables);
     exitLocalScope();
     push(type);
     functionNestingLevel--;

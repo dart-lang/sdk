@@ -295,14 +295,22 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return Nullability.legacy;
   }
 
-  NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
-    if (!isNonNullableByDefault) {
-      return const NullabilityBuilder.legacy();
-    }
-    if (markedAsNullable) {
-      return const NullabilityBuilder.nullable();
-    }
-    return const NullabilityBuilder.omitted();
+  NullabilityBuilder get nullableBuilder {
+    return isNonNullableByDefault
+        ? const NullabilityBuilder.nullable()
+        : const NullabilityBuilder.legacy();
+  }
+
+  NullabilityBuilder get nonNullableBuilder {
+    return isNonNullableByDefault
+        ? const NullabilityBuilder.omitted()
+        : const NullabilityBuilder.legacy();
+  }
+
+  NullabilityBuilder nullableBuilderIfTrue(bool isNullable) {
+    return isNullable
+        ? const NullabilityBuilder.nullable()
+        : const NullabilityBuilder.omitted();
   }
 }
 
