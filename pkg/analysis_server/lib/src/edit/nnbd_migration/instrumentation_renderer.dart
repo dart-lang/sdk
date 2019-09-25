@@ -14,7 +14,6 @@ class InstrumentationRenderer {
     int previousIndex = 0;
     Map<String, dynamic> mustacheContext = {'units': <Map<String, dynamic>>[]};
     for (var compilationUnit in info.units) {
-      StringBuffer buffer = StringBuffer();
       // List of Mustache context for both unmodified and modified regions:
       //
       // * 'modified': Whether this region represents modified source, or

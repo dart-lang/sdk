@@ -27,5 +27,6 @@ dependencies:
 dev_dependencies:
   analysis_tool:
     path: ../analysis_tool
+  pedantic: ^1.8.0
   test: ^1.0.0
   test_reflective_loader: ^0.1.8
