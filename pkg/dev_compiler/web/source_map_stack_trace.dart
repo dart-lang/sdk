@@ -58,7 +58,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
 
     if (!sourceUrl.startsWith('dart:') &&
         !sourceUrl.startsWith('package:') &&
-        sourceUrl.contains('dart_sdk.js')) {
+        sourceUrl.contains('dart_sdk')) {
       // This compresses the long dart_sdk URLs if SDK source maps are missing.
       // It's no longer linkable, but neither are the properly mapped ones
       // above.
