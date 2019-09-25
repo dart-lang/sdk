@@ -169,14 +169,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
-  @Deprecated('Use assertErrorsInCode')
-  Future<void> assertErrorCodesInCode(
-      String code, List<ErrorCode> errors) async {
-    addTestFile(code);
-    await resolveTestFile();
-    assertTestErrorsWithCodes(errors);
-  }
-
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
     addTestFile(code);
