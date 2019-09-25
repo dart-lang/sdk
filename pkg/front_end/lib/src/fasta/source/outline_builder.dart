@@ -45,6 +45,8 @@ import '../kernel/kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder;
 
+import '../kernel/type_algorithms.dart';
+
 import '../modifier.dart'
     show
         Const,
@@ -987,11 +989,15 @@ class OutlineBuilder extends StackListener {
       List<FormalParameterBuilder> synthesizedFormals = [];
       TypeBuilder thisType = extension.extensionThisType;
       if (substitution != null) {
-        List<NamedTypeBuilder> unboundTypes = [];
-        thisType = thisType.subst(substitution, unboundTypes);
-        for (NamedTypeBuilder unboundType in unboundTypes) {
+        List<TypeBuilder> unboundTypes = [];
+        List<TypeVariableBuilder> unboundTypeVariables = [];
+        thisType = substitute(thisType, substitution,
+            unboundTypes: unboundTypes,
+            unboundTypeVariables: unboundTypeVariables);
+        for (TypeBuilder unboundType in unboundTypes) {
           extension.addType(new UnresolvedType(unboundType, -1, null));
         }
+        library.boundlessTypeVariables.addAll(unboundTypeVariables);
       }
       synthesizedFormals.add(new FormalParameterBuilder(
           null, finalMask, thisType, "#this", null, charOffset, uri));

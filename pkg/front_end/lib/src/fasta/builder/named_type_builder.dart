@@ -254,8 +254,7 @@ class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
-      [List<NamedTypeBuilder> unboundTypes]) {
+  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
     TypeBuilder result = substitution[declaration];
     if (result != null) {
       assert(declaration is TypeVariableBuilder);
@@ -264,7 +263,7 @@ class NamedTypeBuilder extends TypeBuilder {
       List<TypeBuilder> arguments;
       int i = 0;
       for (TypeBuilder argument in this.arguments) {
-        TypeBuilder type = argument.subst(substitution, unboundTypes);
+        TypeBuilder type = argument.subst(substitution);
         if (type != argument) {
           arguments ??= this.arguments.toList();
           arguments[i] = type;
@@ -276,8 +275,6 @@ class NamedTypeBuilder extends TypeBuilder {
             new NamedTypeBuilder(name, nullabilityBuilder, arguments);
         if (declaration != null) {
           result.bind(declaration);
-        } else if (unboundTypes != null) {
-          unboundTypes.add(result);
         } else {
           throw new UnsupportedError("Unbound type in substitution: $result.");
         }

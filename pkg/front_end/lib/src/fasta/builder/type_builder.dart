@@ -10,7 +10,6 @@ import '../fasta_codes.dart' show LocatedMessage;
 
 import '../scope.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -48,9 +47,7 @@ abstract class TypeBuilder {
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
-          [List<NamedTypeBuilder> unboundTypes]) =>
-      this;
+  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
 
   /// Clones the type builder recursively without binding the subterms to
   /// existing declaration or type variable builders.  All newly built types
