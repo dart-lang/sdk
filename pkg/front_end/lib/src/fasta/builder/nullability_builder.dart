@@ -29,9 +29,6 @@ class NullabilityBuilder {
   const NullabilityBuilder.nullable()
       : _syntacticNullability = SyntacticNullability.nullable;
 
-  const NullabilityBuilder.legacy()
-      : _syntacticNullability = SyntacticNullability.legacy;
-
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
@@ -40,7 +37,6 @@ class NullabilityBuilder {
       case Nullability.nullable:
         return const NullabilityBuilder.nullable();
       case Nullability.legacy:
-        return const NullabilityBuilder.legacy();
       case Nullability.nonNullable:
       case Nullability.neither:
       default:

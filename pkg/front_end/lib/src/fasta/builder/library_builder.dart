@@ -298,13 +298,11 @@ abstract class LibraryBuilder extends ModifierBuilder {
   NullabilityBuilder get nullableBuilder {
     return isNonNullableByDefault
         ? const NullabilityBuilder.nullable()
-        : const NullabilityBuilder.legacy();
+        : const NullabilityBuilder.omitted();
   }
 
   NullabilityBuilder get nonNullableBuilder {
-    return isNonNullableByDefault
-        ? const NullabilityBuilder.omitted()
-        : const NullabilityBuilder.legacy();
+    return const NullabilityBuilder.omitted();
   }
 
   NullabilityBuilder nullableBuilderIfTrue(bool isNullable) {
