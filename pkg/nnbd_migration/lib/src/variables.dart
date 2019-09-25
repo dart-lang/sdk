@@ -173,53 +173,6 @@ class Variables implements VariableRecorder, VariableRepository {
       Source source, DefaultFormalParameter parameter, NullabilityNode node) {
     var modification = PotentiallyAddRequired(parameter, node);
     _addPotentialModification(source, modification);
-    _addPotentialImport(
-        source, parameter, modification, 'package:meta/meta.dart');
-  }
-
-  void _addPotentialImport(Source source, AstNode node,
-      PotentialModification usage, String importPath) {
-    // Get the compilation unit - assume not null
-    while (node is! CompilationUnit) {
-      node = node.parent;
-    }
-    var unit = node as CompilationUnit;
-
-    // Find an existing import
-    for (var directive in unit.directives) {
-      if (directive is ImportDirective) {
-        if (directive.uri.stringValue == importPath) {
-          return;
-        }
-      }
-    }
-
-    // Add the usage to an existing modification if possible
-    for (var modification in (_potentialModifications[source] ??= [])) {
-      if (modification is PotentiallyAddImport) {
-        if (modification.importPath == importPath) {
-          modification.addUsage(usage);
-          return;
-        }
-      }
-    }
-
-    // Create a new import modification
-    AstNode beforeNode;
-    for (var directive in unit.directives) {
-      if (directive is ImportDirective || directive is ExportDirective) {
-        beforeNode = directive;
-        break;
-      }
-    }
-    if (beforeNode == null) {
-      for (var declaration in unit.declarations) {
-        beforeNode = declaration;
-        break;
-      }
-    }
-    _addPotentialModification(
-        source, PotentiallyAddImport(beforeNode, importPath, usage));
   }
 
   void _addPotentialModification(

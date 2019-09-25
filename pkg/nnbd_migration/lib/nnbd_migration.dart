@@ -32,19 +32,12 @@ class NullabilityFixDescription {
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
-  /// An import needs to be added.
-  factory NullabilityFixDescription.addImport(String uri) =>
-      NullabilityFixDescription._(appliedMessage: 'Add import $uri');
-
-  /// A formal parameter needs to have a required modifier added.
+  /// A formal parameter needs to have a required keyword added.
   factory NullabilityFixDescription.addRequired(
           String className, String functionName, String paramName) =>
       NullabilityFixDescription._(
-          appliedMessage:
-              "Add 'required' modifier to parameter $paramName in " +
-                  (className == null
-                      ? functionName
-                      : '$className.$functionName'));
+          appliedMessage: "Add 'required' keyword to parameter $paramName in " +
+              (className == null ? functionName : '$className.$functionName'));
 
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.

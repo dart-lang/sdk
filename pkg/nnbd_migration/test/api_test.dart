@@ -76,7 +76,6 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38461')
   test_add_required() async {
     var content = '''
 int f({String s}) => s.length;
@@ -1934,6 +1933,20 @@ void main() {
   nullable(null, null);
   nonNull(0, 1);
   both(0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_add_required() async {
+    var content = '''
+void f({String s}) {
+  assert(s != null);
+}
+''';
+    var expected = '''
+void f({required String s}) {
+  assert(s != null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
