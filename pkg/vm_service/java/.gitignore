@@ -16,6 +16,7 @@ src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadReportConsumer.java
 src/org/dartlang/vm/service/consumer/RetainingPathConsumer.java
 src/org/dartlang/vm/service/consumer/ScriptListConsumer.java
+src/org/dartlang/vm/service/consumer/SetFlagConsumer.java
 src/org/dartlang/vm/service/consumer/SourceReportConsumer.java
 src/org/dartlang/vm/service/consumer/StackConsumer.java
 src/org/dartlang/vm/service/consumer/SuccessConsumer.java
