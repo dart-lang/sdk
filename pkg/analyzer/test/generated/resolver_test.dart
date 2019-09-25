@@ -156,13 +156,12 @@ class A {
   }
 
   test_enclosingElement_invalidLocalFunction() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C() {
     int get x => 0;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
       ParserErrorCode.EXPECTED_TOKEN
@@ -874,9 +873,7 @@ main() {
   v = null;
   return v; // return
 }''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     assertType(findNode.simple('v; // declare'), 'int');
     assertType(findNode.simple('v = null;'), 'int');
     assertType(findNode.simple('v; // return'), 'int');
@@ -897,35 +894,31 @@ x() {
   }
 
   test_initializer_hasStaticType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 f() {
   int v = 0;
   return v;
 }''');
-    await resolveTestFile();
     assertType(findNode.simple('v = 0;'), 'int');
     assertType(findNode.simple('v;'), 'int');
   }
 
   test_initializer_hasStaticType_parameterized() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 f() {
   List<int> v = <int>[];
   return v;
 }''');
-    await resolveTestFile();
     assertType(findNode.simple('v ='), 'List<int>');
     assertType(findNode.simple('v;'), 'List<int>');
   }
 
   test_initializer_null() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   int v = null;
   return v;
 }''');
-    await resolveTestFile();
-
     assertType(findNode.simple('v ='), 'int');
     assertType(findNode.simple('v;'), 'int');
   }
@@ -934,13 +927,11 @@ main() {
     newFile('/test/lib/a.dart', content: r'''
 int max(int x, int y) => 0;
 ''');
-    addTestFile('''
+    await resolveTestCode('''
 import 'a.dart' as helper;
 main() {
   helper.max(10, 10); // marker
 }''');
-    await resolveTestFile();
-
     assertElement(
       findNode.simple('max(10, 10)'),
       findElement.importFind('package:test/a.dart').topFunction('max'),
@@ -948,7 +939,7 @@ main() {
   }
 
   test_is_subclass() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   B m() => this;
@@ -959,8 +950,6 @@ A f(A p) {
   }
   return p;
 }''');
-    await resolveTestFile();
-
     assertElement(
       findNode.methodInvocation('p.m()'),
       findElement.method('m', of: 'B'),
@@ -1030,12 +1019,11 @@ main() {
   }
 
   test_objectMethodInference_disabled_for_local_function() async {
-    addTestFile('''
+    await resolveTestCode('''
 main() {
   dynamic toString = () => null;
   toString(); // marker
 }''');
-    await resolveTestFile();
     assertTypeDynamic(findNode.simple('toString ='));
     assertTypeDynamic(findNode.simple('toString(); // marker'));
   }
@@ -1043,12 +1031,10 @@ main() {
   @failingTest
   test_propagatedReturnType_functionExpression() async {
     // TODO(scheglov) disabled because we don't resolve function expression
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   var v = (() {return 42;})();
 }''');
-    await resolveTestFile();
-
     assertTypeDynamic(findNode.simple('v = '));
   }
 }

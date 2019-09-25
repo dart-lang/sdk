@@ -119,17 +119,13 @@ void x;
   }
 
   Future<void> _assertConst(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNotConst(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var type = findNode.variableDeclarationList('x;').type;
     expect(isConstantTypeExpression(type), isFalse);
   }
@@ -847,9 +843,7 @@ var x = 'a';
   }
 
   _assertConst(String code, AstNode Function() getNode) async {
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(node);
     expect(notConstList, isEmpty);
@@ -857,9 +851,7 @@ var x = 'a';
 
   _assertNotConst(String code, AstNode Function() getNode,
       List<AstNode> Function() getNotConstList) async {
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var node = getNode();
     var notConstList = getNotPotentiallyConstants(node);
 

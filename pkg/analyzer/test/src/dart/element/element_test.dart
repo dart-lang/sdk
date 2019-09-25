@@ -921,14 +921,12 @@ class A {
 }
 void f(@A('x') int p) {}
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 main() {
   f(3);
 }
 ''');
-    await resolveTestFile();
-
     var argument = findNode.integerLiteral('3');
     ParameterElement parameter = argument.staticParameterElement;
 
@@ -1116,11 +1114,9 @@ class ElementLocationImplTest {
 @reflectiveTest
 class FieldElementImplTest extends DriverResolutionTest {
   test_isEnumConstant() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum B {B1, B2, B3}
 ''');
-    await resolveTestFile();
-
     var B = findElement.enum_('B');
 
     FieldElement b2Element = B.getField('B2');
@@ -3572,14 +3568,12 @@ class TopLevelVariableElementImplTest extends DriverResolutionTest {
     newFile('/test/lib/a.dart', content: r'''
 const int C = 42;
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 main() {
   print(C);
 }
 ''');
-    await resolveTestFile();
-
     SimpleIdentifier argument = findNode.simple('C);');
     PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;

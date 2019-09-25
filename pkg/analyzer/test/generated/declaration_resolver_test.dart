@@ -52,9 +52,7 @@ class DeclarationResolverMetadataTest extends DriverResolutionTest {
   Future<void> setupCode(String code) async {
     this.code = code;
 
-    addTestFile(code + ' const a = null;');
-    await resolveTestFile();
-
+    await resolveTestCode(code + ' const a = null;');
     unit = result.unit;
     unit2 = _cloneResolveUnit(unit);
   }
@@ -101,7 +99,7 @@ class DeclarationResolverMetadataTest extends DriverResolutionTest {
   }
 
   test_exportDirective_resynthesized() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 @a
 export "dart:async";
 
@@ -111,7 +109,6 @@ export "dart:math";
 const a = null;
 const b = null;
 ''');
-    await resolveTestFile();
     unit = result.unit;
 
     expect(unit.directives[0].metadata.single.name.name, 'a');
@@ -184,7 +181,7 @@ const b = null;
   }
 
   test_importDirective_resynthesized() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 @a
 import "dart:async";
 
@@ -194,7 +191,6 @@ import "dart:math";
 const a = null;
 const b = null;
 ''');
-    await resolveTestFile();
     unit = result.unit;
 
     expect(unit.directives[0].metadata.single.name.name, 'a');
@@ -221,8 +217,7 @@ const b = null;
   }
 
   test_libraryDirective_resynthesized() async {
-    addTestFile('@a library L; const a = null;');
-    await resolveTestFile();
+    await resolveTestCode('@a library L; const a = null;');
     unit = result.unit;
 
     expect(unit.directives.single.metadata.single.name.name, 'a');
@@ -282,7 +277,7 @@ const b = null;
     newFile('/test/lib/part_a.dart', content: 'part of L;');
     newFile('/test/lib/part_b.dart', content: 'part of L;');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 library L;
 
 @a
@@ -294,7 +289,6 @@ part "part_b.dart";
 const a = null;
 const b = null;
 ''');
-    await resolveTestFile();
     unit = result.unit;
 
     expect(unit.directives[1].metadata.single.name.name, 'a');
@@ -368,7 +362,7 @@ const b = null;
 @reflectiveTest
 class DeclarationResolverTest extends DriverResolutionTest {
   test_closure_inside_catch_block() async {
-    addTestFile('''
+    await resolveTestCode('''
 f() {
   try {
   } catch (e) {
@@ -376,14 +370,13 @@ f() {
   }
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_closure_inside_labeled_statement() async {
-    addTestFile('''
+    await resolveTestCode('''
 f(b) {
   foo: while (true) {
     if (b) {
@@ -393,14 +386,13 @@ f(b) {
   }
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_closure_inside_switch_case() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(k, m) {
   switch (k) {
     case 0:
@@ -409,14 +401,13 @@ void f(k, m) {
   }
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_closure_inside_switch_default() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(k, m) {
   switch (k) {
     default:
@@ -425,18 +416,15 @@ void f(k, m) {
   }
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_functionDeclaration_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int get zzz => 42;
 ''');
-    await resolveTestFile();
-
     var getterElement = findElement.topGet('zzz');
     expect(getterElement.isGetter, isTrue);
 
@@ -447,11 +435,9 @@ int get zzz => 42;
   }
 
   test_functionDeclaration_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void set zzz(_) {}
 ''');
-    await resolveTestFile();
-
     var setterElement = findElement.topSet('zzz');
     expect(setterElement.isSetter, isTrue);
 
@@ -462,92 +448,83 @@ void set zzz(_) {}
   }
 
   test_genericFunction_asFunctionReturnType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 Function(int, String) f() => null;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asGenericFunctionReturnType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 typedef F<T> = int Function(T t, S s) Function<S>(int);
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asMethodReturnType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   Function(int, String) m() => null;
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asParameterReturnType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 f(Function(int, String) p) => null;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asTopLevelVariableType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int Function(int, String) v;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asTypeArgument() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 List<Function(int)> v;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asTypeArgument_lessNodes() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 Map<Function<int>> v;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asTypeArgument_moreNodes() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 List<Function<int>, Function<String>> v;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_genericFunction_asTypeArgument_noNodes() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 List v;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
@@ -557,34 +534,29 @@ List v;
     String code = r'''
 var v = <Function(int)>[];
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var newUnit = _cloneResolveUnit(result.unit);
     var initializer = FindNode(result.content, newUnit).listLiteral('>[]');
     expect(initializer.typeArguments.arguments[0].type, isNotNull);
   }
 
   test_genericFunction_invalid_missingParameterName() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 typedef F = Function({int});
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_invalid_functionDeclaration_getter_inFunction() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 var v = (() {
   main() {
     int get zzz => 42;
   }
 });
 ''');
-    await resolveTestFile();
-
     // re-resolve
     var unit2 = _cloneResolveUnit(result.unit);
     var getterName = FindNode(result.content, unit2).simple('zzz =>');
@@ -594,15 +566,13 @@ var v = (() {
   }
 
   test_invalid_functionDeclaration_setter_inFunction() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 var v = (() {
   main() {
     set zzz(x) {}
   }
 });
 ''');
-    await resolveTestFile();
-
     // re-resolve
     var unit2 = _cloneResolveUnit(result.unit);
     var setterName = FindNode(result.content, unit2).simple('zzz(x)');
@@ -612,96 +582,86 @@ var v = (() {
   }
 
   test_visitExportDirective_notExistingSource() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 export 'foo.dart';
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitExportDirective_unresolvedUri() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 export 'package:foo/bar.dart';
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitFunctionExpression() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main(List<String> items) {
   items.forEach((item) {});
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitGenericTypeAlias_0() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 typedef F<T> = Function<S>(List<S> list, Function<A>(A), T);
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitGenericTypeAlias_1() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 typedef F = Function({int});
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitGenericTypeAlias_2() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 typedef F = int;
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitImportDirective_notExistingSource() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'foo.dart';
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitImportDirective_unresolvedUri() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'package:foo/bar.dart';
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitMethodDeclaration_getter_duplicate() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int get zzz => 1;
   String get zzz => null;
 }
 ''');
-    await resolveTestFile();
-
     var firstElement = findNode.simple('zzz => 1').staticElement;
     var secondElement = findNode.simple('zzz => null').staticElement;
     expect(firstElement, isNot(same(secondElement)));
@@ -716,15 +676,13 @@ class C {
   }
 
   test_visitMethodDeclaration_getterSetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int _field = 0;
   int get field => _field;
   void set field(value) {_field = value;}
 }
 ''');
-    await resolveTestFile();
-
     var getterElement = findElement.getter('field');
     var setterElement = findElement.setter('field');
 
@@ -738,14 +696,12 @@ class C {
   }
 
   test_visitMethodDeclaration_method_duplicate() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   void zzz(x) {}
   void zzz(y) {}
 }
 ''');
-    await resolveTestFile();
-
     MethodElement firstElement = findNode.simple('zzz(x)').staticElement;
     MethodElement secondElement = findNode.simple('zzz(y)').staticElement;
     expect(firstElement, isNot(same(secondElement)));
@@ -761,14 +717,12 @@ class C {
 
   test_visitMethodDeclaration_setter_duplicate() async {
     // https://github.com/dart-lang/sdk/issues/25601
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   set zzz(x) {}
   set zzz(y) {}
 }
 ''');
-    await resolveTestFile();
-
     PropertyAccessorElement firstElement =
         findNode.simple('zzz(x)').staticElement;
     PropertyAccessorElement secondElement =
@@ -785,23 +739,21 @@ class C {
   }
 
   test_visitMethodDeclaration_unaryMinus() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C operator -() => null;
   C operator -(C other) => null;
 }
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver
   }
 
   test_visitPartDirective_notExistingSource() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 part 'foo.bar';
 ''');
-    await resolveTestFile();
     // re-resolve
     _cloneResolveUnit(result.unit);
     // no other validations than built into DeclarationResolver

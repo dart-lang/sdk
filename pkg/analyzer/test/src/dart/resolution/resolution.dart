@@ -513,6 +513,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
+  /// Put the [code] into the test file, and resolve it.
+  Future<void> resolveTestCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+  }
+
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);

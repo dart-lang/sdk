@@ -275,13 +275,11 @@ const V = 0;
       String annotationText,
       validator(SimpleIdentifier name1, SimpleIdentifier name2,
           SimpleIdentifier name3, Element annotationElement)) async {
-    addTestFile('''
+    await resolveTestCode('''
 import 'a.dart' $annotationPrefix;
 $annotationText
 class C {}
 ''');
-    await resolveTestFile();
-
     var clazz = findNode.classDeclaration('C');
     Annotation annotation = clazz.metadata.single;
     Identifier name = annotation.name;

@@ -197,11 +197,10 @@ const a = $expr;
 ''');
     }
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 var v = a;
 ''');
-    await resolveTestFile();
     _fillLibraries();
 
     PropertyAccessorElement vg = findNode.simple('a;').staticElement;

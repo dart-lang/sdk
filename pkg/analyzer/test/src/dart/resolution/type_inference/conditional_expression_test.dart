@@ -18,13 +18,12 @@ main() {
 @reflectiveTest
 class ConditionalExpressionTest extends DriverResolutionTest {
   test_upward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(bool a, int b, int c) {
   var d = a ? b : c;
   print(d);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('d)'), 'int');
   }
 }
@@ -41,14 +40,13 @@ class ConditionalExpressionWithNnbdTest extends ConditionalExpressionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(int b, int c) {
   var d = a() ? b : c;
   print(d);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('d)'), 'bool Function()');
   }
 }

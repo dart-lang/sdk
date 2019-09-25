@@ -37,9 +37,7 @@ class C {
         assert(f(5), f(6));
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     MethodInvocation invocation(String search) {
       return findNode.methodInvocation(search);
     }
@@ -67,9 +65,7 @@ main() {
   var v2 = f() && f(); // 4
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     void assertType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
       expect(invocation.staticInvokeType.toString(), 'bool Function()');
@@ -97,9 +93,7 @@ main() {
   for (; f(); ) {} // 4
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     void assertType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
       expect(invocation.staticInvokeType.toString(), 'bool Function()');
@@ -118,9 +112,7 @@ void main() {
   g = () => 42;
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     Expression closure = findNode.expression('() => 42');
     expect(closure.staticType.toString(), 'List<int> Function()');
   }
@@ -134,15 +126,13 @@ void main() {
   };
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     Expression closure = findNode.expression('() { // mark');
     expect(closure.staticType.toString(), 'List<int> Function()');
   }
 
   test_compoundAssignment_index() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int getInt() => 0;
 num getNum() => 0;
 double getDouble() => 0.0;
@@ -263,7 +253,6 @@ void test9(Test<double, double> t) {
   var /*@type=double*/ v11 = t['x']++;
 }
 ''');
-    await resolveTestFile();
     _assertTypeAnnotations();
   }
 
@@ -559,9 +548,7 @@ class C {
     for (aTopLevelSetter in f()) {} // top setter
   }
 }''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     void assertType(String prefix) {
       var invocation = findNode.methodInvocation(prefix);
       expect(invocation.staticType.toString(), 'Iterable<A>');
@@ -584,9 +571,7 @@ void test(Iterable<num> iter) {
   for (num y in f()) {} // 3
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     {
       var node = findNode.simple('w in');
       VariableElement element = node.staticElement;
@@ -631,9 +616,7 @@ void test(List<A> listA, List<B> listB) {
   for (B b3 in f(listB)) {} // 5
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     void assertTypes(
         String vSearch, String vType, String fSearch, String fType) {
       var node = findNode.simple(vSearch);
@@ -657,9 +640,7 @@ class C {
   operator []=(int index, double value) => null;
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     ClassElement c = findElement.class_('C');
 
     PropertyAccessorElement x = c.accessors[0];
@@ -680,9 +661,7 @@ class Derived extends Base {
   set x(_) {}
   operator[]=(int x, int y) {}
 }''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     ClassElement c = findElement.class_('Derived');
 
     PropertyAccessorElement x = c.accessors[0];
@@ -700,9 +679,7 @@ void main() {
   f((x) {});
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var xNode = findNode.simple('x) {}');
     VariableElement xElement = xNode.staticElement;
     expect(xNode.staticType, typeProvider.objectType);
@@ -714,9 +691,7 @@ void main() {
 var x = [];
 var y = {};
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     SimpleIdentifier x = findNode.expression('x = ');
     expect(x.staticType.toString(), 'List<dynamic>');
 
@@ -729,9 +704,7 @@ var y = {};
 var x = [null];
 var y = {null: null};
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     SimpleIdentifier x = findNode.expression('x = ');
     expect(x.staticType.toString(), 'List<Null>');
 
@@ -753,9 +726,7 @@ void test(C<int> x) {
       break;
   }
 }''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     var node = findNode.instanceCreation('const C():');
     expect(node.staticType.toString(), 'C<int>');
   }
@@ -770,9 +741,7 @@ main() {
   var y = new C().m();
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     SimpleIdentifier x = findNode.expression('x = ');
     expect(x.staticType, VoidTypeImpl.instance);
 
@@ -788,9 +757,7 @@ main() {
   var y = f();
 }
 ''';
-    addTestFile(code);
-    await resolveTestFile();
-
+    await resolveTestCode(code);
     SimpleIdentifier x = findNode.expression('x = ');
     expect(x.staticType, VoidTypeImpl.instance);
 

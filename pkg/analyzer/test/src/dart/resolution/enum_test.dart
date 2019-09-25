@@ -16,13 +16,12 @@ main() {
 @reflectiveTest
 class EnumDriverResolutionTest extends DriverResolutionTest {
   test_inference_listLiteral() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum E1 {a, b}
 enum E2 {a, b}
 
 var v = [E1.a, E2.b];
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var v = findElement.topVar('v');
@@ -30,12 +29,11 @@ var v = [E1.a, E2.b];
   }
 
   test_isConstantEvaluated() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum E {
   aaa, bbb
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     expect(findElement.field('aaa').isConstantEvaluated, isTrue);

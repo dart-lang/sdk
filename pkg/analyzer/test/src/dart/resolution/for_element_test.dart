@@ -16,13 +16,12 @@ main() {
 @reflectiveTest
 class ForEachElementTest extends DriverResolutionTest {
   test_declaredIdentifierScope() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   <int>[for (var i in [1, 2, 3]) i]; // 1
   <double>[for (var i in [1.1, 2.2, 3.3]) i]; // 2
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertElement(
@@ -39,13 +38,12 @@ main() {
 @reflectiveTest
 class ForLoopElementTest extends DriverResolutionTest {
   test_declaredVariableScope() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   <int>[for (var i = 1; i < 10; i += 3) i]; // 1
   <double>[for (var i = 1.1; i < 10; i += 5) i]; // 2
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertElement(

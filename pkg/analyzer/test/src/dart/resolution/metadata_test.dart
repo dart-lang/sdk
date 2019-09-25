@@ -30,12 +30,11 @@ import 'a.dart';
 class B {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
@@ -60,12 +59,11 @@ import 'a.dart';
 class B {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
@@ -91,12 +89,11 @@ class B {
 class C {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 C c;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classC = findNode.typeName('C c;').name.staticElement;

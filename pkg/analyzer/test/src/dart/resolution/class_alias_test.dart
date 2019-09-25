@@ -15,25 +15,23 @@ main() {
 @reflectiveTest
 class ClassAliasDriverResolutionTest extends DriverResolutionTest {
   test_defaultConstructor() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class M {}
 class X = A with M;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     assertConstructors(findElement.class_('X'), ['X X()']);
   }
 
   test_element() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B {}
 class C {}
 
 class X = A with B implements C;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var x = findElement.class_('X');
@@ -49,7 +47,7 @@ class X = A with B implements C;
 
   @failingTest
   test_implicitConstructors_const() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   const A();
 }
@@ -60,13 +58,12 @@ class C = A with M;
 
 const x = const C();
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     // TODO(scheglov) add also negative test with fields
   }
 
   test_implicitConstructors_dependencies() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A(int i);
 }
@@ -76,7 +73,6 @@ class M2 {}
 class C2 = C1 with M2;
 class C1 = A with M1;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertConstructors(findElement.class_('C1'), ['C1 C1(int i)']);
@@ -84,7 +80,7 @@ class C1 = A with M1;
   }
 
   test_implicitConstructors_optionalParameters() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A.c1(int a);
   A.c2(int a, [int b, int c]);
@@ -95,7 +91,6 @@ class M {}
 
 class C = A with M;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertConstructors(
@@ -109,7 +104,7 @@ class C = A with M;
   }
 
   test_implicitConstructors_requiredParameters() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A<T extends num> {
   A(T x, T y);
 }
@@ -118,7 +113,6 @@ class M {}
 
 class B<E extends num> = A<E> with M;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertConstructors(findElement.class_('B'), ['B<E> B(E x, E y)']);

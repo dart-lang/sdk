@@ -487,18 +487,15 @@ class C {
 
   Future<EvaluationResult> _getExpressionValue(String expressionCode,
       {String context: ''}) async {
-    var path = convertPath('/test/lib/test.dart');
-
-    var file = newFile(path, content: '''
+    await resolveTestCode('''
 var x = $expressionCode;
 
 $context
 ''');
 
-    await resolveTestFile();
-
     var expression = findNode.variableDeclaration('x =').initializer;
 
+    var file = getFile(result.path);
     var evaluator = ConstantEvaluator(
       file.createSource(result.uri),
       result.typeProvider,
