@@ -219,7 +219,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -245,7 +245,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);

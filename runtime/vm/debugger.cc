@@ -44,10 +44,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool,
-            show_invisible_frames,
-            false,
-            "Show invisible frames in debugger stack traces");
-DEFINE_FLAG(bool,
             trace_debugger_stacktrace,
             false,
             "Trace debugger stacktrace collection");

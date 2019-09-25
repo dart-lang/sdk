@@ -11,8 +11,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, show_invisible_frames);
-
 class StackTraceUtils : public AllStatic {
  public:
   /// Counts the number of stack frames.

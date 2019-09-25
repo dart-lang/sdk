@@ -84,7 +84,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);

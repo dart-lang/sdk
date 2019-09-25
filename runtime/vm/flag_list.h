@@ -165,6 +165,10 @@ constexpr bool kDartUseBytecode = false;
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
+  P(show_invisible_frames, bool, false,                                        \
+    "Show invisible frames in stack traces.")                                  \
+  R(show_invisible_isolates, false, bool, false,                               \
+    "Show invisible isolates in the vm-service.")                              \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \

@@ -21,7 +21,6 @@ namespace dart {
 
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
-DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, profile_vm);
 
 #ifndef PRODUCT
