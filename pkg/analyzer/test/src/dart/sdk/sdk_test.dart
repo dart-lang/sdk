@@ -163,8 +163,8 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
   void test_fromFile_library_firstExact() {
     FolderBasedDartSdk sdk = _createDartSdk();
     Folder dirHtml = sdk.libraryDirectory.getChildAssumingFolder("html");
-    Folder dirDartium = dirHtml.getChildAssumingFolder("dartium");
-    File file = dirDartium.getChildAssumingFile("html_dartium.dart");
+    Folder dirDartium = dirHtml.getChildAssumingFolder("dart2js");
+    File file = dirDartium.getChildAssumingFile("html_dart2js.dart");
     Source source = sdk.fromFileUri(file.toUri());
     expect(source, isNotNull);
     expect(source.isInSystemLibrary, isTrue);
@@ -179,7 +179,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     Source source = sdk.fromFileUri(file.toUri());
     expect(source, isNotNull);
     expect(source.isInSystemLibrary, isTrue);
-    expect(source.uri.toString(), "dart:html_common/html_common_dart2js.dart");
+    expect(source.uri.toString(), "dart:html_common");
   }
 
   void test_fromFile_part() {
@@ -263,9 +263,11 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     _createFile(sdkDirectory, ['lib', 'async', 'async.dart']);
     _createFile(sdkDirectory, ['lib', 'core', 'core.dart']);
     _createFile(sdkDirectory, ['lib', 'core', 'num.dart']);
+    _createFile(
+        sdkDirectory, ['lib', 'html', 'html_common', 'html_common.dart']);
     _createFile(sdkDirectory,
         ['lib', 'html', 'html_common', 'html_common_dart2js.dart']);
-    _createFile(sdkDirectory, ['lib', 'html', 'dartium', 'html_dartium.dart']);
+    _createFile(sdkDirectory, ['lib', 'html', 'dart2js', 'html_dart2js.dart']);
     _createFile(
         sdkDirectory, ['bin', (OSUtilities.isWindows() ? 'pub.bat' : 'pub')]);
     return new FolderBasedDartSdk(resourceProvider, sdkDirectory);
@@ -297,10 +299,9 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       dart2jsPatchPath: "_internal/js_runtime/lib/core_patch.dart"),
 
   "html": const LibraryInfo(
-      "html/dartium/html_dartium.dart",
+      "html/dart2js/html_dart2js.dart",
       categories: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "html/dart2js/html_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "html_common": const LibraryInfo(
       "html/html_common/html_common.dart",
@@ -356,40 +357,16 @@ class SdkExtensionFinderTest with ResourceProviderMixin {
 
 @reflectiveTest
 class SdkLibrariesReaderTest with ResourceProviderMixin {
-  void test_readFrom_dart2js() {
-    LibraryMap libraryMap =
-        new SdkLibrariesReader(true).readFromFile(getFile("/libs.dart"), r'''
-final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
-  'first' : const LibraryInfo(
-    'first/first.dart',
-    categories: 'Client',
-    documented: true,
-    platforms: VM_PLATFORM,
-    dart2jsPath: 'first/first_dart2js.dart'),
-};''');
-    expect(libraryMap, isNotNull);
-    expect(libraryMap.size(), 1);
-    SdkLibrary first = libraryMap.getLibrary("dart:first");
-    expect(first, isNotNull);
-    expect(first.category, "Client");
-    expect(first.path, "first/first_dart2js.dart");
-    expect(first.shortName, "dart:first");
-    expect(first.isDart2JsLibrary, false);
-    expect(first.isDocumented, true);
-    expect(first.isImplementation, false);
-    expect(first.isVmLibrary, true);
-  }
-
   void test_readFrom_empty() {
     LibraryMap libraryMap =
-        new SdkLibrariesReader(false).readFromFile(getFile("/libs.dart"), "");
+        new SdkLibrariesReader().readFromFile(getFile("/libs.dart"), "");
     expect(libraryMap, isNotNull);
     expect(libraryMap.size(), 0);
   }
 
   void test_readFrom_normal() {
     LibraryMap libraryMap =
-        new SdkLibrariesReader(false).readFromFile(getFile("/libs.dart"), r'''
+        new SdkLibrariesReader().readFromFile(getFile("/libs.dart"), r'''
 final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   'first' : const LibraryInfo(
     'first/first.dart',
