@@ -990,17 +990,26 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     while (true) {
       token = parser.parseMetadataStar(next);
 
-      // TODO (kallentu): Improve recovery for variance parsing
       Token variance = next.next;
       Token identifier = variance.next;
       if (allowsVariance &&
-          (optional('in', variance) ||
-              optional('out', variance) ||
-              optional('inout', variance)) &&
+          isVariance(variance) &&
           identifier != null &&
-          identifier.isIdentifier) {
-        token = variance;
+          identifier.isKeywordOrIdentifier) {
         variances = variances.prepend(variance);
+
+        // Recovery for multiple variance modifiers
+        while (isVariance(identifier) &&
+            identifier.next != null &&
+            identifier.next.isKeywordOrIdentifier) {
+          // Report an error and skip actual identifier
+          parser.reportRecoverableError(
+              identifier, fasta.messageMultipleVarianceModifiers);
+          variance = variance.next;
+          identifier = identifier.next;
+        }
+
+        token = variance;
       } else {
         variances = variances.prepend(null);
       }
@@ -1200,6 +1209,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     assert(skipEnd != null);
     return skipEnd;
   }
+}
+
+// Return `true` if [token] is one of `in`, `inout`, or `out`
+bool isVariance(Token token) {
+  return optional('in', token) ||
+      optional('inout', token) ||
+      optional('out', token);
 }
 
 /// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.

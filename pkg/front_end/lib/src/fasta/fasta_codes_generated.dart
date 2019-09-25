@@ -7360,6 +7360,17 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
     tip: r"""Try combining all of the on clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleVarianceModifiers =
+    messageMultipleVarianceModifiers;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleVarianceModifiers = const MessageCode(
+    "MultipleVarianceModifiers",
+    index: 97,
+    message: r"""Each type parameter can have at most one variance modifier.""",
+    tip: r"""Use at most one of the 'in', 'out', or 'inout' modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

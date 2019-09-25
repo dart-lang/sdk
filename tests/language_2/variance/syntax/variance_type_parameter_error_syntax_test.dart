@@ -40,12 +40,29 @@ void B(out foo) {}
 //     ^
 // [cfe] Type 'out' not found.
 
-class C<in out X> {}
-//             ^
-// [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Expected ',' before this.
+class C<in out X, out out Y> {}
+//         ^^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
+//                    ^^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
 
-typedef D<out T> = T Function(T a);
+class D<in out inout in out X> {}
+//         ^^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
+//             ^^^^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
+//                   ^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
+//                      ^^^
+// [analyzer] SYNTACTIC_ERROR.MULTIPLE_VARIANCE_MODIFIERS
+// [cfe] Each type parameter can have at most one variance modifier.
+
+typedef E<out T> = T Function(T a);
 //            ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.

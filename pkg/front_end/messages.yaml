@@ -3713,3 +3713,9 @@ ExplicitExtensionAsExpression:
 
 ExplicitExtensionAsLvalue:
   template: "Explicit extension application cannot be a target for assignment."
+
+MultipleVarianceModifiers:
+  index: 97
+  template: "Each type parameter can have at most one variance modifier."
+  tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
+  analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS

@@ -395,6 +395,7 @@ MultipleOnClauses/part_wrapped_script: Fail
 MultipleOnClauses/script: Fail
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
+MultipleVarianceModifiers/example: Fail # All trigger multiple errors for variance experiment
 NamedFunctionExpression/example: Fail
 NamedMixinOverride/analyzerCode: Fail
 NamedMixinOverride/example: Fail

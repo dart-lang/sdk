@@ -1823,8 +1823,21 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
     var unit = parseCompilationUnit('class A<in T> { }');
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, "A");
+    expect(classDecl.name.name, 'A');
     expect(classDecl.typeParameters.typeParameters, hasLength(1));
+    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+  }
+
+  void test_class_enabled_multipleVariances() {
+    var unit = parseCompilationUnit('class A<in out inout T> { }', errors: [
+      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 11, 3),
+      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 15, 5)
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var classDecl = unit.declarations[0] as ClassDeclaration;
+    expect(classDecl.name.name, 'A');
+    expect(classDecl.typeParameters.typeParameters, hasLength(1));
+    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
   }
 
   void test_class_disabled_single() {
@@ -1849,8 +1862,9 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
     var unit = parseCompilationUnit('mixin A<inout T> { }');
     expect(unit.declarations, hasLength(1));
     var mixinDecl = unit.declarations[0] as MixinDeclaration;
-    expect(mixinDecl.name.name, "A");
+    expect(mixinDecl.name.name, 'A');
     expect(mixinDecl.typeParameters.typeParameters, hasLength(1));
+    expect(mixinDecl.typeParameters.typeParameters[0].name.name, 'T');
   }
 
   void test_mixin_disabled_single() {

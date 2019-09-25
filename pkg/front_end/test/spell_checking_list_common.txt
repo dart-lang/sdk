@@ -2931,6 +2931,7 @@ values
 var
 variable
 variables
+variance
 various
 verbose
 verification
