@@ -1697,6 +1697,10 @@ InternalProblemLabelUsageInVariablesDeclaration:
   template: "Unexpected usage of label inside declaration of variables."
   severity: INTERNAL_PROBLEM
 
+InternalProblemUnfinishedTypeVariable:
+  template: "Unfinished type variable '#name' found in non-source library '#uri'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED

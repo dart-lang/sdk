@@ -94,4 +94,10 @@ class NullabilityBuilder {
     unhandled("$_syntacticNullability", "writeNullabilityOn", TreeNode.noOffset,
         noLocation);
   }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    writeNullabilityOn(buffer);
+    return "$buffer";
+  }
 }

@@ -855,6 +855,7 @@ nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass

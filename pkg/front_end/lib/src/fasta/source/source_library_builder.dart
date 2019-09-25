@@ -299,6 +299,13 @@ class SourceLibraryBuilder extends LibraryBuilder {
   // TODO(dmitryas):  Find a way to mark inferred types.
   final Set<DartType> inferredTypes = new Set<DartType>.identity();
 
+  // While the bounds of type parameters aren't compiled yet, we can't tell the
+  // default nullability of the corresponding type-parameter types.  This list
+  // is used to collect such type-parameter types in order to set the
+  // nullability after the bounds are built.
+  final List<TypeParameterType> pendingNullabilities =
+      new List<TypeParameterType>();
+
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
   // another, for example during expression compilation (debugging).
@@ -2374,6 +2381,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
       builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
+
+    TypeVariableBuilder.finishNullabilities(this, pendingNullabilities);
+    pendingNullabilities.clear();
+
     return count;
   }
 

@@ -14,7 +14,11 @@ import 'builder.dart'
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
 
-import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
+import '../fasta_codes.dart'
+    show
+        templateCycleInTypeVariables,
+        templateInternalProblemUnfinishedTypeVariable,
+        templateTypeArgumentsOnTypeVariable;
 
 import '../kernel/kernel_builder.dart'
     show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
@@ -96,8 +100,30 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
           name.length,
           fileUri);
     }
-    return buildTypesWithBuiltArguments(
-        library, nullabilityBuilder.build(library), null);
+    // If the bound is not set yet, the actual value is not important yet as it
+    // will be set later.
+    Nullability nullabilityIfOmitted = parameter.bound != null &&
+            library != null &&
+            library.isNonNullableByDefault
+        ? TypeParameterType.computeNullabilityFromBound(parameter)
+        : Nullability.legacy;
+    DartType type = buildTypesWithBuiltArguments(
+        library,
+        nullabilityBuilder.build(library, ifOmitted: nullabilityIfOmitted),
+        null);
+    if (parameter.bound == null) {
+      if (library is SourceLibraryBuilder) {
+        library.pendingNullabilities.add(type);
+      } else {
+        library.addProblem(
+            templateInternalProblemUnfinishedTypeVariable.withArguments(
+                name, library?.uri),
+            parameter.fileOffset,
+            name.length,
+            fileUri);
+      }
+    }
+    return type;
   }
 
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
@@ -112,7 +138,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
           name.length,
           fileUri);
     }
-    return new TypeParameterType(parameter);
+    return new TypeParameterType(parameter, null, nullability);
   }
 
   TypeBuilder asTypeBuilder() {
@@ -135,6 +161,74 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
         (bound != null && parameter.bound == objectType
             ? objectType
             : dynamicType.build(library));
+  }
+
+  /// Assigns nullabilities to types in [pendingNullabilities].
+  ///
+  /// It's a helper function to assign the nullabilities to type-parameter types
+  /// after the corresponding type parameters have their bounds set or changed.
+  /// The function takes into account that some of the types in the input list
+  /// may be bounds to some of the type parameters of other types from the input
+  /// list.
+  static void finishNullabilities(LibraryBuilder libraryBuilder,
+      List<TypeParameterType> pendingNullabilities) {
+    // The bounds of type parameters may be type-parameter types of other
+    // parameters from the same declaration.  In this case we need to set the
+    // nullability for them first.  To preserve the ordering, we implement a
+    // depth-first search over the types.  We use the fact that a nullability
+    // of a type parameter type can't ever be 'nullable' if computed from the
+    // bound. It allows us to use 'nullable' nullability as the marker in the
+    // DFS implementation.
+    Nullability marker = Nullability.nullable;
+    List<TypeParameterType> stack =
+        new List<TypeParameterType>.filled(pendingNullabilities.length, null);
+    int stackTop = 0;
+    for (TypeParameterType type in pendingNullabilities) {
+      type.typeParameterTypeNullability = null;
+    }
+    for (TypeParameterType type in pendingNullabilities) {
+      if (type.typeParameterTypeNullability != null) {
+        // Nullability for [type] was already computed on one of the branches
+        // of the depth-first search.  Continue to the next one.
+        continue;
+      }
+      if (type.parameter.bound is TypeParameterType) {
+        TypeParameterType current = type;
+        TypeParameterType next = current.parameter.bound;
+        while (next != null && next.typeParameterTypeNullability == null) {
+          stack[stackTop++] = current;
+          current.typeParameterTypeNullability = marker;
+
+          current = next;
+          if (current.parameter.bound is TypeParameterType) {
+            next = current.parameter.bound;
+            if (next.typeParameterTypeNullability == marker) {
+              next.typeParameterTypeNullability = Nullability.neither;
+              libraryBuilder.addProblem(
+                  templateCycleInTypeVariables.withArguments(
+                      next.parameter.name, current.parameter.name),
+                  next.parameter.fileOffset,
+                  next.parameter.name.length,
+                  next.parameter.location.file);
+              next = null;
+            }
+          } else {
+            next = null;
+          }
+        }
+        current.typeParameterTypeNullability =
+            TypeParameterType.computeNullabilityFromBound(current.parameter);
+        while (stackTop != 0) {
+          --stackTop;
+          current = stack[stackTop];
+          current.typeParameterTypeNullability =
+              TypeParameterType.computeNullabilityFromBound(current.parameter);
+        }
+      } else {
+        type.typeParameterTypeNullability =
+            TypeParameterType.computeNullabilityFromBound(type.parameter);
+      }
+    }
   }
 
   void applyPatch(covariant TypeVariableBuilder patch) {
