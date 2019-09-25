@@ -1365,6 +1365,23 @@ main() {
 ''');
   }
 
+  test_expressionBody() async {
+    await _prepareCompletion(
+        '=> 1',
+        '''
+class Thing extends Object {
+  int foo() => 1
+}
+''',
+        atEnd: true);
+    _assertHasChange('Add a semicolon and newline', '''
+class Thing extends Object {
+  int foo() => 1;
+  
+}
+''');
+  }
+
   test_noCloseParen() async {
     await _prepareCompletion(
         'ing(3',
