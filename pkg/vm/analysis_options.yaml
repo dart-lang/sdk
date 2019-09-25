@@ -6,8 +6,3 @@ analyzer:
   exclude:
     - testcases/**
     - tool/**
-linter:
-  rules:
-    - prefer_final_fields
-    - prefer_final_in_for_each
-    - prefer_final_locals
