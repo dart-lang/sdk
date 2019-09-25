@@ -37,11 +37,11 @@ static method A2|get#method2(final self::A1* #this) → <T extends core::Object*
 static method A2|method3<T extends core::Object* = dynamic>(final self::A1* #this, [self::A2|method3::T* o]) → self::A1*
   ;
 static method A2|get#method3(final self::A1* #this) → <T extends core::Object* = dynamic>([T*]) →* self::A1*
-  return <T extends core::Object* = dynamic>([T* o = null]) → self::A1* => self::A2|method3<T*>(#this, o);
+  return <T extends core::Object* = dynamic>([T* o]) → self::A1* => self::A2|method3<T*>(#this, o);
 static method A2|method4<T extends core::Object* = dynamic>(final self::A1* #this, {self::A2|method4::T* o}) → self::A1*
   ;
 static method A2|get#method4(final self::A1* #this) → <T extends core::Object* = dynamic>({o: T*}) →* self::A1*
-  return <T extends core::Object* = dynamic>({T* o = null}) → self::A1* => self::A2|method4<T*>(#this, o: o);
+  return <T extends core::Object* = dynamic>({T* o}) → self::A1* => self::A2|method4<T*>(#this, o: o);
 static method B2|method1<T extends core::Object* = dynamic>(final self::B1<self::B2|method1::T*>* #this) → self::B1<self::B2|method1::T*>*
   ;
 static method B2|get#method1<T extends core::Object* = dynamic>(final self::B1<self::B2|get#method1::T*>* #this) → () →* self::B1<self::B2|get#method1::T*>*

@@ -77,12 +77,12 @@ static method Extension|writeSetterRequired(final self::Class* #this, dynamic va
 }
 static method Extension|get#writeSetterRequired(final self::Class* #this) → (dynamic) →* dynamic
   return (dynamic value) → dynamic => self::Extension|writeSetterRequired(#this, value);
-static method Extension|writeSetterOptional(final self::Class* #this = #C1, [dynamic value = #C1]) → dynamic {
+static method Extension|writeSetterOptional(final self::Class* #this, [dynamic value = #C1]) → dynamic {
   self::Extension|set#property(#this, value);
 }
 static method Extension|get#writeSetterOptional(final self::Class* #this) → ([dynamic]) →* dynamic
   return ([dynamic value = #C1]) → dynamic => self::Extension|writeSetterOptional(#this, value);
-static method Extension|writeSetterNamed(final self::Class* #this = #C1, {dynamic value = #C1}) → dynamic {
+static method Extension|writeSetterNamed(final self::Class* #this, {dynamic value = #C1}) → dynamic {
   self::Extension|set#property(#this, value);
 }
 static method Extension|get#writeSetterNamed(final self::Class* #this) → ({value: dynamic}) →* dynamic
@@ -144,12 +144,12 @@ static method GenericExtension|writeSetterRequired<T extends core::Object* = dyn
 }
 static method GenericExtension|get#writeSetterRequired<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#writeSetterRequired::T*>* #this) → (self::GenericExtension|get#writeSetterRequired::T*) →* dynamic
   return (self::GenericExtension|get#writeSetterRequired::T* value) → dynamic => self::GenericExtension|writeSetterRequired<self::GenericExtension|get#writeSetterRequired::T*>(#this, value);
-static method GenericExtension|writeSetterOptional<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|writeSetterOptional::T*>* #this = #C1, [self::GenericExtension|writeSetterOptional::T* value = #C1]) → dynamic {
+static method GenericExtension|writeSetterOptional<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|writeSetterOptional::T*>* #this, [self::GenericExtension|writeSetterOptional::T* value = #C1]) → dynamic {
   self::GenericExtension|set#property<self::GenericExtension|writeSetterOptional::T*>(#this, value);
 }
 static method GenericExtension|get#writeSetterOptional<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#writeSetterOptional::T*>* #this) → ([self::GenericExtension|get#writeSetterOptional::T*]) →* dynamic
   return ([self::GenericExtension|get#writeSetterOptional::T* value = #C1]) → dynamic => self::GenericExtension|writeSetterOptional<self::GenericExtension|get#writeSetterOptional::T*>(#this, value);
-static method GenericExtension|writeSetterNamed<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|writeSetterNamed::T*>* #this = #C1, {self::GenericExtension|writeSetterNamed::T* value = #C1}) → dynamic {
+static method GenericExtension|writeSetterNamed<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|writeSetterNamed::T*>* #this, {self::GenericExtension|writeSetterNamed::T* value = #C1}) → dynamic {
   self::GenericExtension|set#property<self::GenericExtension|writeSetterNamed::T*>(#this, value);
 }
 static method GenericExtension|get#writeSetterNamed<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#writeSetterNamed::T*>* #this) → ({value: self::GenericExtension|get#writeSetterNamed::T*}) →* dynamic
@@ -159,14 +159,14 @@ static method GenericExtension|genericWriteSetterRequired<T extends core::Object
 }
 static method GenericExtension|get#genericWriteSetterRequired<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#genericWriteSetterRequired::T*>* #this) → <S extends self::GenericExtension|get#genericWriteSetterRequired::T* = dynamic>(S*) →* dynamic
   return <S extends self::GenericExtension|get#genericWriteSetterRequired::T* = dynamic>(S* value) → dynamic => self::GenericExtension|genericWriteSetterRequired<self::GenericExtension|get#genericWriteSetterRequired::T*, S*>(#this, value);
-static method GenericExtension|genericWriteSetterOptional<T extends core::Object* = dynamic, S extends self::GenericExtension|genericWriteSetterOptional::T* = dynamic>(final self::GenericClass<self::GenericExtension|genericWriteSetterOptional::T*>* #this = #C1, [self::GenericExtension|genericWriteSetterOptional::S* value = #C1]) → dynamic {
+static method GenericExtension|genericWriteSetterOptional<T extends core::Object* = dynamic, S extends self::GenericExtension|genericWriteSetterOptional::T* = dynamic>(final self::GenericClass<self::GenericExtension|genericWriteSetterOptional::T*>* #this, [self::GenericExtension|genericWriteSetterOptional::S* value = #C1]) → dynamic {
   self::GenericExtension|set#property<self::GenericExtension|genericWriteSetterOptional::T*>(#this, value);
 }
 static method GenericExtension|get#genericWriteSetterOptional<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#genericWriteSetterOptional::T*>* #this) → <S extends self::GenericExtension|get#genericWriteSetterOptional::T* = dynamic>([S*]) →* dynamic
   return <S extends self::GenericExtension|get#genericWriteSetterOptional::T* = dynamic>([S* value = #C1]) → dynamic => self::GenericExtension|genericWriteSetterOptional<self::GenericExtension|get#genericWriteSetterOptional::T*, S*>(#this, value);
 static method GenericExtension|get#genericWriteSetterNamed<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#genericWriteSetterNamed::T*>* #this) → <S extends self::GenericExtension|get#genericWriteSetterNamed::T* = dynamic>({value: S*}) →* dynamic
   return <S extends self::GenericExtension|get#genericWriteSetterNamed::T* = dynamic>({S* value = #C1}) → dynamic => self::GenericExtension|genericWriteSetterNamed<self::GenericExtension|get#genericWriteSetterNamed::T*, S*>(#this, value: value);
-static method GenericExtension|genericWriteSetterNamed<T extends core::Object* = dynamic, S extends self::GenericExtension|genericWriteSetterNamed::T* = dynamic>(final self::GenericClass<self::GenericExtension|genericWriteSetterNamed::T*>* #this = #C1, {self::GenericExtension|genericWriteSetterNamed::S* value = #C1}) → dynamic {
+static method GenericExtension|genericWriteSetterNamed<T extends core::Object* = dynamic, S extends self::GenericExtension|genericWriteSetterNamed::T* = dynamic>(final self::GenericClass<self::GenericExtension|genericWriteSetterNamed::T*>* #this, {self::GenericExtension|genericWriteSetterNamed::S* value = #C1}) → dynamic {
   self::GenericExtension|set#property<self::GenericExtension|genericWriteSetterNamed::T*>(#this, value);
 }
 static method GenericExtension|get#property<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|get#property::T*>* #this) → self::GenericExtension|get#property::T*

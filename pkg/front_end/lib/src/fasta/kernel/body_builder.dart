@@ -789,18 +789,31 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.target.initializer;
         if (parameter.isOptional || initializer != null) {
-          VariableDeclaration realParameter = builder.formals[i].target;
           if (parameter.isOptional) {
             initializer ??= forest.createNullLiteral(
-                // TODO(ahe): Should store: realParameter.fileOffset
+                // TODO(ahe): Should store: originParameter.fileOffset
                 // https://github.com/dart-lang/sdk/issues/32289
                 null);
           }
-          realParameter.initializer = initializer..parent = realParameter;
+          VariableDeclaration originParameter = builder.getFormalParameter(i);
+          originParameter.initializer = initializer..parent = originParameter;
           typeInferrer?.inferParameterInitializer(
-              this, initializer, realParameter.type);
+              this, initializer, originParameter.type);
           libraryBuilder.loader.transformPostInference(
-              realParameter, transformSetLiterals, transformCollections);
+              originParameter, transformSetLiterals, transformCollections);
+
+          VariableDeclaration extensionTearOffParameter =
+              builder.getExtensionTearOffParameter(i);
+          if (extensionTearOffParameter != null) {
+            cloner ??= new CloneVisitor();
+            Expression tearOffInitializer = cloner.clone(initializer);
+            extensionTearOffParameter.initializer = tearOffInitializer
+              ..parent = extensionTearOffParameter;
+            libraryBuilder.loader.transformPostInference(
+                extensionTearOffParameter,
+                transformSetLiterals,
+                transformCollections);
+          }
         }
       }
     }

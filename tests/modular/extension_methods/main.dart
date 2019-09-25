@@ -24,10 +24,15 @@ testExplicitAccess(Class c) {
 
 testImplicitAccess(Class c) {
   Expect.equals(c.field, c.method());
+  Expect.equals(42, c.methodWithOptionals());
+  Expect.equals(123, c.methodWithOptionals(123));
   Expect.equals(c.field, c.property);
   Expect.equals(123, c.property = 123);
   var f = c.method;
   Expect.equals(c.field, f());
+  var f2 = c.methodWithOptionals;
+  Expect.equals(42, f2());
+  Expect.equals(87, f2(87));
 }
 
 testStaticAccess() {

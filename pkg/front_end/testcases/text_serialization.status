@@ -12,6 +12,7 @@ expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
+extensions/default_values: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
 extensions/direct_static_access: TextSerializationFailure
 extensions/dynamic_invoke: TextSerializationFailure
