@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,7 +31,6 @@ main() {
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
     defineReflectiveTests(StringUtilitiesTest);
-    defineReflectiveTests(TokenMapTest);
   });
 }
 
@@ -3990,26 +3988,6 @@ class StringUtilitiesTest {
     expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");
     expect(StringUtilities.substringBeforeChar("abc", 0x63), "ab");
     expect(StringUtilities.substringBeforeChar("abc", 0x64), "abc");
-  }
-}
-
-@reflectiveTest
-class TokenMapTest {
-  void test_creation() {
-    expect(new TokenMap(), isNotNull);
-  }
-
-  void test_get_absent() {
-    TokenMap tokenMap = new TokenMap();
-    expect(tokenMap.get(TokenFactory.tokenFromType(TokenType.AT)), isNull);
-  }
-
-  void test_get_added() {
-    TokenMap tokenMap = new TokenMap();
-    Token key = TokenFactory.tokenFromType(TokenType.AT);
-    Token value = TokenFactory.tokenFromType(TokenType.AT);
-    tokenMap.put(key, value);
-    expect(tokenMap.get(key), same(value));
   }
 }
 

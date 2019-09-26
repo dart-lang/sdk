@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /**
@@ -78,36 +75,5 @@ class BooleanArray {
     if (index < 0 || index > 30) {
       throw new RangeError("Index not between 0 and 30: $index");
     }
-  }
-}
-
-/**
- * Instances of the class `TokenMap` map one set of tokens to another set of tokens.
- */
-class TokenMap {
-  /**
-   * A table mapping tokens to tokens. This should be replaced by a more performant implementation.
-   * One possibility is a pair of parallel arrays, with keys being sorted by their offset and a
-   * cursor indicating where to start searching.
-   */
-  Map<Token, Token> _map = new HashMap<Token, Token>();
-
-  /**
-   * Return the token that is mapped to the given token, or `null` if there is no token
-   * corresponding to the given token.
-   *
-   * @param key the token being mapped to another token
-   * @return the token that is mapped to the given token
-   */
-  Token get(Token key) => _map[key];
-
-  /**
-   * Map the key to the value.
-   *
-   * @param key the token being mapped to the value
-   * @param value the token to which the key will be mapped
-   */
-  void put(Token key, Token value) {
-    _map[key] = value;
   }
 }
