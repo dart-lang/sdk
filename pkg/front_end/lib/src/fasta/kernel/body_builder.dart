@@ -4767,7 +4767,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("TypeVariable");
     UnresolvedType bound = pop();
     // Peek to leave type parameters on top of stack.
@@ -4775,6 +4776,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound?.builder;
+    if (variance != null) {
+      variable.variance = Variance.fromString(variance.lexeme);
+    }
   }
 
   @override

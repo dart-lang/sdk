@@ -1204,9 +1204,14 @@ class ParserTestListener implements Listener {
     doPrint('handleTypeVariablesDefined(' '$token, ' '$count)');
   }
 
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     indent--;
-    doPrint('endTypeVariable(' '$token, ' '$index, ' '$extendsOrSuper)');
+    doPrint('endTypeVariable('
+        '$token, '
+        '$index, '
+        '$extendsOrSuper, '
+        '$variance)');
   }
 
   void beginTypeVariables(Token token) {

@@ -6003,6 +6003,18 @@ class Variance {
     if (a == invariant || b == invariant) return invariant;
     return a == b ? covariant : contravariant;
   }
+
+  static int fromString(String variance) {
+    if (variance == "in") {
+      return contravariant;
+    } else if (variance == "inout") {
+      return invariant;
+    } else if (variance == "out") {
+      return covariant;
+    } else {
+      return unrelated;
+    }
+  }
 }
 
 /// Declaration of a type variable.

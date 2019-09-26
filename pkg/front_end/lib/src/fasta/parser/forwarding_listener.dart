@@ -993,8 +993,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
-    listener?.endTypeVariable(token, index, extendsOrSuper);
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
+    listener?.endTypeVariable(token, index, extendsOrSuper, variance);
   }
 
   @override

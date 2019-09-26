@@ -544,7 +544,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("endTypeVariable");
   }
 
