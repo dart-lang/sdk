@@ -525,6 +525,8 @@ class RulesetEncoder {
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
+  bool _isSyntheticClosure(InterfaceType type) => type.element.isClosure;
+
   void _preprocessEntry(InterfaceType targetType, _RulesetEntry entry) {
     entry._supertypes.removeWhere((InterfaceType supertype) =>
         _isObject(supertype) ||
@@ -532,8 +534,8 @@ class RulesetEncoder {
   }
 
   void _preprocessRuleset(Ruleset ruleset) {
-    ruleset._entries
-        .removeWhere((InterfaceType targetType, _) => _isObject(targetType));
+    ruleset._entries.removeWhere((InterfaceType targetType, _) =>
+        _isObject(targetType) || _isSyntheticClosure(targetType));
     ruleset._entries.forEach(_preprocessEntry);
     ruleset._entries.removeWhere((_, _RulesetEntry entry) => entry.isEmpty);
   }
