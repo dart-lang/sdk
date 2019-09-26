@@ -179,6 +179,9 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
   /// After migration is complete, this getter can be used to query whether
   /// the type associated with this node was determined to be nullable.
   bool get isNullable;
+
+  /// The edges that caused this node to have the nullability that it has.
+  Iterable<EdgeInfo> get upstreamEdges;
 }
 
 /// Information exposed to the migration client about a single step in the

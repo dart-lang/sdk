@@ -214,8 +214,9 @@ analyzer:
 
   /// Generate output into the given [folder].
   void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    List<LibraryInfo> libraryInfos = await InfoBuilder(listener.server)
-        .explainMigration(instrumentationListener.data, listener);
+    List<LibraryInfo> libraryInfos =
+        await InfoBuilder(instrumentationListener.data, listener)
+            .explainMigration();
     listener.addDetail('libraryInfos has ${libraryInfos.length} libs');
     for (LibraryInfo info in libraryInfos) {
       var pathContext = provider.pathContext;

@@ -8,21 +8,42 @@ import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_informat
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show Location, SourceEdit, SourceFileEdit;
+import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
+
+class FixInfo {
+  /// The fix being described.
+  SingleNullabilityFix fix;
+
+  /// The reasons why the fix was made.
+  List<FixReasonInfo> reasons;
+
+  /// Initialize information about a fix from the given map [entry].
+  FixInfo(this.fix, this.reasons);
+}
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
-  /// The analysis session used to get information about libraries.
-  AnalysisServer server;
+  /// The instrumentation information gathered while the migration engine was
+  /// running.
+  final InstrumentationInformation info;
+
+  /// The listener used to gather the changes to be applied.
+  final DartFixListener listener;
 
   /// Initialize a newly created builder.
-  InfoBuilder(this.server);
+  InfoBuilder(this.info, this.listener);
+
+  /// The analysis server used to get information about libraries.
+  AnalysisServer get server => listener.server;
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
-  Future<List<LibraryInfo>> explainMigration(
-      InstrumentationInformation info, DartFixListener listener) async {
+  Future<List<LibraryInfo>> explainMigration() async {
     Map<Source, SourceInformation> sourceInfo = info.sourceInformation;
     List<LibraryInfo> libraries = [];
     for (Source source in sourceInfo.keys) {
@@ -38,6 +59,42 @@ class InfoBuilder {
     return libraries;
   }
 
+  /// Compute the details for the fix with the given [fixInfo].
+  List<RegionDetail> _computeDetails(FixInfo fixInfo) {
+    List<RegionDetail> details = [];
+    for (FixReasonInfo reason in fixInfo.reasons) {
+      if (reason is NullabilityNodeInfo) {
+        for (EdgeInfo edge in reason.upstreamEdges) {
+          EdgeOriginInfo origin = info.edgeOrigin[edge];
+          if (origin != null) {
+            AstNode node = origin.node;
+            if (node.parent is ArgumentList) {
+              if (node is NullLiteral) {
+                details.add(RegionDetail(
+                    'null is explicitly passed as an argument.',
+                    _targetFor(origin)));
+              } else {
+                details.add(RegionDetail(
+                    'A nullable value is explicitly passed as an argument.',
+                    _targetFor(origin)));
+              }
+            } else {
+              details.add(RegionDetail(
+                  'A nullable value is assigned.', _targetFor(origin)));
+            }
+          }
+        }
+      } else if (reason is EdgeInfo) {
+        // TODO(brianwilkerson) Implement this after finding an example whose
+        //  reason is an edge.
+      } else {
+        throw UnimplementedError(
+            'Unexpected class of reason: ${reason.runtimeType}');
+      }
+    }
+    return details;
+  }
+
   /// Return the migration information for the given library.
   LibraryInfo _explainLibrary(
       ParsedLibraryResult result,
@@ -47,13 +104,14 @@ class InfoBuilder {
     List<UnitInfo> units = [];
     for (ParsedUnitResult unit in result.units) {
       SourceFileEdit edit = listener.sourceChange.getFileEdit(unit.path);
-      units.add(_explainUnit(unit, edit));
+      units.add(_explainUnit(sourceInfo, unit, edit));
     }
     return LibraryInfo(units);
   }
 
   /// Return the migration information for the given unit.
-  UnitInfo _explainUnit(ParsedUnitResult result, SourceFileEdit fileEdit) {
+  UnitInfo _explainUnit(SourceInformation sourceInfo, ParsedUnitResult result,
+      SourceFileEdit fileEdit) {
     List<RegionInfo> regions = [];
     String content = result.content;
     // [fileEdit] is null when a file has no edits.
@@ -83,14 +141,35 @@ class InfoBuilder {
       int delta = deltas[index--];
       // Insert the replacement text without deleting the replaced text.
       content = content.replaceRange(end, end, replacement);
+      FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
+      String explanation = '${fixInfo.fix.description.appliedMessage}.';
+      List<RegionDetail> details = _computeDetails(fixInfo);
       if (length > 0) {
-        // TODO(brianwilkerson) Create a sensible explanation.
-        regions.add(RegionInfo(offset + delta, length, 'removed'));
+        regions.add(RegionInfo(offset + delta, length, explanation, details));
       }
-      // TODO(brianwilkerson) Create a sensible explanation.
-      regions.add(RegionInfo(end + delta, replacement.length, 'added'));
+      regions.add(
+          RegionInfo(end + delta, replacement.length, explanation, details));
     }
     regions.sort((first, second) => first.offset.compareTo(second.offset));
     return UnitInfo(result.path, content, regions);
+  }
+
+  /// Return information about the fix that was applied at the given [offset],
+  /// or `null` if the information could not be found. The information is
+  /// extracted from the [sourceInfo].
+  FixInfo _findFixInfo(SourceInformation sourceInfo, int offset) {
+    for (MapEntry<SingleNullabilityFix, List<FixReasonInfo>> entry
+        in sourceInfo.fixes.entries) {
+      Location location = entry.key.location;
+      if (location.offset == offset) {
+        return FixInfo(entry.key, entry.value);
+      }
+    }
+    return null;
+  }
+
+  NavigationTarget _targetFor(EdgeOriginInfo origin) {
+    AstNode node = origin.node;
+    return NavigationTarget(origin.source.fullName, node.offset, node.length);
   }
 }

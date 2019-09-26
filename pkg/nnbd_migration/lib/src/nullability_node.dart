@@ -500,6 +500,9 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   /// nullability migration needs to decide whether it is optional or required.
   bool get isPossiblyOptional => _isPossiblyOptional;
 
+  @override
+  Iterable<EdgeInfo> get upstreamEdges => _upstreamEdges;
+
   String get _debugPrefix;
 
   NullabilityState get _state;

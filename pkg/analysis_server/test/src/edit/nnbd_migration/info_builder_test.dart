@@ -48,9 +48,9 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     migration.processInput(result);
     migration.finish();
     // Build the migration info.
-    InfoBuilder builder = InfoBuilder(server);
     InstrumentationInformation info = instrumentationListener.data;
-    infos = await builder.explainMigration(info, listener);
+    InfoBuilder builder = InfoBuilder(info, listener);
+    infos = await builder.explainMigration();
   }
 
   test_parameter_nullableFromInvocation() async {

@@ -12,6 +12,34 @@ class LibraryInfo {
   LibraryInfo(this.units);
 }
 
+/// A location to which a user might want to navigate.
+class NavigationTarget {
+  /// The file containing the anchor.
+  final String filePath;
+
+  /// The offset of the anchor.
+  final int offset;
+
+  /// The length of the anchor.
+  final int length;
+
+  /// Initialize a newly created anchor.
+  const NavigationTarget(this.filePath, this.offset, this.length);
+}
+
+/// An additional detail related to a region.
+class RegionDetail {
+  /// A textual description of the detail.
+  final String description;
+
+  /// The location associated with the detail, such as the location of an
+  /// argument that's assigned to a parameter.
+  final NavigationTarget target;
+
+  /// Initialize a newly created detail.
+  RegionDetail(this.description, this.target);
+}
+
 /// A description of an explanation associated with a region of code that was
 /// modified.
 class RegionInfo {
@@ -24,8 +52,11 @@ class RegionInfo {
   /// The explanation to be displayed for the region.
   final String explanation;
 
+  /// Details that further explain why a change was made.
+  final List<RegionDetail> details;
+
   /// Initialize a newly created region.
-  RegionInfo(this.offset, this.length, this.explanation);
+  RegionInfo(this.offset, this.length, this.explanation, this.details);
 }
 
 /// The migration information associated with a single compilation unit.
