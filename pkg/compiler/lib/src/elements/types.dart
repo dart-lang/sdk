@@ -174,7 +174,8 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType(this.element, this.typeArguments);
+  InterfaceType(this.element, this.typeArguments)
+      : assert(typeArguments.every((e) => e != null));
 
   @override
   bool get isInterfaceType => true;
@@ -942,7 +943,7 @@ class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
 }
 
 /// A visitor that by default visits the substructure of the type until some
-/// visit returns`true`.  The default handers return `false` which will search
+/// visit returns `true`.  The default handers return `false` which will search
 /// the whole structure unless overridden.
 abstract class DartTypeStructuralPredicateVisitor
     extends DartTypeVisitor<bool, List<FunctionTypeVariable>> {
@@ -1528,11 +1529,12 @@ abstract class AbstractTypeRelation<T extends DartType>
   }
 }
 
-// TODO(fishythefish): Support 'any'.
 abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
     if (identical(t, s) ||
+        t.isAny ||
+        s.isAny ||
         s.treatAsDynamic ||
         s.isVoid ||
         s == commonElements.objectType ||
@@ -1582,10 +1584,10 @@ abstract class MoreSpecificVisitor<T extends DartType>
 }
 
 /// Type visitor that determines the subtype relation two types.
-// TODO(fishythefish): Support 'any'.
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
+    if (t.isAny || s.isAny) return true;
     if (s.isFutureOr) {
       FutureOrType sFutureOr = s;
       if (isSubtype(t, sFutureOr.typeArgument)) {
@@ -1644,13 +1646,13 @@ abstract class SubtypeVisitor<T extends DartType>
 /// Type visitor that determines one type could a subtype of another given the
 /// right type variable substitution. The computation is approximate and returns
 /// `false` only if we are sure no such substitution exists.
-// TODO(fishythefish): Support 'any'.
 abstract class PotentialSubtypeVisitor<T extends DartType>
     extends SubtypeVisitor<T> {
   bool _assumeInstantiations = true;
 
   @override
   bool isSubtype(DartType t, DartType s) {
+    if (t.isAny || s.isAny) return true;
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }

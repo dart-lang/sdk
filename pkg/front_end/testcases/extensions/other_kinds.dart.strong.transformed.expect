@@ -22,6 +22,8 @@ class A1 extends core::Object {
 extension A2 on self::A1* {
   get instanceProperty = self::A2|get#instanceProperty;
   operator + = self::A2|+;
+  operator - = self::A2|-;
+  operator unary- = self::A2|unary-;
   static field staticField = self::A2|staticField;
   static get staticProperty = get self::A2|staticProperty;
   set instanceProperty = self::A2|set#instanceProperty;
@@ -30,13 +32,17 @@ extension A2 on self::A1* {
 static field core::int* A2|staticField = self::A1::getStaticField();
 static method A2|get#instanceProperty(final self::A1* #this) → core::int*
   return #this.{self::A1::getInstanceField}();
-static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → core::int* {
-  final core::int* #t1 = value;
+static method A2|set#instanceProperty(final self::A1* #this, core::int* value) → void {
   #this.{self::A1::setInstanceField}(value);
-  return #t1;
 }
 static method A2|+(final self::A1* #this, core::int* value) → core::int* {
   return #this.{self::A1::getInstanceField}().{core::num::+}(value);
+}
+static method A2|-(final self::A1* #this, core::int* value) → core::int* {
+  return #this.{self::A1::getInstanceField}().{core::num::-}(value);
+}
+static method A2|unary-(final self::A1* #this) → core::int* {
+  return #this.{self::A1::getInstanceField}().{core::int::unary-}();
 }
 static get A2|staticProperty() → core::int*
   return self::A1::getStaticField();

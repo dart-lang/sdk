@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class MetadataResolutionTest extends DriverResolutionTest {
-  test_constructor_named() async {
+  test_otherLibrary_constructor_named() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
   final int f;
@@ -30,22 +30,21 @@ import 'a.dart';
 class B {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    expect(value, isNotNull);
+    assertElementTypeString(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
-  test_constructor_unnamed() async {
+  test_otherLibrary_constructor_unnamed() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
   final int f;
@@ -60,22 +59,21 @@ import 'a.dart';
 class B {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'b.dart';
 
 B b;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classB = findNode.typeName('B b;').name.staticElement;
     var annotation = classB.metadata.single;
     var value = annotation.computeConstantValue();
-    expect(value, isNotNull);
+    assertElementTypeString(value.type, 'A');
     expect(value.getField('f').toIntValue(), 42);
   }
 
-  test_implicitConst() async {
+  test_otherLibrary_implicitConst() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
   final int f;
@@ -91,18 +89,33 @@ class B {
 class C {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 C c;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var classC = findNode.typeName('C c;').name.staticElement;
     var annotation = classC.metadata.single;
     var value = annotation.computeConstantValue();
-    expect(value, isNotNull);
+    assertElementTypeString(value.type, 'B');
     expect(value.getField('a').getField('f').toIntValue(), 42);
+  }
+
+  test_sameLibrary_genericClass_constructor_unnamed() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final T f;
+  const A(this.f);
+}
+
+@A(42)
+class B {}
+''');
+    var annotation = findElement.class_('B').metadata.single;
+    var value = annotation.computeConstantValue();
+    assertElementTypeString(value.type, 'A<int>');
+    expect(value.getField('f').toIntValue(), 42);
   }
 }

@@ -121,6 +121,9 @@ class AstBuilder extends StackListener {
   /// `true` if triple-shift behavior is enabled
   final bool enableTripleShift;
 
+  /// `true` if variance behavior is enabled
+  final bool enableVariance;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
@@ -133,6 +136,7 @@ class AstBuilder extends StackListener {
         this.enableControlFlowCollections =
             _featureSet.isEnabled(Feature.control_flow_collections),
         this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
+        this.enableVariance = _featureSet.isEnabled(Feature.variance),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -3335,6 +3339,14 @@ class AstBuilder extends StackListener {
 
     Expression value = pop();
     push(new _ParameterDefaultValue(equals, value));
+  }
+
+  @override
+  void handleVarianceModifier(Token variance) {
+    debugEvent('VarianceModifier');
+    if (!enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
+    }
   }
 
   @override

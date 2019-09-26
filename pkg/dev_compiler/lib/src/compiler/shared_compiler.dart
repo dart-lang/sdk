@@ -263,7 +263,8 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     return privateNames.putIfAbsent(name, initPrivateNameSymbol);
   }
 
-  /// Emits a private name JS Symbol for [name] unique to a Dart class [cls].
+  /// Emits a private name JS Symbol for [memberName] unique to a Dart
+  /// class [className].
   ///
   /// This is now required for fields of constant objects that may be
   /// overridden within the same library.

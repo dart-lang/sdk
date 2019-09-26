@@ -1292,6 +1292,11 @@ class Printer extends Visitor<Null> {
     writeExpression(node.operand, Precedence.PREFIX);
   }
 
+  visitNullCheck(NullCheck node) {
+    writeExpression(node.operand, Precedence.POSTFIX);
+    writeSymbol('!');
+  }
+
   visitLogicalExpression(LogicalExpression node) {
     int precedence = Precedence.binaryPrecedence[node.operator];
     writeExpression(node.left, precedence);
@@ -2119,13 +2124,13 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
-    writeNullability(node.declaredNullability);
+    writeNullability(node.typeParameterTypeNullability);
     if (node.promotedBound != null) {
       writeSpaced('&');
       writeType(node.promotedBound);
 
       writeWord("/* '");
-      writeNullability(node.declaredNullability, inComment: true);
+      writeNullability(node.typeParameterTypeNullability, inComment: true);
       writeWord("' & '");
       writeDartTypeNullability(node.promotedBound, inComment: true);
       writeWord("' = '");
@@ -2137,6 +2142,14 @@ class Printer extends Visitor<Null> {
   visitTypeParameter(TypeParameter node) {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeAnnotationList(node.annotations, separateLines: false);
+    if (node.variance != Variance.covariant) {
+      writeWord(const <String>[
+        "unrelated",
+        "covariant",
+        "contravariant",
+        "invariant"
+      ][node.variance]);
+    }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
@@ -2329,6 +2342,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
   int visitNot(Not node) => PREFIX;
+  int visitNullCheck(NullCheck node) => PRIMARY;
   int visitLogicalExpression(LogicalExpression node) =>
       binaryPrecedence[node.operator];
   int visitConditionalExpression(ConditionalExpression node) => CONDITIONAL;

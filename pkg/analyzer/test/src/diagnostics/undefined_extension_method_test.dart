@@ -51,32 +51,6 @@ f() {
     );
   }
 
-  test_operator_defined() async {
-    await assertNoErrorsInCode('''
-extension E on String {
-  void operator +(int offset) {}
-}
-f() {
-  E('a') + 1;
-}
-''');
-  }
-
-  test_operator_undefined() async {
-    await assertErrorsInCode('''
-extension E on String {}
-f() {
-  E('a') + 1;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
-    ]);
-    var binaryExpression = findNode.binary('+ 1');
-    assertElementNull(binaryExpression);
-    assertInvokeTypeNull(binaryExpression);
-    assertTypeDynamic(binaryExpression);
-  }
-
   test_static_withInference() async {
     await assertErrorsInCode('''
 extension E on Object {}

@@ -13,7 +13,6 @@ import 'package:kernel/ast.dart'
         ExpressionStatement,
         Field,
         FunctionType,
-        Let,
         Library,
         Member,
         Procedure,
@@ -36,8 +35,6 @@ import '../fasta_codes.dart'
 import '../severity.dart' show Severity;
 
 import '../type_inference/type_schema.dart' show UnknownType;
-
-import 'kernel_shadow_ast.dart' show SyntheticExpressionJudgment;
 
 import 'redirecting_factory_body.dart'
     show RedirectingFactoryBody, getRedirectingFactoryBody;
@@ -137,14 +134,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     if (node is! RedirectingFactoryBody) {
       super.visitExpressionStatement(node);
     }
-  }
-
-  @override
-  visitLet(Let node) {
-    if (node is SyntheticExpressionJudgment) {
-      problem(node, "Leaking shadow node: ${node.runtimeType}");
-    }
-    super.visitLet(node);
   }
 
   @override

@@ -24,14 +24,22 @@ class FileHandle;
 
 class MappedMemory {
  public:
-  MappedMemory(void* address, intptr_t size) : address_(address), size_(size) {}
-  ~MappedMemory() { Unmap(); }
+  MappedMemory(void* address, intptr_t size, bool should_unmap = true)
+      : should_unmap_(should_unmap), address_(address), size_(size) {}
+  ~MappedMemory() {
+    if (should_unmap_) Unmap();
+  }
 
   void* address() const { return address_; }
   intptr_t size() const { return size_; }
+  uword start() const { return reinterpret_cast<uword>(address()); }
 
  private:
   void Unmap();
+
+  // False for mappings which reside inside another, and will be removed when
+  // the outer mapping is removed.
+  bool should_unmap_;
 
   void* address_;
   intptr_t size_;
@@ -100,8 +108,30 @@ class File : public ReferenceCounted<File> {
   enum MapType {
     kReadOnly = 0,
     kReadExecute = 1,
+    kReadWrite = 2,
   };
-  MappedMemory* Map(MapType type, int64_t position, int64_t length);
+
+  /// Maps or copies the file into memory.
+  ///
+  /// 'position' and 'length' should be page-aligned.
+  ///
+  /// If 'start' is zero, allocates virtual memory for the mapping. When the
+  /// returned 'MappedMemory' is destroyed, the mapping is removed.
+  ///
+  /// If 'start' is non-zero, it must point within a suitably sized existing
+  /// mapping. The returned 'MappedMemory' will not remove the mapping when it
+  /// is destroyed; rather, the mapping will be removed when the enclosing
+  /// mapping is removed. This mode is not supported on Fuchsia.
+  ///
+  /// If 'type' is 'kReadWrite', writes to the mapping are *not* copied back to
+  /// the file.
+  ///
+  /// 'position' + 'length' may be larger than the file size. In this case, the
+  /// extra memory is zero-filled.
+  MappedMemory* Map(MapType type,
+                    int64_t position,
+                    int64_t length,
+                    void* start = nullptr);
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
   // the number of bytes read/written.
@@ -172,7 +202,7 @@ class File : public ReferenceCounted<File> {
   // reading. If mode contains kWrite the file is opened for both
   // reading and writing. If mode contains kWrite and the file does
   // not exist the file is created. The file is truncated to length 0 if
-  // mode contains kTruncate. Assumes we are in an API scope.
+  // mode contains kTruncate.
   static File* Open(Namespace* namespc, const char* path, FileOpenMode mode);
 
   // Same as [File::Open], but attempts to convert uri to path before opening

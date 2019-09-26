@@ -197,6 +197,10 @@ ExplicitExtensionArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionArgumentMismatch/example: Fail
 ExplicitExtensionTypeArgumentMismatch/analyzerCode: Fail
 ExplicitExtensionTypeArgumentMismatch/example: Fail
+ExplicitExtensionAsExpression/analyzerCode: Fail
+ExplicitExtensionAsExpression/example: Fail
+ExplicitExtensionAsLvalue/analyzerCode: Fail
+ExplicitExtensionAsLvalue/example: Fail
 ExportAfterPart/part_wrapped_script1: Fail
 ExportAfterPart/script1: Fail
 ExpressionNotMetadata/analyzerCode: Fail
@@ -310,6 +314,8 @@ ImplementsBeforeWith/script: Fail
 ImplementsFutureOr/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsFutureOr/part_wrapped_script1: Fail # Importing file in the (now) part.
 ImplicitCallOfNonMethod/example: Fail
+ImplicitMixinOverride/analyzerCode: Fail
+ImplicitMixinOverride/example: Fail
 ImportAfterPart/part_wrapped_script1: Fail
 ImportAfterPart/script1: Fail
 IncompatibleRedirecteeFunctionType/part_wrapped_script6: Fail
@@ -319,6 +325,8 @@ InitializerOutsideConstructor/example: Fail
 InputFileNotFound/analyzerCode: Fail
 InputFileNotFound/example: Fail
 IntegerLiteralIsOutOfRange/example: Fail
+InterfaceCheck/analyzerCode: Fail
+InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 IntersectionTypeAsTypeArgument/analyzerCode: Fail # Analyzer doesn't catch this error.
 InvalidBreakTarget/analyzerCode: Fail
@@ -387,7 +395,10 @@ MultipleOnClauses/part_wrapped_script: Fail
 MultipleOnClauses/script: Fail
 MultipleWith/part_wrapped_script: Fail
 MultipleWith/script: Fail
+MultipleVarianceModifiers/example: Fail # All trigger multiple errors for variance experiment
 NamedFunctionExpression/example: Fail
+NamedMixinOverride/analyzerCode: Fail
+NamedMixinOverride/example: Fail
 NativeClauseShouldBeAnnotation/example: Fail
 NoFormals/example: Fail
 NoSuchNamedParameter/example: Fail

@@ -15,9 +15,9 @@ class C<T extends num> {
   }
 
   void opEq(T b) {
-    /*@target=C::a*/ a += b;
-    /*@target=C::a*/ a -= b;
-    /*@target=C::a*/ a *= b;
+    /*@target=C::a*/ /*@target=C::a*/ a /*@target=num::+*/ += b;
+    /*@target=C::a*/ /*@target=C::a*/ a /*@target=num::-*/ -= b;
+    /*@target=C::a*/ /*@target=C::a*/ a /*@target=num::**/ *= b;
   }
 }
 

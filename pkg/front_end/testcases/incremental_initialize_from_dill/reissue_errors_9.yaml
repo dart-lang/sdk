@@ -9,7 +9,6 @@
 # Any references to the constant shouldn't matter in this regard.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

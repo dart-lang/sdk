@@ -344,6 +344,7 @@ class List<E> implements Iterable<E> {
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
+  Map<int, E> asMap() {}
   void clear() {}
   int indexOf(Object element);
   E removeLast() {}
@@ -499,7 +500,7 @@ final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary(
       'dart:html',
       '$sdkRoot/lib/html/dart2js/html_dart2js.dart',
       '''
-library dart.html;
+library dart.dom.html;
 import 'dart:async';
 
 class Event {}
@@ -566,6 +567,10 @@ class ButtonElement extends HtmlElement {
   bool autofocus;
 }
 
+class EmbedElement extends HtmlEment {
+  String src;
+}
+
 class HeadingElement extends HtmlElement {
   factory HeadingElement._() { throw new UnsupportedError("Not supported"); }
   factory HeadingElement.h1() => document.createElement("h1");
@@ -592,12 +597,21 @@ class IFrameElement extends HtmlElement {
   String src;
 }
 
+class ImageElement extends HtmlEment {
+  String src;
+}
+
 class OptionElement extends HtmlElement {
   factory OptionElement({String data: '', String value : '', bool selected: false}) {
   }
 
   factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
   }
+}
+
+class ScriptElement extends HtmlElement {
+  String src;
+  String type;
 }
 
 class TableSectionElement extends HtmlElement {
@@ -652,7 +666,7 @@ final MockSdkLibrary _LIB_HTML_DARTIUM = MockSdkLibrary(
       'dart:html',
       '$sdkRoot/lib/html/dartium/html_dartium.dart',
       '''
-library dart.html;
+library dart.dom.html;
 import 'dart:async';
 
 class Event {}
@@ -719,6 +733,10 @@ class ButtonElement extends HtmlElement {
   bool autofocus;
 }
 
+class EmbedElement extends HtmlEment {
+  String src;
+}
+
 class HeadingElement extends HtmlElement {
   factory HeadingElement._() { throw new UnsupportedError("Not supported"); }
   factory HeadingElement.h1() => document.createElement("h1");
@@ -745,12 +763,21 @@ class IFrameElement extends HtmlElement {
   String src;
 }
 
+class ImageElement extends HtmlEment {
+  String src;
+}
+
 class OptionElement extends HtmlElement {
   factory OptionElement({String data: '', String value : '', bool selected: false}) {
   }
 
   factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
   }
+}
+
+class ScriptElement extends HtmlElement {
+  String src;
+  String type;
 }
 
 class TableSectionElement extends HtmlElement {

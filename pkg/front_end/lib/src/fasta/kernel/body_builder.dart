@@ -94,9 +94,6 @@ import 'forest.dart' show Forest;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
-import 'kernel_shadow_ast.dart' as shadow
-    show SyntheticExpressionJudgment, SyntheticWrapper;
-
 import 'redirecting_factory_body.dart'
     show
         RedirectingFactoryBody,
@@ -110,6 +107,8 @@ import 'type_algorithms.dart' show calculateBounds;
 import 'kernel_api.dart';
 
 import 'kernel_ast_api.dart';
+
+import 'kernel_shadow_ast.dart';
 
 import 'kernel_builder.dart';
 
@@ -681,10 +680,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             Initializer initializer;
             if (member.isExternal) {
               initializer = buildInvalidInitializer(
-                  desugarSyntheticExpression(buildProblem(
+                  buildProblem(
                       fasta.messageExternalConstructorWithFieldInitializers,
                       formal.charOffset,
-                      formal.name.length)),
+                      formal.name.length),
                   formal.charOffset);
             } else {
               initializer = buildFieldInitializer(
@@ -790,18 +789,31 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.target.initializer;
         if (parameter.isOptional || initializer != null) {
-          VariableDeclaration realParameter = builder.formals[i].target;
           if (parameter.isOptional) {
             initializer ??= forest.createNullLiteral(
-                // TODO(ahe): Should store: realParameter.fileOffset
+                // TODO(ahe): Should store: originParameter.fileOffset
                 // https://github.com/dart-lang/sdk/issues/32289
                 null);
           }
-          realParameter.initializer = initializer..parent = realParameter;
+          VariableDeclaration originParameter = builder.getFormalParameter(i);
+          originParameter.initializer = initializer..parent = originParameter;
           typeInferrer?.inferParameterInitializer(
-              this, initializer, realParameter.type);
+              this, initializer, originParameter.type);
           libraryBuilder.loader.transformPostInference(
-              realParameter, transformSetLiterals, transformCollections);
+              originParameter, transformSetLiterals, transformCollections);
+
+          VariableDeclaration extensionTearOffParameter =
+              builder.getExtensionTearOffParameter(i);
+          if (extensionTearOffParameter != null) {
+            cloner ??= new CloneVisitor();
+            Expression tearOffInitializer = cloner.clone(initializer);
+            extensionTearOffParameter.initializer = tearOffInitializer
+              ..parent = extensionTearOffParameter;
+            libraryBuilder.loader.transformPostInference(
+                extensionTearOffParameter,
+                transformSetLiterals,
+                transformCollections);
+          }
         }
       }
     }
@@ -895,10 +907,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               forest.createExpressionStatement(
                   // This error is added after type inference is done, so we
                   // don't need to wrap errors in SyntheticExpressionJudgment.
-                  desugarSyntheticExpression(buildProblem(
-                      fasta.messageSetterWithWrongNumberOfFormals,
-                      charOffset,
-                      noLength)),
+                  buildProblem(fasta.messageSetterWithWrongNumberOfFormals,
+                      charOffset, noLength),
                   null),
               body,
             ],
@@ -915,8 +925,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       if (body != null) {
         builder.body = new Block(<Statement>[
-          new ExpressionStatement(desugarSyntheticExpression(buildProblem(
-              fasta.messageExternalMethodWithBody, body.fileOffset, noLength)))
+          new ExpressionStatement(buildProblem(
+              fasta.messageExternalMethodWithBody, body.fileOffset, noLength))
             ..fileOffset = body.fileOffset,
           body,
         ])
@@ -1007,11 +1017,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         String name = constructorNameForDiagnostics(initialTarget.name.name,
             className: initialTarget.enclosingClass.name);
         // TODO(dmitryas): Report this error earlier.
-        replacementNode = desugarSyntheticExpression(buildProblem(
+        replacementNode = buildProblem(
             fasta.templateCyclicRedirectingFactoryConstructors
                 .withArguments(name),
             initialTarget.fileOffset,
-            name.length));
+            name.length);
       } else if (resolvedTarget is Constructor &&
           resolvedTarget.enclosingClass.isAbstract) {
         replacementNode = evaluateArgumentsBefore(
@@ -1063,12 +1073,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   ? Constness.explicitConst
                   : Constness.explicitNew,
               charOffset: invocation.fileOffset);
-          // TODO(dmitryas): Find a better way to unwrap
-          // [SyntheticExpressionJudgment] or not to build it in the first place
-          // when it's not needed.
-          if (replacementNode is shadow.SyntheticExpressionJudgment) {
-            replacementNode = desugarSyntheticExpression(replacementNode);
-          }
         }
       }
 
@@ -1177,7 +1181,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
       formals[i] = new FormalParameterBuilder(
-          null, 0, null, formal.name, libraryBuilder, formal.fileOffset)
+          null, 0, null, formal.name, libraryBuilder, formal.fileOffset, uri)
         ..variable = formal;
     }
     enterLocalScope(
@@ -1245,9 +1249,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Change this to a null check.
       int offset = builder.body?.fileOffset ?? builder.charOffset;
       constructor.initializers.add(buildInvalidInitializer(
-          desugarSyntheticExpression(
-              buildProblem(fasta.messageConstructorNotSync, offset, noLength)),
-          offset));
+          buildProblem(fasta.messageConstructorNotSync, offset, noLength)));
     }
     if (needsImplicitSuperInitializer) {
       /// >If no superinitializer is provided, an implicit superinitializer
@@ -1266,11 +1268,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           length = (constructor.parent as Class).name.length;
         }
         initializer = buildInvalidInitializer(
-            desugarSyntheticExpression(buildProblem(
+            buildProblem(
                 fasta.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
                 builder.charOffset,
-                length)),
+                length),
             builder.charOffset);
       } else {
         initializer = buildSuperInitializer(
@@ -1483,7 +1485,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (receiver is ThisAccessGenerator && receiver.isSuper) {
       ThisAccessGenerator thisAccessorReceiver = receiver;
       isSuper = true;
-      receiver = forest.createThisExpression(thisAccessorReceiver.token);
+      receiver = forest.createThisExpression(thisAccessorReceiver.fileOffset);
     }
     push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
@@ -1530,16 +1532,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void doIfNull(Token token) {
     Expression b = popForValue();
     Expression a = popForValue();
-    VariableDeclaration variable = new VariableDeclaration.forValue(a);
-    push(new IfNullJudgment(
-        variable,
-        forest.createConditionalExpression(
-            buildIsNull(new VariableGet(variable), offsetForToken(token), this),
-            token,
-            b,
-            null,
-            new VariableGet(variable)))
-      ..fileOffset = offsetForToken(token));
+    push(new IfNullExpression(a, b)..fileOffset = offsetForToken(token));
   }
 
   /// Handle `a?.b(...)`.
@@ -1619,9 +1612,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             .withLocation(uri, charOffset, length);
       }
     }
-    return desugarSyntheticExpression(buildProblem(
+    return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context));
+        context: context);
   }
 
   @override
@@ -1879,11 +1872,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Builder setter =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       // TODO(johnniwinther): Check for constantContext like below?
-      return new ExtensionInstanceAccessGenerator.fromBuilder(this,
+      return new ExtensionInstanceAccessGenerator.fromBuilder(this, name,
           extensionThis, extensionTypeParameters, declaration, token, setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
-      return new StaticAccessGenerator(this, token, declaration.target, null);
+      return new StaticAccessGenerator(
+          this, token, name, declaration.target, null);
     } else if (declaration is PrefixBuilder) {
       assert(prefix == null);
       return new PrefixUseGenerator(this, token, declaration);
@@ -1895,7 +1889,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Builder setter =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
-          this, declaration, token, setter);
+          this, name, declaration, token, setter);
       if (constantContext != ConstantContext.none) {
         Member readTarget = generator.readTarget;
         if (!(readTarget is Field && readTarget.isConst ||
@@ -2746,9 +2740,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleNonNullAssertExpression(Token bang) {
+    assert(checkState(bang, [
+      unionOfKinds([ValueKind.Expression, ValueKind.Generator])
+    ]));
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
+    Object operand = pop();
+    Expression expression;
+    if (operand is Generator) {
+      expression = operand.buildSimpleRead();
+    } else {
+      assert(operand is Expression);
+      expression = operand;
+    }
+    push(forest.createNullCheck(offsetForToken(bang), expression));
   }
 
   @override
@@ -2775,10 +2781,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         libraryBuilder.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
-            new NamedTypeBuilder(
-                name,
-                libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
-                null)
+            new NamedTypeBuilder(name,
+                libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
               ..bind(new InvalidTypeBuilder(
                   name,
                   message.withLocation(
@@ -2791,8 +2795,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeBuilder result;
     if (name is Generator) {
       result = name.buildTypeWithResolvedArguments(
-          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable),
-          arguments);
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), arguments);
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
@@ -2801,7 +2804,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       libraryBuilder.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilder(name.name,
-          libraryBuilder.computeNullabilityFromToken(isMarkedAsNullable), null)
+          libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
         ..bind(new InvalidTypeBuilder(
             name.name,
             name.message.withLocation(
@@ -2847,7 +2850,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<TypeVariableBuilder> typeVariables = pop();
     UnresolvedType type = formals.toFunctionType(
         returnType,
-        libraryBuilder.computeNullabilityFromToken(questionMark != null),
+        libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         typeVariables);
     exitLocalScope();
     push(type);
@@ -2997,7 +3000,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
-          name?.name, libraryBuilder, offsetForToken(nameToken));
+          name?.name, libraryBuilder, offsetForToken(nameToken), uri);
     }
     VariableDeclaration variable =
         parameter.build(libraryBuilder, functionNestingLevel);
@@ -3069,10 +3072,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!libraryBuilder.loader.target.enableNonNullable) {
       reportErrorIfNullableType(question);
     }
-    UnresolvedType type = formals.toFunctionType(
-        returnType,
-        libraryBuilder.computeNullabilityFromToken(question != null),
-        typeVariables);
+    UnresolvedType type = formals.toFunctionType(returnType,
+        libraryBuilder.nullableBuilderIfTrue(question != null), typeVariables);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -3277,7 +3278,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSuper = false;
       if (receiver is ThisAccessGenerator && receiver.isSuper) {
         isSuper = true;
-        receiverValue = forest.createThisExpression(receiver.token);
+        receiverValue = forest.createThisExpression(receiver.fileOffset);
       } else {
         receiverValue = toValue(receiver);
       }
@@ -3444,15 +3445,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     LocatedMessage argMessage = checkArgumentsForFunction(
         target.function, arguments, charOffset, typeParameters);
     if (argMessage != null) {
-      return wrapSyntheticExpression(
-          throwNoSuchMethodError(
-              forest.createNullLiteral(null)..fileOffset = charOffset,
-              target.name.name,
-              arguments,
-              charOffset,
-              candidate: target,
-              message: argMessage),
-          charOffset);
+      return throwNoSuchMethodError(
+          forest.createNullLiteral(null)..fileOffset = charOffset,
+          target.name.name,
+          arguments,
+          charOffset,
+          candidate: target,
+          message: argMessage);
     }
 
     bool isConst = constness == Constness.explicitConst ||
@@ -3463,12 +3462,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
       }
       if (isConst && !target.isConst) {
-        return wrapInvalidConstructorInvocation(
-            desugarSyntheticExpression(buildProblem(
-                fasta.messageNonConstConstructor, charOffset, charLength)),
-            target,
-            arguments,
-            charOffset);
+        return buildProblem(
+            fasta.messageNonConstConstructor, charOffset, charLength);
       }
       ConstructorInvocation node =
           new ConstructorInvocation(target, arguments, isConst: isConst)
@@ -3484,12 +3479,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
-          return wrapInvalidConstructorInvocation(
-              desugarSyntheticExpression(buildProblem(
-                  fasta.messageNonConstFactory, charOffset, charLength)),
-              target,
-              arguments,
-              charOffset);
+          return buildProblem(
+              fasta.messageNonConstFactory, charOffset, charLength);
         }
         StaticInvocation node = new FactoryConstructorInvocationJudgment(
             target, arguments,
@@ -3517,15 +3508,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     LocatedMessage argMessage = checkArgumentsForFunction(
         target.function, arguments, fileOffset, typeParameters);
     if (argMessage != null) {
-      return wrapSyntheticExpression(
-          throwNoSuchMethodError(
-              forest.createNullLiteral(null)..fileOffset = fileOffset,
-              target.name.name,
-              arguments,
-              fileOffset,
-              candidate: target,
-              message: argMessage),
-          fileOffset);
+      return throwNoSuchMethodError(
+          forest.createNullLiteral(null)..fileOffset = fileOffset,
+          target.name.name,
+          arguments,
+          fileOffset,
+          candidate: target,
+          message: argMessage);
     }
 
     StaticInvocation node = new StaticInvocation(target, arguments)
@@ -3706,13 +3695,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (type is ProblemBuilder) {
         typeName = type.fullNameForErrors;
       }
-      push(wrapSyntheticExpression(
-          throwNoSuchMethodError(
-              forest.createNullLiteral(null)..fileOffset = offset,
-              debugName(typeName, name),
-              arguments,
-              nameToken.charOffset),
-          offset));
+      push(throwNoSuchMethodError(
+          forest.createNullLiteral(null)..fileOffset = offset,
+          debugName(typeName, name),
+          arguments,
+          nameToken.charOffset));
     }
     constantContext = savedConstantContext;
   }
@@ -3766,17 +3753,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         message = b.message.withLocation(uri, charOffset, noLength);
       } else if (b.isConstructor) {
         if (type.isAbstract) {
-          return wrapInvalidConstructorInvocation(
-              evaluateArgumentsBefore(
-                  arguments,
-                  buildAbstractClassInstantiationError(
-                      fasta.templateAbstractClassInstantiation
-                          .withArguments(type.name),
-                      type.name,
-                      nameToken.charOffset)),
-              target,
+          return evaluateArgumentsBefore(
               arguments,
-              charOffset);
+              buildAbstractClassInstantiationError(
+                  fasta.templateAbstractClassInstantiation
+                      .withArguments(type.name),
+                  type.name,
+                  nameToken.charOffset));
         }
       }
       if (target is Constructor ||
@@ -3808,15 +3791,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     errorName ??= name;
 
-    return wrapUnresolvedTargetInvocation(
-        throwNoSuchMethodError(
-            forest.createNullLiteral(null)..fileOffset = charOffset,
-            errorName,
-            arguments,
-            nameLastToken.charOffset,
-            message: message),
+    return throwNoSuchMethodError(
+        forest.createNullLiteral(null)..fileOffset = charOffset,
+        errorName,
         arguments,
-        arguments.fileOffset);
+        nameLastToken.charOffset,
+        message: message);
   }
 
   @override
@@ -3889,10 +3869,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ? elseEntry.fileOffset
             : offsetForToken(ifToken);
         push(new MapEntry(
-            desugarSyntheticExpression(buildProblem(
-                fasta.templateExpectedAfterButGot.withArguments(':'),
-                offset,
-                1)),
+            buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken));
       }
@@ -3908,10 +3886,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ? thenEntry.fileOffset
             : offsetForToken(ifToken);
         push(new MapEntry(
-            desugarSyntheticExpression(buildProblem(
-                fasta.templateExpectedAfterButGot.withArguments(':'),
-                offset,
-                1)),
+            buildProblem(fasta.templateExpectedAfterButGot.withArguments(':'),
+                offset, 1),
             new NullLiteral())
           ..fileOffset = offsetForToken(ifToken));
       }
@@ -4066,14 +4042,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
     }
-    FunctionNode function = formals.buildFunctionNode(
-        libraryBuilder,
-        returnType,
-        typeParameters,
-        asyncModifier,
-        body,
-        const NullabilityBuilder.pendingImplementation(),
-        token.charOffset);
+    FunctionNode function = formals.buildFunctionNode(libraryBuilder,
+        returnType, typeParameters, asyncModifier, body, token.charOffset);
 
     if (declaration is FunctionDeclaration) {
       VariableDeclaration variable = declaration.variable;
@@ -4095,15 +4065,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         Expression expression = new NamedFunctionExpressionJudgment(variable);
         if (oldInitializer != null) {
           // This must have been a compile-time error.
-          Expression error = desugarSyntheticExpression(oldInitializer);
+          Expression error = oldInitializer;
           assert(isErroneousNode(error));
           int offset = forest.readOffset(expression);
-          push(wrapSyntheticExpression(
-              new Let(
-                  new VariableDeclaration.forValue(error)..fileOffset = offset,
-                  expression)
-                ..fileOffset = offset,
-              offset));
+          push(new Let(
+              new VariableDeclaration.forValue(error)..fileOffset = offset,
+              expression)
+            ..fileOffset = offset);
         } else {
           push(expression);
         }
@@ -4154,14 +4122,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     exitFunction();
     List<TypeVariableBuilder> typeParameters = pop();
-    FunctionNode function = formals.buildFunctionNode(
-        libraryBuilder,
-        null,
-        typeParameters,
-        asyncModifier,
-        body,
-        const NullabilityBuilder.pendingImplementation(),
-        token.charOffset)
+    FunctionNode function = formals.buildFunctionNode(libraryBuilder, null,
+        typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
 
     if (constantContext != ConstantContext.none) {
@@ -4295,11 +4257,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           new VariableGetImpl(variable, fact, scope)
             ..fileOffset = inKeyword.offset,
           voidContext: true);
-      if (syntheticAssignment is shadow.SyntheticExpressionJudgment) {
-        syntheticAssignment = wrapSyntheticExpression(
-            desugarSyntheticExpression(syntheticAssignment),
-            offsetForToken(lvalue.token));
-      }
       return forest.createExpressionStatement(syntheticAssignment, null);
     }
     Message message = forest.isVariablesDeclaration(lvalue)
@@ -4824,6 +4781,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
+    TypeVariableBuilder.finishNullabilities(
+        libraryBuilder, libraryBuilder.pendingNullabilities);
+    libraryBuilder.pendingNullabilities.clear();
+  }
+
+  @override
+  void handleVarianceModifier(Token variance) {
+    if (!libraryBuilder.loader.target.enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
+    }
   }
 
   @override
@@ -4849,15 +4816,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleInvalidStatement(Token token, Message message) {
     Statement statement = pop();
-    push(new ExpressionStatement(desugarSyntheticExpression(
-        buildProblem(message, statement.fileOffset, noLength))));
+    push(new ExpressionStatement(
+        buildProblem(message, statement.fileOffset, noLength)));
   }
 
   @override
   Expression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context,
-      bool suppressMessage: false,
-      bool wrapInSyntheticExpression: true}) {
+      {List<LocatedMessage> context, bool suppressMessage: false}) {
     if (!suppressMessage) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
@@ -4866,9 +4831,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         .format(message.withLocation(uri, charOffset, length), Severity.error);
     InvalidExpression expression = new InvalidExpression(text)
       ..fileOffset = charOffset;
-    return wrapInSyntheticExpression
-        ? wrapSyntheticExpression(expression, charOffset)
-        : expression;
+    return expression;
   }
 
   @override
@@ -4897,9 +4860,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     return new Let(
         new VariableDeclaration.forValue(
-            desugarSyntheticExpression(buildProblem(
+            buildProblem(
                 message.messageObject, message.charOffset, message.length,
-                context: context)),
+                context: context),
             type: const BottomType())
           ..fileOffset = offset,
         expression);
@@ -4944,9 +4907,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         ]),
         constness: Constness.explicitNew,
         charOffset: charOffset);
-    if (invocation is shadow.SyntheticExpressionJudgment) {
-      invocation = desugarSyntheticExpression(invocation);
-    }
     return forest.createThrow(null, invocation)..fileOffset = charOffset;
   }
 
@@ -4986,12 +4946,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return new ShadowInvalidFieldInitializer(
         field,
         value,
-        new VariableDeclaration.forValue(desugarSyntheticExpression(
-            buildProblem(
-                fasta.templateFinalInstanceVariableAlreadyInitialized
-                    .withArguments(name),
-                offset,
-                noLength))))
+        new VariableDeclaration.forValue(buildProblem(
+            fasta.templateFinalInstanceVariableAlreadyInitialized
+                .withArguments(name),
+            offset,
+            noLength)))
       ..fileOffset = offset;
   }
 
@@ -5013,10 +4972,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // Duplicated name, already reported.
       return new LocalInitializer(
           new VariableDeclaration.forValue(
-              desugarSyntheticExpression(buildProblem(
+              buildProblem(
                   fasta.templateDuplicatedDeclarationUse.withArguments(name),
                   fieldNameOffset,
-                  name.length))
+                  name.length)
                 ..fileOffset = fieldNameOffset)
             ..fileOffset = fieldNameOffset)
         ..fileOffset = fieldNameOffset;
@@ -5048,9 +5007,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             ]),
             constness: Constness.explicitNew,
             charOffset: assignmentOffset);
-        if (invocation is shadow.SyntheticExpressionJudgment) {
-          invocation = desugarSyntheticExpression(invocation);
-        }
         return new ShadowInvalidFieldInitializer(
             builder.field,
             expression,
@@ -5078,10 +5034,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       return buildInvalidInitializer(
-          desugarSyntheticExpression(buildProblem(
+          buildProblem(
               fasta.templateInitializerForStaticField.withArguments(name),
               fieldNameOffset,
-              name.length)),
+              name.length),
           fieldNameOffset);
     }
   }
@@ -5094,10 +5050,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return buildInvalidSuperInitializer(
           constructor,
           arguments,
-          desugarSyntheticExpression(buildProblem(
-              fasta.messageConstConstructorWithNonConstSuper,
-              charOffset,
-              constructor.name.name.length)),
+          buildProblem(fasta.messageConstConstructorWithNonConstSuper,
+              charOffset, constructor.name.name.length),
           charOffset);
     }
     needsImplicitSuperInitializer = false;
@@ -5289,6 +5243,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  Expression buildProblemErrorIfConst(
+      Message message, int charOffset, int length,
+      {bool wasHandled: false, List<LocatedMessage> context}) {
+    addProblemErrorIfConst(message, charOffset, length,
+        wasHandled: wasHandled, context: context);
+    String text = libraryBuilder.loader.target.context
+        .format(message.withLocation(uri, charOffset, length), Severity.error);
+    InvalidExpression expression = new InvalidExpression(text)
+      ..fileOffset = charOffset;
+    return expression;
+  }
+
+  @override
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset) {
     List<LocatedMessage> context = existing.isSynthetic
@@ -5368,49 +5335,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       className = cls.name;
     }
     return name.isEmpty ? className : "$className.$name";
-  }
-
-  @override
-  Expression wrapSyntheticExpression(Expression desugared, int charOffset) {
-    return shadow.SyntheticWrapper.wrapSyntheticExpression(desugared)
-      ..fileOffset = charOffset;
-  }
-
-  @override
-  Expression desugarSyntheticExpression(Expression node) {
-    shadow.SyntheticExpressionJudgment shadowNode = node;
-    return shadowNode.desugared;
-  }
-
-  @override
-  Expression wrapInvalidConstructorInvocation(Expression desugared,
-      Member constructor, Arguments arguments, int charOffset) {
-    return shadow.SyntheticWrapper.wrapInvalidConstructorInvocation(
-        desugared, constructor, arguments)
-      ..fileOffset = charOffset;
-  }
-
-  @override
-  Expression wrapInvalidWrite(
-      Expression desugared, Expression expression, int charOffset) {
-    return shadow.SyntheticWrapper.wrapInvalidWrite(desugared, expression)
-      ..fileOffset = charOffset;
-  }
-
-  @override
-  Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments, int charOffset) {
-    return shadow.SyntheticWrapper.wrapUnresolvedTargetInvocation(
-        desugared, arguments)
-      ..fileOffset = charOffset;
-  }
-
-  @override
-  Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs, int charOffset) {
-    return shadow.SyntheticWrapper.wrapUnresolvedVariableAssignment(
-        desugared, isCompound, rhs)
-      ..fileOffset = charOffset;
   }
 }
 
@@ -5580,12 +5504,11 @@ class FormalParameters {
       List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
-      NullabilityBuilder nullabilityBuilder,
       int fileEndOffset) {
-    FunctionType type =
-        toFunctionType(returnType, nullabilityBuilder, typeParameters)
-            .builder
-            .build(library);
+    FunctionType type = toFunctionType(
+            returnType, const NullabilityBuilder.omitted(), typeParameters)
+        .builder
+        .build(library);
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {

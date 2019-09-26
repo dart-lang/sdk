@@ -21,7 +21,7 @@ main() {
   });
 }
 
-class CharacterRangeReaderTest extends EngineTestCase {
+class CharacterRangeReaderTest {
   void test_advance() {
     CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
     CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
@@ -78,7 +78,7 @@ class CharacterRangeReaderTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LineInfoTest extends EngineTestCase {
+class LineInfoTest {
   final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
   void test_lineInfo_multilineComment() {

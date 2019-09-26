@@ -1,0 +1,45 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int* field;
+  synthetic constructor •() → self::Class*
+    ;
+}
+extension Extension on self::Class* {
+  get simpleSetter = self::Extension|get#simpleSetter;
+  get mutatingSetter = self::Extension|get#mutatingSetter;
+  get setterWithReturn = self::Extension|get#setterWithReturn;
+  get setterWithClosure = self::Extension|get#setterWithClosure;
+  method testInternal = self::Extension|testInternal;
+  tearoff testInternal = self::Extension|get#testInternal;
+  set simpleSetter = self::Extension|set#simpleSetter;
+  set mutatingSetter = self::Extension|set#mutatingSetter;
+  set setterWithReturn = self::Extension|set#setterWithReturn;
+  set setterWithClosure = self::Extension|set#setterWithClosure;
+}
+static method Extension|get#simpleSetter(final self::Class* #this) → core::int*
+  ;
+static method Extension|set#simpleSetter(final self::Class* #this, core::int* value) → void
+  ;
+static method Extension|get#mutatingSetter(final self::Class* #this) → core::int*
+  ;
+static method Extension|set#mutatingSetter(final self::Class* #this, core::int* value) → void
+  ;
+static method Extension|get#setterWithReturn(final self::Class* #this) → core::int*
+  ;
+static method Extension|set#setterWithReturn(final self::Class* #this, core::int* value) → void
+  ;
+static method Extension|get#setterWithClosure(final self::Class* #this) → core::int*
+  ;
+static method Extension|set#setterWithClosure(final self::Class* #this, core::int* value) → void
+  ;
+static method Extension|testInternal(final self::Class* #this) → dynamic
+  ;
+static method Extension|get#testInternal(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|testInternal(#this);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

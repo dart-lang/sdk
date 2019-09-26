@@ -15,6 +15,7 @@ import '../ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
 import '../type_algebra.dart' show Substitution, substitute;
@@ -398,7 +399,7 @@ DartType convertSuperBoundedToRegularBounded(
     return const BottomType();
   } else if ((type is BottomType || isNull(typeEnvironment, type)) &&
       !isCovariant) {
-    return typeEnvironment.objectType;
+    return typeEnvironment.coreTypes.objectLegacyRawType;
   } else if (type is InterfaceType && type.classNode.typeParameters != null) {
     List<DartType> replacedTypeArguments =
         new List<DartType>(type.typeArguments.length);
@@ -448,7 +449,7 @@ DartType convertSuperBoundedToRegularBounded(
 
 bool isObject(TypeEnvironment typeEnvironment, DartType type) {
   return type is InterfaceType &&
-      type.classNode == typeEnvironment.objectType.classNode;
+      type.classNode == typeEnvironment.coreTypes.objectClass;
 }
 
 bool isNull(TypeEnvironment typeEnvironment, DartType type) {
@@ -456,58 +457,84 @@ bool isNull(TypeEnvironment typeEnvironment, DartType type) {
       type.classNode == typeEnvironment.nullType.classNode;
 }
 
-// Value set for variance of a type parameter X in a type term T.
-class Variance {
-  // Used when X does not occur free in T.
-  static const int unrelated = 0;
+int computeVariance(TypeParameter typeParameter, DartType type) {
+  return type.accept(new VarianceCalculator(typeParameter));
+}
 
-  // Used when X occurs free in T, and U <: V implies [U/X]T <: [V/X]T.
-  static const int covariant = 1;
+class VarianceCalculator implements DartTypeVisitor<int> {
+  final TypeParameter typeParameter;
 
-  // Used when X occurs free in T, and U <: V implies [V/X]T <: [U/X]T.
-  static const int contravariant = 2;
+  VarianceCalculator(this.typeParameter);
 
-  // Used when there exists a pair U and V such that U <: V, but [U/X]T and
-  // [V/X]T are incomparable.
-  static const int invariant = 3;
+  @override
+  int defaultDartType(DartType node) => Variance.unrelated;
 
-  // Variance values form a lattice where [unrelated] is the top, [invariant]
-  // is the bottom, and [covariant] and [contravariant] are incomparable.
-  // [meet] calculates the meet of two elements of such lattice.  It can be
-  // used, for example, to calculate the variance of a typedef type parameter
-  // if it's encountered on the r.h.s. of the typedef multiple times.
-  static int meet(int a, int b) => a | b;
-
-  // Combines variances of X in T and Y in S into variance of X in [Y/T]S.
-  //
-  // Consider the following examples:
-  //
-  // * variance of X in Function(X) is [contravariant], variance of Y in List<Y>
-  // is [covariant], so variance of X in List<Function(X)> is [contravariant];
-  //
-  // * variance of X in List<X> is [covariant], variance of Y in Function(Y) is
-  // [contravariant], so variance of X in Function(List<X>) is [contravariant];
-  //
-  // * variance of X in Function(X) is [contravariant], variance of Y in
-  // Function(Y) is [contravariant], so variance of X in Function(Function(X))
-  // is [covariant];
-  //
-  // * let the following be declared:
-  //
-  //     typedef F<Z> = Function();
-  //
-  // then variance of X in F<X> is [unrelated], variance of Y in List<Y> is
-  // [covariant], so variance of X in List<F<X>> is [unrelated];
-  //
-  // * let the following be declared:
-  //
-  //     typedef G<Z> = Z Function(Z);
-  //
-  // then variance of X in List<X> is [covariant], variance of Y in G<Y> is
-  // [invariant], so variance of `X` in `G<List<X>>` is [invariant].
-  static int combine(int a, int b) {
-    if (a == unrelated || b == unrelated) return unrelated;
-    if (a == invariant || b == invariant) return invariant;
-    return a == b ? covariant : contravariant;
+  @override
+  int visitTypeParameterType(TypeParameterType node) {
+    if (node.parameter == typeParameter) return Variance.covariant;
+    return Variance.unrelated;
   }
+
+  @override
+  int visitInterfaceType(InterfaceType node) {
+    int result = Variance.unrelated;
+    for (DartType argument in node.typeArguments) {
+      result = Variance.meet(result, argument.accept(this));
+    }
+    return result;
+  }
+
+  @override
+  int visitTypedefType(TypedefType node) {
+    int result = Variance.unrelated;
+    for (int i = 0; i < node.typeArguments.length; ++i) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              node.typeArguments[i].accept(this),
+              node.typedefNode.type.accept(
+                  new VarianceCalculator(node.typedefNode.typeParameters[i]))));
+    }
+    return result;
+  }
+
+  @override
+  int visitFunctionType(FunctionType node) {
+    int result = Variance.unrelated;
+    result = Variance.meet(result, node.returnType.accept(this));
+    for (TypeParameter functionTypeParameter in node.typeParameters) {
+      // If [typeParameter] is referenced in the bound at all, it makes the
+      // variance of [typeParameter] in the entire type invariant.  The
+      // invocation of the visitor below is made to simply figure out if
+      // [typeParameter] occurs in the bound.
+      if (functionTypeParameter.bound.accept(this) != Variance.unrelated) {
+        result = Variance.invariant;
+      }
+    }
+    for (DartType positionalType in node.positionalParameters) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              Variance.contravariant, positionalType.accept(this)));
+    }
+    for (NamedType namedType in node.namedParameters) {
+      result = Variance.meet(
+          result,
+          Variance.combine(
+              Variance.contravariant, namedType.type.accept(this)));
+    }
+    return result;
+  }
+
+  @override
+  int visitBottomType(BottomType node) => defaultDartType(node);
+
+  @override
+  int visitVoidType(VoidType node) => defaultDartType(node);
+
+  @override
+  int visitDynamicType(DynamicType node) => defaultDartType(node);
+
+  @override
+  int visitInvalidType(InvalidType node) => defaultDartType(node);
 }

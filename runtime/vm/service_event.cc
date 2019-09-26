@@ -35,7 +35,8 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       timestamp_(OS::GetCurrentTimeMillis()) {
   // We should never generate events for the vm or service isolates.
   ASSERT(isolate_ != Dart::vm_isolate());
-  ASSERT(isolate == NULL || !Isolate::IsVMInternalIsolate(isolate));
+  ASSERT(isolate == NULL || FLAG_show_invisible_isolates ||
+         !Isolate::IsVMInternalIsolate(isolate));
 
   if ((event_kind == ServiceEvent::kPauseStart) ||
       (event_kind == ServiceEvent::kPauseExit)) {
@@ -180,7 +181,11 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   PrintJSONHeader(&jsobj);
   if (kind() == kVMFlagUpdate) {
     jsobj.AddProperty("flag", flag_name());
+    // For backwards compatibility, "new_value" is also provided.
+    // TODO(bkonyi): remove when service protocol major version is incremented.
+    ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
     jsobj.AddProperty("new_value", flag_new_value());
+    jsobj.AddProperty("newValue", flag_new_value());
   }
   if (kind() == kIsolateReload) {
     if (reload_error_ == NULL) {

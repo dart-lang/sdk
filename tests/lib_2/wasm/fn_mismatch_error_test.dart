@@ -34,4 +34,8 @@ void main() {
       () => inst.lookupFunction<Void Function(Int64)>("square"));
   Expect.throwsArgumentError(
       () => inst.lookupFunction<Void Function(dynamic)>("square"));
+  Expect.throwsArgumentError(
+      () => inst.lookupFunction<Int64 Function(Float)>("square"));
+  Expect.throwsArgumentError(
+      () => inst.lookupFunction<Float Function(Int64)>("square"));
 }

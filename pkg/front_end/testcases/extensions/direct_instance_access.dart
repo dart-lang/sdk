@@ -120,10 +120,7 @@ extension GenericExtension<T> on GenericClass<T> {
     writeSetterOptional(value);
     writeSetterNamed();
     writeSetterNamed(value: value);
-    // TODO(johnniwinther): Handle direct calls to generic methods. This
-    // requires inference to special-case the extension type parameters and
-    // perform a two-step type argument inference.
-    /*genericWriteSetterRequired(value);
+    genericWriteSetterRequired(value);
     genericWriteSetterRequired<T>(value);
     genericWriteSetterRequired<S>(value);
     genericWriteSetterOptional();
@@ -137,7 +134,7 @@ extension GenericExtension<T> on GenericClass<T> {
     genericWriteSetterNamed<S>();
     genericWriteSetterNamed(value: value);
     genericWriteSetterNamed<T>(value: value);
-    genericWriteSetterNamed<S>(value: value);*/
+    genericWriteSetterNamed<S>(value: value);
   }
 
   tearOffs<S extends T>(S value) {

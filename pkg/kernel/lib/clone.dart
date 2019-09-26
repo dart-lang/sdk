@@ -180,6 +180,10 @@ class CloneVisitor implements TreeVisitor<TreeNode> {
     return new Not(clone(node.operand));
   }
 
+  visitNullCheck(NullCheck node) {
+    return new NullCheck(clone(node.operand));
+  }
+
   visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
         clone(node.left), node.operator, clone(node.right));

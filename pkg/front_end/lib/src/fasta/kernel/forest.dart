@@ -26,16 +26,7 @@ import 'collections.dart'
         IfMapEntry,
         SpreadElement;
 
-import 'kernel_shadow_ast.dart'
-    show
-        ArgumentsImpl,
-        IntJudgment,
-        LoadLibraryImpl,
-        MethodInvocationImpl,
-        ReturnStatementImpl,
-        ShadowLargeIntLiteral,
-        SyntheticExpressionJudgment,
-        VariableDeclarationImpl;
+import 'kernel_shadow_ast.dart';
 
 /// A shadow tree factory.
 class Forest {
@@ -515,8 +506,9 @@ class Forest {
     return new LabeledStatement(statement);
   }
 
-  Expression createThisExpression(Token token) {
-    return new ThisExpression()..fileOffset = offsetForToken(token);
+  Expression createThisExpression(int offset) {
+    assert(offset != null);
+    return new ThisExpression()..fileOffset = offset;
   }
 
   /// Return a representation of a throw expression consisting of the
@@ -606,10 +598,6 @@ class Forest {
     if (node is VariableDeclaration) {
       VariableDeclaration variable = node;
       node = variable.initializer;
-    }
-    if (node is SyntheticExpressionJudgment) {
-      SyntheticExpressionJudgment synth = node;
-      node = synth.desugared;
     }
     if (node is Let) {
       Let let = node;
@@ -715,6 +703,26 @@ class Forest {
       int fileOffset, Procedure procedure, Arguments arguments) {
     return new StaticInvocation(procedure, arguments)
       ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
+  SuperMethodInvocation createSuperMethodInvocation(
+      int fileOffset, Name name, Procedure procedure, Arguments arguments) {
+    return new SuperMethodInvocation(name, arguments, procedure)
+      ..fileOffset = fileOffset ?? TreeNode.noOffset;
+  }
+
+  NullCheck createNullCheck(int fileOffset, Expression expression) {
+    return new NullCheck(expression)..fileOffset = fileOffset;
+  }
+
+  PropertySet createPropertySet(
+      int fileOffset, Expression receiver, Name name, Expression value,
+      {Member interfaceTarget, bool forEffect, bool readOnlyReceiver: false}) {
+    return new PropertySetImpl(receiver, name, value,
+        interfaceTarget: interfaceTarget,
+        forEffect: forEffect,
+        readOnlyReceiver: readOnlyReceiver)
+      ..fileOffset = fileOffset;
   }
 }
 

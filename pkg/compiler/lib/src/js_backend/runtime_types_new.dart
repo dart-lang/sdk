@@ -473,26 +473,29 @@ bool mustCheckAllSubtypes(JClosedWorld world, ClassEntity cls) =>
     world.extractTypeArgumentsInterfacesNewRti.contains(cls);
 
 class _RulesetEntry {
-  final InterfaceType _targetType;
-  List<InterfaceType> _supertypes;
-  Map<TypeVariableType, DartType> _typeVariables;
+  Set<InterfaceType> _supertypes = {};
+  Map<TypeVariableType, DartType> _typeVariables = {};
 
-  _RulesetEntry(
-      this._targetType, Iterable<InterfaceType> supertypes, this._typeVariables)
-      : _supertypes = supertypes.toList();
+  void addAll(Iterable<InterfaceType> supertypes,
+      Map<TypeVariableType, DartType> typeVariables) {
+    _supertypes.addAll(supertypes);
+    _typeVariables.addAll(typeVariables);
+  }
 
   bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
 }
 
 class Ruleset {
-  List<_RulesetEntry> _entries;
+  Map<InterfaceType, _RulesetEntry> _entries;
 
   Ruleset(this._entries);
-  Ruleset.empty() : this([]);
+  Ruleset.empty() : this({});
 
   void add(InterfaceType targetType, Iterable<InterfaceType> supertypes,
-          Map<TypeVariableType, DartType> typeVariables) =>
-      _entries.add(_RulesetEntry(targetType, supertypes, typeVariables));
+      Map<TypeVariableType, DartType> typeVariables) {
+    _RulesetEntry entry = _entries[targetType] ??= _RulesetEntry();
+    entry.addAll(supertypes, typeVariables);
+  }
 }
 
 class RulesetEncoder {
@@ -515,16 +518,17 @@ class RulesetEncoder {
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
-  void _preprocessEntry(_RulesetEntry entry) {
+  void _preprocessEntry(InterfaceType targetType, _RulesetEntry entry) {
     entry._supertypes.removeWhere((InterfaceType supertype) =>
-        _isObject(supertype) || identical(entry._targetType, supertype));
+        _isObject(supertype) ||
+        identical(targetType.element, supertype.element));
   }
 
   void _preprocessRuleset(Ruleset ruleset) {
     ruleset._entries
-        .removeWhere((_RulesetEntry entry) => _isObject(entry._targetType));
+        .removeWhere((InterfaceType targetType, _) => _isObject(targetType));
     ruleset._entries.forEach(_preprocessEntry);
-    ruleset._entries.removeWhere((_RulesetEntry entry) => entry.isEmpty);
+    ruleset._entries.removeWhere((_, _RulesetEntry entry) => entry.isEmpty);
   }
 
   // TODO(fishythefish): Common substring elimination.
@@ -539,21 +543,22 @@ class RulesetEncoder {
       js.concatenateStrings([
         _quote,
         _leftBrace,
-        ...js.joinLiterals(ruleset._entries.map(_encodeEntry), _comma),
+        ...js.joinLiterals(ruleset._entries.entries.map(_encodeEntry), _comma),
         _rightBrace,
         _quote,
       ]);
 
-  jsAst.StringConcatenation _encodeEntry(_RulesetEntry entry) =>
+  jsAst.StringConcatenation _encodeEntry(
+          MapEntry<InterfaceType, _RulesetEntry> entry) =>
       js.concatenateStrings([
-        js.quoteName(_emitter.typeAccessNewRti(entry._targetType.element)),
+        js.quoteName(_emitter.typeAccessNewRti(entry.key.element)),
         _colon,
         _leftBrace,
         ...js.joinLiterals([
-          ...entry._supertypes.map((InterfaceType supertype) =>
-              _encodeSupertype(entry._targetType, supertype)),
-          ...entry._typeVariables.entries.map((mapEntry) => _encodeTypeVariable(
-              entry._targetType, mapEntry.key, mapEntry.value))
+          ...entry.value._supertypes.map((InterfaceType supertype) =>
+              _encodeSupertype(entry.key, supertype)),
+          ...entry.value._typeVariables.entries.map((mapEntry) =>
+              _encodeTypeVariable(entry.key, mapEntry.key, mapEntry.value))
         ], _comma),
         _rightBrace,
       ]);

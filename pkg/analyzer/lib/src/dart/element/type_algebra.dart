@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 
@@ -448,7 +449,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitNamedType(NamedTypeBuilder type) {
+  DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
     if (type.arguments.isEmpty) {
       return type;
     }
@@ -470,6 +471,9 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitTypeParameterType(TypeParameterType type) {
     return getSubstitute(type.element) ?? type;
   }
+
+  @override
+  DartType visitUnknownInferredType(UnknownInferredType type) => type;
 
   @override
   DartType visitVoidType(VoidType type) => type;

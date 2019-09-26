@@ -10,7 +10,6 @@
 # Fix both and the error should go away.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

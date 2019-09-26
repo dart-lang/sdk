@@ -1430,17 +1430,14 @@ MissingImplementationCause:
   template: "'#name' is defined here."
   severity: CONTEXT
 
-InterfaceCheckContext:
-  template: "Both members are inherited by the non-abstract class '#name'."
-  severity: CONTEXT
+InterfaceCheck:
+  template: "The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface."
 
-NamedMixinOverrideContext:
-  template: "Override was introduced in the mixin application class '#name'."
-  severity: CONTEXT
+NamedMixinOverride:
+  template: "The mixin application class '#name' introduces an erroneous override of '#name2'."
 
-ImplicitMixinOverrideContext:
-  template: "Override was introduced when the mixin '#name' was applied to '#name2'."
-  severity: CONTEXT
+ImplicitMixinOverride:
+  template: "Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'."
 
 ListLiteralTooManyTypeArguments:
   template: "List literal requires exactly one type argument."
@@ -1698,6 +1695,10 @@ InternalProblemDebugAbort:
 
 InternalProblemLabelUsageInVariablesDeclaration:
   template: "Unexpected usage of label inside declaration of variables."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemUnfinishedTypeVariable:
+  template: "Unfinished type variable '#name' found in non-source library '#uri'."
   severity: INTERNAL_PROBLEM
 
 LocalDefinitionHidesExport:
@@ -3706,3 +3707,15 @@ ExplicitExtensionArgumentMismatch:
 
 ExplicitExtensionTypeArgumentMismatch:
   template: "Explicit extension application of extension '#name' takes '#count' type argument(s)."
+
+ExplicitExtensionAsExpression:
+  template: "Explicit extension application cannot be used as an expression."
+
+ExplicitExtensionAsLvalue:
+  template: "Explicit extension application cannot be a target for assignment."
+
+MultipleVarianceModifiers:
+  index: 97
+  template: "Each type parameter can have at most one variance modifier."
+  tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
+  analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS

@@ -27,20 +27,20 @@ class StrictRawType_WithExtensionsTest extends DriverResolutionTest
     ..strictRawTypes = true;
 
   test_typeOnExtendedType_anonymous_missing() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 extension on List {}
 ''', [error(HintCode.STRICT_RAW_TYPE, 13, 4)]);
   }
 
   test_typeOnExtendedType_missing() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 extension E on List {}
 ''', [error(HintCode.STRICT_RAW_TYPE, 15, 4)]);
   }
 
   test_typeOnExtendedType_optionalTypeArgs() async {
     addMetaPackage();
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @optionalTypeArgs
 class C<T> {}
@@ -50,7 +50,7 @@ extension on C {}
   }
 
   test_typeOnExtendedType_present() async {
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 extension E<T> on List<T> {}
 extension F on List<int> {}
 ''');

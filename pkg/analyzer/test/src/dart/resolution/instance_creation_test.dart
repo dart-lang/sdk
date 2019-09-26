@@ -16,10 +16,9 @@ main() {
 @reflectiveTest
 class InstanceCreationDriverResolutionTest extends DriverResolutionTest {
   test_error_newWithInvalidTypeParameters_implicitNew_inference_top() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 final foo = Map<int>();
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
     ]);
@@ -35,7 +34,7 @@ final foo = Map<int>();
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_explicitNew() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -44,7 +43,6 @@ main() {
   new Foo.bar<int>();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
@@ -66,14 +64,13 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    addTestFile('''
+    await resolveTestCode('''
 import 'a.dart' as p;
 
 main() {
   new p.Foo.bar<int>();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
@@ -92,7 +89,7 @@ main() {
   }
 
   test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class Foo<X> {
   Foo.bar();
 }
@@ -101,7 +98,6 @@ main() {
   Foo.bar<int>();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);
@@ -127,14 +123,13 @@ class Foo<X> {
   Foo.bar();
 }
 ''');
-    addTestFile('''
+    await resolveTestCode('''
 import 'a.dart' as p;
 
 main() {
   p.Foo.bar<int>();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
     ]);

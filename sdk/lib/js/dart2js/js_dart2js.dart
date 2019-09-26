@@ -56,7 +56,7 @@
 /// Functions and closures are proxied in such a way that they are callable. A
 /// Dart closure assigned to a JavaScript property is proxied by a function in
 /// JavaScript. A JavaScript function accessed from Dart is proxied by a
-/// [JsFunction], which has a [apply] method to invoke it.
+/// [JsFunction], which has a [JsFunction.apply] method to invoke it.
 ///
 /// The following types are transferred directly and not proxied:
 ///

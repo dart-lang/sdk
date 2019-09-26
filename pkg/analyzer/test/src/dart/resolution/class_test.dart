@@ -19,7 +19,7 @@ main() {
 class ClassDriverResolutionTest extends DriverResolutionTest
     with ElementsTypesMixin {
   test_abstractSuperMemberReference_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   get foo;
 }
@@ -29,14 +29,13 @@ abstract class B extends A {
   }
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.getter('foo'));
   }
 
   test_abstractSuperMemberReference_getter2() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class Foo {
   String get foo;
 }
@@ -48,7 +47,6 @@ class Baz extends Bar {
   String get foo => super.foo; // ref
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(
@@ -58,7 +56,7 @@ class Baz extends Bar {
   }
 
   test_abstractSuperMemberReference_method_reference() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   foo();
 }
@@ -68,14 +66,13 @@ abstract class B extends A {
   }
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo; // ref'), findElement.method('foo'));
   }
 
   test_abstractSuperMemberReference_OK_superHasConcrete_mixinHasAbstract_method() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void foo() {}
 }
@@ -90,7 +87,6 @@ class C extends A with B {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo(); // ref'),
@@ -99,7 +95,7 @@ class C extends A with B {
   }
 
   test_abstractSuperMemberReference_OK_superSuperHasConcrete_getter() async {
-    addTestFile('''
+    await resolveTestCode('''
 abstract class A {
   int get foo => 0;
 }
@@ -112,7 +108,6 @@ class C extends B {
   int get bar => super.foo; // ref
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo; // ref'),
@@ -121,7 +116,7 @@ class C extends B {
   }
 
   test_abstractSuperMemberReference_OK_superSuperHasConcrete_setter() async {
-    addTestFile('''
+    await resolveTestCode('''
 abstract class A {
   void set foo(_) {}
 }
@@ -136,7 +131,6 @@ class C extends B {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     assertElement(
       findNode.simple('foo = 0;'),
@@ -145,7 +139,7 @@ class C extends B {
   }
 
   test_abstractSuperMemberReference_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   set foo(_);
 }
@@ -155,38 +149,35 @@ abstract class B extends A {
   }
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
     assertElement(findNode.simple('foo = 0;'), findElement.setter('foo'));
   }
 
   test_conflictingGenericInterfaces_simple() async {
-    addTestFile('''
+    await resolveTestCode('''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<String> {}
 class C extends A implements B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_conflictingGenericInterfaces_viaMixin() async {
-    addTestFile('''
+    await resolveTestCode('''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<String> {}
 class C extends A with B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES]);
   }
 
   test_element_allSupertypes() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B {}
 class C {}
@@ -199,7 +190,6 @@ class X3 extends A implements B {}
 class X4 extends A with B implements C {}
 class X5 extends A with B, C implements D, E {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var a = findElement.class_('A');
@@ -237,7 +227,7 @@ class X5 extends A with B, C implements D, E {}
   }
 
   test_element_allSupertypes_generic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A<T> {}
 class B<T, U> {}
 class C<T> extends B<int, T> {}
@@ -246,7 +236,6 @@ class X1 extends A<String> {}
 class X2 extends B<String, List<int>> {}
 class X3 extends C<double> {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var a = findElement.class_('A');
@@ -280,14 +269,13 @@ class X3 extends C<double> {}
   }
 
   test_element_allSupertypes_recursive() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A extends B {}
 class B extends C {}
 class C extends A {}
 
 class X extends A {}
 ''');
-    await resolveTestFile();
     assertHasTestErrors();
 
     var a = findElement.class_('A');
@@ -300,33 +288,31 @@ class X extends A {}
   }
 
   test_error_conflictingConstructorAndStaticField_field() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   static int foo;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
 
   test_error_conflictingConstructorAndStaticField_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   static int get foo => 0;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
 
   test_error_conflictingConstructorAndStaticField_OK_notSameClass() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   static int foo;
 }
@@ -334,49 +320,45 @@ class B extends A {
   B.foo();
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_error_conflictingConstructorAndStaticField_OK_notStatic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   int foo;
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_error_conflictingConstructorAndStaticField_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   static void set foo(_) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
     ]);
   }
 
   test_error_conflictingConstructorAndStaticMethod() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   static void foo() {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
     ]);
   }
 
   test_error_conflictingConstructorAndStaticMethod_OK_notSameClass() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   static void foo() {}
 }
@@ -384,23 +366,21 @@ class B extends A {
   B.foo();
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_error_conflictingConstructorAndStaticMethod_OK_notStatic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   void foo() {}
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_error_conflictingFieldAndMethod_inSuper_field() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   foo() {}
 }
@@ -408,13 +388,12 @@ class B extends A {
   int foo;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingFieldAndMethod_inSuper_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   foo() {}
 }
@@ -422,13 +401,12 @@ class B extends A {
   get foo => 0;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingFieldAndMethod_inSuper_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   foo() {}
 }
@@ -436,13 +414,12 @@ class B extends A {
   set foo(_) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_field() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int foo;
 }
@@ -450,13 +427,12 @@ class B extends A {
   foo() {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   get foo => 0;
 }
@@ -464,13 +440,12 @@ class B extends A {
   foo() {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_conflictingMethodAndField_inSuper_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   set foo(_) {}
 }
@@ -478,42 +453,38 @@ class B extends A {
   foo() {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD]);
   }
 
   test_error_duplicateConstructorDefault() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C();
   C();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
     ]);
   }
 
   test_error_duplicateConstructorName() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   C.foo();
   C.foo();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
     ]);
   }
 
   test_error_extendsNonClass_dynamic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A extends dynamic {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
@@ -523,11 +494,10 @@ class A extends dynamic {}
   }
 
   test_error_extendsNonClass_enum() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum E { ONE }
 class A extends E {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
@@ -540,11 +510,10 @@ class A extends E {}
   }
 
   test_error_extendsNonClass_mixin() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 mixin M {}
 class A extends M {} // ref
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
@@ -557,11 +526,10 @@ class A extends M {} // ref
   }
 
   test_error_extendsNonClass_variable() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int v;
 class A extends v {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.EXTENDS_NON_CLASS,
     ]);
@@ -571,11 +539,10 @@ class A extends v {}
   }
 
   test_error_implementsRepeated() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B implements A, A {} // ref
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.IMPLEMENTS_REPEATED]);
 
     var a = findElement.class_('A');
@@ -584,10 +551,9 @@ class B implements A, A {} // ref
   }
 
   test_error_implementsRepeated_3times() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {} class C{}
 class B implements A, A, A, A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       CompileTimeErrorCode.IMPLEMENTS_REPEATED,
@@ -596,22 +562,20 @@ class B implements A, A, A, A {}''');
   }
 
   test_error_memberWithClassName_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int get C => null;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
   test_error_memberWithClassName_getter_static() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   static int get C => null;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
 
     var method = findNode.methodDeclaration('C =>');
@@ -621,22 +585,20 @@ class C {
   }
 
   test_error_memberWithClassName_setter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   set C(_) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
   }
 
   test_error_memberWithClassName_setter_static() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   static set C(_) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME]);
 
     var method = findNode.methodDeclaration('C(_)');
@@ -645,20 +607,19 @@ class C {
   }
 
   test_error_mismatchedGetterAndSetterTypes_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int get foo => 0;
   set foo(String _) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_interfaces() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int get foo {
     return 0;
@@ -671,7 +632,6 @@ class B {
 
 abstract class X implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
@@ -683,14 +643,13 @@ class A {
   int get _foo => 0;
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 class B extends A {
   set _foo(String _) {}
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
@@ -705,13 +664,12 @@ class B {
   set _foo(String _) {}
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 import 'b.dart';
 
 class X implements A, B {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
@@ -725,12 +683,11 @@ class B {
   set _foo(String _) {}
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 class X implements A, B {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
@@ -740,45 +697,42 @@ class A {
   set _foo(String _) {}
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 class B extends A {
   int get _foo => 0;
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_0() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int get foo => 0;
   set foo() {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
     ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_OK_setterParameter_2() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int get foo => 0;
   set foo(String p1, String p2) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
     ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_superGetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int get foo => 0;
 }
@@ -787,14 +741,13 @@ class B extends A {
   set foo(String _) {}
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
 
   test_error_mismatchedGetterAndSetterTypes_superSetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   set foo(String _) {}
 }
@@ -803,14 +756,13 @@ class B extends A {
   int get foo => 0;
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
     ]);
   }
 
   test_inconsistentInheritance_parameterType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   x(int i);
 }
@@ -819,14 +771,13 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
   test_inconsistentInheritance_requiredParameters() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   x();
 }
@@ -835,14 +786,13 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
   test_inconsistentInheritance_returnType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   int x();
 }
@@ -851,14 +801,13 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE,
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_getter_method() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   int get x;
 }
@@ -867,14 +816,13 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
   test_inconsistentInheritanceGetterAndMethod_method_getter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A {
   int x();
 }
@@ -883,14 +831,13 @@ abstract class B {
 }
 abstract class C implements A, B {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
     ]);
   }
 
   test_issue32815() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A<T> extends B<T> {}
 class B<T> extends A<T> {}
 class C<T> extends B<T> implements I<T> {}
@@ -901,15 +848,13 @@ main() {
   Iterable<I<int>> x = [new C()];
 }
 ''');
-    await resolveTestFile();
     assertHasTestErrors();
   }
 
   test_recursiveInterfaceInheritance_extends() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A extends B {}
 class B extends A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -917,10 +862,9 @@ class B extends A {}''');
   }
 
   test_recursiveInterfaceInheritance_extends_implements() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A extends B {}
 class B implements A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -928,10 +872,9 @@ class B implements A {}''');
   }
 
   test_recursiveInterfaceInheritance_implements() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A implements B {}
 class B implements A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -939,10 +882,9 @@ class B implements A {}''');
   }
 
   test_recursiveInterfaceInheritance_mixin() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class M1 = Object with M2;
 class M2 = Object with M1;''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -952,12 +894,11 @@ class M2 = Object with M1;''');
   test_recursiveInterfaceInheritance_mixin_superclass() async {
     // Make sure we don't get CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS in
     // addition--that would just be confusing.
-    addTestFile('''
+    await resolveTestCode('''
 class C = D with M;
 class D = C with M;
 class M {}
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
@@ -965,20 +906,18 @@ class M {}
   }
 
   test_recursiveInterfaceInheritance_tail() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A implements A {}
 class B implements A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
   test_recursiveInterfaceInheritance_tail2() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A implements B {}
 abstract class B implements A {}
 class C implements A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
@@ -986,12 +925,11 @@ class C implements A {}''');
   }
 
   test_recursiveInterfaceInheritance_tail3() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 abstract class A implements B {}
 abstract class B implements C {}
 abstract class C implements A {}
 class D implements A {}''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
@@ -1000,95 +938,86 @@ class D implements A {}''');
   }
 
   test_recursiveInterfaceInheritanceExtends() async {
-    addTestFile("class A extends A {}");
-    await resolveTestFile();
+    await resolveTestCode("class A extends A {}");
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS]);
   }
 
   test_recursiveInterfaceInheritanceExtends_abstract() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C extends C {
   var bar = 0;
   m();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS,
     ]);
   }
 
   test_recursiveInterfaceInheritanceImplements() async {
-    addTestFile("class A implements A {}");
-    await resolveTestFile();
+    await resolveTestCode("class A implements A {}");
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
   test_recursiveInterfaceInheritanceImplements_typeAlias() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class M {}
 class B = A with M implements B;''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS]);
   }
 
   test_recursiveInterfaceInheritanceWith() async {
-    addTestFile("class M = Object with M;");
-    await resolveTestFile();
+    await resolveTestCode("class M = Object with M;");
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH,
     ]);
   }
 
   test_undefinedSuperGetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   get g {
     return super.g;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_GETTER]);
   }
 
   test_undefinedSuperMethod() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   m() {
     return super.m();
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_METHOD]);
   }
 
   test_undefinedSuperOperator_binaryExpression() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   operator +(value) {
     return super + value;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexBoth() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index]++;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
       StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
@@ -1096,38 +1025,35 @@ class B extends A {
   }
 
   test_undefinedSuperOperator_indexGetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   operator [](index) {
     return super[index + 1];
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperOperator_indexSetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   operator []=(index, value) {
     super[index] = 0;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR]);
   }
 
   test_undefinedSuperSetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B extends A {
   f() {
     super.m = 0;
   }
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
   }
 }

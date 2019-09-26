@@ -48,6 +48,7 @@ class Tag {
   static const int ConstructorInvocation = 31;
   static const int ConstConstructorInvocation = 32;
   static const int Not = 33;
+  static const int NullCheck = 117;
   static const int LogicalExpression = 34;
   static const int ConditionalExpression = 35;
   static const int StringConcatenation = 36;
@@ -130,6 +131,7 @@ class Tag {
   /// 114 is occupied by [InstanceCreation] (expression).
   /// 115 is occupied by [Extension].
   /// 116 is occupied by [FileUriExpression] (expression).
+  /// 117 is occupied by [NullCheck] (expression).
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
@@ -146,7 +148,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 32;
+  static const int BinaryFormatVersion = 33;
 }
 
 abstract class ConstantTag {

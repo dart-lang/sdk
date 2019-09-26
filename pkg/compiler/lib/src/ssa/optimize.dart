@@ -18,7 +18,13 @@ import '../js_backend/field_analysis.dart'
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types_codegen.dart';
-import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../js_model/type_recipe.dart'
+    show
+        TypeRecipe,
+        TypeExpressionRecipe,
+        TypeRecipeAndEnvironmentStructure,
+        TypeRecipeDomain,
+        TypeRecipeDomainImpl;
 import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -70,6 +76,8 @@ class SsaOptimizerTask extends CompilerTask {
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
+    TypeRecipeDomain typeRecipeDomain = TypeRecipeDomainImpl();
+
     OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
@@ -80,8 +88,14 @@ class SsaOptimizerTask extends CompilerTask {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
@@ -89,11 +103,23 @@ class SsaOptimizerTask extends CompilerTask {
             closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
         new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
@@ -118,8 +144,14 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(globalInferenceResults, _options,
-            codegen.rtiSubstitutions, closedWorld, registry, log),
+        new SsaInstructionSimplifier(
+            globalInferenceResults,
+            _options,
+            codegen.rtiSubstitutions,
+            closedWorld,
+            typeRecipeDomain,
+            registry,
+            log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
       ];
       phases.forEach(runPhase);
@@ -133,6 +165,7 @@ class SsaOptimizerTask extends CompilerTask {
       runPhase(dce);
       if (codeMotion.movedCode ||
           dce.eliminatedSideEffects ||
+          dce.newGvnCandidates ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(globalInferenceResults,
@@ -140,8 +173,14 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
           new SsaValueRangeAnalyzer(closedWorld, this),
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
-              codegen.rtiSubstitutions, closedWorld, registry, log),
+          new SsaInstructionSimplifier(
+              globalInferenceResults,
+              _options,
+              codegen.rtiSubstitutions,
+              closedWorld,
+              typeRecipeDomain,
+              registry,
+              log),
           new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
           new SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           new SsaDeadCodeEliminator(closedWorld, this),
@@ -152,8 +191,14 @@ class SsaOptimizerTask extends CompilerTask {
               closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(globalInferenceResults, _options,
-              codegen.rtiSubstitutions, closedWorld, registry, log),
+          new SsaInstructionSimplifier(
+              globalInferenceResults,
+              _options,
+              codegen.rtiSubstitutions,
+              closedWorld,
+              typeRecipeDomain,
+              registry,
+              log),
         ];
       }
       phases.forEach(runPhase);
@@ -196,12 +241,19 @@ class SsaInstructionSimplifier extends HBaseVisitor
   final CompilerOptions _options;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final JClosedWorld _closedWorld;
+  final TypeRecipeDomain _typeRecipeDomain;
   final CodegenRegistry _registry;
   final OptimizationTestLog _log;
   HGraph _graph;
 
-  SsaInstructionSimplifier(this._globalInferenceResults, this._options,
-      this._rtiSubstitutions, this._closedWorld, this._registry, this._log);
+  SsaInstructionSimplifier(
+      this._globalInferenceResults,
+      this._options,
+      this._rtiSubstitutions,
+      this._closedWorld,
+      this._typeRecipeDomain,
+      this._registry,
+      this._log);
 
   JCommonElements get commonElements => _closedWorld.commonElements;
 
@@ -638,7 +690,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     HInstruction typeInfo;
     if (_options.experimentNewRti) {
-      typeInfo = HLoadType(
+      typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
               commonElements.jsArrayClass, [commonElements.stringType]),
           _abstractValueDomain.dynamicType);
@@ -1884,9 +1936,77 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitTypeEval(HTypeEval node) {
-    if (TypeRecipe.isIdentity(node.typeExpression, node.envStructure)) {
-      return node.inputs.single;
+    HInstruction environment = node.inputs.single;
+    if (_typeRecipeDomain.isIdentity(node.typeExpression, node.envStructure)) {
+      return environment;
     }
+
+    if (environment is HLoadType) {
+      TypeRecipe result = _typeRecipeDomain.foldLoadEval(
+          environment.typeExpression, node.envStructure, node.typeExpression);
+      if (result != null) return HLoadType(result, node.instructionType);
+      return node;
+    }
+
+    if (environment is HTypeBind) {
+      HInstruction bindings = environment.inputs.last;
+      if (bindings is HLoadType) {
+        //  env.bind(LoadType(T)).eval(...1...)  -->  env.eval(...T...)
+        TypeRecipeAndEnvironmentStructure result =
+            _typeRecipeDomain.foldBindLoadEval(bindings.typeExpression,
+                node.envStructure, node.typeExpression);
+        if (result != null) {
+          HInstruction previousEnvironment = environment.inputs.first;
+          return HTypeEval(previousEnvironment, result.environmentStructure,
+              result.recipe, node.instructionType);
+        }
+      }
+      // TODO(sra):  LoadType(T).bind(E).eval(...1...) --> E.eval(...0...)
+      return node;
+    }
+
+    if (environment is HTypeEval) {
+      TypeRecipeAndEnvironmentStructure result = _typeRecipeDomain.foldEvalEval(
+          environment.envStructure,
+          environment.typeExpression,
+          node.envStructure,
+          node.typeExpression);
+      if (result != null) {
+        HInstruction previousEnvironment = environment.inputs.first;
+        return HTypeEval(previousEnvironment, result.environmentStructure,
+            result.recipe, node.instructionType);
+      }
+      return node;
+    }
+
+    if (environment is HInstanceEnvironment) {
+      HInstruction instance = environment.inputs.single;
+      AbstractValue instanceAbstractValue = instance.instructionType;
+      ClassEntity instanceClass =
+          _abstractValueDomain.getExactClass(instanceAbstractValue);
+      if (instanceClass == null) {
+        // All the subclasses of JSArray are JSArray at runtime.
+        ClassEntity jsArrayClass = _closedWorld.commonElements.jsArrayClass;
+        if (_abstractValueDomain
+            .isInstanceOf(instanceAbstractValue, jsArrayClass)
+            .isDefinitelyTrue) {
+          instanceClass = jsArrayClass;
+        }
+      }
+      if (instanceClass != null) {
+        if (_typeRecipeDomain.isReconstruction(
+            instanceClass, node.envStructure, node.typeExpression)) {
+          return environment;
+        }
+      }
+    }
+
+    return node;
+  }
+
+  @override
+  HInstruction visitTypeBind(HTypeBind node) {
+    // TODO(sra):  env1.eval(X).bind(env1.eval(Y)) --> env1.eval(...X...Y...)
     return node;
   }
 
@@ -1897,7 +2017,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // See if this check can be lowered to a simple one.
     HInstruction typeInput = node.typeInput;
     if (typeInput is HLoadType) {
-      DartType dartType = typeInput.typeExpression;
+      TypeExpressionRecipe recipe = typeInput.typeExpression;
+      DartType dartType = recipe.type;
       MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
           dartType, node.isTypeError, _closedWorld.commonElements);
       if (specializedCheck != null) {
@@ -1905,6 +2026,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _abstractValueDomain.createFromStaticType(dartType, nullable: true);
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
+      }
+      if (dartType is DynamicType) {
+        return node.checkedInput;
       }
     }
     return node;
@@ -1957,7 +2081,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (instance is HCreate) {
       if (instance.hasRtiInput) {
         instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
-        return instance.inputs.last;
+        return instance.rtiInput;
+      }
+      InterfaceType instanceType =
+          _closedWorld.elementEnvironment.getThisType(instance.element);
+      if (instanceType.typeArguments.length == 0) {
+        instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
+        return HLoadType.type(instanceType, instance.instructionType);
       }
       return node;
     }
@@ -1966,7 +2096,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       ConstantValue constantValue = instance.constant;
       if (constantValue is ConstructedConstantValue) {
         _registry.registerInstantiation(constantValue.type);
-        return HLoadType(constantValue.type, instance.instructionType);
+        return HLoadType.type(constantValue.type, instance.instructionType);
       }
       return node;
     }
@@ -2081,6 +2211,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
+  bool newGvnCandidates = false;
 
   SsaDeadCodeEliminator(this.closedWorld, this.optimizer);
 
@@ -2321,6 +2452,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       while (!instruction.isControlFlow()) {
         HInstruction next = instruction.next;
         if (instruction is HTypeKnown && instruction.isPinned) break;
+        // It might be worth re-running GVN optimizations if we hoisted a
+        // GVN-able instructions from [target] into [block].
+        newGvnCandidates = newGvnCandidates || instruction.useGvn();
         instruction.block.detach(instruction);
         block.moveAtExit(instruction);
         instruction = next;

@@ -900,11 +900,18 @@ class CodeChecker extends RecursiveAstVisitor {
 
       // The member may be from a superclass, so we need to ensure the type
       // parameters are properly substituted.
-      var classType = targetType.element.type;
-      var classLowerBound = classType.instantiate(new List.filled(
-          classType.typeParameters.length, BottomTypeImpl.instance));
+      var classElement = targetType.element;
+      var classLowerBound = classElement.instantiate(
+        typeArguments: List.filled(
+          classElement.typeParameters.length,
+          BottomTypeImpl.instance,
+        ),
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       var memberLowerBound = inheritance.getMember(
-          classLowerBound, Name(element.librarySource.uri, element.name));
+        classLowerBound,
+        Name(element.librarySource.uri, element.name),
+      );
       if (memberLowerBound == null &&
           element.enclosingElement is ExtensionElement) {
         return;
@@ -1465,11 +1472,11 @@ class _OverrideChecker {
     // Find all generic interfaces that could be used to call into members of
     // this class. This will help us identify which parameters need checks
     // for soundness.
-    var allCovariant = _findAllGenericInterfaces(element.type);
+    var allCovariant = _findAllGenericInterfaces(element);
     if (allCovariant.isEmpty) return;
 
     var seenConcreteMembers = new HashSet<String>();
-    var members = _getConcreteMembers(element.type, seenConcreteMembers);
+    var members = _getConcreteMembers(element.thisType, seenConcreteMembers);
 
     // For members on this class, check them against all generic interfaces.
     var checks = _findCovariantChecks(members, allCovariant);
@@ -1646,7 +1653,7 @@ class _OverrideChecker {
     void visitImmediateSuper(InterfaceType type) {
       // For members of mixins/supertypes, check them against new interfaces,
       // and also record any existing checks they already had.
-      var oldCovariant = _findAllGenericInterfaces(type);
+      var oldCovariant = _findAllGenericInterfaces(type.element);
       var newCovariant = allCovariant.difference(oldCovariant);
       if (newCovariant.isEmpty) return;
 
@@ -1688,32 +1695,40 @@ class _OverrideChecker {
     return x == y;
   }
 
-  /// Find all generic interfaces that are implemented by [type], including
-  /// [type] itself if it is generic.
+  /// Find all generic interfaces that are implemented by [element], including
+  /// [element] itself if it is generic.
   ///
   /// This represents the complete set of unsafe covariant interfaces that could
-  /// be used to call members of [type].
+  /// be used to call members of [element].
   ///
   /// Because we're going to instantiate these to their upper bound, we don't
   /// have to track type parameters.
-  static Set<ClassElement> _findAllGenericInterfaces(InterfaceType type) {
-    var visited = new HashSet<ClassElement>();
-    var genericSupertypes = new Set<ClassElement>();
+  static Set<ClassElement> _findAllGenericInterfaces(ClassElement element) {
+    var visited = <ClassElement>{};
+    var genericSupertypes = <ClassElement>{};
 
-    void visitTypeAndSupertypes(InterfaceType type) {
-      var element = type.element;
+    void visitClassAndSupertypes(ClassElement element) {
       if (visited.add(element)) {
         if (element.typeParameters.isNotEmpty) {
           genericSupertypes.add(element);
         }
+
         var supertype = element.supertype;
-        if (supertype != null) visitTypeAndSupertypes(supertype);
-        element.mixins.forEach(visitTypeAndSupertypes);
-        element.interfaces.forEach(visitTypeAndSupertypes);
+        if (supertype != null) {
+          visitClassAndSupertypes(supertype.element);
+        }
+
+        for (var interface in element.mixins) {
+          visitClassAndSupertypes(interface.element);
+        }
+
+        for (var interface in element.interfaces) {
+          visitClassAndSupertypes(interface.element);
+        }
       }
     }
 
-    visitTypeAndSupertypes(type);
+    visitClassAndSupertypes(element);
 
     return genericSupertypes;
   }

@@ -11,6 +11,8 @@ class Class {
 extension Extension on Class {
   int method() => this.field;
 
+  int methodWithOptionals([int a = 42]) => a;
+
   int get property => this.field;
 
   void set property(int value) {

@@ -102,7 +102,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   visitPropertyGet(PropertyGet node) {
     super.visitPropertyGet(node);
 
-    Procedure replacedWith = replacedGetters[node.interfaceTarget];
+    final Procedure replacedWith = replacedGetters[node.interfaceTarget];
     if (replacedWith != null) {
       node = PropertyGet(node.receiver, replacedWith.name, replacedWith);
     }
@@ -114,7 +114,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   visitPropertySet(PropertySet node) {
     super.visitPropertySet(node);
 
-    Procedure replacedWith = replacedSetters[node.interfaceTarget];
+    final Procedure replacedWith = replacedSetters[node.interfaceTarget];
     if (replacedWith != null) {
       node = PropertySet(
           node.receiver, replacedWith.name, node.value, replacedWith);
@@ -127,7 +127,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   visitStaticInvocation(StaticInvocation node) {
     super.visitStaticInvocation(node);
 
-    Member target = node.target;
+    final Member target = node.target;
     try {
       if (target == fromFunctionMethod) {
         final DartType nativeType =
@@ -286,24 +286,24 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
-    Member target = node.interfaceTarget;
+    final Member target = node.interfaceTarget;
     try {
       // We will not detect dynamic invocations of 'asFunction' and
       // 'lookupFunction' -- these are handled by the 'asFunctionInternal' stub
       // in 'dynamic_library_patch.dart'. Dynamic invocations of 'asFunction'
       // and 'lookupFunction' are not legal and throw a runtime exception.
       if (target == lookupFunctionMethod) {
-        DartType nativeType =
+        final DartType nativeType =
             InterfaceType(nativeFunctionClass, [node.arguments.types[0]]);
-        DartType dartType = node.arguments.types[1];
+        final DartType dartType = node.arguments.types[1];
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
-        DartType dartType = node.arguments.types[0];
-        DartType pointerType = node.receiver.getStaticType(env);
-        DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+        final DartType dartType = node.arguments.types[0];
+        final DartType pointerType = node.receiver.getStaticType(env);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
         _ensureNativeTypeValid(pointerType, node);
         _ensureNativeTypeValid(nativeType, node);
@@ -316,9 +316,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       } else if (target == loadMethod) {
         // TODO(dacoharkes): should load and store be generic?
         // https://github.com/dart-lang/sdk/issues/35902
-        DartType dartType = node.arguments.types[0];
-        DartType pointerType = node.receiver.getStaticType(env);
-        DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+        final DartType dartType = node.arguments.types[0];
+        final DartType pointerType = node.receiver.getStaticType(env);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
         _ensureNativeTypeValid(pointerType, node);
         _ensureNativeTypeValid(nativeType, node, allowStructs: true);
@@ -328,9 +328,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       } else if (target == storeMethod) {
         // TODO(dacoharkes): should load and store permitted to be generic?
         // https://github.com/dart-lang/sdk/issues/35902
-        DartType dartType = node.arguments.positional[0].getStaticType(env);
-        DartType pointerType = node.receiver.getStaticType(env);
-        DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+        final DartType dartType =
+            node.arguments.positional[0].getStaticType(env);
+        final DartType pointerType = node.receiver.getStaticType(env);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
         // TODO(36730): Allow storing an entire struct to memory.
         // TODO(36780): Emit a better error message for the struct case.
@@ -407,7 +408,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     if (nativeType is! InterfaceType) {
       return false;
     }
-    Class nativeClass = (nativeType as InterfaceType).classNode;
+    final Class nativeClass = (nativeType as InterfaceType).classNode;
     if (env.isSubtypeOf(
         InterfaceType(nativeClass), InterfaceType(pointerClass))) {
       return true;
@@ -415,7 +416,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {
       return true;
     }
-    NativeType nativeType_ = getType(nativeClass);
+    final NativeType nativeType_ = getType(nativeClass);
     if (nativeType_ == null) {
       return false;
     }
@@ -465,7 +466,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNotExtendsOrImplementsSealedClass(Class klass) {
-    Class extended = _extendsOrImplementsSealedClass(klass);
+    final Class extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
           templateFfiExtendsOrImplementsSealedClass

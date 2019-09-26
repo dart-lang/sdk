@@ -6,7 +6,6 @@
 # which - if loaded - pulls in more of itself.
 
 type: newworld
-strong: true
 modules:
   module:
     module/a.dart: |

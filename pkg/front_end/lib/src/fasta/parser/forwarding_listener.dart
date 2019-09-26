@@ -1555,6 +1555,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleVarianceModifier(Token variance) {
+    listener?.handleVarianceModifier(variance);
+  }
+
+  @override
   void handleVoidKeyword(Token token) {
     listener?.handleVoidKeyword(token);
   }
@@ -1577,5 +1582,10 @@ class ForwardingListener implements Listener {
   @override
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     listener?.reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
+  @override
+  void reportVarianceModifierNotEnabled(Token variance) {
+    listener?.reportVarianceModifierNotEnabled(variance);
   }
 }

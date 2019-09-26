@@ -58,8 +58,8 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
       fileUri);
 
   @override
-  DartType buildType(LibraryBuilder library, Nullability nullability,
-      List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     throw new UnsupportedError("ExtensionBuilder.buildType is not supported.");
   }
 
@@ -93,4 +93,17 @@ abstract class ExtensionBuilder extends DeclarationBuilder {
 
   @override
   String get debugName => "ExtensionBuilder";
+
+  void buildOutlineExpressions(LibraryBuilder library) {
+    void build(String ignore, Builder declaration) {
+      MemberBuilder member = declaration;
+      member.buildOutlineExpressions(library);
+    }
+
+    // TODO(johnniwinther): Handle annotations on the extension declaration.
+    //MetadataBuilder.buildAnnotations(
+    //    isPatch ? origin.extension : extension,
+    //    metadata, library, this, null);
+    scope.forEach(build);
+  }
 }

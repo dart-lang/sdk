@@ -9,10 +9,10 @@ T f<T>() => null;
 
 class C {
   void test() {
-    var /*@type=dynamic*/ v1 = super.foo(/*@typeArgs=dynamic*/ f());
+    /*var /*@type=dynamic*/ v1 = super.foo(/*@typeArgs=dynamic*/ f());
     var /*@type=dynamic*/ v2 = super.bar;
     var /*@type=dynamic*/ v3 = super[0];
-    var /*@type=dynamic*/ v4 = super.bar = /*@typeArgs=dynamic*/ f();
+    var /*@type=dynamic*/ v4 = super.bar = /*@typeArgs=dynamic*/ f();*/
     var /*@type=dynamic*/ v5 = super[0] = /*@typeArgs=dynamic*/ f();
   }
 }

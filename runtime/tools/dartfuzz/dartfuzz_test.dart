@@ -13,6 +13,7 @@ import 'dartfuzz.dart';
 const debug = false;
 const sigkill = 9;
 const timeout = 60; // in seconds
+const dartHeapSize = 128; // in Mb
 
 // Status of divergence report.
 enum ReportStatus { reported, ignored, rerun, no_divergence }
@@ -155,7 +156,12 @@ class TestRunnerJIT implements TestRunner {
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    cmd = [dart, ...extraFlags, fileName];
+    cmd = [
+      dart,
+      ...extraFlags,
+      '--old_gen_heap_size=${dartHeapSize}',
+      fileName
+    ];
   }
 
   TestResult run() {
@@ -189,7 +195,8 @@ class TestRunnerAOT implements TestRunner {
     if (result.exitCode != 0) {
       return result;
     }
-    return runCommand([dart, snapshot], env);
+    return runCommand(
+        [dart, '--old_gen_heap_size=${dartHeapSize}', snapshot], env);
   }
 
   void printReproductionCommand() {
@@ -214,12 +221,17 @@ class TestRunnerKBC implements TestRunner {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     if (kbcSrc) {
-      cmd = [dart, ...extraFlags, fileName];
+      cmd = [
+        dart,
+        ...extraFlags,
+        '--old_gen_heap_size=${dartHeapSize}',
+        fileName
+      ];
     } else {
       generate = '$top/pkg/vm/tool/gen_kernel';
       platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
       dill = '$tmp/out.dill';
-      cmd = [dart, ...extraFlags, dill];
+      cmd = [dart, ...extraFlags, '--old_gen_heap_size=${dartHeapSize}', dill];
     }
   }
 
@@ -445,10 +457,16 @@ class DartFuzzTest {
       // Divergence in result code.
       if (trueDivergence) {
         // When only true divergences are requested, any divergence
-        // with at least one time out is treated as a regular time out.
+        // with at least one time out or out of memory error is
+        // treated as a regular time out or skipped test, respectively.
         if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
           numTimeout++;
           timeoutSeeds.add(seed);
+          return ReportStatus.ignored;
+        } else if (result1.exitCode == DartFuzz.oomExitCode ||
+            result2.exitCode == DartFuzz.oomExitCode) {
+          numSkipped++;
+          skippedSeeds.add(seed);
           return ReportStatus.ignored;
         }
       }

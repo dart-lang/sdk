@@ -21,10 +21,9 @@ class ExportResolutionTest extends DriverResolutionTest {
 get f => null;
 set f(_) {}
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 export 'a.dart';
 ''');
-    await resolveTestFile();
     var exportNamespace = result.libraryElement.exportNamespace;
     expect(exportNamespace.get('f'), isNotNull);
     expect(exportNamespace.get('f='), isNotNull);

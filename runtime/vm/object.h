@@ -4791,16 +4791,17 @@ class Instructions : public Object {
   }
 
   static intptr_t InstanceSize(intptr_t size) {
-    // OS::PreferredCodeAlignment() is smaller than kObjectAlignment for
-    // simarm_x64.
-    const intptr_t alignment =
-        Utils::Maximum(OS::PreferredCodeAlignment(), kObjectAlignment);
-    return Utils::RoundUp(HeaderSize() + size, alignment);
+    intptr_t instructions_size =
+        Utils::RoundUp(size, OS::PreferredCodeAlignment());
+    intptr_t result = instructions_size + HeaderSize();
+    ASSERT(result % OS::PreferredCodeAlignment() == 0);
+    return result;
   }
 
   static intptr_t HeaderSize() {
-    intptr_t alignment = OS::PreferredCodeAlignment();
-    intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+    const intptr_t alignment = OS::PreferredCodeAlignment();
+    const intptr_t aligned_size =
+        Utils::RoundUp(sizeof(RawInstructions), alignment);
     return aligned_size;
   }
 
@@ -4819,8 +4820,19 @@ class Instructions : public Object {
     return memcmp(a->ptr(), b->ptr(), InstanceSize(Size(a))) == 0;
   }
 
-  CodeStatistics* stats() const;
-  void set_stats(CodeStatistics* stats) const;
+  CodeStatistics* stats() const {
+#if defined(DART_PRECOMPILER)
+    return raw_ptr()->stats_;
+#else
+    return nullptr;
+#endif
+  }
+
+  void set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+    StoreNonPointer(&raw_ptr()->stats_, stats);
+#endif
+  }
 
   uword unchecked_entrypoint_pc_offset() const {
     return raw_ptr()->unchecked_entrypoint_pc_offset_;

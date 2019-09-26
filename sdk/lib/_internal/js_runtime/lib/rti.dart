@@ -363,6 +363,11 @@ Rti evalInInstance(instance, String recipe) {
 @pragma('dart2js:noInline')
 Rti instantiatedGenericFunctionType(
     Rti genericFunctionRti, Rti instantiationRti) {
+  // If --lax-runtime-type-to-string is enabled and we never check the function
+  // type, then the function won't have a signature, so its RTI will be null. In
+  // this case, there is nothing to instantiate, so we return `null` and the
+  // instantiation appears to be an interface type instead.
+  if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
   var typeArguments = Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));

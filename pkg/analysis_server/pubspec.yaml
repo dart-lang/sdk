@@ -28,5 +28,6 @@ dev_dependencies:
   analysis_tool: any
   html: any
   http: any
+  pedantic: ^1.8.0
   test_reflective_loader: any
   test: any

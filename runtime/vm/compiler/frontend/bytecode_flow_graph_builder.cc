@@ -2177,6 +2177,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
         B->stack_ = stack_state;
       }
       code_ = Fragment(join);
+      join->set_stack_depth(B->GetStackDepth());
       B->SetCurrentTryIndex(join->try_index());
     } else {
       // Unreachable bytecode is not allowed.

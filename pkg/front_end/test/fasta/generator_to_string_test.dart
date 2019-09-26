@@ -149,22 +149,22 @@ main() {
         new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter,"
-        " receiverVariable: null, indexVariable: null)",
+        " getter: $uri::myGetter, setter: $uri::mySetter)",
         new IndexedAccessGenerator(
             helper, token, expression, index, getter, setter));
     check(
         "ThisIndexedAccessGenerator(offset: 4, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
+        " getter: $uri::myGetter, setter: $uri::mySetter)",
         new ThisIndexedAccessGenerator(helper, token, index, getter, setter));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
-        " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
+        " getter: $uri::myGetter, setter: $uri::mySetter)",
         new SuperIndexedAccessGenerator(helper, token, index, getter, setter));
     check(
-        "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
+        "StaticAccessGenerator(offset: 4, targetName: foo,"
+        " readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator(helper, token, getter, setter));
+        new StaticAccessGenerator(helper, token, 'foo', getter, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",

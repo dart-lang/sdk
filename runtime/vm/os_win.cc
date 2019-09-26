@@ -191,12 +191,12 @@ intptr_t OS::ActivationFrameAlignment() {
 }
 
 intptr_t OS::PreferredCodeAlignment() {
-  ASSERT(16 <= OS::kMaxPreferredCodeAlignment);
+  ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
-  return 16;
+  return 32;
 #elif defined(TARGET_ARCH_ARM)
-  return 8;
+  return 16;
 #else
 #error Unsupported architecture.
 #endif

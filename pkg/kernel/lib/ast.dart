@@ -2739,9 +2739,9 @@ class PropertyGet extends Expression {
     // Treat the properties of Object specially.
     String nameString = name.name;
     if (nameString == 'hashCode') {
-      return types.intType;
+      return types.coreTypes.intLegacyRawType;
     } else if (nameString == 'runtimeType') {
-      return types.typeType;
+      return types.coreTypes.typeLegacyRawType;
     }
     return const DynamicType();
   }
@@ -3257,7 +3257,7 @@ class MethodInvocation extends InvocationExpression {
     }
     if (name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return types.boolType;
+      return types.coreTypes.boolLegacyRawType;
     }
     return const DynamicType();
   }
@@ -3497,7 +3497,8 @@ class Not extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitNot(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitNot(this, arg);
@@ -3525,7 +3526,8 @@ class LogicalExpression extends Expression {
     right?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLogicalExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3610,7 +3612,8 @@ class StringConcatenation extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringConcatenation(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3838,7 +3841,8 @@ class IsExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIsExpression(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3901,6 +3905,37 @@ class AsExpression extends Expression {
   }
 }
 
+/// Null check expression of form `x!`.
+///
+/// This expression was added as part of NNBD and is currently only created when
+/// the 'non-nullable' experimental feature is enabled.
+class NullCheck extends Expression {
+  Expression operand;
+
+  NullCheck(this.operand) {
+    operand?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(types))`.
+      operand.getStaticType(types);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitNullCheck(this, arg);
+
+  visitChildren(Visitor v) {
+    operand?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (operand != null) {
+      operand = operand.accept<TreeNode>(v);
+      operand?.parent = this;
+    }
+  }
+}
+
 /// An integer, double, boolean, string, or null constant.
 abstract class BasicLiteral extends Expression {
   Object get value;
@@ -3914,7 +3949,8 @@ class StringLiteral extends BasicLiteral {
 
   StringLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3930,7 +3966,8 @@ class IntLiteral extends BasicLiteral {
 
   IntLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.intType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.intLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3942,7 +3979,8 @@ class DoubleLiteral extends BasicLiteral {
 
   DoubleLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.doubleType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3954,7 +3992,8 @@ class BoolLiteral extends BasicLiteral {
 
   BoolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3976,7 +4015,8 @@ class SymbolLiteral extends Expression {
 
   SymbolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.symbolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitSymbolLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -3991,7 +4031,8 @@ class TypeLiteral extends Expression {
 
   TypeLiteral(this.type);
 
-  DartType getStaticType(TypeEnvironment types) => types.typeType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.typeLegacyRawType;
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitTypeLiteral(this);
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
@@ -4364,7 +4405,7 @@ class CheckLibraryIsLoaded extends Expression {
   CheckLibraryIsLoaded(this.import);
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.objectType;
+    return types.coreTypes.objectLegacyRawType;
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitCheckLibraryIsLoaded(this);
@@ -5580,7 +5621,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefType: typedefType);
+        typedefType: null);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -5733,14 +5774,21 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// A type variable has an optional bound because type promotion can change the
 /// bound.  A bound of `null` indicates that the bound has not been promoted and
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
-/// whether the bound has been promoted.
+/// whether the bound has been promoted.  The case of promoted bound can be
+/// viewed as representing an intersection type between the type-parameter type
+/// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// The nullability declared on the type.
+  /// Nullability of the type-parameter type or of its part of the intersection.
   ///
-  /// Declarations of type-parameter types can set it to [Nullability.nullable]
-  /// or [Nullability.legacy].  Otherwise, it's computed from the nullability
-  /// of the type parameter bound.
-  Nullability declaredNullability;
+  /// Declarations of type-parameter types can set the nullability of a
+  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
+  /// or [Nullability.legacy] (if the type comes from a library opted out from
+  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
+  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
+  /// intersection between a type-parameter type and [promotedBound],
+  /// [typeParameterTypeNullability] represents the nullability of the left-hand
+  /// side of the intersection.
+  Nullability typeParameterTypeNullability;
 
   TypeParameter parameter;
 
@@ -5751,7 +5799,8 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, this.declaredNullability = Nullability.legacy]);
+      [this.promotedBound,
+      this.typeParameterTypeNullability = Nullability.legacy]);
 
   R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
@@ -5768,97 +5817,108 @@ class TypeParameterType extends DartType {
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
 
-  /// Actual nullability of the type, calculated from its parts.
+  /// Nullability of the type, calculated from its parts.
   ///
-  /// [nullability] is calculated from [declaredNullability] and the
-  /// nullabilities of [promotedBound] and the bound of [parameter].
+  /// [nullability] is calculated from [typeParameterTypeNullability] and the
+  /// nullability of [promotedBound] if it's present.
   ///
-  /// For example, in the following program [declaredNullability] both `x` and
-  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
-  /// However, despite [nullability] of `x` is [Nullability.nullable],
-  /// [nullability] of `y` is [Nullability.nonNullable] because of its
-  /// [promotedBound].
+  /// For example, in the following program [typeParameterTypeNullability] of
+  /// both `x` and `y` is [Nullability.neither], because it's copied from that
+  /// of `bar` and T has a nullable type as its bound.  However, despite
+  /// [nullability] of `x` is [Nullability.neither], [nullability] of `y` is
+  /// [Nullability.nonNullable] because of its [promotedBound].
   ///
   ///     class A<T extends Object?> {
-  ///       foo(T? bar) {
+  ///       foo(T bar) {
   ///         var x = bar;
   ///         if (bar is int) {
   ///           var y = bar;
   ///         }
   ///       }
   ///     }
-  Nullability get nullability =>
-      getNullability(parameter, promotedBound, declaredNullability);
+  Nullability get nullability {
+    return getNullability(
+        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        promotedBound);
+  }
 
+  /// Gets the nullability of a type-parameter type based on the bound.
+  ///
+  /// This is a helper function to be used when the bound of the type parameter
+  /// is changing or is being set for the first time, and the update on some
+  /// type-parameter types is required.
   static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
-    // If the bound is nullable, both nullable and non-nullable types can be
-    // passed in for the type parameter, making the corresponding type
-    // parameter types 'neither.'  Otherwise, the nullability matches that of
-    // the bound.
+    // If the bound is nullable or 'neither', both nullable and non-nullable
+    // types can be passed in for the type parameter, making the corresponding
+    // type parameter types 'neither.'  Otherwise, the nullability matches that
+    // of the bound.
     DartType bound = typeParameter.bound;
     if (bound == null) {
-      throw new StateError("Can't compute nullability from absent bound.");
+      throw new StateError("Can't compute nullability from an absent bound.");
     }
     Nullability boundNullability =
         bound is InvalidType ? Nullability.neither : bound.nullability;
-    return boundNullability == Nullability.nullable
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.neither
         ? Nullability.neither
         : boundNullability;
   }
 
-  /// Get nullability of [TypeParameterType] from arguments to its constructor.
+  /// Gets nullability of [TypeParameterType] from arguments to its constructor.
   ///
-  /// This method is supposed to be used only in the constructor of
-  /// [TypeParameterType] to compute the value of
-  /// [TypeParameterType.nullability] from the arguments passed to the constructor.
-  static Nullability getNullability(TypeParameter parameter,
-      DartType promotedBound, Nullability declaredNullability) {
-    // If promotedBound is null, getNullability returns the nullability of
-    // either T or T? where T is parameter and the presence of '?' is determined
-    // by nullability.
-
-    // If promotedBound isn't null, getNullability returns the nullability of an
-    // intersection of the left-hand side (referred to as LHS below) and the
-    // right-hand side (referred to as RHS below).  LHS is parameter followed by
-    // nullability, and RHS is promotedBound.  That is, getNullability returns
-    // the nullability of either T & P or T? & P where T is parameter, P is
-    // promotedBound, and the presence of '?' is determined by nullability.
-    // Note that RHS is always a subtype of the bound of the type parameter.
-
-    Nullability lhsNullability;
-
-    // If the nullability is declared explicitly, use it as the nullability of
-    // the LHS of the intersection.  Otherwise, compute it from the bound.
-    if (declaredNullability != null) {
-      lhsNullability = declaredNullability;
-    } else {
-      lhsNullability = computeNullabilityFromBound(parameter);
-    }
+  /// The method combines [typeParameterTypeNullability] and the nullability of
+  /// [promotedBound] to yield the nullability of the intersection type.  If the
+  /// right-hand side of the intersection is absent (that is, if [promotedBound]
+  /// is null), the nullability of the intersection type is simply
+  /// [typeParameterTypeNullability].
+  static Nullability getNullability(
+      Nullability typeParameterTypeNullability, DartType promotedBound) {
+    // If promotedBound is null, getNullability simply returns the nullability
+    // of the type parameter type.
+    Nullability lhsNullability = typeParameterTypeNullability;
     if (promotedBound == null) {
       return lhsNullability;
     }
 
-    // In practice a type parameter of legacy type can only be used in type
-    // annotations within the corresponding class declaration.  If it's legacy,
-    // then the entire library containing the class is opt-out, and any RHS is
-    // deemed to be legacy too.  So, it's necessary to only check LHS for being
-    // legacy.
-    if (lhsNullability == Nullability.legacy) {
-      return Nullability.legacy;
-    }
+    // If promotedBound isn't null, getNullability returns the nullability of an
+    // intersection of the left-hand side (referred to as LHS below) and the
+    // right-hand side (referred to as RHS below).  Note that RHS is always a
+    // subtype of the bound of the type parameter.
 
-    // Intersection is non-nullable if and only if RHS is non-nullable.
+    // The code below implements the rule for the nullability of an intersection
+    // type as per the following table:
     //
-    // The proof is as follows.  Intersection is non-nullable if at least one of
-    // LHS or RHS is non-nullable.  The case of non-nullable RHS is trivial.  In
-    // the case of non-nullable LHS, its bound should be non-nullable.  RHS is
-    // known to always be a subtype of the bound of LHS; therefore, RHS is
-    // non-nullable.
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  | N/A | N/A |  !  |
+    // |     ?     | N/A | N/A | N/A | N/A |
+    // |     *     | N/A | N/A |  *  | N/A |
+    // |     %     |  !  |  %  | N/A |  %  |
     //
-    // Note that it also follows from the above that non-nullable RHS implies
-    // non-nullable LHS, so the check below covers the case lhsNullability ==
-    // Nullability.nonNullable.
-    if (promotedBound.nullability == Nullability.nonNullable) {
+    // In the table, LHS corresponds to lhsNullability in the code below; RHS
+    // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
+    // nonNullable, nullable, legacy, and neither values of the Nullability
+    // enum.
+    //
+    // Whenever there's N/A in the table, it means that the corresponding
+    // combination of the LHS and RHS nullability is not possible when compiling
+    // from Dart source files, so we can define it to be whatever is faster and
+    // more convenient to implement.  The verifier should check that the cases
+    // marked as N/A never occur in the output of the CFE.
+    //
+    // The code below uses the following extension of the table function:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |  !  |
+    // |     ?     |  !  |  *  |  *  |  %  |
+    // |     *     |  !  |  *  |  *  |  %  |
+    // |     %     |  !  |  %  |  %  |  %  |
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (lhsNullability == Nullability.nonNullable ||
+        promotedBound.nullability == Nullability.nonNullable) {
       return Nullability.nonNullable;
     }
 
@@ -5879,30 +5939,69 @@ class TypeParameterType extends DartType {
     //         }
     //       }
     //     }
-    //
-    // Note that RHS can't be 'legacy' or non-nullable at this point due to the
-    // checks above.
-    if (lhsNullability == Nullability.neither) {
+    if (lhsNullability == Nullability.neither ||
+        promotedBound.nullability == Nullability.neither) {
       return Nullability.neither;
     }
 
-    // At this point the only possibility for LHS is to be nullable, and for RHS
-    // is to be either nullable or legacy.  Both combinations for LHS and RHS
-    // should yield the nullability of RHS as the nullability for the
-    // intersection.  Consider the following code for clarification:
-    //
-    //   class A<X extends Object?, Y extends X> {
-    //     foo(X? x) {
-    //       if (x is Y) {
-    //         x = null;     // Compile-time error.  Consider X = Y = int.
-    //         Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //       }
-    //       if (x is int?) {
-    //         x = null;     // Ok.  Both X? and int? are nullable.
-    //       }
-    //     }
-    //   }
-    return promotedBound.nullability;
+    return Nullability.legacy;
+  }
+}
+
+/// Value set for variance of a type parameter X in a type term T.
+class Variance {
+  /// Used when X does not occur free in T.
+  static const int unrelated = 0;
+
+  /// Used when X occurs free in T, and U <: V implies [U/X]T <: [V/X]T.
+  static const int covariant = 1;
+
+  /// Used when X occurs free in T, and U <: V implies [V/X]T <: [U/X]T.
+  static const int contravariant = 2;
+
+  /// Used when there exists a pair U and V such that U <: V, but [U/X]T and
+  /// [V/X]T are incomparable.
+  static const int invariant = 3;
+
+  /// Variance values form a lattice where [unrelated] is the top, [invariant]
+  /// is the bottom, and [covariant] and [contravariant] are incomparable.
+  /// [meet] calculates the meet of two elements of such lattice.  It can be
+  /// used, for example, to calculate the variance of a typedef type parameter
+  /// if it's encountered on the r.h.s. of the typedef multiple times.
+  static int meet(int a, int b) => a | b;
+
+  /// Combines variances of X in T and Y in S into variance of X in [Y/T]S.
+  ///
+  /// Consider the following examples:
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// List<Y> is [covariant], so variance of X in List<Function(X)> is
+  /// [contravariant];
+  ///
+  /// * variance of X in List<X> is [covariant], variance of Y in Function(Y) is
+  /// [contravariant], so variance of X in Function(List<X>) is [contravariant];
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// Function(Y) is [contravariant], so variance of X in Function(Function(X))
+  /// is [covariant];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef F<Z> = Function();
+  ///
+  /// then variance of X in F<X> is [unrelated], variance of Y in List<Y> is
+  /// [covariant], so variance of X in List<F<X>> is [unrelated];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef G<Z> = Z Function(Z);
+  ///
+  /// then variance of X in List<X> is [covariant], variance of Y in G<Y> is
+  /// [invariant], so variance of `X` in `G<List<X>>` is [invariant].
+  static int combine(int a, int b) {
+    if (a == unrelated || b == unrelated) return unrelated;
+    if (a == invariant || b == invariant) return invariant;
+    return a == b ? covariant : contravariant;
   }
 }
 
@@ -5938,6 +6037,12 @@ class TypeParameter extends TreeNode {
   /// [defaultType] is used by the backends in place of the missing type
   /// argument of a dynamic invocation of a generic function.
   DartType defaultType;
+
+  /// Describes variance of the type parameter w.r.t. declaration on which it is
+  /// defined.  It's always [Variance.covariant] for classes, and for typedefs
+  /// it's the variance of the type parameters in the type term on the r.h.s. of
+  /// the typedef.
+  int variance = Variance.covariant;
 
   TypeParameter([this.name, this.bound, this.defaultType]);
 
@@ -6095,7 +6200,7 @@ class BoolConstant extends PrimitiveConstant<bool> {
   R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.boolType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.boolLegacyRawType;
 }
 
 /// An integer constant on a non-JS target.
@@ -6106,7 +6211,7 @@ class IntConstant extends PrimitiveConstant<int> {
   R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.intType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.intLegacyRawType;
 }
 
 /// A double constant on a non-JS target or any numeric constant on a JS target.
@@ -6121,7 +6226,8 @@ class DoubleConstant extends PrimitiveConstant<double> {
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
-  DartType getType(TypeEnvironment types) => types.doubleType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 }
 
 class StringConstant extends PrimitiveConstant<String> {
@@ -6133,7 +6239,8 @@ class StringConstant extends PrimitiveConstant<String> {
   R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
   R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.stringType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 }
 
 class SymbolConstant extends Constant {
@@ -6161,7 +6268,8 @@ class SymbolConstant extends Constant {
           other.name == name &&
           other.libraryReference == libraryReference);
 
-  DartType getType(TypeEnvironment types) => types.symbolType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 }
 
 class MapConstant extends Constant {
@@ -6435,7 +6543,7 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
-  DartType getType(TypeEnvironment types) => types.typeType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.typeLegacyRawType;
 }
 
 class UnevaluatedConstant extends Constant {

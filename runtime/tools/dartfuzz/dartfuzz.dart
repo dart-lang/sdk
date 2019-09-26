@@ -14,7 +14,7 @@ import 'dartfuzz_ffiapi.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.49';
+const String version = '1.52';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -23,7 +23,6 @@ const int numStatements = 2;
 const int numGlobalVars = 4;
 const int numLocalVars = 4;
 const int numGlobalMethods = 4;
-const int numClassMethods = 3;
 const int numMethodParams = 4;
 const int numClasses = 4;
 
@@ -115,7 +114,8 @@ class DartApi {
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
-  DartFuzz(this.seed, this.fp, this.ffi, this.file);
+  DartFuzz(this.seed, this.fp, this.ffi, this.file,
+      {this.minimize = false, this.smask, this.emask});
 
   void run() {
     // Initialize program variables.
@@ -124,6 +124,8 @@ class DartFuzz {
     nest = 0;
     currentClass = null;
     currentMethod = null;
+    // Setup minimization parameters.
+    initMinimization();
     // Setup the library and ffi api.
     api = DartApi(ffi);
     // Setup the types.
@@ -135,6 +137,7 @@ class DartFuzz {
     globalMethods =
         fillTypes2(limit2: numGlobalMethods, limit1: numMethodParams);
     classFields = fillTypes2(limit2: numClasses, limit1: numLocalVars);
+    final int numClassMethods = 1 + numClasses - classFields.length;
     classMethods = fillTypes3(classFields.length,
         limit2: numClassMethods, limit1: numMethodParams);
 
@@ -162,6 +165,135 @@ class DartFuzz {
     assert(indent == 0);
     assert(nest == 0);
     assert(localVars.isEmpty);
+  }
+
+  //
+  // Minimization components.
+  //
+
+  void initMinimization() {
+    stmtCntr = 0;
+    exprCntr = 0;
+    skipStmt = false;
+    skipExpr = false;
+  }
+
+  void emitMinimizedLiteral(DartType tp) {
+    switch (tp) {
+      case DartType.BOOL:
+        emit('true');
+        break;
+      case DartType.INT:
+        emit('1');
+        break;
+      case DartType.DOUBLE:
+        emit('1.0');
+        break;
+      case DartType.STRING:
+        emit('"a"');
+        break;
+      case DartType.INT_LIST:
+        emit('[1]');
+        break;
+      case DartType.INT_SET:
+        emit('{1}');
+        break;
+      case DartType.INT_STRING_MAP:
+        emit('{1: "a"}');
+        break;
+      default:
+        throw 'Unknown DartType ${tp}';
+    }
+  }
+
+  BigInt genMask(int m) => BigInt.from(1) << m;
+
+  // Process the opening of a statement.
+  // Determine whether the statement should be skipped based on the
+  // statement index stored in stmtCntr and the statement mask stored
+  // in smask.
+  // Returns true if the statement should be skipped.
+  bool processStmtOpen() {
+    // Do nothing if we are not in minimization mode.
+    if (!minimize) {
+      return false;
+    }
+    // Check whether the bit for the current statement number is set in the
+    // statement bitmap. If so skip this statement.
+    final newMask = genMask(stmtCntr);
+    final maskBitSet = (smask & newMask) != BigInt.zero;
+    // Statements are nested, therefore masking one statement like e.g.
+    // a for loop leads to other statements being omitted.
+    // Here we update the statement mask to include the additionally
+    // omitted statements.
+    if (skipStmt) {
+      smask |= newMask;
+    }
+    // Increase the statement counter.
+    stmtCntr++;
+    if (!skipStmt && maskBitSet) {
+      skipStmt = true;
+      return true;
+    }
+    return false;
+  }
+
+  // Process the closing of a statement.
+  // The variable resetSkipStmt indicates whether this
+  // statement closes the sequence of skipped statement.
+  // E.g. the end of a loop where all contained statements
+  // were skipped.
+  void processStmtClose(bool resetSkipStmt) {
+    if (!minimize) {
+      return;
+    }
+    if (resetSkipStmt) {
+      skipStmt = false;
+    }
+  }
+
+  // Process the opening of an expression.
+  // Determine whether the expression should be skipped based on the
+  // expression index stored in exprCntr and the expression mask stored
+  // in emask.
+  // Returns true is the expression is skipped.
+  bool processExprOpen(DartType tp) {
+    // Do nothing if we are not in minimization mode.
+    if (!minimize) {
+      return false;
+    }
+    // Check whether the bit for the current expression number is set in the
+    // expression bitmap. If so skip this expression.
+    final newMask = genMask(exprCntr);
+    final maskBitSet = (emask & newMask) != BigInt.zero;
+    // Expressions are nested, therefore masking one expression like e.g.
+    // a for loop leads to other expressions being omitted.
+    // Similarly, if the whole statement is skipped, all the expressions
+    // within that statement are implicitly masked.
+    // Here we update the expression mask to include the additionally
+    // omitted expressions.
+    if (skipExpr || skipStmt) {
+      emask |= newMask;
+    }
+    exprCntr++;
+    if (skipStmt) {
+      return false;
+    }
+    if (!skipExpr && maskBitSet) {
+      emitMinimizedLiteral(tp);
+      skipExpr = true;
+      return true;
+    }
+    return false;
+  }
+
+  void processExprClose(bool resetExprStmt) {
+    if (!minimize || skipStmt) {
+      return;
+    }
+    if (resetExprStmt) {
+      skipExpr = false;
+    }
   }
 
   //
@@ -345,6 +477,11 @@ class DartFuzz {
     emitLn("", newline: false);
     tryBody();
     emit(";", newline: true);
+    indent -= 2;
+    emitLn('} on OutOfMemoryError {');
+    indent += 2;
+    emitLn("print(\'oom\');");
+    emitLn("exit(${oomExitCode});");
     indent -= 2;
     emitLn('} catch (e, st) {');
     indent += 2;
@@ -731,9 +868,8 @@ class DartFuzz {
     return true;
   }
 
-  // Emit a statement. Returns true if code *may* fall-through
-  // (not made too advanced to avoid FE complaints).
-  bool emitStatement(int depth) {
+  // Emit a single statement.
+  bool emitSingleStatement(int depth) {
     // Throw in a comment every once in a while.
     if (rand.nextInt(10) == 0) {
       emitComment();
@@ -776,6 +912,16 @@ class DartFuzz {
       default:
         return emitAssign();
     }
+  }
+
+  // Emit a statement (main entry).
+  // Returns true if code *may* fall-through
+  // (not made too advanced to avoid FE complaints).
+  bool emitStatement(int depth) {
+    final resetSkipStmt = processStmtOpen();
+    bool ret = emitSingleStatement(depth);
+    processStmtClose(resetSkipStmt);
+    return ret;
   }
 
   // Emit statements. Returns true if code may fall-through.
@@ -869,7 +1015,7 @@ class DartFuzz {
 
   void emitCollectionElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
-    switch (r) {
+    switch (r + 3) {
       // Favors elements over control-flow collections.
       case 0:
         // TODO (ajcbik): Remove restriction once compiler is fixed.
@@ -958,7 +1104,9 @@ class DartFuzz {
     } else if (tp == DartType.INT_LIST ||
         tp == DartType.INT_SET ||
         tp == DartType.INT_STRING_MAP) {
+      final resetExprStmt = processExprOpen(tp);
       emitCollection(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
+      processExprClose(resetExprStmt);
     } else {
       assert(false);
     }
@@ -1231,35 +1379,38 @@ class DartFuzz {
 
   // Emit expression.
   void emitExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
+    final resetExprStmt = processExprOpen(tp);
     // Continuing nested expressions becomes less likely as the depth grows.
     if (rand.nextInt(depth + 1) > exprDepth) {
       emitTerminal(depth, tp, rhsFilter: rhsFilter);
-      return;
+    } else {
+      // Possibly nested expression.
+      switch (rand.nextInt(7)) {
+        case 0:
+          emitUnaryExpr(depth, tp, rhsFilter: rhsFilter);
+          break;
+        case 1:
+          emitBinaryExpr(depth, tp, rhsFilter: rhsFilter);
+          break;
+        case 2:
+          emitTernaryExpr(depth, tp, rhsFilter: rhsFilter);
+          break;
+        case 3:
+          emitPreOrPostExpr(depth, tp, rhsFilter: rhsFilter);
+          break;
+        case 4:
+          emitLibraryCall(depth, tp,
+              rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
+          break;
+        case 5:
+          emitMethodCall(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
+          break;
+        default:
+          emitTerminal(depth, tp, rhsFilter: rhsFilter);
+          break;
+      }
     }
-    // Possibly nested expression.
-    switch (rand.nextInt(7)) {
-      case 0:
-        emitUnaryExpr(depth, tp, rhsFilter: rhsFilter);
-        break;
-      case 1:
-        emitBinaryExpr(depth, tp, rhsFilter: rhsFilter);
-        break;
-      case 2:
-        emitTernaryExpr(depth, tp, rhsFilter: rhsFilter);
-        break;
-      case 3:
-        emitPreOrPostExpr(depth, tp, rhsFilter: rhsFilter);
-        break;
-      case 4:
-        emitLibraryCall(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
-        break;
-      case 5:
-        emitMethodCall(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
-        break;
-      default:
-        emitTerminal(depth, tp, rhsFilter: rhsFilter);
-        break;
-    }
+    processExprClose(resetExprStmt);
   }
 
   //
@@ -1522,6 +1673,9 @@ class DartFuzz {
 
   // Emits text to append to program.
   void emit(String txt, {bool newline = false}) {
+    if (skipStmt || skipExpr) {
+      return;
+    }
     file.writeStringSync(txt);
     if (newline) {
       file.writeStringSync('\n');
@@ -1532,6 +1686,9 @@ class DartFuzz {
   T oneOf<T>(List<T> choices) {
     return choices[rand.nextInt(choices.length)];
   }
+
+  // Special return code to handle oom errors.
+  static const oomExitCode = 254;
 
   // Random seed used to generate program.
   final int seed;
@@ -1581,6 +1738,16 @@ class DartFuzz {
 
   // Parent class indices for all classes.
   List<int> classParents;
+
+  // Minimization mode extensions.
+  final bool minimize;
+  BigInt smask;
+  BigInt emask;
+  bool skipStmt;
+  bool skipExpr;
+  bool skipExprCntr;
+  int stmtCntr;
+  int exprCntr;
 }
 
 // Generate seed. By default (no user-defined nonzero seed given),
@@ -1604,15 +1771,49 @@ main(List<String> arguments) {
         help: 'random seed (0 forces time-based seed)', defaultsTo: '0')
     ..addFlag('fp', help: 'enables floating-point operations', defaultsTo: true)
     ..addFlag('ffi',
-        help: 'enables FFI method calls (default: off)', defaultsTo: false);
+        help: 'enables FFI method calls (default: off)', defaultsTo: false)
+    // Minimization mode extensions.
+    ..addFlag('mini',
+        help: 'enables minimization mode (default: off)', defaultsTo: false)
+    ..addOption('smask',
+        help: 'Bitmask indicating which statements to omit'
+            '(Bit=1 omits)',
+        defaultsTo: '0')
+    ..addOption('emask',
+        help: 'Bitmask indicating which expressions to omit'
+            '(Bit=1 omits)',
+        defaultsTo: '0');
   try {
     final results = parser.parse(arguments);
     final seed = getSeed(results['seed']);
     final fp = results['fp'];
     final ffi = results['ffi'];
     final file = File(results.rest.single).openSync(mode: FileMode.write);
-    DartFuzz(seed, fp, ffi, file).run();
+    final minimize = results['mini'];
+    final smask = BigInt.parse(results['smask']);
+    final emask = BigInt.parse(results['emask']);
+    final dartFuzz = DartFuzz(seed, fp, ffi, file,
+        minimize: minimize, smask: smask, emask: emask);
+    dartFuzz.run();
     file.closeSync();
+    // Print information that will be parsed by minimize.py
+    if (minimize) {
+      // Updated statement mask.
+      // This might be different from the input parameter --smask
+      // since masking a statement that contains nested statements leads to
+      // those being masked as well.
+      print(dartFuzz.smask.toRadixString(10));
+      // Total number of statements in the generated program.
+      print(dartFuzz.stmtCntr);
+      // Updated expression mask.
+      // This might be different from the input parameter --emask
+      // since masking a statement that contains expressions or
+      // an expression that contains nested expressions leads to
+      // those being masked as well.
+      print(dartFuzz.emask.toRadixString(10));
+      // Total number of expressions in the generated program.
+      print(dartFuzz.exprCntr);
+    }
   } catch (e) {
     print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');
     exitCode = 255;

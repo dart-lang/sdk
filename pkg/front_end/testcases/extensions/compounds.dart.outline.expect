@@ -24,6 +24,8 @@ extension NumberExtension on self::Number* {
 }
 extension ClassExtension on self::Class* {
   get property = self::ClassExtension|get#property;
+  method testImplicitProperties = self::ClassExtension|testImplicitProperties;
+  tearoff testImplicitProperties = self::ClassExtension|get#testImplicitProperties;
   set property = self::ClassExtension|set#property;
 }
 static method NumberExtension|+(final self::Number* #this, core::Object* other) → self::Number*
@@ -34,11 +36,19 @@ static method ClassExtension|get#property(final self::Class* #this) → self::Nu
   ;
 static method ClassExtension|set#property(final self::Class* #this, self::Number* value) → void
   ;
+static method ClassExtension|testImplicitProperties(final self::Class* #this) → dynamic
+  ;
+static method ClassExtension|get#testImplicitProperties(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::ClassExtension|testImplicitProperties(#this);
 static method main() → dynamic
   ;
 static method testLocals() → dynamic
   ;
 static method testProperties() → dynamic
   ;
-static method expect(dynamic expected, dynamic actual) → dynamic
+static method testExplicitProperties() → dynamic
+  ;
+static method testExplicitNullAwareProperties(self::Class* v) → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual, [dynamic expectNull]) → dynamic
   ;

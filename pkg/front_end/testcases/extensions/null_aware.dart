@@ -12,6 +12,12 @@ extension Extension on Class {
     field = value;
   }
   int method() => field;
+
+  testImplicitThis() {
+    expect(null, property);
+    expect(42, property ??= 42);
+    expect(42, property ??= 87);
+  }
 }
 
 main() {
@@ -20,6 +26,8 @@ main() {
   expect(null, c?.method);
   expect(null, c?.method());
   expect(null, c?.property = 42);
+  expect(null, Extension(c)?.property ??= 42);
+
   c = new Class();
   expect(null, c?.property);
   expect(null, c?.method());
@@ -27,9 +35,35 @@ main() {
   expect(null, tearOff());
   expect(42, c?.property = 42);
   expect(42, tearOff());
+
   expect(null, c?.property = null);
+  expect(42, c?.property = 42);
+
+  c?.property = null;
+  expect(null, c?.property);
   expect(42, c.property ??= 42);
   expect(42, c.property ??= 87);
+
+  expect(null, c?.property = null);
+  c.property ??= 42;
+  expect(42, c?.property);
+  c.property ??= 87;
+  expect(42, c?.property);
+
+  c?.property = null;
+  expect(null, c?.property);
+  expect(42, Extension(c).property ??= 42);
+  expect(42, Extension(c).property ??= 87);
+
+  c?.property = null;
+  expect(null, c?.property);
+  Extension(c).property ??= 42;
+  expect(42, c?.property);
+  Extension(c).property ??= 87;
+  expect(42, c?.property);
+
+  c?.property = null;
+  c.testImplicitThis();
 }
 
 expect(expected, actual) {

@@ -289,7 +289,10 @@ class _ElementRequest {
 
     var libraryContext = elementFactory.libraryMap[uriStr];
     if (libraryContext == null) {
-      throw ArgumentError('Missing library: $uriStr');
+      throw ArgumentError(
+        'Missing library: $uriStr\n'
+        'Available libraries: ${elementFactory.libraryMap.keys.toList()}',
+      );
     }
     var libraryNode = libraryContext.node;
     var hasName = libraryNode.name.isNotEmpty;

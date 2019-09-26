@@ -710,23 +710,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       new Type.fromStatic(_staticDartType(node));
 
   Type _cachedBoolType;
-  Type get _boolType =>
-      _cachedBoolType ??= new Type.cone(_environment.boolType);
+  Type get _boolType => _cachedBoolType ??=
+      new Type.cone(_environment.coreTypes.boolLegacyRawType);
 
   Type _cachedDoubleType;
-  Type get _doubleType =>
-      _cachedDoubleType ??= new Type.cone(_environment.doubleType);
+  Type get _doubleType => _cachedDoubleType ??=
+      new Type.cone(_environment.coreTypes.doubleLegacyRawType);
 
   Type _cachedIntType;
-  Type get _intType => _cachedIntType ??= new Type.cone(_environment.intType);
+  Type get _intType =>
+      _cachedIntType ??= new Type.cone(_environment.coreTypes.intLegacyRawType);
 
   Type _cachedStringType;
-  Type get _stringType =>
-      _cachedStringType ??= new Type.cone(_environment.stringType);
+  Type get _stringType => _cachedStringType ??=
+      new Type.cone(_environment.coreTypes.stringLegacyRawType);
 
   Type _cachedSymbolType;
-  Type get _symbolType =>
-      _cachedSymbolType ??= new Type.cone(_environment.symbolType);
+  Type get _symbolType => _cachedSymbolType ??=
+      new Type.cone(_environment.coreTypes.symbolLegacyRawType);
 
   Type _cachedNullType;
   Type get _nullType => _cachedNullType ??= new Type.nullable(new Type.empty());
@@ -968,7 +969,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (node.name.name == 'call') {
         final recvType = _staticDartType(node.receiver);
         if ((recvType is FunctionType) ||
-            (recvType == _environment.rawFunctionType)) {
+            (recvType == _environment.functionLegacyRawType)) {
           // Call to a Function.
           return _staticType(node);
         }
@@ -1192,7 +1193,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitTypeLiteral(TypeLiteral node) {
-    return new Type.cone(_environment.typeType);
+    return new Type.cone(_environment.coreTypes.typeLegacyRawType);
   }
 
   @override

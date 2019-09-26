@@ -130,7 +130,7 @@ class InheritedReferenceContributor
         : CompletionSuggestionKind.INVOCATION;
 
     if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, optype,
+      _addSuggestionsForType(classElement.thisType, optype,
           isFunctionalArgument: isFunctionalArgument);
     }
 

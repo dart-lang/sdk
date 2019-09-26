@@ -230,6 +230,7 @@ VM_UNIT_TEST_CASE(Endianity) {
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32be)[1]);
   EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value32be)[2]);
   EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32be)[3]);
+  EXPECT_EQ(0xf1f2u, Utils::BigEndianToHost32(value32be));
 
   uint32_t value32le = Utils::HostToLittleEndian32(0xf1f2);
   EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32le)[0]);
@@ -256,6 +257,7 @@ VM_UNIT_TEST_CASE(Endianity) {
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[5]);
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[6]);
   EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[7]);
+  EXPECT_EQ(0xf1f2f3f4ul, Utils::LittleEndianToHost64(value64le));
 }
 
 VM_UNIT_TEST_CASE(DoublesBitEqual) {

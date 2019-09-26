@@ -76,7 +76,10 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
@@ -91,34 +94,58 @@ MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
         map_flags |= (MAP_JIT | MAP_ANONYMOUS);
       }
       break;
-    default:
-      return NULL;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
   }
-  void* addr = NULL;
+  if (start != nullptr) {
+    map_flags |= MAP_FIXED;
+  }
+  void* addr = start;
   if ((type == kReadExecute) && IsAtLeastOS10_14()) {
-    addr = mmap(NULL, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
-    if (addr == MAP_FAILED) {
-      Syslog::PrintErr("mmap failed %s\n", strerror(errno));
-      return NULL;
+    // Due to codesigning restrictions, we cannot map the file as executable
+    // directly. We must first copy it into an anonymous mapping and then mark
+    // the mapping as executable.
+    if (addr == nullptr) {
+      addr = mmap(nullptr, length, (PROT_READ | PROT_WRITE), map_flags, -1, 0);
+      if (addr == MAP_FAILED) {
+        Syslog::PrintErr("mmap failed %s\n", strerror(errno));
+        return nullptr;
+      }
     }
+
+    const int64_t remaining_length = Length() - position;
     SetPosition(position);
-    if (!ReadFully(addr, length)) {
+    if (!ReadFully(addr, Utils::Minimum(length, remaining_length))) {
       Syslog::PrintErr("ReadFully failed\n");
-      munmap(addr, length);
-      return NULL;
+      if (start == nullptr) {
+        munmap(addr, length);
+      }
+      return nullptr;
     }
+
+    // If the requested mapping is larger than the file size, we should fill the
+    // extra memory with zeros.
+    if (length > remaining_length) {
+      memset(reinterpret_cast<uint8_t*>(addr) + remaining_length, 0,
+             length - remaining_length);
+    }
+
     if (mprotect(addr, length, prot) != 0) {
       Syslog::PrintErr("mprotect failed %s\n", strerror(errno));
-      munmap(addr, length);
-      return NULL;
+      if (start == nullptr) {
+        munmap(addr, length);
+      }
+      return nullptr;
     }
   } else {
-    addr = mmap(NULL, length, prot, map_flags, handle_->fd(), position);
+    addr = mmap(addr, length, prot, map_flags, handle_->fd(), position);
+    if (addr == MAP_FAILED) {
+      Syslog::PrintErr("mmap failed %s\n", strerror(errno));
+      return nullptr;
+    }
   }
-  if (addr == MAP_FAILED) {
-    return NULL;
-  }
-  return new MappedMemory(addr, length);
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {

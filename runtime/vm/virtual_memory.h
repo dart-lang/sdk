@@ -57,9 +57,9 @@ class VirtualMemory {
                                         bool is_executable,
                                         const char* name);
 
+  // Returns the cached page size. Use only if Init() has been called.
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
-    ASSERT(Utils::IsPowerOfTwo(page_size_));
     return page_size_;
   }
 
@@ -76,6 +76,8 @@ class VirtualMemory {
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
  private:
+  static intptr_t CalculatePageSize();
+
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
   static void FreeSubSegment(void* address, intptr_t size);

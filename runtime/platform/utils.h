@@ -299,10 +299,13 @@ class Utils {
   static uint32_t HostToLittleEndian32(uint32_t host_value);
   static uint64_t HostToLittleEndian64(uint64_t host_value);
 
-  static uint32_t BigEndianToHost32(uint32_t be_value) {
-    // Going between Host <-> BE is the same operation for all practical
-    // purposes.
+  // Going between Host <-> LE/BE is the same operation for all practical
+  // purposes.
+  static inline uint32_t BigEndianToHost32(uint32_t be_value) {
     return HostToBigEndian32(be_value);
+  }
+  static inline uint64_t LittleEndianToHost64(uint64_t le_value) {
+    return HostToLittleEndian64(le_value);
   }
 
   static bool DoublesBitEqual(const double a, const double b) {

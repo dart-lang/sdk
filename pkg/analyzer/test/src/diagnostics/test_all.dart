@@ -149,6 +149,8 @@ import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
+import 'invocation_of_extension_without_call_test.dart'
+    as invocation_of_extension_without_call;
 import 'is_double_test.dart' as is_double;
 import 'is_int_test.dart' as is_int;
 import 'is_not_double_test.dart' as is_not_double;
@@ -293,6 +295,7 @@ import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
+import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
 import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
@@ -427,6 +430,7 @@ main() {
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
+    invocation_of_extension_without_call.main();
     is_double.main();
     is_int.main();
     is_not_double.main();
@@ -527,6 +531,7 @@ main() {
     undefined_class.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
+    undefined_extension_operator.main();
     undefined_extension_setter.main();
     undefined_getter.main();
     undefined_hidden_name.main();

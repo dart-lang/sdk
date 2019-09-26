@@ -53,14 +53,13 @@ void _fail(String message) {
 @reflectiveTest
 class SetLiteralsTest extends StaticTypeAnalyzer2TestShared {
   test_emptySetLiteral_parameter_typed() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 main() {
   useSet({});
 }
 void useSet(Set<int> s) {
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectExpressionType('{}', 'Set<int>');
   }
 }
@@ -71,90 +70,83 @@ void useSet(Set<int> s) {
 @reflectiveTest
 class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_FunctionExpressionInvocation_block() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 main() {
   var foo = (() { return 1; })();
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_curried() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 typedef int F();
 F f() => null;
 main() {
   var foo = f()();
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectInitializerType('foo', 'int');
   }
 
   test_FunctionExpressionInvocation_expression() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 main() {
   var foo = (() => 1)();
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectInitializerType('foo', 'int');
   }
 
   test_MethodInvocation_nameType_localVariable() async {
-    String code = r"""
+    await assertNoErrorsInCode(r"""
 typedef Foo();
 main() {
   Foo foo;
   foo();
 }
-""";
-    await resolveTestUnit(code);
+""");
     // "foo" should be resolved to the "Foo" type
     expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_FunctionTypeAlias() async {
-    String code = r"""
+    await assertNoErrorsInCode(r"""
 typedef Foo();
 main(Foo foo) {
   foo();
 }
-""";
-    await resolveTestUnit(code);
+""");
     // "foo" should be resolved to the "Foo" type
     expectIdentifierType("foo();", new TypeMatcher<FunctionType>());
   }
 
   test_MethodInvocation_nameType_parameter_propagatedType() async {
-    String code = r"""
+    await assertNoErrorsInCode(r"""
 typedef Foo();
 main(p) {
   if (p is Foo) {
     p();
   }
 }
-""";
-    await resolveTestUnit(code);
+""");
     expectIdentifierType("p()", 'dynamic Function()');
   }
 
   test_staticMethods_classTypeParameters() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 class C<T> {
   static void m() => null;
 }
 main() {
   print(C.m);
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectFunctionType('m);', 'void Function()');
   }
 
   test_staticMethods_classTypeParameters_genericMethod() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 class C<T> {
   static void m<S>(S s) {
     void f<U>(S s, U u) {}
@@ -164,8 +156,7 @@ class C<T> {
 main() {
   print(C.m);
 }
-''';
-    await resolveTestUnit(code);
+''');
     // C - m
     TypeParameterType typeS;
     {
@@ -208,31 +199,28 @@ main() {
 @reflectiveTest
 class StaticTypeAnalyzer3Test extends StaticTypeAnalyzer2TestShared {
   test_emptyMapLiteral_initializer_var() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 main() {
   var v = {};
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectExpressionType('{}', 'Map<dynamic, dynamic>');
   }
 
   test_emptyMapLiteral_parameter_typed() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 main() {
   useMap({});
 }
 void useMap(Map<int, int> m) {
 }
-''';
-    await resolveTestUnit(code);
+''');
     expectExpressionType('{}', 'Map<int, int>');
   }
 }
 
 @reflectiveTest
-class StaticTypeAnalyzerTest extends EngineTestCase
-    with ResourceProviderMixin, ElementsTypesMixin {
+class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /**
    * The error listener to which errors will be reported.
    */
@@ -275,9 +263,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     _listener.assertNoErrors();
   }
 
-  @override
   void setUp() {
-    super.setUp();
     _listener = new GatheringErrorListener();
     _analyzer = _createAnalyzer();
   }
@@ -519,7 +505,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 + 2.0
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = getMethod(_typeProvider.numType, "+");
+    node.staticElement = _typeProvider.numType.getMethod('+');
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
@@ -528,7 +514,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 + 2
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
-    node.staticElement = getMethod(_typeProvider.numType, "+");
+    node.staticElement = _typeProvider.numType.getMethod('+');
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
@@ -537,7 +523,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 2 / 2
     BinaryExpressionImpl node = AstTestFactory.binaryExpression(
         _resolvedInteger(2), TokenType.SLASH, _resolvedInteger(2));
-    node.staticElement = getMethod(_typeProvider.numType, "/");
+    node.staticElement = _typeProvider.numType.getMethod('/');
     node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), _typeProvider.doubleType);
     _listener.assertNoErrors();
@@ -570,7 +556,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // 1 * 2.0
     BinaryExpression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.PLUS, _resolvedDouble(2.0));
-    node.staticElement = getMethod(_typeProvider.numType, "*");
+    node.staticElement = _typeProvider.numType.getMethod('*');
     expect(_analyze(node), same(_typeProvider.doubleType));
     _listener.assertNoErrors();
   }
@@ -1122,7 +1108,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // -0
     PrefixExpression node =
         AstTestFactory.prefixExpression(TokenType.MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
+    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
     node.staticElement = minusMethod;
     expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
@@ -1132,7 +1118,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // --0
     PrefixExpression node = AstTestFactory.prefixExpression(
         TokenType.MINUS_MINUS, _resolvedInteger(0));
-    MethodElement minusMethod = getMethod(_typeProvider.numType, "-");
+    MethodElement minusMethod = _typeProvider.numType.getMethod('-');
     node.staticElement = minusMethod;
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -1150,7 +1136,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // ++0
     PrefixExpression node = AstTestFactory.prefixExpression(
         TokenType.PLUS_PLUS, _resolvedInteger(0));
-    MethodElement plusMethod = getMethod(_typeProvider.numType, "+");
+    MethodElement plusMethod = _typeProvider.numType.getMethod('+');
     node.staticElement = plusMethod;
     expect(_analyze(node), same(_typeProvider.intType));
     _listener.assertNoErrors();
@@ -1160,7 +1146,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase
     // ~0
     PrefixExpression node =
         AstTestFactory.prefixExpression(TokenType.TILDE, _resolvedInteger(0));
-    MethodElement tildeMethod = getMethod(_typeProvider.intType, "~");
+    MethodElement tildeMethod = _typeProvider.intType.getMethod('~');
     node.staticElement = tildeMethod;
     expect(_analyze(node), _typeProvider.intType);
     _listener.assertNoErrors();
@@ -1490,20 +1476,19 @@ class StaticTypeAnalyzerTest extends EngineTestCase
 class StaticTypeAnalyzerWithSetLiteralsTest
     extends StaticTypeAnalyzer2TestShared {
   test_emptySetLiteral_inferredFromLinkedHashSet() async {
-    String code = r'''
+    await assertErrorsInCode(r'''
 import 'dart:collection';
 LinkedHashSet<int> test4() => {};
-''';
-    await resolveTestUnit(code, noErrors: false);
+''', [
+      error(StrongModeCode.INVALID_CAST_LITERAL_SET, 56, 2),
+    ]);
     expectExpressionType('{}', 'Set<dynamic>');
-    await assertErrorsInCode(code, [StrongModeCode.INVALID_CAST_LITERAL_SET]);
   }
 
   test_emptySetLiteral_initializer_typed_nested() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 Set<Set<int>> ints = {{}};
-''';
-    await resolveTestUnit(code);
+''');
     expectExpressionType('{}', 'Set<int>');
     expectExpressionType('{{}}', 'Set<Set<int>>');
   }

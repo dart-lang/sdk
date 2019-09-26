@@ -22,11 +22,10 @@ class VariableTypeMismatchTest extends DriverResolutionTest {
     // Note: in the following code, the declaration of `y` should produce an
     // error because we should only promote literal ints to doubles; we
     // shouldn't promote the reference to the variable `x`.
-    addTestFile('''
+    await resolveTestCode('''
 const Object x = 0;
 const double y = x;
     ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH]);
   }

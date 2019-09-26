@@ -14,6 +14,8 @@ accounting
 accounts
 accumulated
 accumulating
+acon
+acov
 across
 affecting
 afterwards
@@ -21,6 +23,7 @@ agree
 ahe
 ai
 aiki
+ainv
 aka
 alexmarkov
 aligned
@@ -299,6 +302,8 @@ fangorn
 fasta
 favoring
 fc
+fcon
+fcov
 fe
 feff
 ff
@@ -309,6 +314,7 @@ ffffffff
 ffi
 file's
 filenames
+finv
 firsts
 fishy
 fishythefish
@@ -331,6 +337,7 @@ freely
 frontend
 frontends
 fs
+fsource
 function's
 fuse
 futured
@@ -377,6 +384,7 @@ https
 human
 i
 i'll
+i2b
 id
 identifies
 identifying
@@ -438,13 +446,14 @@ json
 juxtaposition
 juxtapositions
 k
-k’s
+kallentu
 kernel's
 kernel2kernel
 klass
 kmillikin
 kustermann
 kv
+k’s
 l
 lacks
 lang
@@ -621,13 +630,13 @@ queries
 quick
 quoted
 r
+r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
-r'$creation
 radix
 raises
 ran
@@ -1003,6 +1012,7 @@ xxxx
 xxxxxx
 xxxxxxx
 y
+y`s
 yaml
 yet
 yielding

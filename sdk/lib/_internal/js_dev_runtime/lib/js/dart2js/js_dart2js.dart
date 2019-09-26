@@ -523,6 +523,7 @@ Expando<Function> _interopExpando = Expando<Function>();
 ///
 /// Calling this method repeatedly on a function will return the same result.
 F allowInterop<F extends Function>(F f) {
+  if (!dart.isDartFunction(f)) return f;
   var ret = _interopExpando[f];
   if (ret == null) {
     ret = JS(
@@ -547,6 +548,7 @@ Expando<Function> _interopCaptureThisExpando = Expando<Function>();
 ///
 /// When called from Dart, [null] will be passed as the first argument.
 Function allowInteropCaptureThis(Function f) {
+  if (!dart.isDartFunction(f)) return f;
   var ret = _interopCaptureThisExpando[f];
   if (ret == null) {
     ret = JS(

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:core' hide MapEntry;
 import 'dart:collection';
+import 'dart:core' hide MapEntry;
+
 import 'package:analyzer/dart/element/element.dart' as a;
 import 'package:analyzer/dart/element/type.dart' as a;
 import 'package:analyzer/file_system/physical_file_system.dart' as a;
@@ -13,18 +14,19 @@ import 'package:analyzer/src/dart/element/member.dart' as a;
 import 'package:analyzer/src/dart/element/type.dart' as a;
 import 'package:analyzer/src/generated/constant.dart' as a;
 import 'package:analyzer/src/generated/engine.dart' as a;
+import 'package:analyzer/src/generated/resolver.dart' as a
+    show NamespaceBuilder, TypeProvider;
 import 'package:analyzer/src/generated/source.dart' as a;
 import 'package:analyzer/src/generated/type_system.dart' as a;
 import 'package:analyzer/src/summary/idl.dart' as a;
 import 'package:analyzer/src/summary/package_bundle_reader.dart' as a;
 import 'package:analyzer/src/summary/summary_sdk.dart' as a;
-import 'package:analyzer/src/generated/resolver.dart' as a
-    show NamespaceBuilder, TypeProvider;
 import 'package:front_end/src/api_unstable/ddc.dart'
     show RedirectingFactoryBody;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../analyzer/type_utilities.dart' hide freeTypeParameters;
 import 'type_table.dart';
 
 /// Converts an Analyzer summary file to a Kernel [Component].
@@ -471,7 +473,8 @@ class AnalyzerToKernel {
       if (typeParams.isNotEmpty) {
         // Skip past the type formals, we'll add them back below, so these
         // type parameter names will end up in scope in the generated JS.
-        type = type.instantiate(typeParams.map((f) => f.type).toList());
+        type = type.instantiate(
+            typeParams.map((f) => getLegacyTypeParameterType(f)).toList());
       }
     }
     t.typeParameters.addAll(typeParams.map(visitTypeParameterElement));
@@ -732,7 +735,8 @@ class AnalyzerToKernel {
   }
 
   bool _isGenericCovariant(a.ClassElement c, a.DartType type) {
-    var classUpperBound = rules.instantiateToBounds(c.type) as a.InterfaceType;
+    var classUpperBound =
+        rules.instantiateToBounds(getLegacyRawClassType(c)) as a.InterfaceType;
     var typeUpperBound = type.substitute2(classUpperBound.typeArguments,
         a.TypeParameterTypeImpl.getTypes(classUpperBound.typeParameters));
     // Is it safe to assign the upper bound of the field/parameter to it?

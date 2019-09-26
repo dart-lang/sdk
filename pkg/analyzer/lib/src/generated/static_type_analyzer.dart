@@ -117,8 +117,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * Given a formal parameter list and a function type use the function type
    * to infer types for any of the parameters which have implicit (missing)
-   * types.  Only infers types in strong mode.  Returns true if inference
-   * has occurred.
+   * types.  Returns true if inference has occurred.
    */
   bool inferFormalParameterList(
       FormalParameterList node, DartType functionType) {
@@ -523,34 +522,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _resolver.extensionResolver.resolveOverride(node);
-  }
-
-  /// No inference is performed here; just static checking for the
-  /// "strict-inference" static analysis mode.
-  @override
-  void visitFormalParameterList(FormalParameterList node) {
-    void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
-      ParameterElement element = parameter.declaredElement;
-      if (parameter.type == null) {
-        _resolver.errorReporter.reportTypeErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
-          parameter,
-          [element.displayName],
-        );
-      }
-    }
-
-    if (_strictInference) {
-      for (FormalParameter parameter in node.parameters) {
-        if (parameter is SimpleFormalParameter) {
-          checkParameterTypeIsKnown(parameter);
-        } else if (parameter is DefaultFormalParameter) {
-          if (parameter.parameter is SimpleFormalParameter) {
-            checkParameterTypeIsKnown(parameter.parameter);
-          }
-        }
-      }
-    }
   }
 
   @override

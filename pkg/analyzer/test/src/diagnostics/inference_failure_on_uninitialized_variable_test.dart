@@ -20,111 +20,21 @@ main() {
 class InferenceFailureOnUninitializedVariableTest
     extends StaticTypeAnalyzer2TestShared {
   @override
-  void setUp() {
-    super.setUp();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.strictInference = true;
-    resetWith(options: options);
-  }
-
-  test_localVariable() async {
-    String code = r'''
-void f() {
-  var a;
-}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
-  }
-
-  test_localVariable_withInitializer() async {
-    String code = r'''
-void f() {
-  var a = 7;
-}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
-  }
-
-  test_localVariable_withType() async {
-    String code = r'''
-void f() {
-  int a;
-  dynamic b;
-  Object c;
-  Null d;
-}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
-  }
-
-  test_topLevelVariable() async {
-    String code = r'''
-var a;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
-  }
-
-  test_topLevelVariable_withInitializer() async {
-    String code = r'''
-var a = 7;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
-  }
-
-  test_topLevelVariable_withType() async {
-    String code = r'''
-int a;
-dynamic b;
-Object c;
-Null d;
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
-  }
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..strictInference = true;
 
   test_field() async {
-    String code = r'''
+    await assertErrorsInCode(r'''
 class C {
   var a;
 }
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
-  }
-
-  test_finalField() async {
-    String code = r'''
-class C {
-  final a;
-  C(this.a);
-}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
-  }
-
-  test_staticField() async {
-    String code = r'''
-class C {
-  static var a;
-}
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertErrorsInCode(
-        code, [HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE]);
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 16, 1),
+    ]);
   }
 
   test_field_withInitializer() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 class C {
   static var c = 3;
   static final d = 5;
@@ -132,13 +42,11 @@ class C {
   var a = 7;
   final b = 9;
 }
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
+''');
   }
 
   test_field_withType() async {
-    String code = r'''
+    await assertNoErrorsInCode(r'''
 class C {
   static int c;
   static final int d = 5;
@@ -148,8 +56,87 @@ class C {
 
   C(this.b);
 }
-''';
-    await resolveTestUnit(code, noErrors: false);
-    await assertNoErrorsInCode(code);
+''');
+  }
+
+  test_finalField() async {
+    await assertErrorsInCode(r'''
+class C {
+  final a;
+  C(this.a);
+}
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 18, 1),
+    ]);
+  }
+
+  test_localVariable() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var a;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 17, 1),
+    ]);
+  }
+
+  test_localVariable_withInitializer() async {
+    await assertErrorsInCode(r'''
+void f() {
+  var a = 7;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+    ]);
+  }
+
+  test_localVariable_withType() async {
+    await assertErrorsInCode(r'''
+void f() {
+  int a;
+  dynamic b;
+  Object c;
+  Null d;
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+    ]);
+  }
+
+  test_staticField() async {
+    await assertErrorsInCode(r'''
+class C {
+  static var a;
+}
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 23, 1),
+    ]);
+  }
+
+  test_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+var a;
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 4, 1),
+    ]);
+  }
+
+  test_topLevelVariable_withInitializer() async {
+    await assertNoErrorsInCode(r'''
+var a = 7;
+''');
+  }
+
+  test_topLevelVariable_withType() async {
+    await assertNoErrorsInCode(r'''
+int a;
+dynamic b;
+Object c;
+Null d;
+''');
   }
 }

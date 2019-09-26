@@ -942,6 +942,12 @@ class TextSerializationVerifier implements Visitor<void> {
   }
 
   @override
+  void visitNullCheck(NullCheck node) {
+    storeLastSeenUriAndOffset(node);
+    makeExpressionRoundTrip(node);
+  }
+
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     storeLastSeenUriAndOffset(node);
     makeExpressionRoundTrip(node);

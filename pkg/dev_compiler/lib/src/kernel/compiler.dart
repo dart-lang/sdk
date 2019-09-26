@@ -1194,7 +1194,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.Expression className, List<js_ast.Statement> body) {
     void emitExtensions(String helperName, Iterable<String> extensions) {
       if (extensions.isEmpty) return;
-
       var names = extensions
           .map((e) => propertyName(js_ast.memberNameForDartMember(e)))
           .toList();
@@ -2267,8 +2266,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     useExtension ??= _isSymbolizedMember(memberClass, name);
-    name = js_ast.memberNameForDartMember(
-        name, member is Procedure && member.isExternal);
+    name = js_ast.memberNameForDartMember(name, _isExternal(member));
     if (useExtension) {
       return getExtensionSymbolInternal(name);
     }
@@ -2292,7 +2290,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
-      if (member is Field || member is Procedure && member.isExternal) {
+      if (member is Field || _isExternal(member)) {
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
       } else {
@@ -2382,6 +2380,46 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTopLevelMemberName(NamedNode n, {String suffix = ''}) {
     var name = _jsExportName(n) ?? getTopLevelName(n);
     return propertyName(name + suffix);
+  }
+
+  bool _isExternal(Member m) {
+    // Corresponds to the names in memberNameForDartMember in
+    // compiler/js_names.dart.
+    const renamedJsMembers = ["prototype", "constructor"];
+    if (m is Procedure) {
+      if (m.isExternal) return true;
+      if (m.isNoSuchMethodForwarder) {
+        if (renamedJsMembers.contains(m.name.name)) {
+          return _hasExternalProcedure(m.enclosingClass, m.name.name);
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Returns true if anything up the class hierarchy externally defines a
+  /// procedure with name = [name].
+  ///
+  /// Used to determine when we should alias Dart-JS reserved members
+  /// (e.g., 'prototype' and 'constructor').
+  bool _hasExternalProcedure(Class c, String name) {
+    var classes = Queue<Class>()..add(c);
+
+    while (classes.isNotEmpty) {
+      var c = classes.removeFirst();
+      var classesToCheck = [
+        if (c.supertype != null) c.supertype.classNode,
+        for (var t in c.implementedTypes) if (t.classNode != null) t.classNode,
+      ];
+      classes.addAll(classesToCheck);
+      for (var procedure in c.procedures) {
+        if (procedure.name.name == name && !procedure.isNoSuchMethodForwarder) {
+          return procedure.isExternal;
+        }
+      }
+    }
+
+    return false;
   }
 
   String _getJSNameWithoutGlobal(NamedNode n) {
@@ -2651,7 +2689,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       /// Kernel represents `<T>` as `<T extends Object = dynamic>`. We can find
       /// explicit bounds by looking for anything *except* that.
       typeParameterHasExplicitBound(TypeParameter t) =>
-          t.bound != _types.objectType || t.defaultType != const DynamicType();
+          t.bound != _types.coreTypes.objectLegacyRawType ||
+          t.defaultType != const DynamicType();
 
       // If any explicit bounds were passed, emit them.
       if (typeFormals.any(typeParameterHasExplicitBound)) {
@@ -3147,7 +3186,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     if (node is AsExpression && node.isTypeError) {
-      assert(node.getStaticType(_types) == _types.boolType);
+      assert(node.getStaticType(_types) == _types.coreTypes.boolLegacyRawType);
       return runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
@@ -4317,7 +4356,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var rightType = right.getStaticType(_types);
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
-          leftType == _types.stringType && op == '+') {
+          leftType == _types.coreTypes.stringLegacyRawType && op == '+') {
         // Inline operations on primitive types where possible.
         // TODO(jmesserly): inline these from dart:core instead of hardcoding
         // the implementation details here.
@@ -4629,7 +4668,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // A static native element should just forward directly to the JS type's
       // member, for example `Css.supports(...)` in dart:html should be replaced
       // by a direct call to the DOM API: `global.CSS.supports`.
-      if (target is Procedure && target.isStatic && target.isExternal) {
+      if (_isExternal(target) && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
           var memberName = _annotationName(target, isJSName) ??
@@ -4894,6 +4933,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
+  js_ast.Expression visitNullCheck(NullCheck node) {
+    throw UnimplementedError('Unimplemented null check expression: $node');
+  }
+
+  @override
   js_ast.Expression visitLogicalExpression(LogicalExpression node) {
     // The operands of logical boolean operators are subject to boolean
     // conversion.
@@ -4918,9 +4962,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      parts.add(e.getStaticType(_types) == _types.stringType && !isNullable(e)
-          ? jsExpr
-          : runtimeCall('str(#)', [jsExpr]));
+      parts.add(
+          e.getStaticType(_types) == _types.coreTypes.stringLegacyRawType &&
+                  !isNullable(e)
+              ? jsExpr
+              : runtimeCall('str(#)', [jsExpr]));
     }
     if (parts.isEmpty) return js.string('');
     return js_ast.Expression.binary(parts, '+');
@@ -4966,7 +5012,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var lhs = _visitExpression(operand);
     var typeofName = _typeRep.typeFor(type).primitiveTypeOf;
     // Inline primitives other than int (which requires a Math.floor check).
-    if (typeofName != null && type != _types.intType) {
+    if (typeofName != null && type != _types.coreTypes.intLegacyRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
     } else {
       return js.call('#.is(#)', [_emitType(type), lhs]);

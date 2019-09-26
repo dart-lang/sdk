@@ -5,13 +5,49 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 
 import '../analyzer/element_helpers.dart';
 import '../compiler/js_names.dart' as js_ast;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
+
+/// Return the [InterfaceType] that itself has the legacy nullability, and for
+/// every type parameter a [TypeParameterType] instance with the legacy
+/// nullability is used as the corresponding type argument.
+InterfaceType getLegacyRawClassType(ClassElement element) {
+  var typeParameters = element.typeParameters;
+  var typeArguments = typeParameters.map(getLegacyTypeParameterType).toList();
+  return element.instantiate(
+    typeArguments: typeArguments,
+    nullabilitySuffix: NullabilitySuffix.star,
+  );
+}
+
+/// Return the [TypeParameterType] with the legacy nullability for the given
+/// type parameter [element].
+TypeParameterType getLegacyTypeParameterType(TypeParameterElement element) {
+  return element.instantiate(nullabilitySuffix: NullabilitySuffix.star);
+}
+
+/// Return the raw type (i.e. the type where type parameters are replaced with
+/// the corresponding [TypeParameterType]) for the given [element]. The type
+/// returned, and every [TypeParameterType] instance will have the legacy
+/// nullability suffix.
+DartType getLegacyElementType(TypeDefiningElement element) {
+  if (element is ClassElement) {
+    return getLegacyRawClassType(element);
+  } else if (element is DynamicElementImpl) {
+    return element.type;
+  } else if (element is TypeParameterElement) {
+    return getLegacyTypeParameterType(element);
+  } else {
+    throw StateError('Unsupported element: (${element.runtimeType}) $element');
+  }
+}
 
 Set<TypeParameterElement> freeTypeParameters(DartType t) {
   var result = Set<TypeParameterElement>();

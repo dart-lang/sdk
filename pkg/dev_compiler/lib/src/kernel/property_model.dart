@@ -147,11 +147,6 @@ class _LibraryVirtualFieldModel {
       // Enums are not extensible.
       return false;
     }
-    var libraryUri = class_.enclosingLibrary.importUri;
-    if (libraryUri.scheme == 'dart' && libraryUri.path.startsWith('_')) {
-      // There should be no extensible fields in private SDK libraries.
-      return false;
-    }
 
     if (!field.name.isPrivate) {
       // Public fields in public classes (or extensible private classes)

@@ -65,6 +65,11 @@ abstract class Devirtualization extends RecursiveVisitor<Null> {
       }
     }
 
+    if (arguments.types.isNotEmpty &&
+        arguments.types.length != func.typeParameters.length) {
+      return false;
+    }
+
     return true;
   }
 

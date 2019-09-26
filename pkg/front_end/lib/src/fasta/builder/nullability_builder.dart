@@ -29,9 +29,6 @@ class NullabilityBuilder {
   const NullabilityBuilder.nullable()
       : _syntacticNullability = SyntacticNullability.nullable;
 
-  const NullabilityBuilder.legacy()
-      : _syntacticNullability = SyntacticNullability.legacy;
-
   const NullabilityBuilder.omitted()
       : _syntacticNullability = SyntacticNullability.omitted;
 
@@ -40,23 +37,12 @@ class NullabilityBuilder {
       case Nullability.nullable:
         return const NullabilityBuilder.nullable();
       case Nullability.legacy:
-        return const NullabilityBuilder.legacy();
       case Nullability.nonNullable:
       case Nullability.neither:
       default:
         return const NullabilityBuilder.omitted();
     }
   }
-
-  /// Used temporarily in the places that need proper handling of NNBD features.
-  ///
-  /// Over time the uses of [NullabilityBuilder.pendingImplementation] should be
-  /// eliminated, and the constructor should be eventually removed.  Currently,
-  /// it redirects to [NullabilityBuilder.legacy] as a conservative safety
-  /// measure for the pre-NNBD code and as a visible reminder of the feature
-  /// implementation being in progress in the NNBD code.
-  // TODO(38286): Remove this constructor.
-  const NullabilityBuilder.pendingImplementation() : this.legacy();
 
   Nullability build(LibraryBuilder libraryBuilder, {Nullability ifOmitted}) {
     // TODO(dmitryas): Ensure that either ifOmitted is set or libraryBuilder is
@@ -93,5 +79,11 @@ class NullabilityBuilder {
     }
     unhandled("$_syntacticNullability", "writeNullabilityOn", TreeNode.noOffset,
         noLocation);
+  }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    writeNullabilityOn(buffer);
+    return "$buffer";
   }
 }

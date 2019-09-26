@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
@@ -26,7 +24,7 @@ class ElementLocatorTest extends DriverResolutionTest {
   }
 
   test_locate_AssignmentExpression() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 int x = 0;
 void main() {
   x += 1;
@@ -38,21 +36,21 @@ void main() {
   }
 
   test_locate_BinaryExpression() async {
-    await _resolveTestCode('var x = 3 + 4');
+    await resolveTestCode('var x = 3 + 4');
     var node = findNode.binary('+');
     var element = ElementLocator.locate(node);
     expect(element, isMethodElement);
   }
 
   test_locate_ClassDeclaration() async {
-    await _resolveTestCode('class A {}');
+    await resolveTestCode('class A {}');
     var node = findNode.classDeclaration('class');
     var element = ElementLocator.locate(node);
     expect(element, isClassElement);
   }
 
   test_locate_CompilationUnit() async {
-    await _resolveTestCode('// only comment');
+    await resolveTestCode('// only comment');
 
     var unitElement = result.unit.declaredElement;
     expect(unitElement, isNotNull);
@@ -62,7 +60,7 @@ void main() {
   }
 
   test_locate_ConstructorDeclaration() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {
   A.foo();
 }
@@ -73,21 +71,21 @@ class A {
   }
 
   test_locate_ExportDirective() async {
-    await _resolveTestCode("export 'dart:code';");
+    await resolveTestCode("export 'dart:code';");
     var node = findNode.export('export');
     var element = ElementLocator.locate(node);
     expect(element, isExportElement);
   }
 
   test_locate_FunctionDeclaration() async {
-    await _resolveTestCode('int f() => 3;');
+    await resolveTestCode('int f() => 3;');
     var node = findNode.functionDeclaration('f');
     var element = ElementLocator.locate(node);
     expect(element, isFunctionElement);
   }
 
   test_locate_Identifier_annotationClass_namedConstructor() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class Class {
   const Class.name();
 }
@@ -99,7 +97,7 @@ void main(@Class.name() parameter) {}
   }
 
   test_locate_Identifier_annotationClass_unnamedConstructor() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class Class {
   const Class();
 }
@@ -111,14 +109,14 @@ void main(@Class() parameter) {}
   }
 
   test_locate_Identifier_className() async {
-    await _resolveTestCode('class A {}');
+    await resolveTestCode('class A {}');
     var node = findNode.simple('A');
     var element = ElementLocator.locate(node);
     expect(element, isClassElement);
   }
 
   test_locate_Identifier_constructor_named() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {
   A.bar();
 }
@@ -129,7 +127,7 @@ class A {
   }
 
   test_locate_Identifier_constructor_unnamed() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {
   A();
 }
@@ -140,7 +138,7 @@ class A {
   }
 
   test_locate_Identifier_fieldName() async {
-    await _resolveTestCode('''
+    await resolveTestCode('''
 class A {
   var x;
 }
@@ -151,14 +149,14 @@ class A {
   }
 
   test_locate_Identifier_libraryDirective() async {
-    await _resolveTestCode('library foo.bar;');
+    await resolveTestCode('library foo.bar;');
     var node = findNode.simple('foo');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
   }
 
   test_locate_Identifier_propertyAccess() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 void main() {
  int x = 'foo'.length;
 }
@@ -169,14 +167,14 @@ void main() {
   }
 
   test_locate_ImportDirective() async {
-    await _resolveTestCode("import 'dart:core';");
+    await resolveTestCode("import 'dart:core';");
     var node = findNode.import('import');
     var element = ElementLocator.locate(node);
     expect(element, isImportElement);
   }
 
   test_locate_IndexExpression() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 void main() {
   var x = [1, 2];
   var y = x[0];
@@ -188,7 +186,7 @@ void main() {
   }
 
   test_locate_InstanceCreationExpression() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {}
 
 void main() {
@@ -204,7 +202,7 @@ void main() {
     newFile('/test/lib/a.dart', content: r'''
 class A {}
 ''');
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 import 'a.dart' as pref;
 
 void main() {
@@ -219,7 +217,7 @@ void main() {
   test_locate_InstanceCreationExpression_type_simpleIdentifier() async {
     newFile('/test/lib/a.dart', content: r'''
 ''');
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {}
 
 void main() {
@@ -232,14 +230,14 @@ void main() {
   }
 
   test_locate_LibraryDirective() async {
-    await _resolveTestCode('library foo;');
+    await resolveTestCode('library foo;');
     var node = findNode.library('library');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
   }
 
   test_locate_MethodDeclaration() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {
   void foo() {}
 }
@@ -250,7 +248,7 @@ class A {
   }
 
   test_locate_MethodInvocation_method() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 class A {
   void foo() {}
 }
@@ -265,7 +263,7 @@ void main() {
   }
 
   test_locate_MethodInvocation_topLevel() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 foo(x) {}
 
 void main() {
@@ -289,21 +287,21 @@ part 'test.dart';
     driver.addFile(libPath);
     driver.addFile(partPath);
 
-    await _resolveTestCode('part of my.lib;');
+    await resolveTestCode('part of my.lib;');
     var node = findNode.partOf('part of');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
   }
 
   test_locate_PostfixExpression() async {
-    await _resolveTestCode('int addOne(int x) => x++;');
+    await resolveTestCode('int addOne(int x) => x++;');
     var node = findNode.postfix('x++');
     var element = ElementLocator.locate(node);
     expect(element, isMethodElement);
   }
 
   test_locate_PrefixedIdentifier() async {
-    await _resolveTestCode(r'''
+    await resolveTestCode(r'''
 import 'dart:core' as core;
 core.int value;
 ''');
@@ -313,7 +311,7 @@ core.int value;
   }
 
   test_locate_PrefixExpression() async {
-    await _resolveTestCode('int addOne(int x) => ++x;');
+    await resolveTestCode('int addOne(int x) => ++x;');
     var node = findNode.prefix('++x');
     var element = ElementLocator.locate(node);
     expect(element, isMethodElement);
@@ -321,14 +319,14 @@ core.int value;
 
   test_locate_StringLiteral_exportUri() async {
     newFile("/test/lib/foo.dart", content: '');
-    await _resolveTestCode("export 'foo.dart';");
+    await resolveTestCode("export 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
   }
 
   test_locate_StringLiteral_expression() async {
-    await _resolveTestCode("var x = 'abc';");
+    await resolveTestCode("var x = 'abc';");
     var node = findNode.stringLiteral('abc');
     var element = ElementLocator.locate(node);
     expect(element, isNull);
@@ -336,7 +334,7 @@ core.int value;
 
   test_locate_StringLiteral_importUri() async {
     newFile("/test/lib/foo.dart", content: '');
-    await _resolveTestCode("import 'foo.dart';");
+    await resolveTestCode("import 'foo.dart';");
     var node = findNode.stringLiteral('foo.dart');
     var element = ElementLocator.locate(node);
     expect(element, isLibraryElement);
@@ -344,7 +342,7 @@ core.int value;
 
   test_locate_StringLiteral_partUri() async {
     newFile("/test/lib/foo.dart", content: 'part of lib;');
-    await _resolveTestCode('''
+    await resolveTestCode('''
 library lib;
 
 part 'foo.dart';
@@ -355,14 +353,9 @@ part 'foo.dart';
   }
 
   test_locate_VariableDeclaration() async {
-    await _resolveTestCode('var x = 42;');
+    await resolveTestCode('var x = 42;');
     var node = findNode.variableDeclaration('x =');
     var element = ElementLocator.locate(node);
     expect(element, isTopLevelVariableElement);
-  }
-
-  Future<void> _resolveTestCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
   }
 }

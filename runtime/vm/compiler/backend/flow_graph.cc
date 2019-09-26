@@ -1029,14 +1029,15 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     VariableLivenessAnalysis* variable_liveness,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
   ASSERT(!IsCompiledForOsr());
-  const intptr_t parameter_count = num_direct_parameters_;
+  const intptr_t direct_parameter_count = num_direct_parameters_;
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
       ((inlining_parameters != NULL) && function().IsGeneric()) ? 1 : 0;
 
-  ASSERT(parameter_count <= env->length());
-  for (intptr_t i = 0; i < parameter_count; i++) {
+  ASSERT(variable_count() == env->length());
+  ASSERT(direct_parameter_count <= env->length());
+  for (intptr_t i = 0; i < direct_parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, function_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
     AddToInitialDefinitions(function_entry, param);
@@ -1097,8 +1098,7 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
   // passed as parameters. The latter mimics the incoming expression
   // stack that was set up prior to triggering OSR.
   const intptr_t parameter_count = osr_variable_count();
-  ASSERT(env->length() == (parameter_count - osr_entry->stack_depth()));
-  env->EnsureLength(parameter_count, constant_dead());
+  ASSERT(parameter_count == env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, osr_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
@@ -1120,7 +1120,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
           : -1;
 
   // Add real definitions for all locals and parameters.
-  ASSERT(variable_count() <= env->length());
+  ASSERT(variable_count() == env->length());
   for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
     // Replace usages of the raw exception/stacktrace variables with
     // [SpecialParameterInstr]s.
@@ -1288,7 +1288,7 @@ void FlowGraph::RenameRecursive(
         PushArgumentInstr* push_arg = current->PushArgumentAt(i);
         ASSERT(push_arg->IsPushArgument());
         ASSERT(reaching_defn->ssa_temp_index() != -1);
-        ASSERT(reaching_defn->IsPhi());
+        ASSERT(reaching_defn->IsPhi() || reaching_defn == constant_dead());
         push_arg->ReplaceUsesWith(push_arg->InputAt(0)->definition());
         push_arg->UnuseAllInputs();
         push_arg->previous()->LinkTo(push_arg->next());
@@ -1416,29 +1416,30 @@ void FlowGraph::RenameRecursive(
     // Update expression stack and remove current instruction from the graph.
     Definition* definition = current->Cast<Definition>();
     if (definition->HasTemp()) {
-      ASSERT(result != NULL);
+      ASSERT(result != nullptr);
       env->Add(result);
     }
     it.RemoveCurrentFromGraph();
   }
 
   // 3. Process dominated blocks.
-  BlockEntryInstr* osr_succ =
-      (block_entry == graph_entry() && IsCompiledForOsr())
-          ? graph_entry()->osr_entry()->last_instruction()->SuccessorAt(0)
-          : nullptr;
+  const bool set_stack = (block_entry == graph_entry()) && IsCompiledForOsr();
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Definition*> new_env(env->length());
     new_env.AddArray(*env);
-    ASSERT(block != nullptr);
-    if (block == osr_succ) {
-      // During OSR, when visiting the successor block of the OSR entry from
-      // the graph entry (rather than going through the OSR entry first), we
-      // must adjust the environment to mimic a non-empty incoming expression
-      // stack to ensure temporaries refer to the right stack items.
-      new_env.FillWith(constant_dead(), new_env.length(),
-                       graph_entry()->osr_entry()->stack_depth());
+    // During OSR, when traversing from the graph entry directly any block
+    // (which may be a non-entry), we must adjust the environment to mimic
+    // a non-empty incoming expression stack to ensure temporaries refer to
+    // the right stack items.
+    const intptr_t stack_depth = block->stack_depth();
+    ASSERT(stack_depth >= 0);
+    if (set_stack) {
+      ASSERT(variable_count() == new_env.length());
+      new_env.FillWith(constant_dead(), variable_count(), stack_depth);
+    } else if (!block->last_instruction()->IsTailCall()) {
+      // Assert environment integrity otherwise.
+      ASSERT((variable_count() + stack_depth) == new_env.length());
     }
     RenameRecursive(block, &new_env, live_phis, variable_liveness,
                     inlining_parameters);

@@ -3318,6 +3318,26 @@ const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
         r"""Explicit extension application requires exactly 1 positional argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionAsExpression =
+    messageExplicitExtensionAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionAsExpression = const MessageCode(
+    "ExplicitExtensionAsExpression",
+    message:
+        r"""Explicit extension application cannot be used as an expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExplicitExtensionAsLvalue =
+    messageExplicitExtensionAsLvalue;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExplicitExtensionAsLvalue = const MessageCode(
+    "ExplicitExtensionAsLvalue",
+    message:
+        r"""Explicit extension application cannot be a target for assignment.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -4777,30 +4797,35 @@ Message _withArgumentsImplicitCallOfNonMethod(DartType _type) {
 const Template<
     Message Function(
         String name,
+        String name2,
         String
-            name2)> templateImplicitMixinOverrideContext = const Template<
-        Message Function(String name, String name2)>(
+            name3)> templateImplicitMixinOverride = const Template<
+        Message Function(String name, String name2, String name3)>(
     messageTemplate:
-        r"""Override was introduced when the mixin '#name' was applied to '#name2'.""",
-    withArguments: _withArgumentsImplicitMixinOverrideContext);
+        r"""Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'.""",
+    withArguments: _withArgumentsImplicitMixinOverride);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeImplicitMixinOverrideContext =
-    const Code<Message Function(String name, String name2)>(
-        "ImplicitMixinOverrideContext", templateImplicitMixinOverrideContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2, String name3)>
+    codeImplicitMixinOverride =
+    const Code<Message Function(String name, String name2, String name3)>(
+  "ImplicitMixinOverride",
+  templateImplicitMixinOverride,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsImplicitMixinOverrideContext(String name, String name2) {
+Message _withArgumentsImplicitMixinOverride(
+    String name, String name2, String name3) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (name2.isEmpty) throw 'No name provided';
   name2 = demangleMixinApplicationName(name2);
-  return new Message(codeImplicitMixinOverrideContext,
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  return new Message(codeImplicitMixinOverride,
       message:
-          """Override was introduced when the mixin '${name}' was applied to '${name2}'.""",
-      arguments: {'name': name, 'name2': name2});
+          """Applying the mixin '${name}' to '${name2}' introduces an erroneous override of '${name3}'.""",
+      arguments: {'name': name, 'name2': name2, 'name3': name3});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5656,27 +5681,31 @@ Message _withArgumentsIntegerLiteralIsOutOfRange(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String name,
         String
-            name)> templateInterfaceCheckContext = const Template<
-        Message Function(String name)>(
+            name2)> templateInterfaceCheck = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""Both members are inherited by the non-abstract class '#name'.""",
-    withArguments: _withArgumentsInterfaceCheckContext);
+        r"""The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface.""",
+    withArguments: _withArgumentsInterfaceCheck);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeInterfaceCheckContext =
-    const Code<Message Function(String name)>(
-        "InterfaceCheckContext", templateInterfaceCheckContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2)> codeInterfaceCheck =
+    const Code<Message Function(String name, String name2)>(
+  "InterfaceCheck",
+  templateInterfaceCheck,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInterfaceCheckContext(String name) {
+Message _withArgumentsInterfaceCheck(String name, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeInterfaceCheckContext,
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInterfaceCheck,
       message:
-          """Both members are inherited by the non-abstract class '${name}'.""",
-      arguments: {'name': name});
+          """The implementation of '${name}' in the non-abstract class '${name2}' does not conform to its interface.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5940,6 +5969,37 @@ Message _withArgumentsInternalProblemUnexpected(String string, String string2) {
   return new Message(codeInternalProblemUnexpected,
       message: """Expected '${string}', but got '${string2}'.""",
       arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        Uri
+            uri_)> templateInternalProblemUnfinishedTypeVariable = const Template<
+        Message Function(String name, Uri uri_)>(
+    messageTemplate:
+        r"""Unfinished type variable '#name' found in non-source library '#uri'.""",
+    withArguments: _withArgumentsInternalProblemUnfinishedTypeVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)>
+    codeInternalProblemUnfinishedTypeVariable =
+    const Code<Message Function(String name, Uri uri_)>(
+        "InternalProblemUnfinishedTypeVariable",
+        templateInternalProblemUnfinishedTypeVariable,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnfinishedTypeVariable(
+    String name, Uri uri_) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  String uri = relativizeUri(uri_);
+  return new Message(codeInternalProblemUnfinishedTypeVariable,
+      message:
+          """Unfinished type variable '${name}' found in non-source library '${uri}'.""",
+      arguments: {'name': name, 'uri': uri_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7300,6 +7360,17 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
     tip: r"""Try combining all of the on clauses into a single clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMultipleVarianceModifiers =
+    messageMultipleVarianceModifiers;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMultipleVarianceModifiers = const MessageCode(
+    "MultipleVarianceModifiers",
+    index: 97,
+    message: r"""Each type parameter can have at most one variance modifier.""",
+    tip: r"""Use at most one of the 'in', 'out', or 'inout' modifiers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7320,27 +7391,31 @@ const MessageCode messageNamedFunctionExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
+        String name,
         String
-            name)> templateNamedMixinOverrideContext = const Template<
-        Message Function(String name)>(
+            name2)> templateNamedMixinOverride = const Template<
+        Message Function(String name, String name2)>(
     messageTemplate:
-        r"""Override was introduced in the mixin application class '#name'.""",
-    withArguments: _withArgumentsNamedMixinOverrideContext);
+        r"""The mixin application class '#name' introduces an erroneous override of '#name2'.""",
+    withArguments: _withArgumentsNamedMixinOverride);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeNamedMixinOverrideContext =
-    const Code<Message Function(String name)>(
-        "NamedMixinOverrideContext", templateNamedMixinOverrideContext,
-        severity: Severity.context);
+const Code<Message Function(String name, String name2)> codeNamedMixinOverride =
+    const Code<Message Function(String name, String name2)>(
+  "NamedMixinOverride",
+  templateNamedMixinOverride,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsNamedMixinOverrideContext(String name) {
+Message _withArgumentsNamedMixinOverride(String name, String name2) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeNamedMixinOverrideContext,
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeNamedMixinOverride,
       message:
-          """Override was introduced in the mixin application class '${name}'.""",
-      arguments: {'name': name});
+          """The mixin application class '${name}' introduces an erroneous override of '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -27,10 +27,8 @@ extension Extension2 on self::Class* {
 }
 static method Extension1|get#field(final self::Class* #this) → core::int*
   return #this.{self::Class::field1};
-static method Extension1|set#field(final self::Class* #this, core::int* value) → core::int* {
-  final core::int* #t1 = value;
+static method Extension1|set#field(final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field1} = value;
-  return #t1;
 }
 static method Extension1|method(final self::Class* #this) → core::int*
   return #this.{self::Class::field1};
@@ -42,10 +40,8 @@ static method Extension1|get#genericMethod(final self::Class* #this) → <T exte
   return <T extends core::num* = dynamic>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
 static method Extension2|get#field(final self::Class* #this) → core::int*
   return #this.{self::Class::field2};
-static method Extension2|set#field(final self::Class* #this, core::int* value) → core::int* {
-  final core::int* #t2 = value;
+static method Extension2|set#field(final self::Class* #this, core::int* value) → void {
   #this.{self::Class::field2} = value;
-  return #t2;
 }
 static method Extension2|method(final self::Class* #this) → core::int*
   return #this.{self::Class::field2};
@@ -75,8 +71,8 @@ static method main() → dynamic {
   self::expect(97, genericTearOff2.call<core::int*>(10));
   self::expect(52, genericTearOff1.call<core::num*>(10));
   self::expect(97, genericTearOff2.call<core::num*>(10));
-  self::expect(23, self::Extension1|set#field(c, 23));
-  self::expect(67, self::Extension2|set#field(c, 67));
+  self::expect(23, let final self::Class* #t1 = c in let final core::int* #t2 = 23 in let final void #t3 = self::Extension1|set#field(#t1, #t2) in #t2);
+  self::expect(67, let final self::Class* #t4 = c in let final core::int* #t5 = 67 in let final void #t6 = self::Extension2|set#field(#t4, #t5) in #t5);
   self::expect(23, self::Extension1|get#field(c));
   self::expect(67, self::Extension2|get#field(c));
 }

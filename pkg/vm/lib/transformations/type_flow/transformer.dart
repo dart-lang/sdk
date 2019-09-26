@@ -130,7 +130,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
-        _intType = _typeFlowAnalysis.environment.intType {
+        _intType = _typeFlowAnalysis.environment.coreTypes.intLegacyRawType {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);

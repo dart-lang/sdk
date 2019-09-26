@@ -554,6 +554,11 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleVarianceModifier(Token variance) {
+    debugEvent("VarianceModifier");
+  }
+
+  @override
   void endConstructorReference(
       Token start, Token periodBeforeName, Token endToken) {
     debugEvent("ConstructorReference");

@@ -133,7 +133,7 @@ class ClassTypeAliasTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class ConstructorDeclarationTest extends EngineTestCase {
+class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     externalKeyword.offset = 14;
@@ -205,7 +205,7 @@ class ConstructorDeclarationTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class FieldFormalParameterTest extends EngineTestCase {
+class FieldFormalParameterTest {
   void test_endToken_noParameters() {
     FieldFormalParameter parameter =
         AstTestFactory.fieldFormalParameter2('field');
@@ -220,7 +220,7 @@ class FieldFormalParameterTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class IndexExpressionTest extends EngineTestCase {
+class IndexExpressionTest {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
@@ -343,7 +343,7 @@ class IndexExpressionTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class MethodDeclarationTest extends EngineTestCase {
+class MethodDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
     MethodDeclaration declaration =
         AstTestFactory.methodDeclaration4(external: true, name: 'm');
@@ -406,7 +406,7 @@ class MethodInvocationTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class NodeListTest extends EngineTestCase {
+class NodeListTest {
   void test_add() {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);

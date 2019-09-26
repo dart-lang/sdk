@@ -293,6 +293,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
     Monitor idleStatusMonitor = new Monitor();
     List<AnalysisStatus> allStatuses = [];
+    // awaiting times out.
+    // ignore: unawaited_futures
     scheduler.status.forEach((status) {
       allStatuses.add(status);
       if (status.isIdle) {
@@ -322,6 +324,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
     Monitor idleStatusMonitor = new Monitor();
     List<AnalysisStatus> allStatuses = [];
+    // awaiting times out.
+    // ignore: unawaited_futures
     scheduler.status.forEach((status) {
       allStatuses.add(status);
       if (status.isIdle) {
@@ -2300,7 +2304,7 @@ import 'package:test/b.dart';
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Request of referenced names is not analysis of a file.
-    driver.getFilesReferencingName('X');
+    await driver.getFilesReferencingName('X');
     expect(driver.hasFilesToAnalyze, isFalse);
   }
 

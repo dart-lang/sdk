@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -716,14 +716,26 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new InstrumentationValueForMember(target.member));
     }
 
-    if (target.isUnresolved && includeExtensionMethods) {
+    if (target.isUnresolved &&
+        receiverType is! DynamicType &&
+        includeExtensionMethods) {
+      Member otherMember =
+          _getInterfaceMember(classNode, name, !setter, fileOffset);
+      if (otherMember != null) {
+        // If we're looking for `foo` and `foo=` can be found or vice-versa then
+        // extension methods should not be found.
+        return target;
+      }
+
       ExtensionAccessCandidate bestSoFar;
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
       library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
-        MemberBuilder memberBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: setter);
-        if (memberBuilder != null && !memberBuilder.isStatic) {
-          Extension extension = extensionBuilder.extension;
+        MemberBuilder getterBuilder =
+            extensionBuilder.lookupLocalMember(name.name, setter: false);
+        MemberBuilder setterBuilder =
+            extensionBuilder.lookupLocalMember(name.name, setter: true);
+        if ((getterBuilder != null && !getterBuilder.isStatic) ||
+            (setterBuilder != null && !setterBuilder.isStatic)) {
           DartType onType;
           DartType onTypeInstantiateToBounds;
           List<DartType> inferredTypeArguments;
@@ -762,15 +774,20 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           }
 
           if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
+            MemberBuilder memberBuilder =
+                setter ? setterBuilder : getterBuilder;
+
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
-                extension,
                 onType,
                 onTypeInstantiateToBounds,
-                new ObjectAccessTarget.extensionMember(
-                    memberBuilder.procedure,
-                    memberBuilder.extensionTearOff,
-                    memberBuilder.kind,
-                    inferredTypeArguments));
+                memberBuilder != null
+                    ? new ObjectAccessTarget.extensionMember(
+                        memberBuilder.procedure,
+                        memberBuilder.extensionTearOff,
+                        memberBuilder.kind,
+                        inferredTypeArguments)
+                    : const ObjectAccessTarget.missing(),
+                isPlatform: extensionBuilder.library.uri.scheme == 'dart');
             if (noneMoreSpecific.isNotEmpty) {
               bool isMostSpecific = true;
               for (ExtensionAccessCandidate other in noneMoreSpecific) {
@@ -852,11 +869,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       expression.parent.replaceChild(
           expression,
-          helper.desugarSyntheticExpression(helper.buildProblem(
+          helper.buildProblem(
               errorTemplate.withArguments(
                   name.name, resolveTypeParameter(receiverType)),
               fileOffset,
-              length)));
+              length));
     }
     return target;
   }
@@ -1772,11 +1789,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (named.length == 2) {
       if (named[0].name == named[1].name) {
         String name = named[1].name;
-        Expression error = helper.desugarSyntheticExpression(
-            helper.buildProblem(
-                templateDuplicatedNamedArgument.withArguments(name),
-                named[1].fileOffset,
-                name.length));
+        Expression error = helper.buildProblem(
+            templateDuplicatedNamedArgument.withArguments(name),
+            named[1].fileOffset,
+            name.length);
         arguments.named = [new NamedExpression(named[1].name, error)];
         formalTypes.removeLast();
         actualTypes.removeLast();
@@ -1791,11 +1807,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (seenNames.containsKey(name)) {
           hasProblem = true;
           NamedExpression prevNamedExpression = seenNames[name];
-          prevNamedExpression.value = helper.desugarSyntheticExpression(
-              helper.buildProblem(
-                  templateDuplicatedNamedArgument.withArguments(name),
-                  expression.fileOffset,
-                  name.length))
+          prevNamedExpression.value = helper.buildProblem(
+              templateDuplicatedNamedArgument.withArguments(name),
+              expression.fileOffset,
+              name.length)
             ..parent = prevNamedExpression;
           formalTypes.removeAt(namedTypeIndex);
           actualTypes.removeAt(namedTypeIndex);
@@ -2549,7 +2564,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       expectedType = (expectedType as InterfaceType).typeArguments[0];
     }
     if (expectedType is FunctionType) return true;
-    if (expectedType == typeSchemaEnvironment.rawFunctionType) {
+    if (expectedType == typeSchemaEnvironment.functionLegacyRawType) {
       if (!typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
         return true;
       }
@@ -2841,11 +2856,11 @@ class ExtensionAccessCandidate {
   final bool isPlatform;
   final DartType onType;
   final DartType onTypeInstantiateToBounds;
-  final ExtensionAccessTarget target;
+  final ObjectAccessTarget target;
 
-  ExtensionAccessCandidate(Extension extension, this.onType,
-      this.onTypeInstantiateToBounds, this.target)
-      : isPlatform = extension.enclosingLibrary.importUri.scheme == 'dart';
+  ExtensionAccessCandidate(
+      this.onType, this.onTypeInstantiateToBounds, this.target,
+      {this.isPlatform});
 
   bool isMoreSpecificThan(TypeSchemaEnvironment typeSchemaEnvironment,
       ExtensionAccessCandidate other) {

@@ -35,18 +35,18 @@ const Base64Codec base64Url = Base64Codec.urlSafe();
 
 /// Encodes [bytes] using [base64](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for [base64.encode]. Useful if a local variable shadows the global
+/// Shorthand for `base64.encode`. Useful if a local variable shadows the global
 /// [base64] constant.
 String base64Encode(List<int> bytes) => base64.encode(bytes);
 
 /// Encodes [bytes] using [base64url](https://tools.ietf.org/html/rfc4648) encoding.
 ///
-/// Shorthand for [base64url.encode].
+/// Shorthand for `base64url.encode`.
 String base64UrlEncode(List<int> bytes) => base64Url.encode(bytes);
 
 /// Decodes [base64](https://tools.ietf.org/html/rfc4648) or [base64url](https://tools.ietf.org/html/rfc4648) encoded bytes.
 ///
-/// Shorthand for [base64.decode]. Useful if a local variable shadows the
+/// Shorthand for `base64.decode`. Useful if a local variable shadows the
 /// global [base64] constant.
 Uint8List base64Decode(String source) => base64.decode(source);
 

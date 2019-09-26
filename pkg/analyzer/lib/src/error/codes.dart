@@ -106,14 +106,35 @@ class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
  */
 class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
-   * Member lookups ignore abstract declarations, which means that there will
-   * be a compile-time error if the targeted member `m` is abstract, as well as
-   * when it does not exist at all.
-   *
    * Parameters:
    * 0: the display name for the kind of the found abstract member
    * 1: the name of the member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an inherited member is
+  // referenced using `super`, but there is no concrete implementation of the
+  // member in the superclass chain. Abstract members can't be invoked.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // abstract class A {
+  //   int get a;
+  // }
+  // class B extends A {
+  //   int get a => super.[!a!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the invocation of the abstract member, possibly replacing it with an
+  // invocation of a concrete member.
+  // TODO(brianwilkerson) This either needs to be generalized (use 'member'
+  //  rather than '{0}') or split into multiple codes.
   static const CompileTimeErrorCode ABSTRACT_SUPER_MEMBER_REFERENCE =
       const CompileTimeErrorCode('ABSTRACT_SUPER_MEMBER_REFERENCE',
           "The {0} '{1}' is always abstract in the supertype.");
@@ -410,12 +431,25 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try marking the function body with either 'async' or 'async*'.");
 
   /**
-   * It is a compile-time error if a built-in identifier is used as the declared
-   * name of an extension.
-   *
    * Parameters:
    * 0: the built-in identifier that is being used
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name of an extension is a
+  // built-in identifier. Built-in identifiers can’t be used as extension names.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension [!mixin!] on int {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Choose a different name for the extension.
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
       const CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
           "The built-in identifier '{0}' can't be used as an extension name.",
@@ -917,10 +951,62 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using a different value for the element, or "
               "removing the keyword 'const' from the set.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the expression of a spread
+  // operator in a constant list or set evaluates to something other than a list
+  // or a set.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // const List<int> list1 = null;
+  // const List<int> list2 = [...[!list1!]];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the expression to something that evaluates to either a constant list
+  // or a constant set:
+  //
+  // ```dart
+  // const List<int> list1 = [];
+  // const List<int> list2 = [...list1];
+  // ```
   static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
       const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
           "A list or a set is expected in this spread.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the expression of a spread
+  // operator in a constant map evaluates to something other than a map.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // const Map<String, int> map1 = null;
+  // const Map<String, int> map2 = {...[!map1!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Change the expression to something that evaluates to a constant map:
+  //
+  // ```dart
+  // const Map<String, int> map1 = {};
+  // const Map<String, int> map2 = {...map1};
+  // ```
   static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
       const CompileTimeErrorCode(
           'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
@@ -960,10 +1046,37 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try using 'new' to call the constructor.");
 
   /**
-   * 16.12.2 Const: In all of the above cases, it is a compile-time error if
-   * <i>a<sub>i</sub>, 1 &lt;= i &lt;= n + k</i>, is not a compile-time constant
-   * expression.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a const constructor is invoked
+  // with an argument that isn't a constant expression.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   final int i;
+  //   const C(this.i);
+  // }
+  // C f(int i) => const C([!i!]);
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Either make all of the arguments constant expressions, or remove the
+  // `const` keyword to use the non-constant form of the constructor:
+  //
+  // ```dart
+  // class C {
+  //   final int i;
+  //   const C(this.i);
+  // }
+  // C f(int i) => C(i);
+  // ```
   static const CompileTimeErrorCode CONST_WITH_NON_CONSTANT_ARGUMENT =
       const CompileTimeErrorCode('CONST_WITH_NON_CONSTANT_ARGUMENT',
           "Arguments of a constant creation must be constant expressions.",
@@ -1126,18 +1239,31 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try renaming one of the constructors.");
 
   /**
-   * 3.1 Scoping: It is a compile-time error if there is more than one entity
-   * with the same name declared in the same scope.
-   *
-   * 7 Classes: It is a compile-time error if a class declares two members of
-   * the same name.
-   *
-   * 7 Classes: It is a compile-time error if a class has an instance member and
-   * a static member with the same name.
-   *
    * Parameters:
    * 0: the name of the duplicate entity
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name is declared, and there is
+  // a previous declaration with the same name in the same scope.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // int x = 0;
+  // int [!x!] = 1;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Choose a different name for one of the declarations.
+  //
+  // ```dart
+  // int x = 0;
+  // int y = 1;
+  // ```
   static const CompileTimeErrorCode DUPLICATE_DEFINITION =
       const CompileTimeErrorCode(
           'DUPLICATE_DEFINITION', "The name '{0}' is already defined.",
@@ -1172,9 +1298,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "parameter.");
 
   /**
-   * 16.11 Sets: It is a compile-time error if two elements of a constant set
-   * literal are equal according to their `==` operator (16.27).
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when two elements in a constant set
+  // literal have the same value. The set can only contain each value once,
+  // which means that one of the values is unnecessary.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // const Set<String> set = {'a', [!'a'!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove one of the duplicate values:
+  //
+  // ```dart
+  // const Set<String> set = {'a'};
+  // ```
+  //
+  // Note that literal sets preserve the order of their elements, so the choice
+  // of which element to remove might affect the order in which elements are
+  // returned by an iterator.
   static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
       const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
           "Two values in a constant set can't be equal.");
@@ -1199,17 +1349,23 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If one of the keys was supposed to be different, then replace it:
+  // If both entries should be included in the map, then change one of the keys
+  // to be different:
   //
   // ```dart
   // const map = <int, String>{1: 'a', 2: 'b', 3: 'c', 4: 'd'};
   // ```
   //
-  // Otherwise, remove the key/value pair that isn't intended to be in the map:
+  // If only one of the entries is needed, then remove the one that isn't
+  // needed:
   //
   // ```dart
   // const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
   // ```
+  //
+  // Note that literal maps preserve the order of their entries, so the choice
+  // of which entry to remove might affect the order in which keys and values
+  // are returned by an iterator.
   static const CompileTimeErrorCode EQUAL_KEYS_IN_CONST_MAP =
       const CompileTimeErrorCode('EQUAL_KEYS_IN_CONST_MAP',
           "Two keys in a constant map literal can't be equal.",
@@ -1339,6 +1495,36 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the extension
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name of an extension is used
+  // in an expression other than in an extension override or to qualify an
+  // access to a static member of the extension.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on int {
+  //   static String m() => '';
+  // }
+  //
+  // var x = [!E!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name of the extension with a name that can be referenced, such
+  // as a static member defined on the extension:
+  //
+  // ```dart
+  // extension E on int {
+  //   static String m() => '';
+  // }
+  //
+  // var x = E.m();
+  // ```
   static const CompileTimeErrorCode EXTENSION_AS_EXPRESSION =
       const CompileTimeErrorCode('EXTENSION_AS_EXPRESSION',
           "Extension '{0}' can't be used as an expression.",
@@ -1518,6 +1704,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an extension override is used as
+  // the target of a cascade expression.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on int {
+  //   void m() {}
+  // }
+  // f() {
+  //   E(3)[!..!]m();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Use '.' rather than '..':
+  //
+  // ```dart
+  // extension E on int {
+  //   void m() {}
+  // }
+  // f() {
+  //   E(3).m();
+  // }
+  // ```
+  //
+  // If there are multiple cascaded accesses, you'll need to duplicate the
+  // extension override for each one.
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITH_CASCADE =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_WITH_CASCADE',
@@ -1581,32 +1800,84 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: 'Consider adding an access to an instance member.');
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
-   * h</i> or if <i>m &gt; n</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the maximum number of positional arguments
    * 1: the actual number of positional arguments given
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function invocation
+  // has more positional arguments than the method or function allows.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(int a, int b) {}
+  // void g() {
+  //   f[!(1, 2, 3)!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the arguments that don't correspond to parameters:
+  //
+  // ```dart
+  // void f(int a, int b) {}
+  // void g() {
+  //   f(1, 2);
+  // }
+  // ```
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS',
           "Too many positional arguments: {0} expected, but {1} found.",
           correction: "Try removing the extra arguments.");
 
   /**
-   * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
-   * h</i> or if <i>m &gt; n</i>.
-   *
-   * 16.12.2 Const: It is a compile-time error if evaluation of a constant
-   * object results in an uncaught exception being thrown.
-   *
    * Parameters:
    * 0: the maximum number of positional arguments
    * 1: the actual number of positional arguments given
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function invocation
+  // has more positional arguments than the method or function allows, but the
+  // method or function defines named parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(int a, int b, {int c}) {}
+  // void g() {
+  //   f[!(1, 2, 3)!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If some of the arguments should be values for named parameters, then add
+  // the names before the arguments:
+  //
+  // ```dart
+  // void f(int a, int b, {int c}) {}
+  // void g() {
+  //   f(1, 2, c: 3);
+  // }
+  // ```
+  //
+  // Otherwise, remove the arguments that don't correspond to positional
+  // parameters:
+  //
+  // ```dart
+  // void f(int a, int b, {int c}) {}
+  // void g() {
+  //   f(1, 2);
+  // }
+  // ```
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED =
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
           "Too many positional arguments: {0} expected, but {1} found.",
@@ -1785,13 +2056,37 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "remove the class from the list.");
 
   /**
-   * 7.10 Superinterfaces: It is a compile-time error if the implements clause
-   * of a class <i>C</i> includes a type expression that does not denote a class
-   * available in the lexical scope of <i>C</i>.
-   *
    * Parameters:
    * 0: the name of the interface that was not found
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name used in the implements
+  // clause of a class or mixin declaration is defined to be something other
+  // than a class or mixin.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // var x;
+  // class C implements [!x!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name is the name of an existing class or mixin that's already being
+  // imported, then add a prefix to the import so that the local definition of
+  // the name doesn't shadow the imported name.
+  //
+  // If the name is the name of an existing class or mixin that isn't being
+  // imported, then add an import, with a prefix, for the library in which it’s
+  // declared.
+  //
+  // Otherwise, either replace the name in the implements clause with the name
+  // of an existing class or mixin, or remove the name from the implements
+  // clause.
   static const CompileTimeErrorCode IMPLEMENTS_NON_CLASS =
       const CompileTimeErrorCode('IMPLEMENTS_NON_CLASS',
           "Classes and mixins can only implement other classes and mixins.",
@@ -2334,6 +2629,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('INVALID_URI', "Invalid URI syntax: '{0}'.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension
+   */
+  static const CompileTimeErrorCode INVOCATION_OF_EXTENSION_WITHOUT_CALL =
+      const CompileTimeErrorCode(
+          'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
+          "The extension '{0}' does not define a 'call' method so the override "
+              "can't be used in an invocation.");
+
+  /**
    * 13.13 Break: It is a compile-time error if no such statement
    * <i>s<sub>E</sub></i> exists within the innermost function in which
    * <i>s<sub>b</sub></i> occurs.
@@ -2367,6 +2672,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try defining the label, or "
               "correcting the name to match an existing label.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a map entry (a key/value pair)
+  // is found in a set literal.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // const collection = <String>{[!'a' : 'b'!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you intended for the collection to be a map, then change the code so
+  // that it is a map. In the previous example, you could do this by adding
+  // another type argument:
+  //
+  // ```dart
+  // const collection = <String, String>{'a' : 'b'};
+  // ```
+  //
+  // In other cases, you might need to change the explicit type from `Set` to
+  // `Map`.
+  //
+  // If you intended for the collection to be a set, then remove the map entry,
+  // possibly by replacing the colon with a comma if both values should be
+  // included in the set:
+  //
+  // ```dart
+  // const collection = <String>{'a', 'b'};
+  // ```
   static const CompileTimeErrorCode MAP_ENTRY_NOT_IN_MAP =
       const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
           "Map entries can only be used in a map literal.",
@@ -2772,16 +3113,39 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "used as an expression statement.");
 
   /**
-   * 13.9 Switch: Given a switch statement of the form <i>switch (e) {
-   * label<sub>11</sub> &hellip; label<sub>1j1</sub> case e<sub>1</sub>:
-   * s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip; label<sub>njn</sub> case
-   * e<sub>n</sub>: s<sub>n</sub> default: s<sub>n+1</sub>}</i> or the form
-   * <i>switch (e) { label<sub>11</sub> &hellip; label<sub>1j1</sub> case
-   * e<sub>1</sub>: s<sub>1</sub> &hellip; label<sub>n1</sub> &hellip;
-   * label<sub>njn</sub> case e<sub>n</sub>: s<sub>n</sub>}</i>, it is a
-   * compile-time error if the expressions <i>e<sub>k</sub></i> are not
-   * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the expression in a case clause
+  // isn't a constant expression.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(int i, int j) {
+  //   switch (i) {
+  //     case [!j!]:
+  //       // ...
+  //       break;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Either make the expression a constant expression, or rewrite the switch
+  // statement as a sequence of if statements:
+  //
+  // ```dart
+  // void f(int i, int j) {
+  //   if (i == j) {
+  //     // ...
+  //   }
+  // }
+  // ```
   static const CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION =
       const CompileTimeErrorCode(
           'NON_CONSTANT_CASE_EXPRESSION', "Case expressions must be constant.");
@@ -2898,9 +3262,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "Try removing the keyword 'const' from the list literal.");
 
   /**
-   * 12.7 Maps: It is a compile time error if either a key or a value of an
-   * entry in a constant map literal is not a compile-time constant.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a key in a constant map literal
+  // isn't a constant value.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // var a = 'a';
+  // var m = const {[!a!]: 0};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the map needs to be a constant map, then make the key a constant:
+  //
+  // ```dart
+  // const a = 'a';
+  // var m = const {a: 0};
+  // ```
+  //
+  // If the map doesn't need to be a constant map, then remove the `const`
+  // keyword:
+  //
+  // ```dart
+  // var a = 'a';
+  // var m = {a: 0};
+  // ```
   static const CompileTimeErrorCode NON_CONSTANT_MAP_KEY =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_KEY',
           "The keys in a const map literal must be constant.",
@@ -2921,18 +3314,87 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
-   * 12.7 Maps: It is a compile time error if either a key or a value of an
-   * entry in a constant map literal is not a compile-time constant.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a value in a constant map
+  // literal isn't a constant value.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // var a = 'a';
+  // var m = const {0: [!a!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the map needs to be a constant map, then make the key a constant:
+  //
+  // ```dart
+  // const a = 'a';
+  // var m = const {0: a};
+  // ```
+  //
+  // If the map doesn't need to be a constant map, then remove the `const`
+  // keyword:
+  //
+  // ```dart
+  // var a = 'a';
+  // var m = {0: a};
+  // ```
   static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE',
           "The values in a const map literal must be constant.",
           correction: "Try removing the keyword 'const' from the map literal.");
 
   /**
-   * 12.7 Maps: It is a compile time error if an element of a constant map
-   * literal is not a compile-time constant.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an if element or a spread
+  // element in a constant map isn't a constant element.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because it is attempting to
+  // spread a non-constant map:
+  //
+  // ```dart
+  // var notConst = <int, int>{};
+  // var map = const <int, int>{...[!notConst!]};
+  // ```
+  //
+  // Similarly, the following code produces this diagnostic because the
+  // condition in the if element isn't a constant expression:
+  //
+  // ```dart
+  // bool notConst = true;
+  // var map = const <int, int>{if ([!notConst!]) 1 : 2};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the map needs to be a constant map, then make the elements  constants.
+  // In the spread example, you might do that by making the collection being
+  // spread a constant:
+  //
+  // ```dart
+  // const notConst = <int, int>{};
+  // var map = const <int, int>{...notConst};
+  // ```
+  //
+  // If the map doesn't need to be a constant map, then remove the `const`
+  // keyword:
+  //
+  // ```dart
+  // bool notConst = true;
+  // var map = <int, int>{if (notConst) 1 : 2};
+  // ```
   static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
           "The elements in a const map literal must be constant.",
@@ -3022,6 +3484,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * 0: the expected number of required arguments
    * 1: the actual number of positional arguments given
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a method or function invocation
+  // has fewer positional arguments than the number of required positional
+  // parameters.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(int a, int b) {}
+  // void g() {
+  //   f[!(0)!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add arguments corresponding to the remaining parameters:
+  //
+  // ```dart
+  // void f(int a, int b) {}
+  // void g() {
+  //   f(0, 1);
+  // }
+  // ```
   static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode('NOT_ENOUGH_POSITIONAL_ARGUMENTS',
           "{0} positional argument(s) expected, but {1} found.",
@@ -3112,6 +3601,33 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Spread elements in list or set literals must implement 'Iterable'.",
           hasPublishedDocs: true);
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of the
+  // expression of a spread element that appears in a map literal doesn't
+  // implement the type `Map`.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // var l =  <String>['a', 'b'];
+  // var m = <int, String>{...[!l!]};
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The most common fix is to replace the expression with one that produces a
+  // map:
+  //
+  // ```dart
+  // var l =  <String>['a', 'b'];
+  // var m = <int, String>{...l.asMap()};
+  // ```
   static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
       'NOT_MAP_SPREAD',
       "Spread elements in map literals must implement 'Map'.");
@@ -3484,10 +4000,52 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try redirecting to a different constructor.");
 
   /**
-   * 5 Variables: A local variable may only be referenced at a source code
-   * location that is after its initializer, if any, is complete, or a
-   * compile-time error occurs.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a variable is referenced before
+  // it’s declared. In Dart, variables are visible everywhere in the block in
+  // which they are declared, but can only be referenced after they are
+  // declared.
+  //
+  // The analyzer also produces a context message that indicates where the
+  // declaration is located.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f() {
+  //   print([!i!]);
+  //   int i = 5;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you intended to reference the local variable, move the declaration
+  // before the first reference:
+  //
+  // ```dart
+  // void f() {
+  //   int i = 5;
+  //   print(i);
+  // }
+  // ```
+  //
+  // If you intended to reference a name from an outer scope, such as a
+  // parameter, instance field or top-level variable, then rename the local
+  // declaration so that it doesn't hide the outer variable.
+  //
+  // ```dart
+  // void f(int i) {
+  //   print(i);
+  //   int x = 5;
+  //   print(x);
+  // }
+  // ```
   static const CompileTimeErrorCode REFERENCED_BEFORE_DECLARATION =
       const CompileTimeErrorCode('REFERENCED_BEFORE_DECLARATION',
           "Local variable '{0}' can't be referenced before it is declared.",
@@ -3670,11 +4228,42 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction: "Try removing the type parameters.");
 
   /**
-   * 15 Metadata: Metadata consists of a series of annotations, each of which
-   * begin with the character @, followed by a constant expression that must be
-   * either a reference to a compile-time constant variable, or a call to a
-   * constant constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a name that isn't defined is
+  // used as an annotation.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // [!@undefined!]
+  // void f() {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the name is correct, but it isn’t declared yet, then declare the name as
+  // a constant value:
+  //
+  // ```dart
+  // const undefined = 'undefined';
+  //
+  // @undefined
+  // void f() {}
+  // ```
+  //
+  // If the name is wrong, replace the name with the name of a valid constant:
+  //
+  // ```dart
+  // @deprecated
+  // void f() {}
+  // ```
+  //
+  // Otherwise, remove the annotation.
   static const CompileTimeErrorCode UNDEFINED_ANNOTATION =
       const CompileTimeErrorCode(
           'UNDEFINED_ANNOTATION', "Undefined name '{0}' used as an annotation.",
@@ -3960,6 +4549,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the operator that is undefined
+   * 1: the name of the extension that was explicitly specified
+   */
+  static const CompileTimeErrorCode UNDEFINED_EXTENSION_OPERATOR =
+      const CompileTimeErrorCode('UNDEFINED_EXTENSION_OPERATOR',
+          "The operator '{0}' isn't defined for the extension '{1}'.",
+          correction: "Try defining the operator '{0}'.");
+
+  /**
+   * Parameters:
    * 0: the name of the setter that is undefined
    * 1: the name of the extension that was explicitly specified
    */
@@ -4139,12 +4738,67 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    * Parameters:
    * 0: the name of the defining type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an undefined name is found, and
+  // the name is the same as a static member of the extended type or one of its
+  // superclasses.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   static void m() {}
+  // }
+  //
+  // extension E on C {
+  //   void f() {
+  //     [!m!]();
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you're trying to reference a static member that's declared outside the
+  // extension, then add the name of the class or extension before the reference
+  // to the member:
+  //
+  // ```dart
+  // class C {
+  //   static void m() {}
+  // }
+  //
+  // extension E on C {
+  //   void f() {
+  //     C.m();
+  //   }
+  // }
+  // ```
+  //
+  // If you're referencing a member that isn't declared yet, add a declaration:
+  //
+  // ```dart
+  // class C {
+  //   static void m() {}
+  // }
+  //
+  // extension E on C {
+  //   void f() {
+  //     m();
+  //   }
+  //
+  //   void m() {}
+  // }
+  // ```
   static const CompileTimeErrorCode
       UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE =
       const CompileTimeErrorCode(
           'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
-          "Static members from the extended type or one of its superclasses must "
-              "be qualified by the name of the defining type.",
+          "Static members from the extended type or one of its superclasses "
+              "must be qualified by the name of the defining type.",
           correction: "Try adding '{0}.' before the name.");
 
   /**
@@ -4432,22 +5086,47 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           correction: "Try using the class '{2}' to access the {1}.");
 
   /**
-   * 12.18 Assignment: It is a static type warning if the static type of
-   * <i>e</i> may not be assigned to the static type of <i>v</i>. The static
-   * type of the expression <i>v = e</i> is the static type of <i>e</i>.
-   *
-   * 12.18 Assignment: It is a static type warning if the static type of
-   * <i>e</i> may not be assigned to the static type of <i>C.v</i>. The static
-   * type of the expression <i>C.v = e</i> is the static type of <i>e</i>.
-   *
-   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
-   * It is a static type warning if the static type of <i>e<sub>2</sub></i> may
-   * not be assigned to <i>T</i>.
-   *
    * Parameters:
    * 0: the name of the right hand side type
    * 1: the name of the left hand side type
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the static type of an expression
+  // that is assigned to a variable isn't assignable to the type of the
+  // variable.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the type of the
+  // initializer (`int`) isn't assignable to the type of the variable
+  // (`String`):
+  //
+  // ```dart
+  // int i = 0;
+  // String s = [!i!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the value being assigned is always assignable at runtime, even though
+  // the static types don't reflect that, then add an explicit cast.
+  //
+  // Otherwise, change the value being assigned so that it has the expected
+  // type. In the previous example, this might look like:
+  //
+  // ```dart
+  // int i = 0;
+  // String s = i.toString();
+  // ```
+  //
+  // If you can’t change the value, then change the type of the variable to be
+  // compatible with the type of the value being assigned:
+  //
+  // ```dart
+  // int i = 0;
+  // int s = i;
+  // ```
   static const StaticTypeWarningCode INVALID_ASSIGNMENT =
       const StaticTypeWarningCode(
           'INVALID_ASSIGNMENT',
@@ -4800,6 +5479,34 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           "The operator '{0}' isn't defined for the class '{1}'.",
           correction: "Try defining the operator '{0}'.");
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a prefixed identifier is found
+  // where the prefix is valid, but the identifier isn't declared in any of the
+  // libraries imported using that prefix.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import 'dart:core' as p;
+  //
+  // void f() {
+  //   p.[!a!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the library in which the name is declared isn't imported yet, add an
+  // import for the library.
+  //
+  // If the name is wrong, then change it to one of the names that's declared in
+  // the imported libraries.
   static const StaticTypeWarningCode UNDEFINED_PREFIXED_NAME =
       const StaticTypeWarningCode(
           'UNDEFINED_PREFIXED_NAME',
@@ -4871,16 +5578,38 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
               "defining a getter or field named '{0}' in a superclass.");
 
   /**
-   * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
-   * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
-   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a
-   * static type warning if <i>S</i> does not have an accessible instance member
-   * named <i>m</i>.
-   *
    * Parameters:
    * 0: the name of the method that is undefined
    * 1: the resolved type name that the method lookup is happening on
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an inherited method is
+  // referenced using `super`, but there’s no method with that name in the
+  // superclass chain.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class C {
+  //   void m() {
+  //     super.[!n!]();
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the inherited method you intend to invoke has a different name, then
+  // make the name of the invoked method  match the inherited method.
+  //
+  // If the method you intend to invoke is defined in the same class, then
+  // remove the `super.`.
+  //
+  // If not, then either add the method to one of the superclasses or remove the
+  // invocation.
   static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
       const StaticTypeWarningCode('UNDEFINED_SUPER_METHOD',
           "The method '{0}' isn't defined in a superclass of '{1}'.",
@@ -5243,9 +5972,30 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try adding one of the required statements.");
 
   /**
-   * 12.32 Type Cast: It is a static warning if <i>T</i> does not denote a type
-   * available in the current lexical scope.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name following the `as` in a
+  // cast expression is defined to be something other than a type.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // num x = 0;
+  // int y = x as [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a type:
+  //
+  // ```dart
+  // num x = 0;
+  // int y = x as int;
+  // ```
   static const StaticWarningCode CAST_TO_NON_TYPE = const StaticWarningCode(
       'CAST_TO_NON_TYPE',
       "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
@@ -5370,13 +6120,50 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "changing the field's type.");
 
   /**
-   * 5 Variables: It is a static warning if a library, static or local variable
-   * <i>v</i> is final and <i>v</i> is not initialized at its point of
-   * declaration.
-   *
    * Parameters:
    * 0: the name of the uninitialized final variable
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a final field or variable isn't
+  // initialized.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // final [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // For variables and static fields, you can add an initializer:
+  //
+  // ```dart
+  // final x = 0;
+  // ```
+  //
+  // For instance fields, you can add an initializer as shown in the previous
+  // example, or you can initialize the field in every constructor. You can
+  // initialize the field by using a field formal parameter:
+  //
+  // ```dart
+  // class C {
+  //   final int x;
+  //   C(this.x);
+  // }
+  // ```
+  //
+  // You can also initialize the field by using an initializer in the
+  // constructor:
+  //
+  // ```dart
+  // class C {
+  //   final int x;
+  //   C(int y) : x = y * 2;
+  // }
+  // ```
   static const StaticWarningCode FINAL_NOT_INITIALIZED =
       const StaticWarningCode('FINAL_NOT_INITIALIZED',
           "The final variable '{0}' must be initialized.",
@@ -6005,9 +6792,36 @@ class StaticWarningCode extends AnalyzerErrorCode {
           correction: "Try correcting the name to match an existing type.");
 
   /**
-   * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
-   * available in the current lexical scope.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the name following the `is` in a
+  // type test expression isn't defined.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(Object o) {
+  //   if (o is [!Srting!]) {
+  //     // ...
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Replace the name with the name of a type:
+  //
+  // ```dart
+  // void f(Object o) {
+  //   if (o is String) {
+  //     // ...
+  //   }
+  // }
+  // ```
   static const StaticWarningCode TYPE_TEST_WITH_UNDEFINED_NAME =
       const StaticWarningCode(
           'TYPE_TEST_WITH_UNDEFINED_NAME',

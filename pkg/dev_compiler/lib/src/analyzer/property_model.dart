@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/element.dart' show FieldElementImpl;
 import '../compiler/js_names.dart' as js_ast;
 import 'element_helpers.dart';
 import 'extension_types.dart';
+import 'type_utilities.dart';
 
 /// Dart allows all fields to be overridden.
 ///
@@ -220,7 +221,7 @@ class ClassPropertyModel {
       }
     }
 
-    _collectMockMembers(classElem.type);
+    _collectMockMembers(getLegacyRawClassType(classElem));
     _collectExtensionMembers(classElem);
 
     var virtualAccessorNames = HashSet<String>()
@@ -311,12 +312,13 @@ class ClassPropertyModel {
     // this class. This will help us identify which parameters need checks
     // for soundness.
     var allNatives = HashSet<String>();
-    _collectNativeMembers(element.type, allNatives);
+    _collectNativeMembers(getLegacyRawClassType(element), allNatives);
     if (allNatives.isEmpty) return;
 
     // For members on this class, check them against all generic interfaces.
     var seenConcreteMembers = HashSet<String>();
-    _findExtensionMembers(element.type, seenConcreteMembers, allNatives);
+    _findExtensionMembers(
+        getLegacyRawClassType(element), seenConcreteMembers, allNatives);
     // Add mock members. These are compiler-generated concrete members that
     // forward to `noSuchMethod`.
     for (var m in mockMembers.values) {

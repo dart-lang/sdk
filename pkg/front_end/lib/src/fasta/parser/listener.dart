@@ -1230,6 +1230,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("TypeVariables");
   }
 
+  void handleVarianceModifier(Token variance) {
+    logEvent("VarianceModifier");
+  }
+
+  void reportVarianceModifierNotEnabled(Token variance) {
+    if (variance != null) {
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('variance'),
+          variance,
+          variance);
+    }
+  }
+
   void beginFunctionExpression(Token token) {}
 
   /// Handle the end of a function expression (e.g. "() { ... }").

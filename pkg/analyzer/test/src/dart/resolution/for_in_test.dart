@@ -18,14 +18,13 @@ class ForInDriverResolutionTest extends DriverResolutionTest {
   test_importPrefix_asIterable() async {
     // TODO(scheglov) Remove this test (already tested as import prefix).
     // TODO(scheglov) Move other for-in tests here.
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'dart:async' as p;
 
 main() {
   for (var x in p) {}
 }
 ''');
-    await resolveTestFile();
     assertHasTestErrors();
 
     var xRef = findNode.simple('x in');

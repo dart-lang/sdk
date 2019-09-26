@@ -2,14 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:12:13: Error: Getter not found: 'key'.
-//       print(key);
-//             ^^^
-//
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:11:10: Error: Setter not found: 'key'.
-//     for (key in x) {
-//          ^^^
-//
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:14:10: Error: Setter not found: 'Fisk'.
 //     for (Fisk in x) {
 //          ^^^^
@@ -29,10 +21,6 @@ library;
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected an identifier, but got '1'.
 //     for (1 in x) {
 //          ^
-//
-// pkg/front_end/testcases/rasta/unresolved_for_in.dart:24:13: Error: Getter not found: 'key'.
-//       print(key);
-//             ^^^
 //
 // pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Can't assign to this, so it can't be used in a for-in loop.
 //     for (1 in x) {

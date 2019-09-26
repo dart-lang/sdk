@@ -223,8 +223,7 @@ class C {
   }
 
   Future<void> _assertCanBeAnalyzed(String text) async {
-    addTestFile(text);
-    await resolveTestFile();
+    await resolveTestCode(text);
     assertHasTestErrors();
   }
 }
@@ -271,8 +270,7 @@ extension E {
   }
 
   Future<void> _assertCanBeAnalyzed(String text) async {
-    addTestFile(text);
-    await resolveTestFile();
+    await resolveTestCode(text);
     assertHasTestErrors();
   }
 }

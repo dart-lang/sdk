@@ -1129,7 +1129,10 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
                                  intptr_t osr_id,
                                  intptr_t deopt_id)
-    : BlockEntryWithInitialDefs(0, kInvalidTryIndex, deopt_id),
+    : BlockEntryWithInitialDefs(0,
+                                kInvalidTryIndex,
+                                deopt_id,
+                                /*stack_depth*/ 0),
       parsed_function_(parsed_function),
       catch_entries_(),
       indirect_entries_(),
@@ -1656,11 +1659,11 @@ bool BlockEntryInstr::FindOsrEntryAndRelink(GraphEntryInstr* graph_entry,
       // we can simply jump to the beginning of the block.
       ASSERT(instr->previous() == this);
 
-      const intptr_t stack_depth = instr->AsCheckStackOverflow()->stack_depth();
+      ASSERT(stack_depth() == instr->AsCheckStackOverflow()->stack_depth());
       auto normal_entry = graph_entry->normal_entry();
-      auto osr_entry = new OsrEntryInstr(graph_entry, normal_entry->block_id(),
-                                         normal_entry->try_index(),
-                                         normal_entry->deopt_id(), stack_depth);
+      auto osr_entry = new OsrEntryInstr(
+          graph_entry, normal_entry->block_id(), normal_entry->try_index(),
+          normal_entry->deopt_id(), stack_depth());
 
       auto goto_join = new GotoInstr(AsJoinEntry(),
                                      CompilerState::Current().GetNextDeoptId());

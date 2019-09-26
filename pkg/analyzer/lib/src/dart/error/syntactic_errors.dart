@@ -650,6 +650,9 @@ class ParserErrorCode extends ErrorCode {
           correction:
               "Try moving all but one of the declarations inside the loop body.");
 
+  static const ParserErrorCode MULTIPLE_VARIANCE_MODIFIERS =
+      _MULTIPLE_VARIANCE_MODIFIERS;
+
   static const ParserErrorCode MULTIPLE_WITH_CLAUSES = _MULTIPLE_WITH_CLAUSES;
 
   static const ParserErrorCode NAMED_FUNCTION_EXPRESSION = const ParserErrorCode(

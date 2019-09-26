@@ -1712,6 +1712,33 @@ A T;''');
     assertNotSuggested('x');
   }
 
+  test_classReference_in_comment() async {
+    addTestSource(r'''
+class Abc { }
+class Abcd { }
+
+// A^
+class Foo {  }
+''');
+    await computeSuggestions();
+    assertNotSuggested('Abc');
+    assertNotSuggested('Abcd');
+  }
+
+  /// see: https://github.com/dart-lang/sdk/issues/36037
+  @failingTest
+  test_classReference_in_comment_eof() async {
+    addTestSource(r'''
+class Abc { }
+class Abcd { }
+
+// A^
+''');
+    await computeSuggestions();
+    assertNotSuggested('Abc');
+    assertNotSuggested('Abcd');
+  }
+
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/home/test/lib/ab.dart', '''

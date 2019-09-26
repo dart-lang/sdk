@@ -1110,8 +1110,8 @@ All  | Pause isolate on all thrown exceptions
 ### setFlag
 
 ```
-Success setFlag(string name,
-                string value)
+Success|Error setFlag(string name,
+                      string value)
 ```
 
 The _setFlag_ RPC is used to set a VM flag at runtime. Returns an error if the

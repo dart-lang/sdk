@@ -53,6 +53,10 @@ DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_FLAG(bool, print_llvm_constant_pool, false, "Print LLVM constant pool");
+#endif
+
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -722,6 +726,32 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // AOT: The megamorphic miss function and code come from the snapshot.
   ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());
   ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
+  if (FLAG_print_llvm_constant_pool) {
+    StackZone printing_zone(T);
+    HandleScope printing_scope(T);
+    const auto& arr =
+        GrowableObjectArray::Handle(I->object_store()->llvm_constant_pool());
+    if (arr.IsNull()) {
+      THR_Print("No constant pool information in snapshot.\n");
+    } else {
+      auto const len = arr.Length();
+      THR_Print("Constant pool contents (length %" Pd "):\n", len);
+      auto& obj = Object::Handle();
+      for (intptr_t i = 0; i < len; i++) {
+        obj = arr.At(i);
+        THR_Print("  %5" Pd ": ", i);
+        if (obj.IsString()) {
+          auto& str = String::Cast(obj);
+          TextBuffer b(100);
+          b.AddEscapedString(str.ToCString());
+          THR_Print("\"%s\"\n", b.buf());
+        } else {
+          THR_Print("%s\n", obj.ToCString());
+        }
+      }
+      THR_Print("End of constant pool.\n\n");
+    }
+  }
 #else
   // JIT: The megamorphic miss function and code come from the snapshot in JIT
   // app snapshot, otherwise create them.

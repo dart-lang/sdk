@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/conflicts.dart:14:11: Error: 'DuplicateExtensionName' is already declared in this scope.
+// extension DuplicateExtensionName on Class2 {
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/conflicts.dart:9:11: Context: Previous declaration of 'DuplicateExtensionName'.
+// extension DuplicateExtensionName on Class1 {
+//           ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/conflicts.dart:21:3: Error: 'duplicateMethodName1' is already declared in this scope.
+//   duplicateMethodName1() => 2;
+//   ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extensions/conflicts.dart:20:3: Context: Previous declaration of 'duplicateMethodName1'.
+//   duplicateMethodName1() => 1;
+//   ^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1*
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2*
+    ;
+}
+extension DuplicateExtensionName on self::Class1* {
+  method uniqueMethod1 = self::DuplicateExtensionName|uniqueMethod1;
+  tearoff uniqueMethod1 = self::DuplicateExtensionName|get#uniqueMethod1;
+  method duplicateMethodName2 = self::DuplicateExtensionName|duplicateMethodName2;
+  tearoff duplicateMethodName2 = self::DuplicateExtensionName|get#duplicateMethodName2;
+}
+extension UniqueExtensionName on self::Class1* {
+  method duplicateMethodName1 = self::UniqueExtensionName|duplicateMethodName1;
+  tearoff duplicateMethodName1 = self::UniqueExtensionName|get#duplicateMethodName1;
+}
+static method DuplicateExtensionName|uniqueMethod1(final self::Class1* #this) → dynamic
+  ;
+static method DuplicateExtensionName|get#uniqueMethod1(final self::Class1* #this) → () →* dynamic
+  return () → dynamic => self::DuplicateExtensionName|uniqueMethod1(#this);
+static method DuplicateExtensionName|duplicateMethodName2(final self::Class1* #this) → dynamic
+  ;
+static method DuplicateExtensionName|get#duplicateMethodName2(final self::Class1* #this) → () →* dynamic
+  return () → dynamic => self::DuplicateExtensionName|duplicateMethodName2(#this);
+static method UniqueExtensionName|duplicateMethodName1(final self::Class1* #this) → dynamic
+  ;
+static method UniqueExtensionName|get#duplicateMethodName1(final self::Class1* #this) → () →* dynamic
+  return () → dynamic => self::UniqueExtensionName|duplicateMethodName1(#this);
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;

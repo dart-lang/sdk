@@ -285,6 +285,20 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
   }
 
+  void _ensureJsInteropType(ClassEntity cls, KClassData data) {
+    assert(checkFamily(cls));
+    if (data is KClassDataImpl && data.jsInteropType == null) {
+      ir.Class node = data.node;
+      if (node.typeParameters.isEmpty) {
+        _ensureThisAndRawType(cls, data);
+        data.jsInteropType = data.thisType;
+      } else {
+        data.jsInteropType = InterfaceType(cls,
+            List<DartType>.filled(node.typeParameters.length, const AnyType()));
+      }
+    }
+  }
+
   @override
   TypeVariableEntity getTypeVariable(ir.TypeParameter node) =>
       getTypeVariableInternal(node);
@@ -565,6 +579,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     KClassData data = classes.getData(cls);
     _ensureThisAndRawType(cls, data);
     return data.thisType;
+  }
+
+  InterfaceType _getJsInteropType(IndexedClass cls) {
+    assert(checkFamily(cls));
+    KClassData data = classes.getData(cls);
+    _ensureJsInteropType(cls, data);
+    return data.jsInteropType;
   }
 
   InterfaceType _getRawType(IndexedClass cls) {
@@ -1642,6 +1663,11 @@ class KernelElementEnvironment extends ElementEnvironment
   @override
   InterfaceType getThisType(ClassEntity cls) {
     return elementMap.getThisType(cls);
+  }
+
+  @override
+  InterfaceType getJsInteropType(ClassEntity cls) {
+    return elementMap._getJsInteropType(cls);
   }
 
   @override

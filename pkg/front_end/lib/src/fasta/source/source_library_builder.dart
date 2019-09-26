@@ -195,6 +195,7 @@ import '../kernel/metadata_collector.dart';
 import '../kernel/type_algorithms.dart'
     show
         calculateBounds,
+        computeVariance,
         findGenericFunctionTypes,
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables;
@@ -297,6 +298,13 @@ class SourceLibraryBuilder extends LibraryBuilder {
   // differently than for specified types.
   // TODO(dmitryas):  Find a way to mark inferred types.
   final Set<DartType> inferredTypes = new Set<DartType>.identity();
+
+  // While the bounds of type parameters aren't compiled yet, we can't tell the
+  // default nullability of the corresponding type-parameter types.  This list
+  // is used to collect such type-parameter types in order to set the
+  // nullability after the bounds are built.
+  final List<TypeParameterType> pendingNullabilities =
+      new List<TypeParameterType>();
 
   // A library to use for Names generated when compiling code in this library.
   // This allows code generated in one library to use the private namespace of
@@ -720,8 +728,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
                 .withLocation(
                     existing.fileUri, existing.charOffset, fullName.length)
           ]);
-    }
-    if (declaration.isExtension) {
+    } else if (declaration.isExtension) {
+      // We add the extension declaration to the extension scope only if its
+      // name is unique. Only the first of duplicate extensions is accessible
+      // by name or by resolution and the remaining are dropped for the output.
       currentTypeParameterScopeBuilder.extensions.add(declaration);
     }
     return members[name] = declaration;
@@ -1647,11 +1657,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
             applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
-              applicationTypeArguments.add(addNamedType(
-                  typeVariable.name,
-                  const NullabilityBuilder.pendingImplementation(),
-                  null,
-                  charOffset)
+              applicationTypeArguments.add(addNamedType(typeVariable.name,
+                  const NullabilityBuilder.omitted(), null, charOffset)
                 ..bind(
                     // The type variable types passed as arguments to the
                     // generic class representing the anonymous mixin
@@ -1702,11 +1709,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
         addBuilder(fullname, application, charOffset);
-        supertype = addNamedType(
-            fullname,
-            const NullabilityBuilder.pendingImplementation(),
-            applicationTypeArguments,
-            charOffset);
+        supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
+            applicationTypeArguments, charOffset);
       }
       return supertype;
     } else {
@@ -1976,6 +1980,12 @@ class SourceLibraryBuilder extends LibraryBuilder {
       List<TypeVariableBuilder> typeVariables,
       FunctionTypeBuilder type,
       int charOffset) {
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables.length; ++i) {
+        TypeVariableBuilder variable = typeVariables[i];
+        variable.variance = computeVariance(variable, type);
+      }
+    }
     TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
     loader.target.metadataCollector
@@ -2015,7 +2025,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset);
+        metadata, modifiers, type, name, this, charOffset, uri);
     formal.initializerToken = initializerToken;
     return formal;
   }
@@ -2041,7 +2051,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
     if (declaration is SourceClassBuilder) {
       cls = declaration.build(this, coreLibrary);
     } else if (declaration is SourceExtensionBuilder) {
-      extension = declaration.build(this, coreLibrary);
+      extension = declaration.build(this, coreLibrary,
+          addMembersToLibrary: declaration.next == null);
     } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
@@ -2364,6 +2375,10 @@ class SourceLibraryBuilder extends LibraryBuilder {
       builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
+
+    TypeVariableBuilder.finishNullabilities(this, pendingNullabilities);
+    pendingNullabilities.clear();
+
     return count;
   }
 

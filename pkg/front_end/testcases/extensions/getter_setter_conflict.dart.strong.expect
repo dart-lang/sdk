@@ -1,0 +1,113 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:30:15: Error: The getter 'm2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm2'.
+//   expect(0, c.m2);
+//               ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:31:5: Error: The setter 'm1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
+//   c.m1 = 2;
+//     ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The getter 'm3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm3'.
+//   c.m3;
+//     ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The setter 'm3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm3'.
+//   c.m3 = 2;
+//     ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The getter 'm4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm4'.
+//   c.m4;
+//     ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The setter 'm4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm4'.
+//   c.m4 = 2;
+//     ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  get m1() → core::int*
+    return 0;
+  set m2(core::int* x) → void {}
+}
+extension Extension0 on self::Class* {
+  get m2 = self::Extension0|get#m2;
+  get m4 = self::Extension0|get#m4;
+  set m1 = self::Extension0|set#m1;
+  set m3 = self::Extension0|set#m3;
+}
+extension Extension1 on self::Class* {
+  get m3 = self::Extension1|get#m3;
+  set m4 = self::Extension1|set#m4;
+}
+static method Extension0|set#m1(final self::Class* #this, core::int* x) → void {}
+static method Extension0|get#m2(final self::Class* #this) → core::int*
+  return 0;
+static method Extension0|set#m3(final self::Class* #this, core::int* x) → void {}
+static method Extension0|get#m4(final self::Class* #this) → core::int*
+  return 0;
+static method Extension1|get#m3(final self::Class* #this) → core::int*
+  return 0;
+static method Extension1|set#m4(final self::Class* #this, core::int* x) → void {}
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(0, c.{self::Class::m1});
+  c.{self::Class::m2} = 2;
+}
+static method errors() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(0, invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:30:15: Error: The getter 'm2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'm2'.
+  expect(0, c.m2);
+              ^^");
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:31:5: Error: The setter 'm1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
+  c.m1 = 2;
+    ^^";
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The getter 'm3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'm3'.
+  c.m3;
+    ^^";
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The setter 'm3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'm3'.
+  c.m3 = 2;
+    ^^";
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The getter 'm4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'm4'.
+  c.m4;
+    ^^";
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The setter 'm4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'm4'.
+  c.m4 = 2;
+    ^^";
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

@@ -69,7 +69,7 @@ D:
   Longest path to Object: 3
   superclasses:
     Object
-  interfaces: B<T>*, A, C<U>*
+  interfaces: B<T>, A, C<U>
   classMembers:
   classSetters:
   interfaceMembers:
@@ -79,7 +79,7 @@ E:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int, double>*, B<int>*, A, C<double>*
+  interfaces: D<int, double>, B<int>, A, C<double>
   classMembers:
   classSetters:
   interfaceMembers:
@@ -89,7 +89,7 @@ F:
   Longest path to Object: 4
   superclasses:
     Object
-  interfaces: D<int, bool>*, B<int>*, A, C<bool>*
+  interfaces: D<int, bool>, B<int>, A, C<bool>
   classMembers:
   classSetters:
   interfaceMembers:

@@ -390,7 +390,8 @@ class MethodInvocationResolver {
 
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
-    var member = _extensionResolver.getOverrideMember(override, name);
+    var result = _extensionResolver.getOverrideMember(override, name);
+    var member = result.getter;
 
     if (member == null) {
       _setDynamicResolution(node);
@@ -747,7 +748,7 @@ class MethodInvocationResolver {
         var result = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName);
         if (result.isSingle) {
-          call = result.function;
+          call = result.getter;
         } else if (result.isAmbiguous) {
           return;
         }

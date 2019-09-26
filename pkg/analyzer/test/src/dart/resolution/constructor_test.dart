@@ -15,24 +15,22 @@ main() {
 @reflectiveTest
 class ConstructorResolutionTest extends DriverResolutionTest {
   test_initializer_field_functionExpression_expressionBody() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   final int x;
   C(int a) : x = (() => a + 1)();
 }
 ''');
-    await resolveTestFile();
     assertElement(findNode.simple('a + 1'), findElement.parameter('a'));
   }
 
   test_initializer_field_functionExpression_blockBody() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   var x;
   C(int a) : x = (() {return a + 1;})();
 }
 ''');
-    await resolveTestFile();
     assertElement(findNode.simple('a + 1'), findElement.parameter('a'));
   }
 }

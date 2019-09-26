@@ -16,7 +16,7 @@ main() {
 
   Example ex = new Example();
   print(ex.foo++);
-  //       ^
-  // [analyzer] unspecified
+  //       ^^^
+  // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
   // [cfe] The getter 'foo' isn't defined for the class 'Example'.
 }

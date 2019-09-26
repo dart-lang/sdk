@@ -1093,10 +1093,10 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
     // TODO(alexmarkov): handle function types properly
     if (subType is FunctionType) {
-      subType = _typeFlowAnalysis.environment.rawFunctionType;
+      subType = _typeFlowAnalysis.environment.functionLegacyRawType;
     }
     if (superType is FunctionType) {
-      superType = _typeFlowAnalysis.environment.rawFunctionType;
+      superType = _typeFlowAnalysis.environment.functionLegacyRawType;
     }
     // TODO(alexmarkov): handle generic types properly.
     assertx(subType is! TypeParameterType);
@@ -1140,7 +1140,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
 
     // TODO(alexmarkov): handle function types properly
     if (base is FunctionType) {
-      base = _typeFlowAnalysis.environment.rawFunctionType;
+      base = _typeFlowAnalysis.environment.functionLegacyRawType;
     }
 
     if (base is TypeParameterType) {
@@ -1156,7 +1156,7 @@ class _ClassHierarchyCache implements TypeHierarchy {
     // subtypes is too large
 
     if (base == const DynamicType() ||
-        base == _typeFlowAnalysis.environment.objectType ||
+        base == _typeFlowAnalysis.environment.coreTypes.objectLegacyRawType ||
         // TODO(alexmarkov): handle FutureOr more precisely (requires generics).
         baseClass == _typeFlowAnalysis.environment.futureOrClass) {
       return const AnyType();

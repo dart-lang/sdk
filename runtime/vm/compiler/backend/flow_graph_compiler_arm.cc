@@ -952,9 +952,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   VisitBlocks();
 
-#if defined(DEBUG)
   __ bkpt(0);
-#endif
 
   if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());

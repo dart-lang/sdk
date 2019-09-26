@@ -34,6 +34,7 @@ abstract class ExpressionVisitor<R> {
   R visitConstructorInvocation(ConstructorInvocation node) =>
       defaultExpression(node);
   R visitNot(Not node) => defaultExpression(node);
+  R visitNullCheck(NullCheck node) => defaultExpression(node);
   R visitLogicalExpression(LogicalExpression node) => defaultExpression(node);
   R visitConditionalExpression(ConditionalExpression node) =>
       defaultExpression(node);
@@ -162,6 +163,7 @@ class TreeVisitor<R>
   R visitConstructorInvocation(ConstructorInvocation node) =>
       defaultExpression(node);
   R visitNot(Not node) => defaultExpression(node);
+  R visitNullCheck(NullCheck node) => defaultExpression(node);
   R visitLogicalExpression(LogicalExpression node) => defaultExpression(node);
   R visitConditionalExpression(ConditionalExpression node) =>
       defaultExpression(node);
@@ -673,6 +675,7 @@ abstract class ExpressionVisitor1<R, T> {
   R visitConstructorInvocation(ConstructorInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitNot(Not node, T arg) => defaultExpression(node, arg);
+  R visitNullCheck(NullCheck node, T arg) => defaultExpression(node, arg);
   R visitLogicalExpression(LogicalExpression node, T arg) =>
       defaultExpression(node, arg);
   R visitConditionalExpression(ConditionalExpression node, T arg) =>

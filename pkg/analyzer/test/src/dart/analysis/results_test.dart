@@ -30,11 +30,9 @@ mixin ExtensionMethodsMixin implements GetElementDeclarationMixin {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_extension() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 extension E on int {}
 ''');
-    await resolveTestFile();
-
     var element = findNode.extensionDeclaration('E').declaredElement;
     var result = await getElementDeclaration(element);
     ExtensionDeclaration node = result.node;
@@ -46,11 +44,9 @@ mixin GetElementDeclarationMixin implements DriverResolutionTest {
   Future<ElementDeclarationResult> getElementDeclaration(Element element);
 
   test_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 ''');
-    await resolveTestFile();
-
     var element = findNode.classDeclaration('A').declaredElement;
     var result = await getElementDeclaration(element);
     ClassDeclaration node = result.node;
@@ -58,12 +54,10 @@ class A {}
   }
 
   test_class_duplicate() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {} // 1
 class A {} // 2
 ''');
-    await resolveTestFile();
-
     {
       var element = findNode.classDeclaration('A {} // 1').declaredElement;
       var result = await getElementDeclaration(element);
@@ -92,11 +86,9 @@ class A {} // 2
 part of 'test.dart';
 class A {}
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 part 'a.dart';
 ''');
-    await resolveTestFile();
-
     var library = this.result.unit.declaredElement.library;
     var element = library.getType('A');
     var result = await getElementDeclaration(element);
@@ -105,11 +97,9 @@ part 'a.dart';
   }
 
   test_class_missingName() async {
-    addTestFile('''
+    await resolveTestCode('''
 class {}
 ''');
-    await resolveTestFile();
-
     var element = findNode.classDeclaration('class {}').declaredElement;
     var result = await getElementDeclaration(element);
     ClassDeclaration node = result.node;
@@ -118,13 +108,11 @@ class {}
   }
 
   test_classTypeAlias() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 mixin M {}
 class A {}
 class B = A with M;
 ''');
-    await resolveTestFile();
-
     var element = findElement.class_('B');
     var result = await getElementDeclaration(element);
     ClassTypeAlias node = result.node;
@@ -132,14 +120,12 @@ class B = A with M;
   }
 
   test_constructor() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A();
   A.named();
 }
 ''');
-    await resolveTestFile();
-
     {
       var unnamed = findNode.constructor('A();').declaredElement;
       var result = await getElementDeclaration(unnamed);
@@ -156,14 +142,12 @@ class A {
   }
 
   test_constructor_duplicate_named() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A.named(); // 1
   A.named(); // 2
 }
 ''');
-    await resolveTestFile();
-
     {
       var element = findNode.constructor('A.named(); // 1').declaredElement;
       var result = await getElementDeclaration(element);
@@ -188,14 +172,12 @@ class A {
   }
 
   test_constructor_duplicate_unnamed() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A(); // 1
   A(); // 2
 }
 ''');
-    await resolveTestFile();
-
     {
       var element = findNode.constructor('A(); // 1').declaredElement;
       var result = await getElementDeclaration(element);
@@ -220,11 +202,9 @@ class A {
   }
 
   test_constructor_synthetic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.class_('A').unnamedConstructor;
     expect(element.isSynthetic, isTrue);
 
@@ -233,11 +213,9 @@ class A {}
   }
 
   test_enum() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum MyEnum {a, b, c}
 ''');
-    await resolveTestFile();
-
     var element = findElement.enum_('MyEnum');
     var result = await getElementDeclaration(element);
     EnumDeclaration node = result.node;
@@ -245,11 +223,9 @@ enum MyEnum {a, b, c}
   }
 
   test_enum_constant() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum MyEnum {a, b, c}
 ''');
-    await resolveTestFile();
-
     var element = findElement.field('a');
     var result = await getElementDeclaration(element);
     EnumConstantDeclaration node = result.node;
@@ -257,13 +233,11 @@ enum MyEnum {a, b, c}
   }
 
   test_field() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   int foo;
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.field('foo');
 
     var result = await getElementDeclaration(element);
@@ -272,13 +246,11 @@ class C {
   }
 
   test_functionDeclaration_local() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   void foo() {}
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.localFunction('foo');
 
     var result = await getElementDeclaration(element);
@@ -287,11 +259,9 @@ main() {
   }
 
   test_functionDeclaration_top() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void foo() {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.topFunction('foo');
 
     var result = await getElementDeclaration(element);
@@ -300,13 +270,11 @@ void foo() {}
   }
 
   test_getter_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int get x => 0;
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.getter('x');
     var result = await getElementDeclaration(element);
     MethodDeclaration node = result.node;
@@ -315,11 +283,9 @@ class A {
   }
 
   test_getter_top() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int get x => 0;
 ''');
-    await resolveTestFile();
-
     var element = findElement.topGet('x');
     var result = await getElementDeclaration(element);
     FunctionDeclaration node = result.node;
@@ -328,13 +294,11 @@ int get x => 0;
   }
 
   test_localVariable() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   int foo;
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.localVar('foo');
 
     var result = await getElementDeclaration(element);
@@ -343,13 +307,11 @@ main() {
   }
 
   test_method() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class C {
   void foo() {}
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.method('foo');
 
     var result = await getElementDeclaration(element);
@@ -358,11 +320,9 @@ class C {
   }
 
   test_mixin() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 mixin M {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.mixin('M');
     var result = await getElementDeclaration(element);
     MixinDeclaration node = result.node;
@@ -370,11 +330,9 @@ mixin M {}
   }
 
   test_parameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f(int a) {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.parameter('a');
 
     var result = await getElementDeclaration(element);
@@ -383,11 +341,9 @@ void f(int a) {}
   }
 
   test_parameter_missingName_named() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f({@a}) {}
 ''');
-    await resolveTestFile();
-
     var f = findElement.topFunction('f');
     var element = f.parameters.single;
     expect(element.name, '');
@@ -399,11 +355,9 @@ void f({@a}) {}
   }
 
   test_parameter_missingName_required() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f(@a) {}
 ''');
-    await resolveTestFile();
-
     var f = findElement.topFunction('f');
     var element = f.parameters.single;
     expect(element.name, '');
@@ -415,13 +369,11 @@ void f(@a) {}
   }
 
   test_setter_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   set x(_) {}
 }
 ''');
-    await resolveTestFile();
-
     var element = findElement.setter('x');
     var result = await getElementDeclaration(element);
     MethodDeclaration node = result.node;
@@ -430,11 +382,9 @@ class A {
   }
 
   test_setter_top() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 set x(_) {}
 ''');
-    await resolveTestFile();
-
     var element = findElement.topSet('x');
     var result = await getElementDeclaration(element);
     FunctionDeclaration node = result.node;
@@ -443,11 +393,9 @@ set x(_) {}
   }
 
   test_topLevelVariable() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int foo;
 ''');
-    await resolveTestFile();
-
     var element = findElement.topVar('foo');
 
     var result = await getElementDeclaration(element);
@@ -456,11 +404,9 @@ int foo;
   }
 
   test_topLevelVariable_synthetic() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 int get foo => 0;
 ''');
-    await resolveTestFile();
-
     var element = findElement.topVar('foo');
 
     var result = await getElementDeclaration(element);

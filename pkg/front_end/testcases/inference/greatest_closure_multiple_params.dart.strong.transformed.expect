@@ -7,7 +7,7 @@ abstract class C<E extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method sort([(self::C::E*, self::C::E*) →* core::int* compare = #C1]) → void {
-    self::C::sort2<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t1 = compare in #t1.==(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t1);
+    self::C::sort2<self::C::E*>(this, let final (self::C::E*, self::C::E*) →* core::int* #t1 = compare in #t1.{core::Object::==}(null) ?{(self::C::E*, self::C::E*) →* core::int*} #C2 : #t1);
   }
   static method _compareAny(dynamic a, dynamic b) → core::int* {
     throw "unimplemented";

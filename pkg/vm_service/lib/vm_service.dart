@@ -197,7 +197,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'requestHeapSnapshot': const ['Success'],
   'resume': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
-  'setFlag': const ['Success'],
+  'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
   'setVMName': const ['Success'],
@@ -767,7 +767,9 @@ abstract class VmServiceInterface {
   /// value is of the wrong type for the flag.
   ///
   /// The following flags may be set at runtime:
-  Future<Success> setFlag(String name, String value);
+  ///
+  /// The return value can be one of [Success] or [Error].
+  Future<dynamic> setFlag(String name, String value);
 
   /// The `setLibraryDebuggable` RPC is used to enable or disable whether
   /// breakpoints and stepping work for a given library.
@@ -1616,7 +1618,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setFlag(String name, String value) {
+  Future<dynamic> setFlag(String name, String value) {
     return _call('setFlag', {'name': name, 'value': value});
   }
 

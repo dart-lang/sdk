@@ -193,7 +193,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       // the bound because it's not yet available, it will be set to null.  In
       // that case, put it to the list to be updated later, when the bound is
       // available.
-      if (type.declaredNullability == null) {
+      if (type.typeParameterTypeNullability == null) {
         environment.pendingNullabilities.add(type);
       }
       return type;
@@ -355,7 +355,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     }
 
     for (TypeParameterType type in nestedEnvironment.pendingNullabilities) {
-      type.declaredNullability =
+      type.typeParameterTypeNullability =
           TypeParameterType.computeNullabilityFromBound(type.parameter);
     }
     nestedEnvironment.pendingNullabilities.clear();

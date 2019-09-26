@@ -92,6 +92,10 @@ F assertInterop<F extends Function>(F f) {
   return f;
 }
 
+bool isDartFunction(obj) =>
+    JS<bool>('!', '# instanceof Function', obj) &&
+    JS<bool>('!', '#[#] != null', obj, _runtimeType);
+
 /// The Dart type that represents a JavaScript class(/constructor) type.
 ///
 /// The JavaScript type may not exist, either because it's not loaded yet, or

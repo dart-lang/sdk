@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
-import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -31,12 +28,9 @@ main() {
     defineReflectiveTests(BooleanArrayTest);
     defineReflectiveTests(ExceptionHandlingDelegatingAstVisitorTest);
     defineReflectiveTests(LineInfoTest);
-    defineReflectiveTests(MultipleMapIteratorTest);
     defineReflectiveTests(NodeReplacerTest);
-    defineReflectiveTests(SingleMapIteratorTest);
     defineReflectiveTests(SourceRangeTest);
     defineReflectiveTests(StringUtilitiesTest);
-    defineReflectiveTests(TokenMapTest);
   });
 }
 
@@ -69,7 +63,7 @@ class AstCloneComparator extends AstComparator {
 }
 
 @reflectiveTest
-class AstClonerTest extends EngineTestCase {
+class AstClonerTest {
   void test_visitAdjacentStrings() {
     _assertCloneExpression("'a' 'b'");
   }
@@ -1337,7 +1331,7 @@ class BooleanArrayTest {
 }
 
 @reflectiveTest
-class ExceptionHandlingDelegatingAstVisitorTest extends EngineTestCase {
+class ExceptionHandlingDelegatingAstVisitorTest {
   void test_handlerIsCalled() {
     AstVisitor exceptionThrowingVisitor = new _ExceptionThrowingVisitor();
     bool handlerInvoked = false;
@@ -2608,113 +2602,7 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2
 }
 
 @reflectiveTest
-class MultipleMapIteratorTest extends EngineTestCase {
-  void test_multipleMaps_firstEmpty() {
-    Map<String, String> map1 = new HashMap<String, String>();
-    Map<String, String> map2 = new HashMap<String, String>();
-    map2["k2"] = "v2";
-    Map<String, String> map3 = new HashMap<String, String>();
-    map3["k3"] = "v3";
-    MultipleMapIterator<String, String> iterator =
-        _iterator([map1, map2, map3]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_multipleMaps_lastEmpty() {
-    Map<String, String> map1 = new HashMap<String, String>();
-    map1["k1"] = "v1";
-    Map<String, String> map2 = new HashMap<String, String>();
-    map2["k2"] = "v2";
-    Map<String, String> map3 = new HashMap<String, String>();
-    MultipleMapIterator<String, String> iterator =
-        _iterator([map1, map2, map3]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_multipleMaps_middleEmpty() {
-    Map<String, String> map1 = new HashMap<String, String>();
-    map1["k1"] = "v1";
-    Map<String, String> map2 = new HashMap<String, String>();
-    Map<String, String> map3 = new HashMap<String, String>();
-    map3["k3"] = "v3";
-    MultipleMapIterator<String, String> iterator =
-        _iterator([map1, map2, map3]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_multipleMaps_nonEmpty() {
-    Map<String, String> map1 = new HashMap<String, String>();
-    map1["k1"] = "v1";
-    Map<String, String> map2 = new HashMap<String, String>();
-    map2["k2"] = "v2";
-    Map<String, String> map3 = new HashMap<String, String>();
-    map3["k3"] = "v3";
-    MultipleMapIterator<String, String> iterator =
-        _iterator([map1, map2, map3]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_noMap() {
-    MultipleMapIterator<String, String> iterator = _iterator([]);
-    expect(iterator.moveNext(), isFalse);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_singleMap_empty() {
-    Map<String, String> map = new HashMap<String, String>();
-    MultipleMapIterator<String, String> iterator = _iterator([map]);
-    expect(iterator.moveNext(), isFalse);
-    expect(() => iterator.key, throwsStateError);
-    expect(() => iterator.value, throwsStateError);
-    expect(() {
-      iterator.value = 'x';
-    }, throwsStateError);
-  }
-
-  void test_singleMap_multiple() {
-    Map<String, String> map = new HashMap<String, String>();
-    map["k1"] = "v1";
-    map["k2"] = "v2";
-    map["k3"] = "v3";
-    MultipleMapIterator<String, String> iterator = _iterator([map]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_singleMap_single() {
-    String key = "key";
-    String value = "value";
-    Map<String, String> map = new HashMap<String, String>();
-    map[key] = value;
-    MultipleMapIterator<String, String> iterator = _iterator([map]);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.key, same(key));
-    expect(iterator.value, same(value));
-    String newValue = "newValue";
-    iterator.value = newValue;
-    expect(iterator.value, same(newValue));
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  MultipleMapIterator<String, String> _iterator(
-      List<Map<String, String>> maps) {
-    return new MultipleMapIterator<String, String>(maps);
-  }
-}
-
-@reflectiveTest
-class NodeReplacerTest extends EngineTestCase {
+class NodeReplacerTest {
   /**
    * An empty list of tokens.
    */
@@ -3700,51 +3588,6 @@ abstract class NodeReplacerTest_ListGetter<P extends AstNode, C extends AstNode>
 }
 
 @reflectiveTest
-class SingleMapIteratorTest extends EngineTestCase {
-  void test_empty() {
-    Map<String, String> map = new HashMap<String, String>();
-    SingleMapIterator<String, String> iterator =
-        new SingleMapIterator<String, String>(map);
-    expect(iterator.moveNext(), isFalse);
-    expect(() => iterator.key, throwsStateError);
-    expect(() => iterator.value, throwsStateError);
-    expect(() {
-      iterator.value = 'x';
-    }, throwsStateError);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_multiple() {
-    Map<String, String> map = new HashMap<String, String>();
-    map["k1"] = "v1";
-    map["k2"] = "v2";
-    map["k3"] = "v3";
-    SingleMapIterator<String, String> iterator =
-        new SingleMapIterator<String, String>(map);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.moveNext(), isFalse);
-  }
-
-  void test_single() {
-    String key = "key";
-    String value = "value";
-    Map<String, String> map = new HashMap<String, String>();
-    map[key] = value;
-    SingleMapIterator<String, String> iterator =
-        new SingleMapIterator<String, String>(map);
-    expect(iterator.moveNext(), isTrue);
-    expect(iterator.key, same(key));
-    expect(iterator.value, same(value));
-    String newValue = "newValue";
-    iterator.value = newValue;
-    expect(iterator.value, same(newValue));
-    expect(iterator.moveNext(), isFalse);
-  }
-}
-
-@reflectiveTest
 class SourceRangeTest {
   void test_access() {
     SourceRange r = new SourceRange(10, 1);
@@ -4145,26 +3988,6 @@ class StringUtilitiesTest {
     expect(StringUtilities.substringBeforeChar("abcba", 0x62), "a");
     expect(StringUtilities.substringBeforeChar("abc", 0x63), "ab");
     expect(StringUtilities.substringBeforeChar("abc", 0x64), "abc");
-  }
-}
-
-@reflectiveTest
-class TokenMapTest {
-  void test_creation() {
-    expect(new TokenMap(), isNotNull);
-  }
-
-  void test_get_absent() {
-    TokenMap tokenMap = new TokenMap();
-    expect(tokenMap.get(TokenFactory.tokenFromType(TokenType.AT)), isNull);
-  }
-
-  void test_get_added() {
-    TokenMap tokenMap = new TokenMap();
-    Token key = TokenFactory.tokenFromType(TokenType.AT);
-    Token value = TokenFactory.tokenFromType(TokenType.AT);
-    tokenMap.put(key, value);
-    expect(tokenMap.get(key), same(value));
   }
 }
 

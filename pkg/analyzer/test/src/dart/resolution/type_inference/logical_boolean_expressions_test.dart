@@ -20,13 +20,12 @@ main() {
 @reflectiveTest
 class LogicalAndTest extends DriverResolutionTest {
   test_upward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(bool a, bool b) {
   var c = a && b;
   print(c);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('c)'), 'bool');
   }
 }
@@ -43,7 +42,7 @@ class LogicalAndWithNnbdTest extends LogicalAndTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(b) {
   var c = a() && b();
   print(c);
@@ -51,7 +50,6 @@ void f(b) {
 T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
     assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
   }
@@ -60,13 +58,12 @@ T b<T>() => throw '';
 @reflectiveTest
 class LogicalOrTest extends DriverResolutionTest {
   test_upward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(bool a, bool b) {
   var c = a || b;
   print(c);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('c)'), 'bool');
   }
 }
@@ -83,7 +80,7 @@ class LogicalOrWithNnbdTest extends LogicalOrTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(b) {
   var c = a() || b();
   print(c);
@@ -91,7 +88,6 @@ void f(b) {
 T a<T>() => throw '';
 T b<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
     assertInvokeType(findNode.methodInvocation('b('), 'bool Function()');
   }

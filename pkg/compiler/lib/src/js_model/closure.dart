@@ -888,6 +888,9 @@ class RecordClassData implements JClassData {
   InterfaceType get mixedInType => null;
 
   @override
+  InterfaceType get jsInteropType => thisType;
+
+  @override
   InterfaceType get rawType => thisType;
 }
 

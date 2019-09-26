@@ -93,54 +93,6 @@ class ConditionalModification extends PotentialModification {
   Iterable<FixReasonInfo> get reasons => discard.reasons;
 }
 
-/// Records information about the possible addition of an import to the source
-/// code.
-class PotentiallyAddImport extends PotentialModification {
-  final _usages = <PotentialModification>[];
-
-  final int _offset;
-  final String importPath;
-
-  PotentiallyAddImport(
-      AstNode beforeNode, String importPath, PotentialModification usage)
-      : this.forOffset(beforeNode.offset, importPath, usage);
-
-  PotentiallyAddImport.forOffset(
-      this._offset, this.importPath, PotentialModification usage) {
-    _usages.add(usage);
-  }
-
-  @override
-  NullabilityFixDescription get description =>
-      NullabilityFixDescription.addImport(importPath);
-
-  @override
-  bool get isEmpty {
-    for (PotentialModification usage in _usages) {
-      if (!usage.isEmpty) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // TODO(danrubel): change all of dartfix NNBD to use DartChangeBuilder
-  @override
-  Iterable<SourceEdit> get modifications =>
-      isEmpty ? const [] : [SourceEdit(_offset, 0, "import '$importPath';\n")];
-
-  @override
-  Iterable<FixReasonInfo> get reasons sync* {
-    for (var usage in _usages) {
-      if (!usage.isEmpty) yield* usage.reasons;
-    }
-  }
-
-  void addUsage(PotentialModification usage) {
-    _usages.add(usage);
-  }
-}
-
 /// Records information about the possible addition of a `?` suffix to a type in
 /// the source code.
 class PotentiallyAddQuestionSuffix extends PotentialModification {
@@ -165,7 +117,7 @@ class PotentiallyAddQuestionSuffix extends PotentialModification {
   Iterable<FixReasonInfo> get reasons => [node];
 }
 
-/// Records information about the possible addition of a `@required` annotation
+/// Records information about the possible addition of a `required` keyword
 /// to the source code.
 class PotentiallyAddRequired extends PotentialModification {
   final NullabilityNode _node;
@@ -197,7 +149,7 @@ class PotentiallyAddRequired extends PotentialModification {
 
   @override
   Iterable<SourceEdit> get modifications =>
-      isEmpty ? const [] : [SourceEdit(_offset, 0, '@required ')];
+      isEmpty ? const [] : [SourceEdit(_offset, 0, 'required ')];
 
   @override
   Iterable<FixReasonInfo> get reasons => [_node];

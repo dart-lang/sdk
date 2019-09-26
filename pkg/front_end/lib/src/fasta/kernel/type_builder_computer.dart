@@ -81,10 +81,8 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    // TODO(dmitryas): Compute the nullabilityBuilder field for the result from
-    //  the nullability field of 'node'.
-    return new NamedTypeBuilder(
-        cls.name, const NullabilityBuilder.pendingImplementation(), arguments)
+    return new NamedTypeBuilder(cls.name,
+        new NullabilityBuilder.fromNullability(node.nullability), arguments)
       ..bind(cls);
   }
 
@@ -104,15 +102,16 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] = new FormalParameterBuilder(null, 0, type, null, null, -1)
-        ..kind = kind;
+      formals[i] =
+          new FormalParameterBuilder(null, 0, type, null, null, -1, null)
+            ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = positionalParameters[i].accept(this);
-      formals[i + positionalParameters.length] =
-          new FormalParameterBuilder(null, 0, type, parameter.name, null, -1)
-            ..kind = FormalParameterKind.optionalNamed;
+      formals[i + positionalParameters.length] = new FormalParameterBuilder(
+          null, 0, type, parameter.name, null, -1, null)
+        ..kind = FormalParameterKind.optionalNamed;
     }
     return new FunctionTypeBuilder(returnType, typeVariables, formals,
         new NullabilityBuilder.fromNullability(node.nullability));

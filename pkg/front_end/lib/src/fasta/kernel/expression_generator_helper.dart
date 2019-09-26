@@ -126,6 +126,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
+  Expression buildProblemErrorIfConst(
+      Message message, int charOffset, int length);
+
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
   Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper});
@@ -147,20 +150,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);
-
-  Expression wrapSyntheticExpression(Expression node, int charOffset);
-
-  Expression wrapInvalidConstructorInvocation(Expression desugared,
-      Member constructor, Arguments arguments, int charOffset);
-
-  Expression wrapInvalidWrite(
-      Expression desugared, Expression expression, int charOffset);
-
-  Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments, int charOffset);
-
-  Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs, int charOffset);
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.

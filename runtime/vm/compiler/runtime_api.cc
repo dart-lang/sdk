@@ -508,6 +508,7 @@ word Instructions::HeaderSize() {
   intptr_t alignment = OS::PreferredCodeAlignment();
   intptr_t aligned_size =
       Utils::RoundUp(Instructions::UnalignedHeaderSize(), alignment);
+  ASSERT(aligned_size == alignment);
   return aligned_size;
 }
 

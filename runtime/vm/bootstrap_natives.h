@@ -392,6 +392,7 @@ namespace dart {
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)                                      \
   V(Wasm_initModule, 2)                                                        \
+  V(Wasm_describeModule, 1)                                                    \
   V(Wasm_initImports, 2)                                                       \
   V(Wasm_addMemoryImport, 3)                                                   \
   V(Wasm_addGlobalImport, 5)                                                   \

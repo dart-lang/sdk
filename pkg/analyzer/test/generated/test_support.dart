@@ -2,106 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
-
-import 'test_analysis_context.dart';
-
-/// The class `EngineTestCase` defines utility methods for making assertions.
-class EngineTestCase {
-  /// Return `true` if the fasta parser is being used.
-  bool get usingFastaParser => Parser.useFasta;
-
-  /// Assert that the given collection of [elements] has the same number of
-  /// elements as the number of specified [names], and that for each specified
-  /// name, a corresponding element can be found in the given collection with
-  /// that name.
-  void assertNamedElements(List<Element> elements, List<String> names) {
-    for (String elemName in names) {
-      bool found = false;
-      for (Element elem in elements) {
-        if (elem.name == elemName) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        StringBuffer buffer = new StringBuffer();
-        buffer.write("Expected element named: ");
-        buffer.write(elemName);
-        buffer.write("\n  but found: ");
-        for (Element elem in elements) {
-          buffer.write(elem.name);
-          buffer.write(", ");
-        }
-        fail(buffer.toString());
-      }
-    }
-    expect(elements, hasLength(names.length));
-  }
-
-  AnalysisContext createAnalysisContext() {
-    return TestAnalysisContext();
-  }
-
-  /// Return the getter in the given [type] with the given [name]. Inherited
-  /// getters are ignored.
-  PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
-    for (PropertyAccessorElement accessor in type.element.accessors) {
-      if (accessor.isGetter && accessor.name == getterName) {
-        return accessor;
-      }
-    }
-    fail("Could not find getter named $getterName in ${type.displayName}");
-  }
-
-  /// Return the method in the given [type] with the given [name]. Inherited
-  /// methods are ignored.
-  MethodElement getMethod(InterfaceType type, String methodName) {
-    for (MethodElement method in type.element.methods) {
-      if (method.name == methodName) {
-        return method;
-      }
-    }
-    fail("Could not find method named $methodName in ${type.displayName}");
-  }
-
-  void setUp() {}
-
-  void tearDown() {}
-
-  /// Return the [AstNode] with requested type at offset of the [prefix].
-  static AstNode findNode(
-      AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
-    int offset = code.indexOf(prefix);
-    if (offset == -1) {
-      throw new ArgumentError("Not found '$prefix'.");
-    }
-    AstNode node = new NodeLocator(offset).searchWithin(root);
-    return node.thisOrAncestorMatching(predicate);
-  }
-
-  /// Find the [SimpleIdentifier] with at offset of the [prefix].
-  static SimpleIdentifier findSimpleIdentifier(
-      AstNode root, String code, String prefix) {
-    int offset = code.indexOf(prefix);
-    if (offset == -1) {
-      throw new ArgumentError("Not found '$prefix'.");
-    }
-    return new NodeLocator(offset).searchWithin(root);
-  }
-}
 
 /// A description of an error that is expected to be reported.
 class ExpectedError {

@@ -38,6 +38,8 @@ inline int Utils::CountTrailingZeros(uword x) {
   return static_cast<int>(result);
 }
 
+// WARNING: The below functions assume host is always Little Endian!
+
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
   return _byteswap_ushort(value);
 }

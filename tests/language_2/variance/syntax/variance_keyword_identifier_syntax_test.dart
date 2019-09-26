@@ -2,9 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests identifier usage of keywords `out` and `inout`, correct usage of `in`.
+// Tests identifier usage of keywords `out` and `inout`, correct usage of `in`
+// with the experimental flag `variance` enabled.
+
+// SharedOptions=--enable-experiment=variance
 
 import "package:expect/expect.dart";
+
+class A<out> {}
+
+class B<inout> {}
+
+class C<out, inout> {}
+
+F<inout, out>() {}
+
+mixin G<out, inout> {}
+
+typedef H<inout, out> = out Function(inout);
 
 class OutParameter {
   var out = 3;

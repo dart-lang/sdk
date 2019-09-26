@@ -247,8 +247,8 @@ class ClassHierarchyBuilder {
   TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
-      return new NamedTypeBuilder(clsNode.classBuilder.name,
-          const NullabilityBuilder.pendingImplementation(), null)
+      return new NamedTypeBuilder(
+          clsNode.classBuilder.name, const NullabilityBuilder.omitted(), null)
         ..bind(clsNode.classBuilder);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
@@ -1964,10 +1964,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   InterfaceType get nullType => hierarchy.coreTypes.nullType;
 
   @override
-  InterfaceType get objectType => hierarchy.coreTypes.objectLegacyRawType;
+  InterfaceType get objectLegacyRawType =>
+      hierarchy.coreTypes.objectLegacyRawType;
 
   @override
-  InterfaceType get rawFunctionType =>
+  InterfaceType get functionLegacyRawType =>
       hierarchy.coreTypes.functionLegacyRawType;
 
   @override

@@ -30,13 +30,12 @@ class AssertWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   assert(a());
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -53,13 +52,12 @@ class DoWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   do {} while(a())
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -76,63 +74,58 @@ class ForWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_awaitForIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   await for (var e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
   }
 
   @failingTest
   test_awaitForIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() async {
   await for (int e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'Stream<int> Function()');
   }
 
   @failingTest
   test_for_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (int i = 0; a(); i++) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 
   @failingTest
   test_forIn_dynamic_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (var e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
   }
 
   @failingTest
   test_forIn_int_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (int e in a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(
         findNode.methodInvocation('a('), 'Iterable<int> Function()');
   }
@@ -150,13 +143,12 @@ class IfWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   if (a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }
@@ -173,13 +165,12 @@ class WhileWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   while (a()) {}
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }

@@ -6,17 +6,10 @@ analyses/analyze_test: Slow
 analyses/api_dynamic_test: Slow
 analyses/dart2js_dynamic_test: Slow
 closure/closure_test: Slow
-codegen/gvn_dynamic_field_get_test: Fail # Issue 18519
-codegen/list_tracer_length_test: Fail # Issue 33051
 codegen/load_elimination_test: Slow
-codegen/logical_expression_test: Fail # Issue 17027
 codegen/model_test: Slow
-codegen/side_effect_tdiv_regression_test: Fail # Issue 33050
-codegen/simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
 deferred_loading/deferred_loading_test: Slow
 end_to_end/dump_info_test: Slow
-end_to_end/generate_code_with_compile_time_errors_test: RuntimeError # not supported yet with the new FE.
-end_to_end/show_package_warnings_test: RuntimeError # missing errors from the FE
 equivalence/id_equivalence1_test: Slow
 equivalence/id_equivalence2_test: Slow
 impact/impact_test: Slow
@@ -24,10 +17,7 @@ inference/inference0_test: Slow
 inference/inference1_test: Slow
 inference/inference2_test: Slow
 inference/inference3_test: Slow
-inference/simple_inferrer_const_closure2_test: Fail # Issue 16507
-inference/simple_inferrer_const_closure_test: Fail # Issue 16507
-inference/simple_inferrer_global_field_closure_test: Fail # Issue 16507
-inference/swarm_test: Slow, Pass, Fail #
+inference/swarm_test: Slow #
 inlining/inlining_test: Slow
 model/native_test: Slow
 model/no_such_method_enabled_test: Slow
@@ -38,8 +28,6 @@ rti/rti_emission_test: Slow
 rti/rti_need0_test: Slow
 rti/rti_need1_test: Slow
 serialization/serialization_test: Slow
-sourcemaps/d2js_validity_test: RuntimeError # Issue 33072
-sourcemaps/deferred_d2js_validity_test: RuntimeError # Issue 33072
 sourcemaps/source_mapping_invokes_test: Slow
 sourcemaps/source_mapping_operators_test: Slow
 sourcemaps/source_mapping_test: Slow

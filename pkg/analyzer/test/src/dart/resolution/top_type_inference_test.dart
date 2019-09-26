@@ -16,13 +16,12 @@ main() {
 @reflectiveTest
 class TopTypeInferenceDriverResolutionTest extends DriverResolutionTest {
   test_referenceInstanceVariable_withDeclaredType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   final int a = b + 1;
 }
 final b = new A().a;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     assertElementTypeString(findElement.field('a').type, 'int');
@@ -30,13 +29,12 @@ final b = new A().a;
   }
 
   test_referenceInstanceVariable_withoutDeclaredType() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   final a = b + 1;
 }
 final b = new A().a;
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
 
     assertElementTypeDynamic(findElement.field('a').type);

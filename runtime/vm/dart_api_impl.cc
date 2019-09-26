@@ -1627,6 +1627,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   Thread::ExitIsolate();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static uint8_t* ApiReallocate(uint8_t* ptr,
                               intptr_t old_size,
                               intptr_t new_size) {
@@ -1634,12 +1635,16 @@ static uint8_t* ApiReallocate(uint8_t* ptr,
       ->zone()
       ->Realloc<uint8_t>(ptr, old_size, new_size);
 }
+#endif
 
 DART_EXPORT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
                     intptr_t* isolate_snapshot_data_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("Cannot create snapshots on an AOT runtime.");
+#else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
@@ -1676,6 +1681,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   }
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   return Api::Success();
+#endif
 }
 
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
@@ -6182,10 +6188,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("AOT compilation is not supported on DBC.");
-#elif defined(TARGET_OS_WINDOWS)
-  return Api::NewError("Windows cannot load ELF.");
-#elif defined(TARGET_OS_MACOS)
-  return Api::NewError("macOS/iOS cannot load ELF.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");

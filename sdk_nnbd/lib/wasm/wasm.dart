@@ -32,6 +32,9 @@ abstract class WasmModule {
 
   // Instantiate the module with the given imports.
   WasmInstance instantiate(WasmImports imports);
+
+  // Describes the imports and exports that the module expects, for debugging.
+  String describe();
 }
 
 // WasmImports holds all the imports for a WasmInstance.

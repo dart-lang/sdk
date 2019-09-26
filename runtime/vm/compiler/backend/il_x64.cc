@@ -521,9 +521,7 @@ static void EmitAssertBoolean(Register reg,
   compiler->GenerateRuntimeCall(token_pos, deopt_id,
                                 kNonBoolTypeErrorRuntimeEntry, 1, locs);
   // We should never return here.
-#if defined(DEBUG)
   __ int3();
-#endif
   __ Bind(&done);
 }
 

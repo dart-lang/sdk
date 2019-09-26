@@ -844,6 +844,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// given unbalanced `<` `>` and invalid parameters or arguments.
   final bool inDeclaration;
 
+  // Only support variance parsing if it makes sense.
+  // Allows parsing of variance for certain structures.
+  // See https://github.com/dart-lang/language/issues/524
+  final bool allowsVariance;
+
   @override
   int typeArgumentCount;
 
@@ -853,9 +858,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// and may not be part of the token stream.
   Token skipEnd;
 
-  ComplexTypeParamOrArgInfo(Token token, this.inDeclaration)
+  ComplexTypeParamOrArgInfo(
+      Token token, this.inDeclaration, this.allowsVariance)
       : assert(optional('<', token.next)),
         assert(inDeclaration != null),
+        assert(allowsVariance != null),
         start = token.next;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
@@ -978,9 +985,35 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
     Link<Token> typeStarts = const Link<Token>();
     Link<TypeInfo> superTypeInfos = const Link<TypeInfo>();
+    Link<Token> variances = const Link<Token>();
 
     while (true) {
       token = parser.parseMetadataStar(next);
+
+      Token variance = next.next;
+      Token identifier = variance.next;
+      if (allowsVariance &&
+          isVariance(variance) &&
+          identifier != null &&
+          identifier.isKeywordOrIdentifier) {
+        variances = variances.prepend(variance);
+
+        // Recovery for multiple variance modifiers
+        while (isVariance(identifier) &&
+            identifier.next != null &&
+            identifier.next.isKeywordOrIdentifier) {
+          // Report an error and skip actual identifier
+          parser.reportRecoverableError(
+              identifier, fasta.messageMultipleVarianceModifiers);
+          variance = variance.next;
+          identifier = identifier.next;
+        }
+
+        token = variance;
+      } else {
+        variances = variances.prepend(null);
+      }
+
       next = parser.ensureIdentifier(
           token, IdentifierContext.typeVariableDeclaration);
       token = next;
@@ -1015,12 +1048,18 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     assert(count > 0);
     assert(typeStarts.slowLength() == count);
     assert(superTypeInfos.slowLength() == count);
+    assert(variances.slowLength() == count);
     listener.handleTypeVariablesDefined(token, count);
 
     token = null;
     while (typeStarts.isNotEmpty) {
       Token token2 = typeStarts.head;
       TypeInfo typeInfo = superTypeInfos.head;
+      Token variance = variances.head;
+
+      if (variance != null) {
+        listener.handleVarianceModifier(variance);
+      }
 
       Token extendsOrSuper = null;
       Token next2 = token2.next;
@@ -1040,6 +1079,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
       typeStarts = typeStarts.tail;
       superTypeInfos = superTypeInfos.tail;
+      variances = variances.tail;
     }
 
     if (!parseCloser(token)) {
@@ -1169,6 +1209,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     assert(skipEnd != null);
     return skipEnd;
   }
+}
+
+// Return `true` if [token] is one of `in`, `inout`, or `out`
+bool isVariance(Token token) {
+  return optional('in', token) ||
+      optional('inout', token) ||
+      optional('out', token);
 }
 
 /// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.

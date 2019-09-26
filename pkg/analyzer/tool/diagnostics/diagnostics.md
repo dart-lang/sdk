@@ -62,6 +62,34 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+### abstract_super_member_reference
+
+_The {0} '{1}' is always abstract in the supertype._
+
+#### Description
+
+The analyzer produces this diagnostic when an inherited member is
+referenced using `super`, but there is no concrete implementation of the
+member in the superclass chain. Abstract members can't be invoked.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+abstract class A {
+  int get a;
+}
+class B extends A {
+  int get a => super.[!a!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invocation of the abstract member, possibly replacing it with an
+invocation of a concrete member.
+
 ### ambiguous_extension_member_access
 
 _A member named '{0}' is defined in extensions '{1}' and '{2}' and neither is
@@ -302,6 +330,54 @@ String f(String x) => x;
 String g(num y) => f(y as String);
 {% endprettify %}
 
+### built_in_identifier_as_extension_name
+
+_The built-in identifier '{0}' can't be used as an extension name._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of an extension is a
+built-in identifier. Built-in identifiers can’t be used as extension names.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension [!mixin!] on int {}
+{% endprettify %}
+
+#### Common fixes
+
+Choose a different name for the extension.
+
+### cast_to_non_type
+
+_The name '{0}' isn't a type, so it can't be used in an 'as' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name following the `as` in a
+cast expression is defined to be something other than a type.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+num x = 0;
+int y = x as [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a type:
+
+{% prettify dart %}
+num x = 0;
+int y = x as int;
+{% endprettify %}
+
 ### const_initialized_with_non_constant_value
 
 _Const variables must be initialized with a constant value._
@@ -338,6 +414,96 @@ modifier from the variable, possibly using `final` in its place:
 {% prettify dart %}
 var x = 0;
 final y = x;
+{% endprettify %}
+
+### const_spread_expected_list_or_set
+
+_A list or a set is expected in this spread._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression of a spread
+operator in a constant list or set evaluates to something other than a list
+or a set.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const List<int> list1 = null;
+const List<int> list2 = [...[!list1!]];
+{% endprettify %}
+
+#### Common fixes
+
+Change the expression to something that evaluates to either a constant list
+or a constant set:
+
+{% prettify dart %}
+const List<int> list1 = [];
+const List<int> list2 = [...list1];
+{% endprettify %}
+
+### const_spread_expected_map
+
+_A map is expected in this spread._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression of a spread
+operator in a constant map evaluates to something other than a map.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const Map<String, int> map1 = null;
+const Map<String, int> map2 = {...[!map1!]};
+{% endprettify %}
+
+#### Common fixes
+
+Change the expression to something that evaluates to a constant map:
+
+{% prettify dart %}
+const Map<String, int> map1 = {};
+const Map<String, int> map2 = {...map1};
+{% endprettify %}
+
+### const_with_non_constant_argument
+
+_Arguments of a constant creation must be constant expressions._
+
+#### Description
+
+The analyzer produces this diagnostic when a const constructor is invoked
+with an argument that isn't a constant expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  final int i;
+  const C(this.i);
+}
+C f(int i) => const C([!i!]);
+{% endprettify %}
+
+#### Common fixes
+
+Either make all of the arguments constant expressions, or remove the
+`const` keyword to use the non-constant form of the constructor:
+
+{% prettify dart %}
+class C {
+  final int i;
+  const C(this.i);
+}
+C f(int i) => C(i);
 {% endprettify %}
 
 ### deprecated_member_use
@@ -390,6 +556,63 @@ The fix depends on what's been deprecated and what the replacement is. The
 documentation for deprecated declarations should indicate what code to use
 in place of the deprecated code.
 
+### duplicate_definition
+
+_The name '{0}' is already defined._
+
+#### Description
+
+The analyzer produces this diagnostic when a name is declared, and there is
+a previous declaration with the same name in the same scope.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+int x = 0;
+int [!x!] = 1;
+{% endprettify %}
+
+#### Common fixes
+
+Choose a different name for one of the declarations.
+
+{% prettify dart %}
+int x = 0;
+int y = 1;
+{% endprettify %}
+
+### equal_elements_in_const_set
+
+_Two values in a constant set can't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when two elements in a constant set
+literal have the same value. The set can only contain each value once,
+which means that one of the values is unnecessary.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const Set<String> set = {'a', [!'a'!]};
+{% endprettify %}
+
+#### Common fixes
+
+Remove one of the duplicate values:
+
+{% prettify dart %}
+const Set<String> set = {'a'};
+{% endprettify %}
+
+Note that literal sets preserve the order of their elements, so the choice
+of which element to remove might affect the order in which elements are
+returned by an iterator.
+
 ### equal_keys_in_const_map
 
 _Two keys in a constant map literal can't be equal._
@@ -411,17 +634,23 @@ const map = <int, String>{1: 'a', 2: 'b', [!1!]: 'c', 4: 'd'};
 
 #### Common fixes
 
-If one of the keys was supposed to be different, then replace it:
+If both entries should be included in the map, then change one of the keys
+to be different:
 
 {% prettify dart %}
 const map = <int, String>{1: 'a', 2: 'b', 3: 'c', 4: 'd'};
 {% endprettify %}
 
-Otherwise, remove the key/value pair that isn't intended to be in the map:
+If only one of the entries is needed, then remove the one that isn't
+needed:
 
 {% prettify dart %}
 const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
 {% endprettify %}
+
+Note that literal maps preserve the order of their entries, so the choice
+of which entry to remove might affect the order in which keys and values
+are returned by an iterator.
 
 ### expression_in_map
 
@@ -448,6 +677,41 @@ For example:
 
 {% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
+{% endprettify %}
+
+### extension_as_expression
+
+_Extension '{0}' can't be used as an expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of an extension is used
+in an expression other than in an extension override or to qualify an
+access to a static member of the extension.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on int {
+  static String m() => '';
+}
+
+var x = [!E!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name of the extension with a name that can be referenced, such
+as a static member defined on the extension:
+
+{% prettify dart %}
+extension E on int {
+  static String m() => '';
+}
+
+var x = E.m();
 {% endprettify %}
 
 ### extension_conflicting_static_and_instance
@@ -726,6 +990,240 @@ void f(int i) {
 }
 {% endprettify %}
 
+### extension_override_with_cascade
+
+_Extension overrides have no value so they can't be used as the target of a
+cascade expression._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is used as
+the target of a cascade expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on int {
+  void m() {}
+}
+f() {
+  E(3)[!..!]m();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use '.' rather than '..':
+
+{% prettify dart %}
+extension E on int {
+  void m() {}
+}
+f() {
+  E(3).m();
+}
+{% endprettify %}
+
+If there are multiple cascaded accesses, you'll need to duplicate the
+extension override for each one.
+
+### extra_positional_arguments
+
+_Too many positional arguments: {0} expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has more positional arguments than the method or function allows.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f[!(1, 2, 3)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the arguments that don't correspond to parameters:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f(1, 2);
+}
+{% endprettify %}
+
+### extra_positional_arguments_could_be_named
+
+_Too many positional arguments: {0} expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has more positional arguments than the method or function allows, but the
+method or function defines named parameters.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f[!(1, 2, 3)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If some of the arguments should be values for named parameters, then add
+the names before the arguments:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f(1, 2, c: 3);
+}
+{% endprettify %}
+
+Otherwise, remove the arguments that don't correspond to positional
+parameters:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f(1, 2);
+}
+{% endprettify %}
+
+### final_not_initialized
+
+_The final variable '{0}' must be initialized._
+
+#### Description
+
+The analyzer produces this diagnostic when a final field or variable isn't
+initialized.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+final [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+For variables and static fields, you can add an initializer:
+
+{% prettify dart %}
+final x = 0;
+{% endprettify %}
+
+For instance fields, you can add an initializer as shown in the previous
+example, or you can initialize the field in every constructor. You can
+initialize the field by using a field formal parameter:
+
+{% prettify dart %}
+class C {
+  final int x;
+  C(this.x);
+}
+{% endprettify %}
+
+You can also initialize the field by using an initializer in the
+constructor:
+
+{% prettify dart %}
+class C {
+  final int x;
+  C(int y) : x = y * 2;
+}
+{% endprettify %}
+
+### implements_non_class
+
+_Classes and mixins can only implement other classes and mixins._
+
+#### Description
+
+The analyzer produces this diagnostic when a name used in the implements
+clause of a class or mixin declaration is defined to be something other
+than a class or mixin.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var x;
+class C implements [!x!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the name is the name of an existing class or mixin that's already being
+imported, then add a prefix to the import so that the local definition of
+the name doesn't shadow the imported name.
+
+If the name is the name of an existing class or mixin that isn't being
+imported, then add an import, with a prefix, for the library in which it’s
+declared.
+
+Otherwise, either replace the name in the implements clause with the name
+of an existing class or mixin, or remove the name from the implements
+clause.
+
+### invalid_assignment
+
+_A value of type '{0}' can't be assigned to a variable of type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of an expression
+that is assigned to a variable isn't assignable to the type of the
+variable.
+
+#### Example
+
+The following code produces this diagnostic because the type of the
+initializer (`int`) isn't assignable to the type of the variable
+(`String`):
+
+{% prettify dart %}
+int i = 0;
+String s = [!i!];
+{% endprettify %}
+
+#### Common fixes
+
+If the value being assigned is always assignable at runtime, even though
+the static types don't reflect that, then add an explicit cast.
+
+Otherwise, change the value being assigned so that it has the expected
+type. In the previous example, this might look like:
+
+{% prettify dart %}
+int i = 0;
+String s = i.toString();
+{% endprettify %}
+
+If you can’t change the value, then change the type of the variable to be
+compatible with the type of the value being assigned:
+
+{% prettify dart %}
+int i = 0;
+int s = i;
+{% endprettify %}
+
 ### invalid_extension_argument_count
 
 _Extension overrides must have exactly one argument: the value of 'this' in the
@@ -864,6 +1362,44 @@ int f() {
 
 Replace the name with the name of a function.
 
+### map_entry_not_in_map
+
+_Map entries can only be used in a map literal._
+
+#### Description
+
+The analyzer produces this diagnostic when a map entry (a key/value pair)
+is found in a set literal.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const collection = <String>{[!'a' : 'b'!]};
+{% endprettify %}
+
+#### Common fixes
+
+If you intended for the collection to be a map, then change the code so
+that it is a map. In the previous example, you could do this by adding
+another type argument:
+
+{% prettify dart %}
+const collection = <String, String>{'a' : 'b'};
+{% endprettify %}
+
+In other cases, you might need to change the explicit type from `Set` to
+`Map`.
+
+If you intended for the collection to be a set, then remove the map entry,
+possibly by replacing the colon with a comma if both values should be
+included in the set:
+
+{% prettify dart %}
+const collection = <String>{'a', 'b'};
+{% endprettify %}
+
 ### missing_return
 
 _This function has a return type of '{0}', but doesn't end with a return
@@ -891,6 +1427,42 @@ The following code produces this diagnostic:
 
 Add a return statement that makes the return value explicit, even if `null`
 is the appropriate value.
+
+### non_constant_case_expression
+
+_Case expressions must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression in a case clause
+isn't a constant expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int i, int j) {
+  switch (i) {
+    case [!j!]:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Either make the expression a constant expression, or rewrite the switch
+statement as a sequence of if statements:
+
+{% prettify dart %}
+void f(int i, int j) {
+  if (i == j) {
+    // ...
+  }
+}
+{% endprettify %}
 
 ### non_constant_list_element
 
@@ -932,6 +1504,122 @@ before the list literal:
 {% prettify dart %}
 var x = 2;
 var y = <int>[0, 1, x];
+{% endprettify %}
+
+### non_constant_map_element
+
+_The elements in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when an if element or a spread
+element in a constant map isn't a constant element.
+
+#### Example
+
+The following code produces this diagnostic because it is attempting to
+spread a non-constant map:
+
+{% prettify dart %}
+var notConst = <int, int>{};
+var map = const <int, int>{...[!notConst!]};
+{% endprettify %}
+
+Similarly, the following code produces this diagnostic because the
+condition in the if element isn't a constant expression:
+
+{% prettify dart %}
+bool notConst = true;
+var map = const <int, int>{if ([!notConst!]) 1 : 2};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the elements  constants.
+In the spread example, you might do that by making the collection being
+spread a constant:
+
+{% prettify dart %}
+const notConst = <int, int>{};
+var map = const <int, int>{...notConst};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+bool notConst = true;
+var map = <int, int>{if (notConst) 1 : 2};
+{% endprettify %}
+
+### non_constant_map_key
+
+_The keys in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in a constant map literal
+isn't a constant value.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var a = 'a';
+var m = const {[!a!]: 0};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the key a constant:
+
+{% prettify dart %}
+const a = 'a';
+var m = const {a: 0};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+var a = 'a';
+var m = {a: 0};
+{% endprettify %}
+
+### non_constant_map_value
+
+_The values in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when a value in a constant map
+literal isn't a constant value.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var a = 'a';
+var m = const {0: [!a!]};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the key a constant:
+
+{% prettify dart %}
+const a = 'a';
+var m = const {0: a};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+var a = 'a';
+var m = {0: a};
 {% endprettify %}
 
 ### non_type_as_type_argument
@@ -984,6 +1672,38 @@ g([!f!] v) {}
 
 Replace the name with the name of a type.
 
+### not_enough_positional_arguments
+
+_{0} positional argument(s) expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has fewer positional arguments than the number of required positional
+parameters.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f[!(0)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add arguments corresponding to the remaining parameters:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f(0, 1);
+}
+{% endprettify %}
+
 ### not_iterable_spread
 
 _Spread elements in list or set literals must implement 'Iterable'._
@@ -1011,6 +1731,35 @@ iterable object:
 {% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...m.keys};
+{% endprettify %}
+
+### not_map_spread
+
+_Spread elements in map literals must implement 'Map'._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of the
+expression of a spread element that appears in a map literal doesn't
+implement the type `Map`.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var l =  <String>['a', 'b'];
+var m = <int, String>{...[!l!]};
+{% endprettify %}
+
+#### Common fixes
+
+The most common fix is to replace the expression with one that produces a
+map:
+
+{% prettify dart %}
+var l =  <String>['a', 'b'];
+var m = <int, String>{...l.asMap()};
 {% endprettify %}
 
 ### redirect_to_non_class
@@ -1052,6 +1801,55 @@ C f() => null;
 
 class C {
   factory C() => f();
+}
+{% endprettify %}
+
+### referenced_before_declaration
+
+_Local variable '{0}' can't be referenced before it is declared._
+
+#### Description
+
+The analyzer produces this diagnostic when a variable is referenced before
+it’s declared. In Dart, variables are visible everywhere in the block in
+which they are declared, but can only be referenced after they are
+declared.
+
+The analyzer also produces a context message that indicates where the
+declaration is located.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f() {
+  print([!i!]);
+  int i = 5;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you intended to reference the local variable, move the declaration
+before the first reference:
+
+{% prettify dart %}
+void f() {
+  int i = 5;
+  print(i);
+}
+{% endprettify %}
+
+If you intended to reference a name from an outer scope, such as a
+parameter, instance field or top-level variable, then rename the local
+declaration so that it doesn't hide the outer variable.
+
+{% prettify dart %}
+void f(int i) {
+  print(i);
+  int x = 5;
+  print(x);
 }
 {% endprettify %}
 
@@ -1589,6 +2387,78 @@ class A<E extends num> {}
 var a = A<int>();
 {% endprettify %}
 
+### type_test_with_undefined_name
+
+_The name '{0}' isn't defined, so it can't be used in an 'is' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name following the `is` in a
+type test expression isn't defined.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(Object o) {
+  if (o is [!Srting!]) {
+    // ...
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a type:
+
+{% prettify dart %}
+void f(Object o) {
+  if (o is String) {
+    // ...
+  }
+}
+{% endprettify %}
+
+### undefined_annotation
+
+_Undefined name '{0}' used as an annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a name that isn't defined is
+used as an annotation.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+[!@undefined!]
+void f() {}
+{% endprettify %}
+
+#### Common fixes
+
+If the name is correct, but it isn’t declared yet, then declare the name as
+a constant value:
+
+{% prettify dart %}
+const undefined = 'undefined';
+
+@undefined
+void f() {}
+{% endprettify %}
+
+If the name is wrong, replace the name with the name of a valid constant:
+
+{% prettify dart %}
+@deprecated
+void f() {}
+{% endprettify %}
+
+Otherwise, remove the annotation.
+
 ### undefined_class
 
 _Undefined class '{0}'._
@@ -2099,6 +2969,37 @@ void f(C c) {
 }
 {% endprettify %}
 
+### undefined_prefixed_name
+
+_The name '{0}' is being referenced through the prefix '{1}', but it isn't
+defined in any of the libraries imported using that prefix._
+
+#### Description
+
+The analyzer produces this diagnostic when a prefixed identifier is found
+where the prefix is valid, but the identifier isn't declared in any of the
+libraries imported using that prefix.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+import 'dart:core' as p;
+
+void f() {
+  p.[!a!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the library in which the name is declared isn't imported yet, add an
+import for the library.
+
+If the name is wrong, then change it to one of the names that's declared in
+the imported libraries.
+
 ### undefined_setter
 
 _The setter '{0}' isn't defined for the class '{1}'._
@@ -2134,6 +3035,100 @@ class C {
   void m(int y) {
     this.x = y;
   }
+}
+{% endprettify %}
+
+### undefined_super_method
+
+_The method '{0}' isn't defined in a superclass of '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an inherited method is
+referenced using `super`, but there’s no method with that name in the
+superclass chain.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  void m() {
+    super.[!n!]();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the inherited method you intend to invoke has a different name, then
+make the name of the invoked method  match the inherited method.
+
+If the method you intend to invoke is defined in the same class, then
+remove the `super.`.
+
+If not, then either add the method to one of the superclasses or remove the
+invocation.
+
+### unqualified_reference_to_static_member_of_extended_type
+
+_Static members from the extended type or one of its superclasses must be
+qualified by the name of the defining type._
+
+#### Description
+
+The analyzer produces this diagnostic when an undefined name is found, and
+the name is the same as a static member of the extended type or one of its
+superclasses.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    [!m!]();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you're trying to reference a static member that's declared outside the
+extension, then add the name of the class or extension before the reference
+to the member:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    C.m();
+  }
+}
+{% endprettify %}
+
+If you're referencing a member that isn't declared yet, add a declaration:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    m();
+  }
+
+  void m() {}
 }
 {% endprettify %}
 

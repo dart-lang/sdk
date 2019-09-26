@@ -1752,7 +1752,8 @@ class Parser {
     listener.beginClassOrNamedMixinApplicationPrelude(begin);
     Token name = ensureIdentifier(
         classKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
-    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    Token token =
+        computeTypeParamOrArg(name, true, true).parseVariables(name, this);
     if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
@@ -1959,7 +1960,7 @@ class Parser {
     Token name = ensureIdentifier(
         mixinKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
     Token headerStart =
-        computeTypeParamOrArg(name, true).parseVariables(name, this);
+        computeTypeParamOrArg(name, true, true).parseVariables(name, this);
     listener.beginMixinDeclaration(mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next)) {

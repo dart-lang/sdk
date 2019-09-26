@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 
-/// The result of attempting to resolve an identifier to a element.
+/// The result of attempting to resolve an identifier to elements.
 class ResolutionResult {
   /// An instance that can be used anywhere that no element was found.
   static const ResolutionResult none =
@@ -17,27 +17,22 @@ class ResolutionResult {
   /// The state of the result.
   final _ResolutionResultState state;
 
-  /// The function that was found, or `null` if the [state] is not
-  /// [_ResolutionResultState.single], or a [property] was found.
-  final ExecutableElement function;
+  /// Return the element that is invoked for reading.
+  final ExecutableElement getter;
 
-  /// The property that was found, or `null` if the [state] is not
-  /// [_ResolutionResultState.single], or a [function] was found.
-  final PropertyInducingElement property;
+  /// Return the element that is invoked for writing.
+  final ExecutableElement setter;
 
-  /// Initialize a newly created result to represent resolving to a single
-  /// [function] or [property].
-  ResolutionResult({this.function, this.property})
-      : assert(function != null || property != null),
+  /// Initialize a newly created result to represent resolving a single
+  /// reading and / or writing result.
+  ResolutionResult({this.getter, this.setter})
+      : assert(getter != null || setter != null),
         state = _ResolutionResultState.single;
 
-  /// Initialize a newly created result with no element and the given [state].
+  /// Initialize a newly created result with no elements and the given [state].
   const ResolutionResult._(this.state)
-      : function = null,
-        property = null;
-
-  /// Return the getter of the [property], or the [function].
-  ExecutableElement get getter => function ?? property?.getter;
+      : getter = null,
+        setter = null;
 
   /// Return `true` if this result represents the case where multiple ambiguous
   /// elements were found.
@@ -55,12 +50,8 @@ class ResolutionResult {
   /// If this is a function, return `true` is the function is static.
   /// Otherwise return `false`.
   bool get isStatic {
-    return function?.isStatic ?? property?.isStatic ?? false;
+    return getter?.isStatic ?? setter?.isStatic ?? false;
   }
-
-  /// Return the setter of the [property], or `null` if this is not a property,
-  /// or the property does not have a setter.
-  ExecutableElement get setter => property?.setter;
 }
 
 /// The state of a [ResolutionResult].

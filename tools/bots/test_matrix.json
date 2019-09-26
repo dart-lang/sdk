@@ -341,26 +341,26 @@
         "use-elf": true
     }},
     "dartk-android-(debug|product|release)-(arm|arm64)": {},
-    "dartkp-linux-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "use-blobs": true
     }},
-    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)": {
+    "dartkp-linux-(debug|product|release)-(simarm|simarm64)-crossword": {
       "options": {
-        "use-blobs": true
+        "builder-tag": "crossword"
     }},
-    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
+    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
       "options": {
         "builder-tag": "crossword",
         "use-blobs": true
     }},
     "dartkp-win-(product|release)-x64": {
       "options": {
-        "use-blobs": true
+        "use-elf": true
     }},
     "dartkp-win-debug-x64": {
       "options": {
-        "use-blobs": true,
+        "use-elf": true,
         "vm-options": ["--no-enable-malloc-hooks"]
     }},
     "dartkp-(linux|mac)-(product|release)-x64": { },
@@ -380,7 +380,7 @@
     "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
         "vm-options": ["--no-enable-malloc-hooks", "--no-use-bare-instructions"],
-        "use-blobs": true
+        "use-elf": true
     }},
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
@@ -1611,8 +1611,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "out/ReleaseX64/dart",
+          "name": "run AOT and Exe smoke tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
@@ -1661,8 +1661,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "xcodebuild/ReleaseX64/dart",
+          "name": "run AOT and Exe smoke tests",
+          "script": "xcodebuild/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
@@ -1698,8 +1698,8 @@
           "script": "tools/bots/dart_sdk.py"
         },
         {
-          "name": "run smoke tests",
-          "script": "out/ReleaseX64/dart.exe",
+          "name": "run AOT and Exe smoke tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart.exe",
           "arguments": [
             "tools/bots/aot_smoke_tests.dart"
           ]
@@ -2278,7 +2278,7 @@
     },
     {
       "builders": [
-        "vm-kernel-precomp-mac-debug-simarm_x64",
+        "vm-kernel-precomp-linux-debug-simarm_x64",
         "vm-kernel-precomp-mac-release-simarm_x64"
       ],
       "meta": {

@@ -5,7 +5,6 @@
 # This have crashed at one point (assertion error).
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

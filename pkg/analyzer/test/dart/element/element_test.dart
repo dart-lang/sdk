@@ -7,8 +7,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementKindTest);
@@ -16,7 +14,7 @@ main() {
 }
 
 @reflectiveTest
-class ElementKindTest extends EngineTestCase {
+class ElementKindTest {
   void test_of_nonNull() {
     expect(ElementKind.of(ElementFactory.classElement2("A")),
         same(ElementKind.CLASS));

@@ -97,8 +97,8 @@ already
 also
 alternating
 alternative
-alternatives
 alternatively
+alternatives
 although
 always
 ambiguous
@@ -251,6 +251,7 @@ best
 bets
 better
 between
+beyond
 big
 bigint
 binaries
@@ -278,6 +279,7 @@ bottom
 bound
 boundary
 bounded
+boundedness
 boundless
 bounds
 box
@@ -319,6 +321,7 @@ calculate
 calculated
 calculates
 calculation
+calculator
 call
 callback
 called
@@ -740,6 +743,7 @@ developers
 development
 devices
 devise
+dfs
 diagnostic
 diagnostics
 did
@@ -812,6 +816,7 @@ downwards
 drive
 driver
 drop
+dropped
 dropping
 due
 dump
@@ -1628,6 +1633,7 @@ matched
 matcher
 matches
 matching
+material
 math
 mathematical
 matter
@@ -1725,6 +1731,7 @@ mutable
 mutate
 mutated
 mutates
+mutating
 mutation
 mutations
 mutual
@@ -1958,10 +1965,10 @@ pipeline
 piping
 pivot
 place
-places
 placed
 placeholder
 placeholders
+places
 plain
 plan
 platform
@@ -2292,6 +2299,7 @@ restored
 restores
 restrict
 restricted
+restrictive
 result
 resulting
 results
@@ -2592,6 +2600,7 @@ substitutions
 substring
 substrings
 substructures
+subterm
 subterms
 subtly
 subtract
@@ -2922,6 +2931,7 @@ values
 var
 variable
 variables
+variance
 various
 verbose
 verification
@@ -2939,6 +2949,7 @@ vertices
 very
 via
 view
+viewed
 violate
 violates
 violation

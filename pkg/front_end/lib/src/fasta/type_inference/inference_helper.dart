@@ -22,9 +22,7 @@ abstract class InferenceHelper {
   set transformSetLiterals(bool value);
 
   Expression buildProblem(Message message, int charOffset, int length,
-      {List<LocatedMessage> context,
-      bool suppressMessage,
-      bool wrapInSyntheticExpression: true});
+      {List<LocatedMessage> context, bool suppressMessage});
 
   LocatedMessage checkArgumentsForType(
       FunctionType function, Arguments arguments, int offset);
@@ -37,6 +35,4 @@ abstract class InferenceHelper {
 
   String constructorNameForDiagnostics(String name,
       {String className, bool isSuper});
-
-  Expression desugarSyntheticExpression(Expression node);
 }

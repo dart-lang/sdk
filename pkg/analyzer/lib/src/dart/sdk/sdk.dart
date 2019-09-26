@@ -621,8 +621,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     for (File librariesFile in _libraryMapLocations) {
       try {
         String contents = librariesFile.readAsStringSync();
-        return new SdkLibrariesReader(useDart2jsPaths)
-            .readFromFile(librariesFile, contents);
+        return new SdkLibrariesReader().readFromFile(librariesFile, contents);
       } catch (exception, stackTrace) {
         searchedPaths.add(librariesFile.path);
         lastException = exception;
@@ -873,17 +872,7 @@ class SdkExtensionFinder {
  *     };
  */
 class SdkLibrariesReader {
-  /**
-   * A flag indicating whether the dart2js path should be used when it is
-   * available.
-   */
-  final bool _useDart2jsPaths;
-
-  /**
-   * Initialize a newly created library reader to use the dart2js path if
-   * [_useDart2jsPaths] is `true`.
-   */
-  SdkLibrariesReader(this._useDart2jsPaths);
+  SdkLibrariesReader([@deprecated bool useDart2jsPaths]);
 
   /**
    * Return the library map read from the given [file], given that the content
@@ -907,7 +896,7 @@ class SdkLibrariesReader {
     Parser parser = new Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        new SdkLibrariesReader_LibraryBuilder(_useDart2jsPaths);
+        new SdkLibrariesReader_LibraryBuilder(true);
     // If any syntactic errors were found then don't try to visit the AST
     // structure.
     if (!errorListener.errorReported) {

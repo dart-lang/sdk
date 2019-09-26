@@ -1478,6 +1478,15 @@ class RawInstructions : public RawObject {
   uint32_t size_and_flags_;
   uint32_t unchecked_entrypoint_pc_offset_;
 
+  // There is a gap between size_and_flags_ and the entry point
+  // because we align entry point by 4 words on all platforms.
+  // This allows us to have a free field here without affecting
+  // the aligned size of the Instructions object header.
+  // This also means that entry point offset is the same
+  // whether this field is included or excluded.
+  // TODO(37103): This field should be removed.
+  CodeStatistics* stats_;
+
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 

@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
 #include "vm/hash.h"
@@ -80,6 +81,7 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
                      reinterpret_cast<const void*>(body_b), body_size);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 ImageWriter::ImageWriter(Heap* heap,
                          const void* shared_objects,
                          const void* shared_instructions,
@@ -219,7 +221,7 @@ static intptr_t PcDescriptorsSizeInSnapshot(intptr_t len) {
 }
 
 static constexpr intptr_t kSimarmX64InstructionsAlignment =
-    compiler::target::ObjectAlignment::kObjectAlignment;
+    2 * compiler::target::ObjectAlignment::kObjectAlignment;
 static intptr_t InstructionsSizeInSnapshot(intptr_t len) {
   const intptr_t header_size = Utils::RoundUp(3 * compiler::target::kWordSize,
                                               kSimarmX64InstructionsAlignment);
@@ -677,7 +679,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += WriteByteSequence(beginning, entry);
 #endif  // defined(IS_SIMARM_X64)
 
-      ASSERT((text_offset - instr_start) == insns.HeaderSize());
+      ASSERT((text_offset - instr_start) ==
+             compiler::target::Instructions::HeaderSize());
     }
 
     // 2. Write a label at the entry point.
@@ -753,9 +756,9 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #else
       text_offset += WriteByteSequence(entry, end);
 #endif
+      ASSERT(kWordSize != compiler::target::kWordSize ||
+             (text_offset - instr_start) == insns.raw()->HeapSize());
     }
-
-    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
   }
 
   FrameUnwindEpilogue();
@@ -1075,11 +1078,13 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
 
-    const intptr_t real_bss_base = elf_->AddBSSData("_kDartVMBSSData", 8);
+    const intptr_t real_bss_base =
+        elf_->AddBSSData("_kDartVMBSSData", sizeof(compiler::target::uword));
     ASSERT(bss_base == real_bss_base);
   }
 #endif
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ImageReader::ImageReader(const uint8_t* data_image,
                          const uint8_t* instructions_image,
@@ -1143,6 +1148,7 @@ RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
   return result;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
    public:
@@ -1242,5 +1248,6 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   ProgramVisitor::VisitClasses(&visitor);
   ProgramVisitor::VisitFunctions(&visitor);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/timestamped_data.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:mockito/mockito.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -28,45 +29,45 @@ class NullabilityMigrationImplTest {
   }
 
   void test_modification_columnLineInfo() {
-    final innerModification = PotentialModificationMock();
-    final potentialModification =
-        PotentiallyAddImport.forOffset(10, 'foo', innerModification);
+    final text = 'void f() {}\nint g() => null;';
+    final offset = text.indexOf('int') + 3;
+    final potentialModification = _PotentialModificationMock(
+        _NullabilityFixDescriptionMock('Add ?'),
+        false,
+        [SourceEdit(offset, 0, '?')]);
     final listener = NullabilityMigrationListenerMock();
-    final source = SourceMock('0123456\n8910');
+    final source = SourceMock(text);
     when(variables.getPotentialModifications()).thenReturn({
       source: [potentialModification]
     });
-
-    when(innerModification.isEmpty).thenReturn(false);
 
     NullabilityMigrationImpl.broadcast(variables, listener, null);
 
     final fix = verify(listener.addFix(captureAny)).captured.single
         as SingleNullabilityFix;
-    expect(fix.description.appliedMessage, 'Add import foo');
+    expect(fix.description.appliedMessage, 'Add ?');
     expect(fix.source, source);
-    expect(fix.location.offset, 10);
+    expect(fix.location.offset, offset);
     expect(fix.location.length, 0);
     expect(fix.location.file, '/test.dart');
     expect(fix.location.startLine, 2);
-    expect(fix.location.startColumn, 3);
+    expect(fix.location.startColumn, 4);
     verifyNever(listener.reportException(any, any, any, any));
     final edit =
         verify(listener.addEdit(fix, captureAny)).captured.single as SourceEdit;
-    expect(edit.offset, 10);
+    expect(edit.offset, offset);
     expect(edit.length, 0);
-    expect(edit.replacement, "import 'foo';\n");
+    expect(edit.replacement, '?');
   }
 
   void test_noModifications_notReported() {
-    final potentialModification = PotentialModificationMock();
+    final potentialModification =
+        _PotentialModificationMock.empty(_NullabilityFixDescriptionMock('foo'));
     final listener = NullabilityMigrationListenerMock();
     final source = SourceMock('');
     when(variables.getPotentialModifications()).thenReturn({
       source: [potentialModification]
     });
-
-    when(potentialModification.modifications).thenReturn([]);
 
     NullabilityMigrationImpl.broadcast(variables, listener, null);
 
@@ -91,8 +92,6 @@ class NullabilityMigrationImplTest {
 class NullabilityMigrationListenerMock extends Mock
     implements NullabilityMigrationListener {}
 
-class PotentialModificationMock extends Mock implements PotentialModification {}
-
 class SourceMock extends Mock implements Source {
   final String _contents;
 
@@ -102,3 +101,31 @@ class SourceMock extends Mock implements Source {
 }
 
 class VariablesMock extends Mock implements Variables {}
+
+class _NullabilityFixDescriptionMock implements NullabilityFixDescription {
+  @override
+  final String appliedMessage;
+
+  _NullabilityFixDescriptionMock(this.appliedMessage);
+}
+
+class _PotentialModificationMock extends PotentialModification {
+  @override
+  final NullabilityFixDescription description;
+
+  @override
+  final bool isEmpty;
+
+  @override
+  final Iterable<SourceEdit> modifications;
+
+  _PotentialModificationMock(
+      this.description, this.isEmpty, this.modifications);
+
+  _PotentialModificationMock.empty(this.description)
+      : isEmpty = false,
+        modifications = [];
+
+  @override
+  Iterable<FixReasonInfo> get reasons => throw UnimplementedError();
+}

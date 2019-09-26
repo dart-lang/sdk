@@ -30,9 +30,9 @@ class Test {
     t /*@target=Test::[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
 
-    t /*@target=Test::[]*/ [
+    t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=Object::==*/ /*@target=Test::[]=*/ ??= /*@ typeArgs=B* */ f();
+        /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
 
     t /*@target=Test::[]*/ /*@target=Test::[]=*/ [/*@ typeArgs=Index* */ f()]
         /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
@@ -55,9 +55,9 @@ class Test {
     var /*@ type=B* */ v1 = t /*@target=Test::[]=*/ [
         /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
 
-    var /*@ type=B* */ v2 = t /*@target=Test::[]*/ [
+    var /*@ type=B* */ v2 = t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
             /*@ typeArgs=Index* */ f()]
-        /*@target=Object::==*/ /*@target=Test::[]=*/ ??= /*@ typeArgs=B* */ f();
+        /*@target=Object::==*/ ??= /*@ typeArgs=B* */ f();
 
     var /*@ type=A* */ v3 = t /*@target=Test::[]*/ /*@target=Test::[]=*/ [
             /*@ typeArgs=Index* */ f()]

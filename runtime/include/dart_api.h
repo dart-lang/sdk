@@ -1113,7 +1113,8 @@ DART_EXPORT void Dart_ExitIsolate();
  * the vm isolate on startup and fast initialization of an isolate.
  * A Snapshot of the heap is created before any dart code has executed.
  *
- * Requires there to be a current isolate.
+ * Requires there to be a current isolate. Not available in the precompiled
+ * runtime (check Dart_IsPrecompiledRuntime).
  *
  * \param buffer Returns a pointer to a buffer containing the
  *   snapshot. This buffer is scope allocated and is only valid
@@ -3283,8 +3284,7 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * \return Returns true if the profile is successfully written and false
  *         otherwise.
  */
-DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
-                                             char** error);
+DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port, char** error);
 
 /*
  * ====================
@@ -3360,16 +3360,30 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
 
+#if defined(__APPLE__)
+#define kVmSnapshotDataSymbolName "kDartVmSnapshotData"
+#define kVmSnapshotInstructionsSymbolName "kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataSymbolName "kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsSymbolName                                 \
+  "kDartIsolateSnapshotInstructions"
+#else
+#define kVmSnapshotDataSymbolName "_kDartVmSnapshotData"
+#define kVmSnapshotInstructionsSymbolName "_kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataSymbolName "_kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsSymbolName                                 \
+  "_kDartIsolateSnapshotInstructions"
+#endif
+
 /**
  *  Creates a precompiled snapshot.
  *   - A root library must have been loaded.
  *   - Dart_Precompile must have been called.
  *
  *  Outputs an assembly file defining the symbols
- *   - kDartVmSnapshotData
- *   - kDartVmSnapshotInstructions
- *   - kDartIsolateSnapshotData
- *   - kDartIsolateSnapshotInstructions
+ *   - _kDartVmSnapshotData
+ *   - _kDartVmSnapshotInstructions
+ *   - _kDartIsolateSnapshotData
+ *   - _kDartIsolateSnapshotInstructions
  *
  *  The assembly should be compiled as a static or shared library and linked or
  *  loaded by the embedder.
@@ -3392,10 +3406,10 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *   - Dart_Precompile must have been called.
  *
  *  Outputs an ELF shared library defining the symbols
- *   - kDartVmSnapshotData
- *   - kDartVmSnapshotInstructions
- *   - kDartIsolateSnapshotData
- *   - kDartIsolateSnapshotInstructions
+ *   - _kDartVmSnapshotData
+ *   - _kDartVmSnapshotInstructions
+ *   - _kDartIsolateSnapshotData
+ *   - _kDartIsolateSnapshotInstructions
  *
  *  The shared library should be dynamically loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.

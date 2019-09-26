@@ -15,13 +15,14 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
-import 'package:kernel/src/bounds_checks.dart' show Variance;
-
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
+
+import '../builder/builder.dart';
 
 import 'kernel_builder.dart'
     show
@@ -47,7 +48,7 @@ import '../fasta_codes.dart'
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
 
-export 'package:kernel/src/bounds_checks.dart' show Variance;
+export 'package:kernel/ast.dart' show Variance;
 
 // Computes the variance of a variable in a type.  The function can be run
 // before the types are resolved to compute variances of typedefs' type
@@ -123,35 +124,91 @@ TypeBuilder substituteRange(
     TypeBuilder type,
     Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
     Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
-    {bool isCovariant = true}) {
+    List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables,
+    {final int variance = Variance.covariant}) {
   if (type is NamedTypeBuilder) {
     if (type.declaration is TypeVariableBuilder) {
-      if (isCovariant) {
-        return upperSubstitution[type.declaration] ?? type;
+      if (variance == Variance.contravariant) {
+        return lowerSubstitution[type.declaration] ?? type;
       }
-      return lowerSubstitution[type.declaration] ?? type;
+      return upperSubstitution[type.declaration] ?? type;
     }
     if (type.arguments == null || type.arguments.length == 0) {
       return type;
     }
     List<TypeBuilder> arguments;
-    for (int i = 0; i < type.arguments.length; i++) {
-      TypeBuilder substitutedArgument = substituteRange(
-          type.arguments[i], upperSubstitution, lowerSubstitution,
-          isCovariant: isCovariant);
-      if (substitutedArgument != type.arguments[i]) {
-        arguments ??= type.arguments.toList();
-        arguments[i] = substitutedArgument;
+    TypeDeclarationBuilder declaration = type.declaration;
+    if (declaration == null) {
+      assert(unboundTypes != null,
+          "Can not handle unbound named type builders without `unboundTypes`.");
+      assert(
+          unboundTypeVariables != null,
+          "Can not handle unbound named type builders without "
+          "`unboundTypeVariables`.");
+      assert(
+          identical(upperSubstitution, lowerSubstitution),
+          "Can only handle unbound named type builders identical "
+          "`upperSubstitution` and `lowerSubstitution`.");
+      for (int i = 0; i < type.arguments.length; ++i) {
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments[i],
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (substitutedArgument != type.arguments[i]) {
+          arguments ??= type.arguments.toList();
+          arguments[i] = substitutedArgument;
+        }
       }
+    } else if (declaration is ClassBuilder) {
+      for (int i = 0; i < type.arguments.length; ++i) {
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments[i],
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (substitutedArgument != type.arguments[i]) {
+          arguments ??= type.arguments.toList();
+          arguments[i] = substitutedArgument;
+        }
+      }
+    } else if (declaration is TypeAliasBuilder) {
+      for (int i = 0; i < type.arguments.length; ++i) {
+        TypeVariableBuilder variable = declaration.typeVariables[i];
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments[i],
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: Variance.combine(variance, variable.variance));
+        if (substitutedArgument != type.arguments[i]) {
+          arguments ??= type.arguments.toList();
+          arguments[i] = substitutedArgument;
+        }
+      }
+    } else if (declaration is InvalidTypeBuilder) {
+      // Don't substitute.
+    } else {
+      assert(false, "Unexpected named type builder declaration: $declaration.");
     }
     if (arguments != null) {
-      return new NamedTypeBuilder(type.name, type.nullabilityBuilder, arguments)
-        ..bind(type.declaration);
+      NamedTypeBuilder newTypeBuilder =
+          new NamedTypeBuilder(type.name, type.nullabilityBuilder, arguments);
+      if (declaration != null) {
+        newTypeBuilder.bind(declaration);
+      } else {
+        unboundTypes.add(newTypeBuilder);
+      }
+      return newTypeBuilder;
     }
     return type;
-  }
-
-  if (type is FunctionTypeBuilder) {
+  } else if (type is FunctionTypeBuilder) {
     List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
       variables = new List<TypeVariableBuilder>(type.typeVariables.length);
@@ -163,29 +220,45 @@ TypeBuilder substituteRange(
     TypeBuilder returnType;
     bool changed = false;
 
+    Map<TypeVariableBuilder, TypeBuilder> functionTypeUpperSubstitution;
+    Map<TypeVariableBuilder, TypeBuilder> functionTypeLowerSubstitution;
     if (type.typeVariables != null) {
       for (int i = 0; i < variables.length; i++) {
         TypeVariableBuilder variable = type.typeVariables[i];
-        TypeBuilder bound = substituteRange(
-            variable.bound, upperSubstitution, lowerSubstitution,
-            isCovariant: isCovariant);
+        TypeBuilder bound = substituteRange(variable.bound, upperSubstitution,
+            lowerSubstitution, unboundTypes, unboundTypeVariables,
+            variance: Variance.invariant);
         if (bound != variable.bound) {
-          variables[i] = new TypeVariableBuilder(
-              variable.name, variable.parent, variable.charOffset,
-              bound: bound);
+          TypeVariableBuilder newTypeVariableBuilder = variables[i] =
+              new TypeVariableBuilder(
+                  variable.name, variable.parent, variable.charOffset,
+                  bound: bound);
+          unboundTypeVariables.add(newTypeVariableBuilder);
+          if (functionTypeUpperSubstitution == null) {
+            functionTypeUpperSubstitution = {}..addAll(upperSubstitution);
+            functionTypeLowerSubstitution = {}..addAll(lowerSubstitution);
+          }
+          functionTypeUpperSubstitution[variable] =
+              functionTypeLowerSubstitution[variable] =
+                  new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                      newTypeVariableBuilder,
+                      const NullabilityBuilder.omitted());
           changed = true;
         } else {
           variables[i] = variable;
         }
       }
     }
-
     if (type.formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = type.formals[i];
         TypeBuilder parameterType = substituteRange(
-            formal.type, upperSubstitution, lowerSubstitution,
-            isCovariant: !isCovariant);
+            formal.type,
+            functionTypeUpperSubstitution ?? upperSubstitution,
+            functionTypeLowerSubstitution ?? lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: Variance.combine(variance, Variance.contravariant));
         if (parameterType != formal.type) {
           formals[i] = new FormalParameterBuilder(
               formal.metadata,
@@ -193,34 +266,39 @@ TypeBuilder substituteRange(
               parameterType,
               formal.name,
               formal.parent,
-              formal.charOffset);
+              formal.charOffset,
+              formal.fileUri);
           changed = true;
         } else {
           formals[i] = formal;
         }
       }
     }
-
     returnType = substituteRange(
-        type.returnType, upperSubstitution, lowerSubstitution,
-        isCovariant: true);
-    if (returnType != type.returnType) {
-      changed = true;
-    }
+        type.returnType,
+        functionTypeUpperSubstitution ?? upperSubstitution,
+        functionTypeLowerSubstitution ?? lowerSubstitution,
+        unboundTypes,
+        unboundTypeVariables,
+        variance: variance);
+    changed = changed || returnType != type.returnType;
 
     if (changed) {
       return new FunctionTypeBuilder(
           returnType, variables, formals, type.nullabilityBuilder);
     }
-
     return type;
   }
   return type;
 }
 
 TypeBuilder substitute(
-    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution) {
-  return substituteRange(type, substitution, substitution, isCovariant: true);
+    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution,
+    {List<TypeBuilder> unboundTypes,
+    List<TypeVariableBuilder> unboundTypeVariables}) {
+  return substituteRange(
+      type, substitution, substitution, unboundTypes, unboundTypeVariables,
+      variance: Variance.covariant);
 }
 
 /// Calculates bounds to be provided as type arguments in place of missing type
@@ -249,9 +327,10 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
       nullSubstitution[variables[variableIndex]] = bottomType;
     }
     for (int variableIndex in component) {
-      bounds[variableIndex] = substituteRange(
-          bounds[variableIndex], dynamicSubstitution, nullSubstitution,
-          isCovariant: true);
+      TypeVariableBuilder variable = variables[variableIndex];
+      bounds[variableIndex] = substituteRange(bounds[variableIndex],
+          dynamicSubstitution, nullSubstitution, null, null,
+          variance: variable.variance);
     }
   }
 
@@ -263,8 +342,10 @@ List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {
-      bounds[j] = substituteRange(bounds[j], substitution, nullSubstitution,
-          isCovariant: true);
+      TypeVariableBuilder variable = variables[j];
+      bounds[j] = substituteRange(
+          bounds[j], substitution, nullSubstitution, null, null,
+          variance: variable.variance);
     }
   }
 

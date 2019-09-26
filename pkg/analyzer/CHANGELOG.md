@@ -1,3 +1,6 @@
+## 0.38.4
+* Bug fixes: #33300, #38484, #38505.
+
 ## 0.38.3
 * Deprecated the following codes from `StaticWarningCode`.  Please use the
   corresponding error codes from `CompileTimeErrorCode` instead:

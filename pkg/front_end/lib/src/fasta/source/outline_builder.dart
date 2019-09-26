@@ -45,6 +45,8 @@ import '../kernel/kernel_builder.dart'
         NamedTypeBuilder,
         TypeBuilder;
 
+import '../kernel/type_algorithms.dart';
+
 import '../modifier.dart'
     show
         Const,
@@ -488,6 +490,8 @@ class OutlineBuilder extends StackListener {
       if (extensionThisType is TypeBuilder) {
         library.currentTypeParameterScopeBuilder
             .registerExtensionThisType(extensionThisType);
+      } else {
+        // TODO(johnniwinther): Supply an invalid type as the extension on type.
       }
     }
     debugEvent("beginClassOrMixinBody");
@@ -974,7 +978,7 @@ class OutlineBuilder extends StackListener {
           substitution[extension.typeVariables[i]] =
               new NamedTypeBuilder.fromTypeDeclarationBuilder(
                   synthesizedTypeVariables[i],
-                  const NullabilityBuilder.pendingImplementation());
+                  const NullabilityBuilder.omitted());
         }
         if (typeVariables != null) {
           typeVariables = synthesizedTypeVariables..addAll(typeVariables);
@@ -985,14 +989,18 @@ class OutlineBuilder extends StackListener {
       List<FormalParameterBuilder> synthesizedFormals = [];
       TypeBuilder thisType = extension.extensionThisType;
       if (substitution != null) {
-        List<NamedTypeBuilder> unboundTypes = [];
-        thisType = thisType.subst(substitution, unboundTypes);
-        for (NamedTypeBuilder unboundType in unboundTypes) {
+        List<TypeBuilder> unboundTypes = [];
+        List<TypeVariableBuilder> unboundTypeVariables = [];
+        thisType = substitute(thisType, substitution,
+            unboundTypes: unboundTypes,
+            unboundTypeVariables: unboundTypeVariables);
+        for (TypeBuilder unboundType in unboundTypes) {
           extension.addType(new UnresolvedType(unboundType, -1, null));
         }
+        library.boundlessTypeVariables.addAll(unboundTypeVariables);
       }
       synthesizedFormals.add(new FormalParameterBuilder(
-          null, finalMask, thisType, "#this", null, charOffset));
+          null, finalMask, thisType, "#this", null, charOffset, uri));
       if (formals != null) {
         synthesizedFormals.addAll(formals);
       }
@@ -1145,7 +1153,7 @@ class OutlineBuilder extends StackListener {
     } else {
       push(library.addNamedType(
           name,
-          library.computeNullabilityFromToken(isMarkedAsNullable),
+          library.nullableBuilderIfTrue(isMarkedAsNullable),
           arguments,
           charOffset));
     }
@@ -1391,7 +1399,7 @@ class OutlineBuilder extends StackListener {
         returnType,
         typeVariables,
         formals,
-        library.computeNullabilityFromToken(questionMark != null),
+        library.nullableBuilderIfTrue(questionMark != null),
         functionToken.charOffset));
   }
 
@@ -1406,7 +1414,7 @@ class OutlineBuilder extends StackListener {
       reportErrorIfNullableType(question);
     }
     push(library.addFunctionType(returnType, typeVariables, formals,
-        library.computeNullabilityFromToken(question != null), formalsOffset));
+        library.nullableBuilderIfTrue(question != null), formalsOffset));
   }
 
   @override
@@ -1623,8 +1631,8 @@ class OutlineBuilder extends StackListener {
                 : templateCycleInTypeVariables.withArguments(
                     builder.name, via.join("', '"));
             addProblem(message, builder.charOffset, builder.name.length);
-            builder.bound = new NamedTypeBuilder(builder.name,
-                const NullabilityBuilder.pendingImplementation(), null)
+            builder.bound = new NamedTypeBuilder(
+                builder.name, const NullabilityBuilder.omitted(), null)
               ..bind(new InvalidTypeBuilder(
                   builder.name,
                   message.withLocation(
@@ -1638,6 +1646,13 @@ class OutlineBuilder extends StackListener {
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
       inConstructorName = false;
+    }
+  }
+
+  @override
+  void handleVarianceModifier(Token variance) {
+    if (!library.loader.target.enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
     }
   }
 

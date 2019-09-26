@@ -20,7 +20,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/test_analysis_context.dart';
-import '../../../generated/test_support.dart';
 import '../resolution/driver_resolution.dart';
 
 main() {
@@ -869,7 +868,7 @@ class ClassElementImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class CompilationUnitElementImplTest extends EngineTestCase {
+class CompilationUnitElementImplTest {
   void test_getEnum_declared() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     CompilationUnitElementImpl unit =
@@ -921,14 +920,12 @@ class A {
 }
 void f(@A('x') int p) {}
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 main() {
   f(3);
 }
 ''');
-    await resolveTestFile();
-
     var argument = findNode.integerLiteral('3');
     ParameterElement parameter = argument.staticParameterElement;
 
@@ -1049,7 +1046,7 @@ class ElementImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class ElementLocationImplTest extends EngineTestCase {
+class ElementLocationImplTest {
   void test_create_encoding() {
     String encoding = "a;b;c";
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
@@ -1116,11 +1113,9 @@ class ElementLocationImplTest extends EngineTestCase {
 @reflectiveTest
 class FieldElementImplTest extends DriverResolutionTest {
   test_isEnumConstant() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum B {B1, B2, B3}
 ''');
-    await resolveTestFile();
-
     var B = findElement.enum_('B');
 
     FieldElement b2Element = B.getField('B2');
@@ -3434,16 +3429,16 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
 }
 
 @reflectiveTest
-class LibraryElementImplTest extends EngineTestCase {
+class LibraryElementImplTest {
   void test_creation() {
     expect(
-        new LibraryElementImpl.forNode(createAnalysisContext(), null,
+        new LibraryElementImpl.forNode(TestAnalysisContext(), null,
             AstTestFactory.libraryIdentifier2(["l"]), true),
         isNotNull);
   }
 
   void test_getImportedLibraries() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library1 = ElementFactory.library(context, "l1");
     LibraryElementImpl library2 = ElementFactory.library(context, "l2");
     LibraryElementImpl library3 = ElementFactory.library(context, "l3");
@@ -3467,7 +3462,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_getPrefixes() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "l1");
     PrefixElement prefixA =
         new PrefixElementImpl.forNode(AstTestFactory.identifier3("a"));
@@ -3492,7 +3487,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_getUnits() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = ElementFactory.library(context, "test");
     CompilationUnitElement unitLib = library.definingCompilationUnit;
     CompilationUnitElementImpl unitA =
@@ -3505,7 +3500,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 
   void test_setImports() {
-    AnalysisContext context = createAnalysisContext();
+    AnalysisContext context = TestAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl.forNode(
         context, null, AstTestFactory.libraryIdentifier2(["l1"]), true);
     List<ImportElementImpl> expectedImports = [
@@ -3522,7 +3517,7 @@ class LibraryElementImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class PropertyAccessorElementImplTest extends EngineTestCase {
+class PropertyAccessorElementImplTest {
   void test_matchesHandle_getter() {
     CompilationUnitElementImpl compilationUnitElement =
         ElementFactory.compilationUnit('foo.dart');
@@ -3572,14 +3567,12 @@ class TopLevelVariableElementImplTest extends DriverResolutionTest {
     newFile('/test/lib/a.dart', content: r'''
 const int C = 42;
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 main() {
   print(C);
 }
 ''');
-    await resolveTestFile();
-
     SimpleIdentifier argument = findNode.simple('C);');
     PropertyAccessorElementImpl getter = argument.staticElement;
     TopLevelVariableElement constant = getter.variable;

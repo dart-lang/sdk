@@ -82,7 +82,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.8",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.0",  # Please see the note above before updating.
 
   "dartdoc_rev" : "6934accd88c29a73cae26d0c4def3323efc2119c",
   "fixnum_tag": "0.10.9",
@@ -99,7 +99,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.97+1",
+  "linter_tag": "0.1.98",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",

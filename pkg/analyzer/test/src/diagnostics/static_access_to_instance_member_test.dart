@@ -88,7 +88,7 @@ class StaticAccessToInstanceMemberWithExtensionMethodsTest
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_getter() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   int get g => 0;
 }
@@ -101,7 +101,7 @@ f() {
   }
 
   test_method() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   void m() {}
 }
@@ -114,7 +114,7 @@ f() {
   }
 
   test_setter() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   void set s(int i) {}
 }

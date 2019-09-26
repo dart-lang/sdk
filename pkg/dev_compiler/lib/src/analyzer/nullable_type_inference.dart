@@ -14,6 +14,7 @@ import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
 import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
 import 'js_typerep.dart';
 import 'property_model.dart';
+import 'type_utilities.dart';
 
 /// An inference engine for nullable types.
 ///
@@ -86,7 +87,7 @@ abstract class NullableTypeInference {
     if (e is MethodElement) {
       Element container = e.enclosingElement;
       if (container is ClassElement) {
-        DartType targetType = container.type;
+        DartType targetType = getLegacyRawClassType(container);
         InterfaceType implType = jsTypeRep.getImplementationType(targetType);
         if (implType != null) {
           MethodElement method = implType.lookUpMethod(e.name, coreLibrary);
@@ -110,7 +111,7 @@ abstract class NullableTypeInference {
     // type.
     Element container = element.enclosingElement;
     if (container is ClassElement) {
-      var targetType = container.type;
+      var targetType = getLegacyRawClassType(container);
       var implType = jsTypeRep.getImplementationType(targetType);
       if (implType != null) {
         var getter = implType.lookUpGetter(name, coreLibrary);

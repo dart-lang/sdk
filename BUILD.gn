@@ -86,6 +86,12 @@ group("create_sdk") {
   ]
 }
 
+group("create_sdk_nnbd") {
+  public_deps = [
+    "sdk_nnbd:create_sdk_nnbd",
+  ]
+}
+
 if (defined(dart_host_sdk_toolchain) &&
     dart_host_sdk_toolchain != host_toolchain) {
   group("create_host_sdk") {

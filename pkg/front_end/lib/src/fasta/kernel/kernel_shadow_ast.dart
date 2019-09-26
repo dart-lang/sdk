@@ -24,6 +24,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/clone.dart';
+
 import '../../base/instrumentation.dart'
     show
         Instrumentation,
@@ -50,11 +52,14 @@ import '../fasta_codes.dart'
         templateSpreadMapEntryElementValueTypeMismatch,
         templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
+        templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
         templateUndefinedMethod,
         templateWebLiteralCannotBeRepresentedExactly;
 
-import '../problems.dart' show getFileUri, unhandled, unsupported;
+import '../names.dart';
+
+import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -75,7 +80,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 import '../type_inference/type_schema_elimination.dart' show greatestClosure;
 
 import '../type_inference/type_schema_environment.dart'
-    show TypeSchemaEnvironment, getPositionalParameterType;
+    show TypeSchemaEnvironment;
 
 import 'body_builder.dart' show combineStatements;
 
@@ -181,18 +186,26 @@ enum InternalExpressionKind {
   Cascade,
   CompoundIndexSet,
   CompoundPropertySet,
+  CompoundSuperIndexSet,
   DeferredCheck,
+  ExtensionSet,
+  IfNull,
   IfNullIndexSet,
   IfNullPropertySet,
   IfNullSet,
+  IfNullSuperIndexSet,
   IndexSet,
   LoadLibraryTearOff,
   LocalPostIncDec,
+  NullAwareCompoundSet,
+  NullAwareExtension,
+  NullAwareIfNullSet,
   NullAwareMethodInvocation,
   NullAwarePropertyGet,
   NullAwarePropertySet,
   PropertyPostIncDec,
   StaticPostIncDec,
+  SuperIndexSet,
   SuperPostIncDec,
 }
 
@@ -387,216 +400,6 @@ class Cascade extends InternalExpression {
   }
 }
 
-/// Abstract shadow object representing a complex assignment in kernel form.
-///
-/// Since there are many forms a complex assignment might have been desugared
-/// to, this class wraps the desugared assignment rather than extending it.
-///
-/// TODO(paulberry): once we know exactly what constitutes a "complex
-/// assignment", document it here.
-abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
-  /// In a compound assignment, the expression that reads the old value, or
-  /// `null` if this is not a compound assignment.
-  Expression read;
-
-  /// The expression appearing on the RHS of the assignment.
-  Expression rhs;
-
-  /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
-  /// `++a[b]`).
-  Expression write;
-
-  /// In a compound assignment without shortcut semantics, the expression that
-  /// combines the old and new values, or `null` if this is not a compound
-  /// assignment.
-  ///
-  /// Note that in a compound assignment with shortcut semantics, this is not
-  /// used; [nullAwareCombiner] is used instead.
-  MethodInvocation combiner;
-
-  /// In a compound assignment with shortcut semantics, the conditional
-  /// expression that determines whether the assignment occurs.
-  ///
-  /// Note that in a compound assignment without shortcut semantics, this is not
-  /// used; [combiner] is used instead.
-  ConditionalExpression nullAwareCombiner;
-
-  /// Indicates whether the expression arose from a post-increment or
-  /// post-decrement.
-  bool isPostIncDec = false;
-
-  /// Indicates whether the expression arose from a pre-increment or
-  /// pre-decrement.
-  bool isPreIncDec = false;
-
-  ComplexAssignmentJudgment._(this.rhs) : super._(null);
-
-  String toString() {
-    List<String> parts = _getToStringParts();
-    return '${runtimeType}(${parts.join(', ')})';
-  }
-
-  List<String> _getToStringParts() {
-    List<String> parts = [];
-    if (desugared != null) parts.add('desugared=$desugared');
-    if (read != null) parts.add('read=$read');
-    if (rhs != null) parts.add('rhs=$rhs');
-    if (write != null) parts.add('write=$write');
-    if (combiner != null) parts.add('combiner=$combiner');
-    if (nullAwareCombiner != null) {
-      parts.add('nullAwareCombiner=$nullAwareCombiner');
-    }
-    if (isPostIncDec) parts.add('isPostIncDec=true');
-    if (isPreIncDec) parts.add('isPreIncDec=true');
-    return parts;
-  }
-
-  _ComplexAssignmentInferenceResult _inferRhs(
-      ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
-    assert(writeContext != null);
-    if (readType is VoidType &&
-        (combiner != null || nullAwareCombiner != null)) {
-      inferrer.helper
-          ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
-    }
-    int writeOffset = write == null ? -1 : write.fileOffset;
-    ObjectAccessTarget combinerTarget = const ObjectAccessTarget.unresolved();
-    DartType combinedType;
-    if (combiner != null) {
-      bool isOverloadedArithmeticOperator = false;
-      combinerTarget = inferrer.findMethodInvocationMember(readType, combiner,
-          instrumented: false);
-      assert(!combinerTarget.isCallFunction);
-      if (combinerTarget.isInstanceMember &&
-          combinerTarget.member is Procedure) {
-        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperatorAndType(
-                combinerTarget.member, readType);
-      }
-      DartType rhsType;
-      FunctionType combinerType =
-          inferrer.getFunctionType(combinerTarget, readType, false);
-      if (isPreIncDec || isPostIncDec) {
-        rhsType = inferrer.coreTypes.intRawType(inferrer.library.nonNullable);
-      } else {
-        // It's not necessary to call _storeLetType for [rhs] because the RHS
-        // is always passed directly to the combiner; it's never stored in a
-        // temporary variable first.
-        assert(identical(combiner.arguments.positional.first, rhs));
-        // Analyzer uses a null context for the RHS here.
-        // TODO(paulberry): improve on this.
-        ExpressionInferenceResult rhsResult =
-            inferrer.inferExpression(rhs, const UnknownType(), true);
-        if (rhsResult.replacement != null) {
-          rhs = rhsResult.replacement;
-        }
-        rhsType = rhsResult.inferredType;
-        // Do not use rhs after this point because it may be a Shadow node
-        // that has been replaced in the tree with its desugaring.
-        DartType expectedType = getPositionalParameterType(combinerType, 0);
-        inferrer.ensureAssignable(expectedType, rhsType,
-            combiner.arguments.positional.first, combiner.fileOffset);
-      }
-      if (isOverloadedArithmeticOperator) {
-        combinedType = inferrer.typeSchemaEnvironment
-            .getTypeOfOverloadedArithmetic(readType, rhsType);
-      } else {
-        combinedType = combinerType.returnType;
-      }
-      MethodContravarianceCheckKind checkKind =
-          inferrer.preCheckInvocationContravariance(readType, combinerTarget,
-              isThisReceiver: read is ThisExpression);
-      Expression replacedCombiner = inferrer.handleInvocationContravariance(
-          checkKind,
-          combiner,
-          combiner.arguments,
-          combiner,
-          combinedType,
-          combinerType,
-          combiner.fileOffset);
-      Expression replacedCombiner2 = inferrer.ensureAssignable(
-          writeContext, combinedType, replacedCombiner, writeOffset);
-      if (replacedCombiner2 != null) {
-        replacedCombiner = replacedCombiner2;
-      }
-      _storeLetType(inferrer, replacedCombiner, combinedType);
-    } else {
-      ExpressionInferenceResult rhsResult = inferrer.inferExpression(
-          rhs, writeContext ?? const UnknownType(), true,
-          isVoidAllowed: true);
-      if (rhsResult.replacement != null) {
-        rhs = rhsResult.replacement;
-      }
-      DartType rhsType = rhsResult.inferredType;
-      Expression replacedRhs = inferrer.ensureAssignable(
-          writeContext, rhsType, rhs, writeOffset,
-          isVoidAllowed: writeContext is VoidType);
-      _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
-      if (nullAwareCombiner != null) {
-        MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-        inferrer.findMethodInvocationMember(
-            greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
-            instrumented: false);
-        // Note: the case of readType=null only happens for erroneous code.
-        combinedType = readType == null
-            ? rhsType
-            : inferrer.typeSchemaEnvironment
-                .getStandardUpperBound(readType, rhsType);
-        nullAwareCombiner.staticType = combinedType;
-      } else {
-        combinedType = rhsType;
-      }
-    }
-    if (this is IndexAssignmentJudgment) {
-      _storeLetType(inferrer, write, const VoidType());
-    } else {
-      _storeLetType(inferrer, write, combinedType);
-    }
-    DartType inferredType =
-        isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
-    return new _ComplexAssignmentInferenceResult(
-        combinerTarget.member, inferredType);
-  }
-}
-
-/// Abstract shadow object representing a complex assignment involving a
-/// receiver.
-abstract class ComplexAssignmentJudgmentWithReceiver
-    extends ComplexAssignmentJudgment {
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  final Expression receiver;
-
-  /// Indicates whether this assignment uses `super`.
-  final bool isSuper;
-
-  ComplexAssignmentJudgmentWithReceiver._(
-      this.receiver, Expression rhs, this.isSuper)
-      : super._(rhs);
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
-    if (isSuper) parts.add('isSuper=true');
-    return parts;
-  }
-
-  DartType _inferReceiver(ShadowTypeInferrer inferrer) {
-    if (receiver != null) {
-      DartType receiverType = inferrer
-          .inferExpression(receiver, const UnknownType(), true)
-          .inferredType;
-      _storeLetType(inferrer, receiver, receiverType);
-      return receiverType;
-    } else if (isSuper) {
-      return inferrer.classHierarchy.getTypeAsInstanceOf(
-          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
-    } else {
-      return inferrer.thisType;
-    }
-  }
-}
-
 /// Internal expression representing a deferred check.
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in [replace].
@@ -695,84 +498,40 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing an if-null expression.
+/// Internal expression representing an if-null expression.
 ///
-/// An if-null expression of the form `a ?? b` is represented as the kernel
-/// expression:
+/// An if-null expression of the form `a ?? b` is encoded as:
 ///
 ///     let v = a in v == null ? b : v
-class IfNullJudgment extends Let implements ExpressionJudgment {
-  IfNullJudgment(VariableDeclaration variable, Expression body)
-      : super(variable, body);
+///
+class IfNullExpression extends InternalExpression {
+  Expression left;
+  Expression right;
 
-  @override
-  ConditionalExpression get body => super.body;
-
-  /// Returns the expression to the left of `??`.
-  Expression get left => variable.initializer;
-
-  /// Returns the expression to the right of `??`.
-  Expression get right => body.then;
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIfNullJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an assignment to a target for which
-/// assignment is not allowed.
-class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  /// The offset at which the invalid assignment should be stored.
-  /// If `-1`, then there is no separate location for invalid assignment.
-  final int assignmentOffset;
-
-  IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
-      : super._(rhs) {
-    rhs.parent = this;
+  IfNullExpression(this.left, this.right) {
+    left?.parent = this;
+    right?.parent = this;
   }
 
   @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIllegalAssignmentJudgment(this, typeContext);
+  InternalExpressionKind get kind => InternalExpressionKind.IfNull;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
   }
-}
 
-/// Concrete shadow object representing an assignment to a target of the form
-/// `a[b]`.
-class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// In an assignment to an index expression, the index expression.
-  Expression index;
-
-  IndexAssignmentJudgment._(Expression receiver, this.index, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  Arguments _getInvocationArguments(
-      ShadowTypeInferrer inferrer, Expression invocation) {
-    if (invocation is MethodInvocation) {
-      return invocation.arguments;
-    } else if (invocation is SuperMethodInvocation) {
-      return invocation.arguments;
-    } else {
-      throw unhandled("${invocation.runtimeType}", "_getInvocationArguments",
-          fileOffset, inferrer.uri);
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
     }
-  }
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (index != null) parts.add('index=$index');
-    return parts;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIndexAssignmentJudgment(this, typeContext);
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
   }
 }
 
@@ -798,12 +557,10 @@ Expression checkWebIntLiteralsErrorIfUnexact(
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper.desugarSyntheticExpression(inferrer.helper
-      .buildProblem(
-          templateWebLiteralCannotBeRepresentedExactly.withArguments(
-              text, nearest),
-          charOffset,
-          length));
+  return inferrer.helper.buildProblem(
+      templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
+      charOffset,
+      length);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
@@ -1039,175 +796,12 @@ class NullAwarePropertySet extends InternalExpression {
   }
 }
 
-/// Concrete shadow object representing an assignment to a property.
-class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// If this assignment uses null-aware access (`?.`), the conditional
-  /// expression that guards the access; otherwise `null`.
-  ConditionalExpression nullAwareGuard;
-
-  PropertyAssignmentJudgment._(Expression receiver, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  @override
-  List<String> _getToStringParts() {
-    List<String> parts = super._getToStringParts();
-    if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
-    return parts;
-  }
-
-  ObjectAccessTarget _handleWriteContravariance(
-      ShadowTypeInferrer inferrer, DartType receiverType) {
-    return inferrer.findPropertySetMember(receiverType, write);
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitPropertyAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [ReturnStatement].
 class ReturnStatementImpl extends ReturnStatement {
   final bool isArrow;
 
   ReturnStatementImpl(this.isArrow, [Expression expression])
       : super(expression);
-}
-
-/// Concrete shadow object representing an assignment to a static variable.
-class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
-  StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitStaticAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// constructor, or a constructor that cannot be invoked, or a resolved
-/// constructor with wrong number of arguments.
-// TODO(ahe): Remove this?
-class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
-  final Member constructor;
-  final Arguments arguments;
-
-  InvalidConstructorInvocationJudgment._(
-      Expression desugared, this.constructor, this.arguments)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidConstructorInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to the
-/// [expression] which is not assignable.
-class InvalidWriteJudgment extends SyntheticExpressionJudgment {
-  final Expression expression;
-
-  InvalidWriteJudgment._(Expression desugared, this.expression)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidWriteJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for expressions that are introduced by the front end as part
-/// of desugaring or the handling of error conditions.
-///
-/// These expressions are removed by type inference and replaced with their
-/// desugared equivalents.
-class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
-  SyntheticExpressionJudgment._(Expression desugared)
-      : super(new VariableDeclaration('_', initializer: new NullLiteral()),
-            desugared);
-
-  /// The desugared kernel representation of this synthetic expression.
-  Expression get desugared => body;
-
-  void set desugared(Expression value) {
-    this.body = value;
-    value.parent = this;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSyntheticExpressionJudgment(this, typeContext);
-  }
-
-  /// Removes this expression from the expression tree, replacing it with
-  /// [desugared].
-  Expression _replaceWithDesugared() {
-    Expression replacement = desugared;
-    if (replacement is InternalExpression) {
-      // This is needed because some (StaticAssignmentJudgment at least) do
-      // not visit their desugared expression during inference.
-      InternalExpression internalExpression = replacement;
-      replacement = internalExpression.replace();
-    }
-    parent.replaceChild(this, replacement);
-    parent = null;
-    return replacement;
-  }
-
-  /// Updates any [Let] nodes in the desugared expression to account for the
-  /// fact that [expression] has the given [type].
-  void _storeLetType(
-      TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    Expression desugared = this.desugared;
-    while (true) {
-      if (desugared is Let) {
-        Let desugaredLet = desugared;
-        VariableDeclaration variable = desugaredLet.variable;
-        if (identical(variable.initializer, expression)) {
-          variable.type = type;
-          return;
-        }
-        desugared = desugaredLet.body;
-      } else if (desugared is ConditionalExpression) {
-        // When a null-aware assignment is desugared, often the "then" or "else"
-        // branch of the conditional expression often contains "let" nodes that
-        // need to be updated.
-        ConditionalExpression desugaredConditionalExpression = desugared;
-        if (desugaredConditionalExpression.then is Let) {
-          desugared = desugaredConditionalExpression.then;
-        } else {
-          desugared = desugaredConditionalExpression.otherwise;
-        }
-      } else {
-        break;
-      }
-    }
-  }
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // This is designed to throw an exception during serialization. It can also
-    // lead to exceptions during transformations, but we have to accept a
-    // [Transformer] as this is used to implement `replaceChild`.
-    if (v is Transformer) return super.accept(v);
-    throw unsupported("${runtimeType}.accept", fileOffset, getFileUri(this));
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    throw unsupported("${runtimeType}.accept1", fileOffset, getFileUri(this));
-  }
-
-  @override
-  visitChildren(Visitor<dynamic> v) {
-    unsupported("${runtimeType}.visitChildren", fileOffset, getFileUri(this));
-  }
 }
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
@@ -1381,16 +975,6 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 }
 
-class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
-  VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [VariableDeclaration].
 class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
@@ -1467,39 +1051,6 @@ class VariableDeclarationImpl extends VariableDeclaration {
       variable._isLocalFunction;
 }
 
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// target.
-class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  final ArgumentsImpl argumentsJudgment;
-
-  UnresolvedTargetInvocationJudgment._(
-      Expression desugared, this.argumentsJudgment)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedTargetInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to an unresolved
-/// variable.
-class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
-  final bool isCompound;
-  final Expression rhs;
-
-  UnresolvedVariableAssignmentJudgment._(
-      Expression desugared, this.isCompound, this.rhs)
-      : super._(desugared);
-
-  @override
-  ExpressionInferenceResult acceptInference(
-      InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
 /// Front end specific implementation of [VariableGet].
 class VariableGetImpl extends VariableGet {
   final TypePromotionFact _fact;
@@ -1552,18 +1103,6 @@ class LoadLibraryTearOff extends InternalExpression {
   }
 }
 
-/// The result of inference for a RHS of an assignment.
-class _ComplexAssignmentInferenceResult {
-  /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or
-  /// `null` if the assignment is not compound.
-  final Procedure combiner;
-
-  /// The inferred type of the RHS.
-  final DartType inferredType;
-
-  _ComplexAssignmentInferenceResult(this.combiner, this.inferredType);
-}
-
 class _UnfinishedCascade extends Expression {
   R accept<R>(v) => unsupported("accept", -1, null);
 
@@ -1574,67 +1113,6 @@ class _UnfinishedCascade extends Expression {
   void transformChildren(v) => unsupported("transformChildren", -1, null);
 
   void visitChildren(v) => unsupported("visitChildren", -1, null);
-}
-
-class SyntheticWrapper {
-  static Expression wrapIllegalAssignment(Expression rhs,
-      {int assignmentOffset: -1}) {
-    return new IllegalAssignmentJudgment._(rhs,
-        assignmentOffset: assignmentOffset)
-      ..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapIndexAssignment(
-      Expression receiver, Expression index, Expression rhs,
-      {bool isSuper: false}) {
-    return new IndexAssignmentJudgment._(receiver, index, rhs, isSuper: isSuper)
-      ..fileOffset = index.fileOffset;
-  }
-
-  static Expression wrapInvalidConstructorInvocation(
-      Expression desugared, Member constructor, Arguments arguments) {
-    return new InvalidConstructorInvocationJudgment._(
-        desugared, constructor, arguments)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapInvalidWrite(
-      Expression desugared, Expression expression) {
-    return new InvalidWriteJudgment._(desugared, expression)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
-      {bool isSuper: false}) {
-    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper)
-      ..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapStaticAssignment(Expression rhs) {
-    return new StaticAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
-  }
-
-  static Expression wrapSyntheticExpression(Expression desugared) {
-    return new SyntheticExpressionJudgment._(desugared)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment._(desugared, arguments)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs) {
-    return new UnresolvedVariableAssignmentJudgment._(
-        desugared, isCompound, rhs)
-      ..fileOffset = desugared.fileOffset;
-  }
-
-  static Expression wrapVariableAssignment(Expression rhs) {
-    return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
-  }
 }
 
 /// Internal expression representing an if-null property set.
@@ -1803,6 +1281,9 @@ class CompoundPropertySet extends InternalExpression {
 ///
 class PropertyPostIncDec extends InternalExpression {
   /// The synthetic variable whose initializer hold the receiver.
+  ///
+  /// This is `null` if the receiver is read-only and therefore does not need to
+  /// be stored in a temporary variable.
   VariableDeclaration variable;
 
   /// The expression that reads the property on [variable].
@@ -1818,15 +1299,25 @@ class PropertyPostIncDec extends InternalExpression {
     write?.parent = this;
   }
 
+  PropertyPostIncDec.onReadOnly(
+      VariableDeclaration read, VariableDeclaration write)
+      : this(null, read, write);
+
   @override
   InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
 
   @override
   Expression replace() {
     Expression replacement;
-    replaceWith(replacement = new Let(
-        variable, createLet(read, createLet(write, createVariableGet(read))))
-      ..fileOffset = fileOffset);
+    if (variable != null) {
+      replaceWith(replacement = new Let(
+          variable, createLet(read, createLet(write, createVariableGet(read))))
+        ..fileOffset = fileOffset);
+    } else {
+      replaceWith(
+          replacement = new Let(read, createLet(write, createVariableGet(read)))
+            ..fileOffset = fileOffset);
+    }
     return replacement;
   }
 
@@ -2026,6 +1517,7 @@ class IndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
+  // TODO(johnniwinther): Add `readOnlyReceiver` capability.
   IndexSet(this.receiver, this.index, this.value) {
     receiver?.parent = this;
     index?.parent = this;
@@ -2059,6 +1551,56 @@ class IndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing a  super index set expression.
+///
+/// A super index set expression of the form `super[a] = b` used for value is
+/// encoded as the expression:
+///
+///     let v1 = a in let v2 = b in let _ = super.[]=(v1, v2) in v2
+///
+/// An index set expression used for effect is encoded as
+///
+///    super.[]=(a, b)
+///
+/// using [SuperMethodInvocation].
+///
+class SuperIndexSet extends InternalExpression {
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  SuperIndexSet(this.setter, this.index, this.value) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.SuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an if-null index assignment.
 ///
 /// An if-null index assignment of the form `o[a] ??= b` is, if used for value,
@@ -2080,6 +1622,8 @@ class IndexSet extends InternalExpression {
 ///     let v3 = v1[v2] in
 ///        v3 == null ? v1.[]=(v2, b) : null
 ///
+/// If the [readOnlyReceiver] is true, no temporary variable is created for the
+/// receiver and its use is inlined.
 class IfNullIndexSet extends InternalExpression {
   /// The receiver on which the index set operation is performed.
   Expression receiver;
@@ -2093,12 +1637,29 @@ class IfNullIndexSet extends InternalExpression {
   /// The file offset for the [] operation.
   final int readOffset;
 
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullIndexSet(this.receiver, this.index, this.value, this.readOffset,
-      {this.forEffect})
-      : assert(forEffect != null) {
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  IfNullIndexSet(this.receiver, this.index, this.value,
+      {this.readOffset,
+      this.testOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.readOnlyReceiver: false})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
     value?.parent = this;
@@ -2131,7 +1692,83 @@ class IfNullIndexSet extends InternalExpression {
   }
 }
 
-/// Internal expression representing an if-null index assignment.
+/// Internal expression representing an if-null super index set expression.
+///
+/// An if-null super index set expression of the form `super[a] ??= b` is, if
+/// used for value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///       v2 == null
+///        ? (let v3 = b in
+///           let _ = super.[]=(v1, v3) in
+///           v3)
+///        : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///        v2 == null ? super.[]=(v1, b) : null
+///
+class IfNullSuperIndexSet extends InternalExpression {
+  /// The [] member;
+  Member getter;
+
+  /// The []= member;
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullSuperIndexSet(this.getter, this.setter, this.index, this.value,
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound index assignment.
 ///
 /// An if-null index assignment of the form `o[a] += b` is, if used for value,
 /// encoded as the expression:
@@ -2173,12 +1810,17 @@ class CompoundIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
   CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
       {this.readOffset,
       this.binaryOffset,
       this.writeOffset,
       this.forEffect,
-      this.forPostIncDec})
+      this.forPostIncDec,
+      this.readOnlyReceiver: false})
       : assert(forEffect != null) {
     receiver?.parent = this;
     index?.parent = this;
@@ -2211,6 +1853,386 @@ class CompoundIndexSet extends InternalExpression {
       rhs?.parent = this;
     }
   }
+}
+
+/// Internal expression representing a null-aware compound assignment.
+///
+/// A null-aware compound assignment of the form
+///
+///     receiver?.property binaryName= rhs
+///
+/// is, if used for value as a normal compound or prefix operation, encoded as
+/// the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let valueVariable = leftVariable binaryName rhs in
+///             let writeVariable =
+///                 receiverVariable.propertyName = valueVariable in
+///               valueVariable
+///
+/// and, if used for value as a postfix operation, encoded as
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let writeVariable =
+///               receiverVariable.propertyName =
+///                   leftVariable binaryName rhs in
+///             leftVariable
+///
+/// and, if used for effect, encoded as:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         receiverVariable.propertyName = receiverVariable.propertyName + rhs
+///
+class NullAwareCompoundSet extends InternalExpression {
+  /// The receiver on which the null aware operation is performed.
+  Expression receiver;
+
+  /// The name of the null-aware property.
+  Name propertyName;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a postfix inc/dec expression.
+  final bool forPostIncDec;
+
+  NullAwareCompoundSet(
+      this.receiver, this.propertyName, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null),
+        assert(forPostIncDec != null) {
+    receiver?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwareCompoundSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an null-aware if-null property set.
+///
+/// A null-aware if-null property set of the form
+///
+///    receiver?.name ??= value
+///
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (let readVariable = receiverVariable.name in
+///           readVariable == null ?
+///             receiverVariable.name = value : readVariable)
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (receiverVariable.name == null ?
+///           receiverVariable.name = value : null)
+///
+///
+class NullAwareIfNullSet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  Expression receiver;
+
+  /// The expression that reads the property from [variable].
+  Name name;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression value;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  NullAwareIfNullSet(this.receiver, this.name, this.value,
+      {this.readOffset, this.writeOffset, this.testOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(writeOffset != null),
+        assert(testOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareIfNullSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound super index assignment.
+///
+/// An if-null index assignment of the form `super[a] += b` is, if used for
+/// value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) + b
+///     let v3 = super.[]=(v1, v2) in v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in super.[]=(v2, super.[](v2) + b)
+///
+class CompoundSuperIndexSet extends InternalExpression {
+  /// The [] member.
+  Member getter;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundSuperIndexSet(
+      this.getter, this.setter, this.index, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(forEffect != null) {
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an assignment to an extension setter.
+///
+/// An extension set of the form `receiver.target = value` is, if used for
+/// value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///     let valueVariable = value in
+///     let writeVariable = target(receiverVariable, valueVariable) in
+///        valueVariable
+///
+/// or if the receiver is read-only, like `this` or a final variable,
+///
+///     let valueVariable = value in
+///     let writeVariable = target(receiver, valueVariable) in
+///        valueVariable
+///
+/// and, if used for effect, encoded as a [StaticInvocation]:
+///
+///     target(receiver, value)
+///
+// TODO(johnniwinther): Rename read-only to side-effect-free.
+class ExtensionSet extends InternalExpression {
+  /// The receiver for the assignment.
+  Expression receiver;
+
+  /// The extension member called for the assignment.
+  ObjectAccessTarget target;
+
+  /// The right-hand side value of the assignment.
+  Expression value;
+
+  /// If `true` the assignment is only needed for effect and not its result
+  /// value.
+  final bool forEffect;
+
+  /// If `true` the receiver can be cloned instead of creating a temporary
+  /// variable.
+  final bool readOnlyReceiver;
+
+  ExtensionSet(this.receiver, this.target, this.value,
+      {this.readOnlyReceiver, this.forEffect})
+      : assert(readOnlyReceiver != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an null-aware extension expression.
+///
+/// An null-aware extension expression of the form `Extension(receiver)?.target`
+/// is encoded as the expression:
+///
+///     let variable = receiver in
+///       variable == null ? null : expression
+///
+/// where `expression` is an encoding of `receiverVariable.target`.
+class NullAwareExtension extends InternalExpression {
+  VariableDeclaration variable;
+  Expression expression;
+
+  NullAwareExtension(this.variable, this.expression) {
+    variable?.parent = this;
+    expression?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareExtension;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+}
+
+class PropertySetImpl extends PropertySet {
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// If `true` the receiver can be cloned and doesn't need a temporary variable
+  /// for multiple reads.
+  final bool readOnlyReceiver;
+
+  PropertySetImpl(Expression receiver, Name name, Expression value,
+      {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
+      : assert(forEffect != null),
+        super(receiver, name, value, interfaceTarget);
 }
 
 /// Creates a [Let] of [variable] with the given [body] using
@@ -2247,7 +2269,7 @@ MethodInvocation createEqualsNull(
     int fileOffset, Expression left, Member equalsMember) {
   return new MethodInvocation(
       left,
-      new Name('=='),
+      equalsName,
       new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
         ..fileOffset = fileOffset)
     ..fileOffset = fileOffset

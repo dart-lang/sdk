@@ -9,8 +9,6 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartObjectImplTest);
@@ -23,7 +21,7 @@ final Matcher throwsEvaluationException =
     throwsA(new TypeMatcher<EvaluationException>());
 
 @reflectiveTest
-class DartObjectImplTest extends EngineTestCase {
+class DartObjectImplTest {
   TypeProvider _typeProvider = new TestTypeProvider();
 
   void test_add_knownDouble_knownDouble() {

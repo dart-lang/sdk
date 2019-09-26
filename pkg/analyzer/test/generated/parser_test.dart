@@ -9412,9 +9412,7 @@ class NonErrorParserTest extends ParserTestCase {
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * analyzer parser.
  */
-class ParserTestCase extends EngineTestCase
-    with ParserTestHelpers
-    implements AbstractParserTestCase {
+class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /**
    * A flag indicating whether parser is to parse function bodies.
    */
@@ -10046,9 +10044,7 @@ class ParserTestCase extends EngineTestCase
     }
   }
 
-  @override
   void setUp() {
-    super.setUp();
     parseFunctionBodies = true;
   }
 }

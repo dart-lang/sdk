@@ -168,7 +168,7 @@ A f(A a) => a + a;
     ]);
   }
 
-  test_operator_index() async {
+  test_operator_index_index() async {
     await assertErrorsInCode('''
 class A {}
 
@@ -183,6 +183,24 @@ extension E2 on A {
 int f(A a) => a[0];
 ''', [
       error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 134, 1),
+    ]);
+  }
+
+  test_operator_index_indexEq() async {
+    await assertErrorsInCode('''
+extension E1 on int {
+  int operator[](int index) => 0;
+}
+
+extension E2 on int {
+  void operator[]=(int index, int value) {}
+}
+
+f() {
+  0[1] += 2;
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS, 136, 1),
     ]);
   }
 

@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../ast.dart';
+import '../src/bounds_checks.dart' show computeVariance;
 import '../transformations/flags.dart';
 import 'tag.dart';
 
@@ -642,7 +643,7 @@ class BinaryBuilder {
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
-    component.uriToSource.addAll(uriToSource);
+    _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
@@ -683,7 +684,7 @@ class BinaryBuilder {
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
-    component.uriToSource.addAll(uriToSource);
+    _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
     readConstantTable();
@@ -749,6 +750,23 @@ class BinaryBuilder {
       readUint32();
     }
     return uriToSource;
+  }
+
+  // Add everything from [src] into [dst], but don't overwrite a non-empty
+  // source with an empty source. Empty sources may be introduced by
+  // synthetic, copy-down implementations such as mixin applications or
+  // noSuchMethod forwarders.
+  void _mergeUriToSource(Map<Uri, Source> dst, Map<Uri, Source> src) {
+    if (dst.isEmpty) {
+      // Fast path for the common case of one component per binary.
+      dst.addAll(src);
+    } else {
+      src.forEach((Uri key, Source value) {
+        if (value.source.isNotEmpty || !dst.containsKey(key)) {
+          dst[key] = value;
+        }
+      });
+    }
   }
 
   CanonicalName readCanonicalNameReference() {
@@ -995,6 +1013,10 @@ class BinaryBuilder {
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
+    for (int i = 0; i < node.typeParameters.length; ++i) {
+      node.typeParameters[i].variance =
+          computeVariance(node.typeParameters[i], type);
+    }
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.name = name;
@@ -1661,6 +1683,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
+      case Tag.NullCheck:
+        int offset = readOffset();
+        return new NullCheck(readExpression())..fileOffset = offset;
       case Tag.LogicalExpression:
         return new LogicalExpression(readExpression(),
             logicalOperatorToString(readByte()), readExpression());
@@ -2162,6 +2187,7 @@ class BinaryBuilder {
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();
+    node.variance = Variance.covariant;
   }
 
   Arguments readArguments() {

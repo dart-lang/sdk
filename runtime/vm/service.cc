@@ -950,7 +950,8 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(!Isolate::IsVMInternalIsolate(isolate));
+  ASSERT(FLAG_show_invisible_isolates ||
+         !Isolate::IsVMInternalIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(
@@ -4280,7 +4281,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsVMInternalIsolate(isolate)) {
+    if (FLAG_show_invisible_isolates || !IsVMInternalIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }

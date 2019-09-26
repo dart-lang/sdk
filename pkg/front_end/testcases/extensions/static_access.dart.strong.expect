@@ -29,10 +29,7 @@ static method Extension|get#instanceMethod(final self::Class* #this) → () →*
   return () → dynamic => self::Extension|instanceMethod(#this);
 static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
   return 42;
-static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → dynamic {
-  final dynamic #t1 = value;
-  return #t1;
-}
+static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → void {}
 static method main() → dynamic {
   self::Extension|method();
   self::Extension|genericMethod<core::int*>(42);

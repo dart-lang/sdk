@@ -10,7 +10,9 @@ import 'package:analyzer/dart/element/type.dart' show DartType, InterfaceType;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+
 import 'element_helpers.dart' show getAnnotationName, isBuiltinAnnotation;
+import 'type_utilities.dart';
 
 /// Contains information about native JS types (those types provided by the
 /// implementation) that are also provided by the Dart SDK.
@@ -79,7 +81,7 @@ class ExtensionTypeSet {
 
   void _visitClass(ClassElement element) {
     if (_isNative(element)) {
-      _addExtensionType(element.type, true);
+      _addExtensionType(getLegacyRawClassType(element), true);
     }
   }
 
@@ -114,7 +116,7 @@ class ExtensionTypeSet {
   void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
     var library = _getLibraryByUri(libraryUri);
     for (var typeName in typeNames) {
-      _addExtensionType(library.getType(typeName).type);
+      _addExtensionType(getLegacyRawClassType(library.getType(typeName)));
     }
   }
 

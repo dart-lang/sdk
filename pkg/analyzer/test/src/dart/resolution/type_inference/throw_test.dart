@@ -26,13 +26,12 @@ class ThrowWithNnbdTest extends DriverResolutionTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   throw a();
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'dynamic Function()');
   }
 }

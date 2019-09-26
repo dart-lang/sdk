@@ -50,8 +50,17 @@ class SourceExtensionBuilder extends ExtensionBuilder {
 
   Extension get extension => _extension;
 
+  /// Builds the [Extension] for this extension build and inserts the members
+  /// into the [Library] of [libraryBuilder].
+  ///
+  /// [addMembersToLibrary] is `true` if the extension members should be added
+  /// to the library. This is `false` if the extension is in conflict with
+  /// another library member. In this case, the extension member should not be
+  /// added to the library to avoid name clashes with other members in the
+  /// library.
   Extension build(
-      SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+      SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
+      {bool addMembersToLibrary}) {
     void buildBuilders(String name, Builder declaration) {
       do {
         if (declaration.parent != this) {
@@ -64,48 +73,52 @@ class SourceExtensionBuilder extends ExtensionBuilder {
           }
         } else if (declaration is FieldBuilder) {
           Field field = declaration.build(libraryBuilder);
-          libraryBuilder.library.addMember(field);
-          _extension.members.add(new ExtensionMemberDescriptor(
-              name: new Name(declaration.name, libraryBuilder.library),
-              member: field.reference,
-              isStatic: declaration.isStatic,
-              kind: ExtensionMemberKind.Field));
-        } else if (declaration is ProcedureBuilder) {
-          Member function = declaration.build(libraryBuilder);
-          libraryBuilder.library.addMember(function);
-          ExtensionMemberKind kind;
-          switch (declaration.kind) {
-            case ProcedureKind.Method:
-              kind = ExtensionMemberKind.Method;
-              break;
-            case ProcedureKind.Getter:
-              kind = ExtensionMemberKind.Getter;
-              break;
-            case ProcedureKind.Setter:
-              kind = ExtensionMemberKind.Setter;
-              break;
-            case ProcedureKind.Operator:
-              kind = ExtensionMemberKind.Operator;
-              break;
-            case ProcedureKind.Factory:
-              unsupported("Extension method kind: ${declaration.kind}",
-                  declaration.charOffset, declaration.fileUri);
-          }
-          _extension.members.add(new ExtensionMemberDescriptor(
-              name: new Name(declaration.name, libraryBuilder.library),
-              member: function.reference,
-              isStatic: declaration.isStatic,
-              isExternal: declaration.isExternal,
-              kind: kind));
-          Procedure tearOff = declaration.extensionTearOff;
-          if (tearOff != null) {
-            libraryBuilder.library.addMember(tearOff);
+          if (addMembersToLibrary && declaration.next == null) {
+            libraryBuilder.library.addMember(field);
             _extension.members.add(new ExtensionMemberDescriptor(
                 name: new Name(declaration.name, libraryBuilder.library),
-                member: tearOff.reference,
-                isStatic: false,
-                isExternal: false,
-                kind: ExtensionMemberKind.TearOff));
+                member: field.reference,
+                isStatic: declaration.isStatic,
+                kind: ExtensionMemberKind.Field));
+          }
+        } else if (declaration is ProcedureBuilder) {
+          Member function = declaration.build(libraryBuilder);
+          if (addMembersToLibrary && declaration.next == null) {
+            libraryBuilder.library.addMember(function);
+            ExtensionMemberKind kind;
+            switch (declaration.kind) {
+              case ProcedureKind.Method:
+                kind = ExtensionMemberKind.Method;
+                break;
+              case ProcedureKind.Getter:
+                kind = ExtensionMemberKind.Getter;
+                break;
+              case ProcedureKind.Setter:
+                kind = ExtensionMemberKind.Setter;
+                break;
+              case ProcedureKind.Operator:
+                kind = ExtensionMemberKind.Operator;
+                break;
+              case ProcedureKind.Factory:
+                unsupported("Extension method kind: ${declaration.kind}",
+                    declaration.charOffset, declaration.fileUri);
+            }
+            _extension.members.add(new ExtensionMemberDescriptor(
+                name: new Name(declaration.name, libraryBuilder.library),
+                member: function.reference,
+                isStatic: declaration.isStatic,
+                isExternal: declaration.isExternal,
+                kind: kind));
+            Procedure tearOff = declaration.extensionTearOff;
+            if (tearOff != null) {
+              libraryBuilder.library.addMember(tearOff);
+              _extension.members.add(new ExtensionMemberDescriptor(
+                  name: new Name(declaration.name, libraryBuilder.library),
+                  member: tearOff.reference,
+                  isStatic: false,
+                  isExternal: false,
+                  kind: ExtensionMemberKind.TearOff));
+            }
           }
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",

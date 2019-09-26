@@ -103,6 +103,9 @@ abstract class LibraryBuilder extends ModifierBuilder {
   /// Returns the [Library] built by this builder.
   Library get library;
 
+  /// Returns the import uri for the library.
+  ///
+  /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get uri;
 
   Iterator<Builder> get iterator {
@@ -292,14 +295,20 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return Nullability.legacy;
   }
 
-  NullabilityBuilder computeNullabilityFromToken(bool markedAsNullable) {
-    if (!isNonNullableByDefault) {
-      return const NullabilityBuilder.legacy();
-    }
-    if (markedAsNullable) {
-      return const NullabilityBuilder.nullable();
-    }
+  NullabilityBuilder get nullableBuilder {
+    return isNonNullableByDefault
+        ? const NullabilityBuilder.nullable()
+        : const NullabilityBuilder.omitted();
+  }
+
+  NullabilityBuilder get nonNullableBuilder {
     return const NullabilityBuilder.omitted();
+  }
+
+  NullabilityBuilder nullableBuilderIfTrue(bool isNullable) {
+    return isNullable
+        ? const NullabilityBuilder.nullable()
+        : const NullabilityBuilder.omitted();
   }
 }
 

@@ -307,7 +307,7 @@ TypeInfo computeType(final Token token, bool required,
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeParamOrArgInfo computeTypeParamOrArg(Token token,
-    [bool inDeclaration = false]) {
+    [bool inDeclaration = false, bool allowsVariance = false]) {
   Token beginGroup = token.next;
   if (!optional('<', beginGroup)) {
     return noTypeParamOrArg;
@@ -329,7 +329,8 @@ TypeParamOrArgInfo computeTypeParamOrArg(Token token,
   }
 
   // TODO(danrubel): Consider adding additional const for common situations.
-  return new ComplexTypeParamOrArgInfo(token, inDeclaration).compute();
+  return new ComplexTypeParamOrArgInfo(token, inDeclaration, allowsVariance)
+      .compute();
 }
 
 /// Called by the parser to obtain information about a possible group of type

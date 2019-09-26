@@ -27,10 +27,7 @@ main() {
           ]
         });
         expect(pc is RtcPeerConnection, isTrue);
-        // TODO(efortuna): Uncomment this test when RTCPeerConnection correctly
-        // implements EventListener in Firefox (works correctly in nightly, so
-        // it's coming!).
-        //pc.onIceCandidate.listen((candidate) {});
+        pc.onIceCandidate.listen((candidate) {});
       });
 
       test('ice candidate', () {

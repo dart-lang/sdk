@@ -1157,6 +1157,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildConstructorInvocation(true, position);
     case kNot:
       return BuildNot(position);
+    case kNullCheck:
+      return BuildNullCheck(position);
     case kLogicalExpression:
       return BuildLogicalExpression(position);
     case kConditionalExpression:
@@ -3242,6 +3244,17 @@ Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
       BuildExpression(&operand_position);  // read expression.
   instructions += CheckBoolean(operand_position);
   instructions += BooleanNegate();
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildNullCheck(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  TokenPosition operand_position = TokenPosition::kNoSource;
+  Fragment instructions =
+      BuildExpression(&operand_position);  // read expression.
+  // TODO(37479): Implement null-check semantics.
   return instructions;
 }
 

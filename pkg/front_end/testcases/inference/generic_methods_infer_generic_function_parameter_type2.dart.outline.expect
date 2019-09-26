@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef G<V extends core::Object* = dynamic> = () →* core::List<V*>*;
+typedef G<unrelated V extends core::Object* = dynamic> = () →* core::List<V*>*;
 class C<T extends core::Object* = dynamic> extends self::D<self::C::T*> {
   synthetic constructor •() → self::C<self::C::T*>*
     ;

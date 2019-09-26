@@ -14,7 +14,8 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_model/type_recipe.dart' show TypeEnvironmentStructure, TypeRecipe;
+import '../js_model/type_recipe.dart'
+    show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
 import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -4518,11 +4519,15 @@ abstract class HRtiInstruction extends HInstruction {
 
 /// Evaluates an Rti type recipe in the global environment.
 class HLoadType extends HRtiInstruction {
-  DartType typeExpression; // TODO(sra): Allow a type environment expression.
+  TypeRecipe typeExpression;
 
-  HLoadType(this.typeExpression, AbstractValue type) : super([], type) {
+  HLoadType(this.typeExpression, AbstractValue instructionType)
+      : super([], instructionType) {
     setUseGvn();
   }
+
+  HLoadType.type(DartType dartType, AbstractValue instructionType)
+      : this(TypeExpressionRecipe(dartType), instructionType);
 
   @override
   accept(HVisitor visitor) => visitor.visitLoadType(this);

@@ -413,11 +413,11 @@ Expression convertToElement(MapEntry entry, InferenceHelper helper) {
         isAsync: entry.isAsync)
       ..fileOffset = entry.fileOffset;
   }
-  return helper.desugarSyntheticExpression(helper.buildProblem(
+  return helper.buildProblem(
     templateExpectedButGot.withArguments(','),
     entry.fileOffset,
     1,
-  ));
+  );
 }
 
 bool isConvertibleToMapEntry(Expression element) {
@@ -466,11 +466,11 @@ MapEntry convertToMapEntry(Expression element, InferenceHelper helper) {
       ..fileOffset = element.fileOffset;
   }
   return new MapEntry(
-      helper.desugarSyntheticExpression(helper.buildProblem(
+      helper.buildProblem(
         templateExpectedAfterButGot.withArguments(':'),
         element.fileOffset,
         // TODO(danrubel): what is the length of the expression?
         1,
-      )),
+      ),
       new NullLiteral());
 }

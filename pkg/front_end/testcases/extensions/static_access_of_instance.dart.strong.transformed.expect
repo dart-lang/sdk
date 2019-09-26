@@ -37,10 +37,7 @@ static method Extension|get#instanceMethod(final self::Class* #this) → () →*
   return () → dynamic => self::Extension|instanceMethod(#this);
 static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
   return 42;
-static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → dynamic {
-  final dynamic #t1 = value;
-  return #t1;
-}
+static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → void {}
 static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Method not found: 'Extension.instanceMethod'.
   Extension.instanceMethod();

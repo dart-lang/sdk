@@ -84,7 +84,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -12493,21 +12492,6 @@ RawInstructions* Instructions::New(intptr_t size,
 
 const char* Instructions::ToCString() const {
   return "Instructions";
-}
-
-CodeStatistics* Instructions::stats() const {
-#if defined(DART_PRECOMPILER)
-  return reinterpret_cast<CodeStatistics*>(
-      Thread::Current()->heap()->GetPeer(raw()));
-#else
-  return nullptr;
-#endif
-}
-
-void Instructions::set_stats(CodeStatistics* stats) const {
-#if defined(DART_PRECOMPILER)
-  Thread::Current()->heap()->SetPeer(raw(), stats);
-#endif
 }
 
 // Encode integer |value| in SLEB128 format and store into |data|.

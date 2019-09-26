@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
 
 import '../fasta_codes.dart' show LocatedMessage;
 
-import 'builder.dart' show TypeDeclarationBuilder;
+import 'builder.dart' show NullabilityBuilder, TypeDeclarationBuilder;
 
 import '../kernel/kernel_builder.dart' show TypeBuilder, LibraryBuilder;
 
@@ -28,8 +28,8 @@ class InvalidTypeBuilder extends TypeDeclarationBuilder {
   @override
   InvalidType get target => const InvalidType();
 
-  DartType buildType(LibraryBuilder library, Nullability nullability,
-      List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(library, null, null);
   }
 

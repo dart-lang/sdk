@@ -13,12 +13,6 @@
 namespace dart {
 namespace bin {
 
-const char* kVmSnapshotDataSymbolName = "_kDartVmSnapshotData";
-const char* kVmSnapshotInstructionsSymbolName = "_kDartVmSnapshotInstructions";
-const char* kIsolateSnapshotDataSymbolName = "_kDartIsolateSnapshotData";
-const char* kIsolateSnapshotInstructionsSymbolName =
-    "_kDartIsolateSnapshotInstructions";
-
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   SetLastError(0);
 

@@ -13,30 +13,60 @@ pkg/front_end/testcases/extensions/compounds.dart:28:15: Context: Possible promo
 pkg/front_end/testcases/extensions/compounds.dart:30:22: Context: Possible promotion of other@501
     } else if (other is Number) {
                      ^^
-pkg/front_end/testcases/extensions/compounds.dart:62:16: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:104:16: Context: Write to v@2369
   expect(n1, v += n1);
                ^^
-pkg/front_end/testcases/extensions/compounds.dart:63:16: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:105:16: Context: Write to v@2369
   expect(n2, v += n1);
                ^^
-pkg/front_end/testcases/extensions/compounds.dart:64:16: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:106:16: Context: Write to v@2369
   expect(n0, v -= n2);
                ^^
-pkg/front_end/testcases/extensions/compounds.dart:65:16: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:107:16: Context: Write to v@2369
   expect(n1, v += n1);
                ^^
-pkg/front_end/testcases/extensions/compounds.dart:66:16: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:108:16: Context: Write to v@2369
   expect(n0, v -= n1);
                ^^
-pkg/front_end/testcases/extensions/compounds.dart:67:14: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:109:14: Context: Write to v@2369
   expect(n1, ++v);
              ^^
-pkg/front_end/testcases/extensions/compounds.dart:68:14: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:110:14: Context: Write to v@2369
   expect(n0, --v);
              ^^
-pkg/front_end/testcases/extensions/compounds.dart:69:15: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:111:15: Context: Write to v@2369
   expect(n0, v++);
               ^^
-pkg/front_end/testcases/extensions/compounds.dart:70:15: Context: Write to v@1309
+pkg/front_end/testcases/extensions/compounds.dart:112:15: Context: Write to v@2369
   expect(n1, v--);
               ^^
+pkg/front_end/testcases/extensions/compounds.dart:116:5: Context: Write to v@2369
+  v += n1;
+    ^^
+pkg/front_end/testcases/extensions/compounds.dart:118:5: Context: Write to v@2369
+  v += n1;
+    ^^
+pkg/front_end/testcases/extensions/compounds.dart:120:5: Context: Write to v@2369
+  v -= n2;
+    ^^
+pkg/front_end/testcases/extensions/compounds.dart:122:5: Context: Write to v@2369
+  v += n1;
+    ^^
+pkg/front_end/testcases/extensions/compounds.dart:124:5: Context: Write to v@2369
+  v -= n1;
+    ^^
+pkg/front_end/testcases/extensions/compounds.dart:126:3: Context: Write to v@2369
+  ++v;
+  ^^
+pkg/front_end/testcases/extensions/compounds.dart:128:3: Context: Write to v@2369
+  --v;
+  ^^
+pkg/front_end/testcases/extensions/compounds.dart:130:4: Context: Write to v@2369
+  v++;
+   ^^
+pkg/front_end/testcases/extensions/compounds.dart:132:4: Context: Write to v@2369
+  v--;
+   ^^
+pkg/front_end/testcases/extensions/compounds.dart:285:14: Context: Write to expected@7409
+    expected = null;
+             ^

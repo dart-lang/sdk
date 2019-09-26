@@ -104,6 +104,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTENSION_DECLARES_ABSTRACT_MEMBER,
   _MIXIN_DECLARES_CONSTRUCTOR,
   _NULL_AWARE_CASCADE_OUT_OF_ORDER,
+  _MULTIPLE_VARIANCE_MODIFIERS,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -470,6 +471,11 @@ const ParserErrorCode _MULTIPLE_PART_OF_DIRECTIVES = const ParserErrorCode(
     'MULTIPLE_PART_OF_DIRECTIVES',
     r"Only one part-of directive may be declared in a file.",
     correction: "Try removing all but one of the part-of directives.");
+
+const ParserErrorCode _MULTIPLE_VARIANCE_MODIFIERS = const ParserErrorCode(
+    'MULTIPLE_VARIANCE_MODIFIERS',
+    r"Each type parameter can have at most one variance modifier.",
+    correction: "Use at most one of the 'in', 'out', or 'inout' modifiers.");
 
 const ParserErrorCode _MULTIPLE_WITH_CLAUSES = const ParserErrorCode(
     'MULTIPLE_WITH_CLAUSES',

@@ -62,7 +62,13 @@ void main(List<String> args) async {
     ..addOption('mode',
         help: 'Option to (compile|run|all).  Default is all (compile and run).',
         allowed: ['compile', 'run', 'all'],
-        defaultsTo: 'all');
+        defaultsTo: 'all')
+    ..addOption('compile-vm-options',
+        help: 'DART_VM_OPTIONS for the compilation VM.')
+    ..addOption('packages',
+        help: 'Where to find a package spec file.')
+    ..addOption('out',
+        help: 'Output file.');
 
   var options = parser.parse(args);
   if (options['help'] as bool) {
@@ -90,6 +96,7 @@ void main(List<String> args) async {
   var run = mode == 'run' || mode == 'all';
 
   var entry = p.canonicalize(options.rest.first);
+  var out = (options['out'] as String) ?? p.setExtension(entry, '.js');
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
   var libname = kernel
@@ -135,8 +142,12 @@ void main(List<String> args) async {
       // Use built snapshot.
       command = p.join(dartSdk, 'bin', command);
     }
-    var process =
-        await Process.start(command, args, mode: ProcessStartMode.inheritStdio);
+    var process = await Process.start(command, args,
+        mode: ProcessStartMode.inheritStdio,
+        environment: <String, String>{
+          if (options['compile-vm-options'] != null)
+            'DART_VM_OPTIONS': options['compile-vm-options']
+        });
     if (await process.exitCode != 0) exit(await process.exitCode);
   }
 
@@ -185,8 +196,9 @@ void main(List<String> args) async {
         '--library-root=$libRoot',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
+      if (options['packages'] != null) '--packages=${options['packages']}',
       '-o',
-      p.setExtension(entry, '.js'),
+      out,
       entry
     ];
 
@@ -226,7 +238,7 @@ void main(List<String> args) async {
   });
 </script>
 ''';
-      var htmlFile = p.setExtension(entry, '.html');
+      var htmlFile = p.setExtension(out, '.html');
       File(htmlFile).writeAsStringSync(html);
       var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
@@ -262,7 +274,7 @@ try {
   process.exit(1);
 }
 ''';
-      var nodeFile = p.setExtension(entry, '.run.js');
+      var nodeFile = p.setExtension(out, '.run.js');
       File(nodeFile).writeAsStringSync(runjs);
       var nodeBinary = binary ?? 'node';
       var process = await Process.start(
@@ -274,7 +286,7 @@ try {
       // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
       // to the SDK.
 
-      var jsFile = File(p.setExtension(entry, '.js'));
+      var jsFile = File(out);
       var jsContents = jsFile.readAsStringSync();
       jsContents = jsContents.replaceFirst(
           "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
@@ -291,7 +303,7 @@ try {
   console.error(e);
 }
 ''';
-      var d8File = p.setExtension(entry, '.d8.js');
+      var d8File = p.setExtension(out, '.d8.js');
       File(d8File).writeAsStringSync(runjs);
       var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
       var process = await Process.start(d8Binary, ['--module', d8File],

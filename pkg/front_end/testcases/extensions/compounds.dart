@@ -46,11 +46,53 @@ extension ClassExtension on Class {
   void set property(Number value) {
     field = value;
   }
+
+  testImplicitProperties() {
+    Number n0 = new Number(0);
+    Number n1 = new Number(1);
+    Number n2 = new Number(2);
+
+    expect(n0, property);
+    expect(n1, property += n1);
+    expect(n2, property += n1);
+    expect(n0, property -= n2);
+    expect(n1, property += n1);
+    expect(n0, property -= n1);
+    expect(n1, ++property);
+    expect(n0, --property);
+    expect(n0, property++);
+    expect(n1, property--);
+    expect(n0, property);
+
+    expect(n0, property);
+    property += n1;
+    expect(n1, property);
+    property += n1;
+    expect(n2, property);
+    property -= n2;
+    expect(n0, property);
+    property += n1;
+    expect(n1, property);
+    property -= n1;
+    expect(n0, property);
+    ++property;
+    expect(n1, property);
+    --property;
+    expect(n0, property);
+    property++;
+    expect(n1, property);
+    property--;
+    expect(n0, property);
+  }
 }
 
 main() {
   testLocals();
   testProperties();
+  testExplicitProperties();
+  testExplicitNullAwareProperties(null);
+  testExplicitNullAwareProperties(new Class(new Number(0)));
+  new Class(new Number(0)).testImplicitProperties();
 }
 
 testLocals() {
@@ -68,6 +110,26 @@ testLocals() {
   expect(n0, --v);
   expect(n0, v++);
   expect(n1, v--);
+  expect(n0, v);
+
+  expect(n0, v);
+  v += n1;
+  expect(n1, v);
+  v += n1;
+  expect(n2, v);
+  v -= n2;
+  expect(n0, v);
+  v += n1;
+  expect(n1, v);
+  v -= n1;
+  expect(n0, v);
+  ++v;
+  expect(n1, v);
+  --v;
+  expect(n0, v);
+  v++;
+  expect(n1, v);
+  v--;
   expect(n0, v);
 }
 
@@ -88,6 +150,26 @@ testProperties() {
   expect(n1, v.field--);
   expect(n0, v.field);
 
+  expect(n0, v.field);
+  v.field += n1;
+  expect(n1, v.field);
+  v.field += n1;
+  expect(n2, v.field);
+  v.field -= n2;
+  expect(n0, v.field);
+  v.field += n1;
+  expect(n1, v.field);
+  v.field -= n1;
+  expect(n0, v.field);
+  ++v.field;
+  expect(n1, v.field);
+  --v.field;
+  expect(n0, v.field);
+  v.field++;
+  expect(n1, v.field);
+  v.field--;
+  expect(n0, v.field);
+
   expect(n0, v.property);
   expect(n1, v.property += n1);
   expect(n2, v.property += n1);
@@ -99,9 +181,109 @@ testProperties() {
   expect(n0, v.property++);
   expect(n1, v.property--);
   expect(n0, v.property);
+
+  expect(n0, v.property);
+  v.property += n1;
+  expect(n1, v.property);
+  v.property += n1;
+  expect(n2, v.property);
+  v.property -= n2;
+  expect(n0, v.property);
+  v.property += n1;
+  expect(n1, v.property);
+  v.property -= n1;
+  expect(n0, v.property);
+  ++v.property;
+  expect(n1, v.property);
+  --v.property;
+  expect(n0, v.property);
+  v.property++;
+  expect(n1, v.property);
+  v.property--;
+  expect(n0, v.property);
 }
 
-expect(expected, actual) {
+testExplicitProperties() {
+  Number n0 = new Number(0);
+  Number n1 = new Number(1);
+  Number n2 = new Number(2);
+  Class v = new Class(n0);
+
+  expect(n0, ClassExtension(v).property);
+  expect(n1, ClassExtension(v).property += n1);
+  expect(n2, ClassExtension(v).property += n1);
+  expect(n0, ClassExtension(v).property -= n2);
+  expect(n1, ClassExtension(v).property += n1);
+  expect(n0, ClassExtension(v).property -= n1);
+  expect(n1, ++ClassExtension(v).property);
+  expect(n0, --ClassExtension(v).property);
+  expect(n0, ClassExtension(v).property++);
+  expect(n1, ClassExtension(v).property--);
+  expect(n0, ClassExtension(v).property);
+
+  expect(n0, ClassExtension(v).property);
+  ClassExtension(v).property += n1;
+  expect(n1, ClassExtension(v).property);
+  ClassExtension(v).property += n1;
+  expect(n2, ClassExtension(v).property);
+  ClassExtension(v).property -= n2;
+  expect(n0, ClassExtension(v).property);
+  ClassExtension(v).property += n1;
+  expect(n1, ClassExtension(v).property);
+  ClassExtension(v).property -= n1;
+  expect(n0, ClassExtension(v).property);
+  ++ClassExtension(v).property;
+  expect(n1, ClassExtension(v).property);
+  --ClassExtension(v).property;
+  expect(n0, ClassExtension(v).property);
+  ClassExtension(v).property++;
+  expect(n1, ClassExtension(v).property);
+  ClassExtension(v).property--;
+  expect(n0, ClassExtension(v).property);
+}
+
+testExplicitNullAwareProperties(Class v) {
+  Number n0 = new Number(0);
+  Number n1 = new Number(1);
+  Number n2 = new Number(2);
+
+  expect(n0, ClassExtension(v)?.property, v == null);
+  expect(n1, ClassExtension(v)?.property += n1, v == null);
+  expect(n2, ClassExtension(v)?.property += n1, v == null);
+  expect(n0, ClassExtension(v)?.property -= n2, v == null);
+  expect(n1, ClassExtension(v)?.property += n1, v == null);
+  expect(n0, ClassExtension(v)?.property -= n1, v == null);
+  expect(n1, ++ClassExtension(v)?.property, v == null);
+  expect(n0, --ClassExtension(v)?.property, v == null);
+  expect(n0, ClassExtension(v)?.property++, v == null);
+  expect(n1, ClassExtension(v)?.property--, v == null);
+  expect(n0, ClassExtension(v)?.property, v == null);
+
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n2, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property -= n2;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property += n1;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property -= n1;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ++ClassExtension(v)?.property;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  --ClassExtension(v)?.property;
+  expect(n0, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property++;
+  expect(n1, ClassExtension(v)?.property, v == null);
+  ClassExtension(v)?.property--;
+  expect(n0, ClassExtension(v)?.property, v == null);
+}
+
+expect(expected, actual, [expectNull = false]) {
+  if (expectNull) {
+    expected = null;
+  }
   if (expected != actual) {
     throw 'Mismatch: expected=$expected, actual=$actual';
   }

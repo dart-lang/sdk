@@ -23,9 +23,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
   LinterContextImpl context;
 
   Future<void> resolve(String content) async {
-    addTestFile(content);
-    await resolveTestFile();
-
+    await resolveTestCode(content);
     var contextUnit = LinterContextUnit(result.content, result.unit);
     context = new LinterContextImpl(
       [contextUnit],

@@ -28,29 +28,56 @@ class Base {
 class Test extends Base {
   void test() {
     super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
-    super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
-    super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] += /*@ typeArgs=dynamic */ f();
-    super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
-    super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
-    --super /*@target=Base::[]=*/ [/*@ typeArgs=dynamic */ f()];
-    super /*@target=Base::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
+        /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
+
+    super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@ target=Object::== */
+        ??= /*@ typeArgs=B* */ f();
+
+    super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
+
+    super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
+
+    super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
+
+    /*@ target=B::- */ --super /*@target=Base::[]*/ /*@target=Base::[]=*/
+        [/*@ typeArgs=Index* */ f()];
+
+    super /*@target=Base::[]*/ /*@target=Base::[]=*/
+        [/*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
+
     var /*@ type=B* */ v1 = super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=B* */ f();
-    var /*@ type=B* */ v2 = super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] ??= /*@ typeArgs=B* */ f();
-    var /*@ type=B* */ v4 = super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] *= /*@ typeArgs=dynamic */ f();
-    var /*@ type=C* */ v5 = super /*@target=Base::[]=*/ [
-        /*@ typeArgs=dynamic */ f()] &= /*@ typeArgs=dynamic */ f();
-    var /*@ type=B* */ v6 =
-        --super /*@target=Base::[]=*/ [/*@ typeArgs=dynamic */ f()];
-    var /*@ type=B* */ v7 =
-        super /*@target=Base::[]=*/ [/*@ typeArgs=dynamic */ f()]--;
+        /*@ typeArgs=Index* */ f()] = /*@ typeArgs=B* */ f();
+
+    var /*@ type=B* */ v2 = super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()] /*@ target=Object::== */
+        ??= /*@ typeArgs=B* */ f();
+
+    var /*@ type=A* */ v3 = super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::+ */ += /*@ typeArgs=C* */ f();
+
+    var /*@ type=B* */ v4 = super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::* */ *= /*@ typeArgs=B* */ f();
+
+    var /*@ type=C* */ v5 = super /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+            /*@ typeArgs=Index* */ f()]
+        /*@ target=B::& */ &= /*@ typeArgs=A* */ f();
+
+    var /*@ type=B* */ v6 = /*@ target=B::- */ --super
+        /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+        /*@ typeArgs=Index* */ f()];
+
+    var /*@ type=B* */ v7 = super
+        /*@target=Base::[]*/ /*@target=Base::[]=*/ [
+        /*@ typeArgs=Index* */ f()] /*@ target=B::- */ --;
   }
 }
 

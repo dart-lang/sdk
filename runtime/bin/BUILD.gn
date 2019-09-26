@@ -117,6 +117,23 @@ static_library("crashpad") {
   }
 }
 
+static_library("elf_loader") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_product_config",
+    "..:dart_os_fuchsia_config",
+  ]
+  include_dirs = [ ".." ]
+  sources = [
+    "elf_loader.cc",
+    "elf_loader.h",
+  ]
+  deps = [
+    ":libdart_builtin",
+  ]
+}
+
 template("build_gen_snapshot") {
   extra_configs = []
   if (defined(invoker.extra_configs)) {
@@ -841,6 +858,9 @@ dart_executable("dart_precompiled_runtime") {
     "main.cc",
     "snapshot_empty.cc",
   ]
+
+  extra_deps += [ ":elf_loader" ]
+
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
   }
@@ -862,6 +882,8 @@ dart_executable("dartaotruntime") {
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]
+
+  extra_deps += [ ":elf_loader" ]
 }
 
 executable("process_test") {

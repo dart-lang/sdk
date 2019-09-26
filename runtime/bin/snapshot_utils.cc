@@ -8,6 +8,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/elf_loader.h"
 #include "bin/error_exit.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
@@ -19,11 +20,6 @@
 
 namespace dart {
 namespace bin {
-
-extern const char* kVmSnapshotDataSymbolName;
-extern const char* kVmSnapshotInstructionsSymbolName;
-extern const char* kIsolateSnapshotDataSymbolName;
-extern const char* kIsolateSnapshotInstructionsSymbolName;
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotPageSize = 4 * KB;
@@ -179,9 +175,12 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotBlobs(
   if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
     return nullptr;
   }
+  // Length is always encoded as Little Endian.
+  const uint64_t appended_length =
+      Utils::LittleEndianToHost64(appended_header[0]);
   if (memcmp(&appended_header[1], appjit_magic_number.bytes,
              appjit_magic_number.length) != 0 ||
-      appended_header[0] <= 0 || !file->SetPosition(appended_header[0])) {
+      appended_length <= 0 || !file->SetPosition(appended_length)) {
     return nullptr;
   }
 
@@ -189,6 +188,42 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotBlobs(
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
+class ElfAppSnapshot : public AppSnapshot {
+ public:
+  ElfAppSnapshot(LoadedElfLibrary elf,
+                 const uint8_t* vm_snapshot_data,
+                 const uint8_t* vm_snapshot_instructions,
+                 const uint8_t* isolate_snapshot_data,
+                 const uint8_t* isolate_snapshot_instructions)
+      : elf_(elf),
+        vm_snapshot_data_(vm_snapshot_data),
+        vm_snapshot_instructions_(vm_snapshot_instructions),
+        isolate_snapshot_data_(isolate_snapshot_data),
+        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+
+  virtual ~ElfAppSnapshot() { Dart_UnloadELF(elf_); }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    *vm_data_buffer = vm_snapshot_data_;
+    *vm_instructions_buffer = vm_snapshot_instructions_;
+    *isolate_data_buffer = isolate_snapshot_data_;
+    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  }
+
+ private:
+  LoadedElfLibrary elf_;
+  const uint8_t* vm_snapshot_data_;
+  const uint8_t* vm_snapshot_instructions_;
+  const uint8_t* isolate_snapshot_data_;
+  const uint8_t* isolate_snapshot_instructions_;
+};
+#endif  // defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
+
 class DylibAppSnapshot : public AppSnapshot {
  public:
   DylibAppSnapshot(void* library,
@@ -258,17 +293,37 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
   return new DylibAppSnapshot(library, vm_data_buffer, vm_instructions_buffer,
                               isolate_data_buffer, isolate_instructions_buffer);
 }
+
+static AppSnapshot* TryReadAppSnapshotElf(const char* script_name) {
+#if defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
+  const char* error = nullptr;
+  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
+                *isolate_data_buffer = nullptr,
+                *isolate_instructions_buffer = nullptr;
+  void* handle = Dart_LoadELF(script_name, &error, &vm_data_buffer,
+                              &vm_instructions_buffer, &isolate_data_buffer,
+                              &isolate_instructions_buffer);
+  if (handle == nullptr) {
+    Syslog::PrintErr("Loading failed: %s\n", error);
+    return nullptr;
+  }
+  return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
+                            isolate_data_buffer, isolate_instructions_buffer);
+#else
+  return nullptr;
+#endif
+}
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
-  if (File::GetType(NULL, script_name, true) != File::kIsFile) {
+  if (File::GetType(nullptr, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
     // anyway if it was).
-    return NULL;
+    return nullptr;
   }
   AppSnapshot* snapshot = TryReadAppSnapshotBlobs(script_name);
-  if (snapshot != NULL) {
+  if (snapshot != nullptr) {
     return snapshot;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -284,12 +339,16 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
 #endif
 
   snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
+  if (snapshot != nullptr) {
+    return snapshot;
+  }
 
-  if (snapshot != NULL) {
+  snapshot = TryReadAppSnapshotElf(script_name);
+  if (snapshot != nullptr) {
     return snapshot;
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
-  return NULL;
+  return nullptr;
 }
 
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)

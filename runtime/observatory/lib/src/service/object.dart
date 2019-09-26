@@ -2222,8 +2222,8 @@ class ServiceEvent extends ServiceObject {
     if (map['flag'] != null) {
       flag = map['flag'];
     }
-    if (map['new_value'] != null) {
-      newValue = map['new_value'];
+    if (map['newValue'] != null) {
+      newValue = map['newValue'];
     }
   }
 

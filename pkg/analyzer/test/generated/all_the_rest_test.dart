@@ -134,7 +134,7 @@ class DartUriResolverTest extends _SimpleDartSdkTest {
 }
 
 @reflectiveTest
-class ErrorSeverityTest extends EngineTestCase {
+class ErrorSeverityTest {
   test_max_error_error() async {
     expect(ErrorSeverity.ERROR.max(ErrorSeverity.ERROR),
         same(ErrorSeverity.ERROR));
