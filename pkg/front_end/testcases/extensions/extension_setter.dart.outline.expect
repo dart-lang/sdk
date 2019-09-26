@@ -7,6 +7,10 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class*
     ;
 }
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    ;
+}
 extension Extension on self::Class* {
   get simpleSetter = self::Extension|get#simpleSetter;
   get mutatingSetter = self::Extension|get#mutatingSetter;
@@ -18,6 +22,9 @@ extension Extension on self::Class* {
   set mutatingSetter = self::Extension|set#mutatingSetter;
   set setterWithReturn = self::Extension|set#setterWithReturn;
   set setterWithClosure = self::Extension|set#setterWithClosure;
+}
+extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+  set setter = self::GenericExtension|set#setter;
 }
 static method Extension|get#simpleSetter(final self::Class* #this) → core::int*
   ;
@@ -39,6 +46,8 @@ static method Extension|testInternal(final self::Class* #this) → dynamic
   ;
 static method Extension|get#testInternal(final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|testInternal(#this);
+static method GenericExtension|set#setter<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void
+  ;
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

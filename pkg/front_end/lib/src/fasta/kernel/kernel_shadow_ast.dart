@@ -184,13 +184,16 @@ class ClassInferenceInfo {
 
 enum InternalExpressionKind {
   Cascade,
+  CompoundExtensionIndexSet,
   CompoundIndexSet,
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  ExtensionIndexSet,
   ExtensionTearOff,
   ExtensionSet,
   IfNull,
+  IfNullExtensionIndexSet,
   IfNullIndexSet,
   IfNullPropertySet,
   IfNullSet,
@@ -1602,6 +1605,77 @@ class SuperIndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing an extension index set expression.
+///
+/// An extension index set expression of the form `Extension(o)[a] = b` used
+/// for value is encoded as the expression:
+///
+///     let receiverVariable = o
+///     let indexVariable = a in
+///     let valueVariable = b in '
+///     let writeVariable =
+///         receiverVariable.[]=(indexVariable, valueVariable) in
+///           valueVariable
+///
+/// An extension index set expression used for effect is encoded as
+///
+///    o.[]=(a, b)
+///
+/// using [StaticInvocation].
+///
+class ExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  /// The receiver of the extension access.
+  Expression receiver;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  ExtensionIndexSet(this.extension, this.explicitTypeArguments, this.receiver,
+      this.setter, this.index, this.value)
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an if-null index assignment.
 ///
 /// An if-null index assignment of the form `o[a] ??= b` is, if used for value,
@@ -1758,6 +1832,99 @@ class IfNullSuperIndexSet extends InternalExpression {
 
   @override
   void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null super index set expression.
+///
+/// An if-null super index set expression of the form `super[a] ??= b` is, if
+/// used for value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///       v2 == null
+///        ? (let v3 = b in
+///           let _ = super.[]=(v1, v3) in
+///           v3)
+///        : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///        v2 == null ? super.[]=(v1, b) : null
+///
+class IfNullExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  /// The extension receiver;
+  Expression receiver;
+
+  /// The [] member;
+  Member getter;
+
+  /// The []= member;
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullExtensionIndexSet(this.extension, this.explicitTypeArguments,
+      this.receiver, this.getter, this.setter, this.index, this.value,
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.IfNullExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
     if (index != null) {
       index = index.accept<TreeNode>(v);
       index?.parent = this;
@@ -2113,6 +2280,117 @@ class CompoundSuperIndexSet extends InternalExpression {
   }
 }
 
+/// Internal expression representing a compound extension index assignment.
+///
+/// An compound extension index assignment of the form `Extension(o)[a] += b`
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = o;
+///     let indexVariable = a in
+///     let valueVariable = receiverVariable.[](indexVariable) + b
+///     let writeVariable =
+///       receiverVariable.[]=(indexVariable, valueVariable) in
+///         valueVariable
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let receiverVariable = o;
+///     let indexVariable = a in
+///         receiverVariable.[]=(indexVariable,
+///             receiverVariable.[](indexVariable) + b)
+///
+class CompoundExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  Expression receiver;
+
+  /// The [] member.
+  Member getter;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundExtensionIndexSet(
+      this.extension,
+      this.explicitTypeArguments,
+      this.receiver,
+      this.getter,
+      this.setter,
+      this.index,
+      this.binaryName,
+      this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null),
+        assert(forPostIncDec != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
 /// Internal expression representing an assignment to an extension setter.
 ///
 /// An extension set of the form `receiver.target = value` is, if used for
@@ -2135,11 +2413,15 @@ class CompoundSuperIndexSet extends InternalExpression {
 ///
 // TODO(johnniwinther): Rename read-only to side-effect-free.
 class ExtensionSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
   /// The receiver for the assignment.
   Expression receiver;
 
   /// The extension member called for the assignment.
-  ObjectAccessTarget target;
+  Member target;
 
   /// The right-hand side value of the assignment.
   Expression value;
@@ -2152,9 +2434,12 @@ class ExtensionSet extends InternalExpression {
   /// variable.
   final bool readOnlyReceiver;
 
-  ExtensionSet(this.receiver, this.target, this.value,
+  ExtensionSet(this.extension, this.explicitTypeArguments, this.receiver,
+      this.target, this.value,
       {this.readOnlyReceiver, this.forEffect})
-      : assert(readOnlyReceiver != null),
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOnlyReceiver != null),
         assert(forEffect != null) {
     receiver?.parent = this;
     value?.parent = this;

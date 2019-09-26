@@ -24,6 +24,7 @@ extensions/explicit_invalid_access: TextSerializationFailure
 extensions/explicit_this: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
 extensions/extension_setter: TextSerializationFailure
+extensions/extension_setter_error: TypeCheckError
 extensions/getter_setter_conflict: TextSerializationFailure
 extensions/if_null: TextSerializationFailure
 extensions/implicit_extension_inference: TextSerializationFailure

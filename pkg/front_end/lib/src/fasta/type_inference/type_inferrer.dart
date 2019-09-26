@@ -66,7 +66,7 @@ import '../kernel/kernel_shadow_ast.dart'
 
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
-import '../names.dart' show callName, unaryMinusName;
+import '../names.dart';
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -656,10 +656,29 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return type is InterfaceType && type.classNode == coreTypes.nullClass;
   }
 
-  List<DartType> _inferExtensionTypeArguments(
-      List<TypeParameter> typeParameters,
-      DartType onType,
-      DartType receiverType) {
+  /// Computes the type arguments for an access to an extension instance member
+  /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
+  /// are provided, these are returned, otherwise type arguments are inferred
+  /// using [receiverType].
+  List<DartType> computeExtensionTypeArgument(Extension extension,
+      List<DartType> explicitTypeArguments, DartType receiverType) {
+    if (explicitTypeArguments != null) {
+      assert(explicitTypeArguments.length == extension.typeParameters.length);
+      return explicitTypeArguments;
+    } else if (extension.typeParameters.isEmpty) {
+      assert(explicitTypeArguments == null);
+      return const <DartType>[];
+    } else {
+      return inferExtensionTypeArguments(extension, receiverType);
+    }
+  }
+
+  /// Infers the type arguments for an access to an extension instance member
+  /// on [extension] with the static [receiverType].
+  List<DartType> inferExtensionTypeArguments(
+      Extension extension, DartType receiverType) {
+    List<TypeParameter> typeParameters = extension.typeParameters;
+    DartType onType = extension.onType;
     List<DartType> inferredTypes =
         new List<DartType>.filled(typeParameters.length, const UnknownType());
     typeSchemaEnvironment.inferGenericFunctionOrType(
@@ -719,8 +738,23 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (target.isUnresolved &&
         receiverType is! DynamicType &&
         includeExtensionMethods) {
+      Name otherName = name;
+      bool otherIsSetter;
+      if (name == indexGetName) {
+        // [] must be checked against []=.
+        otherName = indexSetName;
+        otherIsSetter = false;
+      } else if (name == indexSetName) {
+        // []= must be checked against [].
+        otherName = indexGetName;
+        otherIsSetter = false;
+      } else {
+        otherName = name;
+        otherIsSetter = !setter;
+      }
+
       Member otherMember =
-          _getInterfaceMember(classNode, name, !setter, fileOffset);
+          _getInterfaceMember(classNode, otherName, otherIsSetter, fileOffset);
       if (otherMember != null) {
         // If we're looking for `foo` and `foo=` can be found or vice-versa then
         // extension methods should not be found.
@@ -730,12 +764,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       ExtensionAccessCandidate bestSoFar;
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
       library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
-        MemberBuilder getterBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: false);
-        MemberBuilder setterBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: true);
-        if ((getterBuilder != null && !getterBuilder.isStatic) ||
-            (setterBuilder != null && !setterBuilder.isStatic)) {
+        MemberBuilder thisBuilder =
+            extensionBuilder.lookupLocalMember(name.name, setter: setter);
+        MemberBuilder otherBuilder = extensionBuilder
+            .lookupLocalMember(otherName.name, setter: otherIsSetter);
+        if ((thisBuilder != null && !thisBuilder.isStatic) ||
+            (otherBuilder != null && !otherBuilder.isStatic)) {
           DartType onType;
           DartType onTypeInstantiateToBounds;
           List<DartType> inferredTypeArguments;
@@ -746,10 +780,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           } else {
             List<TypeParameter> typeParameters =
                 extensionBuilder.extension.typeParameters;
-            inferredTypeArguments = _inferExtensionTypeArguments(
-                extensionBuilder.extension.typeParameters,
-                extensionBuilder.extension.onType,
-                receiverType);
+            inferredTypeArguments = inferExtensionTypeArguments(
+                extensionBuilder.extension, receiverType);
             Substitution inferredSubstitution =
                 Substitution.fromPairs(typeParameters, inferredTypeArguments);
 
@@ -774,17 +806,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           }
 
           if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
-            MemberBuilder memberBuilder =
-                setter ? setterBuilder : getterBuilder;
-
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
                 onType,
                 onTypeInstantiateToBounds,
-                memberBuilder != null
+                thisBuilder != null
                     ? new ObjectAccessTarget.extensionMember(
-                        memberBuilder.procedure,
-                        memberBuilder.extensionTearOff,
-                        memberBuilder.kind,
+                        thisBuilder.procedure,
+                        thisBuilder.extensionTearOff,
+                        thisBuilder.kind,
                         inferredTypeArguments)
                     : const ObjectAccessTarget.missing(),
                 isPlatform: extensionBuilder.library.uri.scheme == 'dart');
@@ -1152,6 +1181,19 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         }
     }
     throw unhandled('$target', 'getFunctionType', null, null);
+  }
+
+  /// Returns the type of the receiver argument in an access to an extension
+  /// member on [extension] with the given extension [typeArguments].
+  DartType getExtensionReceiverType(
+      Extension extension, List<DartType> typeArguments) {
+    DartType receiverType = extension.onType;
+    if (extension.typeParameters.isNotEmpty) {
+      Substitution substitution =
+          Substitution.fromPairs(extension.typeParameters, typeArguments);
+      return substitution.substituteType(receiverType);
+    }
+    return receiverType;
   }
 
   /// Returns the return type of the invocation of [target] on [receiverType].
