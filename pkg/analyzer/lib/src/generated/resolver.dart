@@ -272,6 +272,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
+    _checkStrictInferenceInParameters(node.parameters);
     super.visitConstructorDeclaration(node);
   }
 
@@ -316,6 +317,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (node.parent is CompilationUnit) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
+      _checkStrictInferenceInParameters(node.functionExpression.parameters);
       super.visitFunctionDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -334,6 +336,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (node.parent is! FunctionDeclaration) {
       _checkForMissingReturn(null, node.body, node.declaredElement, node);
     }
+    DartType functionType = InferenceContext.getContext(node);
+    if (functionType is! FunctionType) {
+      _checkStrictInferenceInParameters(node.parameters);
+    }
     super.visitFunctionExpression(node);
   }
 
@@ -341,6 +347,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _checkStrictInferenceReturnType(
         node.returnType, node, node.identifier.name);
+    _checkStrictInferenceInParameters(node.parameters);
     super.visitFunctionTypedFormalParameter(node);
   }
 
@@ -386,6 +393,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
       _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+      _checkStrictInferenceInParameters(node.parameters);
       super.visitMethodDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
@@ -1136,7 +1144,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// In "strict-inference" mode, check that [returnNode]'s return type is specified.
+  /// In "strict-inference" mode, check that each of the [parameters]' type is
+  /// specified.
+  _checkStrictInferenceInParameters(FormalParameterList parameters) {
+    void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
+      if (parameter.type == null) {
+        ParameterElement element = parameter.declaredElement;
+        _errorReporter.reportTypeErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+          parameter,
+          [element.displayName],
+        );
+      }
+    }
+
+    if (_strictInference && parameters != null) {
+      for (FormalParameter parameter in parameters.parameters) {
+        if (parameter is SimpleFormalParameter) {
+          checkParameterTypeIsKnown(parameter);
+        } else if (parameter is DefaultFormalParameter) {
+          if (parameter.parameter is SimpleFormalParameter) {
+            checkParameterTypeIsKnown(parameter.parameter);
+          }
+        }
+      }
+    }
+  }
+
+  /// In "strict-inference" mode, check that [returnNode]'s return type is
+  /// specified.
   void _checkStrictInferenceReturnType(
       AstNode returnType, AstNode reportNode, String displayName) {
     if (!_strictInference) {

@@ -32,13 +32,13 @@ class C {
 ''');
   }
 
-  test_functionTypeParameter_withType() async {
+  test_functionTypedFormalParameter_withType() async {
     await assertNoErrorsInCode(r'''
 void fn(String cb(int x)) => print(cb(7));
 ''');
   }
 
-  test_functionTypeParameter_withVar() async {
+  test_functionTypedFormalParameter_withVar() async {
     await assertErrorsInCode(r'''
 void fn(String cb(var x)) => print(cb(7));
 ''', [
@@ -95,6 +95,24 @@ void fn() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 23, 5),
     ]);
+  }
+
+  test_parameter_inFunctionLiteral_inferredType() async {
+    await assertNoErrorsInCode(r'''
+void fn() {
+  g((a, b) => print('$a$b'));
+}
+
+void g(void cb(int a, dynamic b)) => cb(7, "x");
+''');
+  }
+
+  test_parameter_inFunctionLiteral_inferredType_viaReturn() async {
+    await assertNoErrorsInCode(r'''
+void Function(int, dynamic) fn() {
+  return (a, b) => print('$a$b');
+}
+''');
   }
 
   test_parameter_inFunctionLiteral_withType() async {
@@ -189,6 +207,14 @@ class D extends C {
     await assertNoErrorsInCode(r'''
 typedef cb = void Function(int a);
 ''');
+  }
+
+  test_parameter_withoutKeyword() async {
+    await assertErrorsInCode(r'''
+void fn(a) => print(a);
+''', [
+      error(HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1),
+    ]);
   }
 
   test_parameter_withType() async {
