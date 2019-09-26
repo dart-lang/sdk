@@ -9,6 +9,7 @@ analyzer:
     - test/flow_analysis/nullability/data/**
     - test/flow_analysis/reachability/data/**
     - test/flow_analysis/type_promotion/data/**
+    - parser_testcases/**
     - testcases/**
     - test/id_testing/data/**
     - test/language_versioning/data/**
