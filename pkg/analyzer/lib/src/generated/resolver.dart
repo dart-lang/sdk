@@ -384,6 +384,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDeprecatedMember = _inDeprecatedMember;
     ExecutableElement element = node.declaredElement;
+    bool elementIsOverride() {
+      if (element is ClassMemberElement) {
+        Name name = new Name(_currentLibrary.source.uri, element.name);
+        Element enclosingElement = element.enclosingElement;
+        if (enclosingElement is ClassElement) {
+          InterfaceType classType = enclosingElement.thisType;
+          return _inheritanceManager.getOverridden(classType, name) != null;
+        }
+      }
+      return false;
+    }
+
     if (element != null && element.hasDeprecated) {
       _inDeprecatedMember = true;
     }
@@ -392,7 +404,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
-      _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+      if (_strictInference && !node.isSetter && !elementIsOverride()) {
+        _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+      }
       _checkStrictInferenceInParameters(node.parameters);
       super.visitMethodDeclaration(node);
     } finally {

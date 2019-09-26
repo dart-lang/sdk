@@ -60,6 +60,38 @@ class C {
 ''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
   }
 
+  test_classInstanceMethod_overriding() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int f() => 7;
+}
+
+class D extends C {
+  f() => 9;
+}
+
+class E implements C {
+  f() => 9;
+}
+
+class F with C {
+  f() => 9;
+}
+
+mixin M on C {
+  f() => 9;
+}
+
+mixin N {
+  int g() => 7;
+}
+
+class G with N {
+  g() => 9;
+}
+''');
+  }
+
   test_classInstanceMethod_withReturnType() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -77,11 +109,11 @@ class C {
   }
 
   test_classInstanceSetter() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   set f(int x) => print(x);
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 25)]);
+''');
   }
 
   test_classStaticMethod() async {
