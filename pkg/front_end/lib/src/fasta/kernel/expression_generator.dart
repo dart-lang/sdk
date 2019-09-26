@@ -2554,29 +2554,33 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return _makeInvalidRead();
   }
 
+  Generator _createInstanceAccess(Name name, {bool isNullAware}) {
+    Builder getter = extensionBuilder.lookupLocalMember(name.name);
+    Builder setter =
+        extensionBuilder.lookupLocalMember(name.name, setter: true);
+    if (getter == null && setter == null) {
+      return new UnresolvedNameGenerator(_helper, token, name);
+    }
+    return new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
+        _helper,
+        token,
+        extensionBuilder.extension,
+        getter,
+        setter,
+        receiver,
+        explicitTypeArguments,
+        extensionBuilder.typeParameters?.length ?? 0,
+        isNullAware: isNullAware);
+  }
+
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (_helper.constantContext != ConstantContext.none) {
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
     }
-    Builder getter = extensionBuilder.lookupLocalMember(send.name.name);
-    Builder setter =
-        extensionBuilder.lookupLocalMember(send.name.name, setter: true);
-    if (getter == null && setter == null) {
-      return new UnresolvedNameGenerator(_helper, token, send.name);
-    }
     Generator generator =
-        new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
-            _helper,
-            token,
-            extensionBuilder.extension,
-            getter,
-            setter,
-            receiver,
-            explicitTypeArguments,
-            extensionBuilder.typeParameters?.length ?? 0,
-            isNullAware: isNullAware);
+        _createInstanceAccess(send.name, isNullAware: isNullAware);
     if (send.arguments != null) {
       return generator.doInvocation(offsetForToken(send.token), send.arguments);
     } else {
@@ -2586,8 +2590,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return unimplemented(
-        "ExplicitExtensionAccessGenerator.doInvocation", fileOffset, _uri);
+    Generator generator = _createInstanceAccess(callName, isNullAware: false);
+    return generator.doInvocation(offset, arguments);
   }
 
   @override
