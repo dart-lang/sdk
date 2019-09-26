@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 
 import 'dartfuzz_values.dart';
 import 'dartfuzz_api_table.dart';
-import 'dartfuzz_ffiapi.dart';
+import 'dartfuzz_ffi_api.dart';
 
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
