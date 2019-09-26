@@ -1945,6 +1945,10 @@ class FragmentEmitter {
   js.Statement emitTypeRules(Fragment fragment) {
     if (!_options.experimentNewRti) return js.EmptyStatement();
 
+    bool addJsObjectRedirections = false;
+    ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
+    InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
+
     Ruleset ruleset = Ruleset.empty();
     Iterable<Class> classes =
         fragment.libraries.expand((Library library) => library.classes);
@@ -1971,16 +1975,20 @@ class FragmentEmitter {
       }
 
       if (isInterop) {
-        _classHierarchy
-            .subtypesOf(_commonElements.jsJavaScriptObjectClass)
-            .forEach((ClassEntity interceptor) {
-          ruleset.add(_elementEnvironment.getThisType(interceptor), supertypes,
-              typeVariables);
-        });
+        ruleset.addEntry(jsObjectType, supertypes, typeVariables);
+        addJsObjectRedirections = true;
       } else {
-        ruleset.add(targetType, supertypes, typeVariables);
+        ruleset.addEntry(targetType, supertypes, typeVariables);
       }
     });
+
+    if (addJsObjectRedirections) {
+      _classHierarchy
+          .strictSubtypesOf(jsObjectClass)
+          .forEach((ClassEntity subtype) {
+        ruleset.addRedirection(subtype, jsObjectClass);
+      });
+    }
 
     FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;
     return js.js.statement('#(init.#,JSON.parse(#));', [

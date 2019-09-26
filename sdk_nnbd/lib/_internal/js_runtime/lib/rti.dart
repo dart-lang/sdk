@@ -1209,8 +1209,16 @@ class _Universe {
   static Object typeRules(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.typeRules);
 
-  static Object findRule(universe, String targetType) =>
+  static Object _findRule(universe, String targetType) =>
       JS('', '#.#', typeRules(universe), targetType);
+
+  static Object findRule(universe, String targetType) {
+    Object rule = _findRule(universe, targetType);
+    while (_Utils.isString(rule)) {
+      rule = _findRule(universe, _Utils.asString(rule));
+    }
+    return rule;
+  }
 
   static void addRules(universe, rules) {
     // TODO(fishythefish): Use `Object.assign()` when IE11 is deprecated.

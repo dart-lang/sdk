@@ -493,12 +493,17 @@ class _RulesetEntry {
 }
 
 class Ruleset {
+  Map<ClassEntity, ClassEntity> _redirections;
   Map<InterfaceType, _RulesetEntry> _entries;
 
-  Ruleset(this._entries);
-  Ruleset.empty() : this({});
+  Ruleset(this._redirections, this._entries);
+  Ruleset.empty() : this({}, {});
 
-  void add(InterfaceType targetType, Iterable<InterfaceType> supertypes,
+  void addRedirection(ClassEntity targetClass, ClassEntity redirection) {
+    _redirections[targetClass] = redirection;
+  }
+
+  void addEntry(InterfaceType targetType, Iterable<InterfaceType> supertypes,
       Map<TypeVariableType, DartType> typeVariables) {
     _RulesetEntry entry = _entries[targetType] ??= _RulesetEntry();
     entry.addAll(supertypes, typeVariables);
@@ -552,9 +557,20 @@ class RulesetEncoder {
       js.concatenateStrings([
         _quote,
         _leftBrace,
-        ...js.joinLiterals(ruleset._entries.entries.map(_encodeEntry), _comma),
+        ...js.joinLiterals([
+          ...ruleset._redirections.entries.map(_encodeRedirection),
+          ...ruleset._entries.entries.map(_encodeEntry),
+        ], _comma),
         _rightBrace,
         _quote,
+      ]);
+
+  jsAst.StringConcatenation _encodeRedirection(
+          MapEntry<ClassEntity, ClassEntity> redirection) =>
+      js.concatenateStrings([
+        js.quoteName(_emitter.typeAccessNewRti(redirection.key)),
+        _colon,
+        js.quoteName(_emitter.typeAccessNewRti(redirection.value)),
       ]);
 
   jsAst.StringConcatenation _encodeEntry(
