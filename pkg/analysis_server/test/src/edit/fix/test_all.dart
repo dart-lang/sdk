@@ -4,12 +4,10 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'fix/test_all.dart' as fix;
-import 'nnbd_migration/test_all.dart' as nnbd_migration;
+import 'non_nullable_fix_test.dart' as non_nullable_fix;
 
 main() {
   defineReflectiveSuite(() {
-    fix.main();
-    nnbd_migration.main();
-  }, name: 'edit');
+    non_nullable_fix.main();
+  }, name: 'fix');
 }

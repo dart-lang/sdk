@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -32,6 +33,16 @@ class NonNullableFix extends FixCodeTask {
 
   final DartFixListener listener;
 
+  /// The root of the included paths.
+  ///
+  /// The included paths may contain absolute and relative paths, non-canonical
+  /// paths, and directory and file paths. The "root" is the deepest directory
+  /// which all included paths share.
+  ///
+  /// If instrumentation files are written to [outputDir], they will be written
+  /// as if in a directory structure rooted at [includedRoot].
+  final String includedRoot;
+
   final String outputDir;
 
   InstrumentationListener instrumentationListener;
@@ -43,7 +54,10 @@ class NonNullableFix extends FixCodeTask {
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener, this.outputDir) {
+  NonNullableFix(this.listener, this.outputDir,
+      {List<String> included = const []})
+      : this.includedRoot =
+            _getIncludedRoot(included, listener.server.resourceProvider) {
     instrumentationListener =
         outputDir == null ? null : InstrumentationListener();
     migration = new NullabilityMigration(
@@ -209,11 +223,8 @@ analyzer:
           pathContext.setExtension(info.units.first.path, '.html');
       // TODO(srawlins): Choose a better scheme than the double underscores,
       // likely with actual directories, which need to be individually created.
-      // TODO(srawlins): Choose a better root for the relative paths. These
-      // could be complex, as dartfix can be executed with multiple directories
-      // (relative, absolute) and/or files.
       var relativePath = pathContext
-          .relative(libraryPath, from: provider.pathContext.current)
+          .relative(libraryPath, from: includedRoot)
           .replaceAll('/', '__');
       File output = folder.getChildAssumingFile(relativePath);
       String rendered = InstrumentationRenderer(info).render();
@@ -223,7 +234,37 @@ analyzer:
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) {
-    registrar.registerCodeTask(new NonNullableFix(listener, params.outputDir));
+    registrar.registerCodeTask(new NonNullableFix(listener, params.outputDir,
+        included: params.included));
+  }
+
+  /// Get the "root" of all [included] paths. See [includedRoot] for its
+  /// definition.
+  static String _getIncludedRoot(
+      List<String> included, OverlayResourceProvider provider) {
+    path.Context context = provider.pathContext;
+    // This step looks like it may be expensive (`getResource`, splitting up
+    // all of the paths, comparing parts, joining one path back together). In
+    // practice, this should be cheap because typically only one path is given
+    // to dartfix.
+    List<String> rootParts = included
+        .map((p) => context.absolute(context.canonicalize(p)))
+        .map((p) => provider.getResource(p) is File ? context.dirname(p) : p)
+        .map((p) => context.split(p))
+        .reduce((value, parts) {
+      List<String> shorterPath = value.length < parts.length ? value : parts;
+      int length = shorterPath.length;
+      for (int i = 0; i < length; i++) {
+        if (value[i] != parts[i]) {
+          // [value] and [parts] are the same, only up to part [i].
+          return value.sublist(0, i);
+        }
+      }
+      // [value] and [parts] are the same up to the full length of the shorter
+      // of the two, so just return that.
+      return shorterPath;
+    });
+    return context.joinAll(rootParts);
   }
 }
 
