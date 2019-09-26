@@ -225,7 +225,7 @@ analyzer:
       // likely with actual directories, which need to be individually created.
       var relativePath = pathContext
           .relative(libraryPath, from: includedRoot)
-          .replaceAll('/', '__');
+          .replaceAll(pathContext.separator, '__');
       File output = folder.getChildAssumingFile(relativePath);
       String rendered = InstrumentationRenderer(info).render();
       output.writeAsStringSync(rendered);

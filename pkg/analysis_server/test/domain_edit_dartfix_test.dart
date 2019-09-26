@@ -300,10 +300,7 @@ void test() {
     await performFix(
         includedFixes: ['non-nullable'], outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    // TODO(https://github.com/dart-lang/sdk/issues/38574): Fix Windows.
-    if (path.style != path.Style.windows) {
-      expect(outputDir.getChildren(), isNotEmpty);
-    }
+    expect(outputDir.getChildren(), isNotEmpty);
   }
 
   test_dartfix_partFile() async {
