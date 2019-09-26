@@ -188,6 +188,7 @@ enum InternalExpressionKind {
   CompoundPropertySet,
   CompoundSuperIndexSet,
   DeferredCheck,
+  ExtensionTearOff,
   ExtensionSet,
   IfNull,
   IfNullIndexSet,
@@ -2221,6 +2222,7 @@ class NullAwareExtension extends InternalExpression {
   }
 }
 
+/// Front end specific implementation of [PropertySet].
 class PropertySetImpl extends PropertySet {
   /// If `true` the assignment is need for its effect and not for its value.
   final bool forEffect;
@@ -2233,6 +2235,46 @@ class PropertySetImpl extends PropertySet {
       {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
       : assert(forEffect != null),
         super(receiver, name, value, interfaceTarget);
+}
+
+/// Internal representation of a read of an extension instance member.
+///
+/// A read of an extension instance member `o.foo` is encoded as the
+/// [StaticInvocation]
+///
+///     extension|foo(o)
+///
+/// where `extension|foo` is the top level method created for reading the
+/// `foo` member. If `foo` is an extension instance method, then `extension|foo`
+/// the special tear-off function created for extension instance methods.
+/// Otherwise `extension|foo` is the top level method corresponding to the
+/// extension instance getter being read.
+class ExtensionTearOff extends InternalExpression {
+  /// The top-level method that is that target for the read operation.
+  Member target;
+
+  /// The arguments provided to the top-level method.
+  Arguments arguments;
+
+  ExtensionTearOff(this.target, this.arguments) {
+    arguments?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionTearOff;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    arguments?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
 }
 
 /// Creates a [Let] of [variable] with the given [body] using

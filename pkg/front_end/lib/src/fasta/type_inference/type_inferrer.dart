@@ -2121,8 +2121,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         parent?.replaceChild(node, errorNode);
       }
     }
-    _checkBoundsInMethodInvocation(target, receiverType, calleeType, methodName,
-        arguments, node.fileOffset);
+    if (target.isExtensionMember) {
+      library.checkBoundsInStaticInvocation(
+          replacement, typeSchemaEnvironment, helper.uri);
+    } else {
+      _checkBoundsInMethodInvocation(target, receiverType, calleeType,
+          methodName, arguments, node.fileOffset);
+    }
 
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -2308,6 +2313,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                       receiver,
                       extensionTypeArguments:
                           readTarget.inferredExtensionTypeArguments)));
+          inferredType =
+              instantiateTearOff(inferredType, typeContext, expression);
           break;
         case ProcedureKind.Setter:
         case ProcedureKind.Factory:

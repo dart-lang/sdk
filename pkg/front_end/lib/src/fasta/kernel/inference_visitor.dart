@@ -49,6 +49,8 @@ class InferenceVisitor
           return visitCompoundSuperIndexSet(node, typeContext);
         case InternalExpressionKind.DeferredCheck:
           return visitDeferredCheck(node, typeContext);
+        case InternalExpressionKind.ExtensionTearOff:
+          return visitExtensionTearOff(node, typeContext);
         case InternalExpressionKind.ExtensionSet:
           return visitExtensionSet(node, typeContext);
         case InternalExpressionKind.IfNull:
@@ -379,6 +381,29 @@ class InferenceVisitor
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     // No inference needs to be done.
+  }
+
+  ExpressionInferenceResult visitExtensionTearOff(
+      ExtensionTearOff node, DartType typeContext) {
+    FunctionType calleeType = node.target != null
+        ? node.target.function.functionType
+        : new FunctionType([], const DynamicType());
+    bool hadExplicitTypeArguments =
+        getExplicitTypeArguments(node.arguments) != null;
+    DartType inferredType = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, calleeType.returnType, node.arguments);
+    Expression replacement = new StaticInvocation(node.target, node.arguments);
+    if (!inferrer.isTopLevel &&
+        !hadExplicitTypeArguments &&
+        node.target != null) {
+      inferrer.library.checkBoundsInStaticInvocation(
+          replacement, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
+          inferred: true);
+    }
+    node.replaceWith(replacement);
+    inferredType =
+        inferrer.instantiateTearOff(inferredType, typeContext, replacement);
+    return new ExpressionInferenceResult(inferredType);
   }
 
   ExpressionInferenceResult visitExtensionSet(

@@ -3502,8 +3502,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments) {
-    // TODO(johnniwinther): Check type argument count.
+      int fileOffset, Procedure target, Arguments arguments,
+      {bool isTearOff}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     LocatedMessage argMessage = checkArgumentsForFunction(
         target.function, arguments, fileOffset, typeParameters);
@@ -3517,10 +3517,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           message: argMessage);
     }
 
-    StaticInvocation node = new StaticInvocation(target, arguments)
-      ..fileOffset = fileOffset;
-    // TODO(johnniwinther): Check type argument bounds.
-    //libraryBuilder.checkBoundsInStaticInvocation(node, typeEnvironment, uri);
+    Expression node;
+    if (isTearOff) {
+      node = new ExtensionTearOff(target, arguments);
+    } else {
+      node = new StaticInvocation(target, arguments);
+    }
+    node.fileOffset = fileOffset;
     return node;
   }
 

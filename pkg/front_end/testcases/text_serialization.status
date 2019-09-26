@@ -10,6 +10,7 @@ all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
+extensions/check_bounds: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/default_values: TextSerializationFailure
@@ -43,6 +44,7 @@ extensions/operators: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure
+extensions/tear_offs: TextSerializationFailure
 extensions/type_variables: TextSerializationFailure
 extensions/unnamed_extensions: TextSerializationFailure
 extensions/use_this: TextSerializationFailure

@@ -82,7 +82,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       {Constness constness, int charOffset});
 
   Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments);
+      int fileOffset, Procedure target, Arguments arguments,
+      {bool isTearOff});
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,

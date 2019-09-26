@@ -1694,7 +1694,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
               _extensionTypeParameterCount,
               0,
               _helper.createVariableGet(extensionThis, fileOffset),
-              extensionTypeArguments: _createExtensionTypeArguments()));
+              extensionTypeArguments: _createExtensionTypeArguments()),
+          isTearOff: invokeTarget != null);
     }
     return read;
   }
@@ -1788,7 +1789,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named));
+              namedArguments: arguments.named),
+          isTearOff: false);
     } else {
       return _helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, adjustForImplicitCall(_plainNameForRead, offset),
@@ -1954,6 +1956,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     return explicitTypeArguments ?? const <DartType>[];
   }
 
+  /// Returns `true` if performing a read operation is a tear off.
+  ///
+  /// This is the case if [invokeTarget] is non-null, since extension methods
+  /// have both a [readTarget] and an [invokeTarget], whereas extension getters
+  /// only have a [readTarget].
+  bool get isReadTearOff => invokeTarget != null;
+
   @override
   Expression buildSimpleRead() {
     if (isNullAware) {
@@ -1977,7 +1986,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           readTarget,
           _helper.forest.createArgumentsForExtensionMethod(
               fileOffset, extensionTypeParameterCount, 0, receiver,
-              extensionTypeArguments: _createExtensionTypeArguments()));
+              extensionTypeArguments: _createExtensionTypeArguments()),
+          isTearOff: isReadTearOff);
     }
     return read;
   }
@@ -2174,7 +2184,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named));
+              namedArguments: arguments.named),
+          isTearOff: false);
     } else {
       invocation = _helper.buildMethodInvocation(
           _createRead(receiverExpression),
