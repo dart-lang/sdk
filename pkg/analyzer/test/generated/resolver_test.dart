@@ -1085,7 +1085,7 @@ class TypeResolverVisitorTest extends ParserTestCase
     _listener.assertNoErrors();
   }
 
-  void setUp({bool shouldSetElementSupertypes: false}) {
+  void setUp() {
     _listener = new GatheringErrorListener();
     AnalysisContext context = TestAnalysisContext();
     Source librarySource = new FileSource(getFile("/lib.dart"));
@@ -1102,9 +1102,7 @@ class TypeResolverVisitorTest extends ParserTestCase
     libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
-        featureSet: featureSet,
-        nameScope: libraryScope,
-        shouldSetElementSupertypes: shouldSetElementSupertypes);
+        featureSet: featureSet, nameScope: libraryScope);
   }
 
   test_modeApi() async {
@@ -1547,57 +1545,6 @@ A v = new A();
         new LocalVariableElementImpl.forNode(stackTraceParameter);
     _resolveCatchClause(clause, interfaceType(exceptionElement),
         _typeProvider.stackTraceType, [exceptionElement]);
-    _listener.assertNoErrors();
-  }
-
-  test_visitClassDeclaration() async {
-    // class A extends B with C implements D {}
-    // class B {}
-    // class C {}
-    // class D {}
-    setUp(shouldSetElementSupertypes: true);
-    ClassElement elementA = ElementFactory.classElement2("A");
-    ClassElement elementB = ElementFactory.classElement2("B");
-    ClassElement elementC = ElementFactory.classElement2("C");
-    ClassElement elementD = ElementFactory.classElement2("D");
-    ExtendsClause extendsClause =
-        AstTestFactory.extendsClause(AstTestFactory.typeName(elementB));
-    WithClause withClause =
-        AstTestFactory.withClause([AstTestFactory.typeName(elementC)]);
-    ImplementsClause implementsClause =
-        AstTestFactory.implementsClause([AstTestFactory.typeName(elementD)]);
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        null, "A", null, extendsClause, withClause, implementsClause);
-    declaration.name.staticElement = elementA;
-    _resolveNode(declaration, [elementA, elementB, elementC, elementD]);
-    expect(elementA.supertype, interfaceType(elementB));
-    List<InterfaceType> mixins = elementA.mixins;
-    expect(mixins, hasLength(1));
-    expect(mixins[0], interfaceType(elementC));
-    List<InterfaceType> interfaces = elementA.interfaces;
-    expect(interfaces, hasLength(1));
-    expect(interfaces[0], interfaceType(elementD));
-    _listener.assertNoErrors();
-  }
-
-  test_visitClassDeclaration_instanceMemberCollidesWithClass() async {
-    // class A {}
-    // class B extends A {
-    //   void A() {}
-    // }
-    setUp(shouldSetElementSupertypes: true);
-    ClassElementImpl elementA = ElementFactory.classElement2("A");
-    ClassElementImpl elementB = ElementFactory.classElement2("B");
-    elementB.methods = <MethodElement>[
-      ElementFactory.methodElement("A", VoidTypeImpl.instance)
-    ];
-    ExtendsClause extendsClause =
-        AstTestFactory.extendsClause(AstTestFactory.typeName(elementA));
-    ClassDeclaration declaration = AstTestFactory.classDeclaration(
-        null, "B", null, extendsClause, null, null);
-    declaration.name.staticElement = elementB;
-    _resolveNode(declaration, [elementA, elementB]);
-    expect(elementB.supertype, interfaceType(elementA));
     _listener.assertNoErrors();
   }
 

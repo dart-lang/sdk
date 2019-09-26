@@ -2998,6 +2998,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   final AnalysisOptionsImpl _analysisOptions;
 
+  /**
+   * The feature set that is enabled for the current unit.
+   */
+  final FeatureSet _featureSet;
+
   final bool _uiAsCodeEnabled;
 
   /// Helper for extension method resolution.
@@ -3105,6 +3110,7 @@ class ResolverVisitor extends ScopedVisitor {
       reportConstEvaluationErrors,
       this._flowAnalysis)
       : _analysisOptions = definingLibrary.context.analysisOptions,
+        _featureSet = featureSet,
         _uiAsCodeEnabled =
             featureSet.isEnabled(Feature.control_flow_collections) ||
                 featureSet.isEnabled(Feature.spread_collections),
@@ -3139,6 +3145,17 @@ class ResolverVisitor extends ScopedVisitor {
       return _promoteManager.localVariableTypeProvider;
     }
   }
+
+  NullabilitySuffix get _noneOrStarSuffix {
+    return _nonNullableEnabled
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
+  /**
+   * Return `true` if NNBD is enabled for this compilation unit.
+   */
+  bool get _nonNullableEnabled => _featureSet.isEnabled(Feature.non_nullable);
 
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
@@ -3197,10 +3214,11 @@ class ResolverVisitor extends ScopedVisitor {
 
     // Same number of type formals. Instantiate the function type so its
     // parameter and return type are in terms of the surrounding context.
-    return fnType.instantiate(typeParameters
-        .map((TypeParameter t) =>
-            (t.name.staticElement as TypeParameterElement).type)
-        .toList());
+    return fnType.instantiate(typeParameters.map((TypeParameter t) {
+      return t.declaredElement.instantiate(
+        nullabilitySuffix: _noneOrStarSuffix,
+      );
+    }).toList());
   }
 
   /// If it is appropriate to do so, override the current type of the static
@@ -5850,6 +5868,10 @@ class TypeNameResolver {
       : dynamicType = typeProvider.dynamicType,
         analysisOptions = definingLibrary.context.analysisOptions;
 
+  NullabilitySuffix get _noneOrStarSuffix {
+    return isNonNullableUnit ? NullabilitySuffix.none : NullabilitySuffix.star;
+  }
+
   /// Report an error with the given error code and arguments.
   ///
   /// @param errorCode the error code of the error to be reported
@@ -6010,8 +6032,10 @@ class TypeNameResolver {
         SimpleIdentifier identifier =
             (typeName as PrefixedIdentifier).identifier;
         Element prefixElement = nameScope.lookup(prefix, definingLibrary);
+        ClassElement classElement;
         ConstructorElement constructorElement;
         if (prefixElement is ClassElement) {
+          classElement = prefixElement;
           constructorElement =
               prefixElement.getNamedConstructor(identifier.name);
         }
@@ -6021,10 +6045,16 @@ class TypeNameResolver {
               argumentList,
               [prefix.name, identifier.name]);
           prefix.staticElement = prefixElement;
-          prefix.staticType = (prefixElement as ClassElement).type;
+          prefix.staticType = classElement.instantiate(
+            typeArguments: List.filled(
+              classElement.typeParameters.length,
+              dynamicType,
+            ),
+            nullabilitySuffix: _noneOrStarSuffix,
+          );
           identifier.staticElement = constructorElement;
           identifier.staticType = constructorElement.type;
-          typeName.staticType = constructorElement.enclosingElement.type;
+          typeName.staticType = prefix.staticType;
           AstNode grandParent = node.parent.parent;
           if (grandParent is InstanceCreationExpressionImpl) {
             grandParent.staticElement = constructorElement;
@@ -6071,7 +6101,7 @@ class TypeNameResolver {
       return;
     }
 
-    TypeImpl type = null;
+    DartType type = null;
     if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
@@ -6082,13 +6112,14 @@ class TypeNameResolver {
       );
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
-      type = element.type as TypeImpl;
     } else if (element is TypeParameterElement) {
       _setElement(typeName, element);
-      type = element.type as TypeImpl;
+      type = element.instantiate(
+        nullabilitySuffix: _getNullability(node.question != null),
+      );
     } else if (element is MultiplyDefinedElement) {
-      List<Element> elements = element.conflictingElements;
-      type = _getTypeWhenMultiplyDefined(elements) as TypeImpl;
+      var elements = (element as MultiplyDefinedElement).conflictingElements;
+      element = _getElementWhenMultiplyDefined(elements);
     } else {
       // The name does not represent a type.
       if (_isTypeNameInCatchClause(node)) {
@@ -6131,9 +6162,15 @@ class TypeNameResolver {
       return;
     }
     if (argumentList != null) {
+      var parameters = const <TypeParameterElement>[];
+      if (element is ClassElement) {
+        parameters = element.typeParameters;
+      } else if (element is FunctionTypeAliasElement) {
+        parameters = element.typeParameters;
+      }
+
       NodeList<TypeAnnotation> arguments = argumentList.arguments;
       int argumentCount = arguments.length;
-      List<DartType> parameters = typeSystem.typeFormalsAsTypes(type);
       int parameterCount = parameters.length;
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
@@ -6154,6 +6191,9 @@ class TypeNameResolver {
       } else {
         type = typeSystem.instantiateType(type, typeArguments);
       }
+      type = (type as TypeImpl).withNullability(
+        _getNullability(node.question != null),
+      );
     } else {
       if (element is GenericTypeAliasElementImpl) {
         List<DartType> typeArguments =
@@ -6161,16 +6201,34 @@ class TypeNameResolver {
         type = GenericTypeAliasElementImpl.typeAfterSubstitution(
                 element, typeArguments) ??
             dynamicType;
+        type = (type as TypeImpl).withNullability(
+          _getNullability(node.question != null),
+        );
       } else {
         type = typeSystem.instantiateToBounds(type);
       }
     }
 
-    var nullability = _getNullability(node.question != null);
-    type = type.withNullability(nullability);
-
     typeName.staticType = type;
     node.type = type;
+  }
+
+  /// Given the multiple elements to which a single name could potentially be
+  /// resolved, return the single [ClassElement] that should be used, or `null`
+  /// if there is no clear choice.
+  ///
+  /// @param elements the elements to which a single name could potentially be
+  ///        resolved
+  /// @return the single interface type that should be used for the type name
+  ClassElement _getElementWhenMultiplyDefined(List<Element> elements) {
+    int length = elements.length;
+    for (int i = 0; i < length; i++) {
+      Element element = elements[i];
+      if (element is ClassElement) {
+        return element;
+      }
+    }
+    return null;
   }
 
   DartType _getInferredMixinType(
@@ -6242,28 +6300,6 @@ class TypeNameResolver {
         return prefix;
       }
     }
-  }
-
-  /// Given the multiple elements to which a single name could potentially be
-  /// resolved, return the single interface type that should be used, or `null`
-  /// if there is no clear choice.
-  ///
-  /// @param elements the elements to which a single name could potentially be
-  ///        resolved
-  /// @return the single interface type that should be used for the type name
-  InterfaceType _getTypeWhenMultiplyDefined(List<Element> elements) {
-    InterfaceType type = null;
-    int length = elements.length;
-    for (int i = 0; i < length; i++) {
-      Element element = elements[i];
-      if (element is ClassElement) {
-        if (type != null) {
-          return null;
-        }
-        type = element.type;
-      }
-    }
-    return type;
   }
 
   /// If the [node] is the type name in a redirected factory constructor,
@@ -6829,13 +6865,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// [nameScope] was computed.
   bool _localModeScopeReady = false;
 
-  /// Indicates whether the ClassElement fields interfaces, mixins, and
-  /// supertype should be set by this visitor.
-  ///
-  /// This is needed when using the old task model, but causes problems with the
-  /// new driver.
-  final bool shouldSetElementSupertypes;
-
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// [definingLibrary] is the element for the library containing the node being
@@ -6858,8 +6887,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       @Deprecated('Use featureSet instead') bool isNonNullableUnit: false,
       FeatureSet featureSet,
       this.mode: TypeResolverMode.everything,
-      bool shouldUseWithClauseInferredTypes: true,
-      this.shouldSetElementSupertypes: false})
+      bool shouldUseWithClauseInferredTypes: true})
       : isNonNullableUnit = featureSet?.isEnabled(Feature.non_nullable) ??
             // ignore: deprecated_member_use_from_same_package
             isNonNullableUnit,
@@ -6954,22 +6982,11 @@ class TypeResolverVisitor extends ScopedVisitor {
     WithClause withClause = node.withClause;
     ImplementsClause implementsClause = node.implementsClause;
     ClassElementImpl classElement = _getClassElement(node.name);
-    InterfaceType superclassType = null;
     if (extendsClause != null) {
       ErrorCode errorCode = (withClause == null
           ? CompileTimeErrorCode.EXTENDS_NON_CLASS
           : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-      superclassType =
-          _resolveType(extendsClause.superclass, errorCode, asClass: true);
-    }
-    if (shouldSetElementSupertypes && classElement != null) {
-      if (superclassType == null) {
-        InterfaceType objectType = typeProvider.objectType;
-        if (!identical(classElement.type, objectType)) {
-          superclassType = objectType;
-        }
-      }
-      classElement.supertype = superclassType;
+      _resolveType(extendsClause.superclass, errorCode, asClass: true);
     }
     _resolveWithClause(classElement, withClause);
     _resolveImplementsClause(classElement, implementsClause);
@@ -7003,16 +7020,12 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
-    ErrorCode errorCode = CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS;
-    InterfaceType superclassType =
-        _resolveType(node.superclass, errorCode, asClass: true);
-    if (superclassType == null) {
-      superclassType = typeProvider.objectType;
-    }
+    _resolveType(
+      node.superclass,
+      CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
+      asClass: true,
+    );
     ClassElementImpl classElement = _getClassElement(node.name);
-    if (shouldSetElementSupertypes && classElement != null) {
-      classElement.supertype = superclassType;
-    }
     _resolveWithClause(classElement, node.withClause);
     _resolveImplementsClause(classElement, node.implementsClause);
   }
@@ -7452,26 +7465,19 @@ class TypeResolverVisitor extends ScopedVisitor {
   void _resolveImplementsClause(
       ClassElementImpl classElement, ImplementsClause clause) {
     if (clause != null) {
-      NodeList<TypeName> interfaces = clause.interfaces;
-      List<InterfaceType> interfaceTypes =
-          _resolveTypes(interfaces, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
-      if (shouldSetElementSupertypes && classElement != null) {
-        classElement.interfaces = interfaceTypes;
-      }
+      _resolveTypes(
+          clause.interfaces, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     }
   }
 
   void _resolveOnClause(MixinElementImpl classElement, OnClause clause) {
     List<InterfaceType> types;
     if (clause != null) {
-      types = _resolveTypes(clause.superclassConstraints,
+      _resolveTypes(clause.superclassConstraints,
           CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE);
     }
     if (types == null || types.isEmpty) {
       types = [typeProvider.objectType];
-    }
-    if (shouldSetElementSupertypes) {
-      classElement.superclassConstraints = types;
     }
   }
 
@@ -7482,7 +7488,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// The flag [asClass] specifies if the type will be used as a class, so mixin
   /// declarations are not valid (they declare interfaces and mixins, but not
   /// classes).
-  InterfaceType _resolveType(TypeName typeName, ErrorCode errorCode,
+  void _resolveType(TypeName typeName, ErrorCode errorCode,
       {bool asClass: false}) {
     DartType type = typeName.type;
     if (type is InterfaceType) {
@@ -7490,10 +7496,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (element != null) {
         if (element.isEnum || element.isMixin && asClass) {
           errorReporter.reportErrorForNode(errorCode, typeName);
-          return null;
+          return;
         }
       }
-      return type;
+      return;
     }
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
@@ -7501,7 +7507,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (!nameScope.shouldIgnoreUndefined(name)) {
       errorReporter.reportErrorForNode(errorCode, name, [name.name]);
     }
-    return null;
   }
 
   /// Resolve the types in the given list of type names.
@@ -7513,25 +7518,15 @@ class TypeResolverVisitor extends ScopedVisitor {
   ///        be an enum
   /// @param dynamicTypeError the error to produce if the type name is "dynamic"
   /// @return an array containing all of the types that were resolved.
-  List<InterfaceType> _resolveTypes(
-      NodeList<TypeName> typeNames, ErrorCode errorCode) {
-    List<InterfaceType> types = new List<InterfaceType>();
+  void _resolveTypes(NodeList<TypeName> typeNames, ErrorCode errorCode) {
     for (TypeName typeName in typeNames) {
-      InterfaceType type = _resolveType(typeName, errorCode);
-      if (type != null) {
-        types.add(type);
-      }
+      _resolveType(typeName, errorCode);
     }
-    return types;
   }
 
   void _resolveWithClause(ClassElementImpl classElement, WithClause clause) {
     if (clause != null) {
-      List<InterfaceType> mixinTypes = _resolveTypes(
-          clause.mixinTypes, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
-      if (shouldSetElementSupertypes) {
-        classElement.mixins = mixinTypes;
-      }
+      _resolveTypes(clause.mixinTypes, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
     }
   }
 
