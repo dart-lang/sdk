@@ -18,6 +18,16 @@ import 'package:meta/meta.dart';
 import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
+export 'src/snapshot_graph.dart'
+    show
+        HeapSnapshotClass,
+        HeapSnapshotExternalProperty,
+        HeapSnapshotField,
+        HeapSnapshotGraph,
+        HeapSnapshotObject,
+        HeapSnapshotObjectLengthData,
+        HeapSnapshotObjectNoData,
+        HeapSnapshotObjectNullData;
 
 const String vmServiceVersion = '3.27.0';
 
@@ -1736,19 +1746,19 @@ class VmService implements VmServiceInterface {
   }
 
   void _processMessageByteData(ByteData bytes) {
-    int offset = 0;
-    int metaSize = bytes.getUint32(offset + 4, Endian.big);
-    offset += 8;
-    String meta = utf8.decode(
-        Uint8List.view(bytes.buffer, bytes.offsetInBytes + offset, metaSize));
-    offset += metaSize;
-    ByteData data = ByteData.view(bytes.buffer, bytes.offsetInBytes + offset,
-        bytes.lengthInBytes - offset);
+    final int metaOffset = 4;
+    final int dataOffset = bytes.getUint32(0, Endian.little);
+    final metaLength = dataOffset - metaOffset;
+    final dataLength = bytes.lengthInBytes - dataOffset;
+    final meta = utf8.decode(Uint8List.view(
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
+    final data = ByteData.view(
+        bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
     dynamic map = jsonDecode(meta);
     if (map != null && map['method'] == 'streamNotify') {
       String streamId = map['params']['streamId'];
       Map event = map['params']['event'];
-      event['_data'] = data;
+      event['data'] = data;
       _getEventController(streamId)
           .add(createServiceObject(event, const ['Event']));
     }
@@ -3245,6 +3255,20 @@ class Event extends Response {
   @optional
   String newValue;
 
+  /// Specifies whether this event is the last of a group of events.
+  ///
+  /// This is provided for the event kinds:
+  ///  - HeapSnapshot
+  @optional
+  bool last;
+
+  /// Binary data associated with the event.
+  ///
+  /// This is provided for the event kinds:
+  ///   - HeapSnapshot
+  @optional
+  ByteData data;
+
   Event({
     @required this.kind,
     @required this.timestamp,
@@ -3268,6 +3292,8 @@ class Event extends Response {
     this.alias,
     this.flag,
     this.newValue,
+    this.last,
+    this.data,
   });
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
@@ -3298,6 +3324,8 @@ class Event extends Response {
     alias = json['alias'];
     flag = json['flag'];
     newValue = json['newValue'];
+    last = json['last'];
+    data = json['data'];
   }
 
   @override
@@ -3330,6 +3358,8 @@ class Event extends Response {
     _setIfNotNull(json, 'alias', alias);
     _setIfNotNull(json, 'flag', flag);
     _setIfNotNull(json, 'newValue', newValue);
+    _setIfNotNull(json, 'last', last);
+    _setIfNotNull(json, 'data', data);
     return json;
   }
 

@@ -1854,6 +1854,12 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   VMFlagUpdate
   String newValue [optional];
+
+  // Specifies whether this event is the last of a group of events.
+  //
+  // This is provided for the event kinds:
+  //   HeapSnapshot
+  bool last [optional];
 }
 ```
 
