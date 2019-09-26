@@ -595,28 +595,6 @@ Future writeOutputSplitByPackages(
   BytecodeOptions bytecodeOptions,
   bool dropAST: false,
 }) async {
-  // Package sharing: make the encoding not depend on the order in which parts
-  // of a package are loaded.
-  component.libraries.sort((Library a, Library b) {
-    return a.importUri.toString().compareTo(b.importUri.toString());
-  });
-  component.computeCanonicalNames();
-  for (Library lib in component.libraries) {
-    lib.additionalExports.sort((Reference a, Reference b) {
-      return a.canonicalName.toString().compareTo(b.canonicalName.toString());
-    });
-  }
-
-  final packagesSet = new Set<String>();
-  for (Library lib in component.libraries) {
-    packagesSet.add(packageFor(lib));
-  }
-  packagesSet.remove('main');
-  packagesSet.remove(null);
-
-  final List<String> packages = packagesSet.toList();
-  packages.add('main'); // Make sure main package is last.
-
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
   }
@@ -629,31 +607,24 @@ Future writeOutputSplitByPackages(
         new ClassHierarchy(component, onAmbiguousSupertypes: (cls, a, b) {});
   }
 
+  final packages = new List<String>();
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
-    for (String package in packages) {
+    await forEachPackage(component,
+        (String package, List<Library> libraries) async {
+      packages.add(package);
       final String filename = '$outputFileName-$package.dilp';
       final IOSink sink = new File(filename).openWrite();
 
-      final main = component.mainMethod;
-      final problems = component.problemsAsJson;
-      if (package != 'main') {
-        component.mainMethod = null;
-        component.problemsAsJson = null;
-      }
-
       Component partComponent = component;
       if (genBytecode) {
-        final List<Library> libraries = component.libraries
-            .where((lib) => packageFor(lib) == package)
-            .toList();
-        generateBytecode(component,
+        generateBytecode(partComponent,
             options: bytecodeOptions,
             libraries: libraries,
             hierarchy: hierarchy);
 
         if (dropAST) {
-          partComponent = createFreshComponentWithBytecode(component);
+          partComponent = createFreshComponentWithBytecode(partComponent);
         }
       }
 
@@ -661,11 +632,8 @@ Future writeOutputSplitByPackages(
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(partComponent);
 
-      component.mainMethod = main;
-      component.problemsAsJson = problems;
-
       await sink.close();
-    }
+    });
   });
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
@@ -690,6 +658,47 @@ String packageFor(Library lib) {
   // Everything else (e.g., file: or data: imports) is lumped into the main
   // kernel binary.
   return 'main';
+}
+
+Future<Null> forEachPackage<T>(Component component,
+    T action(String package, List<Library> libraries)) async {
+  // Package sharing: make the encoding not depend on the order in which parts
+  // of a package are loaded.
+  component.libraries.sort((Library a, Library b) {
+    return a.importUri.toString().compareTo(b.importUri.toString());
+  });
+  component.computeCanonicalNames();
+  for (Library lib in component.libraries) {
+    lib.additionalExports.sort((Reference a, Reference b) {
+      return a.canonicalName.toString().compareTo(b.canonicalName.toString());
+    });
+  }
+
+  final packages = new Map<String, List<Library>>();
+  for (Library lib in component.libraries) {
+    packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
+  }
+  if (packages.containsKey(null)) {
+    packages.remove(null);
+  }
+  if (packages.containsKey('main')) {
+    // Make sure main package is last.
+    packages['main'] = packages.remove('main');
+  }
+
+  for (String package in packages.keys) {
+    final main = component.mainMethod;
+    final problems = component.problemsAsJson;
+    if (package != 'main') {
+      component.mainMethod = null;
+      component.problemsAsJson = null;
+    }
+
+    await action(package, packages[package]);
+
+    component.mainMethod = main;
+    component.problemsAsJson = problems;
+  }
 }
 
 String _escapePath(String path) {

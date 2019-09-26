@@ -33,10 +33,12 @@ import 'package:vm/kernel_front_end.dart'
     show
         asFileUri,
         compileToKernel,
-        parseCommandLineDefines,
         convertFileOrUriArgumentToUri,
-        createFrontEndTarget,
         createFrontEndFileSystem,
+        createFrontEndTarget,
+        forEachPackage,
+        packageFor,
+        parseCommandLineDefines,
         runWithFrontEndCompilerContext,
         setVMEnvironmentDefines,
         writeDepfile;
@@ -341,6 +343,7 @@ class FrontendCompiler implements CompilerInterface {
     compilerOptions.bytecode = options['gen-bytecode'];
     final BytecodeOptions bytecodeOptions = new BytecodeOptions(
         enableAsserts: options['enable-asserts'],
+        emitSourceFiles: options['embed-source-text'],
         environmentDefines: environmentDefines)
       ..parseCommandLineFlags(options['bytecode-options']);
 
@@ -549,6 +552,59 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
+  bool _elementsIdentical(List a, List b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  final _packageLibraries = new Expando();
+  final _packageBytes = new Expando();
+
+  void _writePackage(Component component, String package,
+      List<Library> libraries, IOSink sink) {
+    final canCache = libraries.isNotEmpty &&
+        _compilerOptions.bytecode &&
+        errors.isEmpty &&
+        package != "main";
+
+    if (canCache) {
+      var cachedLibraries = _packageLibraries[libraries.first];
+      if ((cachedLibraries != null) &&
+          _elementsIdentical(cachedLibraries, libraries)) {
+        sink.add(_packageBytes[libraries.first]);
+        return;
+      }
+    }
+
+    Component partComponent = component;
+    if (_compilerOptions.bytecode && errors.isEmpty) {
+      generateBytecode(partComponent,
+          options: _bytecodeOptions,
+          libraries: libraries,
+          coreTypes: _generator.getCoreTypes(),
+          hierarchy: _generator.getClassHierarchy());
+
+      if (_options['drop-ast']) {
+        partComponent = createFreshComponentWithBytecode(partComponent);
+      }
+    }
+
+    final byteSink = new ByteSink();
+    final BinaryPrinter printer = new LimitedBinaryPrinter(byteSink,
+        (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
+    printer.writeComponentFile(partComponent);
+
+    final bytes = byteSink.builder.takeBytes();
+    sink.add(bytes);
+    if (canCache) {
+      _packageLibraries[libraries.first] = libraries;
+      _packageBytes[libraries.first] = bytes;
+    }
+  }
+
   @override
   Future<Null> recompileDelta({String entryPoint}) async {
     final String boundaryKey = new Uuid().generateV4();
@@ -564,8 +620,21 @@ class FrontendCompiler implements CompilerInterface {
       transformer.transform(deltaProgram);
     }
     final compiledSources = deltaProgram.uriToSource.keys;
-    deltaProgram = await _generateBytecodeIfNeeded(deltaProgram);
-    await writeDillFile(deltaProgram, _kernelBinaryFilename);
+
+    if (_compilerOptions.bytecode) {
+      final IOSink sink = new File(_kernelBinaryFilename).openWrite();
+      await runWithFrontEndCompilerContext(
+          _mainSource, _compilerOptions, deltaProgram, () async {
+        await forEachPackage(deltaProgram,
+            (String package, List<Library> libraries) async {
+          _writePackage(deltaProgram, package, libraries, sink);
+        });
+      });
+      await sink.close();
+    } else {
+      await writeDillFile(deltaProgram, _kernelBinaryFilename);
+    }
+
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(compiledSources);
     _outputStream
