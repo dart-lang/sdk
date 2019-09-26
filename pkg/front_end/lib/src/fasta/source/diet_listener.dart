@@ -586,6 +586,28 @@ class DietListener extends StackListener {
   }
 
   @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("ExtensionFactoryMethod");
+    pop(); // bodyToken
+    pop(); // name
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    // Skip the declaration. An error as already been produced by the parser.
+  }
+
+  @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionConstructor");
+    pop(); // bodyToken
+    pop(); // name
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    // Skip the declaration. An error as already been produced by the parser.
+  }
+
+  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
