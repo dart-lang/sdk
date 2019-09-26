@@ -988,12 +988,23 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
+    InterfaceType enclosingType;
+    if (enclosingClass != null && type.containsTypeVariables) {
+      enclosingType = _elementEnvironment.getThisType(enclosingClass);
+      if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
+        // Erase type arguments.
+        List<DartType> typeArguments = enclosingType.typeArguments;
+        type = type.subst(
+            List<DartType>.filled(typeArguments.length, const DynamicType()),
+            typeArguments);
+      }
+    }
+
     if (type.containsTypeVariables) {
       if (_options.experimentNewRti) {
         RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
             _task.emitter,
-            FullTypeEnvironmentStructure(
-                classType: _elementEnvironment.getThisType(enclosingClass)),
+            FullTypeEnvironmentStructure(classType: enclosingType),
             TypeExpressionRecipe(type));
         _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
         return encoding.recipe;
