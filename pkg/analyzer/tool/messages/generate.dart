@@ -179,6 +179,10 @@ part of 'syntactic_errors.dart';
       if (tip is String) {
         out.writeln(',correction: "$tip"');
       }
+      final hasPublishedDocs = entry['hasPublishedDocs'];
+      if (hasPublishedDocs is bool && hasPublishedDocs) {
+        out.writeln(',hasPublishedDocs:true');
+      }
       out.writeln(');');
     }
   }

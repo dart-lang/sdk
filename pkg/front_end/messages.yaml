@@ -1889,6 +1889,7 @@ ExtensionDeclaresAbstractMember:
   template: "Extensions can't declare abstract members."
   tip: "Try providing an implementation for the member."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+  hasPublishedDocs: true
 
 ExtensionDeclaresConstructor:
   index: 92

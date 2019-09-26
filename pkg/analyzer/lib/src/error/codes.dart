@@ -7300,7 +7300,8 @@ class StrongModeCode extends ErrorCode {
       {String correction, bool hasPublishedDocs})
       : type = type,
         super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

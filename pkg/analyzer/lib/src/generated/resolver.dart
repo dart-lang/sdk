@@ -2964,7 +2964,8 @@ class ResolverErrorCode extends ErrorCode {
   const ResolverErrorCode(String name, String message,
       {String correction, bool hasPublishedDocs})
       : super.temporary(name, message,
-            correction: correction, hasPublishedDocs: hasPublishedDocs);
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;

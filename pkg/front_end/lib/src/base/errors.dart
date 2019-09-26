@@ -76,7 +76,12 @@ abstract class ErrorCode {
    * Return a URL that can be used to access documentation for diagnostics with
    * this code, or `null` if there is no published documentation.
    */
-  String get url => null;
+  String get url {
+    if (hasPublishedDocs) {
+      return 'https://dart.dev/tools/diagnostic-messages#${name.toLowerCase()}';
+    }
+    return null;
+  }
 
   @override
   String toString() => uniqueName;
