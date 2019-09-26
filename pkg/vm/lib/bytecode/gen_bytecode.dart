@@ -19,6 +19,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart'
     show getExternalName, getNativeExtensionUris;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/text/ast_to_text.dart'
+    show globalDebuggingNames, NameSystem;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -75,6 +77,16 @@ void generateBytecode(
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   libraries ??= component.libraries;
+
+  // Save/restore global NameSystem to avoid accumulating garbage.
+  // NameSystem holds the whole AST as it is strongly connected due to
+  // parent pointers. Objects are added to NameSystem when toString()
+  // is called from AST nodes.  Bytecode generator widely uses
+  // Expression.getStaticType, which calls Expression.getStaticTypeAsInstanceOf,
+  // which uses toString() when it crashes due to http://dartbug.com/34496.
+  final savedGlobalDebuggingNames = globalDebuggingNames;
+  globalDebuggingNames = new NameSystem();
+
   try {
     final bytecodeGenerator = new BytecodeGenerator(
         component, coreTypes, hierarchy, typeEnvironment, options);
@@ -85,6 +97,8 @@ void generateBytecode(
     CompilerContext.current.options.report(
         templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
         Severity.error);
+  } finally {
+    globalDebuggingNames = savedGlobalDebuggingNames;
   }
 }
 
