@@ -1194,7 +1194,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       js_ast.Expression className, List<js_ast.Statement> body) {
     void emitExtensions(String helperName, Iterable<String> extensions) {
       if (extensions.isEmpty) return;
-
       var names = extensions
           .map((e) => propertyName(js_ast.memberNameForDartMember(e)))
           .toList();
@@ -2267,8 +2266,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     useExtension ??= _isSymbolizedMember(memberClass, name);
-    name = js_ast.memberNameForDartMember(
-        name, member is Procedure && member.isExternal);
+    name = js_ast.memberNameForDartMember(name, _isExternal(member));
     if (useExtension) {
       return getExtensionSymbolInternal(name);
     }
@@ -2292,7 +2290,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       // Fields on a native class are implicitly native.
       // Methods/getters/setters are marked external/native.
-      if (member is Field || member is Procedure && member.isExternal) {
+      if (member is Field || _isExternal(member)) {
         var jsName = _annotationName(member, isJSName);
         return jsName != null && jsName != name;
       } else {
@@ -2382,6 +2380,46 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTopLevelMemberName(NamedNode n, {String suffix = ''}) {
     var name = _jsExportName(n) ?? getTopLevelName(n);
     return propertyName(name + suffix);
+  }
+
+  bool _isExternal(Member m) {
+    // Corresponds to the names in memberNameForDartMember in
+    // compiler/js_names.dart.
+    const renamedJsMembers = ["prototype", "constructor"];
+    if (m is Procedure) {
+      if (m.isExternal) return true;
+      if (m.isNoSuchMethodForwarder) {
+        if (renamedJsMembers.contains(m.name.name)) {
+          return _hasExternalProcedure(m.enclosingClass, m.name.name);
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Returns true if anything up the class hierarchy externally defines a
+  /// procedure with name = [name].
+  ///
+  /// Used to determine when we should alias Dart-JS reserved members
+  /// (e.g., 'prototype' and 'constructor').
+  bool _hasExternalProcedure(Class c, String name) {
+    var classes = Queue<Class>()..add(c);
+
+    while (classes.isNotEmpty) {
+      var c = classes.removeFirst();
+      var classesToCheck = [
+        if (c.supertype != null) c.supertype.classNode,
+        for (var t in c.implementedTypes) if (t.classNode != null) t.classNode,
+      ];
+      classes.addAll(classesToCheck);
+      for (var procedure in c.procedures) {
+        if (procedure.name.name == name && !procedure.isNoSuchMethodForwarder) {
+          return procedure.isExternal;
+        }
+      }
+    }
+
+    return false;
   }
 
   String _getJSNameWithoutGlobal(NamedNode n) {
@@ -4630,7 +4668,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // A static native element should just forward directly to the JS type's
       // member, for example `Css.supports(...)` in dart:html should be replaced
       // by a direct call to the DOM API: `global.CSS.supports`.
-      if (target is Procedure && target.isStatic && target.isExternal) {
+      if (_isExternal(target) && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
           var memberName = _annotationName(target, isJSName) ??
