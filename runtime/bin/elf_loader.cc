@@ -224,7 +224,7 @@ bool LoadedElf::ReadSectionStringTable() {
 bool LoadedElf::LoadSegments() {
   // Calculate the total amount of virtual memory needed.
   uword total_memory = 0;
-  uint64_t maximum_alignment = PageSize();
+  uword maximum_alignment = PageSize();
   for (uword i = 0; i < header_.num_program_headers; ++i) {
     const dart::elf::ProgramHeader header = program_table_[i];
 
@@ -236,7 +236,8 @@ bool LoadedElf::LoadSegments() {
         total_memory);
     CHECK_ERROR(Utils::IsPowerOfTwo(header.alignment),
                 "Alignment must be a power of two.");
-    maximum_alignment = Utils::Maximum(maximum_alignment, header.alignment);
+    maximum_alignment =
+        Utils::Maximum(maximum_alignment, static_cast<uword>(header.alignment));
   }
   total_memory = Utils::RoundUp(total_memory, PageSize());
 
