@@ -8029,6 +8029,22 @@ S Function<S>(num) f;
 ''');
   }
 
+  test_instantiateToBounds_issue38498() async {
+    var library = await checkLibrary('''
+class A<R extends B> {
+  final values = <B>[];
+}
+class B<T extends num> {}
+''');
+    checkElementText(library, r'''
+class A<R extends B<num>> {
+  final List<B<num>> values;
+}
+class B<T extends num> {
+}
+''');
+  }
+
   test_instantiateToBounds_simple() async {
     var library = await checkLibrary('''
 class C<T extends num> {}
