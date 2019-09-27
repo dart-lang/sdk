@@ -144,15 +144,13 @@ h2 {
 
 .content {
   font-family: monospace;
-  white-space: pre;
-}
-
-.content.highlighting {
   position: relative;
+  white-space: pre;
 }
 
 .regions {
   position: absolute;
+  left: 0.5em;
   top: 0.5em;
   /* The content of the regions is not visible; the user instead will see the
    * highlighted copy of the content. */
@@ -174,12 +172,15 @@ h2 {
   border: solid 2px #999;
   color: #333;
   cursor: auto;
-  left: 50%;
-  margin-left: -100px;
+  font-family: sans-serif;
+  font-size: 0.8em;
+  left: 0;
+  margin-left: 0;
   padding: 1px;
   position: absolute;
   top: 100%;
   visibility: hidden;
+  white-space: normal;
   width: 200px;
   z-index: 1;
 }
@@ -200,14 +201,16 @@ h2 {
       {{/ links }}
     </div>
     {{# units }}'''
-    '  <h2>{{{ path }}}</h2>'
-    '  <div class="content highlighting">'
+    '<h2>{{{ path }}}</h2>'
+    '<div class="content">'
+    '<div class="highlighting">'
     '{{! These regions are written out, unmodified, as they need to be found }}'
     '{{! in one simple text string for highlight.js to hightlight them. }}'
     '{{# regions }}'
     '{{ content }}'
     '{{/ regions }}'
-    '      <div class="regions">'
+    '</div>'
+    '<div class="regions">'
     '{{! The regions are then printed again, overlaying the first copy of the }}'
     '{{! content, to provide tooltips for modified regions. }}'
     '{{# regions }}'
