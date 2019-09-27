@@ -35,7 +35,7 @@ class RawObject;
 class Image : ValueObject {
  public:
   explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
-    ASSERT(Utils::IsAligned(raw_memory, kMaxObjectAlignment));
+    ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
   }
 
   void* object_start() const {
@@ -53,8 +53,7 @@ class Image : ValueObject {
   }
 
   static constexpr intptr_t kHeaderFields = 2;
-  static constexpr intptr_t kHeaderSize = kMaxObjectAlignment;
-  COMPILE_ASSERT((kHeaderFields * compiler::target::kWordSize) <= kHeaderSize);
+  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
 
  private:
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.

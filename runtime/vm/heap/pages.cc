@@ -1319,7 +1319,6 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   // memory->end()).
   uword offset = HeapPage::ObjectStartOffset();
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
-  ASSERT(Utils::IsAligned(pointer, kObjectAlignment));
   size += offset;
 
   VirtualMemory* memory = VirtualMemory::ForImagePage(pointer, size);
@@ -1332,6 +1331,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->forwarding_page_ = NULL;
   page->card_table_ = NULL;
   if (is_executable) {
+    ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
   } else {
     page->type_ = HeapPage::kData;

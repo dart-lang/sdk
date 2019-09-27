@@ -839,9 +839,7 @@ void FlowGraphCompiler::CompileGraph() {
   VisitBlocks();
 
   if (!skip_body_compilation()) {
-#if defined(DEBUG)
     __ int3();
-#endif
     GenerateDeferredCode();
   }
 }

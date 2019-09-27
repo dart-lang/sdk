@@ -199,7 +199,7 @@ class Snapshot {
     if (!IncludesCode(kind())) {
       return NULL;
     }
-    uword offset = Utils::RoundUp(length(), kMaxObjectAlignment);
+    uword offset = Utils::RoundUp(length(), OS::kMaxPreferredCodeAlignment);
     return Addr() + offset;
   }
 
