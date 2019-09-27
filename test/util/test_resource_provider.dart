@@ -8,10 +8,9 @@ import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:path/path.dart' as p;
-
-import '../mock_sdk.dart';
 
 /// Builds the [DartLinter] with appropriate mock SDK, resource providers, and
 /// package config path.
@@ -29,7 +28,7 @@ DartLinter buildDriver(LintRule rule, File file, {String analysisOptions}) {
   }
 
   LinterOptions options = LinterOptions([rule], analysisOptions)
-    ..mockSdk = MockSdk(memoryResourceProvider)
+    ..mockSdk = MockSdk(resourceProvider: memoryResourceProvider)
     ..resourceProvider = resourceProvider
     ..packageConfigPath = packageConfigPath;
 
