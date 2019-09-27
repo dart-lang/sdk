@@ -126,7 +126,6 @@ class InfoBuilder {
       edits.sort((first, second) => first.offset.compareTo(second.offset));
       OffsetMapper mapper = OffsetMapper.forEdits(edits);
       // Apply edits in reverse order and build the regions.
-      int index = edits.length - 1;
       for (SourceEdit edit in edits.reversed) {
         int offset = edit.offset;
         int length = edit.length;
@@ -135,14 +134,16 @@ class InfoBuilder {
         // Insert the replacement text without deleting the replaced text.
         content = content.replaceRange(end, end, replacement);
         FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
-        String explanation = '${fixInfo.fix.description.appliedMessage}.';
-        List<RegionDetail> details = _computeDetails(fixInfo);
-        if (length > 0) {
-          regions.add(
-              RegionInfo(mapper.map(offset), length, explanation, details));
+        if (fixInfo != null) {
+          String explanation = '${fixInfo.fix.description.appliedMessage}.';
+          List<RegionDetail> details = _computeDetails(fixInfo);
+          if (length > 0) {
+            regions.add(
+                RegionInfo(mapper.map(offset), length, explanation, details));
+          }
+          regions.add(RegionInfo(
+              mapper.map(end), replacement.length, explanation, details));
         }
-        regions.add(RegionInfo(
-            mapper.map(end), replacement.length, explanation, details));
       }
       regions.sort((first, second) => first.offset.compareTo(second.offset));
       unitInfo.offsetMapper = mapper;
