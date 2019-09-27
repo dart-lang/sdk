@@ -590,8 +590,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
-  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
-
   bool get _isX64 => _configuration.architecture == Architecture.x64;
 
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
@@ -705,12 +703,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
-    if (_isAndroid || _isSimArm || _isSimArm64) {
+    if (_isAndroid) {
       var ndk = "third_party/android_tools/ndk";
       String triple;
-      if (_isArm || _isSimArm) {
+      if (_isArm) {
         triple = "arm-linux-androideabi";
-      } else if (_isArm64 || _isSimArm64) {
+      } else if (_isArm64) {
         triple = "aarch64-linux-android";
       }
       String host;
@@ -722,7 +720,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
-      cc = 'gcc';
+      if (_isSimArm) {
+        cc = 'arm-linux-gnueabihf-gcc';
+      } else {
+        cc = 'gcc';
+      }
       shared = '-shared';
     } else if (Platform.isMacOS) {
       cc = 'clang';
