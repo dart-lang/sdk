@@ -1,3 +1,10 @@
+## 2.5.1 - 2019-09-27
+
+This is a patch release that prevents type inference failures in the analyzer
+(Issue [38365][]).
+
+[38365]: https://github.com/dart-lang/sdk/issues/38365
+
 ## 2.5.0 - 2019-09-10
 
 ### Language

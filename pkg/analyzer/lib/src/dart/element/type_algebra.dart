@@ -201,6 +201,34 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
     return freshElement;
   }
 
+  @override
+  List<TypeParameterElement> freshTypeParameters(
+      List<TypeParameterElement> elements) {
+    if (elements.isEmpty) {
+      return const <TypeParameterElement>[];
+    }
+
+    var freshElements = List<TypeParameterElement>(elements.length);
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      var freshElement = TypeParameterElementImpl(element.name, -1);
+      freshElements[i] = freshElement;
+      var freshType = TypeParameterTypeImpl(freshElement);
+      freshElement.type = freshType;
+      substitution[element] = freshType;
+    }
+
+    for (var i = 0; i < freshElements.length; i++) {
+      var element = elements[i];
+      if (element.bound != null) {
+        TypeParameterElementImpl freshElement = freshElements[i];
+        freshElement.bound = visit(element.bound);
+      }
+    }
+
+    return freshElements;
+  }
+
   DartType lookup(TypeParameterElement parameter, bool upperBound) {
     return substitution[parameter];
   }
@@ -247,8 +275,8 @@ class _TopSubstitutor extends _TypeSubstitutor {
     }
   }
 
-  @override
-  TypeParameterElement freshTypeParameter(TypeParameterElement element) {
+  List<TypeParameterElement> freshTypeParameters(
+      List<TypeParameterElement> parameters) {
     throw 'Create a fresh environment first';
   }
 
@@ -283,15 +311,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     target.useCounter++;
   }
 
-  TypeParameterElement freshTypeParameter(TypeParameterElement element);
-
   List<TypeParameterElement> freshTypeParameters(
-      List<TypeParameterElement> parameters) {
-    if (parameters.isEmpty) {
-      return const <TypeParameterElement>[];
-    }
-    return parameters.map(freshTypeParameter).toList();
-  }
+      List<TypeParameterElement> elements);
 
   DartType getSubstitute(TypeParameterElement parameter) {
     var environment = this;
@@ -339,13 +360,17 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    var inner = type.typeFormals.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
+
+    var inner = this;
+    var typeFormals = type.typeFormals;
+    if (typeFormals.isNotEmpty) {
+      inner = newInnerEnvironment();
+      typeFormals = inner.freshTypeParameters(typeFormals);
+    }
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
-
-    var typeFormals = inner.freshTypeParameters(type.typeFormals);
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
@@ -376,13 +401,17 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
-    var inner = type.typeFormals.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
+
+    var inner = this;
+    var typeFormals = type.typeFormals;
+    if (typeFormals.isNotEmpty) {
+      inner = newInnerEnvironment();
+      typeFormals = inner.freshTypeParameters(typeFormals);
+    }
 
     // Invert the variance when translating parameters.
     inner.invertVariance();
-
-    var typeFormals = inner.freshTypeParameters(type.typeFormals);
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
