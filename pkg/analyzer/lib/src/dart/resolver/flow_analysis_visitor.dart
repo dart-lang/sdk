@@ -48,7 +48,7 @@ class FlowAnalysisHelper {
   final NodeOperations<Expression> _nodeOperations;
 
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final _TypeSystemTypeOperations _typeOperations;
+  final TypeSystemTypeOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
   final AssignedVariables<AstNode, VariableElement> assignedVariables;
@@ -65,7 +65,7 @@ class FlowAnalysisHelper {
       TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
     return FlowAnalysisHelper._(
         const AnalyzerNodeOperations(),
-        _TypeSystemTypeOperations(typeSystem),
+        TypeSystemTypeOperations(typeSystem),
         computeAssignedVariables(node),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
@@ -333,6 +333,38 @@ class FlowAnalysisResult {
   final List<AstNode> unassignedNodes = [];
 }
 
+class TypeSystemTypeOperations
+    implements TypeOperations<VariableElement, DartType> {
+  final TypeSystem typeSystem;
+
+  TypeSystemTypeOperations(this.typeSystem);
+
+  @override
+  bool isLocalVariable(VariableElement element) {
+    return element is LocalVariableElement;
+  }
+
+  @override
+  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
+    return type1 == type2;
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return typeSystem.isSubtypeOf(leftType, rightType);
+  }
+
+  @override
+  DartType promoteToNonNull(DartType type) {
+    return typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  DartType variableType(VariableElement variable) {
+    return variable.type;
+  }
+}
+
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
 class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
@@ -456,37 +488,5 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
     var variable = node.staticElement as VariableElement;
     var promotedType = _manager.flow?.promotedType(variable);
     return promotedType ?? variable.type;
-  }
-}
-
-class _TypeSystemTypeOperations
-    implements TypeOperations<VariableElement, DartType> {
-  final TypeSystem typeSystem;
-
-  _TypeSystemTypeOperations(this.typeSystem);
-
-  @override
-  bool isLocalVariable(VariableElement element) {
-    return element is LocalVariableElement;
-  }
-
-  @override
-  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
-    return type1 == type2;
-  }
-
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return typeSystem.isSubtypeOf(leftType, rightType);
-  }
-
-  @override
-  DartType promoteToNonNull(DartType type) {
-    return typeSystem.promoteToNonNull(type);
-  }
-
-  @override
-  DartType variableType(VariableElement variable) {
-    return variable.type;
   }
 }
