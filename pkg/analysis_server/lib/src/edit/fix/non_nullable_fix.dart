@@ -217,18 +217,24 @@ analyzer:
     List<LibraryInfo> libraryInfos =
         await InfoBuilder(instrumentationListener.data, listener)
             .explainMigration();
-    listener.addDetail('libraryInfos has ${libraryInfos.length} libs');
+    var pathContext = provider.pathContext;
+    MigrationInfo migrationInfo =
+        MigrationInfo(libraryInfos, pathContext, includedRoot);
     for (LibraryInfo info in libraryInfos) {
-      var pathContext = provider.pathContext;
-      var libraryPath =
+      assert(info.units.isNotEmpty);
+      String libraryPath =
           pathContext.setExtension(info.units.first.path, '.html');
-      // TODO(srawlins): Choose a better scheme than the double underscores,
-      // likely with actual directories, which need to be individually created.
-      var relativePath = pathContext
-          .relative(libraryPath, from: includedRoot)
-          .replaceAll(pathContext.separator, '__');
-      File output = folder.getChildAssumingFile(relativePath);
-      String rendered = InstrumentationRenderer(info).render();
+      String relativePath =
+          pathContext.relative(libraryPath, from: includedRoot);
+      List<String> directories =
+          pathContext.split(pathContext.dirname(relativePath));
+      for (int i = 0; i < directories.length; i++) {
+        String directory = pathContext.joinAll(directories.sublist(0, i + 1));
+        folder.getChildAssumingFolder(directory).create();
+      }
+      File output =
+          provider.getFile(pathContext.join(folder.path, relativePath));
+      String rendered = InstrumentationRenderer(info, migrationInfo).render();
       output.writeAsStringSync(rendered);
     }
   }

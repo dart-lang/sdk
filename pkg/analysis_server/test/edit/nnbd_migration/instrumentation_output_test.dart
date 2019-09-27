@@ -17,6 +17,16 @@ main() {
 
 @reflectiveTest
 class InstrumentationRendererTest extends AbstractAnalysisTest {
+  /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
+  /// library.
+  // TODO(srawlins): Add tests for navigation links, which use multiple
+  // libraries.
+  String renderLibrary(LibraryInfo libraryInfo) {
+    MigrationInfo migrationInfo =
+        MigrationInfo([libraryInfo], resourceProvider.pathContext, '/project');
+    return InstrumentationRenderer(libraryInfo, migrationInfo).render();
+  }
+
   test_outputContainsEachPath() async {
     LibraryInfo info = LibraryInfo([
       unit('/lib/a.dart', 'int? a = null;',
@@ -26,7 +36,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/part2.dart', 'int? c = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    String output = InstrumentationRenderer(info).render();
+    String output = renderLibrary(info);
     expect(output, contains('<h2>/lib/a.dart</h2>'));
     expect(output, contains('<h2>/lib/part1.dart</h2>'));
     expect(output, contains('<h2>/lib/part2.dart</h2>'));
@@ -37,7 +47,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/a.dart', 'List<String>? a = null;',
           regions: [RegionInfo(12, 1, 'null was assigned', [])]),
     ]);
-    String output = InstrumentationRenderer(info).render();
+    String output = renderLibrary(info);
     expect(
         output,
         contains('List&lt;String&gt;<span class="region">?'
@@ -48,7 +58,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     LibraryInfo info = LibraryInfo([
       unit('/lib/a.dart', 'bool a = true && false;', regions: []),
     ]);
-    String output = InstrumentationRenderer(info).render();
+    String output = renderLibrary(info);
     expect(output, contains('bool a = true &amp;&amp; false;'));
   }
 
@@ -57,7 +67,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    String output = InstrumentationRenderer(info).render();
+    String output = renderLibrary(info);
     expect(
         output,
         contains('int<span class="region">?'
