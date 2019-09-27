@@ -45,9 +45,6 @@ abstract class WasmImports {
 
   // Add a memory to the imports.
   void addMemory(String name, WasmMemory memory);
-
-  // Add a function to the imports.
-  void addFunction<T extends Function>(String name, Function fn);
 }
 
 // WasmMemory is a sandbox for a WasmInstance to run in.

@@ -396,7 +396,6 @@ namespace dart {
   V(Wasm_initImports, 2)                                                       \
   V(Wasm_addMemoryImport, 3)                                                   \
   V(Wasm_addGlobalImport, 5)                                                   \
-  V(Wasm_addFunctionImport, 4)                                                 \
   V(Wasm_initMemory, 3)                                                        \
   V(Wasm_growMemory, 2)                                                        \
   V(Wasm_initInstance, 3)                                                      \

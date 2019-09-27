@@ -20,7 +20,4 @@ void main() {
   Expect.equals(1100, mem.lengthInPages);
   Expect.equals(1100 * WasmMemory.kPageSizeInBytes, mem.lengthInBytes);
   Expect.equals(45, mem[123]);
-
-  Expect.throwsArgumentError(() => WasmMemory(1000000000));
-  Expect.throwsArgumentError(() => mem.grow(1000000000));
 }

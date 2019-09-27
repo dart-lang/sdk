@@ -85,54 +85,6 @@ static bool ToWasmValue(const Number& value,
   }
 }
 
-static Dart_Handle ToWasmValue(Dart_Handle value,
-                               wasmer_value_tag type,
-                               wasmer_value* out) {
-  switch (type) {
-    case wasmer_value_tag::WASM_I32: {
-      int64_t i64;
-      Dart_Handle result = Dart_IntegerToInt64(value, &i64);
-      out->I32 = i64;
-      if (out->I32 != i64) {
-        return Dart_NewApiError("Int doesn't fit into 32-bits");
-      }
-      return result;
-    }
-    case wasmer_value_tag::WASM_I64:
-      return Dart_IntegerToInt64(value, &out->I64);
-    case wasmer_value_tag::WASM_F32: {
-      double f64;
-      Dart_Handle result = Dart_DoubleValue(value, &f64);
-      out->F32 = f64;
-      return result;
-    }
-    case wasmer_value_tag::WASM_F64:
-      return Dart_DoubleValue(value, &out->F64);
-    default:
-      FATAL("Unknown WASM type");
-      return nullptr;
-  }
-}
-
-static bool ToWasmValueTag(classid_t type, wasmer_value_tag* out) {
-  switch (type) {
-    case kWasmInt32Cid:
-      *out = wasmer_value_tag::WASM_I32;
-      return true;
-    case kWasmInt64Cid:
-      *out = wasmer_value_tag::WASM_I64;
-      return true;
-    case kWasmFloatCid:
-      *out = wasmer_value_tag::WASM_F32;
-      return true;
-    case kWasmDoubleCid:
-      *out = wasmer_value_tag::WASM_F64;
-      return true;
-    default:
-      return false;
-  }
-}
-
 static RawObject* ToDartObject(wasmer_value_t ret) {
   switch (ret.tag) {
     case wasmer_value_tag::WASM_I32:
@@ -143,22 +95,6 @@ static RawObject* ToDartObject(wasmer_value_t ret) {
       return Double::New(ret.value.F32);
     case wasmer_value_tag::WASM_F64:
       return Double::New(ret.value.F64);
-    default:
-      FATAL("Unknown WASM type");
-      return nullptr;
-  }
-}
-
-static Dart_Handle ToDartApiObject(wasmer_value value, wasmer_value_tag type) {
-  switch (type) {
-    case wasmer_value_tag::WASM_I32:
-      return Dart_NewInteger(value.I32);
-    case wasmer_value_tag::WASM_I64:
-      return Dart_NewInteger(value.I64);
-    case wasmer_value_tag::WASM_F32:
-      return Dart_NewDouble(value.F32);
-    case wasmer_value_tag::WASM_F64:
-      return Dart_NewDouble(value.F64);
     default:
       FATAL("Unknown WASM type");
       return nullptr;
@@ -222,41 +158,6 @@ RawString* DescribeModule(const wasmer_module_t* module) {
   return String::New(desc.str().c_str());
 }
 
-class WasmImports;
-
-struct WasmFunctionImport {
-  WasmImports* imports;
-  std::unique_ptr<wasmer_value_tag[]> args;
-  intptr_t num_args;
-  wasmer_value_tag ret;
-  intptr_t num_rets;
-  int64_t fn_id;
-  wasmer_import_func_t* wasm_fn;
-  wasmer_trampoline_buffer_t* buffer;
-  WasmFunctionImport(WasmImports* imports_,
-                     std::unique_ptr<wasmer_value_tag[]> args_,
-                     intptr_t num_args_,
-                     wasmer_value_tag ret_,
-                     intptr_t num_rets_,
-                     int64_t fn_id_)
-      : imports(imports_),
-        args(std::move(args_)),
-        num_args(num_args_),
-        ret(ret_),
-        num_rets(num_rets_),
-        fn_id(fn_id),
-        wasm_fn(nullptr),
-        buffer(nullptr) {}
-  ~WasmFunctionImport() {
-    wasmer_trampoline_buffer_destroy(buffer);
-    wasmer_import_func_destroy(wasm_fn);
-  }
-};
-
-extern "C" {
-int64_t Trampoline(void* context, int64_t* args);
-}
-
 class WasmImports {
  public:
   explicit WasmImports(std::unique_ptr<char[]> module_name)
@@ -266,15 +167,11 @@ class WasmImports {
     for (wasmer_global_t* global : _globals) {
       wasmer_global_destroy(global);
     }
-    for (WasmFunctionImport* fn_imp : _functions) {
-      delete fn_imp;
-    }
     for (const char* name : _import_names) {
       delete[] name;
     }
   }
 
-  void SetHandle(FinalizablePersistentHandle* handle) { _handle = handle; }
   size_t NumImports() const { return _imports.length(); }
   wasmer_import_t* RawImports() { return _imports.data(); }
 
@@ -292,82 +189,10 @@ class WasmImports {
         global;
   }
 
-  void AddFunction(std::unique_ptr<char[]> name,
-                   int64_t fn_id,
-                   std::unique_ptr<wasmer_value_tag[]> args,
-                   intptr_t num_args,
-                   wasmer_value_tag ret,
-                   intptr_t num_rets) {
-    // Trampoline args include the context pointer.
-    const intptr_t num_trampoline_args = num_args + 1;
-
-    WasmFunctionImport* fn_imp = new WasmFunctionImport(
-        this, std::move(args), num_args, ret, num_rets, fn_id);
-    _functions.Add(fn_imp);
-
-    wasmer_trampoline_buffer_builder_t* builder =
-        wasmer_trampoline_buffer_builder_new();
-    uintptr_t trampoline_id =
-        wasmer_trampoline_buffer_builder_add_callinfo_trampoline(
-            builder,
-            reinterpret_cast<wasmer_trampoline_callable_t*>(Trampoline),
-            reinterpret_cast<void*>(fn_imp), num_trampoline_args);
-    fn_imp->buffer = wasmer_trampoline_buffer_builder_build(builder);
-
-    const wasmer_trampoline_callable_t* trampoline =
-        wasmer_trampoline_buffer_get_trampoline(fn_imp->buffer, trampoline_id);
-    fn_imp->wasm_fn = wasmer_import_func_new(
-        reinterpret_cast<void (*)(void*)>(
-            const_cast<wasmer_trampoline_callable_t*>(trampoline)),
-        fn_imp->args.get(), num_args, &ret, num_rets);
-
-    AddImport(std::move(name), wasmer_import_export_kind::WASM_FUNCTION)->func =
-        fn_imp->wasm_fn;
-  }
-
-  int64_t CallImportedFunction(WasmFunctionImport* fn_imp, int64_t* raw_args) {
-    wasmer_value* wasm_args = reinterpret_cast<wasmer_value*>(raw_args);
-    Dart_Handle fn_id = Dart_NewInteger(fn_imp->fn_id);
-    Dart_Handle closure =
-        Dart_Invoke(Dart_HandleFromWeakPersistent(_handle->apiHandle()),
-                    Dart_NewStringFromCString("getFunction"), 1, &fn_id);
-    if (Dart_IsError(closure)) {
-      Dart_ThrowException(closure);
-      UNREACHABLE();
-    }
-    Dart_Handle result;
-    {
-      auto args =
-          std::unique_ptr<Dart_Handle[]>(new Dart_Handle[fn_imp->num_args]);
-      for (intptr_t i = 0; i < fn_imp->num_args; ++i) {
-        args[i] = ToDartApiObject(wasm_args[i], fn_imp->args[i]);
-      }
-      result = Dart_InvokeClosure(closure, fn_imp->num_args, args.get());
-    }
-    if (Dart_IsError(result)) {
-      Dart_ThrowException(result);
-      UNREACHABLE();
-    }
-    if (fn_imp->num_rets == 0) {
-      // Wasmer ignores the result of this function if it expects no results,
-      // so skip the converters below (we get errors if we run them).
-      return 0;
-    }
-    wasmer_value wasm_result;
-    result = ToWasmValue(result, fn_imp->ret, &wasm_result);
-    if (Dart_IsError(result)) {
-      Dart_ThrowException(result);
-      UNREACHABLE();
-    }
-    return wasm_result.I64;
-  }
-
  private:
-  FinalizablePersistentHandle* _handle;
   std::unique_ptr<char[]> _module_name;
   MallocGrowableArray<const char*> _import_names;
   MallocGrowableArray<wasmer_global_t*> _globals;
-  MallocGrowableArray<WasmFunctionImport*> _functions;
   MallocGrowableArray<wasmer_import_t> _imports;
 
   wasmer_import_export_value* AddImport(std::unique_ptr<char[]> name,
@@ -386,14 +211,6 @@ class WasmImports {
 
   DISALLOW_COPY_AND_ASSIGN(WasmImports);
 };
-
-extern "C" {
-int64_t Trampoline(void* context, int64_t* args) {
-  WasmFunctionImport* fn_imp = reinterpret_cast<WasmFunctionImport*>(context);
-  // Skip the first arg (it's another context pointer).
-  return fn_imp->imports->CallImportedFunction(fn_imp, args + 1);
-}
-}
 
 class WasmFunction {
  public:
@@ -651,9 +468,8 @@ DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 2) {
   WasmImports* imports = new WasmImports(ToUTF8(module_name));
 
   imp_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(imports));
-  imports->SetHandle(FinalizablePersistentHandle::New(
-      thread->isolate(), imp_wrap, imports, Finalize<WasmImports>,
-      sizeof(WasmImports)));
+  FinalizablePersistentHandle::New(thread->isolate(), imp_wrap, imports,
+                                   Finalize<WasmImports>, sizeof(WasmImports));
 
   return Object::null();
 }
@@ -689,60 +505,12 @@ DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
       reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
   wasmer_value_t wasm_value;
   if (!ToWasmValue(value, type.type_class_id(), &wasm_value)) {
-    Exceptions::ThrowArgumentError(String::Handle(
-        zone, String::NewFormatted(
-                  "Can't convert dart value to WASM global variable")));
+    Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
+        "Can't convert dart value to WASM global variable")));
     UNREACHABLE();
   }
 
   imports->AddGlobal(ToUTF8(name), wasm_value, mutable_.value());
-
-  return Object::null();
-}
-
-DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 4) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, imp_wrap, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, fn_id, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, fn_type, arguments->NativeArgAt(3));
-
-  ASSERT(imp_wrap.NumNativeFields() == 1);
-
-  Function& sig = Function::Handle(zone, fn_type.signature());
-
-  classid_t ret = AbstractType::Handle(zone, sig.result_type()).type_class_id();
-  intptr_t num_rets = ret == kWasmVoidCid ? 0 : 1;
-  wasmer_value_tag wasm_ret = wasmer_value_tag::WASM_I64;
-  if (num_rets != 0) {
-    if (!ToWasmValueTag(ret, &wasm_ret)) {
-      Exceptions::ThrowArgumentError(String::Handle(
-          zone, String::NewFormatted("Return type is not a valid WASM type")));
-      UNREACHABLE();
-    }
-  }
-
-  Array& args = Array::Handle(zone, sig.parameter_types());
-  AbstractType& arg_type = AbstractType::Handle(zone);
-  intptr_t first_arg_index = sig.NumImplicitParameters();
-  intptr_t num_args = args.Length() - first_arg_index;
-  auto wasm_args =
-      std::unique_ptr<wasmer_value_tag[]>(new wasmer_value_tag[num_args]);
-  for (intptr_t i = 0; i < num_args; ++i) {
-    arg_type ^= args.At(i + first_arg_index);
-    classid_t dart_arg = arg_type.type_class_id();
-    if (!ToWasmValueTag(dart_arg, &wasm_args[i])) {
-      wasm_args.reset();
-      Exceptions::ThrowArgumentError(String::Handle(
-          zone, String::NewFormatted(
-                    "Type of arg %" Pd " is not a valid WASM type", i)));
-      UNREACHABLE();
-    }
-  }
-
-  WasmImports* imports =
-      reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
-  imports->AddFunction(ToUTF8(name), fn_id.AsInt64Value(), std::move(wasm_args),
-                       num_args, wasm_ret, num_rets);
 
   return Object::null();
 }
@@ -842,16 +610,15 @@ DEFINE_NATIVE_ENTRY(Wasm_initFunction, 0, 4) {
   String& error = String::Handle(zone);
 
   {
-    Function& sig = Function::Handle(zone, fn_type.signature());
-    Array& args = Array::Handle(zone, sig.parameter_types());
-    AbstractType& arg_type = AbstractType::Handle(zone);
+    Function& sig = Function::Handle(fn_type.signature());
+    Array& args = Array::Handle(sig.parameter_types());
     MallocGrowableArray<classid_t> dart_args;
     for (intptr_t i = sig.NumImplicitParameters(); i < args.Length(); ++i) {
-      arg_type ^= args.At(i);
-      dart_args.Add(arg_type.type_class_id());
+      dart_args.Add(
+          AbstractType::Cast(Object::Handle(args.At(i))).type_class_id());
     }
     classid_t dart_ret =
-        AbstractType::Handle(zone, sig.result_type()).type_class_id();
+        AbstractType::Handle(sig.result_type()).type_class_id();
 
     std::unique_ptr<char[]> name_raw = ToUTF8(name);
     fn = inst->GetFunction(name_raw.get(), dart_args, dart_ret, &error);
@@ -876,21 +643,19 @@ DEFINE_NATIVE_ENTRY(Wasm_callFunction, 0, 2) {
   WasmFunction* fn = reinterpret_cast<WasmFunction*>(fn_wrap.GetNativeField(0));
 
   if (args.Length() != fn->args().length()) {
-    Exceptions::ThrowArgumentError(String::Handle(
-        zone, String::NewFormatted("Wrong number of args. Expected %" Pu
-                                   " but found %" Pd ".",
-                                   fn->args().length(), args.Length())));
+    Exceptions::ThrowArgumentError(String::Handle(String::NewFormatted(
+        "Wrong number of args. Expected %" Pu " but found %" Pd ".",
+        fn->args().length(), args.Length())));
     UNREACHABLE();
   }
   auto params = std::unique_ptr<wasmer_value_t[]>(
       new wasmer_value_t[fn->args().length()]);
-  Number& arg_num = Number::Handle(zone);
   for (intptr_t i = 0; i < args.Length(); ++i) {
-    arg_num ^= args.At(i);
-    if (!ToWasmValue(arg_num, fn->args()[i], &params[i])) {
+    if (!ToWasmValue(Number::Cast(Object::Handle(args.At(i))), fn->args()[i],
+                     &params[i])) {
       params.reset();
       Exceptions::ThrowArgumentError(String::Handle(
-          zone, String::NewFormatted("Arg %" Pd " is the wrong type.", i)));
+          String::NewFormatted("Arg %" Pd " is the wrong type.", i)));
       UNREACHABLE();
     }
   }
@@ -940,11 +705,6 @@ DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 3) {
 }
 
 DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
-  Exceptions::ThrowUnsupportedError("WASM is disabled");
-  return nullptr;
-}
-
-DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 4) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }
