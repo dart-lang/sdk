@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isInLibFolder;
   File pubspecFile;
-  Map parsedPubspec;
+  YamlMap parsedPubspec;
 
   _Visitor(this.rule);
 
@@ -92,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     isInLibFolder = isDefinedInLib(node);
 
     pubspecFile = locatePubspecFile(node);
