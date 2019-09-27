@@ -2014,9 +2014,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (parent is AssignmentExpression && parent.leftHandSide == node) {
       return;
     }
-    if (parent is PropertyAccess) {
-      return;
-    }
 
     if (_hasNullShorting(node)) {
       var type = node.staticType;

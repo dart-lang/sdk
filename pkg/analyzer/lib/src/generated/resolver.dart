@@ -2578,7 +2578,9 @@ class InferenceContext {
     }
 
     DartType inferred = _inferredReturn.last;
-    inferred = _typeSystem.getLeastUpperBound(type, inferred);
+    inferred = inferred == null
+        ? type
+        : _typeSystem.getLeastUpperBound(type, inferred);
     _inferredReturn[_inferredReturn.length - 1] = inferred;
   }
 
@@ -2590,7 +2592,10 @@ class InferenceContext {
   void popReturnContext(FunctionBody node) {
     if (_returnStack.isNotEmpty && _inferredReturn.isNotEmpty) {
       DartType context = _returnStack.removeLast() ?? DynamicTypeImpl.instance;
-      DartType inferred = _inferredReturn.removeLast();
+
+      // if we haven't seen any `return` statement, we default to `Null`
+      DartType inferred =
+          _inferredReturn.removeLast() ?? _typeProvider.nullType;
 
       if (_typeSystem.isSubtypeOf(inferred, context)) {
         setType(node, inferred);
@@ -2603,7 +2608,8 @@ class InferenceContext {
   /// Push a block function body's return type onto the return stack.
   void pushReturnContext(FunctionBody node) {
     _returnStack.add(getContext(node));
-    _inferredReturn.add(_typeProvider.nullType);
+    _inferredReturn
+        .add(null); // `null` means we haven't seen any `return` statement yet
   }
 
   /// Place an info node into the error stream indicating that a

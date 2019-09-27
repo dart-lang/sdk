@@ -2354,13 +2354,13 @@ abstract class TypeSystem implements public.TypeSystem {
     // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
     if (_isLegacyTop(type1, orTrueTop: true) ||
         _isLegacyBottom(type2, orTrueBottom: true)) {
-      return type1;
+      return type2.isDartCoreNull ? makeNullable(type1) : type1;
     }
     // TODO(mfairhurst): switch legacy Top checks to true Top checks
     // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
     if (_isLegacyTop(type2, orTrueTop: true) ||
         _isLegacyBottom(type1, orTrueBottom: true)) {
-      return type2;
+      return type1.isDartCoreNull ? makeNullable(type2) : type2;
     }
 
     if (type1 is TypeParameterType || type2 is TypeParameterType) {
