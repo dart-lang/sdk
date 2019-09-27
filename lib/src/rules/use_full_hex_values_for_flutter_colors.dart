@@ -55,11 +55,14 @@ class _Visitor extends SimpleAstVisitor {
     if (node.staticElement?.library?.name == 'dart.ui' &&
         node.staticElement?.returnType?.name == 'Color' &&
         node.staticElement?.name == '') {
-      final argument = node.argumentList.arguments.first;
-      if (argument is IntegerLiteral) {
-        final value = argument.literal.lexeme;
-        if (!value.startsWith('0x') || value.length != 10) {
-          rule.reportLint(argument);
+      final arguments = node.argumentList.arguments;
+      if (arguments.isNotEmpty) {
+        final argument = arguments.first;
+        if (argument is IntegerLiteral) {
+          final value = argument.literal.lexeme;
+          if (!value.startsWith('0x') || value.length != 10) {
+            rule.reportLint(argument);
+          }
         }
       }
     }
