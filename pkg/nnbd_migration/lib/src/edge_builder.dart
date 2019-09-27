@@ -111,12 +111,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// If we are visiting a function body or initializer, instance of flow
   /// analysis.  Otherwise `null`.
-  FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>
+  FlowAnalysis<Statement, Expression, PromotableElement, DecoratedType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
   /// information  used in flow analysis.  Otherwise `null`.
-  AssignedVariables<AstNode, VariableElement> _assignedVariables;
+  AssignedVariables<AstNode, PromotableElement> _assignedVariables;
 
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _notNullType;
@@ -261,7 +261,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitAssertStatement(AssertStatement node) {
+  DecoratedType visitAssertInitializer(AssertInitializer node) {
     _checkExpressionNotNull(node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
@@ -276,7 +276,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitAssertInitializer(AssertInitializer node) {
+  DecoratedType visitAssertStatement(AssertStatement node) {
     _checkExpressionNotNull(node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
@@ -340,7 +340,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           // TODO(paulberry): figure out what the rules for isPure should be.
           isPure = true;
           var element = leftOperand.staticElement;
-          if (element is VariableElement) {
+          if (element is PromotableElement) {
             _flowAnalysis.conditionEqNull(node, element, notEqual: notEqual);
           }
         }
@@ -443,7 +443,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       node.stackTraceParameter
     ]) {
       if (identifier != null) {
-        _flowAnalysis.add(identifier.staticElement as VariableElement,
+        _flowAnalysis.add(identifier.staticElement as PromotableElement,
             assigned: true);
       }
     }
@@ -866,7 +866,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     expression.accept(this);
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
-      if (element is VariableElement) {
+      if (element is PromotableElement) {
         _flowAnalysis.isExpression_end(
             node, element, node.notOperator != null, decoratedType);
       }
@@ -1176,7 +1176,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
-    if (staticElement is VariableElement) {
+    if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
         var promotedType = _flowAnalysis.promotedType(staticElement);
         if (promotedType != null) return promotedType;
@@ -1372,10 +1372,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var initializer = variable.initializer;
-      _flowAnalysis.add(variable.declaredElement,
-          assigned: initializer != null);
+      var declaredElement = variable.declaredElement;
+      if (declaredElement is PromotableElement) {
+        _flowAnalysis.add(declaredElement, assigned: initializer != null);
+      }
       if (initializer != null) {
-        var destinationType = getOrComputeElementType(variable.declaredElement);
+        var destinationType = getOrComputeElementType(declaredElement);
         if (typeAnnotation == null) {
           var initializerType = initializer.accept(this);
           if (initializerType == null) {
@@ -1470,7 +1472,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_flowAnalysis == null);
     assert(_assignedVariables == null);
     _flowAnalysis =
-        FlowAnalysis<Statement, Expression, VariableElement, DecoratedType>(
+        FlowAnalysis<Statement, Expression, PromotableElement, DecoratedType>(
             const AnalyzerNodeOperations(),
             DecoratedTypeOperations(_typeSystem, _variables, _graph),
             AnalyzerFunctionBodyAccess(node is FunctionBody ? node : null));
@@ -1600,11 +1602,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         (destinationExpression == null) != (destinationType == null),
         'Either destinationExpression or destinationType should be supplied, '
         'but not both');
-    VariableElement destinationLocalVariable;
+    PromotableElement destinationLocalVariable;
     if (destinationType == null) {
       if (destinationExpression is SimpleIdentifier) {
         var element = destinationExpression.staticElement;
-        if (element is VariableElement) {
+        if (element is PromotableElement) {
           destinationLocalVariable = element;
         }
       }
@@ -1863,7 +1865,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       _flowAnalysis.forEach_bodyBegin(_assignedVariables.writtenInNode(node),
-          lhsElement is VariableElement ? lhsElement : null);
+          lhsElement is PromotableElement ? lhsElement : null);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new

@@ -1423,7 +1423,7 @@ abstract class LocalElement implements Element {
 /// A local variable.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LocalVariableElement implements LocalElement, VariableElement {}
+abstract class LocalVariableElement implements PromotableElement {}
 
 /// An element that represents a method defined within a class.
 ///
@@ -1472,7 +1472,7 @@ abstract class NamespaceCombinator {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ParameterElement
-    implements LocalElement, VariableElement, ConstantEvaluationTarget {
+    implements PromotableElement, ConstantEvaluationTarget {
   /// Return the Dart code of the default value, or `null` if no default value.
   String get defaultValueCode;
 
@@ -1569,6 +1569,12 @@ abstract class PrefixElement implements Element {
   @deprecated
   List<LibraryElement> get importedLibraries;
 }
+
+/// A variable that might be subject to type promotion.  This might be a local
+/// variable or a parameter.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class PromotableElement implements LocalElement, VariableElement {}
 
 /// A getter or a setter. Note that explicitly defined property accessors
 /// implicitly define a synthetic field. Symmetrically, synthetic accessors are
