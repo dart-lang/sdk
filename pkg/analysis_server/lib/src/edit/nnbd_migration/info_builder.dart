@@ -6,6 +6,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -123,17 +124,7 @@ class InfoBuilder {
       List<RegionInfo> regions = unitInfo.regions;
       List<SourceEdit> edits = fileEdit.edits;
       edits.sort((first, second) => first.offset.compareTo(second.offset));
-      // Compute the deltas for the regions that will be computed as we apply the
-      // edits. We need the deltas because the offsets to the regions are relative
-      // to the edited source, but the edits are being applied in reverse order so
-      // the offset in the pre-edited source will not match the offset in the
-      // post-edited source. The deltas compensate for that difference.
-      List<int> deltas = [];
-      int previousDelta = 0;
-      for (SourceEdit edit in edits) {
-        deltas.add(previousDelta);
-        previousDelta += (edit.replacement.length - edit.length);
-      }
+      OffsetMapper mapper = OffsetMapper.forEdits(edits);
       // Apply edits in reverse order and build the regions.
       int index = edits.length - 1;
       for (SourceEdit edit in edits.reversed) {
@@ -141,19 +132,20 @@ class InfoBuilder {
         int length = edit.length;
         String replacement = edit.replacement;
         int end = offset + length;
-        int delta = deltas[index--];
         // Insert the replacement text without deleting the replaced text.
         content = content.replaceRange(end, end, replacement);
         FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
         String explanation = '${fixInfo.fix.description.appliedMessage}.';
         List<RegionDetail> details = _computeDetails(fixInfo);
         if (length > 0) {
-          regions.add(RegionInfo(offset + delta, length, explanation, details));
+          regions.add(
+              RegionInfo(mapper.map(offset), length, explanation, details));
         }
-        regions.add(
-            RegionInfo(end + delta, replacement.length, explanation, details));
+        regions.add(RegionInfo(
+            mapper.map(end), replacement.length, explanation, details));
       }
       regions.sort((first, second) => first.offset.compareTo(second.offset));
+      unitInfo.offsetMapper = mapper;
     }
     unitInfo.content = content;
     return unitInfo;
@@ -173,7 +165,7 @@ class InfoBuilder {
     return null;
   }
 
-  /// Return the navigation target
+  /// Return the navigation target corresponding to the given [origin].
   NavigationTarget _targetFor(EdgeOriginInfo origin) {
     AstNode node = origin.node;
     String filePath = origin.source.fullName;

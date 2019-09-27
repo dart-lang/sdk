@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// The migration information associated with a single library.
@@ -81,11 +82,16 @@ class UnitInfo {
   String content;
 
   /// The information about the regions that have an explanation associated with
-  /// them.
+  /// them. The offsets in these regions are offsets into the post-edit content.
   final List<RegionInfo> regions = [];
 
-  /// The navigation targets that are located in this file.
+  /// The navigation targets that are located in this file. The offsets in these
+  /// targets are offsets into the pre-edit content.
   final Set<NavigationTarget> targets = {};
+
+  /// The object used to map the pre-edit offsets in the navigation targets to
+  /// the post-edit offsets in the [content].
+  OffsetMapper offsetMapper = OffsetMapper.identity;
 
   /// Initialize a newly created unit.
   UnitInfo(this.path);
