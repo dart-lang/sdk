@@ -224,7 +224,7 @@ bool LoadedElf::ReadSectionStringTable() {
 bool LoadedElf::LoadSegments() {
   // Calculate the total amount of virtual memory needed.
   uword total_memory = 0;
-  uword maximum_alignment = PageSize();
+  uint64_t maximum_alignment = PageSize();
   for (uword i = 0; i < header_.num_program_headers; ++i) {
     const dart::elf::ProgramHeader header = program_table_[i];
 
