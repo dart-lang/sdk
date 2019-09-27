@@ -142,6 +142,7 @@ class EditTest {
     SourceEdit a = new SourceEdit(1, 2, 'aaa');
     expect(a == a, isTrue);
     expect(a == new SourceEdit(1, 2, 'aaa'), isTrue);
+    // ignore: unrelated_type_equality_checks
     expect(a == this, isFalse);
     expect(a == new SourceEdit(1, 2, 'bbb'), isFalse);
     expect(a == new SourceEdit(10, 2, 'aaa'), isFalse);
@@ -259,6 +260,7 @@ class LinkedEditSuggestionTest {
     var c = new LinkedEditSuggestion('c', LinkedEditSuggestionKind.METHOD);
     expect(a == a, isTrue);
     expect(a == a2, isTrue);
+    // ignore: unrelated_type_equality_checks
     expect(a == this, isFalse);
     expect(a == b, isFalse);
     expect(a == c, isFalse);
@@ -274,6 +276,7 @@ class PositionTest {
     expect(a == a, isTrue);
     expect(a == a2, isTrue);
     expect(a == b, isFalse);
+    // ignore: unrelated_type_equality_checks
     expect(a == this, isFalse);
   }
 

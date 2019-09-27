@@ -57,8 +57,8 @@ class AbstractLspAnalysisServerIntegrationTest
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
     final completer = new Completer<ResponseMessage>();
-    final id = request.id.map(
-        (num) => num, (string) => throw 'String IDs not supported in tests');
+    final id = request.id.map((number) => number,
+        (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
 
     client.channel.sendRequest(request);
@@ -87,7 +87,7 @@ class AbstractLspAnalysisServerIntegrationTest
     await client.start();
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        final id = message.id.map((num) => num,
+        final id = message.id.map((number) => number,
             (string) => throw 'String IDs not supported in tests');
 
         final completer = _completers[id];

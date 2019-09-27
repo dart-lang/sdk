@@ -9,16 +9,16 @@ import 'package:front_end/src/fasta/scanner/characters.dart' show $MINUS, $_;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
-import '../../test/utils/package_root.dart' as pkgRoot;
+import '../../test/utils/package_root.dart' as pkg_root;
 
 main() async {
   await GeneratedContent.generateAll(
-      normalize(join(pkgRoot.packageRoot, 'analyzer')), allTargets);
+      normalize(join(pkg_root.packageRoot, 'analyzer')), allTargets);
 }
 
 List<GeneratedContent> get allTargets {
   Map<dynamic, dynamic> experimentsYaml = loadYaml(new File(join(
-          normalize(join(pkgRoot.packageRoot, '../tools')),
+          normalize(join(pkg_root.packageRoot, '../tools')),
           'experimental_features.yaml'))
       .readAsStringSync());
 
