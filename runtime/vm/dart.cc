@@ -161,7 +161,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_snapshot != nullptr) {
     snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
     if (snapshot == nullptr) {
-      return strdup("Invalid vm isolate snapshot seen");
+      return strdup("Invalid VM snapshot format.");
     }
   }
 
