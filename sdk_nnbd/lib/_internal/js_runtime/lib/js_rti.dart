@@ -96,7 +96,11 @@ getMangledTypeName(Type t) {
 // more compact that the inlined expansion.
 @pragma('dart2js:noInline')
 Object setRuntimeTypeInfo(Object target, var rti) {
-  assert(rti == null || isJsArray(rti));
+  if (JS_GET_FLAG('USE_NEW_RTI')) {
+    assert(rti != null);
+  } else {
+    assert(rti == null || isJsArray(rti));
+  }
   String rtiName = JS_GET_NAME(JsGetName.RTI_NAME);
   JS('var', r'#[#] = #', target, rtiName, rti);
   return target;
