@@ -317,6 +317,7 @@ class TypeParameterHelper {
     kStart,  // tag.
     kFlags,
     kAnnotations,
+    kVariance,
     kName,
     kBound,
     kDefaultType,
@@ -1087,6 +1088,7 @@ class KernelReaderHelper {
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
   Nullability ReadNullability();
+  Variance ReadVariance();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);
