@@ -5141,14 +5141,6 @@ class Parser {
 
   Token parseSend(Token token, IdentifierContext context) {
     Token beginToken = token = ensureIdentifier(token, context);
-    if (optional('!', token.next)) {
-      Token bang = token.next;
-      Token next = bang.next;
-      if (optional('(', next) || optional('[', next)) {
-        listener.handleNonNullAssertExpression(bang);
-        token = bang;
-      }
-    }
     TypeParamOrArgInfo typeArg = computeMethodTypeArguments(token);
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);

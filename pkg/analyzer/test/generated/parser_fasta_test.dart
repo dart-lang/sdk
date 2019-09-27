@@ -3037,6 +3037,103 @@ main() {
     expect(target.operand.toSource(), 'obj');
   }
 
+  void test_nullCheckOnIndex3() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo.bar![arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+    var target = expression.target as PostfixExpression;
+    expect(target.operand.toSource(), 'foo.bar');
+    expect(target.operator.lexeme, '!');
+  }
+
+  void test_nullCheckOnIndex4() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo!.bar![arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    var fooBarTarget = expression.target as PostfixExpression;
+    expect(fooBarTarget.toSource(), "foo!.bar!");
+    var propertyAccess = fooBarTarget.operand as PropertyAccess;
+    var targetFoo = propertyAccess.target as PostfixExpression;
+    expect(targetFoo.operand.toSource(), "foo");
+    expect(targetFoo.operator.lexeme, "!");
+    expect(propertyAccess.propertyName.toSource(), "bar");
+    expect(fooBarTarget.operator.lexeme, '!');
+    expect(expression.index.toSource(), 'arg');
+  }
+
+  void test_nullCheckOnIndex5() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo.bar![arg]![arg2]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg2');
+    var target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expression = target.operand as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+    target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+    expect(target.operand.toSource(), 'foo.bar');
+  }
+
+  void test_nullCheckOnIndex6() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo!.bar![arg]![arg2]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+
+    // expression is "foo!.bar![arg]![arg2]"
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg2');
+
+    // target is "foo!.bar![arg]!"
+    var target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+
+    // expression is "foo!.bar![arg]"
+    expression = target.operand as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+
+    // target is "foo!.bar!"
+    target = expression.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+
+    // propertyAccess is "foo!.bar"
+    PropertyAccess propertyAccess = target.operand as PropertyAccess;
+    expect(propertyAccess.propertyName.toSource(), "bar");
+
+    // target is "foo!"
+    target = propertyAccess.target as PostfixExpression;
+    expect(target.operator.lexeme, '!');
+
+    expect(target.operand.toSource(), "foo");
+  }
+
+  void test_nullCheckBeforeIndex() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo.bar!.baz[arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+    var propertyAccess = expression.target as PropertyAccess;
+    expect(propertyAccess.propertyName.toSource(), 'baz');
+    var target = propertyAccess.target as PostfixExpression;
+    expect(target.operand.toSource(), 'foo.bar');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
