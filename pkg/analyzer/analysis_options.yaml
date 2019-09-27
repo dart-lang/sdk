@@ -1,9 +1,12 @@
 include: package:pedantic/analysis_options.1.8.0.yaml
+
 analyzer:
   # This currently finds ~4,500 implicit-casts issues when enabled.
   # strong-mode:
   #   implicit-casts: false
   errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
