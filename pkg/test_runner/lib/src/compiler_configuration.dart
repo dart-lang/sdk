@@ -630,6 +630,15 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
+    if (_configuration.useElf && _isAndroid) {
+      // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
+      // Flutter's workflow. Skip this step on tests for DWARF (which may get
+      // stripped).
+      if (!arguments.last.contains("dwarf")) {
+        commands.add(computeStripCommand(tempDir, environmentOverrides));
+      }
+    }
+
     return CommandArtifact(
         commands, '$tempDir', 'application/dart-precompiled');
   }
@@ -700,24 +709,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         alwaysCompile: !_useSdk);
   }
 
+  static const String ndkPath = "third_party/android_tools/ndk";
+  String get abiTriple => _isArm
+      ? "arm-linux-androideabi"
+      : _isArm64 ? "aarch64-linux-android" : null;
+  String get host =>
+      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
+
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
     if (_isAndroid) {
-      var ndk = "third_party/android_tools/ndk";
-      String triple;
-      if (_isArm) {
-        triple = "arm-linux-androideabi";
-      } else if (_isArm64) {
-        triple = "aarch64-linux-android";
-      }
-      String host;
-      if (Platform.isLinux) {
-        host = "linux";
-      } else if (Platform.isMacOS) {
-        host = "darwin";
-      }
-      cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
+      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+          "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
       if (_isSimArm) {
@@ -763,6 +767,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
         args, environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  Command computeStripCommand(
+      String tempDir, Map<String, String> environmentOverrides) {
+    final String stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+        "$host-x86_64/bin/$abiTriple-strip";
+    final List<String> args = [
+      '--strip-unneeded',
+      "$tempDir/out.aotsnapshot",
+    ];
+    return CompilationCommand('strip', tempDir, bootstrapDependencies(),
+        stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
