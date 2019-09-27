@@ -1110,9 +1110,6 @@ abstract class NodeOperations<Expression> {
 
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable, Type> {
-  /// Return `true` if the [variable] is a local variable, not a parameter.
-  bool isLocalVariable(Variable variable);
-
   /// Returns `true` if [type1] and [type2] are the same type.
   bool isSameType(Type type1, Type type2);
 

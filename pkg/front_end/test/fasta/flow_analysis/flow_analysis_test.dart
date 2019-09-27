@@ -1403,12 +1403,6 @@ class _Harness
     _flow.ifStatement_end(false);
   }
 
-  @override
-  bool isLocalVariable(_Var variable) {
-    // TODO(paulberry): make tests where this returns false
-    return true;
-  }
-
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
   /// [variable] has the given [type].
   LazyExpression isNotType(_Var variable, String type) {

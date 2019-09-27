@@ -20,11 +20,6 @@ class DecoratedTypeOperations
       this._typeSystem, this._variableRepository, this._graph);
 
   @override
-  bool isLocalVariable(PromotableElement element) {
-    return element is LocalVariableElement;
-  }
-
-  @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
     return type1 == type2;
   }
