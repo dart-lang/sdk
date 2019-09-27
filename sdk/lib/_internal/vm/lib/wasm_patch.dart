@@ -66,8 +66,11 @@ class _NativeWasmModule extends NativeFieldWrapperClass1 implements WasmModule {
 class _NativeWasmImports extends NativeFieldWrapperClass1
     implements WasmImports {
   List<WasmMemory> _memories;
+  List<Function> _fns;
 
-  _NativeWasmImports(String moduleName) : _memories = [] {
+  _NativeWasmImports(String moduleName)
+      : _memories = [],
+        _fns = [] {
     _init(moduleName);
   }
 
@@ -80,10 +83,23 @@ class _NativeWasmImports extends NativeFieldWrapperClass1
     _addGlobal(name, value, T, mutable);
   }
 
+  void addFunction<T extends Function>(String name, Function fn) {
+    int id = _fns.length;
+    _fns.add(fn);
+    _addFunction(name, id, T);
+  }
+
+  @pragma("vm:entry-point")
+  static Function getFunction(_NativeWasmImports imp, int id) {
+    return imp._fns[id];
+  }
+
   void _init(String moduleName) native 'Wasm_initImports';
   void _addMemory(String name, WasmMemory memory) native 'Wasm_addMemoryImport';
   void _addGlobal(String name, num value, Type type, bool mutable)
       native 'Wasm_addGlobalImport';
+  void _addFunction(String name, int id, Type type)
+      native 'Wasm_addFunctionImport';
 }
 
 class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
