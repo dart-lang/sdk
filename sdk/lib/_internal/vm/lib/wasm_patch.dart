@@ -45,8 +45,8 @@ class WasmMemory {
 @patch
 class WasmImports {
   @patch
-  factory WasmImports(String moduleName) {
-    return _NativeWasmImports(moduleName);
+  factory WasmImports() {
+    return _NativeWasmImports();
   }
 }
 
@@ -68,25 +68,26 @@ class _NativeWasmImports extends NativeFieldWrapperClass1
   List<WasmMemory> _memories;
   List<Function> _fns;
 
-  _NativeWasmImports(String moduleName)
+  _NativeWasmImports()
       : _memories = [],
         _fns = [] {
-    _init(moduleName);
+    _init();
   }
 
-  void addMemory(String name, WasmMemory memory) {
+  void addMemory(String moduleName, String name, WasmMemory memory) {
     _memories.add(memory);
-    _addMemory(name, memory);
+    _addMemory(moduleName, name, memory);
   }
 
-  void addGlobal<T>(String name, num value, bool mutable) {
-    _addGlobal(name, value, T, mutable);
+  void addGlobal<T>(String moduleName, String name, num value, bool mutable) {
+    _addGlobal(moduleName, name, value, T, mutable);
   }
 
-  void addFunction<T extends Function>(String name, Function fn) {
+  void addFunction<T extends Function>(
+      String moduleName, String name, Function fn) {
     int id = _fns.length;
     _fns.add(fn);
-    _addFunction(name, id, T);
+    _addFunction(moduleName, name, id, T);
   }
 
   @pragma("vm:entry-point")
@@ -94,11 +95,12 @@ class _NativeWasmImports extends NativeFieldWrapperClass1
     return imp._fns[id];
   }
 
-  void _init(String moduleName) native 'Wasm_initImports';
-  void _addMemory(String name, WasmMemory memory) native 'Wasm_addMemoryImport';
-  void _addGlobal(String name, num value, Type type, bool mutable)
-      native 'Wasm_addGlobalImport';
-  void _addFunction(String name, int id, Type type)
+  void _init() native 'Wasm_initImports';
+  void _addMemory(String moduleName, String name, WasmMemory memory)
+      native 'Wasm_addMemoryImport';
+  void _addGlobal(String moduleName, String name, num value, Type type,
+      bool mutable) native 'Wasm_addGlobalImport';
+  void _addFunction(String moduleName, String name, int id, Type type)
       native 'Wasm_addFunctionImport';
 }
 

@@ -259,8 +259,7 @@ int64_t Trampoline(void* context, int64_t* args);
 
 class WasmImports {
  public:
-  explicit WasmImports(std::unique_ptr<char[]> module_name)
-      : _module_name(std::move(module_name)) {}
+  WasmImports() {}
 
   ~WasmImports() {
     for (wasmer_global_t* global : _globals) {
@@ -278,21 +277,27 @@ class WasmImports {
   size_t NumImports() const { return _imports.length(); }
   wasmer_import_t* RawImports() { return _imports.data(); }
 
-  void AddMemory(std::unique_ptr<char[]> name, wasmer_memory_t* memory) {
-    AddImport(std::move(name), wasmer_import_export_kind::WASM_MEMORY)->memory =
-        memory;
+  void AddMemory(std::unique_ptr<char[]> module_name,
+                 std::unique_ptr<char[]> name,
+                 wasmer_memory_t* memory) {
+    AddImport(std::move(module_name), std::move(name),
+              wasmer_import_export_kind::WASM_MEMORY)
+        ->memory = memory;
   }
 
-  void AddGlobal(std::unique_ptr<char[]> name,
+  void AddGlobal(std::unique_ptr<char[]> module_name,
+                 std::unique_ptr<char[]> name,
                  wasmer_value_t value,
                  bool mutable_) {
     wasmer_global_t* global = wasmer_global_new(value, mutable_);
     _globals.Add(global);
-    AddImport(std::move(name), wasmer_import_export_kind::WASM_GLOBAL)->global =
-        global;
+    AddImport(std::move(module_name), std::move(name),
+              wasmer_import_export_kind::WASM_GLOBAL)
+        ->global = global;
   }
 
-  void AddFunction(std::unique_ptr<char[]> name,
+  void AddFunction(std::unique_ptr<char[]> module_name,
+                   std::unique_ptr<char[]> name,
                    int64_t fn_id,
                    std::unique_ptr<wasmer_value_tag[]> args,
                    intptr_t num_args,
@@ -321,8 +326,9 @@ class WasmImports {
             const_cast<wasmer_trampoline_callable_t*>(trampoline)),
         fn_imp->args.get(), num_args, &ret, num_rets);
 
-    AddImport(std::move(name), wasmer_import_export_kind::WASM_FUNCTION)->func =
-        fn_imp->wasm_fn;
+    AddImport(std::move(module_name), std::move(name),
+              wasmer_import_export_kind::WASM_FUNCTION)
+        ->func = fn_imp->wasm_fn;
   }
 
   int64_t CallImportedFunction(WasmFunctionImport* fn_imp, int64_t* raw_args) {
@@ -368,21 +374,22 @@ class WasmImports {
 
  private:
   FinalizablePersistentHandle* _handle;
-  std::unique_ptr<char[]> _module_name;
   MallocGrowableArray<const char*> _import_names;
   MallocGrowableArray<wasmer_global_t*> _globals;
   MallocGrowableArray<WasmFunctionImport*> _functions;
   MallocGrowableArray<wasmer_import_t> _imports;
 
-  wasmer_import_export_value* AddImport(std::unique_ptr<char[]> name,
+  wasmer_import_export_value* AddImport(std::unique_ptr<char[]> module_name,
+                                        std::unique_ptr<char[]> name,
                                         wasmer_import_export_kind tag) {
     wasmer_import_t import;
     import.module_name.bytes =
-        reinterpret_cast<const uint8_t*>(_module_name.get());
-    import.module_name.bytes_len = (uint32_t)strlen(_module_name.get());
+        reinterpret_cast<const uint8_t*>(module_name.get());
+    import.module_name.bytes_len = (uint32_t)strlen(module_name.get());
     import.import_name.bytes = reinterpret_cast<const uint8_t*>(name.get());
     import.import_name.bytes_len = (uint32_t)strlen(name.get());
     import.tag = tag;
+    _import_names.Add(module_name.release());
     _import_names.Add(name.release());
     _imports.Add(import);
     return &_imports.Last().value;
@@ -646,13 +653,12 @@ DEFINE_NATIVE_ENTRY(Wasm_describeModule, 0, 1) {
   return DescribeModule(module);
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 2) {
+DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, imp_wrap, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, module_name, arguments->NativeArgAt(1));
 
   ASSERT(imp_wrap.NumNativeFields() == 1);
 
-  WasmImports* imports = new WasmImports(ToUTF8(module_name));
+  WasmImports* imports = new WasmImports();
 
   imp_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(imports));
   imports->SetHandle(FinalizablePersistentHandle::New(
@@ -662,10 +668,11 @@ DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 3) {
+DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, imp_wrap, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, mem_wrap, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, module_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, mem_wrap, arguments->NativeArgAt(3));
 
   ASSERT(imp_wrap.NumNativeFields() == 1);
   ASSERT(mem_wrap.NumNativeFields() == 1);
@@ -675,17 +682,18 @@ DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 3) {
   wasmer_memory_t* memory =
       reinterpret_cast<wasmer_memory_t*>(mem_wrap.GetNativeField(0));
 
-  imports->AddMemory(ToUTF8(name), memory);
+  imports->AddMemory(ToUTF8(module_name), ToUTF8(name), memory);
 
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
+DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 6) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, imp_wrap, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Number, value, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, mutable_, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, module_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Number, value, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, type, arguments->NativeArgAt(4));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, mutable_, arguments->NativeArgAt(5));
 
   ASSERT(imp_wrap.NumNativeFields() == 1);
 
@@ -699,16 +707,18 @@ DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
     UNREACHABLE();
   }
 
-  imports->AddGlobal(ToUTF8(name), wasm_value, mutable_.value());
+  imports->AddGlobal(ToUTF8(module_name), ToUTF8(name), wasm_value,
+                     mutable_.value());
 
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 4) {
+DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, imp_wrap, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, fn_id, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Type, fn_type, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, module_name, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, fn_id, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Type, fn_type, arguments->NativeArgAt(4));
 
   ASSERT(imp_wrap.NumNativeFields() == 1);
 
@@ -745,8 +755,8 @@ DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 4) {
 
   WasmImports* imports =
       reinterpret_cast<WasmImports*>(imp_wrap.GetNativeField(0));
-  imports->AddFunction(ToUTF8(name), fn_id.AsInt64Value(), std::move(wasm_args),
-                       num_args, wasm_ret, num_rets);
+  imports->AddFunction(ToUTF8(module_name), ToUTF8(name), fn_id.AsInt64Value(),
+                       std::move(wasm_args), num_args, wasm_ret, num_rets);
 
   return Object::null();
 }
@@ -933,22 +943,22 @@ DEFINE_NATIVE_ENTRY(Wasm_describeModule, 0, 1) {
   return nullptr;
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 2) {
+DEFINE_NATIVE_ENTRY(Wasm_initImports, 0, 1) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 3) {
+DEFINE_NATIVE_ENTRY(Wasm_addMemoryImport, 0, 4) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 5) {
+DEFINE_NATIVE_ENTRY(Wasm_addGlobalImport, 0, 6) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }
 
-DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 4) {
+DEFINE_NATIVE_ENTRY(Wasm_addFunctionImport, 0, 5) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }

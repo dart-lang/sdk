@@ -25,10 +25,10 @@ void main() {
   int report_x = -1;
   int report_y = -1;
 
-  var inst = WasmModule(data).instantiate(WasmImports("env")
-    ..addMemory("memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("__memory_base", 1024, false)
-    ..addFunction<Void Function(Int64, Int64)>("report", (int x, int y) {
+  var inst = WasmModule(data).instantiate(WasmImports()
+    ..addMemory("env", "memory", WasmMemory(256, 1024))
+    ..addGlobal<Int32>("env", "__memory_base", 1024, false)
+    ..addFunction<Void Function(Int64, Int64)>("env", "report", (int x, int y) {
       report_x = x;
       report_y = y;
     }));
