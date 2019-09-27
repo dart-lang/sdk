@@ -1395,7 +1395,7 @@ const Template<
             _constant)> templateConstEvalInvalidMethodInvocation = const Template<
         Message Function(String string, Constant _constant)>(
     messageTemplate:
-        r"""The method '#string' can't be invoked on '#constant' within a const context.""",
+        r"""The method '#string' can't be invoked on '#constant' in a constant expression.""",
     withArguments: _withArgumentsConstEvalInvalidMethodInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1415,7 +1415,7 @@ Message _withArgumentsConstEvalInvalidMethodInvocation(
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidMethodInvocation,
       message:
-          """The method '${string}' can't be invoked on '${constant}' within a const context.""" +
+          """The method '${string}' can't be invoked on '${constant}' in a constant expression.""" +
               labeler.originMessages,
       arguments: {'string': string, 'constant': _constant});
 }
@@ -1428,7 +1428,7 @@ const Template<
             _constant)> templateConstEvalInvalidPropertyGet = const Template<
         Message Function(String string, Constant _constant)>(
     messageTemplate:
-        r"""The property '#string' can't be accessed on '#constant' within a const context.""",
+        r"""The property '#string' can't be accessed on '#constant' in a constant expression.""",
     withArguments: _withArgumentsConstEvalInvalidPropertyGet);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1447,7 +1447,7 @@ Message _withArgumentsConstEvalInvalidPropertyGet(
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidPropertyGet,
       message:
-          """The property '${string}' can't be accessed on '${constant}' within a const context.""" +
+          """The property '${string}' can't be accessed on '${constant}' in a constant expression.""" +
               labeler.originMessages,
       arguments: {'string': string, 'constant': _constant});
 }
@@ -1459,7 +1459,7 @@ const Template<
             name)> templateConstEvalInvalidStaticInvocation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""The invocation of '#name' is not allowed within a const context.""",
+        r"""The invocation of '#name' is not allowed in a constant expression.""",
     withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1475,7 +1475,7 @@ Message _withArgumentsConstEvalInvalidStaticInvocation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeConstEvalInvalidStaticInvocation,
       message:
-          """The invocation of '${name}' is not allowed within a const context.""",
+          """The invocation of '${name}' is not allowed in a constant expression.""",
       arguments: {'name': name});
 }
 
@@ -1484,7 +1484,8 @@ const Template<Message Function(Constant _constant)>
     templateConstEvalInvalidStringInterpolationOperand =
     const Template<Message Function(Constant _constant)>(
         messageTemplate:
-            r"""The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
+            r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
+Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
         withArguments:
             _withArgumentsConstEvalInvalidStringInterpolationOperand);
 
@@ -1504,7 +1505,8 @@ Message _withArgumentsConstEvalInvalidStringInterpolationOperand(
   String constant = constantParts.join();
   return new Message(codeConstEvalInvalidStringInterpolationOperand,
       message:
-          """The '${constant}' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""" +
+          """The constant value '${constant}' can't be used as part of a string interpolation in a constant expression.
+Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""" +
               labeler.originMessages,
       arguments: {'constant': _constant});
 }
@@ -1635,31 +1637,6 @@ Message _withArgumentsConstEvalNegativeShift(
       message:
           """Binary operator '${string}' on '${string2}' requires non-negative operand, but was '${string3}'.""",
       arguments: {'string': string, 'string2': string2, 'string3': string3});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String
-            string)> templateConstEvalNonConstantLiteral = const Template<
-        Message Function(String string)>(
-    messageTemplate:
-        r"""Can't have a non-constant #string literal within a const context.""",
-    withArguments: _withArgumentsConstEvalNonConstantLiteral);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeConstEvalNonConstantLiteral =
-    const Code<Message Function(String string)>(
-        "ConstEvalNonConstantLiteral", templateConstEvalNonConstantLiteral,
-        analyzerCodes: <String>["NON_CONSTANT_DEFAULT_VALUE"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConstEvalNonConstantLiteral(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeConstEvalNonConstantLiteral,
-      message:
-          """Can't have a non-constant ${string} literal within a const context.""",
-      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

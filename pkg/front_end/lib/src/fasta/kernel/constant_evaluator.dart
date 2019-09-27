@@ -60,7 +60,6 @@ import '../fasta_codes.dart'
         templateConstEvalInvalidStringInterpolationOperand,
         templateConstEvalInvalidSymbolName,
         templateConstEvalKeyImplementsEqual,
-        templateConstEvalNonConstantLiteral,
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor;
 
@@ -820,8 +819,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
-      return report(
-          node, templateConstEvalNonConstantLiteral.withArguments('List'));
+      return reportInvalid(node, "Non-constant list literal");
     }
     final ListConstantBuilder builder =
         new ListConstantBuilder(node, node.typeArgument, this);
@@ -844,8 +842,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitSetLiteral(SetLiteral node) {
     if (!node.isConst) {
-      return report(
-          node, templateConstEvalNonConstantLiteral.withArguments('Set'));
+      return reportInvalid(node, "Non-constant set literal");
     }
     final SetConstantBuilder builder =
         new SetConstantBuilder(node, node.typeArgument, this);
@@ -868,8 +865,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
-      return report(
-          node, templateConstEvalNonConstantLiteral.withArguments('Map'));
+      return reportInvalid(node, "Non-constant map literal");
     }
     final MapConstantBuilder builder =
         new MapConstantBuilder(node, node.keyType, node.valueType, this);
@@ -891,8 +887,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitFunctionExpression(FunctionExpression node) {
-    return report(
-        node, templateConstEvalNonConstantLiteral.withArguments('Function'));
+    return reportInvalid(node, "Function literal");
   }
 
   @override
@@ -1714,12 +1709,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       }
     }
 
-    // TODO(kmillikin) For an invalid factory invocation we should adopt a
-    // better message.  This will show something like:
-    //
-    // "The invocation of 'List' is not allowed within a const context."
-    //
-    // Which is not quite right when the code was "new List()".
     String name = target.name.name;
     if (target is Procedure && target.isFactory) {
       if (name.isEmpty) {
@@ -1728,8 +1717,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         name = '${target.enclosingClass.name}.${name}';
       }
     }
-    return report(
-        node, templateConstEvalInvalidStaticInvocation.withArguments(name));
+    return reportInvalid(node, "Invocation of $name");
   }
 
   @override
