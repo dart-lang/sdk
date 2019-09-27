@@ -2141,7 +2141,7 @@ class InterfaceLeastUpperBoundHelper {
   static int _computeLongestInheritancePathToObject(
       ClassElement element, int depth, Set<ClassElement> visitedElements) {
     // Object case
-    if (element.supertype == null || visitedElements.contains(element)) {
+    if (element.isDartCoreObject || visitedElements.contains(element)) {
       return depth;
     }
     int longestPath = 1;
