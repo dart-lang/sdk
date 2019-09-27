@@ -2503,8 +2503,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
     // check if useless reading
     AstNode parent = node.parent;
     if (parent.parent is ExpressionStatement) {
-      if (parent is PrefixExpression || parent is PostfixExpression) {
-        // v++;
+      if (parent is PostfixExpression) {
+        // v++; but not v!
+        return parent.operator.type == TokenType.BANG;
+      }
+      if (parent is PrefixExpression) {
         // ++v;
         return false;
       }
