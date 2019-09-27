@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/utilities_general.dart';
+
 /// The migration information associated with a single library.
 class LibraryInfo {
   /// The information about the units in the library. The information about the
@@ -24,7 +26,18 @@ class NavigationTarget {
   final int length;
 
   /// Initialize a newly created anchor.
-  const NavigationTarget(this.filePath, this.offset, this.length);
+  NavigationTarget(this.filePath, this.offset, this.length);
+
+  @override
+  int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);
+
+  @override
+  bool operator ==(other) {
+    return other is NavigationTarget &&
+        other.filePath == filePath &&
+        other.offset == offset &&
+        other.length == length;
+  }
 }
 
 /// An additional detail related to a region.
@@ -65,12 +78,15 @@ class UnitInfo {
   final String path;
 
   /// The content of unit.
-  final String content;
+  String content;
 
   /// The information about the regions that have an explanation associated with
   /// them.
-  final List<RegionInfo> regions;
+  final List<RegionInfo> regions = [];
+
+  /// The navigation targets that are located in this file.
+  final Set<NavigationTarget> targets = {};
 
   /// Initialize a newly created unit.
-  UnitInfo(this.path, this.content, this.regions);
+  UnitInfo(this.path);
 }
