@@ -124,6 +124,34 @@ bool isDefinedInLib(CompilationUnit compilationUnit) {
   return false;
 }
 
+/// Return the nearest enclosing pubspec file.
+File locatePubspecFile(CompilationUnit compilationUnit) {
+  String fullName = compilationUnit?.declaredElement?.source?.fullName;
+  if (fullName == null) {
+    return null;
+  }
+
+  final resourceProvider =
+      compilationUnit?.declaredElement?.session?.resourceProvider;
+  if (resourceProvider == null) {
+    return null;
+  }
+
+  File file = resourceProvider.getFile(fullName);
+  Folder folder = file.parent;
+
+  // Look for a pubspec.yaml file.
+  while (folder != null) {
+    File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    if (pubspecFile.exists) {
+      return pubspecFile;
+    }
+    folder = folder.parent;
+  }
+
+  return null;
+}
+
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name?.name == '==';

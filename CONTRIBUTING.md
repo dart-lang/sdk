@@ -62,7 +62,7 @@ To send us a pull request:
  * either explicitly name a reviewer in the github UI or add their github name in the pull request message body
 
 Please make sure all your checkins have detailed commit messages explaining the patch and if a PR is *not* ready to land, consider making it clear in the description and/or prefixing the title with "WIP".
-  
+
 Once you've gotten an LGTM from a project maintainer, submit your changes to the
 `master` branch using one of the following methods:
 

@@ -201,7 +201,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    // Ignore this compilation unit if its not in the lib/ folder.
+    // Ignore this compilation unit if it's not in the lib/ folder.
     isInLibFolder = isDefinedInLib(node);
     if (!isInLibFolder) return;
 

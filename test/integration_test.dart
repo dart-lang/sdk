@@ -598,6 +598,32 @@ defineTests() {
       });
     });
 
+    group('prefer_relative_imports', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('prefer relative imports', () async {
+        await cli.runLinter([
+          'test/_data/prefer_relative_imports',
+          '--rules=prefer_relative_imports',
+          '--packages',
+          'test/_data/prefer_relative_imports/_packages'
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('3 files analyzed, 1 issue found, in'));
+        expect(exitCode, 1);
+      });
+    });
+
     group('public_member_api_docs', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = CollectingSink();
