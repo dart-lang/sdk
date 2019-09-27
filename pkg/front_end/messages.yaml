@@ -1896,12 +1896,14 @@ ExtensionDeclaresConstructor:
   template: "Extensions can't declare constructors."
   tip: "Try removing the constructor declaration."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+  hasPublishedDocs: true
 
 ExtensionDeclaresInstanceField:
   index: 93
   template: "Extensions can't declare instance fields"
   tip: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  hasPublishedDocs: true
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."
