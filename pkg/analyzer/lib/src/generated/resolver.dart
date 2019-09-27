@@ -344,11 +344,36 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
+    super.visitFunctionTypeAlias(node);
+  }
+
+  @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _checkStrictInferenceReturnType(
         node.returnType, node, node.identifier.name);
     _checkStrictInferenceInParameters(node.parameters);
     super.visitFunctionTypedFormalParameter(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    // GenericTypeAlias is handled in [visitGenericTypeAlias], where a proper
+    // name can be reported in any message.
+    if (node.parent is! GenericTypeAlias) {
+      _checkStrictInferenceReturnType(node.returnType, node, node.toString());
+    }
+    super.visitGenericFunctionType(node);
+  }
+
+  @override
+  void visitGenericTypeAlias(GenericTypeAlias node) {
+    if (node.functionType != null) {
+      _checkStrictInferenceReturnType(
+          node.functionType.returnType, node, node.name.name);
+    }
+    super.visitGenericTypeAlias(node);
   }
 
   @override
