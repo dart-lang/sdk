@@ -119,9 +119,9 @@ class MigrationInfo {
           from: pathContext.dirname(libraryInfo.units.first.path));
 
   /// The path to the highlight.js stylesheet, relative to [libraryInfo].
-  String highlightStylePath(LibraryInfo libraryInfo) => pathContext.relative(
-      pathContext.join(includedRoot, 'styles', 'androidstudio.css'),
-      from: pathContext.dirname(libraryInfo.units.first.path));
+  String highlightStylePath(LibraryInfo libraryInfo) =>
+      pathContext.relative(pathContext.join(includedRoot, 'androidstudio.css'),
+          from: pathContext.dirname(libraryInfo.units.first.path));
 }
 
 /// A mustache template for one library's instrumentation output.

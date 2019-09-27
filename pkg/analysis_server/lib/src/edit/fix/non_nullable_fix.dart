@@ -9,6 +9,8 @@ import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -237,6 +239,13 @@ analyzer:
       String rendered = InstrumentationRenderer(info, migrationInfo).render();
       output.writeAsStringSync(rendered);
     }
+    // Generate resource files:
+    File highlightJsOutput =
+        provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
+    highlightJsOutput.writeAsStringSync(decodeHighlightJs());
+    File highlightCssOutput =
+        provider.getFile(pathContext.join(folder.path, 'androidstudio.css'));
+    highlightCssOutput.writeAsStringSync(decodeHighlightCss());
   }
 
   static void task(DartFixRegistrar registrar, DartFixListener listener,
