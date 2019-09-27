@@ -23,14 +23,12 @@ that is to ensure you consistently use relative imports for files withing the
 
 ```
 import 'bar.dart';
-...
 ```
 
 **BAD:**
 
 ```
 import 'package:my_package/bar.dart';
-...
 ```
 
 ''';
@@ -81,7 +79,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var segments = uri.pathSegments;
     if (segments.isEmpty) return false;
 
-    // ignore: prefer_conditional_assignment
     if (parsedPubspec == null) {
       String content;
       try {
