@@ -443,8 +443,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       node.stackTraceParameter
     ]) {
       if (identifier != null) {
-        _flowAnalysis.add(identifier.staticElement as PromotableElement,
-            assigned: true);
+        _flowAnalysis.write(identifier.staticElement as PromotableElement);
       }
     }
     // The catch clause may not execute, so create a new scope for
@@ -1373,8 +1372,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       variable.metadata.accept(this);
       var initializer = variable.initializer;
       var declaredElement = variable.declaredElement;
-      if (declaredElement is PromotableElement) {
-        _flowAnalysis.add(declaredElement, assigned: initializer != null);
+      if (declaredElement is PromotableElement && initializer != null) {
+        _flowAnalysis.write(declaredElement);
       }
       if (initializer != null) {
         var destinationType = getOrComputeElementType(declaredElement);
@@ -1422,7 +1421,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _addParametersToFlowAnalysis(FormalParameterList parameters) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis.add(parameter.declaredElement, assigned: true);
+        _flowAnalysis.write(parameter.declaredElement);
       }
     }
   }
@@ -1843,7 +1842,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement;
         lhsElement = variableElement;
-        _flowAnalysis.add(variableElement, assigned: false);
       } else if (parts is ForEachPartsWithIdentifier) {
         lhsElement = parts.identifier.staticElement;
       } else {

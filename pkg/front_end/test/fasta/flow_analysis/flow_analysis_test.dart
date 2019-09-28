@@ -190,14 +190,6 @@ main() {
       expect(() => flow.finish(), _asserts);
     });
 
-    test('finish checks for un-added variables', () {
-      var h = _Harness();
-      var x = _Var('x', _Type('int'));
-      var flow = h.createFlow();
-      flow.isAssigned(x);
-      expect(() => flow.finish(), _asserts);
-    });
-
     test('for_conditionBegin() un-promotes', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
@@ -221,7 +213,7 @@ main() {
         h.declare(y, initialized: true);
         h.promote(y, 'int');
         flow.for_conditionBegin({x});
-        flow.add(x, assigned: true);
+        flow.write(x);
         flow.for_bodyBegin(_Statement(), _Expression());
         flow.for_updaterBegin();
         flow.for_end();
@@ -705,8 +697,8 @@ main() {
         h.promote(z, 'int');
         flow.tryCatchStatement_catchEnd();
         flow.tryCatchStatement_end();
-        // Only x should be promoted, because it's the only variable promoted
-        // in both the try body and the catch handler.
+        // Only x should be promoted, because it's the only variable
+        // promoted in both the try body and the catch handler.
         expect(flow.promotedType(x).type, 'int');
         expect(flow.promotedType(y), isNull);
         expect(flow.promotedType(z), isNull);
@@ -850,7 +842,7 @@ main() {
         h.declare(y, initialized: true);
         h.promote(y, 'int');
         flow.whileStatement_conditionBegin({x});
-        flow.add(x, assigned: true);
+        flow.write(x);
         flow.whileStatement_bodyBegin(_Statement(), _Expression());
         flow.whileStatement_end();
       });
@@ -951,54 +943,31 @@ main() {
       });
     });
 
-    group('add', () {
-      test('default', () {
-        // By default, added variables are considered unassigned.
-        var s1 = FlowModel<_Var, _Type>(true);
-        var s2 = s1.add(intVar);
-        expect(s2.reachable, true);
-        expect(s2.variableInfo, {intVar: VariableModel<_Type>(null, false)});
-      });
-
-      test('unassigned', () {
-        var s1 = FlowModel<_Var, _Type>(true);
-        var s2 = s1.add(intVar, assigned: false);
-        expect(s2.reachable, true);
-        expect(s2.variableInfo, {intVar: VariableModel<_Type>(null, false)});
-      });
-
-      test('assigned', () {
-        var s1 = FlowModel<_Var, _Type>(true);
-        var s2 = s1.add(intVar, assigned: true);
-        expect(s2.variableInfo, {intVar: VariableModel<_Type>(null, true)});
-      });
-    });
-
     group('promote', () {
       test('unpromoted -> unchanged (same)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.promote(h, intVar, _Type('int'));
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (supertype)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.promote(h, intVar, _Type('Object'));
         expect(s2, same(s1));
       });
 
       test('unpromoted -> unchanged (unrelated)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.promote(h, intVar, _Type('String'));
         expect(s2, same(s1));
       });
 
       test('unpromoted -> subtype', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intQVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.promote(h, intQVar, _Type('int'));
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
@@ -1009,36 +978,32 @@ main() {
 
       test('promoted -> unchanged (same)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int'));
         var s2 = s1.promote(h, objectQVar, _Type('int'));
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int'));
         var s2 = s1.promote(h, objectQVar, _Type('Object'));
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int'));
         var s2 = s1.promote(h, objectQVar, _Type('String'));
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int?'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int?'));
         var s2 = s1.promote(h, objectQVar, _Type('int'));
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
@@ -1051,27 +1016,25 @@ main() {
     group('write', () {
       var objectQVar = _Var('x', _Type('Object?'));
       test('unchanged', () {
-        var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(objectQVar, assigned: true);
-        var s2 = s1.write(h, objectQVar);
+        var s1 = FlowModel<_Var, _Type>(true).write(objectQVar);
+        var s2 = s1.write(objectQVar);
         expect(s2, same(s1));
       });
 
       test('marks as assigned', () {
-        var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(objectQVar, assigned: false);
-        var s2 = s1.write(h, objectQVar);
+        var s1 = FlowModel<_Var, _Type>(true);
+        var s2 = s1.write(objectQVar);
         expect(s2.reachable, true);
-        expect(s2.variableInfo[objectQVar], VariableModel<_Type>(null, true));
+        expect(s2.infoFor(objectQVar), VariableModel<_Type>(null, true));
       });
 
       test('un-promotes', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar, assigned: true)
+            .write(objectQVar)
             .promote(h, objectQVar, _Type('int'));
         expect(s1.variableInfo, contains(objectQVar));
-        var s2 = s1.write(h, objectQVar);
+        var s2 = s1.write(objectQVar);
         expect(s2.reachable, true);
         expect(s2.variableInfo, {objectQVar: VariableModel<_Type>(null, true)});
       });
@@ -1080,35 +1043,33 @@ main() {
     group('markNonNullable', () {
       test('unpromoted -> unchanged', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.markNonNullable(h, intVar);
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true).add(intQVar);
+        var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.markNonNullable(h, intQVar);
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
-          expect(s2.variableInfo[intQVar], VariableModel(_Type('int'), false));
+          expect(s2.infoFor(intQVar), VariableModel(_Type('int'), false));
         });
       });
 
       test('promoted -> unchanged', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int'));
         var s2 = s1.markNonNullable(h, objectQVar);
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .promote(h, objectQVar, _Type('int?'));
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int?'));
         var s2 = s1.markNonNullable(h, objectQVar);
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
@@ -1121,22 +1082,18 @@ main() {
     group('removePromotedAll', () {
       test('unchanged', () {
         var h = _Harness();
-        var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .add(intQVar)
-            .promote(h, objectQVar, _Type('int'));
-        var s2 = s1.removePromotedAll([intQVar], null);
+        var s1 =
+            FlowModel<_Var, _Type>(true).promote(h, objectQVar, _Type('int'));
+        var s2 = s1.removePromotedAll([intQVar]);
         expect(s2, same(s1));
       });
 
       test('changed', () {
         var h = _Harness();
         var s1 = FlowModel<_Var, _Type>(true)
-            .add(objectQVar)
-            .add(intQVar)
             .promote(h, objectQVar, _Type('int'))
             .promote(h, intQVar, _Type('int'));
-        var s2 = s1.removePromotedAll([intQVar], null);
+        var s2 = s1.removePromotedAll([intQVar]);
         expect(s2.reachable, true);
         _Type.allowComparisons(() {
           expect(s2.variableInfo, {
@@ -1164,14 +1121,14 @@ main() {
         var b = _Var('b', _Type('int'));
         var c = _Var('c', _Type('int'));
         var d = _Var('d', _Type('int'));
-        var s0 = FlowModel<_Var, _Type>(true).add(a).add(b).add(c).add(d);
-        var s1 = s0.write(h, a).write(h, b);
-        var s2 = s0.write(h, a).write(h, c);
+        var s0 = FlowModel<_Var, _Type>(true);
+        var s1 = s0.write(a).write(b);
+        var s2 = s0.write(a).write(c);
         var result = s1.restrict(h, s2, Set());
-        expect(result.variableInfo[a].assigned, true);
-        expect(result.variableInfo[b].assigned, true);
-        expect(result.variableInfo[c].assigned, true);
-        expect(result.variableInfo[d].assigned, false);
+        expect(result.infoFor(a).assigned, true);
+        expect(result.infoFor(b).assigned, true);
+        expect(result.infoFor(c).assigned, true);
+        expect(result.infoFor(d).assigned, false);
       });
 
       test('promotion', () {
@@ -1179,15 +1136,15 @@ main() {
             String expectedType) {
           var h = _Harness();
           var x = _Var('x', _Type('Object?'));
-          var s0 = FlowModel<_Var, _Type>(true).add(x, assigned: true);
+          var s0 = FlowModel<_Var, _Type>(true).write(x);
           var s1 = thisType == null ? s0 : s0.promote(h, x, _Type(thisType));
           var s2 = otherType == null ? s0 : s0.promote(h, x, _Type(otherType));
           var result = s1.restrict(h, s2, unsafe ? [x].toSet() : Set());
           if (expectedType == null) {
             expect(result.variableInfo, contains(x));
-            expect(result.variableInfo[x].promotedType, isNull);
+            expect(result.infoFor(x).promotedType, isNull);
           } else {
-            expect(result.variableInfo[x].promotedType.type, expectedType);
+            expect(result.infoFor(x).promotedType.type, expectedType);
           }
         }
 
@@ -1209,9 +1166,9 @@ main() {
         var h = _Harness();
         var x = _Var('x', _Type('Object?'));
         var s0 = FlowModel<_Var, _Type>(true);
-        var s1 = s0.add(x, assigned: true);
-        expect(s0.restrict(h, s1, {}), same(s0));
-        expect(s0.restrict(h, s1, {x}), same(s0));
+        var s1 = s0.write(x);
+        expect(s0.restrict(h, s1, {}), same(s1));
+        expect(s0.restrict(h, s1, {x}), same(s1));
         expect(s1.restrict(h, s0, {}), same(s1));
         expect(s1.restrict(h, s0, {x}), same(s1));
       });
@@ -1374,7 +1331,9 @@ class _Harness
       FlowAnalysis<_Statement, _Expression, _Var, _Type>(this, this, this);
 
   void declare(_Var v, {@required bool initialized}) {
-    _flow.add(v, assigned: initialized);
+    if (initialized) {
+      _flow.write(v);
+    }
   }
 
   /// Creates a [LazyExpression] representing an `== null` check performed on

@@ -3883,7 +3883,6 @@ class ResolverVisitor extends ScopedVisitor {
       // variable cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
-      _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
       _flowAnalysis?.flow?.forEach_bodyBegin(
           _flowAnalysis.assignedVariables.writtenInNode(node),
@@ -3963,7 +3962,6 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
-      _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
 
       _flowAnalysis?.flow?.forEach_bodyBegin(
@@ -4510,10 +4508,10 @@ class ResolverVisitor extends ScopedVisitor {
       var catchClause = catchClauses[i];
       flow.tryCatchStatement_catchBegin();
       if (catchClause.exceptionParameter != null) {
-        flow.add(catchClause.exceptionParameter.staticElement, assigned: true);
+        flow.write(catchClause.exceptionParameter.staticElement);
       }
       if (catchClause.stackTraceParameter != null) {
-        flow.add(catchClause.stackTraceParameter.staticElement, assigned: true);
+        flow.write(catchClause.stackTraceParameter.staticElement);
       }
       catchClause.accept(this);
       flow.tryCatchStatement_catchEnd();
