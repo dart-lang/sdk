@@ -1167,6 +1167,25 @@ Int f(Int i, Int j) => i + j/*check*/;
             hard: true));
   }
 
+  test_binaryExpression_plus_substituted() async {
+    await analyze('''
+class _C<T, U> {
+  T operator+(U u) => throw 'foo';
+}
+Object _f(_C<int, String> c, String s) => c + s;
+''');
+    assertEdge(
+        decoratedTypeAnnotation('String s').node,
+        substitutionNode(decoratedTypeAnnotation('String>').node,
+            decoratedTypeAnnotation('U u').node),
+        hard: true);
+    assertEdge(
+        substitutionNode(decoratedTypeAnnotation('int,').node,
+            decoratedTypeAnnotation('T operator').node),
+        decoratedTypeAnnotation('Object _f').node,
+        hard: false);
+  }
+
   test_binaryExpression_questionQuestion() async {
     await analyze('''
 int f(int i, int j) => i ?? j;

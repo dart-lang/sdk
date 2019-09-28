@@ -383,18 +383,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables.recordDecoratedExpressionType(node, expressionType);
       return expressionType;
     } else if (operatorType.isUserDefinableOperator) {
-      _checkExpressionNotNull(node.leftOperand);
+      var targetType = _checkExpressionNotNull(node.leftOperand);
       var callee = node.staticElement;
-      assert(!(callee is ClassMemberElement &&
-          (callee.enclosingElement as ClassElement)
-              .typeParameters
-              .isNotEmpty)); // TODO(paulberry)
       if (callee == null) {
         node.rightOperand.accept(this);
         return _dynamicType;
       } else {
-        var calleeType = getOrComputeElementType(callee);
-        // TODO(paulberry): substitute if necessary
+        var calleeType =
+            getOrComputeElementType(callee, targetType: targetType);
         assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
         _handleAssignment(node.rightOperand,
             destinationType: calleeType.positionalParameters[0]);
