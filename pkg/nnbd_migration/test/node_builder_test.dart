@@ -1507,7 +1507,7 @@ void f(int/*!*/ i) {}
     await analyze('''
 void f(int/*?*/ i) {}
 ''');
-    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+    assertUnion(always, decoratedTypeAnnotation('int').node);
   }
 
   test_type_parameter_explicit_bound() async {
