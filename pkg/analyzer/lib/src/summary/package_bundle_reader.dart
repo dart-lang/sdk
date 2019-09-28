@@ -5,15 +5,12 @@
 import 'dart:io' as io;
 import 'dart:math' show min;
 
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
 
 /**
  * A [ConflictingSummaryException] indicates that two different summaries
@@ -131,50 +128,11 @@ class InSummaryUriResolver extends UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
     String uriString = uri.toString();
-    if (AnalysisDriver.useSummary2) {
-      String summaryPath = _dataStore.uriToSummaryPath[uriString];
-      if (summaryPath != null) {
-        return new InSummarySource(actualUri, summaryPath);
-      }
-    } else {
-      UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
-      if (unit != null) {
-        String summaryPath = _dataStore.uriToSummaryPath[uriString];
-        return new InSummarySource(actualUri, summaryPath);
-      }
+    String summaryPath = _dataStore.uriToSummaryPath[uriString];
+    if (summaryPath != null) {
+      return new InSummarySource(actualUri, summaryPath);
     }
     return null;
-  }
-}
-
-/**
- * A concrete resynthesizer that serves summaries from [SummaryDataStore].
- */
-class StoreBasedSummaryResynthesizer extends SummaryResynthesizer {
-  final SummaryDataStore _dataStore;
-
-  StoreBasedSummaryResynthesizer(
-      AnalysisContext context,
-      AnalysisSession session,
-      SourceFactory sourceFactory,
-      bool _,
-      this._dataStore)
-      : super(context, session, sourceFactory, true);
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    return _dataStore.linkedMap[uri];
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    return _dataStore.unlinkedMap[uri];
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
-    return linkedLibrary != null;
   }
 }
 
@@ -319,11 +277,7 @@ class SummaryDataStore {
    * with the given absolute [uri].
    */
   bool hasLinkedLibrary(String uri) {
-    if (AnalysisDriver.useSummary2) {
-      return _libraryUris.contains(uri);
-    } else {
-      return linkedMap.containsKey(uri);
-    }
+    return _libraryUris.contains(uri);
   }
 
   /**
@@ -331,22 +285,14 @@ class SummaryDataStore {
    * with the given absolute [uri].
    */
   bool hasUnlinkedUnit(String uri) {
-    if (AnalysisDriver.useSummary2) {
-      return uriToSummaryPath.containsKey(uri);
-    } else {
-      return unlinkedMap.containsKey(uri);
-    }
+    return uriToSummaryPath.containsKey(uri);
   }
 
   /**
    * Return `true` if the unit with the [uri] is a part unit in the store.
    */
   bool isPartUnit(String uri) {
-    if (AnalysisDriver.useSummary2) {
-      return _partUris.contains(uri);
-    } else {
-      return !linkedMap.containsKey(uri);
-    }
+    return _partUris.contains(uri);
   }
 
   void _fillMaps(String path, ResourceProvider resourceProvider) {

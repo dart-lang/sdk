@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -21,7 +20,6 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
@@ -68,7 +66,6 @@ class LibraryAnalyzer {
   final InheritanceManager3 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
-  final ElementResynthesizer _resynthesizer;
   final LinkedElementFactory _elementFactory;
   TypeProviderImpl _typeProvider;
 
@@ -100,7 +97,6 @@ class LibraryAnalyzer {
       this._sourceFactory,
       this._isLibraryUri,
       this._context,
-      this._resynthesizer,
       this._elementFactory,
       this._inheritance,
       this._library,
@@ -145,12 +141,7 @@ class LibraryAnalyzer {
       _resolveUriBasedDirectives(file, unit);
     });
 
-    if (_elementFactory != null) {
-      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    } else {
-      _libraryElement = _resynthesizer
-          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-    }
+    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
     _libraryScope = new LibraryScope(_libraryElement);
 
     timerLibraryAnalyzerResolve.start();
@@ -511,11 +502,7 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      if (AnalysisDriver.useSummary2) {
-        return node.keyword.offset == element.nameOffset;
-      } else {
-        return node.offset == element.nameOffset;
-      }
+      return node.keyword.offset == element.nameOffset;
     }
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);

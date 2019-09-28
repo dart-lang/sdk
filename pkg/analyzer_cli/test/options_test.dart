@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -419,19 +418,12 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       '--build-summary-only-unlinked',
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
-    if (AnalysisDriver.useSummary2) {
-      expect(
-        errorStringBuffer.toString(),
-        contains(
-          'The option --build-summary-only-unlinked can not be used '
-          'together with summary2.',
-        ),
-      );
-    } else {
-      expect(options.buildMode, isTrue);
-      expect(options.buildSummaryOnly, isTrue);
-      expect(options.buildSummaryOnlyUnlinked, isTrue);
-    }
+    expect(
+      errorStringBuffer.toString(),
+      contains(
+        'The option --build-summary-only-unlinked is deprecated.',
+      ),
+    );
   }
 
   test_buildSummaryOutput() {

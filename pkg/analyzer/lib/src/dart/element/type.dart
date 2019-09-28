@@ -16,8 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/resynthesize.dart'
-    show RecursiveInstantiateToBounds;
 
 /// Transforms the given [list] by applying [transform] to all its elements.
 ///
@@ -1574,13 +1572,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   List<DartType> get typeArguments {
     if (_typeArguments == null) {
-      try {
-        _typeArguments = _typeArgumentsComputer();
-      } on RecursiveInstantiateToBounds {
-        _typeArguments = new List<DartType>.filled(
-            element.typeParameters.length,
-            element.context.typeProvider.dynamicType);
-      }
+      _typeArguments = _typeArgumentsComputer();
       _typeArgumentsComputer = null;
     }
     return _typeArguments;

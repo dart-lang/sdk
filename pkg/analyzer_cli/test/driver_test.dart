@@ -8,7 +8,6 @@ import 'dart:io';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -489,119 +488,15 @@ class BuildModeTest extends AbstractBuildModeTest {
       PackageBundle bundle =
           new PackageBundle.fromBuffer(await output.readAsBytes());
       var testFileUri = 'file:///test_file.dart';
-      if (AnalysisDriver.useSummary2) {
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [testFileUri]);
-        expect(
-          _linkedLibraryUnitUriList(bundle2, testFileUri),
-          [testFileUri],
-        );
-      } else {
-        expect(bundle.unlinkedUnitUris, equals([testFileUri]));
-        expect(bundle.linkedLibraryUris, equals([testFileUri]));
-      }
+
+      var bundle2 = bundle.bundle2;
+      expect(_linkedLibraryUriList(bundle2), [testFileUri]);
+      expect(
+        _linkedLibraryUnitUriList(bundle2, testFileUri),
+        [testFileUri],
+      );
+
       expect(exitCode, 0);
-    });
-  }
-
-  test_buildLinked_buildSummaryOutputSemantic() async {
-    // All informative data is stored separately when summary2.
-    if (AnalysisDriver.useSummary2) {
-      return;
-    }
-
-    await withTempDirAsync((tempDir) async {
-      var testDart = path.join(tempDir, 'test.dart');
-      var testSumFull = path.join(tempDir, 'test.sum.full');
-      var testSumSemantic = path.join(tempDir, 'test.sum.sem');
-
-      new File(testDart).writeAsStringSync('var v = 42;');
-
-      await _doDrive(testDart, additionalArgs: [
-        '--build-summary-only',
-        '--build-summary-output=$testSumFull',
-        '--build-summary-output-semantic=$testSumSemantic',
-      ]);
-      expect(exitCode, 0);
-
-      // The full summary is produced.
-      {
-        var file = new File(testSumFull);
-        expect(file.existsSync(), isTrue);
-        var bytes = file.readAsBytesSync();
-        var bundle = new PackageBundle.fromBuffer(bytes);
-        var v = bundle.unlinkedUnits[0].variables[0];
-        expect(v.name, 'v');
-        expect(v.nameOffset, 4);
-      }
-
-      // The semantic summary is produced.
-      {
-        var file = new File(testSumSemantic);
-        expect(file.existsSync(), isTrue);
-        var bytes = file.readAsBytesSync();
-        var bundle = new PackageBundle.fromBuffer(bytes);
-        var v = bundle.unlinkedUnits[0].variables[0];
-        expect(v.name, 'v');
-        expect(v.nameOffset, 0);
-      }
-    });
-  }
-
-  test_buildLinked_fromUnlinked() async {
-    // We don't use unlinked units with summary2.
-    if (AnalysisDriver.useSummary2) {
-      return;
-    }
-
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-      var bDart = path.join(tempDir, 'b.dart');
-
-      var aUri = 'package:aaa/a.dart';
-      var bUri = 'package:bbb/b.dart';
-
-      var aUnlinked = path.join(tempDir, 'a.unlinked');
-      var bUnlinked = path.join(tempDir, 'b.unlinked');
-      var abLinked = path.join(tempDir, 'ab.linked');
-
-      new File(aDart).writeAsStringSync('var a = 1;');
-      new File(bDart).writeAsStringSync('''
-import 'package:aaa/a.dart';
-var b = a;
-''');
-
-      Future<void> buildUnlinked(String uri, String path, String output) async {
-        await _doDrive(path, uri: uri, additionalArgs: [
-          '--build-summary-only',
-          '--build-summary-only-unlinked',
-          '--build-summary-output=$output'
-        ]);
-        expect(exitCode, 0);
-        expect(new File(output).existsSync(), isTrue);
-      }
-
-      await buildUnlinked(aUri, aDart, aUnlinked);
-      await buildUnlinked(bUri, bDart, bUnlinked);
-
-      await new Driver(isTesting: true).start([
-        '--dart-sdk',
-        _findSdkDirForSummaries(),
-        '--build-mode',
-        '--build-summary-unlinked-input=$aUnlinked,$bUnlinked',
-        '--build-summary-output=$abLinked'
-      ]);
-      expect(exitCode, 0);
-      var bytes = new File(abLinked).readAsBytesSync();
-      var bundle = new PackageBundle.fromBuffer(bytes);
-
-      // Only linked information.
-      expect(bundle.unlinkedUnitUris, isEmpty);
-      expect(bundle.linkedLibraryUris, unorderedEquals([aUri, bUri]));
-
-      // Strong mode type inference was performed.
-      expect(bundle.linkedLibraries[0].units[0].types, isNotEmpty);
-      expect(bundle.linkedLibraries[1].units[0].types, isNotEmpty);
     });
   }
 
@@ -622,14 +517,9 @@ part '[invalid]';
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
       var bytes = new File(aSum).readAsBytesSync();
       var bundle = new PackageBundle.fromBuffer(bytes);
-      if (AnalysisDriver.useSummary2) {
-        var bundle2 = bundle.bundle2;
-        expect(_linkedLibraryUriList(bundle2), [aUri]);
-        expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
-      } else {
-        expect(bundle.unlinkedUnitUris, equals([aUri]));
-        expect(bundle.linkedLibraryUris, equals([aUri]));
-      }
+      var bundle2 = bundle.bundle2;
+      expect(_linkedLibraryUriList(bundle2), [aUri]);
+      expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri, '']);
     });
   }
 
@@ -643,31 +533,6 @@ part '[invalid]';
     await _doDrive(path.join('data', 'file_with_error.dart'),
         additionalArgs: ['--build-suppress-exit-code']);
     expect(exitCode, 0);
-  }
-
-  test_buildUnlinked() async {
-    // We don't use unlinked units with summary2.
-    if (AnalysisDriver.useSummary2) {
-      return;
-    }
-
-    await withTempDirAsync((tempDir) async {
-      var outputPath = path.join(tempDir, 'test_file.dart.sum');
-      await _doDrive(path.join('data', 'test_file.dart'), additionalArgs: [
-        '--build-summary-only',
-        '--build-summary-only-unlinked',
-        '--build-summary-output=$outputPath'
-      ]);
-      var output = new File(outputPath);
-      expect(output.existsSync(), isTrue);
-      PackageBundle bundle =
-          new PackageBundle.fromBuffer(await output.readAsBytes());
-      var testFileUri = 'file:///test_file.dart';
-      expect(bundle.unlinkedUnits.length, 1);
-      expect(bundle.unlinkedUnitUris, equals([testFileUri]));
-      expect(bundle.linkedLibraryUris, isEmpty);
-      expect(exitCode, 0);
-    });
   }
 
   test_consumeLinked() async {
@@ -702,14 +567,9 @@ var b = new B();
         expect(exitCode, 0);
         var bytes = new File(aSum).readAsBytesSync();
         var bundle = new PackageBundle.fromBuffer(bytes);
-        if (AnalysisDriver.useSummary2) {
-          var bundle2 = bundle.bundle2;
-          expect(_linkedLibraryUriList(bundle2), [aUri]);
-          expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri]);
-        } else {
-          expect(bundle.unlinkedUnitUris, equals([aUri]));
-          expect(bundle.linkedLibraryUris, equals([aUri]));
-        }
+        var bundle2 = bundle.bundle2;
+        expect(_linkedLibraryUriList(bundle2), [aUri]);
+        expect(_linkedLibraryUnitUriList(bundle2, aUri), [aUri]);
       }
 
       // Analyze package:bbb/b.dart and compute summary.
@@ -721,14 +581,9 @@ var b = new B();
         expect(exitCode, 0);
         var bytes = new File(bSum).readAsBytesSync();
         var bundle = new PackageBundle.fromBuffer(bytes);
-        if (AnalysisDriver.useSummary2) {
-          var bundle2 = bundle.bundle2;
-          expect(_linkedLibraryUriList(bundle2), [bUri]);
-          expect(_linkedLibraryUnitUriList(bundle2, bUri), [bUri]);
-        } else {
-          expect(bundle.unlinkedUnitUris, equals([bUri]));
-          expect(bundle.linkedLibraryUris, equals([bUri]));
-        }
+        var bundle2 = bundle.bundle2;
+        expect(_linkedLibraryUriList(bundle2), [bUri]);
+        expect(_linkedLibraryUnitUriList(bundle2, bUri), [bUri]);
       }
 
       // Analyze package:ccc/c.dart and compute summary.
@@ -740,14 +595,9 @@ var b = new B();
         expect(exitCode, 0);
         var bytes = new File(cSum).readAsBytesSync();
         var bundle = new PackageBundle.fromBuffer(bytes);
-        if (AnalysisDriver.useSummary2) {
-          var bundle2 = bundle.bundle2;
-          expect(_linkedLibraryUriList(bundle2), [cUri]);
-          expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
-        } else {
-          expect(bundle.unlinkedUnitUris, equals([cUri]));
-          expect(bundle.linkedLibraryUris, equals([cUri]));
-        }
+        var bundle2 = bundle.bundle2;
+        expect(_linkedLibraryUriList(bundle2), [cUri]);
+        expect(_linkedLibraryUnitUriList(bundle2, cUri), [cUri]);
       }
     });
   }
@@ -774,47 +624,6 @@ var b = new B();
     });
   }
 
-  test_error_linkedAsUnlinked() async {
-    // We don't use unlinked units with summary2.
-    if (AnalysisDriver.useSummary2) {
-      return;
-    }
-
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-      var bDart = path.join(tempDir, 'b.dart');
-
-      var aUri = 'package:aaa/a.dart';
-      var bUri = 'package:bbb/b.dart';
-
-      var aSum = path.join(tempDir, 'a.sum');
-      var bSum = path.join(tempDir, 'b.sum');
-
-      new File(aDart).writeAsStringSync('class A {}');
-
-      // Build linked a.sum
-      await _doDrive(aDart, uri: aUri, additionalArgs: [
-        '--build-summary-only',
-        '--build-summary-output=$aSum'
-      ]);
-      expect(new File(aSum).existsSync(), isTrue);
-
-      // Try to consume linked a.sum as unlinked.
-      try {
-        await _doDrive(bDart, uri: bUri, additionalArgs: [
-          '--build-summary-unlinked-input=$aSum',
-          '--build-summary-output=$bSum'
-        ]);
-        fail('ArgumentError expected.');
-      } on ArgumentError catch (e) {
-        expect(
-            e.message,
-            contains(
-                'Got a linked summary for --build-summary-input-unlinked'));
-      }
-    });
-  }
-
   test_error_notUriPipePath() async {
     await withTempDirAsync((tempDir) async {
       var testDart = path.join(tempDir, 'test.dart');
@@ -823,46 +632,6 @@ var b = new B();
       // We pass just path, not "uri|path", this is a fatal error.
       await drive(testDart, args: ['--build-mode', '--format=machine']);
       expect(exitCode, ErrorSeverity.ERROR.ordinal);
-    });
-  }
-
-  test_error_unlinkedAsLinked() async {
-    // We don't use unlinked units with summary2.
-    if (AnalysisDriver.useSummary2) {
-      return;
-    }
-
-    await withTempDirAsync((tempDir) async {
-      var aDart = path.join(tempDir, 'a.dart');
-      var bDart = path.join(tempDir, 'b.dart');
-
-      var aUri = 'package:aaa/a.dart';
-      var bUri = 'package:bbb/b.dart';
-
-      var aSum = path.join(tempDir, 'a.sum');
-      var bSum = path.join(tempDir, 'b.sum');
-
-      new File(aDart).writeAsStringSync('class A {}');
-
-      // Build unlinked a.sum
-      await _doDrive(aDart, uri: aUri, additionalArgs: [
-        '--build-summary-only',
-        '--build-summary-only-unlinked',
-        '--build-summary-output=$aSum'
-      ]);
-      expect(new File(aSum).existsSync(), isTrue);
-
-      // Try to consume unlinked a.sum as linked.
-      try {
-        await _doDrive(bDart, uri: bUri, additionalArgs: [
-          '--build-summary-input=$aSum',
-          '--build-summary-output=$bSum'
-        ]);
-        fail('ArgumentError expected.');
-      } on ArgumentError catch (e) {
-        expect(e.message,
-            contains('Got an unlinked summary for --build-summary-input'));
-      }
     });
   }
 

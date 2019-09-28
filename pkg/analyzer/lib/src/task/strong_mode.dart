@@ -14,8 +14,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart'
-    show FieldElementForLink_ClassField, ParameterElementForLink;
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 
 /**
@@ -177,9 +175,6 @@ class InstanceMemberInferrer {
               kind: TopLevelInferenceErrorKind.overrideConflictParameterType,
             ),
           );
-        } else if (parameter is ParameterElementForLink) {
-          parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
-              kind: TopLevelInferenceErrorKind.overrideConflictParameterType));
         }
         return typeProvider.dynamicType;
       }
@@ -428,9 +423,6 @@ class InstanceMemberInferrer {
             kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
           ),
         );
-      } else if (field is FieldElementForLink_ClassField) {
-        field.setInferenceError(new TopLevelInferenceErrorBuilder(
-            kind: TopLevelInferenceErrorKind.overrideConflictFieldType));
       }
       return;
     }

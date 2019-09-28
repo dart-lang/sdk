@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
@@ -165,10 +164,15 @@ f() {
     assertTestErrorsWithCodes([HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS]);
   }
 
+  @FailingTest(reason: r'''
+MISSING_REQUIRED_PARAM cannot be reported here with summary2, because
+the return type of `C.m` is a structural FunctionType, which does
+not know its elements, and does not know that there was a parameter
+marked `@required`. There is exactly one such typedef in Flutter.
+''')
   test_typedef_functionParam() async {
     addMetaPackage();
-    try {
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 String test(C c) => c.m()();
@@ -179,17 +183,8 @@ class C {
   F m() => ({@required String x}) => null;
 }
 ''', [
-        error(HintCode.MISSING_REQUIRED_PARAM, 54, 7),
-      ]);
-    } catch (_) {
-      // MISSING_REQUIRED_PARAM cannot be reported here with summary2, because
-      // the return type of `C.m` is a structural FunctionType, which does
-      // not know its elements, and does not know that there was a parameter
-      // marked `@required`. There is exactly one such typedef in Flutter.
-      if (!AnalysisDriver.useSummary2) {
-        rethrow;
-      }
-    }
+      error(HintCode.MISSING_REQUIRED_PARAM, 54, 7),
+    ]);
   }
 
   /// Resolve the test file at [path].

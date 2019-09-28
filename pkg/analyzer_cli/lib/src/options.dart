@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
@@ -270,23 +269,8 @@ class CommandLineOptions {
     }
 
     if (options.buildSummaryOnlyUnlinked) {
-      if (AnalysisDriver.useSummary2) {
-        printAndFail('The option --build-summary-only-unlinked can not be used '
-            'together with summary2.');
-        return null; // Only reachable in testing.
-      }
-      if (!options.buildSummaryOnly) {
-        printAndFail(
-            'The option --build-summary-only-unlinked can be used only '
-            'together with --build-summary-only.');
-        return null; // Only reachable in testing.
-      }
-      if (options.buildSummaryInputs.isNotEmpty ||
-          options.buildSummaryUnlinkedInputs.isNotEmpty) {
-        printAndFail('No summaries should be provided in combination with '
-            '--build-summary-only-unlinked, they aren\'t needed.');
-        return null; // Only reachable in testing.
-      }
+      printAndFail('The option --build-summary-only-unlinked is deprecated.');
+      return null; // Only reachable in testing.
     }
 
     return options;

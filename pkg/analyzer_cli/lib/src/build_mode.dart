@@ -27,9 +27,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/summary2/link.dart' as summary2;
@@ -193,7 +191,6 @@ class BuildMode with HasContextMixin {
   AnalysisDriver analysisDriver;
 
   PackageBundleAssembler assembler;
-  final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
@@ -270,27 +267,12 @@ class BuildMode with HasContextMixin {
           // Prepare all unlinked units.
           await logger.runAsync('Prepare unlinked units', () async {
             for (var src in explicitSources) {
-              await _prepareUnlinkedUnit('${src.uri}');
+              await _prepareUnit('${src.uri}');
             }
           });
 
           // Build and assemble linked libraries.
-          if (AnalysisDriver.useSummary2) {
-            _computeLinkedLibraries2();
-          } else {
-            if (!options.buildSummaryOnlyUnlinked) {
-              // Prepare URIs of unlinked units that should be linked.
-              var unlinkedUris = new Set<String>();
-              for (var bundle in unlinkedBundles) {
-                unlinkedUris.addAll(bundle.unlinkedUnitUris);
-              }
-              for (var src in explicitSources) {
-                unlinkedUris.add('${src.uri}');
-              }
-              // Perform linking.
-              _computeLinkedLibraries(unlinkedUris);
-            }
-          }
+          _computeLinkedLibraries2();
 
           // Write the whole package bundle.
           PackageBundleBuilder bundle = assembler.assemble();
@@ -328,43 +310,6 @@ class BuildMode with HasContextMixin {
       }
 
       return severity;
-    });
-  }
-
-  /**
-   * Compute linked libraries for the given [libraryUris] using the linked
-   * libraries of the [summaryDataStore] and unlinked units in [uriToUnit], and
-   * add them to  the [assembler].
-   */
-  void _computeLinkedLibraries(Set<String> libraryUris) {
-    logger.run('Link output summary', () {
-      void trackDependency(String absoluteUri) {
-        if (dependencyTracker != null) {
-          var summaryUri = summaryDataStore.uriToSummaryPath[absoluteUri];
-          if (summaryUri != null) {
-            dependencyTracker.record(summaryUri);
-          }
-        }
-      }
-
-      LinkedLibrary getDependency(String absoluteUri) {
-        trackDependency(absoluteUri);
-        return summaryDataStore.linkedMap[absoluteUri];
-      }
-
-      UnlinkedUnit getUnit(String absoluteUri) {
-        trackDependency(absoluteUri);
-        return summaryDataStore.unlinkedMap[absoluteUri] ??
-            uriToUnit[absoluteUri];
-      }
-
-      Map<String, LinkedLibraryBuilder> linkResult = link(
-          libraryUris,
-          getDependency,
-          getUnit,
-          analysisDriver.declaredVariables,
-          analysisOptions);
-      linkResult.forEach(assembler.addLinkedLibrary);
     });
   }
 
@@ -539,9 +484,7 @@ class BuildMode with HasContextMixin {
     declaredVariables = new DeclaredVariables.fromMap(options.definedVariables);
     analysisDriver.declaredVariables = declaredVariables;
 
-    if (AnalysisDriver.useSummary2) {
-      _createLinkedElementFactory();
-    }
+    _createLinkedElementFactory();
 
     scheduler.start();
   }
@@ -590,13 +533,11 @@ class BuildMode with HasContextMixin {
   }
 
   /**
-   * Ensure that the [UnlinkedUnit] for [absoluteUri] is available.
+   * Ensure that the parsed unit for [absoluteUri] is available.
    *
    * If the unit is in the input [summaryDataStore], do nothing.
-   *
-   * Otherwise compute it and store into the [uriToUnit] and [assembler].
    */
-  Future<void> _prepareUnlinkedUnit(String absoluteUri) async {
+  Future<void> _prepareUnit(String absoluteUri) async {
     // Maybe an input package contains the source.
     if (summaryDataStore.unlinkedMap[absoluteUri] != null) {
       return;
@@ -610,13 +551,7 @@ class BuildMode with HasContextMixin {
       return;
     }
     var result = await analysisDriver.parseFile(source.fullName);
-    if (AnalysisDriver.useSummary2) {
-      inputParsedUnitResults[result.path] = result;
-    } else {
-      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(result.unit);
-      uriToUnit[absoluteUri] = unlinkedUnit;
-      assembler.addUnlinkedUnit(source, unlinkedUnit);
-    }
+    inputParsedUnitResults[result.path] = result;
   }
 
   /**
