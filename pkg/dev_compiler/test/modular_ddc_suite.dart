@@ -19,12 +19,12 @@ List<String> _nnbdOptOut = ['sdk'];
 String _test_package = 'ddc_modular_test';
 
 Uri sdkRoot = Platform.script.resolve("../../../");
-bool _nnbd = false;
 Options _options;
 String _dartdevcScript;
 String _buildSdkScript;
 String _patchSdkScript;
 String _sdkDevRuntime;
+String _sdkDevRuntimeNnbd;
 
 main(List<String> args) async {
   _options = Options.parse(args);
@@ -69,8 +69,8 @@ class DDCStep implements IOModularStep {
 
     ProcessResult result;
 
-    _nnbd = flags.contains('non-nullable');
-    bool allowErrors = _nnbd && _nnbdOptOut.contains(module.name);
+    bool nnbd = flags.contains('non-nullable');
+    bool allowErrors = nnbd && _nnbdOptOut.contains(module.name);
 
     if (module.isSdk) {
       assert(transitiveDependencies.isEmpty);
@@ -81,9 +81,9 @@ class DDCStep implements IOModularStep {
           [
             _patchSdkScript,
             sdkRoot.toFilePath(),
-            _sdkDevRuntime,
+            if (nnbd) _sdkDevRuntimeNnbd else _sdkDevRuntime,
             'patched_sdk',
-            if (_nnbd) 'sdk_nnbd'
+            if (nnbd) 'sdk_nnbd'
           ],
           root.toFilePath());
       _checkExitCode(result, this, module);
@@ -310,8 +310,6 @@ Future<void> _resolveScripts() async {
       'pkg/dev_compiler/bin/dartdevc.dart', 'snapshots/dartdevc.dart.snapshot');
   _buildSdkScript = await resolve('pkg/dev_compiler/tool/build_sdk.dart');
   _patchSdkScript = await resolve('pkg/dev_compiler/tool/patch_sdk.dart');
-  _sdkDevRuntime = await resolve(_nnbd
-      ? 'sdk_nnbd'
-      : 'sdk'
-          '/lib/_internal/js_dev_runtime');
+  _sdkDevRuntime = await resolve('sdk/lib/_internal/js_dev_runtime');
+  _sdkDevRuntimeNnbd = await resolve('sdk_nnbd/lib/_internal/js_dev_runtime');
 }
