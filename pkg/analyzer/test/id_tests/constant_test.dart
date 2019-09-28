@@ -88,7 +88,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       }
     } else if (type is FunctionType) {
       var element = value.toFunctionValue();
-      return 'Function(${element.name})';
+      return 'Function(${element.name},type=${value.type})';
     }
     throw UnimplementedError('_stringify for type $type');
   }
