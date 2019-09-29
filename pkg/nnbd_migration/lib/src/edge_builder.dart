@@ -192,10 +192,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   List<String> _objectGetNames;
 
   EdgeBuilder(this._typeProvider, this._typeSystem, this._variables,
-      this._graph, this.source, this.listener,
+      this._graph, this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
-      : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
-        _inheritanceManager = InheritanceManager3(_typeSystem),
+      : _inheritanceManager = InheritanceManager3(_typeSystem),
         _notNullType = DecoratedType(_typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
             DecoratedType(_typeProvider.boolType, _graph.never),
