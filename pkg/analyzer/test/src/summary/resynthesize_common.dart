@@ -6416,6 +6416,35 @@ class C {
 ''');
   }
 
+  test_finalField_hasConstConstructor() async {
+    var library = await checkLibrary(r'''
+class C1  {
+  final List<int> f1 = const [];
+  const C1();
+}
+class C2  {
+  final List<int> f2 = const [];
+  C2();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C1 {
+  final List<int> f1 =
+    ListLiteral
+      isConst: true
+      staticType: List<int>
+  const C1();
+}
+class C2 {
+  final List<int> f2;
+  C2();
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_function_async() async {
     var library = await checkLibrary(r'''
 import 'dart:async';

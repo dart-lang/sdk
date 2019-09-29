@@ -40,6 +40,7 @@ class ConstantInitializersResolver {
   final Linker linker;
 
   LibraryElement _library;
+  bool _enclosingClassHasConstConstructor = false;
   Scope _scope;
 
   ConstantInitializersResolver(this.linker);
@@ -59,11 +60,15 @@ class ConstantInitializersResolver {
   }
 
   void _resolveClassFields(ClassElement class_) {
+    _enclosingClassHasConstConstructor =
+        class_.constructors.any((c) => c.isConst);
+
     var node = _getLinkedNode(class_);
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in class_.fields) {
       _resolveVariable(element);
     }
+    _enclosingClassHasConstConstructor = false;
   }
 
   void _resolveExtensionFields(ExtensionElement extension_) {
@@ -82,15 +87,18 @@ class ConstantInitializersResolver {
 
     VariableDeclarationList declarationList = variable.parent;
     var typeNode = declarationList.type;
-    if (declarationList.isConst && typeNode != null) {
-      var holder = ElementHolder();
-      variable.initializer.accept(LocalElementBuilder(holder, null));
-      (element as VariableElementImpl).encloseElements(holder.functions);
+    if (typeNode != null) {
+      if (declarationList.isConst ||
+          declarationList.isFinal && _enclosingClassHasConstConstructor) {
+        var holder = ElementHolder();
+        variable.initializer.accept(LocalElementBuilder(holder, null));
+        (element as VariableElementImpl).encloseElements(holder.functions);
 
-      InferenceContext.setType(variable.initializer, typeNode.type);
-      var astResolver = AstResolver(linker, _library, _scope);
-      astResolver.rewriteAst(variable.initializer);
-      astResolver.resolve(variable.initializer);
+        InferenceContext.setType(variable.initializer, typeNode.type);
+        var astResolver = AstResolver(linker, _library, _scope);
+        astResolver.rewriteAst(variable.initializer);
+        astResolver.resolve(variable.initializer);
+      }
     }
   }
 }

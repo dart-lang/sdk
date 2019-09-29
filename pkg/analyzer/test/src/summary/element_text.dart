@@ -15,6 +15,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 
+import 'resolved_ast_printer.dart';
+
 /**
  * Set this path to automatically replace expectations in invocations of
  * [checkElementText] with the new actual texts.
@@ -53,19 +55,24 @@ void applyCheckElementTextReplacements() {
  * taking into account the specified 'withX' options. Then compare the
  * actual text with the given [expected] one.
  */
-void checkElementText(LibraryElement library, String expected,
-    {bool withCodeRanges: false,
-    bool withConstElements: true,
-    bool withExportScope: false,
-    bool withOffsets: false,
-    bool withSyntheticAccessors: false,
-    bool withSyntheticFields: false,
-    bool withTypes: false,
-    bool annotateNullability: false}) {
+void checkElementText(
+  LibraryElement library,
+  String expected, {
+  bool withCodeRanges: false,
+  bool withConstElements: true,
+  bool withExportScope: false,
+  bool withFullyResolvedAst: false,
+  bool withOffsets: false,
+  bool withSyntheticAccessors: false,
+  bool withSyntheticFields: false,
+  bool withTypes: false,
+  bool annotateNullability: false,
+}) {
   var writer = new _ElementWriter(
       withCodeRanges: withCodeRanges,
       withConstElements: withConstElements,
       withExportScope: withExportScope,
+      withFullyResolvedAst: withFullyResolvedAst,
       withOffsets: withOffsets,
       withSyntheticAccessors: withSyntheticAccessors,
       withSyntheticFields: withSyntheticFields,
@@ -133,6 +140,7 @@ void checkElementText(LibraryElement library, String expected,
 class _ElementWriter {
   final bool withCodeRanges;
   final bool withExportScope;
+  final bool withFullyResolvedAst;
   final bool withOffsets;
   final bool withConstElements;
   final bool withSyntheticAccessors;
@@ -145,6 +153,7 @@ class _ElementWriter {
       {this.withCodeRanges,
       this.withConstElements: true,
       this.withExportScope: false,
+      this.withFullyResolvedAst: false,
       this.withOffsets: false,
       this.withSyntheticAccessors: false,
       this.withSyntheticFields: false,
@@ -531,7 +540,14 @@ class _ElementWriter {
     }
   }
 
-  void writeNode(AstNode e, [Expression enclosing]) {
+  void writeNode(AstNode e, {String indent: '', Expression enclosing}) {
+    if (withFullyResolvedAst) {
+      buffer.writeln();
+      var printer = ResolvedAstPrinter(buffer, indent);
+      e.accept(printer);
+      return;
+    }
+
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
         e.precedence < enclosing.precedence;
@@ -568,11 +584,11 @@ class _ElementWriter {
       }
       buffer.write(')');
     } else if (e is BinaryExpression) {
-      writeNode(e.leftOperand, e);
+      writeNode(e.leftOperand, enclosing: e);
       buffer.write(' ');
       buffer.write(e.operator.lexeme);
       buffer.write(' ');
-      writeNode(e.rightOperand, e);
+      writeNode(e.rightOperand, enclosing: e);
     } else if (e is BooleanLiteral) {
       buffer.write(e.value);
     } else if (e is ConditionalExpression) {
@@ -673,16 +689,16 @@ class _ElementWriter {
     } else if (e is NullLiteral) {
       buffer.write('null');
     } else if (e is ParenthesizedExpression) {
-      writeNode(e.expression, e);
+      writeNode(e.expression, enclosing: e);
     } else if (e is PrefixExpression) {
       buffer.write(e.operator.lexeme);
-      writeNode(e.operand, e);
+      writeNode(e.operand, enclosing: e);
     } else if (e is PrefixedIdentifier) {
       writeNode(e.prefix);
       buffer.write('.');
       writeNode(e.identifier);
     } else if (e is PropertyAccess) {
-      writeNode(e.target, e);
+      writeNode(e.target, enclosing: e);
       buffer.write('.');
       writeNode(e.propertyName);
     } else if (e is RedirectingConstructorInvocation) {
@@ -949,7 +965,13 @@ class _ElementWriter {
       Expression initializer = (e as ConstVariableElement).constantInitializer;
       if (initializer != null) {
         buffer.write(' = ');
-        writeNode(initializer);
+        writeNode(
+          initializer,
+          indent: ' ' * (e is FieldElement ? 4 : 2),
+        );
+        if (withFullyResolvedAst) {
+          return;
+        }
       }
     }
 
