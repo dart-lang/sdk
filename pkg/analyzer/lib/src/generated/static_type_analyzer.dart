@@ -357,17 +357,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       var operatorElement = node.staticElement;
       var type = operatorElement?.returnType ?? _dynamicType;
       type = _typeSystem.refineBinaryExpressionType(
-        _getStaticType(node.leftHandSide, read: true),
-        operator,
-        node.rightHandSide.staticType,
-        type,
-        _featureSet,
-      );
+          _getStaticType(node.leftHandSide, read: true),
+          operator,
+          node.rightHandSide.staticType,
+          type);
       _recordStaticType(node, type);
 
       var leftWriteType = _getStaticType(node.leftHandSide);
-      if (!_typeSystem.isAssignableTo(type, leftWriteType,
-          featureSet: _featureSet)) {
+      if (!_typeSystem.isAssignableTo(type, leftWriteType)) {
         _resolver.errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.rightHandSide,
@@ -465,8 +462,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           node.leftOperand.staticType,
           node.operator.type,
           node.rightOperand.staticType,
-          staticType,
-          _featureSet);
+          staticType);
     }
     _recordStaticType(node, staticType);
   }
@@ -663,10 +659,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context,
-            featureSet: _featureSet) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context,
-            featureSet: _featureSet)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));
@@ -1238,8 +1232,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void _checkForInvalidAssignmentIncDec(
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType,
-        featureSet: _featureSet)) {
+    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
       _resolver.errorReporter.reportTypeErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,

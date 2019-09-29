@@ -1440,7 +1440,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// provided.
   DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
       {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null),
+      : this._typeSystem =
+            typeSystem ?? new Dart2TypeSystem(null, featureSet: featureSet),
         _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
@@ -6928,7 +6929,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
-    _typeSystem = TypeSystem.create(definingLibrary.context);
+    _typeSystem = TypeSystem.create(definingLibrary.context, featureSet);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
         this.isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
