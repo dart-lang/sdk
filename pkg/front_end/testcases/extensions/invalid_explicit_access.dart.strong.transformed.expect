@@ -30,9 +30,9 @@ library;
 //   Extension(c1).foo = null;
 //   ^^^
 //
-// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:3: Error: Getter not found: 'foo'.
+// pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:17: Error: Method not found: 'foo'.
 //   Extension(c1).foo();
-//   ^^^
+//                 ^^^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:3: Error: Too few positional arguments: 2 required, 1 given.
 //   Extension(c1).method();
@@ -180,9 +180,9 @@ Try changing the type of the parameter, or casting the argument to 'Class'.
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:30:3: Error: Setter not found: 'foo'.
   Extension(c1).foo = null;
   ^^^";
-  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:3: Error: Getter not found: 'foo'.
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:31:17: Error: Method not found: 'foo'.
   Extension(c1).foo();
-  ^^^";
+                ^^^";
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:32:3: Error: Too few positional arguments: 2 required, 1 given.
   Extension(c1).method();
   ^";

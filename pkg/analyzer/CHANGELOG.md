@@ -1,3 +1,8 @@
+## 0.38.5-dev
+* Added the interface `PromotableElement`, which representing
+  variables that can be type promoted (local variables and parameters,
+  but not fields).
+
 ## 0.38.4
 * Bug fixes: #33300, #38484, #38505.
 

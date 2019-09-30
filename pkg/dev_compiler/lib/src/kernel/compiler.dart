@@ -505,10 +505,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   static js_ast.Identifier _emitIdentifier(String name) =>
-      js_ast.Identifier(escapeIdentifier(name));
+      js_ast.Identifier(js_ast.toJSIdentifier(name));
 
   static js_ast.TemporaryId _emitTemporaryId(String name) =>
-      js_ast.TemporaryId(escapeIdentifier(name));
+      js_ast.TemporaryId(js_ast.toJSIdentifier(name));
 
   js_ast.Statement _emitClassDeclaration(Class c) {
     // Mixins are unrolled in _defineClass.

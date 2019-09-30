@@ -107,7 +107,7 @@ class _Listener implements NullabilityMigrationListener {
     } else if (edit.replacement == "import 'package:meta/meta.dart';\n" &&
         edit.length == 0) {
       ++numMetaImportsAdded;
-    } else if (edit.replacement == '@required ' && edit.length == 0) {
+    } else if (edit.replacement == 'required ' && edit.length == 0) {
       ++numRequiredAnnotationsAdded;
     } else if ((edit.replacement == '/* ' ||
             edit.replacement == ' /*' ||

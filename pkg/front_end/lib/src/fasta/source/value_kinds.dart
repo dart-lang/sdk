@@ -47,6 +47,8 @@ abstract class ValueKind {
       const _SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValue.FormalParameters);
   static const ValueKind Generator = const _SingleValueKind<type.Generator>();
+  static const ValueKind Initializer =
+      const _SingleValueKind<type.Initializer>();
   static const ValueKind MethodBody = const _SingleValueKind<type.MethodBody>();
   static const ValueKind Modifiers =
       const _SingleValueKind<List<type.Modifier>>();

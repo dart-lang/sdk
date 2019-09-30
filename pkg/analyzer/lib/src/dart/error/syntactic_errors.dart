@@ -852,8 +852,11 @@ class ParserErrorCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const ParserErrorCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const ParserErrorCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction,
+            hasPublishedDocs: hasPublishedDocs ?? false);
 
   @override
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;

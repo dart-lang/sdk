@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -20,6 +21,7 @@ main() {
     defineReflectiveTests(SubstituteFromPairsTest);
     defineReflectiveTests(SubstituteFromUpperAndLowerBoundsTest);
     defineReflectiveTests(SubstituteTest);
+    defineReflectiveTests(SubstituteWithNullabilityTest);
   });
 }
 
@@ -276,19 +278,57 @@ class SubstituteTest extends _Base {
     var result = substitute(type, substitution);
     expect(result, same(type));
   }
+}
 
-  void _assertSubstitution(
-    DartType type,
-    Map<TypeParameterElement, DartType> substitution,
-    String expected,
-  ) {
-    var result = substitute(type, substitution);
-    assertElementTypeString(result, expected);
+@reflectiveTest
+class SubstituteWithNullabilityTest extends _Base {
+  SubstituteWithNullabilityTest() : super(useNnbd: true);
+
+  test_interface_none() async {
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var U = typeParameter('U');
+    var type = interfaceType(A,
+        typeArguments: [typeParameterType(U)],
+        nullabilitySuffix: NullabilitySuffix.none);
+    _assertSubstitution(type, {U: intType}, 'A<int>');
+  }
+
+  test_interface_question() async {
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var U = typeParameter('U');
+    var type = interfaceType(A,
+        typeArguments: [typeParameterType(U)],
+        nullabilitySuffix: NullabilitySuffix.question);
+    _assertSubstitution(type, {U: intType}, 'A<int>?');
+  }
+
+  test_interface_star() async {
+    // class A<T> {}
+    var T = typeParameter('T');
+    var A = class_(name: 'A', typeParameters: [T]);
+
+    var U = typeParameter('U');
+    var type = interfaceType(A,
+        typeArguments: [typeParameterType(U)],
+        nullabilitySuffix: NullabilitySuffix.star);
+    _assertSubstitution(type, {U: intType}, 'A<int>*');
   }
 }
 
 class _Base with ElementsTypesMixin {
-  final typeProvider = TestTypeProvider();
+  final TestTypeProvider typeProvider;
+
+  final bool useNnbd;
+
+  _Base({this.useNnbd = false})
+      : typeProvider = TestTypeProvider(null, null,
+            useNnbd ? NullabilitySuffix.none : NullabilitySuffix.question);
 
   InterfaceType get boolType => typeProvider.boolType;
 
@@ -297,11 +337,20 @@ class _Base with ElementsTypesMixin {
   InterfaceType get intType => typeProvider.intType;
 
   /// Whether `DartType.toString()` with nullability should be asked.
-  bool get typeToStringWithNullability => false;
+  bool get typeToStringWithNullability => useNnbd;
 
   void assertElementTypeString(DartType type, String expected) {
     TypeImpl typeImpl = type;
     expect(typeImpl.toString(withNullability: typeToStringWithNullability),
         expected);
+  }
+
+  void _assertSubstitution(
+    DartType type,
+    Map<TypeParameterElement, DartType> substitution,
+    String expected,
+  ) {
+    var result = substitute(type, substitution);
+    assertElementTypeString(result, expected);
   }
 }

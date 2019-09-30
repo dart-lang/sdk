@@ -71,6 +71,12 @@ extension Extension on Class {
   }
 }
 
+class GenericClass<T> {}
+
+extension GenericExtension<T> on GenericClass<T> {
+  set setter(T value) {}
+}
+
 main() {
   var c = new Class();
   expect(null, c.field);
@@ -191,8 +197,9 @@ main() {
 
   new Class().testInternal();
 
+  GenericClass<int> genericClass = new GenericClass<int>();
+  expect(1, GenericExtension(genericClass).setter = 1);
 }
-
 
 expect(expected, actual) {
   if (expected != actual) {

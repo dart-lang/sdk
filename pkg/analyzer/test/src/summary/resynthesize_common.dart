@@ -11,17 +11,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import '../../util/element_type_matchers.dart';
 import 'element_text.dart';
 import 'test_strategies.dart';
 
@@ -80,126 +76,6 @@ abstract class AbstractResynthesizeTest with ResourceProviderMixin {
   Source addTestSource(String code, [Uri uri]) {
     testSource = addSource(testFile, code);
     return testSource;
-  }
-
-  /**
-   * Verify that the [resynthesizer] didn't do any unnecessary work when
-   * resynthesizing the library with the [expectedLibraryUri].
-   */
-  void checkMinimalResynthesisWork(TestSummaryResynthesizer resynthesizer,
-      Uri expectedLibraryUri, List<Uri> expectedUnitUriList) {
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
-    // Check that the only linked summary consulted was that for [uri].
-    expect(resynthesizer.linkedSummariesRequested, hasLength(1));
-    expect(resynthesizer.linkedSummariesRequested.first,
-        expectedLibraryUri.toString());
-    // Check that the only unlinked summaries consulted were those for the
-    // library in question.
-    var expectedUnitUriStrSet =
-        expectedUnitUriList.map((uri) => uri.toString()).toSet();
-    for (String requestedUri in resynthesizer.unlinkedSummariesRequested) {
-      expect(expectedUnitUriStrSet, contains(requestedUri));
-    }
-  }
-}
-
-/// Mixin containing test cases exercising summary resynthesis.  Intended to be
-/// applied to a class implementing [ResynthesizeTestStrategy], along with the
-/// mixin [ResynthesizeTestHelpers].
-mixin GetElementTestCases implements ResynthesizeTestHelpers {
-  test_getElement_class() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C'],
-    );
-    expect(resynthesized, isClassElement);
-  }
-
-  test_getElement_constructor_named() async {
-    var resynthesized = _validateGetElement(
-      'class C { C.named(); }',
-      ['C', 'named'],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_constructor_unnamed() async {
-    var resynthesized = _validateGetElement(
-      'class C { C(); }',
-      ['C', ''],
-    );
-    expect(resynthesized, isConstructorElement);
-  }
-
-  test_getElement_field() async {
-    var resynthesized = _validateGetElement(
-      'class C { var f; }',
-      ['C', 'f'],
-    );
-    expect(resynthesized, isFieldElement);
-  }
-
-  test_getElement_getter() async {
-    var resynthesized = _validateGetElement(
-      'class C { get f => null; }',
-      ['C', 'f?'],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_method() async {
-    var resynthesized = _validateGetElement(
-      'class C { m() {} }',
-      ['C', 'm'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_operator() async {
-    var resynthesized = _validateGetElement(
-      'class C { operator+(x) => null; }',
-      ['C', '+'],
-    );
-    expect(resynthesized, isMethodElement);
-  }
-
-  test_getElement_setter() async {
-    var resynthesized = _validateGetElement(
-      'class C { void set f(value) {} }',
-      ['C', 'f='],
-    );
-    expect(resynthesized, isPropertyAccessorElement);
-  }
-
-  test_getElement_unit() async {
-    var resynthesized = _validateGetElement('class C {}', []);
-    expect(resynthesized, isCompilationUnitElement);
-  }
-
-  /**
-   * Encode the library [text] into a summary and then use
-   * [TestSummaryResynthesizer.getElement] to retrieve just the element with
-   * the specified [names] from the resynthesized summary.
-   */
-  Element _validateGetElement(String text, List<String> names) {
-    Source source = addTestSource(text);
-    SummaryResynthesizer resynthesizer = encodeLibrary(source);
-
-    var locationComponents = [
-      source.uri.toString(),
-      source.uri.toString(),
-    ]..addAll(names);
-    var location = ElementLocationImpl.con3(locationComponents);
-
-    Element result = resynthesizer.getElement(location);
-    checkMinimalResynthesisWork(resynthesizer, source.uri, [source.uri]);
-    // Check that no other summaries needed to be resynthesized to resynthesize
-    // the library element.
-    expect(resynthesizer.resynthesisCount, 3);
-    expect(result.location, location);
-    return result;
   }
 }
 
@@ -6540,6 +6416,35 @@ class C {
 ''');
   }
 
+  test_finalField_hasConstConstructor() async {
+    var library = await checkLibrary(r'''
+class C1  {
+  final List<int> f1 = const [];
+  const C1();
+}
+class C2  {
+  final List<int> f2 = const [];
+  C2();
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C1 {
+  final List<int> f1 =
+    ListLiteral
+      isConst: true
+      staticType: List<int>
+  const C1();
+}
+class C2 {
+  final List<int> f2;
+  C2();
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_function_async() async {
     var library = await checkLibrary(r'''
 import 'dart:async';
@@ -8026,6 +7931,22 @@ F f;
     checkElementText(library, r'''
 typedef F<T extends num> = S Function<S>(T p);
 S Function<S>(num) f;
+''');
+  }
+
+  test_instantiateToBounds_issue38498() async {
+    var library = await checkLibrary('''
+class A<R extends B> {
+  final values = <B>[];
+}
+class B<T extends num> {}
+''');
+    checkElementText(library, r'''
+class A<R extends B<num>> {
+  final List<B<num>> values;
+}
+class B<T extends num> {
+}
 ''');
   }
 
@@ -11509,60 +11430,9 @@ int j;
 mixin ResynthesizeTestHelpers implements ResynthesizeTestStrategy {
   Future<LibraryElementImpl> checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) async {
-    Source source = addTestSource(text);
-    SummaryResynthesizer resynthesizer = encodeLibrary(source);
-    return resynthesizer.getLibraryElement(source.uri.toString());
-  }
-}
-
-class TestSummaryResynthesizer extends SummaryResynthesizer {
-  final Map<String, UnlinkedUnit> unlinkedSummaries;
-  final Map<String, LinkedLibrary> linkedSummaries;
-  final bool allowMissingFiles;
-
-  /**
-   * The set of uris for which unlinked summaries have been requested using
-   * [getUnlinkedSummary].
-   */
-  final Set<String> unlinkedSummariesRequested = new Set<String>();
-
-  /**
-   * The set of uris for which linked summaries have been requested using
-   * [getLinkedSummary].
-   */
-  final Set<String> linkedSummariesRequested = new Set<String>();
-
-  TestSummaryResynthesizer(AnalysisContextImpl context, this.unlinkedSummaries,
-      this.linkedSummaries, this.allowMissingFiles)
-      : super(context, null, context.sourceFactory, true) {
-    // Clear after resynthesizing TypeProvider in super().
-    unlinkedSummariesRequested.clear();
-    linkedSummariesRequested.clear();
-    context.typeProvider = typeProvider;
-  }
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    linkedSummariesRequested.add(uri);
-    LinkedLibrary serializedLibrary = linkedSummaries[uri];
-    if (serializedLibrary == null && !allowMissingFiles) {
-      fail('Unexpectedly tried to get linked summary for $uri');
-    }
-    return serializedLibrary;
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    unlinkedSummariesRequested.add(uri);
-    UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
-    if (serializedUnit == null && !allowMissingFiles) {
-      fail('Unexpectedly tried to get unlinked summary for $uri');
-    }
-    return serializedUnit;
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    return true;
+    throw 42;
+//    Source source = addTestSource(text);
+//    SummaryResynthesizer resynthesizer = encodeLibrary(source);
+//    return resynthesizer.getLibraryElement(source.uri.toString());
   }
 }

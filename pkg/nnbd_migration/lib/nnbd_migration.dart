@@ -36,14 +36,17 @@ class NullabilityFixDescription {
   factory NullabilityFixDescription.addRequired(
           String className, String functionName, String paramName) =>
       NullabilityFixDescription._(
-          appliedMessage: "Add 'required' keyword to parameter $paramName in " +
-              (className == null ? functionName : '$className.$functionName'));
+          appliedMessage:
+              "Add 'required' keyword to parameter '$paramName' in " +
+                  (className == null
+                      ? functionName
+                      : "'$className.$functionName'"));
 
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
       NullabilityFixDescription._(
-        appliedMessage: 'Changed type $type to be nullable',
+        appliedMessage: "Changed type '$type' to be nullable",
       );
 
   const NullabilityFixDescription._({@required this.appliedMessage});

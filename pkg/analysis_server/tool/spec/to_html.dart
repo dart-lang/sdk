@@ -286,7 +286,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h3(() => write('Domains'));
     for (var domain in api.domains) {
       if (domain.experimental ||
-          (domain.requests.isEmpty && domain.notifications == 0)) {
+          (domain.requests.isEmpty && domain.notifications.isEmpty)) {
         continue;
       }
       generateDomainIndex(domain);

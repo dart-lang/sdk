@@ -31,7 +31,8 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
 
   @override
   void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons) {
-    _sourceInfo(fix.source).fixes[fix] = reasons.toList();
+    _sourceInfo(fix.source).fixes[fix] =
+        reasons.where((reason) => reason != null).toList();
   }
 
   @override

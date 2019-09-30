@@ -1,5 +1,5 @@
 name: analyzer
-version: 0.38.4
+version: 0.38.5-dev
 author: Dart Team <misc@dartlang.org>
 description: This package provides a library that performs static analysis of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer

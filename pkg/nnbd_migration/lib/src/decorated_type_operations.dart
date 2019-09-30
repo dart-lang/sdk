@@ -11,18 +11,13 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
 class DecoratedTypeOperations
-    implements TypeOperations<VariableElement, DecoratedType> {
+    implements TypeOperations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
   final VariableRepository _variableRepository;
   final NullabilityGraph _graph;
 
   DecoratedTypeOperations(
       this._typeSystem, this._variableRepository, this._graph);
-
-  @override
-  bool isLocalVariable(VariableElement element) {
-    return element is LocalVariableElement;
-  }
 
   @override
   bool isSameType(DecoratedType type1, DecoratedType type2) {
@@ -40,7 +35,7 @@ class DecoratedTypeOperations
   }
 
   @override
-  DecoratedType variableType(VariableElement variable) {
+  DecoratedType variableType(PromotableElement variable) {
     return _variableRepository.decoratedElementType(variable);
   }
 }

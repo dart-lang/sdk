@@ -60,6 +60,38 @@ class C {
 ''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
   }
 
+  test_classInstanceMethod_overriding() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  int f() => 7;
+}
+
+class D extends C {
+  f() => 9;
+}
+
+class E implements C {
+  f() => 9;
+}
+
+class F with C {
+  f() => 9;
+}
+
+mixin M on C {
+  f() => 9;
+}
+
+mixin N {
+  int g() => 7;
+}
+
+class G with N {
+  g() => 9;
+}
+''');
+  }
+
   test_classInstanceMethod_withReturnType() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -77,11 +109,11 @@ class C {
   }
 
   test_classInstanceSetter() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 class C {
   set f(int x) => print(x);
 }
-''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 25)]);
+''');
   }
 
   test_classStaticMethod() async {
@@ -121,6 +153,22 @@ void f(void callback(callback2())) {
 void f(int callback()) {
   callback();
 }
+''');
+  }
+
+  test_genericFunctionType() async {
+    await assertErrorsInCode(r'''
+Function(int) f = (int n) {
+  print(n);
+};
+''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 13)]);
+  }
+
+  test_genericFunctionType_withReturnType() async {
+    await assertNoErrorsInCode(r'''
+void Function(int) f = (int n) {
+  print(n);
+};
 ''');
   }
 
@@ -167,6 +215,30 @@ f() {
   test_topLevelFunction_withReturnType() async {
     await assertNoErrorsInCode(r'''
 dynamic f() => 7;
+''');
+  }
+
+  test_typedef_classic() async {
+    await assertErrorsInCode(r'''
+typedef Callback(int i);
+''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 24)]);
+  }
+
+  test_typedef_classic_withReturnType() async {
+    await assertNoErrorsInCode(r'''
+typedef void Callback(int i);
+''');
+  }
+
+  test_typedef_modern() async {
+    await assertErrorsInCode(r'''
+typedef Callback = Function(int i);
+''', [error(HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 35)]);
+  }
+
+  test_typedef_modern_withReturnType() async {
+    await assertNoErrorsInCode(r'''
+typedef Callback = void Function(int i);
 ''');
   }
 }

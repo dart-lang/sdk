@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("../build/dart/dart_host_sdk_toolchain.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
@@ -67,28 +66,22 @@ config("dart_nosnapshot_config") {
 config("dart_os_config") {
   defines = []
 
-  # If dart_host_toolchain is the current toolchain, and it is different from
-  # host_toolchain, then we are building the SDK for the host, and should not
-  # hardcode these defines.
-  if (current_toolchain != dart_host_toolchain ||
-      host_toolchain == dart_host_toolchain) {
-    if (target_os == "android") {
-      defines += [ "TARGET_OS_ANDROID" ]
-    } else if (target_os == "fuchsia") {
-      defines += [ "TARGET_OS_FUCHSIA" ]
-    } else if (target_os == "ios") {
-      defines += [ "TARGET_OS_MACOS" ]
-      defines += [ "TARGET_OS_MACOS_IOS" ]
-    } else if (target_os == "linux") {
-      defines += [ "TARGET_OS_LINUX" ]
-    } else if (target_os == "mac") {
-      defines += [ "TARGET_OS_MACOS" ]
-    } else if (target_os == "win") {
-      defines += [ "TARGET_OS_WINDOWS" ]
-    } else {
-      print("Unknown target_os: $target_os")
-      assert(false)
-    }
+  if (target_os == "android") {
+    defines += [ "TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "TARGET_OS_MACOS" ]
+    defines += [ "TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "TARGET_OS_WINDOWS" ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
   }
 }
 
@@ -102,32 +95,26 @@ config("dart_os_fuchsia_config") {
 config("dart_arch_config") {
   defines = []
 
-  # If dart_host_toolchain is the current toolchain, and it is different from
-  # host_toolchain, then we are building the SDK for the host, and should not
-  # hardcode these defines.
-  if (current_toolchain != dart_host_toolchain ||
-      host_toolchain == dart_host_toolchain) {
-    if (dart_target_arch == "arm") {
-      defines += [ "TARGET_ARCH_ARM" ]
-    } else if (dart_target_arch == "armv6") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_6" ]
-    } else if (dart_target_arch == "armv5te") {
-      defines += [ "TARGET_ARCH_ARM" ]
-      defines += [ "TARGET_ARCH_ARM_5TE" ]
-    } else if (dart_target_arch == "arm64") {
-      defines += [ "TARGET_ARCH_ARM64" ]
-    } else if (dart_target_arch == "x64") {
-      defines += [ "TARGET_ARCH_X64" ]
-    } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
-      defines += [ "TARGET_ARCH_IA32" ]
-    } else if (dart_target_arch == "dbc") {
-      defines += [ "TARGET_ARCH_DBC" ]
-      defines += [ "USING_SIMULATOR" ]
-    } else {
-      print("Invalid dart_target_arch: $dart_target_arch")
-      assert(false)
-    }
+  if (dart_target_arch == "arm") {
+    defines += [ "TARGET_ARCH_ARM" ]
+  } else if (dart_target_arch == "armv6") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_6" ]
+  } else if (dart_target_arch == "armv5te") {
+    defines += [ "TARGET_ARCH_ARM" ]
+    defines += [ "TARGET_ARCH_ARM_5TE" ]
+  } else if (dart_target_arch == "arm64") {
+    defines += [ "TARGET_ARCH_ARM64" ]
+  } else if (dart_target_arch == "x64") {
+    defines += [ "TARGET_ARCH_X64" ]
+  } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    defines += [ "TARGET_ARCH_IA32" ]
+  } else if (dart_target_arch == "dbc") {
+    defines += [ "TARGET_ARCH_DBC" ]
+    defines += [ "USING_SIMULATOR" ]
+  } else {
+    print("Invalid dart_target_arch: $dart_target_arch")
+    assert(false)
   }
 }
 

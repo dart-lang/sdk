@@ -941,7 +941,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   TypeParameterType instantiate({
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return baseElement.instantiate(nullabilitySuffix: nullabilitySuffix);
+    return TypeParameterTypeImpl(this, nullabilitySuffix: nullabilitySuffix);
   }
 
   @override
@@ -968,37 +968,39 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   }
 
   static List<TypeParameterElement> from2(
-    List<TypeParameterElement> formals,
+    List<TypeParameterElement> elements,
     MapSubstitution substitution,
   ) {
     if (substitution.map.isEmpty) {
-      return formals;
+      return elements;
     }
 
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
-    var newElements = formals.toList(growable: false);
-    var newTypes = List<TypeParameterType>(formals.length);
+    var newElements = List<TypeParameterElement>(elements.length);
+    var newTypes = List<TypeParameterType>(elements.length);
     for (int i = 0; i < newElements.length; i++) {
-      var formal = newElements[i];
-      DartType bound = formal?.bound;
+      var element = elements[i];
+      var bound = element?.bound;
       if (bound != null) {
         bound = substitution.substituteType(bound);
-        var member = TypeParameterMember(formal, substitution, bound);
-        newElements[i] = member;
+        element = TypeParameterMember(element, substitution, bound);
       }
-      newTypes[i] = newElements[i].type;
+      newElements[i] = element;
+      newTypes[i] = newElements[i].instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
     }
 
     // Recursive bounds are allowed too, so make sure these are updated
     // to refer to any new TypeParameterMember we just made, rather than
     // the original type parameter
-    var substitution2 = Substitution.fromPairs(formals, newTypes);
-    for (var formal in newElements) {
-      if (formal is TypeParameterMember) {
+    var substitution2 = Substitution.fromPairs(elements, newTypes);
+    for (var newElement in newElements) {
+      if (newElement is TypeParameterMember) {
         // TODO(jmesserly): this is required so substituting for the
         // type formal will work. Investigate if there's a better solution.
-        formal._bound = substitution2.substituteType(formal.bound);
+        newElement._bound = substitution2.substituteType(newElement.bound);
       }
     }
     return newElements;

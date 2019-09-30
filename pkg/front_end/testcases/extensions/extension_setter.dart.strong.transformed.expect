@@ -8,6 +8,11 @@ class Class extends core::Object {
     : super core::Object::•()
     ;
 }
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    : super core::Object::•()
+    ;
+}
 extension Extension on self::Class* {
   get simpleSetter = self::Extension|get#simpleSetter;
   get mutatingSetter = self::Extension|get#mutatingSetter;
@@ -19,6 +24,9 @@ extension Extension on self::Class* {
   set mutatingSetter = self::Extension|set#mutatingSetter;
   set setterWithReturn = self::Extension|set#setterWithReturn;
   set setterWithClosure = self::Extension|set#setterWithClosure;
+}
+extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+  set setter = self::GenericExtension|set#setter;
 }
 static method Extension|get#simpleSetter(final self::Class* #this) → core::int*
   return #this.{self::Class::field};
@@ -76,6 +84,7 @@ static method Extension|testInternal(final self::Class* #this) → dynamic {
 }
 static method Extension|get#testInternal(final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|testInternal(#this);
+static method GenericExtension|set#setter<T extends core::Object* = dynamic>(final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void {}
 static method main() → dynamic {
   self::Class* c = new self::Class::•();
   self::expect(null, c.{self::Class::field});
@@ -184,6 +193,8 @@ static method main() → dynamic {
   let final self::Class* #t129 = c in #t129.{core::Object::==}(null) ?{core::Null?} null : #t129.{self::Class::field} = null;
   self::expect(2, let final self::Class* #t130 = c in #t130.{core::Object::==}(null) ?{core::int*} null : let final core::int* #t131 = self::Extension|get#simpleSetter(#t130) in #t131.{core::num::==}(null) ?{core::int*} let final core::int* #t132 = 2 in let final void #t133 = self::Extension|set#simpleSetter(#t130, #t132) in #t132 : #t131);
   self::Extension|testInternal(new self::Class::•());
+  self::GenericClass<core::int*>* genericClass = new self::GenericClass::•<core::int*>();
+  self::expect(1, let final self::GenericClass<core::int*>* #t134 = genericClass in let final core::int* #t135 = 1 in let final void #t136 = self::GenericExtension|set#setter<core::int*>(#t134, #t135) in #t135);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual)) {

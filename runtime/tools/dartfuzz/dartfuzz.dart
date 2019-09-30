@@ -9,12 +9,12 @@ import 'package:args/args.dart';
 
 import 'dartfuzz_values.dart';
 import 'dartfuzz_api_table.dart';
-import 'dartfuzz_ffiapi.dart';
+import 'dartfuzz_ffi_api.dart';
 
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.52';
+const String version = '1.53';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -542,13 +542,18 @@ class DartFuzz {
       emit('X${classFields.length - 1}().run()');
     }, () {
       emitLn("print('X${classFields.length - 1}().run() throws');");
-    }, finallyBody: () {
-      emitLn("print('", newline: false);
+    });
+
+    emitTryCatchFinally(() {
+      emit("print('", newline: false);
       for (int i = 0; i < globalVars.length; i++) {
         emit('\$$varName$i\\n');
       }
-      emit("');", newline: true);
+      emit("')");
+    }, () {
+      emitLn("print('print throws');");
     });
+
     indent -= 2;
     emitLn('}');
   }

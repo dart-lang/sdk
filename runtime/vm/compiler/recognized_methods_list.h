@@ -15,8 +15,8 @@ namespace dart {
   V(::, identical, ObjectIdentical, 0xc6e9467a)                                \
   V(ClassID, getID, ClassIDgetID, 0xf0376ced)                                  \
   V(Object, Object., ObjectConstructor, 0x8f3ae7ea)                            \
-  V(List, ., ListFactory, 0xd834242d)                                          \
-  V(_List, ., ObjectArrayAllocate, 0xe9c6d2be)                                 \
+  V(List, ., ListFactory, 0xda0d774c)                                          \
+  V(_List, ., ObjectArrayAllocate, 0x704c8d5d)                                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0xa24c2704)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 0xa491df3e)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 0xb65ae1fc)                  \
@@ -69,8 +69,8 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x6d3cec71)                                      \
   V(_Double, _mul, DoubleMul, 0x648e67af)                                      \
   V(_Double, _div, DoubleDiv, 0x6d72d7d4)                                      \
-  V(::, min, MathMin, 0x07168bf9)                                              \
-  V(::, max, MathMax, 0xc7dbc9a0)                                              \
+  V(::, min, MathMin, 0x3ccbc098)                                              \
+  V(::, max, MathMax, 0x4e398e7f)                                              \
   V(::, _doublePow, MathDoublePow, 0x5ae04e61)                                 \
   V(::, _intPow, MathIntPow, 0x569ffd3f)                                       \
   V(Float32x4, Float32x4., Float32x4Constructor, 0xdf9f0693)                   \
@@ -143,8 +143,8 @@ namespace dart {
   V(::, _classRangeCheck, ClassRangeCheck, 0xca52e30a)                         \
   V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0xaeaed5cb)             \
   V(::, _abi, FfiAbi, 0xf2e89620)                                              \
-  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x82525e9e)                \
-  V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x591fb33c)        \
+  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92a67518)                \
+  V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x59cc5edb)        \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -177,7 +177,7 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 0xb15ff274)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 0xe2853768)               \
   V(_Double, .fromInteger, DoubleFromInteger, 0x89504536)                      \
-  V(_GrowableList, ._withData, GrowableArray_Allocate, 0x55981e03)             \
+  V(_GrowableList, ._withData, GrowableArray_Allocate, 0x57717122)             \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0xb961fc8d)                   \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, 0xb22daf53)       \
   V(Object, ==, ObjectEquals, 0x91ead0d6)                                      \
@@ -404,9 +404,9 @@ namespace dart {
 // (factory-name-symbol, class-name-string, constructor-name-string,
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, _List, ., kArrayCid, 0xe9c6d2be)                             \
+  V(_ListFactory, _List, ., kArrayCid, 0x704c8d5d)                             \
   V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
-    0x55981e03)                                                                \
+    0x57717122)                                                                \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0x3eed680b)                                                                \
   V(_Int8ArrayFactory, Int8List, ., kTypedDataInt8ArrayCid, 0x6ce2f102)        \

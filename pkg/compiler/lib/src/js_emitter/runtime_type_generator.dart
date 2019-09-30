@@ -17,6 +17,7 @@ import '../js_backend/runtime_types.dart'
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, Substitution, TypeCheck;
 import '../js_emitter/sorter.dart';
+import '../options.dart';
 import '../util/util.dart' show Setlet;
 
 import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
@@ -92,6 +93,8 @@ class RuntimeTypeGenerator {
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final _TypeContainedInOutputUnitVisitor _outputUnitVisitor;
+
+  CompilerOptions get _options => emitterTask.options;
 
   RuntimeTypeGenerator(this._commonElements, this._outputUnitData,
       this.emitterTask, this._namer, this._rtiChecks, this._rtiEncoder)
@@ -181,7 +184,7 @@ class RuntimeTypeGenerator {
             checkedClass, _namer.operatorIs(checkedClass), js('1'));
       }
       Substitution substitution = check.substitution;
-      if (substitution != null) {
+      if (substitution != null && !_options.experimentNewRti) {
         jsAst.Expression body =
             _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(

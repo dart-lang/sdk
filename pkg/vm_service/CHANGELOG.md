@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+- Added `HeapSnapshotGraph` class which parses the binary events posted to the
+  `HeapSnapshot` stream after a `requestHeapSnapshot` invocation.
+- Fixed issue where listening to `EventStream.kHeapSnapshot` and calling
+  `requestHeapSnapshot` would throw an exception.
+
 ## 2.0.0
 - **breaking**: VM service objects which have fields now have constructors with
   named parameters for each field. Required fields are annotated with `@required`.

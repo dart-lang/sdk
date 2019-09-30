@@ -13,11 +13,4 @@ abstract class AnalyzerErrorCode extends ErrorCode {
             correction: correction,
             hasPublishedDocs: hasPublishedDocs ?? false,
             isUnresolvedIdentifier: isUnresolvedIdentifier ?? false);
-
-  String get url {
-    if (hasPublishedDocs) {
-      return 'https://dart.dev/tools/diagnostic-messages#${name.toLowerCase()}';
-    }
-    return null;
-  }
 }

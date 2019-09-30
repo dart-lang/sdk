@@ -3659,6 +3659,7 @@ class SourceRangeTest {
   void test_equals() {
     SourceRange r = new SourceRange(10, 1);
     expect(r == null, isFalse);
+    // ignore: unrelated_type_equality_checks
     expect(r == this, isFalse);
     expect(r == new SourceRange(20, 2), isFalse);
     expect(r == new SourceRange(10, 1), isTrue);

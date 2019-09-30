@@ -1316,7 +1316,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("TypeVariable", token);
     state.pop(); // Name.
   }
@@ -1324,6 +1325,11 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables", beginToken);
+  }
+
+  @override
+  void handleVarianceModifier(Token variance) {
+    debugEvent("VarianceModifier", variance);
   }
 
   @override

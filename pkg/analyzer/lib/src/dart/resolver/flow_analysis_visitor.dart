@@ -13,18 +13,18 @@ import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
 
 class AnalyzerFunctionBodyAccess
-    implements FunctionBodyAccess<VariableElement> {
+    implements FunctionBodyAccess<PromotableElement> {
   final FunctionBody node;
 
   AnalyzerFunctionBodyAccess(this.node);
 
   @override
-  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+  bool isPotentiallyMutatedInClosure(PromotableElement variable) {
     return node.isPotentiallyMutatedInClosure(variable);
   }
 
   @override
-  bool isPotentiallyMutatedInScope(VariableElement variable) {
+  bool isPotentiallyMutatedInScope(PromotableElement variable) {
     return node.isPotentiallyMutatedInScope(variable);
   }
 }
@@ -48,16 +48,16 @@ class FlowAnalysisHelper {
   final NodeOperations<Expression> _nodeOperations;
 
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final _TypeSystemTypeOperations _typeOperations;
+  final TypeSystemTypeOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  final AssignedVariables<AstNode, VariableElement> assignedVariables;
+  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
 
   /// The result for post-resolution stages of analysis.
   final FlowAnalysisResult result;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<Statement, Expression, VariableElement, DartType> flow;
+  FlowAnalysis<Statement, Expression, PromotableElement, DartType> flow;
 
   int _blockFunctionBodyLevel = 0;
 
@@ -65,7 +65,7 @@ class FlowAnalysisHelper {
       TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
     return FlowAnalysisHelper._(
         const AnalyzerNodeOperations(),
-        _TypeSystemTypeOperations(typeSystem),
+        TypeSystemTypeOperations(typeSystem),
         computeAssignedVariables(node),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
@@ -163,7 +163,7 @@ class FlowAnalysisHelper {
     if (_blockFunctionBodyLevel > 1) {
       assert(flow != null);
     } else {
-      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+      flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
         _nodeOperations,
         _typeOperations,
         AnalyzerFunctionBodyAccess(node),
@@ -173,7 +173,7 @@ class FlowAnalysisHelper {
     var parameters = _enclosingExecutableParameters(node);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow.add(parameter.declaredElement, assigned: true);
+        flow.write(parameter.declaredElement);
       }
     }
   }
@@ -244,19 +244,14 @@ class FlowAnalysisHelper {
     return false;
   }
 
-  void loopVariable(DeclaredIdentifier declaredVariable) {
-    if (declaredVariable != null) {
-      flow.add(declaredVariable.declaredElement, assigned: false);
-    }
-  }
-
   void variableDeclarationList(VariableDeclarationList node) {
     if (flow != null) {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow.add(variable.declaredElement,
-            assigned: variable.initializer != null);
+        if (variable.initializer != null) {
+          flow.write(variable.declaredElement);
+        }
       }
     }
   }
@@ -276,9 +271,9 @@ class FlowAnalysisHelper {
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
-  static AssignedVariables<AstNode, VariableElement> computeAssignedVariables(
+  static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
       AstNode node) {
-    var assignedVariables = AssignedVariables<AstNode, VariableElement>();
+    var assignedVariables = AssignedVariables<AstNode, PromotableElement>();
     node.accept(_AssignedVariablesVisitor(assignedVariables));
     return assignedVariables;
   }
@@ -331,6 +326,33 @@ class FlowAnalysisResult {
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
   final List<AstNode> unassignedNodes = [];
+}
+
+class TypeSystemTypeOperations
+    implements TypeOperations<PromotableElement, DartType> {
+  final TypeSystem typeSystem;
+
+  TypeSystemTypeOperations(this.typeSystem);
+
+  @override
+  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
+    return type1 == type2;
+  }
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return typeSystem.isSubtypeOf(leftType, rightType);
+  }
+
+  @override
+  DartType promoteToNonNull(DartType type) {
+    return typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  DartType variableType(PromotableElement variable) {
+    return variable.type;
+  }
 }
 
 /// The visitor that gathers local variables that are potentially assigned
@@ -456,37 +478,5 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
     var variable = node.staticElement as VariableElement;
     var promotedType = _manager.flow?.promotedType(variable);
     return promotedType ?? variable.type;
-  }
-}
-
-class _TypeSystemTypeOperations
-    implements TypeOperations<VariableElement, DartType> {
-  final TypeSystem typeSystem;
-
-  _TypeSystemTypeOperations(this.typeSystem);
-
-  @override
-  bool isLocalVariable(VariableElement element) {
-    return element is LocalVariableElement;
-  }
-
-  @override
-  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
-    return type1 == type2;
-  }
-
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return typeSystem.isSubtypeOf(leftType, rightType);
-  }
-
-  @override
-  DartType promoteToNonNull(DartType type) {
-    return typeSystem.promoteToNonNull(type);
-  }
-
-  @override
-  DartType variableType(VariableElement variable) {
-    return variable.type;
   }
 }

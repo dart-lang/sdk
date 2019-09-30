@@ -127,7 +127,7 @@ main() {
         " promotedType: void)",
         new VariableUseGenerator(helper, token, variable, type));
     check(
-        "PropertyAccessGenerator(offset: 4, _receiverVariable: null,"
+        "PropertyAccessGenerator(offset: 4,"
         " receiver: expression, name: bar, getter: $uri::myGetter,"
         " setter: $uri::mySetter)",
         new PropertyAccessGenerator(

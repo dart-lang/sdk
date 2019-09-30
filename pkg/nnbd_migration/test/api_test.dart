@@ -1047,6 +1047,16 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_explicit_nullable_overrides_hard_edge() async {
+    var content = '''
+int f(int/*?*/ i) => i + 1;
+''';
+    var expected = '''
+int f(int?/*?*/ i) => i! + 1;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_formal_param_typed() async {
     var content = '''
 class C {

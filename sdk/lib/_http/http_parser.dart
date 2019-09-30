@@ -658,11 +658,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
           } else {
             String headerField = new String.fromCharCodes(_headerField);
             String headerValue = new String.fromCharCodes(_headerValue);
-            if (headerField == "transfer-encoding" &&
+            if (headerField == HttpHeaders.transferEncodingHeader &&
                 _caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
               _chunked = true;
             }
-            if (headerField == "connection") {
+            if (headerField == HttpHeaders.connectionHeader) {
               List<String> tokens = _tokenizeFieldValue(headerValue);
               final bool isResponse = _messageType == _MessageType.RESPONSE;
               final bool isUpgradeCode =

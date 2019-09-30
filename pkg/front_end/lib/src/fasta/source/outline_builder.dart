@@ -4,7 +4,7 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind, Variance;
 
 import '../builder/builder.dart';
 
@@ -1574,13 +1574,17 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("endTypeVariable");
     TypeBuilder bound = nullIfParserRecovery(pop());
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilder> typeParameters = peek();
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
+      if (variance != null) {
+        typeParameters[index].variance = Variance.fromString(variance.lexeme);
+      }
     }
   }
 

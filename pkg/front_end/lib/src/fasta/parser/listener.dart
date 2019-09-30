@@ -1220,7 +1220,8 @@ class Listener implements UnescapeErrorListener {
   /// - Type bound
   ///
   /// See [beginTypeVariable] for additional substructures.
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     logEvent("TypeVariable");
   }
 

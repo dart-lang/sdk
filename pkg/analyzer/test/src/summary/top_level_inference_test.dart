@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -719,17 +718,10 @@ class C {
 import 'a.dart';
 var x = new C().f;
 ''');
-    if (AnalysisDriver.useSummary2) {
-      checkElementText(library, r'''
+    checkElementText(library, r'''
 import 'a.dart';
 int x;
 ''');
-    } else {
-      checkElementText(library, r'''
-import 'a.dart';
-dynamic x;
-''');
-    }
   }
 
   test_initializer_extractProperty_implicitlyTyped_sameLibrary() async {

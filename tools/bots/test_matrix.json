@@ -202,6 +202,8 @@
       "samples-dev/",
       "tools/",
       "third_party/android_tools/sdk/platform-tools/adb",
+      "third_party/android_tools/ndk/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-strip",
+      "third_party/android_tools/ndk/toolchains/arm-linux-androideabi-4.9/prebuilt/linux-x86_64/bin/arm-linux-androideabi-strip",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/observatory_pub_packages/packages/",
@@ -780,14 +782,18 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime"],
-          "environment": {"DART_USE_ASAN": 1}
+          "environment": {
+            "DART_USE_ASAN": 1,
+            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0",
+            "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
+          }
         },
         {
           "name": "vm tests",
           "arguments": [
             "-ndartk-asan-linux-release-${arch}"],
           "environment": {
-            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0:disable_coredump=0",
+            "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         }

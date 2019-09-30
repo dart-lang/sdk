@@ -177,6 +177,17 @@
       "exclude": []
     },
     {
+      "name": "parser_test",
+      "kind": "Chain",
+      "source": "test/parser_test.dart",
+      "path": "parser_testcases/",
+      "status": "parser_testcases/parser.status",
+      "pattern": [
+        "\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "lint_test",
       "kind": "Chain",
       "source": "test/lint_test.dart",

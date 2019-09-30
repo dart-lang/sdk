@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1238,9 +1237,6 @@ import 'a.dart' as p;
   }
 
   test_writeType_function_generic() async {
-    // TODO(scheglov) Fails because T/U are considered invisible.
-    if (!AnalysisDriver.useSummary2) return;
-
     await _assertWriteType('T Function<T, U>(T a, U b)');
   }
 

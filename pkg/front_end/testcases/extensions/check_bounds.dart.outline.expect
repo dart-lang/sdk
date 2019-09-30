@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+}
+class Class<T extends self::A* = self::A*> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    ;
+}
+extension Extension<T extends self::B* = dynamic> on self::Class<T*>* {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  method genericMethod = self::Extension|genericMethod;
+  tearoff genericMethod = self::Extension|get#genericMethod;
+}
+static method Extension|method<T extends self::B* = dynamic>(final self::Class<self::Extension|method::T*>* #this) → dynamic
+  ;
+static method Extension|get#method<T extends self::B* = dynamic>(final self::Class<self::Extension|get#method::T*>* #this) → () →* dynamic
+  return () → dynamic => self::Extension|method<self::Extension|get#method::T*>(#this);
+static method Extension|genericMethod<T extends self::B* = dynamic, S extends self::B* = dynamic>(final self::Class<self::Extension|genericMethod::T*>* #this, self::Extension|genericMethod::S* s) → dynamic
+  ;
+static method Extension|get#genericMethod<T extends self::B* = dynamic>(final self::Class<self::Extension|get#genericMethod::T*>* #this) → <S extends self::B* = dynamic>(S*) →* dynamic
+  return <S extends self::B* = dynamic>(S* s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T*, S*>(#this, s);
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;

@@ -359,34 +359,5 @@ String pathToJSIdentifier(String path) {
       .replaceAll('-', '_'));
 }
 
-/// Escape [name] to make it into a valid identifier.
-String toJSIdentifier(String name) {
-  if (name.isEmpty) return r'$';
-
-  // Escape any invalid characters
-  StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
-    var ch = name[i];
-    var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
-    if (needsEscape && buffer == null) {
-      buffer = StringBuffer(name.substring(0, i));
-    }
-    if (buffer != null) {
-      buffer.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
-    }
-  }
-
-  var result = buffer != null ? '$buffer' : name;
-  // Ensure the identifier first character is not numeric and that the whole
-  // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || invalidVariableName(result)) {
-    return '\$$result';
-  }
-  return result;
-}
-
-// Invalid characters for identifiers, which would need to be escaped.
-final _invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
-
 // Replacement string for path separators (i.e., '/', '\', '..').
 final encodedSeparator = "__";

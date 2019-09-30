@@ -1063,12 +1063,23 @@ void main() { }
     ]);
   }
 
-  test_typeParameterSupertypeOfItsBound() async {
+  test_typeParameterSupertypeOfItsBound_1of1() async {
     await assertErrorsInCode(r'''
 class A<T extends T> {
 }
 ''', [
       error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 11),
+    ]);
+  }
+
+  test_typeParameterSupertypeOfItsBound_2of3() async {
+    await assertErrorsInCode(r'''
+class A<T1 extends T3, T2, T3 extends T1> {
+}
+''', [
+      error(StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 13),
+      error(
+          StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 27, 13),
     ]);
   }
 

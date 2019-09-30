@@ -104,10 +104,6 @@ ConstEvalKeyImplementsEqual:
   template: "The key '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
 
-ConstEvalNonConstantLiteral:
-  template: "Can't have a non-constant #string literal within a const context."
-  analyzerCode: NON_CONSTANT_DEFAULT_VALUE
-
 ConstEvalInvalidType:
   template: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
 
@@ -125,19 +121,21 @@ ConstEvalNegativeShift:
   template: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
 
 ConstEvalInvalidMethodInvocation:
-  template: "The method '#string' can't be invoked on '#constant' within a const context."
+  template: "The method '#string' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
 
 ConstEvalInvalidPropertyGet:
-  template: "The property '#string' can't be accessed on '#constant' within a const context."
+  template: "The property '#string' can't be accessed on '#constant' in a constant expression."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
 ConstEvalInvalidStringInterpolationOperand:
-  template: "The '#constant' can't be used as part of a string interpolation within a const context, only values of type 'null', 'bool', 'int', 'double', or 'String' can be used."
+  template: |
+    The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
+    Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
 
 ConstEvalInvalidStaticInvocation:
-  template: "The invocation of '#name' is not allowed within a const context."
+  template: "The invocation of '#name' is not allowed in a constant expression."
   analyzerCode: CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
 
 ConstEvalInvalidSymbolName:
@@ -1889,18 +1887,21 @@ ExtensionDeclaresAbstractMember:
   template: "Extensions can't declare abstract members."
   tip: "Try providing an implementation for the member."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
+  hasPublishedDocs: true
 
 ExtensionDeclaresConstructor:
   index: 92
   template: "Extensions can't declare constructors."
   tip: "Try removing the constructor declaration."
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
+  hasPublishedDocs: true
 
 ExtensionDeclaresInstanceField:
   index: 93
   template: "Extensions can't declare instance fields"
   tip: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  hasPublishedDocs: true
 
 ConflictsWithConstructor:
   template: "Conflicts with constructor '#name'."

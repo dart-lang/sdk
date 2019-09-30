@@ -1152,9 +1152,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     end('TypeVariable');
-    super.endTypeVariable(token, index, extendsOrSuper);
+    super.endTypeVariable(token, index, extendsOrSuper, variance);
   }
 
   @override

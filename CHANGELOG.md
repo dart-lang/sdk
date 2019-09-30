@@ -33,7 +33,7 @@ main() { foo(() {}); }
 
 The Linter was updated to `0.1.98`, which includes:
 
-* fixed null raw expression accesses in use_to_and_as_if_applicable
+* fixed null raw expression accesses in `use_to_and_as_if_applicable`
 * internal migration to using analyzer `InheritanceManager3`
 * internal migration away from using analyzer `resolutionMap`
 * various fixes and improvements to anticipate support for extension-methods

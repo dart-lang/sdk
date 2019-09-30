@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,21 +12,9 @@ import '../src/dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    if (AnalysisDriver.useSummary2) {
-      defineReflectiveTests(InvalidCodeSummary2Test);
-    } else {
-      defineReflectiveTests(InvalidCodeTest);
-    }
+    defineReflectiveTests(InvalidCodeTest);
     defineReflectiveTests(InvalidCodeWithExtensionMethodsTest);
   });
-}
-
-@reflectiveTest
-class InvalidCodeSummary2Test extends InvalidCodeTest {
-  @failingTest
-  test_fuzz_12() {
-    return test_fuzz_12();
-  }
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions
@@ -159,6 +146,7 @@ class A<T extends F> {}
 ''');
   }
 
+  @failingTest
   test_fuzz_12() async {
     // This code crashed with summary2 because usually AST reader is lazy,
     // so we did not read metadata `@b` for `c`. But default values must be

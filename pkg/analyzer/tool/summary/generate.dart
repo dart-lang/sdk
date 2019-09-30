@@ -22,7 +22,7 @@ import 'package:analysis_tool/tools.dart';
 import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 
-import 'idl_model.dart' as idlModel;
+import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';
 
 main(List<String> args) async {
@@ -59,7 +59,7 @@ class _BaseGenerator {
       "throw new UnimplementedError('attempt to access deprecated field')";
 
   /// Semantic model of the "IDL" input file.
-  final idlModel.Idl _idl;
+  final idl_model.Idl _idl;
 
   /// Buffer in which generated code is accumulated.
   final StringBuffer _outBuffer;
@@ -74,11 +74,11 @@ class _BaseGenerator {
   ///
   /// If [builder] is `true`, the returned type should be appropriate for use in
   /// a builder class.
-  String defaultValue(idlModel.FieldType type, bool builder) {
+  String defaultValue(idl_model.FieldType type, bool builder) {
     if (type.isList) {
       if (builder) {
-        idlModel.FieldType elementType =
-            new idlModel.FieldType(type.typeName, false);
+        idl_model.FieldType elementType =
+            new idl_model.FieldType(type.typeName, false);
         return '<${encodedType(elementType)}>[]';
       } else {
         return 'const <${idlPrefix(type.typeName)}>[]';
@@ -101,7 +101,7 @@ class _BaseGenerator {
 
   /// Generate a string representing the Dart type which should be used to
   /// represent [type] while building a serialized data structure.
-  String encodedType(idlModel.FieldType type) {
+  String encodedType(idl_model.FieldType type) {
     String typeStr;
     if (_idl.classes.containsKey(type.typeName)) {
       typeStr = '${type.typeName}Builder';
@@ -161,7 +161,7 @@ class _BaseGenerator {
     return json.encode(s);
   }
 
-  List<String> _computeVariants(idlModel.ClassDeclaration cls) {
+  List<String> _computeVariants(idl_model.ClassDeclaration cls) {
     var allVariants = Set<String>();
     for (var field in cls.fields) {
       var logicalFields = field.logicalProperties?.values;
@@ -175,8 +175,8 @@ class _BaseGenerator {
   }
 
   String _variantAssertStatement(
-    idlModel.ClassDeclaration class_,
-    idlModel.LogicalProperty property,
+    idl_model.ClassDeclaration class_,
+    idl_model.LogicalProperty property,
   ) {
     var assertCondition = property.variants
         ?.map((key) => '${class_.variantField} == idl.$key')
@@ -186,10 +186,10 @@ class _BaseGenerator {
 }
 
 class _BuilderGenerator extends _BaseGenerator {
-  final idlModel.ClassDeclaration cls;
+  final idl_model.ClassDeclaration cls;
   List<String> constructorParams = <String>[];
 
-  _BuilderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+  _BuilderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
       : super(idl, outBuffer);
 
   String get builderName => name + 'Builder';
@@ -218,7 +218,7 @@ class _BuilderGenerator extends _BaseGenerator {
     out('/// Accumulate non-[informative] data into [signature].');
     out('void collectApiSignature(api_sig.ApiSignature signature) {');
 
-    void writeField(String name, idlModel.FieldType type, bool isInformative) {
+    void writeField(String name, idl_model.FieldType type, bool isInformative) {
       if (isInformative) {
         return;
       }
@@ -244,8 +244,8 @@ class _BuilderGenerator extends _BaseGenerator {
     }
 
     indent(() {
-      List<idlModel.FieldDeclaration> sortedFields = cls.fields.toList()
-        ..sort((idlModel.FieldDeclaration a, idlModel.FieldDeclaration b) =>
+      List<idl_model.FieldDeclaration> sortedFields = cls.fields.toList()
+        ..sort((idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
             a.id.compareTo(b.id));
       if (cls.variantField != null) {
         var firstVariant = true;
@@ -278,7 +278,7 @@ class _BuilderGenerator extends _BaseGenerator {
           out('}');
         }
       } else {
-        for (idlModel.FieldDeclaration field in sortedFields) {
+        for (idl_model.FieldDeclaration field in sortedFields) {
           writeField('_${field.name}', field.type, field.isInformative);
         }
       }
@@ -326,9 +326,9 @@ class _BuilderGenerator extends _BaseGenerator {
       }
     } else {
       out('$builderName({${constructorParams.join(', ')}})');
-      List<idlModel.FieldDeclaration> fields = cls.fields.toList();
+      List<idl_model.FieldDeclaration> fields = cls.fields.toList();
       for (int i = 0; i < fields.length; i++) {
-        idlModel.FieldDeclaration field = fields[i];
+        idl_model.FieldDeclaration field = fields[i];
         String prefix = i == 0 ? '  : ' : '    ';
         String suffix = i == fields.length - 1 ? ';' : ',';
         out('${prefix}_${field.name} = ${field.name}$suffix');
@@ -337,9 +337,9 @@ class _BuilderGenerator extends _BaseGenerator {
   }
 
   void _generateFields() {
-    for (idlModel.FieldDeclaration field in cls.fields) {
+    for (idl_model.FieldDeclaration field in cls.fields) {
       String fieldName = field.name;
-      idlModel.FieldType type = field.type;
+      idl_model.FieldType type = field.type;
       String typeStr = encodedType(type);
       out('$typeStr _$fieldName;');
     }
@@ -350,8 +350,8 @@ class _BuilderGenerator extends _BaseGenerator {
     out('fb.Offset finish(fb.Builder fbBuilder) {');
     indent(() {
       // Write objects and remember Offset(s).
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        idlModel.FieldType fieldType = field.type;
+      for (idl_model.FieldDeclaration field in cls.fields) {
+        idl_model.FieldType fieldType = field.type;
         String offsetName = 'offset_' + field.name;
         if (fieldType.isList ||
             fieldType.typeName == 'String' ||
@@ -360,8 +360,8 @@ class _BuilderGenerator extends _BaseGenerator {
         }
       }
 
-      for (idlModel.FieldDeclaration field in cls.fields) {
-        idlModel.FieldType fieldType = field.type;
+      for (idl_model.FieldDeclaration field in cls.fields) {
+        idl_model.FieldType fieldType = field.type;
         String valueName = '_' + field.name;
         String offsetName = 'offset_' + field.name;
         String condition;
@@ -408,9 +408,9 @@ class _BuilderGenerator extends _BaseGenerator {
 
       // Write the table.
       out('fbBuilder.startTable();');
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idl_model.FieldDeclaration field in cls.fields) {
         int index = field.id;
-        idlModel.FieldType fieldType = field.type;
+        idl_model.FieldType fieldType = field.type;
         String valueName = '_' + field.name;
         String condition = '$valueName != null';
         String writeCode;
@@ -452,7 +452,7 @@ class _BuilderGenerator extends _BaseGenerator {
     out('/// Flush [informative] data recursively.');
     out('void flushInformative() {');
 
-    void writeField(String name, idlModel.FieldType type, bool isInformative) {
+    void writeField(String name, idl_model.FieldType type, bool isInformative) {
       if (isInformative) {
         out('$name = null;');
       } else if (_idl.classes.containsKey(type.typeName)) {
@@ -496,7 +496,7 @@ class _BuilderGenerator extends _BaseGenerator {
           out('}');
         }
       } else {
-        for (idlModel.FieldDeclaration field in cls.fields) {
+        for (idl_model.FieldDeclaration field in cls.fields) {
           writeField('_${field.name}', field.type, field.isInformative);
         }
       }
@@ -505,9 +505,9 @@ class _BuilderGenerator extends _BaseGenerator {
   }
 
   void _generateGettersSetters() {
-    for (idlModel.FieldDeclaration field in cls.allFields) {
+    for (idl_model.FieldDeclaration field in cls.allFields) {
       String fieldName = field.name;
-      idlModel.FieldType fieldType = field.type;
+      idl_model.FieldType fieldType = field.type;
       String typeStr = encodedType(fieldType);
       String def = defaultValue(fieldType, true);
       String defSuffix = def == null ? '' : ' ??= $def';
@@ -562,7 +562,7 @@ class _BuilderGenerator extends _BaseGenerator {
     }
   }
 
-  void _generateNonNegativeInt(idlModel.FieldType fieldType) {
+  void _generateNonNegativeInt(idl_model.FieldType fieldType) {
     if (fieldType.typeName == 'int') {
       if (!fieldType.isList) {
         out('assert(value == null || value >= 0);');
@@ -640,7 +640,7 @@ class _CodeGenerator {
   final StringBuffer _outBuffer = new StringBuffer();
 
   /// Semantic model of the "IDL" input file.
-  idlModel.Idl _idl;
+  idl_model.Idl _idl;
 
   _CodeGenerator(String idlPath) {
     // Parse the input "IDL" file.
@@ -659,7 +659,7 @@ class _CodeGenerator {
   /// Perform basic sanity checking of the IDL (over and above that done by
   /// [extractIdl]).
   void checkIdl() {
-    _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
+    _idl.classes.forEach((String name, idl_model.ClassDeclaration cls) {
       if (cls.fileIdentifier != null) {
         if (cls.fileIdentifier.length != 4) {
           throw new Exception('$name: file identifier must be 4 characters');
@@ -672,9 +672,9 @@ class _CodeGenerator {
         }
       }
       Map<int, String> idsUsed = <int, String>{};
-      for (idlModel.FieldDeclaration field in cls.allFields) {
+      for (idl_model.FieldDeclaration field in cls.allFields) {
         String fieldName = field.name;
-        idlModel.FieldType type = field.type;
+        idl_model.FieldType type = field.type;
         if (type.isList) {
           if (_idl.classes.containsKey(type.typeName)) {
             // List of classes is ok
@@ -710,7 +710,7 @@ class _CodeGenerator {
   /// Process the AST in [idlParsed] and store the resulting semantic model in
   /// [_idl].  Also perform some error checking.
   void extractIdl(CompilationUnit idlParsed) {
-    _idl = new idlModel.Idl();
+    _idl = new idl_model.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
@@ -759,7 +759,7 @@ class _CodeGenerator {
             }
           }
         }
-        idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
+        idl_model.ClassDeclaration cls = new idl_model.ClassDeclaration(
           documentation: _getNodeDoc(decl),
           name: clsName,
           isTopLevel: isTopLevel,
@@ -786,13 +786,13 @@ class _CodeGenerator {
         }
       } else if (decl is EnumDeclaration) {
         String doc = _getNodeDoc(decl);
-        idlModel.EnumDeclaration enm =
-            new idlModel.EnumDeclaration(doc, decl.name);
+        idl_model.EnumDeclaration enm =
+            new idl_model.EnumDeclaration(doc, decl.name);
         _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
           String doc = _getNodeDoc(constDecl);
           enm.values
-              .add(new idlModel.EnumValueDeclaration(doc, constDecl.name));
+              .add(new idl_model.EnumValueDeclaration(doc, constDecl.name));
         }
       } else {
         throw new Exception('Unexpected declaration `$decl`');
@@ -818,11 +818,11 @@ class _CodeGenerator {
     out();
     out("import 'idl.dart' as idl;");
     out();
-    for (idlModel.EnumDeclaration enum_ in _idl.enums.values) {
+    for (idl_model.EnumDeclaration enum_ in _idl.enums.values) {
       _EnumReaderGenerator(_idl, _outBuffer, enum_).generate();
       out();
     }
-    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+    for (idl_model.ClassDeclaration cls in _idl.classes.values) {
       if (!cls.isDeprecated) {
         _BuilderGenerator(_idl, _outBuffer, cls).generate();
         out();
@@ -860,7 +860,7 @@ class _CodeGenerator {
   }
 
   void _addFieldForGetter(
-    idlModel.ClassDeclaration cls,
+    idl_model.ClassDeclaration cls,
     MethodDeclaration getter,
   ) {
     var desc = '${cls.name}.${getter.name}';
@@ -964,10 +964,10 @@ class _CodeGenerator {
       throw new Exception('Missing @id annotation ($desc)');
     }
 
-    var fieldType = new idlModel.FieldType(type.name, isList);
+    var fieldType = new idl_model.FieldType(type.name, isList);
 
     String name = getter.name;
-    Map<String, idlModel.LogicalProperty> logicalProperties;
+    Map<String, idl_model.LogicalProperty> logicalProperties;
     if (variants != null) {
       var fieldsWithSameId =
           cls.allFields.where((field) => field.id == id).toList();
@@ -999,7 +999,7 @@ class _CodeGenerator {
           );
         }
 
-        map[getter.name] = idlModel.LogicalProperty(
+        map[getter.name] = idl_model.LogicalProperty(
           isDeprecated: isDeprecated,
           isInformative: isInformative,
           variants: variants,
@@ -1007,8 +1007,8 @@ class _CodeGenerator {
         return;
       } else {
         name = 'variantField_$id';
-        logicalProperties = <String, idlModel.LogicalProperty>{
-          getter.name: idlModel.LogicalProperty(
+        logicalProperties = <String, idl_model.LogicalProperty>{
+          getter.name: idl_model.LogicalProperty(
             isDeprecated: isDeprecated,
             isInformative: isInformative,
             variants: variants,
@@ -1018,7 +1018,7 @@ class _CodeGenerator {
     }
 
     cls.allFields.add(
-      idlModel.FieldDeclaration(
+      idl_model.FieldDeclaration(
         documentation: _getNodeDoc(getter),
         name: name,
         type: fieldType,
@@ -1055,9 +1055,9 @@ class _CodeGenerator {
 }
 
 class _EnumReaderGenerator extends _BaseGenerator {
-  final idlModel.EnumDeclaration enum_;
+  final idl_model.EnumDeclaration enum_;
 
-  _EnumReaderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.enum_)
+  _EnumReaderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.enum_)
       : super(idl, outBuffer);
 
   void generate() {
@@ -1085,17 +1085,17 @@ class _EnumReaderGenerator extends _BaseGenerator {
 }
 
 class _FlatBufferSchemaGenerator extends _BaseGenerator {
-  _FlatBufferSchemaGenerator(idlModel.Idl idl, StringBuffer outBuffer)
+  _FlatBufferSchemaGenerator(idl_model.Idl idl, StringBuffer outBuffer)
       : super(idl, outBuffer);
 
   void generate() {
-    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+    for (idl_model.EnumDeclaration enm in _idl.enums.values) {
       out();
       outDoc(enm.documentation);
       out('enum ${enm.name} : byte {');
       indent(() {
         for (int i = 0; i < enm.values.length; i++) {
-          idlModel.EnumValueDeclaration value = enm.values[i];
+          idl_model.EnumValueDeclaration value = enm.values[i];
           if (i != 0) {
             out();
           }
@@ -1106,13 +1106,13 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
       });
       out('}');
     }
-    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+    for (idl_model.ClassDeclaration cls in _idl.classes.values) {
       out();
       outDoc(cls.documentation);
       out('table ${cls.name} {');
       indent(() {
         for (int i = 0; i < cls.allFields.length; i++) {
-          idlModel.FieldDeclaration field = cls.allFields[i];
+          idl_model.FieldDeclaration field = cls.allFields[i];
           if (i != 0) {
             out();
           }
@@ -1131,7 +1131,7 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
     // Standard flatbuffers only support one root type.  We support multiple
     // root types.  For now work around this by forcing PackageBundle to be the
     // root type.  TODO(paulberry): come up with a better solution.
-    idlModel.ClassDeclaration rootType = _idl.classes['PackageBundle'];
+    idl_model.ClassDeclaration rootType = _idl.classes['PackageBundle'];
     out('root_type ${rootType.name};');
     if (rootType.fileIdentifier != null) {
       out();
@@ -1141,7 +1141,7 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
 
   /// Generate a string representing the FlatBuffer schema type which should be
   /// used to represent [type].
-  String _fbsType(idlModel.FieldType type) {
+  String _fbsType(idl_model.FieldType type) {
     String typeStr;
     switch (type.typeName) {
       case 'bool':
@@ -1175,9 +1175,9 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
 }
 
 class _ImplGenerator extends _BaseGenerator {
-  final idlModel.ClassDeclaration cls;
+  final idl_model.ClassDeclaration cls;
 
-  _ImplGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+  _ImplGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
       : super(idl, outBuffer);
 
   void generate() {
@@ -1193,16 +1193,16 @@ class _ImplGenerator extends _BaseGenerator {
       out('$implName(this._bc, this._bcOffset);');
       out();
       // Write cache fields.
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idl_model.FieldDeclaration field in cls.fields) {
         String returnType = _dartType(field.type);
         String fieldName = field.name;
         out('$returnType _$fieldName;');
       }
       // Write getters.
-      for (idlModel.FieldDeclaration field in cls.allFields) {
+      for (idl_model.FieldDeclaration field in cls.allFields) {
         int index = field.id;
         String fieldName = field.name;
-        idlModel.FieldType type = field.type;
+        idl_model.FieldType type = field.type;
         String typeName = type.typeName;
         // Prepare "readCode" + "def"
         String readCode;
@@ -1280,7 +1280,7 @@ class _ImplGenerator extends _BaseGenerator {
 
   /// Generate a string representing the Dart type which should be used to
   /// represent [type] when deserialized.
-  String _dartType(idlModel.FieldType type) {
+  String _dartType(idl_model.FieldType type) {
     String baseType = idlPrefix(type.typeName);
     if (type.isList) {
       return 'List<$baseType>';
@@ -1291,9 +1291,9 @@ class _ImplGenerator extends _BaseGenerator {
 }
 
 class _MixinGenerator extends _BaseGenerator {
-  final idlModel.ClassDeclaration cls;
+  final idl_model.ClassDeclaration cls;
 
-  _MixinGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+  _MixinGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
       : super(idl, outBuffer);
 
   void generate() {
@@ -1301,7 +1301,7 @@ class _MixinGenerator extends _BaseGenerator {
     String mixinName = '_${name}Mixin';
     out('abstract class $mixinName implements ${idlPrefix(name)} {');
     indent(() {
-      String jsonCondition(idlModel.FieldType type, String name) {
+      String jsonCondition(idl_model.FieldType type, String name) {
         if (type.isList) {
           return '$name.isNotEmpty';
         } else {
@@ -1309,7 +1309,7 @@ class _MixinGenerator extends _BaseGenerator {
         }
       }
 
-      String jsonStore(idlModel.FieldType type, String name) {
+      String jsonStore(idl_model.FieldType type, String name) {
         _StringToString convertItem;
         if (_idl.classes.containsKey(type.typeName)) {
           convertItem = (String name) => '$name.toJson()';
@@ -1341,7 +1341,7 @@ class _MixinGenerator extends _BaseGenerator {
 
         if (cls.variantField != null) {
           indent(() {
-            for (idlModel.FieldDeclaration field in cls.fields) {
+            for (idl_model.FieldDeclaration field in cls.fields) {
               if (field.logicalProperties == null) {
                 var condition = jsonCondition(field.type, field.name);
                 var storeField = jsonStore(field.type, field.name);
@@ -1351,7 +1351,7 @@ class _MixinGenerator extends _BaseGenerator {
             for (var variant in _computeVariants(cls)) {
               out('if (${cls.variantField} == idl.$variant) {');
               indent(() {
-                for (idlModel.FieldDeclaration field in cls.fields) {
+                for (idl_model.FieldDeclaration field in cls.fields) {
                   var logicalProperties = field.logicalProperties;
                   if (logicalProperties != null) {
                     for (var logicalName in logicalProperties.keys) {
@@ -1370,7 +1370,7 @@ class _MixinGenerator extends _BaseGenerator {
           });
         } else {
           indent(() {
-            for (idlModel.FieldDeclaration field in cls.fields) {
+            for (idl_model.FieldDeclaration field in cls.fields) {
               String condition = jsonCondition(field.type, field.name);
               String storeField = jsonStore(field.type, field.name);
               out('if ($condition) $storeField;');
@@ -1391,7 +1391,7 @@ class _MixinGenerator extends _BaseGenerator {
           out('if (${cls.variantField} == idl.$variant) {');
           indent(() {
             out('return {');
-            for (idlModel.FieldDeclaration field in cls.fields) {
+            for (idl_model.FieldDeclaration field in cls.fields) {
               if (field.logicalProperties != null) {
                 for (var logicalName in field.logicalProperties.keys) {
                   var logicalProperty = field.logicalProperties[logicalName];
@@ -1413,7 +1413,7 @@ class _MixinGenerator extends _BaseGenerator {
       } else {
         out('Map<String, Object> toMap() => {');
         indent(() {
-          for (idlModel.FieldDeclaration field in cls.fields) {
+          for (idl_model.FieldDeclaration field in cls.fields) {
             String fieldName = field.name;
             out('${quoted(fieldName)}: $fieldName,');
           }
@@ -1430,9 +1430,9 @@ class _MixinGenerator extends _BaseGenerator {
 }
 
 class _ReaderGenerator extends _BaseGenerator {
-  final idlModel.ClassDeclaration cls;
+  final idl_model.ClassDeclaration cls;
 
-  _ReaderGenerator(idlModel.Idl idl, StringBuffer outBuffer, this.cls)
+  _ReaderGenerator(idl_model.Idl idl, StringBuffer outBuffer, this.cls)
       : super(idl, outBuffer);
 
   void generateReader() {

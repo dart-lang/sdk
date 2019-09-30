@@ -2184,10 +2184,10 @@ class BinaryBuilder {
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
+    node.variance = readByte();
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();
-    node.variance = Variance.covariant;
   }
 
   Arguments readArguments() {

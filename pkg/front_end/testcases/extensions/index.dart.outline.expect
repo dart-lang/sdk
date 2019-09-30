@@ -21,5 +21,11 @@ static method Extension|[]=<K extends core::Object* = dynamic, V extends core::O
   ;
 static method main() → dynamic
   ;
+static method implicit() → dynamic
+  ;
+static method explicitWithTypeArguments() → dynamic
+  ;
+static method explicitInferredTypeArguments() → dynamic
+  ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

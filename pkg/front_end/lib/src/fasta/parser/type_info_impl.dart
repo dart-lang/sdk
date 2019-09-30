@@ -763,7 +763,7 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
-    listener.endTypeVariable(endGroup, 0, null);
+    listener.endTypeVariable(endGroup, 0, null, null);
     listener.endTypeVariables(beginGroup, endGroup);
     return endGroup;
   }
@@ -1075,7 +1075,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Type variables are "completed" in reverse order, so capture the last
       // consumed token from the first "completed" type variable.
       token ??= token2;
-      listener.endTypeVariable(next2, --count, extendsOrSuper);
+      listener.endTypeVariable(next2, --count, extendsOrSuper, variance);
 
       typeStarts = typeStarts.tail;
       superTypeInfos = superTypeInfos.tail;

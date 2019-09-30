@@ -15,7 +15,7 @@ import 'enum_declaration_test.dart' as enum_declaration;
 import 'export_directive_test.dart' as export_directive;
 import 'extension_declaration_test.dart' as extension_declaration;
 import 'field_declaration_test.dart' as field_declaration;
-import 'forEach_statement_test.dart' as forEach_statement;
+import 'for_each_statement_test.dart' as for_each_statement;
 import 'for_statement_test.dart' as for_statement;
 import 'if_statement_test.dart' as if_statement;
 import 'import_directive_test.dart' as import_directive;
@@ -50,7 +50,7 @@ main() {
     extension_declaration.main();
     field_declaration.main();
     for_statement.main();
-    forEach_statement.main();
+    for_each_statement.main();
     if_statement.main();
     import_directive.main();
     index_expression.main();

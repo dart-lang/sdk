@@ -10,6 +10,8 @@ import 'package:kernel/ast.dart';
 
 import '../builder/declaration_builder.dart';
 
+import '../builder/extension_builder.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -23,8 +25,7 @@ import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask;
 
-import '../names.dart'
-    show callName, emptyName, indexGetName, indexSetName, minusName, plusName;
+import '../names.dart' show callName, emptyName, minusName, plusName;
 
 import '../parser.dart'
     show
@@ -1869,11 +1870,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       return new ThisPropertyAccessGenerator(this, token, n, getter, setter);
     } else if (declaration.isExtensionInstanceMember) {
+      ExtensionBuilder extensionBuilder = declarationBuilder;
       Builder setter =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       // TODO(johnniwinther): Check for constantContext like below?
-      return new ExtensionInstanceAccessGenerator.fromBuilder(this, name,
-          extensionThis, extensionTypeParameters, declaration, token, setter);
+      return new ExtensionInstanceAccessGenerator.fromBuilder(
+          this,
+          extensionBuilder.extension,
+          name,
+          extensionThis,
+          extensionTypeParameters,
+          declaration,
+          token,
+          setter);
     } else if (declaration.isRegularMethod) {
       assert(declaration.isStatic || declaration.isTopLevel);
       return new StaticAccessGenerator(
@@ -3247,17 +3256,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleIndexedExpression(
       Token openSquareBracket, Token closeSquareBracket) {
+    assert(checkState(openSquareBracket, [
+      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds(
+          [ValueKind.Expression, ValueKind.Generator, ValueKind.Initializer])
+    ]));
     debugEvent("IndexedExpression");
     Expression index = popForValue();
     Object receiver = pop();
-    if (receiver is ThisAccessGenerator && receiver.isSuper) {
-      push(new SuperIndexedAccessGenerator(
-          this,
-          openSquareBracket,
-          index,
-          lookupInstanceMember(indexGetName, isSuper: true),
-          lookupInstanceMember(indexSetName, isSuper: true)));
+    if (receiver is Generator) {
+      push(receiver.buildIndexedAccess(index, openSquareBracket));
+    } else if (receiver is Expression) {
+      push(IndexedAccessGenerator.make(
+          this, openSquareBracket, receiver, index, null, null));
     } else {
+      assert(receiver is Initializer);
       push(IndexedAccessGenerator.make(
           this, openSquareBracket, toValue(receiver), index, null, null));
     }
@@ -3502,8 +3515,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments) {
-    // TODO(johnniwinther): Check type argument count.
+      int fileOffset, Procedure target, Arguments arguments,
+      {bool isTearOff}) {
     List<TypeParameter> typeParameters = target.function.typeParameters;
     LocatedMessage argMessage = checkArgumentsForFunction(
         target.function, arguments, fileOffset, typeParameters);
@@ -3517,10 +3530,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           message: argMessage);
     }
 
-    StaticInvocation node = new StaticInvocation(target, arguments)
-      ..fileOffset = fileOffset;
-    // TODO(johnniwinther): Check type argument bounds.
-    //libraryBuilder.checkBoundsInStaticInvocation(node, typeEnvironment, uri);
+    Expression node;
+    if (isTearOff) {
+      node = new ExtensionTearOff(target, arguments);
+    } else {
+      node = new StaticInvocation(target, arguments);
+    }
+    node.fileOffset = fileOffset;
     return node;
   }
 
@@ -4751,7 +4767,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("TypeVariable");
     UnresolvedType bound = pop();
     // Peek to leave type parameters on top of stack.
@@ -4759,6 +4776,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound?.builder;
+    if (variance != null) {
+      variable.variance = Variance.fromString(variance.lexeme);
+    }
   }
 
   @override

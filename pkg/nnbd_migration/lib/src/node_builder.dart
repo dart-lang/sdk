@@ -437,7 +437,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
             hard: true);
         break;
       case _NullabilityComment.question:
-        _graph.connect(_graph.always, decoratedType.node,
+        _graph.union(_graph.always, decoratedType.node,
             NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.none:

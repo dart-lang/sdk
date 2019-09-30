@@ -3,6 +3,9 @@ include: package:pedantic/analysis_options.1.8.0.yaml
 analyzer:
   strong-mode:
     implicit-casts: false
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
 
 linter:
   rules:

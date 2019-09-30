@@ -2775,6 +2775,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
   void checkBoundsInStaticInvocation(
       StaticInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
+    // TODO(johnniwinther): Handle partially inferred type arguments in
+    // extension method calls. Currently all are considered inferred in the
+    // error messages.
     if (node.arguments.types.isEmpty) return;
     Class klass = node.target.enclosingClass;
     List<TypeParameter> parameters = node.target.function.typeParameters;

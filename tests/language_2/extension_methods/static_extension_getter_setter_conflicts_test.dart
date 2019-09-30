@@ -153,18 +153,23 @@ void test1() {
   c1b.m1 += 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  //  ^^
+  // [cfe] unspecified
+  //  ^^
   // [cfe] unspecified
 
   c1b.m1++;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+  //  ^^
+  // [cfe] unspecified
+  //  ^^
   // [cfe] unspecified
 
   c1b.m2;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
   // [cfe] unspecified
-
 
   c1b[0];
   //  ^^
@@ -179,11 +184,17 @@ void test1() {
   c1b[0] += 0;
   //  ^^
   // [analyzer] unspecified
+  // ^
+  // [cfe] unspecified
+  // ^
   // [cfe] unspecified
 
   c1b[0]++;
   //  ^^
   // [analyzer] unspecified
+  // ^
+  // [cfe] unspecified
+  // ^
   // [cfe] unspecified
 }
 

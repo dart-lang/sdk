@@ -191,17 +191,6 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
 
   _FreshTypeParametersSubstitutor(_TypeSubstitutor outer) : super(outer);
 
-  TypeParameterElement freshTypeParameter(TypeParameterElement element) {
-    var freshElement = new TypeParameterElementImpl(element.name, -1);
-    var freshType = new TypeParameterTypeImpl(freshElement);
-    freshElement.type = freshType;
-    substitution[element] = freshType;
-    if (element.bound != null) {
-      freshElement.bound = visit(element.bound);
-    }
-    return freshElement;
-  }
-
   @override
   List<TypeParameterElement> freshTypeParameters(
       List<TypeParameterElement> elements) {
@@ -445,7 +434,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return new InterfaceTypeImpl.explicit(type.element, typeArguments);
+    return new InterfaceTypeImpl.explicit(type.element, typeArguments,
+        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
   }
 
   @override

@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+  method method(generic-covariant-impl self::Class::T* a) → self::Class::T*
+    return a;
+}
+extension Extension<T extends core::Object* = dynamic> on self::Class<T*>* {
+  method call = self::Extension|call;
+  tearoff call = self::Extension|get#call;
+}
+static method Extension|call<T extends core::Object* = dynamic>(final self::Class<self::Extension|call::T*>* #this, self::Extension|call::T* a) → self::Extension|call::T*
+  return #this.{self::Class::method}(a);
+static method Extension|get#call<T extends core::Object* = dynamic>(final self::Class<self::Extension|get#call::T*>* #this) → (self::Extension|get#call::T*) →* self::Extension|get#call::T*
+  return (self::Extension|get#call::T* a) → self::Extension|get#call::T* => self::Extension|call<self::Extension|get#call::T*>(#this, a);
+static method main() → dynamic {
+  self::Class<core::int*>* c = new self::Class::•<core::int*>();
+  self::expect(42, self::Extension|call<core::int*>(c, 42));
+  self::expect(87, self::Extension|call<core::int*>(c, 87));
+  self::expect(123, self::Extension|call<core::int*>(c, 123));
+  self::expect(42, self::Extension|call<core::int*>(c, 42));
+  self::expect(87, self::Extension|call<core::int*>(c, 87));
+  self::expect(123, self::Extension|call<core::int*>(c, 123));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

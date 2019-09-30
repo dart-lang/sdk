@@ -78,11 +78,10 @@ template("_application_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
-    deps =
-        extra_deps + [
-          "$_dart_root/runtime/vm:kernel_platform_files($dart_host_toolchain)",
-          "$_dart_root/runtime/vm:vm_platform",
-        ]
+    deps = extra_deps + [
+             "$_dart_root/runtime/vm:kernel_platform_files($host_toolchain)",
+             "$_dart_root/runtime/vm:vm_platform",
+           ]
     gen_kernel_script = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
     platform_dill = "$root_out_dir/vm_platform_strong.dill"
 

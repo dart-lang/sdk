@@ -9,11 +9,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -939,13 +939,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       }
 
-      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-      if (node.typeParameters != null && !AnalysisDriver.useSummary2) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
-            node);
-      }
-
       super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -1378,7 +1371,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitTypeParameter(TypeParameter node) {
     _checkForBuiltInIdentifierAsName(node.name,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
-    _checkForTypeParameterSupertypeOfItsBound(node);
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForImplicitDynamicType(node.bound);
     _checkForGenericFunctionType(node.bound);
@@ -1389,6 +1381,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     _duplicateDefinitionVerifier.checkTypeParameters(node);
+    _checkForTypeParameterBoundRecursion(node.typeParameters);
     super.visitTypeParameterList(node);
   }
 
@@ -3114,20 +3107,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (_enclosingFunction.isAsynchronous) {
       if (_enclosingFunction.isGenerator) {
         _checkForIllegalReturnTypeCode(
-            returnType,
-            _typeProvider.streamDynamicType,
-            StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE);
+          returnType,
+          _typeProvider.streamElement,
+          StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+        );
       } else {
         _checkForIllegalReturnTypeCode(
-            returnType,
-            _typeProvider.futureDynamicType,
-            StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE);
+          returnType,
+          _typeProvider.futureElement,
+          StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+        );
       }
     } else if (_enclosingFunction.isGenerator) {
       _checkForIllegalReturnTypeCode(
-          returnType,
-          _typeProvider.iterableDynamicType,
-          StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE);
+        returnType,
+        _typeProvider.iterableElement,
+        StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+      );
     }
   }
 
@@ -3139,7 +3135,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * and if not report [errorCode].
    */
   void _checkForIllegalReturnTypeCode(TypeAnnotation returnTypeName,
-      DartType expectedType, StaticTypeWarningCode errorCode) {
+      ClassElement expectedElement, StaticTypeWarningCode errorCode) {
     DartType returnType = _enclosingFunction.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type
@@ -3159,8 +3155,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     //
     // Similar logic applies for sync* and async*.
     //
-    InterfaceType genericType = (expectedType.element as ClassElement).type;
-    DartType lowerBound = genericType.instantiate([BottomTypeImpl.instance]);
+    var lowerBound = expectedElement.instantiate(
+      typeArguments: [BottomTypeImpl.instance],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
       _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
@@ -4931,6 +4929,44 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /**
+   * Check that none of the type [parameters] references itself in its bound.
+   *
+   * See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+   */
+  void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
+    Map<TypeParameterElement, TypeParameter> elementToNode;
+    for (var parameter in parameters) {
+      if (parameter.bound != null) {
+        if (elementToNode == null) {
+          elementToNode = {};
+          for (var parameter in parameters) {
+            elementToNode[parameter.declaredElement] = parameter;
+          }
+        }
+
+        TypeParameter current = parameter;
+        for (var step = 0; current != null; step++) {
+          var bound = current.bound;
+          if (bound is TypeName) {
+            current = elementToNode[bound.name.staticElement];
+          } else {
+            current = null;
+          }
+          if (step == parameters.length) {
+            var element = parameter.declaredElement;
+            _errorReporter.reportErrorForNode(
+              StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+              parameter,
+              [element.displayName, element.bound.displayName],
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+
   void _checkForTypeParameterReferencedByStatic(SimpleIdentifier identifier) {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
       var element = identifier.staticElement;
@@ -4943,29 +4979,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, identifier);
       }
     }
-  }
-
-  /**
-   * Check whether the given type [parameter] is a supertype of its bound.
-   *
-   * See [StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
-   */
-  void _checkForTypeParameterSupertypeOfItsBound(TypeParameter parameter) {
-    TypeParameterElement element = parameter.declaredElement;
-    // prepare bound
-    DartType bound = element.bound;
-    if (bound == null) {
-      return;
-    }
-    // OK, type parameter is not supertype of its bound
-    if (!_typeSystem.isSubtypeOf(bound, element.type)) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-        parameter,
-        [element.displayName, bound.displayName]);
   }
 
   /**

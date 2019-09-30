@@ -590,8 +590,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
-  bool get _isSimArm64 => _configuration.architecture == Architecture.simarm64;
-
   bool get _isX64 => _configuration.architecture == Architecture.x64;
 
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
@@ -629,6 +627,15 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (!_configuration.keepGeneratedFiles) {
         commands.add(computeRemoveAssemblyCommand(
             tempDir, arguments, environmentOverrides));
+      }
+    }
+
+    if (_configuration.useElf && _isAndroid) {
+      // On Android, run the NDK's "strip" tool with "--strip-unneeded" to copy
+      // Flutter's workflow. Skip this step on tests for DWARF (which may get
+      // stripped).
+      if (!arguments.last.contains("dwarf")) {
+        commands.add(computeStripCommand(tempDir, environmentOverrides));
       }
     }
 
@@ -702,27 +709,26 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         alwaysCompile: !_useSdk);
   }
 
+  static const String ndkPath = "third_party/android_tools/ndk";
+  String get abiTriple => _isArm
+      ? "arm-linux-androideabi"
+      : _isArm64 ? "aarch64-linux-android" : null;
+  String get host =>
+      Platform.isLinux ? "linux" : Platform.isMacOS ? "darwin" : null;
+
   Command computeAssembleCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
     String cc, shared, ldFlags;
-    if (_isAndroid || _isSimArm || _isSimArm64) {
-      var ndk = "third_party/android_tools/ndk";
-      String triple;
-      if (_isArm || _isSimArm) {
-        triple = "arm-linux-androideabi";
-      } else if (_isArm64 || _isSimArm64) {
-        triple = "aarch64-linux-android";
-      }
-      String host;
-      if (Platform.isLinux) {
-        host = "linux";
-      } else if (Platform.isMacOS) {
-        host = "darwin";
-      }
-      cc = "$ndk/toolchains/$triple-4.9/prebuilt/$host-x86_64/bin/$triple-gcc";
+    if (_isAndroid) {
+      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+          "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
-      cc = 'gcc';
+      if (_isSimArm) {
+        cc = 'arm-linux-gnueabihf-gcc';
+      } else {
+        cc = 'gcc';
+      }
       shared = '-shared';
     } else if (Platform.isMacOS) {
       cc = 'clang';
@@ -761,6 +767,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     return CompilationCommand('assemble', tempDir, bootstrapDependencies(), cc,
         args, environmentOverrides,
+        alwaysCompile: !_useSdk);
+  }
+
+  Command computeStripCommand(
+      String tempDir, Map<String, String> environmentOverrides) {
+    final String stripTool = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
+        "$host-x86_64/bin/$abiTriple-strip";
+    final List<String> args = [
+      '--strip-unneeded',
+      "$tempDir/out.aotsnapshot",
+    ];
+    return CompilationCommand('strip', tempDir, bootstrapDependencies(),
+        stripTool, args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 

@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,9 +11,7 @@ import 'server_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
-    if (!AnalysisDriver.useSummary2) {
-      defineReflectiveTests(WorkspaceSymbolsTest);
-    }
+    defineReflectiveTests(WorkspaceSymbolsTest);
   });
 }
 

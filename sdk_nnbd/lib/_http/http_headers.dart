@@ -257,7 +257,7 @@ class _HttpHeaders implements HttpHeaders {
   }
 
   ContentType get contentType {
-    var values = _headers["content-type"];
+    var values = _headers[HttpHeaders.contentTypeHeader];
     if (values != null) {
       return ContentType.parse(values[0]);
     } else {

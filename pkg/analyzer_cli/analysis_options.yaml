@@ -1,6 +1,9 @@
 analyzer:
   strong-mode:
     implicit-casts: false
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
   exclude:
     - test/data/**
 linter:

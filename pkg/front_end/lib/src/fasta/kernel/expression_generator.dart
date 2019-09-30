@@ -82,8 +82,6 @@ import 'kernel_builder.dart'
 
 import 'kernel_shadow_ast.dart';
 
-import '../type_inference/type_inferrer.dart';
-
 /// A generator represents a subexpression for which we can't yet build an
 /// expression because we don't yet know the context in which it's used.
 ///
@@ -177,6 +175,11 @@ abstract class Generator {
       {int offset: TreeNode.noOffset,
       bool voidContext: false,
       Procedure interfaceTarget});
+
+  /// Returns a [Generator] or [Expression] representing an index access
+  /// (e.g. `a[b]`) with the generator on the receiver and [index] as the
+  /// index expression.
+  Generator buildIndexedAccess(Expression index, Token token);
 
   /// Returns a [Expression] representing a compile-time error.
   ///
@@ -413,6 +416,12 @@ class VariableUseGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
@@ -451,9 +460,6 @@ class PropertyAccessGenerator extends Generator {
 
   final Member setter;
 
-  /// Synthetic variable created for [receiver] if need.
-  VariableDeclaration _receiverVariable;
-
   PropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
       this.receiver, this.name, this.getter, this.setter)
       : super(helper, token);
@@ -464,11 +470,6 @@ class PropertyAccessGenerator extends Generator {
   @override
   String get _plainNameForRead => name.name;
 
-  receiverAccess() {
-    _receiverVariable ??= new VariableDeclaration.forValue(receiver);
-    return new VariableGet(_receiverVariable)..fileOffset = fileOffset;
-  }
-
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     return _helper.buildMethodInvocation(receiver, name, arguments, offset);
@@ -477,8 +478,6 @@ class PropertyAccessGenerator extends Generator {
   @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
-    sink.write(", _receiverVariable: ");
-    printNodeOn(_receiverVariable, sink, syntheticNames: syntheticNames);
     sink.write(", receiver: ");
     printNodeOn(receiver, sink, syntheticNames: syntheticNames);
     sink.write(", name: ");
@@ -574,6 +573,12 @@ class PropertyAccessGenerator extends Generator {
                 binary,
                 forEffect: true));
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   /// Creates a [Generator] for the access of property [name] on [receiver].
@@ -749,6 +754,12 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", name: ");
@@ -861,6 +872,12 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     return unsupported("doInvocation", offset, _uri);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -996,6 +1013,12 @@ class SuperPropertyAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", name: ");
@@ -1094,6 +1117,12 @@ class IndexedAccessGenerator extends Generator {
     return _helper.buildMethodInvocation(
         buildSimpleRead(), callName, arguments, _forest.readOffset(arguments),
         isImplicitCall: true);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -1222,6 +1251,12 @@ class ThisIndexedAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", index: ");
@@ -1321,6 +1356,12 @@ class SuperIndexedAccessGenerator extends Generator {
     return _helper.buildMethodInvocation(
         buildSimpleRead(), callName, arguments, offset,
         isImplicitCall: true);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -1531,6 +1572,12 @@ class StaticAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", targetName: ");
@@ -1561,6 +1608,8 @@ class StaticAccessGenerator extends Generator {
 ///
 /// These can only occur within an extension instance member.
 class ExtensionInstanceAccessGenerator extends Generator {
+  final Extension extension;
+
   /// The original name of the target.
   final String targetName;
 
@@ -1600,6 +1649,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   ExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.extension,
       this.targetName,
       this.readTarget,
       this.invokeTarget,
@@ -1613,6 +1663,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   factory ExtensionInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
+      Extension extension,
       String targetName,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
@@ -1648,6 +1699,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
     return new ExtensionInstanceAccessGenerator(
         helper,
         token,
+        extension,
         targetName,
         readTarget,
         invokeTarget,
@@ -1694,7 +1746,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
               _extensionTypeParameterCount,
               0,
               _helper.createVariableGet(extensionThis, fileOffset),
-              extensionTypeArguments: _createExtensionTypeArguments()));
+              extensionTypeArguments: _createExtensionTypeArguments()),
+          isTearOff: invokeTarget != null);
     }
     return read;
   }
@@ -1710,9 +1763,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
       write = _makeInvalidWrite(value);
     } else {
       write = new ExtensionSet(
+          extension,
+          _createExtensionTypeArguments(),
           _helper.createVariableGet(extensionThis, fileOffset),
-          new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
-              _createExtensionTypeArguments()),
+          writeTarget,
           value,
           forEffect: forEffect,
           readOnlyReceiver: true);
@@ -1788,12 +1842,19 @@ class ExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named));
+              namedArguments: arguments.named),
+          isTearOff: false);
     } else {
       return _helper.buildMethodInvocation(buildSimpleRead(), callName,
           arguments, adjustForImplicitCall(_plainNameForRead, offset),
           isImplicitCall: true);
     }
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -1830,6 +1891,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
 ///   }
 ///
 class ExplicitExtensionInstanceAccessGenerator extends Generator {
+  final Extension extension;
+
   /// The name of the original target;
   final String targetName;
 
@@ -1873,6 +1936,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   ExplicitExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.extension,
       this.targetName,
       this.readTarget,
       this.invokeTarget,
@@ -1890,6 +1954,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   factory ExplicitExtensionInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       Token token,
+      Extension extension,
       Builder getterBuilder,
       Builder setterBuilder,
       Expression receiver,
@@ -1934,6 +1999,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     return new ExplicitExtensionInstanceAccessGenerator(
         helper,
         token,
+        extension,
         targetName,
         readTarget,
         invokeTarget,
@@ -1945,7 +2011,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
-  String get _debugName => "InstanceExtensionAccessGenerator";
+  String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
 
   @override
   String get _plainNameForRead => targetName;
@@ -1953,6 +2019,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   List<DartType> _createExtensionTypeArguments() {
     return explicitTypeArguments ?? const <DartType>[];
   }
+
+  /// Returns `true` if performing a read operation is a tear off.
+  ///
+  /// This is the case if [invokeTarget] is non-null, since extension methods
+  /// have both a [readTarget] and an [invokeTarget], whereas extension getters
+  /// only have a [readTarget].
+  bool get isReadTearOff => invokeTarget != null;
 
   @override
   Expression buildSimpleRead() {
@@ -1977,7 +2050,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           readTarget,
           _helper.forest.createArgumentsForExtensionMethod(
               fileOffset, extensionTypeParameterCount, 0, receiver,
-              extensionTypeArguments: _createExtensionTypeArguments()));
+              extensionTypeArguments: _createExtensionTypeArguments()),
+          isTearOff: isReadTearOff);
     }
     return read;
   }
@@ -2006,12 +2080,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       write = _makeInvalidWrite(value);
     } else {
       write = new ExtensionSet(
-          receiver,
-          new ExtensionAccessTarget(writeTarget, null, ProcedureKind.Setter,
-              _createExtensionTypeArguments()),
-          value,
-          readOnlyReceiver: readOnlyReceiver,
-          forEffect: forEffect);
+          extension, explicitTypeArguments, receiver, writeTarget, value,
+          readOnlyReceiver: readOnlyReceiver, forEffect: forEffect);
     }
     write.fileOffset = offset;
     return write;
@@ -2174,7 +2244,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
-              namedArguments: arguments.named));
+              namedArguments: arguments.named),
+          isTearOff: false);
     } else {
       invocation = _helper.buildMethodInvocation(
           _createRead(receiverExpression),
@@ -2193,6 +2264,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", targetName: ");
@@ -2204,8 +2281,204 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   }
 }
 
+class ExplicitExtensionIndexedAccessGenerator extends Generator {
+  final Extension extension;
+
+  /// The static [Member] generated for the [] operation.
+  ///
+  /// This can be `null` if the extension doesn't have an [] method.
+  final Procedure readTarget;
+
+  /// The static [Member] generated for the []= operation.
+  ///
+  /// This can be `null` if the extension doesn't have an []= method.
+  final Procedure writeTarget;
+
+  /// The expression holding the receiver value for the explicit extension
+  /// access, that is, `a` in `Extension<int>(a)[index]`.
+  final Expression receiver;
+
+  /// The index expression;
+  final Expression index;
+
+  /// The type arguments explicitly passed to the explicit extension access,
+  /// like `<int>` in `Extension<int>(a)[b]`.
+  final List<DartType> explicitTypeArguments;
+
+  /// The number of type parameters declared on the extension declaration.
+  final int extensionTypeParameterCount;
+
+  ExplicitExtensionIndexedAccessGenerator(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      this.extension,
+      this.readTarget,
+      this.writeTarget,
+      this.receiver,
+      this.index,
+      this.explicitTypeArguments,
+      this.extensionTypeParameterCount)
+      : assert(readTarget != null || writeTarget != null),
+        assert(receiver != null),
+        super(helper, token);
+
+  factory ExplicitExtensionIndexedAccessGenerator.fromBuilder(
+      ExpressionGeneratorHelper helper,
+      Token token,
+      Extension extension,
+      Builder getterBuilder,
+      Builder setterBuilder,
+      Expression receiver,
+      Expression index,
+      List<DartType> explicitTypeArguments,
+      int extensionTypeParameterCount) {
+    Procedure readTarget;
+    if (getterBuilder != null) {
+      if (getterBuilder is AccessErrorBuilder) {
+        AccessErrorBuilder error = getterBuilder;
+        getterBuilder = error.builder;
+        // We should only see an access error here if we've looked up a setter
+        // when not explicitly looking for a setter.
+        assert(getterBuilder is MemberBuilder);
+      } else if (getterBuilder is MemberBuilder) {
+        MemberBuilder procedureBuilder = getterBuilder;
+        readTarget = procedureBuilder.member;
+      } else {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "InstanceExtensionAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
+    }
+    Procedure writeTarget;
+    if (setterBuilder is MemberBuilder) {
+      MemberBuilder memberBuilder = setterBuilder;
+      writeTarget = memberBuilder.member;
+    }
+    return new ExplicitExtensionIndexedAccessGenerator(
+        helper,
+        token,
+        extension,
+        readTarget,
+        writeTarget,
+        receiver,
+        index,
+        explicitTypeArguments,
+        extensionTypeParameterCount);
+  }
+
+  List<DartType> _createExtensionTypeArguments() {
+    return explicitTypeArguments ?? const <DartType>[];
+  }
+
+  String get _plainNameForRead => "[]";
+
+  String get _debugName => "ExplicitExtensionIndexedAccessGenerator";
+
+  @override
+  Expression buildSimpleRead() {
+    if (readTarget == null) {
+      return _makeInvalidRead();
+    }
+    return _helper.buildExtensionMethodInvocation(
+        fileOffset,
+        readTarget,
+        _forest.createArgumentsForExtensionMethod(
+            fileOffset, extensionTypeParameterCount, 0, receiver,
+            extensionTypeArguments: _createExtensionTypeArguments(),
+            positionalArguments: <Expression>[index]),
+        isTearOff: false);
+  }
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext: false}) {
+    if (writeTarget == null) {
+      return _makeInvalidWrite(value);
+    }
+    if (voidContext) {
+      return _helper.buildExtensionMethodInvocation(
+          fileOffset,
+          writeTarget,
+          _forest.createArgumentsForExtensionMethod(
+              fileOffset, extensionTypeParameterCount, 0, receiver,
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              positionalArguments: <Expression>[index, value]),
+          isTearOff: false);
+    } else {
+      return new ExtensionIndexSet(
+          extension, explicitTypeArguments, receiver, writeTarget, index, value)
+        ..fileOffset = fileOffset;
+    }
+  }
+
+  @override
+  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
+      {bool voidContext: false}) {
+    return new IfNullExtensionIndexSet(extension, explicitTypeArguments,
+        receiver, readTarget, writeTarget, index, value,
+        readOffset: fileOffset,
+        testOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext)
+      ..fileOffset = offset;
+  }
+
+  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
+      {int offset: TreeNode.noOffset,
+      bool voidContext: false,
+      Procedure interfaceTarget,
+      bool isPreIncDec: false,
+      bool isPostIncDec: false}) {
+    return new CompoundExtensionIndexSet(extension, explicitTypeArguments,
+        receiver, readTarget, writeTarget, index, binaryOperator, value,
+        readOffset: fileOffset,
+        binaryOffset: offset,
+        writeOffset: fileOffset,
+        forEffect: voidContext,
+        forPostIncDec: isPostIncDec);
+  }
+
+  @override
+  Expression buildPostfixIncrement(Name binaryOperator,
+      {int offset = TreeNode.noOffset,
+      bool voidContext = false,
+      Procedure interfaceTarget}) {
+    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    return buildCompoundAssignment(binaryOperator, value,
+        offset: offset,
+        voidContext: voidContext,
+        interfaceTarget: interfaceTarget,
+        isPostIncDec: true);
+  }
+
+  @override
+  Expression doInvocation(int offset, Arguments arguments) {
+    return _helper.buildMethodInvocation(
+        buildSimpleRead(), callName, arguments, offset,
+        isImplicitCall: true);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
+  void printOn(StringSink sink) {
+    NameSystem syntheticNames = new NameSystem();
+    sink.write(", index: ");
+    printNodeOn(index, sink, syntheticNames: syntheticNames);
+    sink.write(", readTarget: ");
+    printQualifiedNameOn(readTarget, sink, syntheticNames: syntheticNames);
+    sink.write(", writeTarget: ");
+    printQualifiedNameOn(writeTarget, sink, syntheticNames: syntheticNames);
+  }
+}
+
 /// A [ExplicitExtensionAccessGenerator] represents a subexpression whose
-/// prefix is a forced extension resolution.
+/// prefix is an explicit extension application.
 ///
 /// For instance
 ///
@@ -2281,28 +2554,33 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return _makeInvalidRead();
   }
 
+  Generator _createInstanceAccess(Name name, {bool isNullAware}) {
+    Builder getter = extensionBuilder.lookupLocalMember(name.name);
+    Builder setter =
+        extensionBuilder.lookupLocalMember(name.name, setter: true);
+    if (getter == null && setter == null) {
+      return new UnresolvedNameGenerator(_helper, token, name);
+    }
+    return new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
+        _helper,
+        token,
+        extensionBuilder.extension,
+        getter,
+        setter,
+        receiver,
+        explicitTypeArguments,
+        extensionBuilder.typeParameters?.length ?? 0,
+        isNullAware: isNullAware);
+  }
+
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (_helper.constantContext != ConstantContext.none) {
       _helper.addProblem(
           messageNotAConstantExpression, fileOffset, token.length);
     }
-    Builder getter = extensionBuilder.lookupLocalMember(send.name.name);
-    Builder setter =
-        extensionBuilder.lookupLocalMember(send.name.name, setter: true);
-    if (getter == null && setter == null) {
-      return new UnresolvedNameGenerator(_helper, token, send.name);
-    }
     Generator generator =
-        new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
-            _helper,
-            token,
-            getter,
-            setter,
-            receiver,
-            explicitTypeArguments,
-            extensionBuilder.typeParameters?.length ?? 0,
-            isNullAware: isNullAware);
+        _createInstanceAccess(send.name, isNullAware: isNullAware);
     if (send.arguments != null) {
       return generator.doInvocation(offsetForToken(send.token), send.arguments);
     } else {
@@ -2312,8 +2590,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    return unimplemented(
-        "ExplicitExtensionAccessGenerator.doInvocation", fileOffset, _uri);
+    Generator generator = _createInstanceAccess(callName, isNullAware: false);
+    return generator.doInvocation(offset, arguments);
   }
 
   @override
@@ -2326,6 +2604,26 @@ class ExplicitExtensionAccessGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) {
     return _helper.buildProblem(
         messageExplicitExtensionAsLvalue, fileOffset, lengthForToken(token));
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    Builder getter = extensionBuilder.lookupLocalMember(indexGetName.name);
+    Builder setter = extensionBuilder.lookupLocalMember(indexSetName.name);
+    if (getter == null && setter == null) {
+      return new UnresolvedNameGenerator(_helper, token, indexGetName);
+    }
+
+    return new ExplicitExtensionIndexedAccessGenerator.fromBuilder(
+        _helper,
+        token,
+        extensionBuilder.extension,
+        getter,
+        setter,
+        receiver,
+        index,
+        explicitTypeArguments,
+        extensionBuilder.typeParameters?.length ?? 0);
   }
 
   @override
@@ -2410,6 +2708,12 @@ class LoadLibraryGenerator extends Generator {
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset, _forest, arguments);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -2556,6 +2860,12 @@ class DeferredAccessGenerator extends Generator {
             nameToken, nameLastToken, constness),
         prefixGenerator.prefix,
         offsetForToken(suffixGenerator.token));
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -2878,6 +3188,14 @@ class ReadOnlyAccessGenerator extends Generator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    // TODO(johnniwinther): The read-only quality of the variable should be
+    // passed on to the generator.
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", expression: ");
@@ -3001,6 +3319,12 @@ abstract class ErroneousExpressionGenerator extends Generator {
     }
     return buildError(arguments);
   }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
 }
 
 class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
@@ -3076,6 +3400,12 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       bool isCompound, Expression value) {
     return buildError(_forest.createArguments(fileOffset, <Expression>[value]),
         isSetter: true);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 }
 
@@ -3196,6 +3526,12 @@ class UnlinkedGenerator extends Generator {
   Expression doInvocation(int offset, Arguments arguments) {
     return unsupported("doInvocation", offset, _uri);
   }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
 }
 
 abstract class ContextAwareGenerator extends Generator {
@@ -3257,6 +3593,12 @@ abstract class ContextAwareGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) {
     return _helper.buildProblem(messageIllegalAssignmentToNonAssignable,
         fileOffset, lengthForToken(token));
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 }
 
@@ -3499,6 +3841,12 @@ class PrefixUseGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) => _makeInvalidRead();
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
+  }
+
+  @override
   void printOn(StringSink sink) {
     sink.write(", prefix: ");
     sink.write(prefix.name);
@@ -3584,6 +3932,12 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token))));
     return result;
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 
   @override
@@ -3687,6 +4041,12 @@ class ParserErrorGenerator extends Generator {
       Token nameLastToken,
       Constness constness) {
     return buildProblem();
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return new IndexedAccessGenerator(
+        _helper, token, buildSimpleRead(), index, null, null);
   }
 }
 
@@ -3910,6 +4270,20 @@ class ThisAccessGenerator extends Generator {
     return buildAssignmentError();
   }
 
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    if (isSuper) {
+      return new SuperIndexedAccessGenerator(
+          _helper,
+          token,
+          index,
+          _helper.lookupInstanceMember(indexGetName, isSuper: true),
+          _helper.lookupInstanceMember(indexSetName, isSuper: true));
+    } else {
+      return new ThisIndexedAccessGenerator(_helper, token, index, null, null);
+    }
+  }
+
   Expression buildAssignmentError() {
     return _helper.buildProblem(
         isSuper ? messageCannotAssignToSuper : messageNotAnLvalue,
@@ -4045,6 +4419,11 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
   }
 
   @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
+  }
+
+  @override
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.name);
@@ -4116,6 +4495,11 @@ class IncompletePropertyAccessGenerator extends Generator
 
   Expression doInvocation(int offset, Arguments arguments) {
     return unsupported("doInvocation", offset, _uri);
+  }
+
+  @override
+  Generator buildIndexedAccess(Expression index, Token token) {
+    return unsupported("buildIndexedAccess", offsetForToken(token), _uri);
   }
 
   @override

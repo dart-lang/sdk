@@ -544,7 +544,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("endTypeVariable");
   }
 
@@ -583,6 +584,28 @@ class DietListener extends StackListener {
       buildFunctionBody(createFunctionListener(builder), bodyToken, metadata,
           MemberKind.Factory);
     }
+  }
+
+  @override
+  void endExtensionFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("ExtensionFactoryMethod");
+    pop(); // bodyToken
+    pop(); // name
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    // Skip the declaration. An error as already been produced by the parser.
+  }
+
+  @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionConstructor");
+    pop(); // bodyToken
+    pop(); // name
+    pop(); // metadata
+    checkEmpty(beginToken.charOffset);
+    // Skip the declaration. An error as already been produced by the parser.
   }
 
   @override
