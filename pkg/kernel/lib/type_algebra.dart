@@ -76,6 +76,12 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables) {
   return new _OccurrenceVisitor(variables).visit(type);
 }
 
+/// Returns `true` if [type] contains any free type variables, that is, type
+/// variable for function types whose function type is part of [type].
+bool containsFreeFunctionTypeVariables(DartType type) {
+  return new _FreeFunctionTypeVariableVisitor().visit(type);
+}
+
 /// Given a set of type variables, finds a substitution of those variables such
 /// that the two given types becomes equal, or returns `null` if no such
 /// substitution exists.
@@ -470,6 +476,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     // any uses, but does not tell if the resulting function type is distinct.
     // Our own use counter will get incremented if something from our
     // environment has been used inside the function.
+    assert(
+        node.typeParameters.every((TypeParameter parameter) =>
+            lookup(parameter, true) == null &&
+            lookup(parameter, false) == null),
+        "Function type variables cannot be substituted while still attached "
+        "to the function. Perform substitution on "
+        "`FunctionType.withoutTypeParameters` instead.");
     var inner = node.typeParameters.isEmpty ? this : newInnerEnvironment();
     int before = this.useCounter;
     // Invert the variance when translating parameters.
@@ -713,7 +726,7 @@ class _TypeUnification {
   }
 }
 
-class _OccurrenceVisitor extends DartTypeVisitor<bool> {
+class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   final Set<TypeParameter> variables;
 
   _OccurrenceVisitor(this.variables);
@@ -724,6 +737,11 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
     return visit(node.type);
   }
 
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  bool visitBottomType(BottomType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -749,6 +767,56 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
 
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
+    if (node.bound.accept(this)) return true;
+    if (node.defaultType == null) return false;
+    return node.defaultType.accept(this);
+  }
+}
+
+class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
+  final Set<TypeParameter> variables = new Set<TypeParameter>();
+
+  _FreeFunctionTypeVariableVisitor();
+
+  bool visit(DartType node) => node.accept(this);
+
+  bool defaultDartType(DartType node) {
+    throw new UnsupportedError("Unsupported type $node (${node.runtimeType}.");
+  }
+
+  bool visitNamedType(NamedType node) {
+    return visit(node.type);
+  }
+
+  bool visitBottomType(BottomType node) => false;
+  bool visitInvalidType(InvalidType node) => false;
+  bool visitDynamicType(DynamicType node) => false;
+  bool visitVoidType(VoidType node) => false;
+
+  bool visitInterfaceType(InterfaceType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitTypedefType(TypedefType node) {
+    return node.typeArguments.any(visit);
+  }
+
+  bool visitFunctionType(FunctionType node) {
+    variables.addAll(node.typeParameters);
+    bool result = node.typeParameters.any(handleTypeParameter) ||
+        node.positionalParameters.any(visit) ||
+        node.namedParameters.any(visitNamedType) ||
+        visit(node.returnType);
+    variables.removeAll(node.typeParameters);
+    return result;
+  }
+
+  bool visitTypeParameterType(TypeParameterType node) {
+    return node.parameter.parent == null && !variables.contains(node.parameter);
+  }
+
+  bool handleTypeParameter(TypeParameter node) {
+    assert(variables.contains(node));
     if (node.bound.accept(this)) return true;
     if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
