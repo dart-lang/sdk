@@ -5398,6 +5398,12 @@ abstract class DartType extends Node {
   /// If this is a typedef type, unfolds its type definition once, otherwise
   /// returns the type itself.
   DartType get unaliasOnce => this;
+
+  /// Creates a copy of the type with the given [nullability] if possible.
+  ///
+  /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
+  /// `void`, or `bottom`.
+  DartType withNullability(Nullability nullability);
 }
 
 /// The type arising from invalid type annotations.
@@ -5417,6 +5423,8 @@ class InvalidType extends DartType {
   bool operator ==(Object other) => other is InvalidType;
 
   Nullability get nullability => throw "InvalidType doesn't have nullability";
+
+  InvalidType withNullability(Nullability nullability) => this;
 }
 
 class DynamicType extends DartType {
@@ -5432,6 +5440,8 @@ class DynamicType extends DartType {
   bool operator ==(Object other) => other is DynamicType;
 
   Nullability get nullability => Nullability.nullable;
+
+  DynamicType withNullability(Nullability nullability) => this;
 }
 
 class VoidType extends DartType {
@@ -5447,6 +5457,8 @@ class VoidType extends DartType {
   bool operator ==(Object other) => other is VoidType;
 
   Nullability get nullability => Nullability.nullable;
+
+  VoidType withNullability(Nullability nullability) => this;
 }
 
 class BottomType extends DartType {
@@ -5462,6 +5474,8 @@ class BottomType extends DartType {
   bool operator ==(Object other) => other is BottomType;
 
   Nullability get nullability => Nullability.nonNullable;
+
+  BottomType withNullability(Nullability nullability) => this;
 }
 
 class InterfaceType extends DartType {
@@ -5523,6 +5537,12 @@ class InterfaceType extends DartType {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
     return hash;
+  }
+
+  InterfaceType withNullability(Nullability nullability) {
+    return nullability == this.nullability
+        ? this
+        : new InterfaceType.byReference(className, typeArguments, nullability);
   }
 }
 
@@ -5655,6 +5675,18 @@ class FunctionType extends DartType {
     }
     return hash;
   }
+
+  FunctionType withNullability(Nullability nullability) {
+    if (nullability == this.nullability) return this;
+    FunctionType result = FunctionType(positionalParameters, returnType,
+        namedParameters: namedParameters,
+        typeParameters: typeParameters,
+        nullability: nullability,
+        requiredParameterCount: requiredParameterCount,
+        typedefType: typedefType?.withNullability(nullability));
+    if (typeParameters.isEmpty) return result;
+    return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
+  }
 }
 
 /// A use of a [Typedef] as a type.
@@ -5686,7 +5718,9 @@ class TypedefType extends DartType {
   }
 
   DartType get unaliasOnce {
-    return Substitution.fromTypedefType(this).substituteType(typedefNode.type);
+    return Substitution.fromTypedefType(this)
+        .substituteType(typedefNode.type)
+        .withNullability(nullability);
   }
 
   DartType get unalias {
@@ -5714,6 +5748,13 @@ class TypedefType extends DartType {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
     return hash;
+  }
+
+  TypedefType withNullability(Nullability nullability) {
+    return nullability == this.nullability
+        ? this
+        : new TypedefType.byReference(
+            typedefReference, typeArguments, nullability);
   }
 }
 
@@ -5827,6 +5868,19 @@ class TypeParameterType extends DartType {
     return getNullability(
         typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
         promotedBound);
+  }
+
+  /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
+  ///
+  /// In contrast with other types, [TypeParameterType.withNullability] doesn't
+  /// set the overall nullability of the returned type but sets that of the
+  /// left-hand side of the intersection type.  In case [promotedBound] is null,
+  /// it is an equivalent of setting the overall nullability.
+  TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+    return typeParameterTypeNullability == this.typeParameterTypeNullability
+        ? this
+        : new TypeParameterType(
+            parameter, promotedBound, typeParameterTypeNullability);
   }
 
   /// Gets the nullability of a type-parameter type based on the bound.

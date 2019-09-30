@@ -1888,6 +1888,7 @@ outlining
 output
 outside
 over
+overall
 overflow
 overloadable
 overloaded

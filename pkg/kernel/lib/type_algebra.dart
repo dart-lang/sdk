@@ -446,7 +446,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new InterfaceType(node.classNode, typeArguments);
+    return new InterfaceType(node.classNode, typeArguments, node.nullability);
   }
 
   DartType visitTypedefType(TypedefType node) {
@@ -454,7 +454,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     int before = useCounter;
     var typeArguments = node.typeArguments.map(visit).toList();
     if (useCounter == before) return node;
-    return new TypedefType(node.typedefNode, typeArguments);
+    return new TypedefType(node.typedefNode, typeArguments, node.nullability);
   }
 
   List<TypeParameter> freshTypeParameters(List<TypeParameter> parameters) {
@@ -503,7 +503,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         namedParameters: namedParameters,
         typeParameters: typeParameters,
         requiredParameterCount: node.requiredParameterCount,
-        typedefType: typedefType);
+        typedefType: typedefType,
+        nullability: node.nullability);
   }
 
   void bumpCountersUntil(_TypeSubstitutor target) {
@@ -515,10 +516,38 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     ++target.useCounter;
   }
 
+  static Nullability combineNullabilities(Nullability a, Nullability b) {
+    //
+    // | arg \ var |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  ?  |  *  |  !  |
+    // |     ?     | N/A |  ?  |  ?  |  ?  |
+    // |     *     |  *  |  ?  |  *  |  *  |
+    // |     %     | N/A |  ?  |  *  |  %  |
+    //
+    // | arg \ var |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  ?  |  *  |  !  |
+    // |     ?     |  ?  |  ?  |  ?  |  ?  |
+    // |     *     |  *  |  ?  |  *  |  *  |
+    // |     %     |  %  |  ?  |  *  |  %  |
+    //
+
+    if (a == Nullability.nullable || b == Nullability.nullable) {
+      return Nullability.nullable;
+    }
+
+    if (a == Nullability.legacy || b == Nullability.legacy) {
+      return Nullability.legacy;
+    }
+
+    return a;
+  }
+
   DartType getSubstitute(TypeParameter variable) {
     var environment = this;
     while (environment != null) {
-      var replacement = environment.lookup(variable, covariantContext);
+      DartType replacement = environment.lookup(variable, covariantContext);
       if (replacement != null) {
         bumpCountersUntil(environment);
         return replacement;
@@ -529,7 +558,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 
   DartType visitTypeParameterType(TypeParameterType node) {
-    return getSubstitute(node.parameter) ?? node;
+    DartType replacement = getSubstitute(node.parameter);
+    if (replacement is InvalidType) return replacement;
+    if (replacement != null) {
+      return replacement.withNullability(
+          combineNullabilities(replacement.nullability, node.nullability));
+    }
+    return node;
   }
 }
 

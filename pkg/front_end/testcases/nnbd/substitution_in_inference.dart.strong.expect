@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo<T extends core::Object? = core::Object?, S extends core::List<self::foo::T%> = core::List<core::Object?>>(self::foo::T% t) → dynamic
+  return null;
+static method bar<T extends core::Object? = core::Object?, S extends core::List<self::bar::T?> = core::List<core::Object?>>(self::bar::T% t) → dynamic
+  return null;
+static method baz(core::int? x, core::int y) → dynamic {
+  self::foo<core::int?, core::List<core::int?>>(x);
+  self::bar<core::int, core::List<core::int?>>(y);
+}
+static method main() → dynamic {}

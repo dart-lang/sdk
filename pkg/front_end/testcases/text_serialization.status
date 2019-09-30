@@ -33,11 +33,11 @@ extensions/if_null: TextSerializationFailure
 extensions/implicit_extension_inference: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
 extensions/index: TextSerializationFailure
-extensions/internal_resolution: TextSerializationFailure
 extensions/instance_access: TextSerializationFailure
 extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/instance_tearoff: TextSerializationFailure
+extensions/internal_resolution: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
@@ -862,6 +862,7 @@ nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
@@ -1120,6 +1121,6 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
+top_level_variance_test: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
 variance/mixin_type_parameter_modifier: TextSerializationFailure
-top_level_variance_test: TextSerializationFailure
