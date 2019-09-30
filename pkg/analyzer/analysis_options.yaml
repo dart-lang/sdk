@@ -15,9 +15,6 @@ analyzer:
     curly_braces_in_flow_control_structures: ignore
     empty_catches: ignore
     prefer_iterable_wheretype: ignore
-    prefer_contains: ignore
-    # TODO(srawlins): Fix existing violations!
-    no_duplicate_case_values: ignore
     # TODO(srawlins): At the time of writing, 230 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-named-default-separator`.
     prefer_equal_for_default_values: ignore

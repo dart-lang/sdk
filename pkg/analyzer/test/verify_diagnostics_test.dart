@@ -120,9 +120,6 @@ class DocumentationValidator {
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
       _reportProblem('More than one error range in example');
     }
-    if (snippet.indexOf('extension') >= 0) {
-      DateTime.now();
-    }
     return _SnippetData(
         snippet.substring(0, rangeStart) +
             snippet.substring(rangeStart + errorRangeStart.length, rangeEnd) +

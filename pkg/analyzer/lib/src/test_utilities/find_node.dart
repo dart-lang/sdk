@@ -290,7 +290,7 @@ class FindNode {
 
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
-    if (content.indexOf(search, index + 1) != -1) {
+    if (content.contains(search, index + 1)) {
       throw new StateError('The pattern |$search| is not unique in:\n$content');
     }
     if (index < 0) {

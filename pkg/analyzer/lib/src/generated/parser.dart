@@ -1715,7 +1715,7 @@ class Parser {
       // Skip GitHub code blocks.
       // https://help.github.com/articles/creating-and-highlighting-code-blocks/
       if (tokens.length != 1) {
-        if (comment.indexOf('```') != -1) {
+        if (comment.contains('```')) {
           isInGitHubCodeBlock = !isInGitHubCodeBlock;
         }
         if (isInGitHubCodeBlock) {

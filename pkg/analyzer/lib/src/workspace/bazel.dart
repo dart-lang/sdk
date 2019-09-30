@@ -80,7 +80,7 @@ class BazelPackageUriResolver extends UriResolver {
       String fileUriPart = uriPath.substring(slash + 1);
       String filePath = fileUriPart.replaceAll('/', _context.separator);
 
-      if (packageName.indexOf('.') == -1) {
+      if (!packageName.contains('.')) {
         String fullFilePath = _context.join(_workspace.root, 'third_party',
             'dart', packageName, 'lib', filePath);
         File file = _workspace.findFile(fullFilePath);
