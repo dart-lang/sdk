@@ -3444,7 +3444,7 @@ class Parser {
               beforeInitializers?.next, token);
           break;
         case DeclarationKind.Extension:
-          if (optional(';', bodyStart)) {
+          if (optional(';', bodyStart) && externalToken == null) {
             reportRecoverableError(isOperator ? name.next : name,
                 fasta.messageExtensionDeclaresAbstractMember);
           }

@@ -53,6 +53,8 @@ import 'package:kernel/type_algebra.dart' as type_algebra
 
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
+import '../../base/common.dart';
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import 'builder.dart'
@@ -165,6 +167,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
   Map<String, ConstructorRedirection> redirectingConstructors;
 
   ClassBuilder actualOrigin;
+
+  ClassBuilder patchForTesting;
 
   ClassBuilder(
       List<MetadataBuilder> metadata,
@@ -1523,6 +1527,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
   void applyPatch(Builder patch) {
     if (patch is ClassBuilder) {
       patch.actualOrigin = this;
+      if (retainDataForTesting) {
+        patchForTesting = patch;
+      }
       // TODO(ahe): Complain if `patch.supertype` isn't null.
       scope.local.forEach((String name, Builder member) {
         Builder memberPatch = patch.scope.local[name];

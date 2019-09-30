@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
@@ -22,8 +24,11 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ExtensionsDataComputer(), [cfeExtensionMethodsConfig]));
+      runTest: runTestFor(const ExtensionsDataComputer(), [
+        new TestConfig(cfeMarker, 'cfe with extension methods',
+            experimentalFlags: const {ExperimentalFlag.extensionMethods: true},
+            librariesSpecificationUri: createUriForFileName('libraries.json'))
+      ]));
 }
 
 class ExtensionsDataComputer extends DataComputer<Features> {

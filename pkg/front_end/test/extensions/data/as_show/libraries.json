@@ -1,0 +1,9 @@
+{
+  "none": {
+    "libraries": {
+      "test": {
+        "uri": "origin.dart"
+      }
+    }
+  }
+}

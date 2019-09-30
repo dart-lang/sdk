@@ -1350,7 +1350,6 @@ enum ExtensionMemberKind {
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
-  static const int FlagExternal = 1 << 1;
 
   /// The name of the extension member.
   ///
@@ -1387,27 +1386,15 @@ class ExtensionMemberDescriptor {
   Reference member;
 
   ExtensionMemberDescriptor(
-      {this.name,
-      this.kind,
-      bool isStatic: false,
-      bool isExternal: false,
-      this.member}) {
+      {this.name, this.kind, bool isStatic: false, this.member}) {
     this.isStatic = isStatic;
-    this.isExternal = isExternal;
   }
 
   /// Return `true` if the extension method was declared as `static`.
   bool get isStatic => flags & FlagStatic != 0;
 
-  /// Return `true` if the extension method was declared as `external`.
-  bool get isExternal => flags & FlagExternal != 0;
-
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
-  }
-
-  void set isExternal(bool value) {
-    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
   }
 }
 

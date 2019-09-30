@@ -8,6 +8,7 @@ import '../api_prototype/compiler_options.dart'
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
+import '../base/common.dart';
 import '../fasta/messages.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
@@ -42,8 +43,10 @@ class TestConfig {
   final String marker;
   final String name;
   final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Uri librariesSpecificationUri;
 
-  const TestConfig(this.marker, this.name, {this.experimentalFlags = const {}});
+  const TestConfig(this.marker, this.name,
+      {this.experimentalFlags = const {}, this.librariesSpecificationUri});
 
   void customizeCompilerOptions(CompilerOptions options) {}
 }
@@ -180,6 +183,7 @@ void onFailure(String message) => throw new StateError(message);
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
+  retainDataForTesting = true;
   return (TestData testData,
       {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
     return runTest(testData, dataComputer, testedConfigs,
@@ -242,6 +246,13 @@ Future<bool> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
+  if (config.librariesSpecificationUri != null) {
+    Set<Uri> testFiles =
+        testData.memorySourceFiles.keys.map(createUriForFileName).toSet();
+    if (testFiles.contains(config.librariesSpecificationUri)) {
+      options.librariesSpecificationUri = config.librariesSpecificationUri;
+    }
+  }
   config.customizeCompilerOptions(options);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,

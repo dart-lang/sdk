@@ -214,6 +214,8 @@ TestData computeTestData(FileSystemEntity testFile,
             entry;
       }
     }
+    assert(
+        mainTestFile != null, "No 'main.dart' test file found for $testFile.");
   }
 
   String annotatedCode = new File.fromUri(mainTestFile.uri).readAsStringSync();

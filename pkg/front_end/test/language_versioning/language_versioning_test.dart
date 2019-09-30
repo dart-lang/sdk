@@ -52,7 +52,7 @@ class LanguageVersioningDataComputer extends DataComputer<String> {
       Library library, Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new LanguageVersioningDataExtractor(compilerResult, actualMap)
-        .computeForLibrary(library, useFileUri: true);
+        .computeForLibrary(library);
   }
 
   @override

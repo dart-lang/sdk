@@ -74,5 +74,6 @@ abstract class ModifierBuilder extends Builder {
     return buffer..write(name ?? fullNameForErrors);
   }
 
-  String toString() => "$debugName(${printOn(new StringBuffer())})";
+  String toString() =>
+      "${isPatch ? 'patch ' : ''}$debugName(${printOn(new StringBuffer())})";
 }

@@ -11,6 +11,8 @@ import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/type_algebra.dart';
 
+import '../../base/common.dart';
+
 import 'builder.dart'
     show
         Builder,
@@ -459,6 +461,7 @@ class ProcedureBuilder extends FunctionBuilder {
   final Procedure _procedure;
   final int charOpenParenOffset;
   final ProcedureKind kind;
+  ProcedureBuilder patchForTesting;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
@@ -553,8 +556,8 @@ class ProcedureBuilder extends FunctionBuilder {
       _procedure.isConst = isConst;
       if (isExtensionMethod) {
         ExtensionBuilder extensionBuilder = parent;
-        procedure.isExtensionMember = true;
-        procedure.isStatic = true;
+        _procedure.isExtensionMember = true;
+        _procedure.isStatic = true;
         String kindInfix = '';
         if (isExtensionInstanceMember) {
           // Instance getter and setter are converted to methods so we use an
@@ -574,18 +577,18 @@ class ProcedureBuilder extends FunctionBuilder {
               throw new UnsupportedError(
                   'Unexpected extension method kind ${kind}');
           }
-          procedure.kind = ProcedureKind.Method;
+          _procedure.kind = ProcedureKind.Method;
         }
-        procedure.name = new Name(
+        _procedure.name = new Name(
             '${extensionBuilder.name}|${kindInfix}${name}',
             libraryBuilder.library);
       } else {
         _procedure.isStatic = isStatic;
         _procedure.name = new Name(name, libraryBuilder.library);
       }
-    }
-    if (extensionTearOff != null) {
-      _buildExtensionTearOff(libraryBuilder, parent);
+      if (extensionTearOff != null) {
+        _buildExtensionTearOff(libraryBuilder, parent);
+      }
     }
     return _procedure;
   }
@@ -698,7 +701,7 @@ class ProcedureBuilder extends FunctionBuilder {
 
     Statement closureBody = new ReturnStatement(
         new StaticInvocation(
-            procedure,
+            _procedure,
             new Arguments(closurePositionalArguments,
                 types: typeArguments, named: closureNamedArguments))
           ..fileOffset = fileOffset)
@@ -709,10 +712,10 @@ class ProcedureBuilder extends FunctionBuilder {
         typeParameters: closureTypeParameters,
         positionalParameters: closurePositionalParameters,
         namedParameters: closureNamedParameters,
-        requiredParameterCount: procedure.function.requiredParameterCount - 1,
+        requiredParameterCount: _procedure.function.requiredParameterCount - 1,
         returnType: closureReturnType,
-        asyncMarker: procedure.function.asyncMarker,
-        dartAsyncMarker: procedure.function.dartAsyncMarker))
+        asyncMarker: _procedure.function.asyncMarker,
+        dartAsyncMarker: _procedure.function.dartAsyncMarker))
       ..fileOffset = fileOffset;
 
     _extensionTearOff
@@ -783,6 +786,9 @@ class ProcedureBuilder extends FunctionBuilder {
     if (patch is ProcedureBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
+        if (retainDataForTesting) {
+          patchForTesting = patch;
+        }
       }
     } else {
       reportPatchMismatch(patch);
@@ -806,6 +812,8 @@ class ConstructorBuilder extends FunctionBuilder {
 
   @override
   ConstructorBuilder actualOrigin;
+
+  ConstructorBuilder patchForTesting;
 
   Constructor get actualConstructor => _constructor;
 
@@ -998,6 +1006,9 @@ class ConstructorBuilder extends FunctionBuilder {
     if (patch is ConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
+        if (retainDataForTesting) {
+          patchForTesting = patch;
+        }
       }
     } else {
       reportPatchMismatch(patch);
