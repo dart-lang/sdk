@@ -33,9 +33,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   /// The shared SDK bundle, computed once and shared among test invocations.
   static LinkedNodeBundle _sdkBundle;
 
-  @override
-  bool get isAstBasedSummary => true;
-
   LinkedNodeBundle get sdkBundle {
     if (_sdkBundle != null) return _sdkBundle;
 
