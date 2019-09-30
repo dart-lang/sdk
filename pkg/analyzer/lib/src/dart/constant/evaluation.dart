@@ -875,11 +875,7 @@ class ConstantEvaluationEngine {
       // fixed.
       return true;
     }
-    // TODO(scheglov ) Switch to using this, but not now, dartbug.com/33441
-    if (typeSystem.isSubtypeOf(objType, type)) {
-      return true;
-    }
-    return objType.isSubtypeOf(type);
+    return typeSystem.isSubtypeOf(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
