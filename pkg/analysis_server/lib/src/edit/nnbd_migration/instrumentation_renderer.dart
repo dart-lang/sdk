@@ -50,17 +50,17 @@ class InstrumentationRenderer {
   List<Map> _computeRegions(UnitInfo unitInfo) {
     String content = unitInfo.content;
     List<Map> regions = [];
-    int previousIndex = 0;
+    int previousOffset = 0;
     for (var region in unitInfo.regions) {
       int offset = region.offset;
       int length = region.length;
-      if (offset > previousIndex) {
+      if (offset > previousOffset) {
         // Display a region of unmodified content.
         regions.add({
           'modified': false,
-          'content': content.substring(previousIndex, offset),
+          'content': content.substring(previousOffset, offset),
         });
-        previousIndex = offset + length;
+        previousOffset = offset + length;
       }
       List<Map> details = [];
       for (var detail in region.details) {
@@ -76,11 +76,11 @@ class InstrumentationRenderer {
         'details': details,
       });
     }
-    if (previousIndex < content.length) {
+    if (previousOffset < content.length) {
       // Last region of unmodified content.
       regions.add({
         'modified': false,
-        'content': content.substring(previousIndex),
+        'content': content.substring(previousOffset),
       });
     }
     return regions;
@@ -99,14 +99,14 @@ class InstrumentationRenderer {
     List<NavigationTarget> targets = unitInfo.targets.toList();
     targets.sort((first, second) => first.offset.compareTo(second.offset));
     List<Map> targetRegions = [];
-    int previousIndex = 0;
+    int previousOffset = 0;
     for (NavigationTarget target in targets) {
       int offset = mapper.map(target.offset);
       int length = target.length;
-      if (offset > previousIndex) {
+      if (offset > previousOffset) {
         // Display a non-target region.
         targetRegions.add({
-          'content': content.substring(previousIndex, offset),
+          'content': content.substring(previousOffset, offset),
           'isTarget': false,
         });
         // Add a target region.
@@ -115,13 +115,13 @@ class InstrumentationRenderer {
           'isTarget': true,
           'target': 'o${target.offset}',
         });
-        previousIndex = offset + length;
+        previousOffset = offset + length;
       }
     }
-    if (previousIndex < content.length) {
+    if (previousOffset < content.length) {
       // Last non-target region.
       targetRegions.add({
-        'content': content.substring(previousIndex),
+        'content': content.substring(previousOffset),
         'isTarget': false,
       });
     }
