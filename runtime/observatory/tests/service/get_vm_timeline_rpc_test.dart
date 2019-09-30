@@ -119,7 +119,7 @@ var tests = <VMTest>[
     expect(result['traceEvents'], new isInstanceOf<List>());
     final int numEvents = result['traceEvents'].length;
     List dartEvents = filterForDartEvents(result['traceEvents']);
-    expect(dartEvents.length, equals(11));
+    expect(dartEvents.length, greaterThanOrEqualTo(11));
     allEventsHaveIsolateNumber(dartEvents);
     allEventsHaveIsolateNumber(result['traceEvents']);
     expect(

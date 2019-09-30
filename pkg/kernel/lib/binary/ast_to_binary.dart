@@ -5,11 +5,12 @@ library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:convert' show utf8;
+import 'dart:developer';
+import 'dart:io' show BytesBuilder;
+import 'dart:typed_data';
 
 import '../ast.dart';
 import 'tag.dart';
-import 'dart:io' show BytesBuilder;
-import 'dart:typed_data';
 
 /// Writes to a binary file.
 ///
@@ -539,30 +540,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeComponentFile(Component component) {
-    computeCanonicalNames(component);
-    final componentOffset = getBufferOffset();
-    writeUInt32(Tag.ComponentFile);
-    writeUInt32(Tag.BinaryFormatVersion);
-    writeListOfStrings(component.problemsAsJson);
-    indexLinkTable(component);
-    _collectMetadata(component);
-    if (_metadataSubsections != null) {
-      _writeNodeMetadataImpl(component, componentOffset);
-    }
-    libraryOffsets = <int>[];
-    CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
-    if (main != null) {
-      checkCanonicalName(main);
-    }
-    writeLibraries(component);
-    writeUriToSource(component.uriToSource);
-    writeLinkTable(component);
-    _writeMetadataSection(component);
-    writeStringTable(stringIndexer);
-    writeConstantTable(_constantIndexer);
-    writeComponentIndex(component, component.libraries);
+    Timeline.timeSync("BinaryPrinter.writeComponentFile", () {
+      computeCanonicalNames(component);
+      final componentOffset = getBufferOffset();
+      writeUInt32(Tag.ComponentFile);
+      writeUInt32(Tag.BinaryFormatVersion);
+      writeListOfStrings(component.problemsAsJson);
+      indexLinkTable(component);
+      _collectMetadata(component);
+      if (_metadataSubsections != null) {
+        _writeNodeMetadataImpl(component, componentOffset);
+      }
+      libraryOffsets = <int>[];
+      CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
+      if (main != null) {
+        checkCanonicalName(main);
+      }
+      writeLibraries(component);
+      writeUriToSource(component.uriToSource);
+      writeLinkTable(component);
+      _writeMetadataSection(component);
+      writeStringTable(stringIndexer);
+      writeConstantTable(_constantIndexer);
+      writeComponentIndex(component, component.libraries);
 
-    _flush();
+      _flush();
+    });
   }
 
   void writeListOfStrings(List<String> strings) {

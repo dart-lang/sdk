@@ -55,6 +55,7 @@ import 'source_positions.dart' show LineStarts, SourcePositions;
 import '../metadata/bytecode.dart';
 
 import 'dart:convert' show utf8;
+import 'dart:developer';
 import 'dart:math' as math;
 
 // This symbol is used as the name in assert assignable's to indicate it comes
@@ -69,37 +70,39 @@ void generateBytecode(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
 }) {
-  options ??= new BytecodeOptions();
-  verifyBytecodeInstructionDeclarations();
-  coreTypes ??= new CoreTypes(component);
-  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  hierarchy ??= new ClassHierarchy(component,
-      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-  libraries ??= component.libraries;
+  Timeline.timeSync("generateBytecode", () {
+    options ??= new BytecodeOptions();
+    verifyBytecodeInstructionDeclarations();
+    coreTypes ??= new CoreTypes(component);
+    void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+    hierarchy ??= new ClassHierarchy(component,
+        onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
+    libraries ??= component.libraries;
 
-  // Save/restore global NameSystem to avoid accumulating garbage.
-  // NameSystem holds the whole AST as it is strongly connected due to
-  // parent pointers. Objects are added to NameSystem when toString()
-  // is called from AST nodes.  Bytecode generator widely uses
-  // Expression.getStaticType, which calls Expression.getStaticTypeAsInstanceOf,
-  // which uses toString() when it crashes due to http://dartbug.com/34496.
-  final savedGlobalDebuggingNames = globalDebuggingNames;
-  globalDebuggingNames = new NameSystem();
+    // Save/restore global NameSystem to avoid accumulating garbage.
+    // NameSystem holds the whole AST as it is strongly connected due to
+    // parent pointers. Objects are added to NameSystem when toString()
+    // is called from AST nodes.  Bytecode generator widely uses
+    // Expression.getStaticType, which calls Expression.getStaticTypeAsInstanceOf,
+    // which uses toString() when it crashes due to http://dartbug.com/34496.
+    final savedGlobalDebuggingNames = globalDebuggingNames;
+    globalDebuggingNames = new NameSystem();
 
-  try {
-    final bytecodeGenerator = new BytecodeGenerator(
-        component, coreTypes, hierarchy, typeEnvironment, options);
-    for (var library in libraries) {
-      bytecodeGenerator.visitLibrary(library);
+    try {
+      final bytecodeGenerator = new BytecodeGenerator(
+          component, coreTypes, hierarchy, typeEnvironment, options);
+      for (var library in libraries) {
+        bytecodeGenerator.visitLibrary(library);
+      }
+    } on IllegalRecursiveTypeException catch (e) {
+      CompilerContext.current.options.report(
+          templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
+          Severity.error);
+    } finally {
+      globalDebuggingNames = savedGlobalDebuggingNames;
     }
-  } on IllegalRecursiveTypeException catch (e) {
-    CompilerContext.current.options.report(
-        templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
-        Severity.error);
-  } finally {
-    globalDebuggingNames = savedGlobalDebuggingNames;
-  }
+  });
 }
 
 class BytecodeGenerator extends RecursiveVisitor<Null> {
