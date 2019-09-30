@@ -156,4 +156,10 @@ class FunctionTypeBuilder extends TypeBuilder {
     newTypes.add(newType);
     return newType;
   }
+
+  FunctionTypeBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return new FunctionTypeBuilder(
+        returnType, typeVariables, formals, nullabilityBuilder);
+  }
 }

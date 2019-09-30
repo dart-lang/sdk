@@ -18,7 +18,8 @@ import 'package:kernel/ast.dart'
         Variance,
         VoidType;
 
-import 'package:kernel/type_algebra.dart' show containsTypeVariable;
+import 'package:kernel/type_algebra.dart'
+    show combineNullabilitiesForSubstitution, containsTypeVariable;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
@@ -120,6 +121,29 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
   return Variance.unrelated;
 }
 
+/// Combines syntactic nullabilities on types for performing type substitution.
+///
+/// The syntactic substitution should preserve a `?` if it was either on the
+/// type parameter occurrence or on the type argument replacing it.
+NullabilityBuilder combineNullabilityBuildersForSubstitution(
+    NullabilityBuilder a, NullabilityBuilder b) {
+  assert(
+      (identical(a, const NullabilityBuilder.nullable()) ||
+              identical(a, const NullabilityBuilder.omitted())) &&
+          (identical(b, const NullabilityBuilder.nullable()) ||
+              identical(b, const NullabilityBuilder.omitted())),
+      "Both arguments to combineNullabilityBuildersForSubstitution "
+      "should be identical to either 'const NullabilityBuilder.nullable()' or "
+      "'const NullabilityBuilder.omitted()'.");
+
+  if (identical(a, const NullabilityBuilder.nullable()) ||
+      identical(b, const NullabilityBuilder.nullable())) {
+    return const NullabilityBuilder.nullable();
+  }
+
+  return const NullabilityBuilder.omitted();
+}
+
 TypeBuilder substituteRange(
     TypeBuilder type,
     Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
@@ -130,9 +154,21 @@ TypeBuilder substituteRange(
   if (type is NamedTypeBuilder) {
     if (type.declaration is TypeVariableBuilder) {
       if (variance == Variance.contravariant) {
-        return lowerSubstitution[type.declaration] ?? type;
+        TypeBuilder replacement = lowerSubstitution[type.declaration];
+        if (replacement != null) {
+          return replacement.withNullabilityBuilder(
+              combineNullabilityBuildersForSubstitution(
+                  replacement.nullabilityBuilder, type.nullabilityBuilder));
+        }
+        return type;
       }
-      return upperSubstitution[type.declaration] ?? type;
+      TypeBuilder replacement = upperSubstitution[type.declaration];
+      if (replacement != null) {
+        return replacement.withNullabilityBuilder(
+            combineNullabilityBuildersForSubstitution(
+                replacement.nullabilityBuilder, type.nullabilityBuilder));
+      }
+      return type;
     }
     if (type.arguments == null || type.arguments.length == 0) {
       return type;

@@ -516,14 +516,44 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     ++target.useCounter;
   }
 
-  static Nullability combineNullabilities(Nullability a, Nullability b) {
-    //
-    // | arg \ var |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  ?  |  *  |  !  |
-    // |     ?     | N/A |  ?  |  ?  |  ?  |
-    // |     *     |  *  |  ?  |  *  |  *  |
-    // |     %     | N/A |  ?  |  *  |  %  |
+  DartType getSubstitute(TypeParameter variable) {
+    var environment = this;
+    while (environment != null) {
+      DartType replacement = environment.lookup(variable, covariantContext);
+      if (replacement != null) {
+        bumpCountersUntil(environment);
+        return replacement;
+      }
+      environment = environment.outer;
+    }
+    return null;
+  }
+
+  /// Combines nullabilities of types during type substitution.
+  ///
+  /// In a type substitution, for example, when `int` is substituted for `T` in
+  /// `List<T?>`, the nullability of the occurrence of the type parameter should
+  /// be combined with the nullability of the type that is being substituted for
+  /// that type parameter.  In the example above it's the nullability of `T?`
+  /// and `int`.  The function computes the nullability for the replacement as
+  /// per the following table:
+  ///
+  /// | arg \ var |  !  |  ?  |  *  |  %  |
+  /// |-----------|-----|-----|-----|-----|
+  /// |     !     |  !  |  ?  |  *  |  !  |
+  /// |     ?     | N/A |  ?  |  ?  |  ?  |
+  /// |     *     |  *  |  ?  |  *  |  *  |
+  /// |     %     | N/A |  ?  |  *  |  %  |
+  ///
+  /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
+  /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
+  /// `Nullability.neither`.  The table elements marked with N/A denote the
+  /// cases that should yield a type error before the substitution is performed.
+  static Nullability combineNullabilitiesForSubstitution(
+      Nullability a, Nullability b) {
+    // In the table above we may extend the function given by it, replacing N/A
+    // with whatever is easier to implement.  In this implementation, we extend
+    // the table function as follows:
     //
     // | arg \ var |  !  |  ?  |  *  |  %  |
     // |-----------|-----|-----|-----|-----|
@@ -544,25 +574,12 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return a;
   }
 
-  DartType getSubstitute(TypeParameter variable) {
-    var environment = this;
-    while (environment != null) {
-      DartType replacement = environment.lookup(variable, covariantContext);
-      if (replacement != null) {
-        bumpCountersUntil(environment);
-        return replacement;
-      }
-      environment = environment.outer;
-    }
-    return null;
-  }
-
   DartType visitTypeParameterType(TypeParameterType node) {
     DartType replacement = getSubstitute(node.parameter);
     if (replacement is InvalidType) return replacement;
     if (replacement != null) {
-      return replacement.withNullability(
-          combineNullabilities(replacement.nullability, node.nullability));
+      return replacement.withNullability(combineNullabilitiesForSubstitution(
+          replacement.nullability, node.nullability));
     }
     return node;
   }

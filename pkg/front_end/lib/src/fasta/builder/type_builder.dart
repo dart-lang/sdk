@@ -10,6 +10,7 @@ import '../fasta_codes.dart' show LocatedMessage;
 
 import '../scope.dart';
 import 'library_builder.dart';
+import 'nullability_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -31,6 +32,8 @@ abstract class TypeBuilder {
 
   /// May return null, for example, for mixin applications.
   Object get name;
+
+  NullabilityBuilder get nullabilityBuilder;
 
   String get debugName;
 
@@ -65,4 +68,6 @@ abstract class TypeBuilder {
 
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri);
+
+  TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
 }
