@@ -216,18 +216,25 @@ def _CheckLayering(input_api, output_api):
         return []
 
     local_root = input_api.change.RepositoryRoot()
-    layering_check = imp.load_source(
-        'layering_check',
-        os.path.join(local_root, 'runtime', 'tools', 'layering_check.py'))
-    errors = layering_check.DoCheck(local_root)
+    compiler_layering_check = imp.load_source(
+        'compiler_layering_check',
+        os.path.join(local_root, 'runtime', 'tools',
+                     'compiler_layering_check.py'))
+    errors = compiler_layering_check.DoCheck(local_root)
+    embedder_layering_check = imp.load_source(
+        'embedder_layering_check',
+        os.path.join(local_root, 'runtime', 'tools',
+                     'embedder_layering_check.py'))
+    errors += embedder_layering_check.DoCheck(local_root)
     if errors:
         return [
             output_api.PresubmitError(
                 'Layering check violation for C++ sources.',
                 long_text='\n'.join(errors))
         ]
-    else:
-        return []
+
+    return []
+
 
 def _CheckClangTidy(input_api, output_api):
     """Run clang-tidy on VM changes."""
