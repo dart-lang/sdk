@@ -251,7 +251,7 @@ class SourceFactoryImpl implements SourceFactory {
 
     // Check .packages and update target and actual URIs as appropriate.
     if (_packages != null && containedUri.scheme == 'package') {
-      Uri packageUri = null;
+      Uri packageUri;
       try {
         packageUri =
             _packages.resolve(containedUri, notFound: (Uri packageUri) => null);

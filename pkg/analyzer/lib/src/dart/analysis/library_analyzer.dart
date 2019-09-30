@@ -507,7 +507,7 @@ class LibraryAnalyzer {
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
-    LibraryIdentifier libraryNameNode = null;
+    LibraryIdentifier libraryNameNode;
     var seenPartSources = new Set<Source>();
     var directivesToResolve = <Directive>[];
     int partIndex = 0;

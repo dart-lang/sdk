@@ -26,7 +26,7 @@ import 'package:test/test.dart';
  * Finds an [Element] with the given [name].
  */
 Element findChildElement(Element root, String name, [ElementKind kind]) {
-  Element result = null;
+  Element result;
   root.accept(new _ElementVisitorFunctionWrapper((Element element) {
     if (element.name != name) {
       return;

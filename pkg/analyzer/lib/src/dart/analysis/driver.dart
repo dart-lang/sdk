@@ -1592,7 +1592,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _reportException(String path, exception, StackTrace stackTrace) {
-    String contextKey = null;
+    String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
       exception = state.exception;

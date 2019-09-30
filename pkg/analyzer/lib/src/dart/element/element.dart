@@ -1272,7 +1272,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// application classes which have been visited on the way to reaching this
   /// one (this is used to detect circularities).
   List<ConstructorElement> _computeMixinAppConstructors(
-      [List<ClassElementImpl> visitedClasses = null]) {
+      [List<ClassElementImpl> visitedClasses]) {
     // First get the list of constructors of the superclass which need to be
     // forwarded to this class.
     Iterable<ConstructorElement> constructorsToForward;
@@ -1654,7 +1654,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// A table mapping the offset of a directive to the annotations associated
   /// with that directive, or `null` if none of the annotations in the
   /// compilation unit have annotations.
-  Map<int, List<ElementAnnotation>> annotationMap = null;
+  Map<int, List<ElementAnnotation>> annotationMap;
 
   /// A list containing all of the top-level accessors (getters and setters)
   /// contained in this compilation unit.
@@ -4766,7 +4766,7 @@ abstract class ExecutableElementImpl extends ElementImpl
         buffer.write('>');
       }
       buffer.write('(');
-      String closing = null;
+      String closing;
       ParameterKind kind = ParameterKind.REQUIRED;
       int parameterCount = parameters.length;
       for (int i = 0; i < parameterCount; i++) {
@@ -6965,7 +6965,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// if not present.  If _libraryCycle is set, then the _libraryCycle field
   /// for all libraries reachable from this library in the import/export graph
   /// is also set.
-  List<LibraryElement> _libraryCycle = null;
+  List<LibraryElement> _libraryCycle;
 
   /// A list containing all of the compilation units that are included in this
   /// library using a `part` directive.
@@ -7434,7 +7434,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         // Pop the elements, and share the component across all
         // of the elements.
         List<LibraryElement> component = <LibraryElement>[];
-        LibraryElementImpl cur = null;
+        LibraryElementImpl cur;
         do {
           cur = stack.removeLast();
           active.remove(cur);

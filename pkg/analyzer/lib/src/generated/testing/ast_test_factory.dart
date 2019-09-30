@@ -1345,7 +1345,7 @@ class AstTestFactory {
           TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
 
   static TypeParameterList typeParameterList([List<String> typeNames]) {
-    List<TypeParameter> typeParameters = null;
+    List<TypeParameter> typeParameters;
     if (typeNames != null && typeNames.isNotEmpty) {
       typeParameters = new List<TypeParameter>();
       for (String typeName in typeNames) {

@@ -10,7 +10,6 @@ analyzer:
     # Ignoring "style" lint rules from pedantic for now. There are pre-existing
     # violations that need to be cleaned up. Each one can be cleaned up and
     # enabled according to the value provided.
-    avoid_init_to_null: ignore
     avoid_return_types_on_setters: ignore
     curly_braces_in_flow_control_structures: ignore
     empty_catches: ignore

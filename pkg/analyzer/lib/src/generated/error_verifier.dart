@@ -279,7 +279,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The elements that will be defined later in the current scope, but right
    * now are not declared.
    */
-  HiddenElements _hiddenElements = null;
+  HiddenElements _hiddenElements;
 
   /**
    * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
@@ -2058,7 +2058,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForAssignmentToFinal(Expression expression) {
     // prepare element
-    Element element = null;
+    Element element;
     AstNode highlightedNode = expression;
     if (expression is Identifier) {
       element = expression.staticElement;
@@ -3650,7 +3650,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement accessorElement =
         accessorDeclaration.declaredElement as ExecutableElement;
     if (accessorElement is PropertyAccessorElement) {
-      PropertyAccessorElement counterpartAccessor = null;
+      PropertyAccessorElement counterpartAccessor;
       if (accessorElement.isGetter) {
         counterpartAccessor = accessorElement.correspondingSetter;
       } else {
@@ -3667,8 +3667,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       // Default of null == no accessor or no type (dynamic)
-      DartType getterType = null;
-      DartType setterType = null;
+      DartType getterType;
+      DartType setterType;
       // Get an existing counterpart accessor if any.
       if (accessorElement.isGetter) {
         getterType = _getGetterType(accessorElement);

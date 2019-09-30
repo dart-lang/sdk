@@ -1259,7 +1259,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * The version of [element] for which members are cached.
    */
-  int _versionOfCachedMembers = null;
+  int _versionOfCachedMembers;
 
   /**
    * Cached [ConstructorElement]s - members or raw elements.

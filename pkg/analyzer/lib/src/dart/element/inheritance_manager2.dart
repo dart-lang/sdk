@@ -344,7 +344,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
   List<Conflict> _findMostSpecificFromNamedCandidates(
       Map<Name, FunctionType> map,
       Map<Name, List<FunctionType>> namedCandidates) {
-    List<Conflict> conflicts = null;
+    List<Conflict> conflicts;
 
     for (var name in namedCandidates.keys) {
       if (map.containsKey(name)) {

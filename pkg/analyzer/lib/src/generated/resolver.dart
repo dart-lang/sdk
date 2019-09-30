@@ -1864,7 +1864,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Return `true` if the given [expression] is resolved to a constant
   /// variable.
   bool _isDebugConstant(Expression expression) {
-    Element element = null;
+    Element element;
     if (expression is Identifier) {
       element = expression.staticElement;
     } else if (expression is PropertyAccess) {
@@ -3044,22 +3044,22 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// The class declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a class.
-  ClassDeclaration _enclosingClassDeclaration = null;
+  ClassDeclaration _enclosingClassDeclaration;
 
   /// The function type alias representing the function type containing the
   /// current node, or `null` if the current node is not contained in a function
   /// type alias.
-  FunctionTypeAlias _enclosingFunctionTypeAlias = null;
+  FunctionTypeAlias _enclosingFunctionTypeAlias;
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
-  ExecutableElement _enclosingFunction = null;
+  ExecutableElement _enclosingFunction;
 
   /// The mixin declaration representing the class containing the current node,
   /// or `null` if the current node is not contained in a mixin.
-  MixinDeclaration _enclosingMixinDeclaration = null;
+  MixinDeclaration _enclosingMixinDeclaration;
 
-  InferenceContext inferenceContext = null;
+  InferenceContext inferenceContext;
 
   /// The object keeping track of which elements have had their types promoted.
   TypePromotionManager _promoteManager;
@@ -3189,7 +3189,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// @param expression the expression with which the element is associated
   /// @return the element associated with the given expression
   VariableElement getOverridableStaticElement(Expression expression) {
-    Element element = null;
+    Element element;
     if (expression is SimpleIdentifier) {
       element = expression.staticElement;
     } else if (expression is PrefixedIdentifier) {
@@ -4994,7 +4994,7 @@ class ResolverVisitor extends ScopedVisitor {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
     List<ParameterElement> unnamedParameters = new List<ParameterElement>();
-    Map<String, ParameterElement> namedParameters = null;
+    Map<String, ParameterElement> namedParameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
@@ -5016,7 +5016,7 @@ class ResolverVisitor extends ScopedVisitor {
     List<ParameterElement> resolvedParameters =
         new List<ParameterElement>(argumentCount);
     int positionalArgumentCount = 0;
-    HashSet<String> usedNames = null;
+    HashSet<String> usedNames;
     bool noBlankArguments = true;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
@@ -6124,7 +6124,7 @@ class TypeNameResolver {
       return;
     }
 
-    DartType type = null;
+    DartType type;
     if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
@@ -6548,8 +6548,8 @@ class TypeParameterBoundsResolver {
   final Source source;
   final AnalysisErrorListener errorListener;
 
-  Scope libraryScope = null;
-  TypeNameResolver typeNameResolver = null;
+  Scope libraryScope;
+  TypeNameResolver typeNameResolver;
 
   TypeParameterBoundsResolver(this.typeSystem, this.library, this.source,
       this.errorListener, FeatureSet featureSet)
@@ -6636,7 +6636,7 @@ class TypeParameterBoundsResolver {
   void _resolveTypeParameters(
       TypeParameterList typeParameters, Scope createTypeParametersScope()) {
     if (typeParameters != null) {
-      Scope typeParametersScope = null;
+      Scope typeParametersScope;
       for (TypeParameter typeParameter in typeParameters.typeParameters) {
         TypeAnnotation bound = typeParameter.bound;
         if (bound != null) {

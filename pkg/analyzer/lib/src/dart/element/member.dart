@@ -608,7 +608,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
       buffer.write('>');
     }
     buffer.write('(');
-    String closing = null;
+    String closing;
     ParameterKind kind = ParameterKind.REQUIRED;
     int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {

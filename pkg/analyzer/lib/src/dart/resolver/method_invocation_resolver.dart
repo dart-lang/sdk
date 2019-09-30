@@ -311,7 +311,7 @@ class MethodInvocationResolver {
       ClassElement classElement, SimpleIdentifier propertyName) {
     // TODO(scheglov) Replace with class hierarchy.
     String name = propertyName.name;
-    Element element = null;
+    Element element;
     if (propertyName.inSetterContext()) {
       element = classElement.getSetter(name);
     }

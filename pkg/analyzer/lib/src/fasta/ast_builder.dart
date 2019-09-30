@@ -3593,7 +3593,7 @@ class _Modifiers {
 
   /// Return the token that is lexically first.
   Token get beginToken {
-    Token firstToken = null;
+    Token firstToken;
     for (Token token in [
       abstractKeyword,
       externalKeyword,

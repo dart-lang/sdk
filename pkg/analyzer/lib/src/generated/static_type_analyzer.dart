@@ -1802,7 +1802,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         e.library.source.uri.toString() == 'dart:_foreign_helper' &&
         e.name == 'JS') {
       String typeStr = _getFirstArgumentAsString(node.argumentList);
-      DartType returnType = null;
+      DartType returnType;
       if (typeStr == '-dynamic') {
         returnType = _typeProvider.bottomType;
       } else {

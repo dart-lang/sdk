@@ -367,7 +367,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    String libraryName = null;
+    String libraryName;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
       libraryName = "$_LIBRARY_PREFIX${key.value}";
@@ -486,7 +486,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * 'lib' directory within the SDK.
    */
   @override
-  String path = null;
+  String path;
 
   /**
    * The name of the category containing the library. Unless otherwise specified

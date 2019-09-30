@@ -21,7 +21,7 @@ class AnalysisException implements Exception {
    * Initialize a newly created exception to have the given [message] and
    * [cause].
    */
-  AnalysisException([this.message = 'Exception', this.cause = null]);
+  AnalysisException([this.message = 'Exception', this.cause]);
 
   String toString() {
     StringBuffer buffer = new StringBuffer();
