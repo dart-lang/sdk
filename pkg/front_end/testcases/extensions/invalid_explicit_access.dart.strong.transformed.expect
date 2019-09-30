@@ -108,19 +108,16 @@ library;
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-// Try changing the type of the parameter, or casting the argument to 'Class'.
 //   Extension(s).method(null);
 //             ^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
 //  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-// Try changing the type of the parameter, or casting the argument to 'GenericClass<dynamic>'.
 //   GenericExtension(s).method();
 //                    ^
 //
 // pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
 //  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-// Try changing the type of the parameter, or casting the argument to 'GenericClass<int>'.
 //   GenericExtension<int>(s).method();
 //                         ^
 //
@@ -171,7 +168,6 @@ static method main() → dynamic {
   ^^^^^^^^^".method(null);
   self::Extension|method(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:28:13: Error: The argument type 'String' can't be assigned to the parameter type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-Try changing the type of the parameter, or casting the argument to 'Class'.
   Extension(s).method(null);
             ^" in s as{TypeError} self::Class*, null);
   invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:29:3: Error: Getter not found: 'foo'.
@@ -229,12 +225,10 @@ Try removing the extra positional arguments.
   ^^^^^^^^^^^^^^^^".method();
   self::GenericExtension|method<dynamic>(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:51:20: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<dynamic>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-Try changing the type of the parameter, or casting the argument to 'GenericClass<dynamic>'.
   GenericExtension(s).method();
                    ^" in s as{TypeError} self::GenericClass<dynamic>*);
   self::GenericExtension|method<core::int*>(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_access.dart:52:25: Error: The argument type 'String' can't be assigned to the parameter type 'GenericClass<int>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/invalid_explicit_access.dart'.
-Try changing the type of the parameter, or casting the argument to 'GenericClass<int>'.
   GenericExtension<int>(s).method();
                         ^" in s as{TypeError} self::GenericClass<core::int*>*);
 }

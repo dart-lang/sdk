@@ -464,6 +464,7 @@ comparable
 compare
 comparing
 comparison
+comparisons
 compatibility
 compatible
 compilation

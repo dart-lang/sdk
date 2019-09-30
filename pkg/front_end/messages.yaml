@@ -457,8 +457,8 @@ ExpectedIdentifier:
 
 EqualityCannotBeEqualityOperand:
   index: 1
-  template: "An equality expression can't be an operand of another equality expression."
-  tip: "Try re-writing the expression."
+  template: "A comparison expression can't be an operand of another comparison expression."
+  tip: "Try putting parentheses around one of the comparisons."
   analyzerCode: ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
   script:
     - "main() { var b = a < b < c; }"
@@ -703,7 +703,7 @@ ExternalFactoryWithBody:
 ExternalField:
   index: 50
   template: "Fields can't be declared to be 'external'."
-  tip: "Try removing the keyword 'external'."
+  tip: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
   analyzerCode: ParserErrorCode.EXTERNAL_FIELD
   script:
     - "class C { external var f; }"
@@ -926,7 +926,7 @@ InvalidSyncModifier:
   script: "main() sync {}"
 
 InvalidVoid:
-  template: "Type 'void' can't be used here because it isn't a return type."
+  template: "Type 'void' can't be used here."
   tip: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
   analyzerCode: EXPECTED_TYPE_NAME
   script:
@@ -943,7 +943,7 @@ InvalidInitializer:
 
 FieldInitializedOutsideDeclaringClass:
   index: 88
-  template: "A field can only be initialized in it's declaring class"
+  template: "A field can only be initialized in its declaring class"
   tip: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
   analyzerCode: ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS
   script:
@@ -1137,7 +1137,6 @@ AwaitNotAsync:
 
 BuiltInIdentifierAsType:
   template: "The built-in identifier '#lexeme' can't be used as a type."
-  tip: "Try correcting the name to match an existing type."
   analyzerCode: BUILT_IN_IDENTIFIER_AS_TYPE
 
 BuiltInIdentifierInDeclaration:
@@ -1265,12 +1264,12 @@ NullAwareCascadeOutOfOrder:
 
 ConstFieldWithoutInitializer:
   template: "The const variable '#name' must be initialized."
-  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  tip: "Try adding an initializer ('= expression') to the declaration."
   analyzerCode: CONST_NOT_INITIALIZED
 
 FinalFieldWithoutInitializer:
   template: "The final variable '#name' must be initialized."
-  tip: "Try adding an initializer ('= <expression>') to the declaration."
+  tip: "Try adding an initializer ('= expression') to the declaration."
   analyzerCode: FINAL_NOT_INITIALIZED
 
 MetadataTypeArguments:
@@ -1718,7 +1717,7 @@ ImportHidesImport:
 MissingPrefixInDeferredImport:
   index: 30
   template: "Deferred imports should have a prefix."
-  tip: "Try adding a prefix to the import."
+  tip: "Try adding a prefix to the import by adding an 'as' clause."
   analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
 
 DeferredAfterPrefix:
@@ -2781,7 +2780,7 @@ IllegalAssignmentToNonAssignable:
 
 MissingAssignableSelector:
   index: 35
-  template: "Missing selector such as '.<identifier>' or '[0]'."
+  template: "Missing selector such as '.identifier' or '[0]'."
   tip: "Try adding a selector."
   analyzerCode: ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR
   script:
@@ -2833,12 +2832,10 @@ ExternalFactoryRedirection:
 
 ArgumentTypeNotAssignable:
   template: "The argument type '#type' can't be assigned to the parameter type '#type2'."
-  tip: "Try changing the type of the parameter, or casting the argument to '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
 
 InvalidAssignment:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
-  tip: "Try changing the type of the left hand side, or casting the right hand side to '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
   script: >
     main() {
@@ -3157,7 +3154,7 @@ CantUsePrefixAsExpression:
 
 CantUsePrefixWithNullAware:
   template: "A prefix can't be used with null-aware operators."
-  tip: "It should be safe to remove the '?' as a prefix is never null."
+  tip: "Try replacing '?.' with '.'"
   analyzerCode: PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   script: |
     import "dart:core" as prefix;
@@ -3418,7 +3415,7 @@ MixinApplicationIncompatibleSupertype:
     class C = Object with M;
 
 GenericFunctionTypeUsedAsActualTypeArgument:
-  template: "Unexpected generic function type found in a type argument."
+  template: "A generic function type can't be used as a type argument."
   tip: "Try using a non-generic function type."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:
@@ -3434,7 +3431,7 @@ GenericFunctionTypeUsedAsActualTypeArgument:
       }
 
 GenericFunctionTypeInferredAsActualTypeArgument:
-  template: "Unexpected generic function type '#type' inferred as a type argument."
+  template: "Generic function type '#type' inferred as a type argument."
   tip: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
   script:

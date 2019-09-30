@@ -3,17 +3,14 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/extensions/tear_offs.dart:17:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
 //     int Function(int) intId = getter;
 //                               ^
 //
 // pkg/front_end/testcases/extensions/tear_offs.dart:30:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
-// Try changing the type of the left hand side, or casting the right hand side to 'num Function(num)'.
 //   num Function(num) numId = c.getter;
 //                               ^
 //
 // pkg/front_end/testcases/extensions/tear_offs.dart:31:32: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
-// Try changing the type of the left hand side, or casting the right hand side to 'bool Function(bool)'.
 //   bool Function(bool) boolId = Extension(c).getter;
 //                                ^
 //
@@ -47,7 +44,6 @@ static method Extension|get#method(final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|method(#this);
 static method Extension|errors(final self::Class* #this) → dynamic {
   (core::int*) →* core::int* intId = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:17:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
-Try changing the type of the left hand side, or casting the right hand side to 'int Function(int)'.
     int Function(int) intId = getter;
                               ^" in self::Extension|get#getter(#this) as{TypeError} (core::int*) →* core::int*;
 }
@@ -61,11 +57,9 @@ static method main() → dynamic {
 static method errors() → dynamic {
   self::Class* c = new self::Class::•();
   (core::num*) →* core::num* numId = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:30:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
-Try changing the type of the left hand side, or casting the right hand side to 'num Function(num)'.
   num Function(num) numId = c.getter;
                               ^" in self::Extension|get#getter(c) as{TypeError} (core::num*) →* core::num*;
   (core::bool*) →* core::bool* boolId = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:31:32: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
-Try changing the type of the left hand side, or casting the right hand side to 'bool Function(bool)'.
   bool Function(bool) boolId = Extension(c).getter;
                                ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
 }
