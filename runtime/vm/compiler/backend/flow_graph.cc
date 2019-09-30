@@ -1256,6 +1256,12 @@ void FlowGraph::RenameRecursive(
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
+        // Under OSR, constants can reside on the expression stack. Just
+        // generate the constant rather than going through a synthetic phi.
+        if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
+          ASSERT(IsCompiledForOsr() && env->length() < osr_variable_count());
+          reaching_defn = GetConstant(input_defn->AsConstant()->value());
+        }
         // Note: constants can only be replaced with other constants.
         ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
                input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
@@ -1286,7 +1292,6 @@ void FlowGraph::RenameRecursive(
         // with the incoming parameter that mimics the stack slot.
         ASSERT(IsCompiledForOsr());
         PushArgumentInstr* push_arg = current->PushArgumentAt(i);
-        ASSERT(push_arg->IsPushArgument());
         ASSERT(reaching_defn->ssa_temp_index() != -1);
         ASSERT(reaching_defn->IsPhi() || reaching_defn == constant_dead());
         push_arg->ReplaceUsesWith(push_arg->InputAt(0)->definition());
@@ -1297,6 +1302,18 @@ void FlowGraph::RenameRecursive(
         push_arg->value()->set_definition(reaching_defn);
         InsertBefore(insert_at, push_arg, nullptr, FlowGraph::kEffect);
         insert_at = push_arg;
+        // Since reaching_defn was not the expected PushArgument, we must
+        // change all its environment uses from the insertion point onward
+        // to the newly created PushArgument. This ensures that the stack
+        // depth computations (based on environment presence of PushArguments)
+        // is done correctly.
+        for (Value::Iterator it(reaching_defn->env_use_list()); !it.Done();
+             it.Advance()) {
+          Instruction* instruction = it.Current()->instruction();
+          if (instruction->IsDominatedBy(push_arg)) {
+            instruction->ReplaceInEnvironment(reaching_defn, push_arg);
+          }
+        }
       }
     }
 
