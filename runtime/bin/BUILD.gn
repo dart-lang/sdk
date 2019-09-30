@@ -37,10 +37,7 @@ template("build_libdart_builtin") {
     extra_configs += invoker.extra_configs
   }
   source_set(target_name) {
-    configs += [
-                 "..:dart_arch_config",
-                 "..:dart_config",
-               ] + extra_configs
+    configs += [ "..:dart_config" ] + extra_configs
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
@@ -67,6 +64,7 @@ build_libdart_builtin("libdart_builtin") {
   extra_configs = [
     "..:dart_maybe_product_config",
     "..:dart_os_config",
+    "..:dart_arch_config",
   ]
 }
 
@@ -89,6 +87,14 @@ build_libdart_builtin("libdart_builtin_product_fuchsia") {
     "..:dart_product_config",
     "..:dart_os_fuchsia_config",
   ]
+}
+
+build_libdart_builtin("libdart_builtin_host_targeting_host") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+}
+
+build_libdart_builtin("libdart_builtin_product_host_targeting_host") {
+  extra_configs = [ "..:dart_product_config" ]
 }
 
 static_library("crashpad") {
@@ -145,7 +151,6 @@ template("build_gen_snapshot") {
   }
   executable(target_name) {
     configs += [
-                 "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
@@ -217,6 +222,7 @@ template("build_gen_snapshot") {
 build_gen_snapshot("gen_snapshot") {
   extra_configs = [
     "..:dart_maybe_product_config",
+    "..:dart_arch_config",
     "..:dart_os_config",
   ]
   extra_deps = [
@@ -230,6 +236,7 @@ build_gen_snapshot("gen_snapshot") {
 build_gen_snapshot("gen_snapshot_product") {
   extra_configs = [
     "..:dart_product_config",
+    "..:dart_arch_config",
     "..:dart_os_config",
   ]
   extra_deps = [
@@ -243,6 +250,7 @@ build_gen_snapshot("gen_snapshot_product") {
 build_gen_snapshot("gen_snapshot_fuchsia") {
   extra_configs = [
     "..:dart_maybe_product_config",
+    "..:dart_arch_config",
     "..:dart_os_fuchsia_config",
   ]
   extra_deps = [
@@ -256,6 +264,7 @@ build_gen_snapshot("gen_snapshot_fuchsia") {
 build_gen_snapshot("gen_snapshot_product_fuchsia") {
   extra_configs = [
     "..:dart_product_config",
+    "..:dart_arch_config",
     "..:dart_os_fuchsia_config",
   ]
   extra_deps = [
@@ -263,6 +272,26 @@ build_gen_snapshot("gen_snapshot_product_fuchsia") {
     ":libdart_builtin_product_fuchsia",
     "../platform:libdart_platform_nosnapshot_with_precompiler_product_fuchsia",
     "..:libdart_nosnapshot_with_precompiler_product_fuchsia",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_host_targeting_host") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_host_targeting_host",
+    ":libdart_builtin_host_targeting_host",
+    "../platform:libdart_platform_nosnapshot_with_precompiler_host_targeting_host",
+    "..:libdart_nosnapshot_with_precompiler_host_targeting_host",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_product_host_targeting_host") {
+  extra_configs = [ "..:dart_product_config" ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_host_targeting_host",
+    ":libdart_builtin_host_targeting_host",
+    "../platform:libdart_platform_nosnapshot_with_precompiler_host_targeting_host",
+    "..:libdart_nosnapshot_with_precompiler_host_targeting_host",
   ]
 }
 
@@ -275,7 +304,6 @@ template("build_gen_snapshot_dart_io") {
   }
   source_set(target_name) {
     configs += [
-                 "..:dart_arch_config",
                  "..:dart_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
@@ -334,6 +362,7 @@ template("build_gen_snapshot_dart_io") {
 build_gen_snapshot_dart_io("gen_snapshot_dart_io") {
   extra_configs = [
     "..:dart_maybe_product_config",
+    "..:dart_arch_config",
     "..:dart_os_config",
   ]
 }
@@ -341,13 +370,23 @@ build_gen_snapshot_dart_io("gen_snapshot_dart_io") {
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product") {
   extra_configs = [
     "..:dart_product_config",
+    "..:dart_arch_config",
     "..:dart_os_config",
   ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_host_targeting_host") {
+  extra_configs = [ "..:dart_maybe_product_config" ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_host_targeting_host") {
+  extra_configs = [ "..:dart_product_config" ]
 }
 
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_fuchsia") {
   extra_configs = [
     "..:dart_maybe_product_config",
+    "..:dart_arch_config",
     "..:dart_os_fuchsia_config",
   ]
 }
@@ -355,6 +394,7 @@ build_gen_snapshot_dart_io("gen_snapshot_dart_io_fuchsia") {
 build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_fuchsia") {
   extra_configs = [
     "..:dart_product_config",
+    "..:dart_arch_config",
     "..:dart_os_fuchsia_config",
   ]
 }
