@@ -34,8 +34,16 @@ class NullabilityEdge implements EdgeInfo {
 
   @override
   bool get isSatisfied {
-    if (!_isTriggered) return true;
+    if (!isTriggered) return true;
     return destinationNode.isNullable;
+  }
+
+  @override
+  bool get isTriggered {
+    for (var upstreamNode in upstreamNodes) {
+      if (!upstreamNode.isNullable) return false;
+    }
+    return true;
   }
 
   @override
@@ -43,16 +51,6 @@ class NullabilityEdge implements EdgeInfo {
 
   @override
   NullabilityNode get sourceNode => upstreamNodes.first;
-
-  /// Indicates whether all the upstream nodes of this edge are nullable (and
-  /// thus downstream nullability propagation should try to make the destination
-  /// node nullable, if possible).
-  bool get _isTriggered {
-    for (var upstreamNode in upstreamNodes) {
-      if (!upstreamNode.isNullable) return false;
-    }
-    return true;
-  }
 
   @override
   String toString() {
@@ -249,7 +247,7 @@ class NullabilityGraph {
     while (true) {
       while (_pendingEdges.isNotEmpty) {
         var edge = _pendingEdges.removeLast();
-        if (!edge._isTriggered) continue;
+        if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
         if (node._state == NullabilityState.nonNullable) {
           // The node has already been marked as non-nullable, so the edge can't

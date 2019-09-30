@@ -70,6 +70,11 @@ abstract class EdgeInfo implements FixReasonInfo {
   /// - Its [destinationNode] is nullable.
   bool get isSatisfied;
 
+  /// Indicates whether all the upstream nodes of this edge are nullable (and
+  /// thus downstream nullability propagation should try to make the destination
+  /// node nullable, if possible).
+  bool get isTriggered;
+
   /// A boolean indicating whether the graph edge is a "union" edge.  Union
   /// edges are edges for which the nullability propagation algorithm tries to
   /// ensure that both the [sourceNode] and the [destinationNode] have the

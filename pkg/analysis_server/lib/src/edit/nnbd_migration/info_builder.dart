@@ -70,26 +70,28 @@ class InfoBuilder {
     for (FixReasonInfo reason in fixInfo.reasons) {
       if (reason is NullabilityNodeInfo) {
         for (EdgeInfo edge in reason.upstreamEdges) {
-          EdgeOriginInfo origin = info.edgeOrigin[edge];
-          if (origin != null) {
-            AstNode node = origin.node;
-            if (node.parent is ArgumentList) {
-              if (node is NullLiteral) {
-                details.add(RegionDetail(
-                    "'null' is explicitly passed as an argument",
-                    _targetFor(origin)));
+          if (edge.isTriggered) {
+            EdgeOriginInfo origin = info.edgeOrigin[edge];
+            if (origin != null) {
+              AstNode node = origin.node;
+              if (node.parent is ArgumentList) {
+                if (node is NullLiteral) {
+                  details.add(RegionDetail(
+                      "'null' is explicitly passed as an argument",
+                      _targetFor(origin)));
+                } else {
+                  details.add(RegionDetail(
+                      "A nullable value is explicitly passed as an argument",
+                      _targetFor(origin)));
+                }
               } else {
-                details.add(RegionDetail(
-                    "A nullable value is explicitly passed as an argument",
-                    _targetFor(origin)));
-              }
-            } else {
-              if (node is NullLiteral) {
-                details.add(RegionDetail(
-                    "'null' is explicitly assigned", _targetFor(origin)));
-              } else {
-                details.add(RegionDetail(
-                    "A nullable value is assigned", _targetFor(origin)));
+                if (node is NullLiteral) {
+                  details.add(RegionDetail(
+                      "'null' is explicitly assigned", _targetFor(origin)));
+                } else {
+                  details.add(RegionDetail(
+                      "A nullable value is assigned", _targetFor(origin)));
+                }
               }
             }
           }
