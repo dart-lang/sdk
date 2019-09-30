@@ -106,21 +106,6 @@ static bool IsControlFlow(Instruction* instruction) {
          instruction->IsStop() || instruction->IsTailCall();
 }
 
-// Asserts push arguments appear in environment at the right place.
-static void AssertPushArgsInEnv(Definition* call) {
-  Environment* env = call->env();
-  if (env != nullptr) {
-    const intptr_t env_count = env->Length();
-    const intptr_t arg_count = call->ArgumentCount();
-    ASSERT(arg_count <= env_count);
-    const intptr_t env_base = env_count - arg_count;
-    for (intptr_t i = 0; i < arg_count; i++) {
-      ASSERT(call->PushArgumentAt(i) ==
-             env->ValueAt(env_base + i)->definition());
-    }
-  }
-}
-
 void FlowGraphChecker::VisitBlocks() {
   const GrowableArray<BlockEntryInstr*>& preorder = flow_graph_->preorder();
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph_->postorder();
@@ -410,7 +395,6 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
 }
 
 void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
-  AssertPushArgsInEnv(call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());
