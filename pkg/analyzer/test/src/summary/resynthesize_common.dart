@@ -11053,6 +11053,38 @@ int get x {}
 ''');
   }
 
+  test_variableInitializer_contextType_after_astRewrite() async {
+    var library = await checkLibrary(r'''
+class A<T> {
+  const A();
+}
+const A<int> a = A();
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+  const A();
+}
+const A<int> a;
+  constantInitializer
+    InstanceCreationExpression
+      argumentList: ArgumentList
+      constructorName: ConstructorName
+        type: TypeName
+          name: SimpleIdentifier
+            staticElement: self::A
+            staticType: A<dynamic>
+            token: A
+          type: A<int>
+      staticElement: ConstructorMember
+        base: self::A::•
+        substitution: {T: int}
+      staticType: A<int>
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_variables() async {
     var library = await checkLibrary('int i; int j;');
     checkElementText(library, r'''
