@@ -1,0 +1,53 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:6:11: Error: This extension member conflicts with Object member 'noSuchMethod'.
+//   int get noSuchMethod => 42;
+//           ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:8:7: Error: This extension member conflicts with Object member 'runtimeType'.
+//   int runtimeType() {}
+//       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:9:12: Error: This extension member conflicts with Object member '=='.
+//   operator ==(other) => false;
+//            ^^
+//
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:10:17: Error: This extension member conflicts with Object member 'toString'.
+//   static String toString() => 'Foo';
+//                 ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/conflict_with_object.dart:7:12: Error: This extension member conflicts with Object member 'hashCode'.
+//   void set hashCode(int value) {}
+//            ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::String* {
+  get noSuchMethod = self::Extension|get#noSuchMethod;
+  method runtimeType = self::Extension|runtimeType;
+  tearoff runtimeType = self::Extension|get#runtimeType;
+  operator == = self::Extension|==;
+  static method toString = self::Extension|toString;
+  set hashCode = self::Extension|set#hashCode;
+}
+static method Extension|get#noSuchMethod(final core::String* #this) → core::int*
+  ;
+static method Extension|set#hashCode(final core::String* #this, core::int* value) → void
+  ;
+static method Extension|runtimeType(final core::String* #this) → core::int*
+  ;
+static method Extension|get#runtimeType(final core::String* #this) → () →* core::int*
+  return () → core::int* => self::Extension|runtimeType(#this);
+static method Extension|==(final core::String* #this, dynamic other) → dynamic
+  ;
+static method Extension|toString() → core::String*
+  ;
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

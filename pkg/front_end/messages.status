@@ -215,6 +215,7 @@ ExternalFactoryWithBody/script1: Fail
 ExtensionDeclaresAbstractMember/example: Fail
 ExtensionDeclaresConstructor/example: Fail
 ExtensionDeclaresInstanceField/example: Fail
+ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExtraneousModifier/part_wrapped_script1: Fail
 ExtraneousModifier/part_wrapped_script2: Fail
 ExtraneousModifier/part_wrapped_script3: Fail

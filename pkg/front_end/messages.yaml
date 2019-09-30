@@ -1935,6 +1935,13 @@ ConflictsWithTypeVariableCause:
   template: "This is the type variable."
   severity: CONTEXT
 
+ExtensionMemberConflictsWithObjectMember:
+  template: "This extension member conflicts with Object member '#name'."
+  script:
+    extension Extension on String {
+      int get noSuchMethod => 42;
+    }
+
 DeclaredMemberConflictsWithInheritedMember:
   template: "Can't declare a member that conflicts with an inherited one."
   analyzerCode: DECLARED_MEMBER_CONFLICTS_WITH_INHERITED

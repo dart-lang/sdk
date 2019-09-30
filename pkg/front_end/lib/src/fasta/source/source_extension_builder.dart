@@ -23,7 +23,8 @@ import '../fasta_codes.dart'
         templateConflictsWithMember,
         templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning;
+        templateConflictsWithSetterWarning,
+        templateExtensionMemberConflictsWithObjectMember;
 import 'source_library_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilder {
@@ -68,8 +69,20 @@ class SourceExtensionBuilder extends ExtensionBuilder {
   Extension build(
       SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary,
       {bool addMembersToLibrary}) {
+    ClassBuilder objectClassBuilder =
+        coreLibrary.lookupLocalMember('Object', required: true);
     void buildBuilders(String name, Builder declaration) {
       do {
+        Builder objectGetter = objectClassBuilder.lookupLocalMember(name);
+        Builder objectSetter =
+            objectClassBuilder.lookupLocalMember(name, setter: true);
+        if (objectGetter != null || objectSetter != null) {
+          addProblem(
+              templateExtensionMemberConflictsWithObjectMember
+                  .withArguments(name),
+              declaration.charOffset,
+              name.length);
+        }
         if (declaration.parent != this) {
           if (fileUri != declaration.parent.fileUri) {
             unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,

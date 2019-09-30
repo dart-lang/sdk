@@ -28,7 +28,6 @@ main() {
   expect(123, tearOff3());
 }
 
-
 expect(expected, actual) {
   if (expected != actual) {
     throw 'Mismatch: expected=$expected, actual=$actual';

@@ -3462,6 +3462,32 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
     tip: r"""Try removing the field declaration or making it a static field""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateExtensionMemberConflictsWithObjectMember =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""This extension member conflicts with Object member '#name'.""",
+        withArguments: _withArgumentsExtensionMemberConflictsWithObjectMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeExtensionMemberConflictsWithObjectMember =
+    const Code<Message Function(String name)>(
+  "ExtensionMemberConflictsWithObjectMember",
+  templateExtensionMemberConflictsWithObjectMember,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionMemberConflictsWithObjectMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeExtensionMemberConflictsWithObjectMember,
+      message:
+          """This extension member conflicts with Object member '${name}'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
