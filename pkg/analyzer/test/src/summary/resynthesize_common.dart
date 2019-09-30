@@ -6431,10 +6431,10 @@ class C2  {
         library,
         r'''
 class C1 {
-  final List<int> f1 =
-    ListLiteral
-      isConst: true
-      staticType: List<int>
+  final List<int> f1;
+    constantInitializer
+      ListLiteral
+        staticType: List<int>
   const C1();
 }
 class C2 {
@@ -8974,6 +8974,92 @@ import 'a.dart' as a;
 class C {
 }
 ''');
+  }
+
+  test_metadata_referenceStaticMethod() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary(r'''
+class A {
+  const A(Object value);
+}
+
+class C {
+  @A(m)
+  static int f;
+  static void m() {}
+}
+
+mixin M {
+  @A(m)
+  static int f;
+  static void m() {}
+}
+
+extension E on int {
+  @A(m)
+  static int f;
+  static void m() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A(Object value);
+}
+class C {
+  static int f;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            SimpleIdentifier
+              staticElement: self::C::m
+              staticType: void Function()
+              token: m
+        element: self::A::•
+        name: SimpleIdentifier
+          staticElement: self::A
+          staticType: Type
+          token: A
+  static void m() {}
+}
+mixin M on Object {
+  static int f;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            SimpleIdentifier
+              staticElement: self::M::m
+              staticType: void Function()
+              token: m
+        element: self::A::•
+        name: SimpleIdentifier
+          staticElement: self::A
+          staticType: Type
+          token: A
+  static void m() {}
+}
+extension E on int {
+  static int f;
+    metadata
+      Annotation
+        arguments: ArgumentList
+          arguments
+            SimpleIdentifier
+              staticElement: self::E::m
+              staticType: void Function()
+              token: m
+        element: self::A::•
+        name: SimpleIdentifier
+          staticElement: self::A
+          staticType: Type
+          token: A
+  static void m() {}
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_simpleFormalParameter() async {

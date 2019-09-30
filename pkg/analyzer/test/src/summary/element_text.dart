@@ -149,6 +149,8 @@ class _ElementWriter {
   final bool annotateNullability;
   final StringBuffer buffer = new StringBuffer();
 
+  String indent = '';
+
   _ElementWriter(
       {this.withCodeRanges,
       this.withConstElements: true,
@@ -226,24 +228,27 @@ class _ElementWriter {
 
     buffer.writeln(' {');
 
-    e.fields.forEach(writePropertyInducingElement);
-    e.accessors.forEach(writePropertyAccessorElement);
+    _withIndent(() {
+      e.fields.forEach(writePropertyInducingElement);
+      e.accessors.forEach(writePropertyAccessorElement);
 
-    if (e.isEnum) {
-      expect(e.constructors, isEmpty);
-    } else {
-      expect(e.constructors, isNotEmpty);
-    }
+      if (e.isEnum) {
+        expect(e.constructors, isEmpty);
+      } else {
+        expect(e.constructors, isNotEmpty);
+      }
 
-    if (e.constructors.length == 1 &&
-        e.constructors[0].isSynthetic &&
-        e.mixins.isEmpty) {
-      expect(e.constructors[0].parameters, isEmpty);
-    } else {
-      e.constructors.forEach(writeConstructorElement);
-    }
+      if (e.constructors.length == 1 &&
+          e.constructors[0].isSynthetic &&
+          e.mixins.isEmpty) {
+        expect(e.constructors[0].parameters, isEmpty);
+      } else {
+        e.constructors.forEach(writeConstructorElement);
+      }
 
-    e.methods.forEach(writeMethodElement);
+      e.methods.forEach(writeMethodElement);
+    });
+
     buffer.writeln('}');
   }
 
@@ -355,9 +360,13 @@ class _ElementWriter {
     }
 
     buffer.writeln(' {');
-    e.fields.forEach(writePropertyInducingElement);
-    e.accessors.forEach(writePropertyAccessorElement);
-    e.methods.forEach(writeMethodElement);
+
+    _withIndent(() {
+      e.fields.forEach(writePropertyInducingElement);
+      e.accessors.forEach(writePropertyAccessorElement);
+      e.methods.forEach(writeMethodElement);
+    });
+
     buffer.writeln('}');
   }
 
@@ -488,6 +497,10 @@ class _ElementWriter {
   }
 
   void writeMetadata(Element e, String prefix, String separator) {
+    if (withFullyResolvedAst) {
+      return;
+    }
+
     if (e.metadata.isNotEmpty) {
       writeList(prefix, '', e.metadata, '$separator$prefix', (a) {
         writeNode((a as ElementAnnotationImpl).annotationAst);
@@ -540,14 +553,7 @@ class _ElementWriter {
     }
   }
 
-  void writeNode(AstNode e, {String indent: '', Expression enclosing}) {
-    if (withFullyResolvedAst) {
-      buffer.writeln();
-      var printer = ResolvedAstPrinter(buffer, indent);
-      e.accept(printer);
-      return;
-    }
-
+  void writeNode(AstNode e, {Expression enclosing}) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
         e.precedence < enclosing.precedence;
@@ -961,25 +967,33 @@ class _ElementWriter {
 
     writeVariableTypeInferenceError(e);
 
-    if (e is ConstVariableElement) {
-      Expression initializer = (e as ConstVariableElement).constantInitializer;
-      if (initializer != null) {
-        buffer.write(' = ');
-        writeNode(
-          initializer,
-          indent: ' ' * (e is FieldElement ? 4 : 2),
-        );
-        if (withFullyResolvedAst) {
-          return;
+    if (withFullyResolvedAst) {
+      buffer.writeln(';');
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        if (e is ConstVariableElement) {
+          _writelnWithIndent('constantInitializer');
+          _withIndent(() {
+            var initializer = (e as ConstVariableElement).constantInitializer;
+            _writeResolvedNode(initializer);
+          });
+        }
+      });
+    } else {
+      if (e is ConstVariableElement) {
+        Expression initializer =
+            (e as ConstVariableElement).constantInitializer;
+        if (initializer != null) {
+          buffer.write(' = ');
+          writeNode(initializer);
         }
       }
+      buffer.writeln(';');
     }
 
     // TODO(scheglov) Paul: One of the things that was hardest to get right
     // when resynthesizing the element model was the synthetic function for the
     // initializer.  Can we write that out (along with its return type)?
-
-    buffer.writeln(';');
   }
 
   void writeType(DartType type) {
@@ -1135,6 +1149,18 @@ class _ElementWriter {
     return components.join(';');
   }
 
+  void _withIndent(void Function() f) {
+    var indent = this.indent;
+    this.indent = '$indent  ';
+    f();
+    this.indent = indent;
+  }
+
+  void _writelnWithIndent(String line) {
+    buffer.write(indent);
+    buffer.writeln(line);
+  }
+
   bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
       String prefix, String suffix) {
     if (parameters.isEmpty) return commaNeeded;
@@ -1159,6 +1185,28 @@ class _ElementWriter {
     }
     buffer.write(suffix);
     return commaNeeded;
+  }
+
+  void _writeResolvedMetadata(List<ElementAnnotation> metadata) {
+    if (metadata.isNotEmpty) {
+      _writelnWithIndent('metadata');
+      _withIndent(() {
+        for (ElementAnnotationImpl annotation in metadata) {
+          _writeResolvedNode(annotation.annotationAst);
+        }
+      });
+    }
+  }
+
+  void _writeResolvedNode(AstNode node) {
+    buffer.write(indent);
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: 'file:///test.dart',
+        sink: buffer,
+        indent: indent,
+      ),
+    );
   }
 }
 
