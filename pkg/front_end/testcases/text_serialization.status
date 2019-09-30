@@ -160,6 +160,7 @@ general/function_type_is_check: TextSerializationFailure # Was: Pass
 general/function_type_recovery: TextSerializationFailure # Was: Pass
 general/functions: TextSerializationFailure # Was: Pass
 general/future_or_test: TextSerializationFailure # Was: Pass
+general/generic_function_type_in_message: TextSerializationFailure
 general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
