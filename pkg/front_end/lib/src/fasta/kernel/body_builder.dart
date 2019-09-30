@@ -826,59 +826,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           body, transformSetLiterals, transformCollections);
     }
 
-    // For async, async*, and sync* functions with declared return types, we
-    // need to determine whether those types are valid.
     if (builder.returnType != null) {
-      DartType returnType = builder.function.returnType;
-      // We use the same trick in each case below. For example to decide whether
-      // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
-      // transitivity of the subtyping relation because Future<Bot> <: Future<T>
-      // for every T.
-
-      // We use [problem == null] to signal success.
-      Message problem;
-      switch (asyncModifier) {
-        case AsyncMarker.Async:
-          DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-          if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
-            problem = fasta.messageIllegalAsyncReturnType;
-          }
-          break;
-
-        case AsyncMarker.AsyncStar:
-          DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
-          if (returnType is VoidType) {
-            problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-          } else if (!typeEnvironment.isSubtypeOf(
-              streamBottomType, returnType)) {
-            problem = fasta.messageIllegalAsyncGeneratorReturnType;
-          }
-          break;
-
-        case AsyncMarker.SyncStar:
-          DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
-          if (returnType is VoidType) {
-            problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
-          } else if (!typeEnvironment.isSubtypeOf(
-              iterableBottomType, returnType)) {
-            problem = fasta.messageIllegalSyncGeneratorReturnType;
-          }
-          break;
-
-        case AsyncMarker.Sync:
-          break; // skip
-        case AsyncMarker.SyncYielding:
-          unexpected("async, async*, sync, or sync*", "$asyncModifier",
-              member.charOffset, uri);
-          break;
-      }
-
-      if (problem != null) {
-        // TODO(hillerstrom): once types get annotated with location
-        // information, we can improve the quality of the error message by
-        // using the offset of [returnType] (and the length of its name).
-        addProblem(problem, member.charOffset, member.name.length);
-      }
+      checkAsyncReturnType(asyncModifier, builder.function.returnType,
+          member.charOffset, member.name.length);
     }
 
     if (builder.kind == ProcedureKind.Setter) {
@@ -945,6 +895,60 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
+  }
+
+  void checkAsyncReturnType(AsyncMarker asyncModifier, DartType returnType,
+      int charOffset, int length) {
+    // For async, async*, and sync* functions with declared return types, we
+    // need to determine whether those types are valid.
+    // We use the same trick in each case below. For example to decide whether
+    // Future<T> <: [returnType] for every T, we rely on Future<Bot> and
+    // transitivity of the subtyping relation because Future<Bot> <: Future<T>
+    // for every T.
+
+    // We use [problem == null] to signal success.
+    Message problem;
+    switch (asyncModifier) {
+      case AsyncMarker.Async:
+        DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
+        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
+          problem = fasta.messageIllegalAsyncReturnType;
+        }
+        break;
+
+      case AsyncMarker.AsyncStar:
+        DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
+        if (returnType is VoidType) {
+          problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
+        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
+          problem = fasta.messageIllegalAsyncGeneratorReturnType;
+        }
+        break;
+
+      case AsyncMarker.SyncStar:
+        DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
+        if (returnType is VoidType) {
+          problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
+        } else if (!typeEnvironment.isSubtypeOf(
+            iterableBottomType, returnType)) {
+          problem = fasta.messageIllegalSyncGeneratorReturnType;
+        }
+        break;
+
+      case AsyncMarker.Sync:
+        break; // skip
+      case AsyncMarker.SyncYielding:
+        unexpected("async, async*, sync, or sync*", "$asyncModifier",
+            member.charOffset, uri);
+        break;
+    }
+
+    if (problem != null) {
+      // TODO(hillerstrom): once types get annotated with location
+      // information, we can improve the quality of the error message by
+      // using the offset of [returnType] (and the length of its name).
+      addProblem(problem, charOffset, length);
+    }
   }
 
   /// Ensure that the containing library of the [member] has been loaded.
@@ -4070,6 +4074,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       FunctionDeclarationImpl.setHasImplicitReturnType(
           declaration, hasImplicitReturnType);
+      if (!hasImplicitReturnType) {
+        checkAsyncReturnType(asyncModifier, function.returnType,
+            variable.fileOffset, variable.name.length);
+      }
 
       variable.type = function.functionType;
       if (isFunctionExpression) {
