@@ -262,6 +262,9 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           intptr_t class_id,
                                           intptr_t instance_size,
                                           RawObject** result) {
+  ASSERT(instance_size > 0);
+  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+
   const uword start = thread->top();
 #ifndef PRODUCT
   auto table = thread->isolate()->shared_class_table();
@@ -269,7 +272,8 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
     return false;
   }
 #endif
-  if (LIKELY((start + instance_size) < thread->end())) {
+  const intptr_t remaining = thread->end() - start;
+  if (LIKELY(remaining >= instance_size)) {
     thread->set_top(start + instance_size);
 #ifndef PRODUCT
     table->UpdateAllocatedNew(class_id, instance_size);

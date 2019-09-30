@@ -248,29 +248,29 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  if (length.IsSmi()) {
-    const intptr_t len = Smi::Cast(length).Value();
-    if (Array::IsValidLength(len)) {
-      const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
-      arguments.SetReturn(array);
-      TypeArguments& element_type =
-          TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
-      // An Array is raw or takes one type argument. However, its type argument
-      // vector may be longer than 1 due to a type optimization reusing the type
-      // argument vector of the instantiator.
-      ASSERT(element_type.IsNull() ||
-             (element_type.Length() >= 1 && element_type.IsInstantiated()));
-      array.SetTypeArguments(element_type);  // May be null.
-      return;
-    }
+  const int64_t len = Integer::Cast(length).AsInt64Value();
+  if (len < 0) {
+    // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
+    Exceptions::ThrowRangeError("length", Integer::Cast(length), 0,
+                                Array::kMaxElements);
   }
-  // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
-  const Array& args = Array::Handle(zone, Array::New(4));
-  args.SetAt(0, length);
-  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
-  args.SetAt(2, Integer::Handle(zone, Integer::New(Array::kMaxElements)));
-  args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRange, args);
+  if (len > Array::kMaxElements) {
+    const Instance& exception = Instance::Handle(
+        zone, thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+  }
+
+  const Array& array =
+      Array::Handle(zone, Array::New(static_cast<intptr_t>(len), Heap::kNew));
+  arguments.SetReturn(array);
+  TypeArguments& element_type =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  // An Array is raw or takes one type argument. However, its type argument
+  // vector may be longer than 1 due to a type optimization reusing the type
+  // argument vector of the instantiator.
+  ASSERT(element_type.IsNull() ||
+         (element_type.Length() >= 1 && element_type.IsInstantiated()));
+  array.SetTypeArguments(element_type);  // May be null.
 }
 
 // Helper returning the token position of the Dart caller.
