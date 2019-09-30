@@ -18,7 +18,8 @@ main() {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_diagnosticServer() async {
+  skip_test_diagnosticServer() async {
+    // skipped due to flaky timeouts, #38629
     await initialize();
 
     // Send the custom request to the LSP server to get the Dart diagnostic
@@ -38,7 +39,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
-  test_exit_inintializedWithShutdown() async {
+  skip_test_exit_inintializedWithShutdown() async {
+    // skipped due to flaky timeouts, #38629
     await initialize();
     await sendShutdown();
     sendExit();
@@ -53,7 +55,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  test_exit_initializedWithoutShutdown() async {
+  skip_test_exit_initializedWithoutShutdown() async {
+    // skipped due to flaky timeouts, #38629
     // Send a request that we can wait for, to ensure the server is fully ready
     // before we send exit. Otherwise the exit notification won't be handled for
     // a long time (while the server starts up) and will exceed the 10s timeout.
@@ -70,7 +73,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(1));
   }
 
-  test_exit_uninintializedWithShutdown() async {
+  skip_test_exit_uninintializedWithShutdown() async {
+    // skipped due to flaky timeouts, #38629
     await sendShutdown();
     sendExit();
 
@@ -84,7 +88,8 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(exitCode, equals(0));
   }
 
-  test_exit_uninitializedWithoutShutdown() async {
+  skip_test_exit_uninitializedWithoutShutdown() async {
+    // skipped due to flaky timeouts, #38629
     // This tests the same as test_exit_withoutShutdown but without sending
     // initialize. It can't be as strict with the timeout as the server may take
     // time to start up (we can't tell when it's ready without sending a request).

@@ -15,7 +15,8 @@ main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_initialAnalysis() async {
+  skip_test_initialAnalysis() async {
+    // skipped due to flaky timeouts, #38629
     newFile(mainFilePath, content: 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -30,7 +31,8 @@ class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(diagnostic.range.end.character, equals(12));
   }
 
-  test_lints() async {
+  skip_test_lints() async {
+    // skipped due to flaky timeouts, #38629
     newFile(mainFilePath, content: '''main() async => await 1;''');
     newFile(analysisOptionsPath, content: '''
 linter:

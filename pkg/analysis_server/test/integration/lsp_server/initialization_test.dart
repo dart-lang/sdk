@@ -17,7 +17,8 @@ main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_initialize_invalidParams() async {
+  skip_test_initialize_invalidParams() async {
+    // skipped due to flaky timeouts, #38629
     final params = {'processId': 'invalid'};
     final request = new RequestMessage(
       Either2<num, String>.t1(1),
