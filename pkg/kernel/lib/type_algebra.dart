@@ -152,7 +152,8 @@ class FreshTypeParameters {
       typeParameters: freshTypeParameters,
       requiredParameterCount: type.requiredParameterCount,
       typedefType:
-          type.typedefType == null ? null : substitute(type.typedefType));
+          type.typedefType == null ? null : substitute(type.typedefType),
+      nullability: type.nullability);
 
   DartType substitute(DartType type) => substitution.substituteType(type);
 

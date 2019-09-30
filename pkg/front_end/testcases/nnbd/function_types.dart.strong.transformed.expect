@@ -18,7 +18,7 @@ class B extends self::A<() →? dynamic> {
 static method foo() → void {}
 static method bar() → () → void
   return #C1;
-static method baz() → () → void
+static method baz() → () →? void
   return #C1;
 static method hest() → () → void
   return #C1;
@@ -30,7 +30,7 @@ static method main() → dynamic {
   () → void g;
   () →? void f = g;
   () → void fBar = self::bar();
-  () → void fBaz = self::baz();
+  () →? void fBaz = self::baz();
   () → void fHest = self::hest();
   () →? void fFisk = self::fisk();
 }

@@ -18,8 +18,7 @@ import 'package:kernel/ast.dart'
         Variance,
         VoidType;
 
-import 'package:kernel/type_algebra.dart'
-    show combineNullabilitiesForSubstitution, containsTypeVariable;
+import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
