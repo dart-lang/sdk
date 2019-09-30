@@ -4286,6 +4286,35 @@ class B {
 ''');
   }
 
+  test_constructor_initializers_superInvocation_argumentContextType() async {
+    var library = await checkLibrary('''
+class A {
+  const A(List<String> values);
+}
+class B extends A {
+  const B() : super(const []);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A(List<String> values);
+}
+class B extends A {
+  const B();
+    constantInitializers
+      SuperConstructorInvocation
+        argumentList: ArgumentList
+          arguments
+            ListLiteral
+              staticType: List<String>
+        staticElement: self::A::•
+}
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_constructor_initializers_superInvocation_named() async {
     var library = await checkLibrary('''
 class A {
@@ -4364,6 +4393,31 @@ class C extends A {
   const C.ccc() : super(42);
 }
 ''');
+  }
+
+  test_constructor_initializers_thisInvocation_argumentContextType() async {
+    var library = await checkLibrary('''
+class A {
+  const A(List<String> values);
+  const A.empty() : this(const []);
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+  const A(List<String> values);
+  const A.empty() = A;
+    constantInitializers
+      RedirectingConstructorInvocation
+        argumentList: ArgumentList
+          arguments
+            ListLiteral
+              staticType: List<String>
+        staticElement: self::A::•
+}
+''',
+        withFullyResolvedAst: true);
   }
 
   test_constructor_initializers_thisInvocation_named() async {

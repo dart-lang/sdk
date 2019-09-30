@@ -4312,9 +4312,9 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
+    node.accept(elementResolver);
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
-    node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
 
@@ -4419,9 +4419,9 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the constructor
     // invocation.
     //
+    node.accept(elementResolver);
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
-    node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
 

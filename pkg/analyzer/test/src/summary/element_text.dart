@@ -297,16 +297,28 @@ class _ElementWriter {
       }
     }
 
-    if (e is ConstructorElementImpl) {
-      if (e.constantInitializers != null) {
-        writeList(' : ', '', e.constantInitializers, ', ', writeNode);
+    var initializers = (e as ConstructorElementImpl).constantInitializers;
+    if (withFullyResolvedAst) {
+      buffer.writeln(';');
+      if (initializers != null && initializers.isNotEmpty) {
+        _withIndent(() {
+          _writelnWithIndent('constantInitializers');
+          _withIndent(() {
+            for (var initializer in initializers) {
+              _writeResolvedNode(initializer);
+            }
+          });
+        });
       }
+    } else {
+      if (initializers != null) {
+        writeList(' : ', '', initializers, ', ', writeNode);
+      }
+      buffer.writeln(';');
     }
 
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
-
-    buffer.writeln(';');
   }
 
   void writeDocumentation(Element e, [String prefix = '']) {
@@ -972,11 +984,13 @@ class _ElementWriter {
       _withIndent(() {
         _writeResolvedMetadata(e.metadata);
         if (e is ConstVariableElement) {
-          _writelnWithIndent('constantInitializer');
-          _withIndent(() {
-            var initializer = (e as ConstVariableElement).constantInitializer;
-            _writeResolvedNode(initializer);
-          });
+          var initializer = (e as ConstVariableElement).constantInitializer;
+          if (initializer != null) {
+            _writelnWithIndent('constantInitializer');
+            _withIndent(() {
+              _writeResolvedNode(initializer);
+            });
+          }
         }
       });
     } else {

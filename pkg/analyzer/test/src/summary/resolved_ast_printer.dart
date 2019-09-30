@@ -88,6 +88,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRedirectingConstructorInvocation(
+    RedirectingConstructorInvocation node,
+  ) {
+    _writeln('RedirectingConstructorInvocation');
+    _withIndent(() {
+      _writeNode('argumentList', node.argumentList);
+      _writeNode('constructorName', node.constructorName);
+      _writeElement('staticElement', node.staticElement);
+    });
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _writeln('SimpleIdentifier');
     _withIndent(() {
@@ -95,6 +107,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
       _writelnWithIndent('token: ${node.token}');
+    });
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    _writeln('SuperConstructorInvocation');
+    _withIndent(() {
+      _writeNode('argumentList', node.argumentList);
+      _writeNode('constructorName', node.constructorName);
+      _writeElement('staticElement', node.staticElement);
     });
   }
 
