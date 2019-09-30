@@ -140,12 +140,13 @@ dart2native -Da=1,b=2 -Dc=3 --define=d=4 main.dart''')
   }[parsedArgs['output-kind']];
 
   final sourcePath = path.canonicalize(path.normalize(parsedArgs.rest[0]));
+  final sourceWithoutDart = sourcePath.replaceFirst(new RegExp(r'\.dart$'), '');
   final outputPath =
       path.canonicalize(path.normalize(parsedArgs['output'] != null
           ? parsedArgs['output']
           : {
-              Kind.aot: '${sourcePath}.aot',
-              Kind.exe: '${sourcePath}.exe',
+              Kind.aot: '${sourceWithoutDart}.aot',
+              Kind.exe: '${sourceWithoutDart}.exe',
             }[kind]));
 
   if (!FileSystemEntity.isFileSync(sourcePath)) {
