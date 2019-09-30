@@ -76,22 +76,27 @@ class InfoBuilder {
             if (node.parent is ArgumentList) {
               if (node is NullLiteral) {
                 details.add(RegionDetail(
-                    'null is explicitly passed as an argument.',
+                    "'null' is explicitly passed as an argument",
                     _targetFor(origin)));
               } else {
                 details.add(RegionDetail(
-                    'A nullable value is explicitly passed as an argument.',
+                    "A nullable value is explicitly passed as an argument",
                     _targetFor(origin)));
               }
             } else {
-              details.add(RegionDetail(
-                  'A nullable value is assigned.', _targetFor(origin)));
+              if (node is NullLiteral) {
+                details.add(RegionDetail(
+                    "'null' is explicitly assigned", _targetFor(origin)));
+              } else {
+                details.add(RegionDetail(
+                    "A nullable value is assigned", _targetFor(origin)));
+              }
             }
           }
         }
       } else if (reason is EdgeInfo) {
         // TODO(brianwilkerson) Implement this after finding an example whose
-        //  reason is an edge.
+        //  reason is an edge that should contribute a detail.
       } else {
         throw UnimplementedError(
             'Unexpected class of reason: ${reason.runtimeType}');

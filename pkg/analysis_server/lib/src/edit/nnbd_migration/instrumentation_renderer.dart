@@ -1,4 +1,9 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
@@ -18,7 +23,6 @@ class InstrumentationRenderer {
 
   /// Builds an HTML view of the instrumentation information in [libraryInfo].
   String render() {
-    int previousIndex = 0;
     Map<String, dynamic> mustacheContext = {
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.libraryLinks(libraryInfo),
@@ -26,44 +30,111 @@ class InstrumentationRenderer {
       'highlightStylePath': migrationInfo.highlightStylePath(libraryInfo),
     };
     for (var compilationUnit in libraryInfo.units) {
-      // List of Mustache context for both unmodified and modified regions:
-      //
-      // * 'modified': Whether this region represents modified source, or
-      //   unmodified.
-      // * 'content': The textual content of this region.
-      // * 'explanation': The textual explanation of why the content in this
-      //   region was modified. It will appear in a "tooltip" on hover.
-      //   TODO(srawlins): Support some sort of HTML explanation, with
-      //   hyperlinks to anchors in other source code.
-      List<Map> regions = [];
-      for (var region in compilationUnit.regions) {
-        if (region.offset > previousIndex) {
-          // Display a region of unmodified content.
-          regions.add({
-            'modified': false,
-            'content':
-                compilationUnit.content.substring(previousIndex, region.offset)
-          });
-          previousIndex = region.offset + region.length;
-        }
-        regions.add({
-          'modified': true,
-          'content': compilationUnit.content
-              .substring(region.offset, region.offset + region.length),
-          'explanation': region.explanation,
-        });
-      }
-      if (previousIndex < compilationUnit.content.length) {
-        // Last region of unmodified content.
-        regions.add({
-          'modified': false,
-          'content': compilationUnit.content.substring(previousIndex)
-        });
-      }
-      mustacheContext['units']
-          .add({'path': compilationUnit.path, 'regions': regions});
+      mustacheContext['units'].add({
+        'path': compilationUnit.path,
+        'regions': _computeRegions(compilationUnit),
+        'targetRegions': _computeTargetRegions(compilationUnit),
+      });
     }
     return _template.renderString(mustacheContext);
+  }
+
+  /// Return a list of Mustache context, based on the [unitInfo] for both
+  /// unmodified and modified regions:
+  ///
+  /// * 'modified': Whether this region represents modified source, or
+  ///   unmodified.
+  /// * 'content': The textual content of this region.
+  /// * 'explanation': The Mustache context for the tooltip explaining why the
+  ///   content in this region was modified.
+  List<Map> _computeRegions(UnitInfo unitInfo) {
+    String content = unitInfo.content;
+    List<Map> regions = [];
+    int previousIndex = 0;
+    for (var region in unitInfo.regions) {
+      int offset = region.offset;
+      int length = region.length;
+      if (offset > previousIndex) {
+        // Display a region of unmodified content.
+        regions.add({
+          'modified': false,
+          'content': content.substring(previousIndex, offset),
+        });
+        previousIndex = offset + length;
+      }
+      List<Map> details = [];
+      for (var detail in region.details) {
+        details.add({
+          'description': detail.description,
+          'target': _uriForTarget(detail.target),
+        });
+      }
+      regions.add({
+        'modified': true,
+        'content': content.substring(offset, offset + length),
+        'explanation': region.explanation,
+        'details': details,
+      });
+    }
+    if (previousIndex < content.length) {
+      // Last region of unmodified content.
+      regions.add({
+        'modified': false,
+        'content': content.substring(previousIndex),
+      });
+    }
+    return regions;
+  }
+
+  /// Return a list of Mustache context, based on the [unitInfo] for both
+  /// target and non-target regions:
+  ///
+  /// * 'content': The content of the region.
+  /// * 'isTarget': A flag indicating whether the region has a name associated
+  ///   with it.
+  /// * 'target': The name of the region, if the region has a name.
+  List<Map> _computeTargetRegions(UnitInfo unitInfo) {
+    String content = unitInfo.content;
+    OffsetMapper mapper = unitInfo.offsetMapper;
+    List<NavigationTarget> targets = unitInfo.targets.toList();
+    targets.sort((first, second) => first.offset.compareTo(second.offset));
+    List<Map> targetRegions = [];
+    int previousIndex = 0;
+    for (NavigationTarget target in targets) {
+      int offset = mapper.map(target.offset);
+      int length = target.length;
+      if (offset > previousIndex) {
+        // Display a non-target region.
+        targetRegions.add({
+          'content': content.substring(previousIndex, offset),
+          'isTarget': false,
+        });
+        // Add a target region.
+        targetRegions.add({
+          'content': content.substring(offset, offset + length),
+          'isTarget': true,
+          'target': 'o${target.offset}',
+        });
+        previousIndex = offset + length;
+      }
+    }
+    if (previousIndex < content.length) {
+      // Last non-target region.
+      targetRegions.add({
+        'content': content.substring(previousIndex),
+        'isTarget': false,
+      });
+    }
+    return targetRegions;
+  }
+
+  /// Return the URL that will navigate to the given [target].
+  String _uriForTarget(NavigationTarget target) {
+    path.Context pathContext = migrationInfo.pathContext;
+    String targetPath = pathContext.setExtension(target.filePath, '.html');
+    String sourceDir = pathContext.dirname(libraryInfo.units.first.path);
+    String relativePath = pathContext.relative(targetPath, from: sourceDir);
+    return '$relativePath#o${target.offset.toString()}';
   }
 }
 
@@ -130,6 +201,19 @@ mustache.Template _template = mustache.Template(r'''
   <head>
     <title>Non-nullable fix instrumentation report</title>
     <script src="{{ highlightJsPath }}"></script>
+    <script>
+    function highlightTarget() {
+      var url = document.URL;
+      var index = url.lastIndexOf("#");
+      if (index >= 0) {
+        var name = url.substring(index + 1);
+        var anchor = document.getElementById(name);
+        if (anchor != null) {
+          anchor.className = "target";
+        }
+      }
+    }
+    </script>
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
 body {
@@ -188,9 +272,15 @@ h2 {
 .region:hover .tooltip {
   visibility: visible;
 }
+
+.target {
+  background-color: #FFFFFF;
+  position: relative;
+  visibility: visible;
+}
     </style>
   </head>
-  <body>
+  <body onload="highlightTarget()">
     <h1>Non-nullable fix instrumentation report</h1>
     <p><em>Well-written introduction to this report.</em></p>
     <div class="navigation">
@@ -211,12 +301,25 @@ h2 {
     '{{/ regions }}'
     '</div>'
     '<div class="regions">'
-    '{{! The regions are then printed again, overlaying the first copy of the }}'
-    '{{! content, to provide tooltips for modified regions. }}'
+    '{{! The regions are written a second time, but hidden, to include }}'
+    '{{! anchors. }}'
+    '{{# targetRegions }}'
+    '{{^ isTarget }}{{ content }}{{/ isTarget }}'
+    '{{# isTarget }}<a id="{{ target }}">{{ content }}</a>{{/ isTarget }}'
+    '{{/ targetRegions }}'
+    '</div>'
+    '<div class="regions">'
+    '{{! The regions are then written again, overlaying the first two copies }}'
+    '{{! of the content, to provide tooltips for modified regions. }}'
     '{{# regions }}'
     '{{^ modified }}{{ content }}{{/ modified }}'
     '{{# modified }}<span class="region">{{ content }}'
-    '<span class="tooltip">{{explanation}}</span></span>{{/ modified }}'
+    '<span class="tooltip">{{ explanation }}<ul>'
+    '{{# details }}'
+    '<li>'
+    '<a href="{{ target }}">{{ description }}</a>'
+    '</li>'
+    '{{/ details }}</ul></span></span>{{/ modified }}'
     '{{/ regions }}'
     '</div></div>'
     r'''

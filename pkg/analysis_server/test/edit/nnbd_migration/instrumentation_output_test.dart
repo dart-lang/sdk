@@ -51,7 +51,8 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     expect(
         output,
         contains('List&lt;String&gt;<span class="region">?'
-            '<span class="tooltip">null was assigned</span></span> a = null;'));
+            '<span class="tooltip">null was assigned<ul></ul></span></span> '
+            'a = null;'));
   }
 
   test_outputContainsEscapedHtml_ampersand() async {
@@ -71,7 +72,8 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     expect(
         output,
         contains('int<span class="region">?'
-            '<span class="tooltip">null was assigned</span></span> a = null;'));
+            '<span class="tooltip">null was assigned<ul></ul></span></span> '
+            'a = null;'));
   }
 
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
