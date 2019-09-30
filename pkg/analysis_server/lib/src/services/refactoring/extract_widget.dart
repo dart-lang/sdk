@@ -381,7 +381,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;
       builder.addReplacement(range.node(invocation), (builder) {
-        builder.write('new $name(');
+        builder.write('$name(');
 
         // Insert field references (as named arguments).
         // Ensure that invocation arguments are named.
@@ -545,7 +545,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Write instantiation of the new widget class.
   void _writeWidgetInstantiation(DartEditBuilder builder) {
-    builder.write('new $name(');
+    builder.write('$name(');
 
     for (var parameter in _parameters) {
       if (parameter != _parameters.first) {
