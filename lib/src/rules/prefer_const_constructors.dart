@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 import '../ast.dart';
@@ -68,16 +67,6 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
   }
 }
 
-class _Collector extends RecursiveAstVisitor<void> {
-  bool foundTypeParamElement = false;
-  @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.staticElement is TypeParameterElement) {
-      foundTypeParamElement = true;
-    }
-  }
-}
-
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
@@ -101,12 +90,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
 
       if (context.canBeConst(node)) {
-        // A work-around to address: #1592; remove once fixed in analyzer.
-        final collector = _Collector();
-        node.accept(collector);
-        if (collector.foundTypeParamElement) {
-          return;
-        }
         rule.reportLint(node);
       }
     }
