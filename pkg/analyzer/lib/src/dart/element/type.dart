@@ -2847,8 +2847,6 @@ abstract class TypeImpl implements DartType {
  * A concrete implementation of a [TypeParameterType].
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
-  static bool _comparingBounds = false;
-
   @override
   final NullabilitySuffix nullabilitySuffix;
 
@@ -2874,20 +2872,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   bool operator ==(Object other) {
-    if (other is TypeParameterTypeImpl && element == other.element) {
-      if (_comparingBounds) {
-        // If we're comparing bounds already, then we only need type variable
-        // equality.
-        return true;
-      }
-      _comparingBounds = true;
-      try {
-        return bound == other.bound;
-      } finally {
-        _comparingBounds = false;
-      }
+    if (identical(other, this)) {
+      return true;
     }
-    return false;
+    return other is TypeParameterTypeImpl && other.element == element;
   }
 
   @override
