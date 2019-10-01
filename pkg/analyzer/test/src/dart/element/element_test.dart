@@ -959,7 +959,9 @@ class ElementImplTest extends AbstractTypeTest {
     );
     classElement.fields = <FieldElement>[field];
     expect(field == field, isTrue);
+    // ignore: unrelated_type_equality_checks
     expect(field == field.getter, isFalse);
+    // ignore: unrelated_type_equality_checks
     expect(field == field.setter, isFalse);
     expect(field.getter == field.setter, isFalse);
   }
@@ -1077,6 +1079,7 @@ class ElementLocationImplTest {
 
   void test_equals_notEqual_notLocation() {
     ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
+    // ignore: unrelated_type_equality_checks
     expect(first == "a;b;d", isFalse);
   }
 
@@ -3529,7 +3532,9 @@ class PropertyAccessorElementImplTest {
     PropertyAccessorElementHandle handle =
         new PropertyAccessorElementHandle(null, element.location);
     expect(element.hashCode, handle.hashCode);
+    // ignore: unrelated_type_equality_checks
     expect(element == handle, isTrue);
+    // ignore: unrelated_type_equality_checks
     expect(handle == element, isTrue);
   }
 
@@ -3544,7 +3549,9 @@ class PropertyAccessorElementImplTest {
     PropertyAccessorElementHandle handle =
         new PropertyAccessorElementHandle(null, element.location);
     expect(element.hashCode, handle.hashCode);
+    // ignore: unrelated_type_equality_checks
     expect(element == handle, isTrue);
+    // ignore: unrelated_type_equality_checks
     expect(handle == element, isTrue);
   }
 }

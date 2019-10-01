@@ -585,8 +585,8 @@ class ConstantEvaluationEngine {
       while (baseParameter is ParameterMember) {
         baseParameter = (baseParameter as ParameterMember).baseElement;
       }
-      DartObjectImpl argumentValue = null;
-      AstNode errorTarget = null;
+      DartObjectImpl argumentValue;
+      AstNode errorTarget;
       if (baseParameter.isNamed) {
         argumentValue = namedValues[baseParameter.name];
         errorTarget = namedNodes[baseParameter.name];
@@ -652,8 +652,8 @@ class ConstantEvaluationEngine {
     ConstantVisitor initializerVisitor = new ConstantVisitor(
         this, externalErrorReporter,
         lexicalEnvironment: parameterMap);
-    String superName = null;
-    NodeList<Expression> superArguments = null;
+    String superName;
+    NodeList<Expression> superArguments;
     for (var i = 0; i < initializers.length; i++) {
       var initializer = initializers[i];
       if (initializer is ConstructorFieldInitializer) {
@@ -875,11 +875,7 @@ class ConstantEvaluationEngine {
       // fixed.
       return true;
     }
-    // TODO(scheglov ) Switch to using this, but not now, dartbug.com/33441
-    if (typeSystem.isSubtypeOf(objType, type)) {
-      return true;
-    }
-    return objType.isSubtypeOf(type);
+    return typeSystem.isSubtypeOf(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
@@ -1018,7 +1014,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     for (StringLiteral string in node.strings) {
       if (result == null) {
         result = string.accept(this);
@@ -1432,7 +1428,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitStringInterpolation(StringInterpolation node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     bool first = true;
     for (InterpolationElement element in node.elements) {
       if (first) {
@@ -1618,7 +1614,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Return the constant value of the static constant represented by the given
   /// [element]. The [node] is the node to be used if an error needs to be
   /// reported.
-  DartObjectImpl _getConstantValue(AstNode node, Element element) {
+  DartObjectImpl _getConstantValue(Expression node, Element element) {
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
@@ -1634,11 +1630,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        ParameterizedType functionType = function.type;
-        if (functionType == null) {
-          functionType = _typeProvider.functionType;
-        }
-        return new DartObjectImpl(functionType, new FunctionState(function));
+        var functionType = node.staticType;
+        return DartObjectImpl(functionType, FunctionState(function));
       }
     } else if (variableElement is ClassElement) {
       var type = variableElement.instantiate(

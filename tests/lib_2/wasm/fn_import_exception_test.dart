@@ -23,10 +23,10 @@ void main() {
   ]);
 
   dynamic override = null;
-  var inst = WasmModule(data).instantiate(WasmImports("env")
-    ..addMemory("memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("__memory_base", 1024, false)
-    ..addFunction<Int64 Function(Int64)>("throwIfNegative", (int x) {
+  var inst = WasmModule(data).instantiate(WasmImports()
+    ..addMemory("env", "memory", WasmMemory(256, 1024))
+    ..addGlobal<Int32>("env", "__memory_base", 1024, false)
+    ..addFunction<Int64 Function(Int64)>("env", "throwIfNegative", (int x) {
       if (x < 0) {
         throw Exception(x);
       }

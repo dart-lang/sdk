@@ -17,7 +17,7 @@ static method foo() → void
   ;
 static method bar() → () → void
   ;
-static method baz() → () → void
+static method baz() → () →? void
   ;
 static method hest() → () → void
   ;

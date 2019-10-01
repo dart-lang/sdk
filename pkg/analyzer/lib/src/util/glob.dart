@@ -81,8 +81,8 @@ class Glob {
   static bool _hasJustPrefix(String pattern, String prefix) {
     if (pattern.startsWith(prefix)) {
       int prefixLength = prefix.length;
-      return pattern.indexOf('*', prefixLength) == -1 &&
-          pattern.indexOf('?', prefixLength) == -1;
+      return !pattern.contains('*', prefixLength) &&
+          !pattern.contains('?', prefixLength);
     }
     return false;
   }

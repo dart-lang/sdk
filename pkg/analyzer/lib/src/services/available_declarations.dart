@@ -1266,8 +1266,8 @@ class _File {
       }
     }
 
-    String docComplete = null;
-    String docSummary = null;
+    String docComplete;
+    String docSummary;
 
     void setDartDoc(AnnotatedNode node) {
       if (node.documentationComment != null) {

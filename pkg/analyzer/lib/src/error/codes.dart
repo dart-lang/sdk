@@ -137,7 +137,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //  rather than '{0}') or split into multiple codes.
   static const CompileTimeErrorCode ABSTRACT_SUPER_MEMBER_REFERENCE =
       const CompileTimeErrorCode('ABSTRACT_SUPER_MEMBER_REFERENCE',
-          "The {0} '{1}' is always abstract in the supertype.");
+          "The {0} '{1}' is always abstract in the supertype.",
+          hasPublishedDocs: true);
 
   /**
    * Enum proposal: It is also a compile-time error to explicitly instantiate an
@@ -238,7 +239,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "neither is more specific.",
           correction:
               "Try using an extension override to specify the extension "
-              "you want to to be chosen.");
+              "you want to to be chosen.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -453,7 +455,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME =
       const CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
           "The built-in identifier '{0}' can't be used as an extension name.",
-          correction: "Try choosing a different name for the extension.");
+          correction: "Try choosing a different name for the extension.",
+          hasPublishedDocs: true);
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -980,7 +983,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_LIST_OR_SET =
       const CompileTimeErrorCode('CONST_SPREAD_EXPECTED_LIST_OR_SET',
-          "A list or a set is expected in this spread.");
+          "A list or a set is expected in this spread.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1009,7 +1013,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode CONST_SPREAD_EXPECTED_MAP =
       const CompileTimeErrorCode(
-          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.");
+          'CONST_SPREAD_EXPECTED_MAP', "A map is expected in this spread.",
+          hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>,
@@ -1081,7 +1086,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('CONST_WITH_NON_CONSTANT_ARGUMENT',
           "Arguments of a constant creation must be constant expressions.",
           correction: "Try making the argument a valid constant, or "
-              "use 'new' to call the constructor.");
+              "use 'new' to call the constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 16.12.2 Const: It is a compile-time error if <i>T</i> is not a class
@@ -1267,7 +1273,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode DUPLICATE_DEFINITION =
       const CompileTimeErrorCode(
           'DUPLICATE_DEFINITION', "The name '{0}' is already defined.",
-          correction: "Try renaming one of the declarations.");
+          correction: "Try renaming one of the declarations.",
+          hasPublishedDocs: true);
 
   /**
    * 18.3 Parts: It's a compile-time error if the same library contains two part
@@ -1327,7 +1334,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // returned by an iterator.
   static const CompileTimeErrorCode EQUAL_ELEMENTS_IN_CONST_SET =
       const CompileTimeErrorCode('EQUAL_ELEMENTS_IN_CONST_SET',
-          "Two values in a constant set can't be equal.");
+          "Two values in a constant set can't be equal.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1528,7 +1536,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTENSION_AS_EXPRESSION =
       const CompileTimeErrorCode('EXTENSION_AS_EXPRESSION',
           "Extension '{0}' can't be used as an expression.",
-          correction: "Try replacing it with a valid expression.");
+          correction: "Try replacing it with a valid expression.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1570,7 +1579,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Extension '{0}' can't define static member '{1}' and an instance "
               "member with the same name.",
           correction:
-              "Try renaming the member to a name that doesn't conflict.");
+              "Try renaming the member to a name that doesn't conflict.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1607,7 +1617,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
           "Extensions can't declare members with the same name as a member "
               "declared by 'Object'.",
-          correction: "Try specifying a different name for the member.");
+          correction: "Try specifying a different name for the member.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1651,7 +1662,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
           "An extension override can't be used to access a static member from "
               "an extension.",
-          correction: "Try using just the name of the extension.");
+          correction: "Try using just the name of the extension.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1699,7 +1711,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
           "The type of the argument to the extension override '{0}' "
-              "isn't assignable to the extended type '{1}'.");
+              "isn't assignable to the extended type '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1742,7 +1755,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'EXTENSION_OVERRIDE_WITH_CASCADE',
           "Extension overrides have no value so they can't be used as the "
               "target of a cascade expression.",
-          correction: "Try using '.' instead of '..'.");
+          correction: "Try using '.' instead of '..'.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1797,7 +1811,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_WITHOUT_ACCESS =
       const CompileTimeErrorCode('EXTENSION_OVERRIDE_WITHOUT_ACCESS',
           "An extension override can only be used to access instance members.",
-          correction: 'Consider adding an access to an instance member.');
+          correction: "Consider adding an access to an instance member.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1833,7 +1848,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode EXTRA_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS',
           "Too many positional arguments: {0} expected, but {1} found.",
-          correction: "Try removing the extra arguments.");
+          correction: "Try removing the extra arguments.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1882,7 +1898,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode('EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
           "Too many positional arguments: {0} expected, but {1} found.",
           correction: "Try removing the extra positional arguments, "
-              "or specifying the name for named arguments.");
+              "or specifying the name for named arguments.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -2092,7 +2109,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Classes and mixins can only implement other classes and mixins.",
           correction:
               "Try specifying a class or mixin, or remove the name from the "
-              "list.");
+              "list.",
+          hasPublishedDocs: true);
 
   /**
    * 10.10 Superinterfaces: It is a compile-time error if two elements in the
@@ -2446,7 +2464,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'INVALID_EXTENSION_ARGUMENT_COUNT',
           "Extension overrides must have exactly one argument: "
               "the value of 'this' in the extension method.",
-          correction: "Try specifying exactly one argument.");
+          correction: "Try specifying exactly one argument.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.2 Factories: It is a compile-time error if <i>M</i> is not the name of
@@ -2608,7 +2627,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
           "The 'covariant' keyword can't be used in an extension.",
-          correction: "Try removing the 'covariant' keyword.");
+          correction: "Try removing the 'covariant' keyword.",
+          hasPublishedDocs: true);
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
@@ -2708,12 +2728,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```dart
   // const collection = <String>{'a', 'b'};
   // ```
-  static const CompileTimeErrorCode MAP_ENTRY_NOT_IN_MAP =
-      const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
+  static const CompileTimeErrorCode
+      MAP_ENTRY_NOT_IN_MAP = const CompileTimeErrorCode('MAP_ENTRY_NOT_IN_MAP',
           "Map entries can only be used in a map literal.",
           correction:
               "Try converting the collection to a map or removing the map "
-              "entry.");
+              "entry.",
+          hasPublishedDocs: true);
 
   /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member
@@ -3148,7 +3169,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION =
       const CompileTimeErrorCode(
-          'NON_CONSTANT_CASE_EXPRESSION', "Case expressions must be constant.");
+          'NON_CONSTANT_CASE_EXPRESSION', "Case expressions must be constant.",
+          hasPublishedDocs: true);
 
   /**
    * 13.9 Switch: Given a switch statement of the form <i>switch (e) {
@@ -3297,7 +3319,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_MAP_KEY =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_KEY',
           "The keys in a const map literal must be constant.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction: "Try removing the keyword 'const' from the map literal.",
+          hasPublishedDocs: true);
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an
@@ -3349,7 +3372,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE',
           "The values in a const map literal must be constant.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction: "Try removing the keyword 'const' from the map literal.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -3398,7 +3422,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_MAP_ELEMENT =
       const CompileTimeErrorCode('NON_CONSTANT_MAP_ELEMENT',
           "The elements in a const map literal must be constant.",
-          correction: "Try removing the keyword 'const' from the map literal.");
+          correction: "Try removing the keyword 'const' from the map literal.",
+          hasPublishedDocs: true);
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an
@@ -3514,7 +3539,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS =
       const CompileTimeErrorCode('NOT_ENOUGH_POSITIONAL_ARGUMENTS',
           "{0} positional argument(s) expected, but {1} found.",
-          correction: "Try adding the missing arguments.");
+          correction: "Try adding the missing arguments.",
+          hasPublishedDocs: true);
 
   @Deprecated('Use CompileTimeErrorCode NOT_ENOUGH_POSITIONAL_ARGUMENTS')
   static const CompileTimeErrorCode NOT_ENOUGH_REQUIRED_ARGUMENTS =
@@ -3629,8 +3655,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // var m = <int, String>{...l.asMap()};
   // ```
   static const CompileTimeErrorCode NOT_MAP_SPREAD = const CompileTimeErrorCode(
-      'NOT_MAP_SPREAD',
-      "Spread elements in map literals must implement 'Map'.");
+      'NOT_MAP_SPREAD', "Spread elements in map literals must implement 'Map'.",
+      hasPublishedDocs: true);
 
   static const CompileTimeErrorCode NOT_NULL_AWARE_NULL_SPREAD =
       const CompileTimeErrorCode(
@@ -4051,7 +4077,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "Local variable '{0}' can't be referenced before it is declared.",
           correction: "Try moving the declaration to before the first use, or "
               "renaming the local variable so that it doesn't hide a name from "
-              "an enclosing scope.");
+              "an enclosing scope.",
+          hasPublishedDocs: true);
 
   /**
    * 12.8.1 Rethrow: It is a compile-time error if an expression of the form
@@ -4144,7 +4171,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       const CompileTimeErrorCode(
           'SUPER_IN_EXTENSION',
           "The 'super' keyword can't be used in an extension because an "
-              "extension doesn't have a superclass.");
+              "extension doesn't have a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -4269,6 +4297,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'UNDEFINED_ANNOTATION', "Undefined name '{0}' used as an annotation.",
           correction:
               "Try defining the name or importing it from another library.",
+          hasPublishedDocs: true,
           isUnresolvedIdentifier: true);
 
   /**
@@ -4445,7 +4474,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The getter '{0}' isn't defined for the extension '{1}'.",
           correction:
               "Try correcting the name to the name of an existing getter, or "
-              "defining a getter named '{0}'.");
+              "defining a getter named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4545,7 +4575,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The method '{0}' isn't defined for the extension '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
-              "defining a method named '{0}'.");
+              "defining a method named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4657,7 +4688,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The setter '{0}' isn't defined for the extension '{1}'.",
           correction:
               "Try correcting the name to the name of an existing setter, or "
-              "defining a setter named '{0}'.");
+              "defining a setter named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4799,7 +4831,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
           "Static members from the extended type or one of its superclasses "
               "must be qualified by the name of the defining type.",
-          correction: "Try adding '{0}.' before the name.");
+          correction: "Try adding '{0}.' before the name.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5133,7 +5166,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           "A value of type '{0}' can't be assigned to a variable of type "
               "'{1}'.",
           correction: "Try changing the type of the variable, or "
-              "casting the right-hand type to '{1}'.");
+              "casting the right-hand type to '{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5514,7 +5548,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
               "isn't defined in any of the libraries imported using that "
               "prefix.",
           correction: "Try correcting the prefix or "
-              "importing the library that defines '{0}'.");
+              "importing the library that defines '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5615,7 +5650,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
           "The method '{0}' isn't defined in a superclass of '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
-              "defining a method named '{0}' in a superclass.");
+              "defining a method named '{0}' in a superclass.",
+          hasPublishedDocs: true);
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -6000,7 +6036,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'CAST_TO_NON_TYPE',
       "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
       correction: "Try changing the name to the name of an existing type, or "
-          "creating a type with the name '{0}'.");
+          "creating a type with the name '{0}'.",
+      hasPublishedDocs: true);
 
   /**
    * 7.4 Abstract Instance Members: It is a static warning if an abstract member
@@ -6170,7 +6207,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           // TODO(brianwilkerson) Split this error code so that we can suggest
           // initializing fields in constructors (FINAL_FIELD_NOT_INITIALIZED
           // and FINAL_VARIABLE_NOT_INITIALIZED).
-          correction: "Try initializing the variable.");
+          correction: "Try initializing the variable.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: Each final instance variable <i>f</i>
@@ -6829,7 +6867,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
               "expression.",
           correction:
               "Try changing the name to the name of an existing type, or "
-              "creating a type with the name '{0}'.");
+              "creating a type with the name '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 10 Generics: However, a type parameter is considered to be a malformed type

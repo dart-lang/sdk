@@ -10,10 +10,7 @@ import 'package:kernel/target/targets.dart';
 import 'constant_evaluator.dart';
 
 import '../fasta_codes.dart'
-    show
-        templateConstEvalInvalidMethodInvocation,
-        templateConstEvalNegativeShift,
-        templateConstEvalZeroDivisor;
+    show templateConstEvalNegativeShift, templateConstEvalZeroDivisor;
 
 abstract class ConstantIntFolder {
   final ConstantEvaluator evaluator;
@@ -73,10 +70,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '~':
         return new IntConstant(~operand.value);
       default:
-        return evaluator.report(
-            node,
-            templateConstEvalInvalidMethodInvocation.withArguments(
-                op, operand));
+        return evaluator.reportInvalid(node, "Invalid unary operator $op");
     }
   }
 
@@ -121,8 +115,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
-        return evaluator.report(node,
-            templateConstEvalInvalidMethodInvocation.withArguments(op, left));
+        return evaluator.reportInvalid(node, "Invalid binary operator $op");
     }
   }
 
@@ -171,10 +164,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         int intValue = _toUint32(operand.value);
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
-        return evaluator.report(
-            node,
-            templateConstEvalInvalidMethodInvocation.withArguments(
-                op, operand));
+        return evaluator.reportInvalid(node, "Invalid unary operator $op");
     }
   }
 
@@ -225,8 +215,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
       case '>':
         return evaluator.makeBoolConstant(a > b);
       default:
-        return evaluator.report(node,
-            templateConstEvalInvalidMethodInvocation.withArguments(op, left));
+        return evaluator.reportInvalid(node, "Invalid binary operator $op");
     }
   }
 

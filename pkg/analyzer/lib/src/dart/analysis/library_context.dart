@@ -13,18 +13,14 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary2/link.dart' as link2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -59,7 +55,6 @@ class LibraryContext {
   int _linkedDataInBytes = 0;
 
   RestrictedAnalysisContext analysisContext;
-  SummaryResynthesizer resynthesizer;
   LinkedElementFactory elementFactory;
   InheritanceManager3 inheritanceManager;
 
@@ -75,7 +70,6 @@ class LibraryContext {
     @required SourceFactory sourceFactory,
     @required this.externalSummaries,
     @required FileState targetLibrary,
-    @required bool useSummary2,
   })  : this.logger = logger,
         this.byteStore = byteStore,
         this.analysisSession = session {
@@ -90,18 +84,8 @@ class LibraryContext {
       sourceFactory,
     );
 
-    if (useSummary2) {
-      _createElementFactory();
-      load2(targetLibrary);
-    } else {
-      // Fill the store with summaries required for the initial library.
-      load(targetLibrary);
-
-      resynthesizer = new StoreBasedSummaryResynthesizer(
-          analysisContext, session, sourceFactory, true, store);
-      analysisContext.typeProvider = resynthesizer.typeProvider;
-      resynthesizer.finishCoreAsyncLibraries();
-    }
+    _createElementFactory();
+    load2(targetLibrary);
 
     inheritanceManager = new InheritanceManager3(analysisContext.typeSystem);
   }
@@ -115,28 +99,18 @@ class LibraryContext {
    * Computes a [CompilationUnitElement] for the given library/unit pair.
    */
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
-    if (elementFactory != null) {
-      var reference = elementFactory.rootReference
-          .getChild(library.uriStr)
-          .getChild('@unit')
-          .getChild(unit.uriStr);
-      return elementFactory.elementOfReference(reference);
-    } else {
-      return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
-        library.uriStr,
-        unit.uriStr,
-      ]));
-    }
+    var reference = elementFactory.rootReference
+        .getChild(library.uriStr)
+        .getChild('@unit')
+        .getChild(unit.uriStr);
+    return elementFactory.elementOfReference(reference);
   }
 
   /**
    * Get the [LibraryElement] for the given library.
    */
   LibraryElement getLibraryElement(FileState library) {
-    if (elementFactory != null) {
-      return elementFactory.libraryOfUri(library.uriStr);
-    }
-    return resynthesizer.getLibraryElement(library.uriStr);
+    return elementFactory.libraryOfUri(library.uriStr);
   }
 
   /**
@@ -144,112 +118,7 @@ class LibraryContext {
    */
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
-    if (elementFactory != null) {
-      return elementFactory.isLibraryUri(uriStr);
-    } else {
-      return store.unlinkedMap[uriStr]?.isPartOf == false;
-    }
-  }
-
-  /// Load data required to access elements of the given [targetLibrary].
-  void load(FileState targetLibrary) {
-    if (AnalysisDriver.useSummary2) {
-      throw StateError('Unexpected with summary2.');
-    }
-
-    // The library is already a part of the context, nothing to do.
-    if (store.linkedMap.containsKey(targetLibrary.uriStr)) {
-      return;
-    }
-
-    timerLoad2.start();
-
-    var libraries = <String, FileState>{};
-    void appendLibraryFiles(FileState library) {
-      // Stop if this library is already a part of the context.
-      // Libraries from external summaries are also covered by this.
-      if (store.linkedMap.containsKey(library.uriStr)) {
-        return;
-      }
-
-      // Stop if we have already scheduled loading of this library.
-      if (libraries.containsKey(library.uriStr)) {
-        return;
-      }
-
-      // Schedule the library for loading or linking.
-      libraries[library.uriStr] = library;
-
-      // Append library units.
-      for (FileState part in library.libraryFiles) {
-        store.addUnlinkedUnit(part.uriStr, part.unlinked);
-      }
-
-      // Append referenced libraries.
-      library.importedFiles.forEach(appendLibraryFiles);
-      library.exportedFiles.forEach(appendLibraryFiles);
-    }
-
-    logger.run('Append library files', () {
-      appendLibraryFiles(targetLibrary);
-    });
-
-    var libraryUrisToLink = new Set<String>();
-    logger.run('Load linked bundles', () {
-      for (FileState library in libraries.values) {
-        if (library.exists || library == targetLibrary) {
-          String key = library.transitiveSignatureLinked;
-          List<int> bytes = byteStore.get(key);
-          if (bytes != null) {
-            LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-            store.addLinkedLibrary(library.uriStr, linked);
-            _linkedDataInBytes += bytes.length;
-          } else {
-            libraryUrisToLink.add(library.uriStr);
-          }
-        }
-      }
-      int numOfLoaded = libraries.length - libraryUrisToLink.length;
-      logger.writeln('Loaded $numOfLoaded linked bundles.');
-      counterLoadedLibraries += numOfLoaded;
-    });
-
-    timerLinking.start();
-    var linkedLibraries = <String, LinkedLibraryBuilder>{};
-    logger.run('Link libraries', () {
-      linkedLibraries = link(libraryUrisToLink, (String uri) {
-        LinkedLibrary linkedLibrary = store.linkedMap[uri];
-        return linkedLibrary;
-      }, (String uri) {
-        UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
-        return unlinkedUnit;
-      }, DeclaredVariables(), analysisContext.analysisOptions);
-      logger.writeln('Linked ${linkedLibraries.length} libraries.');
-    });
-    timerLinking.stop();
-    counterLinkedLibraries += linkedLibraries.length;
-
-    // Store freshly linked libraries into the byte store.
-    // Append them to the context.
-    timerBundleToBytes.start();
-    for (String uri in linkedLibraries.keys) {
-      counterLoadedLibraries++;
-      FileState library = libraries[uri];
-      String key = library.transitiveSignatureLinked;
-
-      timerBundleToBytes.start();
-      LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
-      List<int> bytes = linkedBuilder.toBuffer();
-      timerBundleToBytes.stop();
-      byteStore.put(key, bytes);
-      counterUnlinkedLinkedBytes += bytes.length;
-
-      LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
-      store.addLinkedLibrary(uri, linked);
-      _linkedDataInBytes += bytes.length;
-    }
-    timerBundleToBytes.stop();
-    timerLoad2.stop();
+    return elementFactory.isLibraryUri(uriStr);
   }
 
   /// Load data required to access elements of the given [targetLibrary].

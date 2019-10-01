@@ -84,7 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
-  "dartdoc_rev" : "6934accd88c29a73cae26d0c4def3323efc2119c",
+  "dartdoc_tag" : "v0.28.6",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -102,7 +102,7 @@ vars = {
   "linter_tag": "0.1.98",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.0.3",
+  "markdown_tag": "2.1.1",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
@@ -174,7 +174,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.6.0-dev.3.0",
+          "version": "version:2.6.0-dev.4.0",
       }],
       "dep_type": "cipd",
   },
@@ -276,7 +276,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
-      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
+      Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":

@@ -748,7 +748,8 @@ class HintCode extends AnalyzerErrorCode {
       "The class '{0}' wasn't exported from 'dart:core' until version 2.1, "
           "but this code is required to be able to run on earlier versions.",
       correction:
-          "Try either importing 'dart:async' or updating the SDK constraints.");
+          "Try either importing 'dart:async' or updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -804,7 +805,8 @@ class HintCode extends AnalyzerErrorCode {
       "The use of an as expression in a constant expression wasn't "
           "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -862,7 +864,8 @@ class HintCode extends AnalyzerErrorCode {
       "The use of the operator '{0}' for 'bool' operands in a constant context "
           "wasn't supported until version 2.3.2, but this code is required to "
           "be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -923,7 +926,8 @@ class HintCode extends AnalyzerErrorCode {
           "Using the operator '==' for non-primitive types wasn't supported "
               "until version 2.3.2, but this code is required to be able to "
               "run on earlier versions.",
-          correction: "Try updating the SDK constraints.");
+          correction: "Try updating the SDK constraints.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -982,7 +986,8 @@ class HintCode extends AnalyzerErrorCode {
       'SDK_VERSION_EXTENSION_METHODS',
       "Extension methods weren't supported until version 2.6.0, "
           "but this code is required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1097,7 +1102,8 @@ class HintCode extends AnalyzerErrorCode {
       "The use of an is expression in a constant context wasn't supported "
           "until version 2.3.2, but this code is required to be able to run on "
           "earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1259,7 +1265,8 @@ class HintCode extends AnalyzerErrorCode {
       'SDK_VERSION_UI_AS_CODE',
       "The for, if, and spread elements weren't supported until version 2.2.2, "
           "but this code is required to be able to run on earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1322,7 +1329,8 @@ class HintCode extends AnalyzerErrorCode {
       "The if and spread elements weren't supported in constant expressions "
           "until version 2.5.0, but this code is required to be able to run on "
           "earlier versions.",
-      correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.",
+      hasPublishedDocs: true);
 
   /**
    * When "strict-raw-types" is enabled, raw types must be inferred via the

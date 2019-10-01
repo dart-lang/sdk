@@ -409,3 +409,49 @@ $compiler == dart2js && $minified,html/speechrecognition_test,Crash,NoSuchMethod
 $compiler == dart2js && $minified,html/webgl_1_test,Crash,NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.,,
 $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie),html/custom/attribute_changed_callback_test/unsupported_on_polyfill,Fail,Polyfill does not support,,
 $compiler == dart2js && ($runtime == ff || $runtime == safari || $ie),html/custom/entered_left_view_test/viewless_document,Fail,Polyfill does not handle this,,
+$compiler == dart2js,bigint_from_test,RuntimeError,Issue 32589,https://dartbug.com/32589,closed
+$compiler == dart2js,bit_twiddling_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,compare_to2_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,core_runtime_types_test,RuntimeError,Issue 34147,https://dartbug.com/34147,open
+$compiler == dart2js,date_time11_test,"RuntimeError, Pass","Fails when US is on winter time, issue 31285.",https://dartbug.com/31285,closed
+$compiler == dart2js,double_ceil_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_floor_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_round_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,double_truncate_test/int64,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js,int_from_environment_int64_test,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/01,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/02,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,int_parse_radix_int64_test/none,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_arith_vm_test/modPow,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_arith_vm_test/none,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,integer_to_string_test/01,"CompileTimeError, OK","Error if web int literal cannot be represented exactly, see http://dartbug.com/33351",https://dartbug.com/33351,closed
+$compiler == dart2js,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js,list_unmodifiable_test,"Pass, RuntimeError",Issue 28712,https://dartbug.com/28712,closed
+$compiler != app_jitk && $compiler != dart2js && $compiler != dartdevc && $compiler != dartdevk && $compiler != dartk && $compiler != dartkb && $compiler != dartkp && $runtime != none,map_keys2_test,RuntimeError,needs Dart 2 is checks,,
+$compiler == dart2js && $runtime == chromeOnAndroid,string_trimlr_test/unicode63,RuntimeError,Uses Unicode 6.2.0 or earlier.,,
+$compiler == dart2js && $runtime == d8,uri_base_test,RuntimeError,D8 uses a custom uri scheme for Uri.base,,
+$compiler == dart2js && !$browser,package_resource_test,RuntimeError,Issue 26842,https://dartbug.com/26842,closed
+$compiler == dart2js && $checked,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js && $checked,iterable_return_type_test/01,RuntimeError,Issue 20085,https://dartbug.com/20085,closed
+$compiler == dart2js && $checked,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js && $checked,list_replace_range_test,RuntimeError,Issue 32010,https://dartbug.com/32010,open
+$compiler == dart2js && $checked,symbol_reserved_word_test/03,RuntimeError,"Issue 19972, new Symbol('void') should be allowed.",https://dartbug.com/19972,closed
+$compiler == dart2js && $minified,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
+$compiler == dart2js && $minified,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
+$compiler == dart2js && $minified,list_concurrent_modify_test,RuntimeError,dart2js does not fully implement these,,
+$compiler == dart2js && $minified,nsm_invocation_test,RuntimeError,Symbols don't match due to minifiaction.,,
+$compiler == dart2js && $minified,symbol_reserved_word_test/03,RuntimeError,"Issue 19972, new Symbol('void') should be allowed.",https://dartbug.com/19972,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),bit_twiddling_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),compare_to2_test,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_ceil_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_floor_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_round_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),double_truncate_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),hash_set_test/01,RuntimeError,non JS number semantics - Issue 11551,https://dartbug.com/11551,open
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),int_modulo_arith_test/modPow,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_arith_vm_test/modPow,RuntimeError,"Issues 10245, 30170",,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_arith_vm_test,RuntimeError,"Issues 10245, 29921",,
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_div_rem_vm_test,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),integer_parsed_mul_div_vm_test,RuntimeError,Issue 29921,https://dartbug.com/29921,closed
+$runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),regress_r21715_test,RuntimeError,Requires fixed-size int64 support.,,

@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -4784,11 +4783,6 @@ void main() {
     var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
-    if (!AnalysisDriver.useSummary2) {
-      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-      expect(gTypeTypeArgument.element, same(tElement));
-    }
-
     var gTypeParameterType =
         gTypeType.namedParameterTypes['u'] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
@@ -4816,11 +4810,6 @@ void main() {
 
     var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
-
-    if (!AnalysisDriver.useSummary2) {
-      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-      expect(gTypeTypeArgument.element, same(tElement));
-    }
 
     var gTypeParameterType =
         gTypeType.normalParameterTypes[0] as TypeParameterType;
@@ -4850,11 +4839,6 @@ void main() {
     var gType = findNode.typeName('Consumer<T>');
     var gTypeType = gType.type as FunctionType;
 
-    if (!AnalysisDriver.useSummary2) {
-      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-      expect(gTypeTypeArgument.element, same(tElement));
-    }
-
     var gTypeParameterType =
         gTypeType.optionalParameterTypes[0] as TypeParameterType;
     expect(gTypeParameterType.element, same(tElement));
@@ -4882,11 +4866,6 @@ void main() {
 
     var gType = findNode.typeName('Producer<T>');
     var gTypeType = gType.type as FunctionType;
-
-    if (!AnalysisDriver.useSummary2) {
-      var gTypeTypeArgument = gTypeType.typeArguments[0] as TypeParameterType;
-      expect(gTypeTypeArgument.element, same(tElement));
-    }
 
     var gTypeReturnType = gTypeType.returnType as TypeParameterType;
     expect(gTypeReturnType.element, same(tElement));
@@ -5453,8 +5432,7 @@ class C<T, U> {
   }
 
   test_methodInvocation_instanceMethod_genericClass_genericMethod() async {
-    try {
-      addTestFile(r'''
+    addTestFile(r'''
 main() {
   new C<int>().m(1, 2.3);
 }
@@ -5462,41 +5440,22 @@ class C<T> {
   Map<T, U> m<U>(T a, U b) => null;
 }
 ''');
-      await resolveTestFile();
-      MethodElement mElement = findElement.method('m');
+    await resolveTestFile();
+    MethodElement mElement = findElement.method('m');
 
-      {
-        var invocation = findNode.methodInvocation('m(1, 2.3)');
-        List<Expression> arguments = invocation.argumentList.arguments;
+    {
+      var invocation = findNode.methodInvocation('m(1, 2.3)');
+      List<Expression> arguments = invocation.argumentList.arguments;
 
-        var invokeTypeStr = 'Map<int, double> Function(int, double)';
-        assertType(invocation, 'Map<int, double>');
-        assertInvokeType(invocation, invokeTypeStr);
+      var invokeTypeStr = 'Map<int, double> Function(int, double)';
+      assertType(invocation, 'Map<int, double>');
+      assertInvokeType(invocation, invokeTypeStr);
 
-        assertMember(invocation.methodName, mElement, {'T': 'int'});
-        assertType(invocation.methodName, 'Map<int, U> Function<U>(int, U)');
+      assertMember(invocation.methodName, mElement, {'T': 'int'});
+      assertType(invocation.methodName, 'Map<int, U> Function<U>(int, U)');
 
-        if (AnalysisDriver.useSummary2) {
-          _assertArgumentToParameter2(arguments[0], 'int');
-          _assertArgumentToParameter2(arguments[1], 'double');
-        } else {
-          _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
-          _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
-        }
-      }
-      if (!AnalysisDriver.useSummary2) {
-        throw 'Test passed - expected to fail.';
-      }
-    } on String {
-      rethrow;
-    } catch (_) {
-      // This test started failing in summary1, because we assign
-      // corresponding parameter elements from FunctionType, which became
-      // structural, and does not know its element anymore.
-      // We should fix this up by using MethodMember parameters instead.
-      if (AnalysisDriver.useSummary2) {
-        rethrow;
-      }
+      _assertArgumentToParameter2(arguments[0], 'int');
+      _assertArgumentToParameter2(arguments[1], 'double');
     }
   }
 
@@ -5597,9 +5556,6 @@ class C {
 ''');
     await resolveTestFile();
 
-    FunctionTypeAlias funDeclaration = result.unit.declarations[0];
-    FunctionTypeAliasElement funElement = funDeclaration.declaredElement;
-
     ClassDeclaration cDeclaration = result.unit.declarations[1];
 
     MethodDeclaration fDeclaration = cDeclaration.members[0];
@@ -5617,13 +5573,8 @@ class C {
     expect(invocation.staticType, typeProvider.stringType);
 
     List<Expression> arguments = invocation.argumentList.arguments;
-    if (AnalysisDriver.useSummary2) {
-      _assertArgumentToParameter2(arguments[0], 'int');
-      _assertArgumentToParameter2(arguments[1], 'int');
-    } else {
-      _assertArgumentToParameter(arguments[0], funElement.parameters[0]);
-      _assertArgumentToParameter(arguments[1], funElement.parameters[1]);
-    }
+    _assertArgumentToParameter2(arguments[0], 'int');
+    _assertArgumentToParameter2(arguments[1], 'int');
   }
 
   test_methodInvocation_notFunction_local_dynamic() async {

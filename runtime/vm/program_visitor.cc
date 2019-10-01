@@ -212,7 +212,11 @@ class StackMapKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->PcOffset(); }
+  static inline intptr_t Hashcode(Key key) {
+    intptr_t hash = key->SlowPathBitCount();
+    hash = CombineHashes(hash, key->Length());
+    return FinalizeHash(hash, kBitsPerWord - 1);
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -242,7 +246,7 @@ void ProgramVisitor::DedupStackMaps() {
       code_ = function.CurrentCode();
       stackmaps_ = code_.stackmaps();
       if (stackmaps_.IsNull()) return;
-      for (intptr_t i = 0; i < stackmaps_.Length(); i++) {
+      for (intptr_t i = 1; i < stackmaps_.Length(); i += 2) {
         stackmap_ ^= stackmaps_.At(i);
         stackmap_ = DedupStackMap(stackmap_);
         stackmaps_.SetAt(i, stackmap_);

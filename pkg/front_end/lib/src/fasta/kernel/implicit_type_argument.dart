@@ -5,7 +5,7 @@
 library fasta.implicit_type_argument;
 
 import 'package:kernel/ast.dart'
-    show DartType, DartTypeVisitor, DartTypeVisitor1, Visitor;
+    show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -18,7 +18,7 @@ class ImplicitTypeArgument extends DartType {
   const ImplicitTypeArgument();
 
   @override
-  get nullability => unsupported("nullability", -1, null);
+  Nullability get nullability => unsupported("nullability", -1, null);
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
@@ -33,5 +33,10 @@ class ImplicitTypeArgument extends DartType {
   @override
   visitChildren(Visitor<Object> v) {
     unhandled("$runtimeType", "${v.runtimeType}", -1, null);
+  }
+
+  @override
+  ImplicitTypeArgument withNullability(Nullability nullability) {
+    return unsupported("withNullability", -1, null);
   }
 }

@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 33;
+  UInt32 formatVersion = 34;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -353,7 +353,7 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   StringReference name;
   ExtensionMemberKind kind;
-  Byte flags (isStatic, isExternal);
+  Byte flags (isStatic);
   MemberReference member;
 }
 
@@ -1236,6 +1236,8 @@ type FunctionDeclaration extends Statement {
 
 enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
 
+enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, }
+
 abstract type DartType extends Node {}
 
 type BottomType extends DartType {
@@ -1332,6 +1334,7 @@ type TypeParameter {
   // Note: there is no tag on TypeParameter
   Byte flags (isGenericCovariantImpl);
   List<Expression> annotations;
+  Byte variance; // Index into the Variance enum above
   StringReference name; // Cosmetic, may be empty, not unique.
   DartType bound; // 'dynamic' if no explicit bound was given.
   Option<DartType> defaultType; // type used when the parameter is not passed

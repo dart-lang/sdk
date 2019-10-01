@@ -911,6 +911,9 @@ void TypeParameterHelper::ReadUntilExcluding(Field field) {
       case kAnnotations:
         helper_->SkipListOfExpressions();  // read annotations.
         break;
+      case kVariance:
+        helper_->ReadVariance();
+        break;
       case kName:
         name_index_ = helper_->ReadStringReference();  // read name index.
         break;

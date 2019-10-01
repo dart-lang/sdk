@@ -9,6 +9,8 @@ import 'package:analyzer/dart/element/element.dart' as a;
 import 'package:analyzer/dart/element/type.dart' as a;
 import 'package:analyzer/file_system/physical_file_system.dart' as a;
 import 'package:analyzer/src/context/context.dart' as a;
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart'
+    as a;
 import 'package:analyzer/src/dart/element/element.dart' as a;
 import 'package:analyzer/src/dart/element/member.dart' as a;
 import 'package:analyzer/src/dart/element/type.dart' as a;
@@ -21,6 +23,9 @@ import 'package:analyzer/src/generated/type_system.dart' as a;
 import 'package:analyzer/src/summary/idl.dart' as a;
 import 'package:analyzer/src/summary/package_bundle_reader.dart' as a;
 import 'package:analyzer/src/summary/summary_sdk.dart' as a;
+import 'package:analyzer/src/summary2/linked_bundle_context.dart' as a;
+import 'package:analyzer/src/summary2/linked_element_factory.dart' as a;
+import 'package:analyzer/src/summary2/reference.dart' as a;
 import 'package:front_end/src/api_unstable/ddc.dart'
     show RedirectingFactoryBody;
 import 'package:kernel/kernel.dart';
@@ -72,7 +77,7 @@ import 'type_table.dart';
 /// Analyzer and modify it to resynthesize directly into Kernel trees, if we
 /// ever need to support a mix of Kernel and Analyzer summary files.
 class AnalyzerToKernel {
-  final a.StoreBasedSummaryResynthesizer _resynth;
+  final a.LinkedElementFactory _resynth;
   final a.SummaryDataStore _summaryData;
   final a.TypeProvider types;
   final a.Dart2TypeSystem rules;
@@ -82,8 +87,8 @@ class AnalyzerToKernel {
   final _namespaceBuilder = a.NamespaceBuilder();
 
   AnalyzerToKernel._(this._resynth, this._summaryData)
-      : types = _resynth.typeProvider,
-        rules = _resynth.typeSystem as a.Dart2TypeSystem;
+      : types = _resynth.analysisContext.typeProvider,
+        rules = _resynth.analysisContext.typeSystem as a.Dart2TypeSystem;
 
   /// Create an Analyzer summary to Kernel tree converter, using the provided
   /// [analyzerSdkSummary] and [summaryPaths].
@@ -155,13 +160,12 @@ class AnalyzerToKernel {
     }
 
     for (var uri in bundle.unlinkedUnitUris) {
-      var unitInfo = _resynth.getUnlinkedSummary(uri);
-      if (unitInfo.isPartOf) {
+      if (_summaryData.isPartUnit(uri)) {
         // Library parts are handled by their corresponding library.
         continue;
       }
 
-      var element = _resynth.getLibraryElement(uri);
+      var element = _resynth.libraryOfUri(uri);
       libraries.add(visitLibraryElement(element));
       addCompilationUnit(element.definingCompilationUnit);
       element.parts.forEach(addCompilationUnit);
@@ -872,14 +876,23 @@ AsyncMarker _getAsyncMarker(a.ExecutableElement e) {
       : (e.isAsynchronous ? AsyncMarker.Async : AsyncMarker.Sync);
 }
 
-a.StoreBasedSummaryResynthesizer _createSummaryResynthesizer(
+a.LinkedElementFactory _createSummaryResynthesizer(
     a.SummaryDataStore summaryData, String dartSdkPath) {
   var context = _createContextForSummaries(summaryData, dartSdkPath);
-  var resynthesizer = a.StoreBasedSummaryResynthesizer(
-      context, null, context.sourceFactory, /*strongMode*/ true, summaryData);
-  resynthesizer.finishCoreAsyncLibraries();
-  context.typeProvider = resynthesizer.typeProvider;
-  return resynthesizer;
+
+  var elementFactory = a.LinkedElementFactory(
+    context,
+    null,
+    a.Reference.root(),
+  );
+
+  for (var bundle in summaryData.bundles) {
+    elementFactory.addBundle(
+      a.LinkedBundleContext(elementFactory, bundle.bundle2),
+    );
+  }
+
+  return elementFactory;
 }
 
 /// Creates a dummy Analyzer context so we can use summary resynthesizer.

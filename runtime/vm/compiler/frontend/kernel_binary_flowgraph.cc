@@ -1323,6 +1323,13 @@ Nullability KernelReaderHelper::ReadNullability() {
   return kLegacy;
 }
 
+Variance KernelReaderHelper::ReadVariance() {
+  if (translation_helper_.info().kernel_binary_version() >= 34) {
+    return reader_.ReadVariance();
+  }
+  return kCovariant;
+}
+
 void StreamingFlowGraphBuilder::loop_depth_inc() {
   ++flow_graph_builder_->loop_depth_;
 }

@@ -1189,7 +1189,6 @@ class Printer extends Visitor<Null> {
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {
       writeIndentation();
-      writeModifier(descriptor.isExternal, 'external');
       writeModifier(descriptor.isStatic, 'static');
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:

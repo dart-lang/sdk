@@ -37,7 +37,7 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
     value = !value;
   }
   // Create a StackMap object from the builder and verify its contents.
-  const StackMap& stackmap1 = StackMap::Handle(StackMap::New(0, builder1, 0));
+  const StackMap& stackmap1 = StackMap::Handle(StackMap::New(builder1, 0));
   EXPECT_EQ(1024, stackmap1.Length());
   OS::PrintErr("%s\n", stackmap1.ToCString());
   value = true;
@@ -62,7 +62,7 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   for (int32_t i = 1025; i <= 2048; i++) {
     EXPECT(!builder1->Get(i));
   }
-  const StackMap& stackmap2 = StackMap::Handle(StackMap::New(0, builder1, 0));
+  const StackMap& stackmap2 = StackMap::Handle(StackMap::New(builder1, 0));
   EXPECT_EQ(2049, stackmap2.Length());
   for (int32_t i = 0; i <= 256; i++) {
     EXPECT(!stackmap2.IsObject(i));

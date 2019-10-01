@@ -258,13 +258,15 @@ const ParserErrorCode _EXTENSION_DECLARES_ABSTRACT_MEMBER =
 
 const ParserErrorCode _EXTENSION_DECLARES_CONSTRUCTOR = const ParserErrorCode(
     'EXTENSION_DECLARES_CONSTRUCTOR', r"Extensions can't declare constructors.",
-    correction: "Try removing the constructor declaration.");
+    correction: "Try removing the constructor declaration.",
+    hasPublishedDocs: true);
 
 const ParserErrorCode _EXTENSION_DECLARES_INSTANCE_FIELD =
     const ParserErrorCode('EXTENSION_DECLARES_INSTANCE_FIELD',
         r"Extensions can't declare instance fields",
         correction:
-            "Try removing the field declaration or making it a static field");
+            "Try removing the field declaration or making it a static field",
+        hasPublishedDocs: true);
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",

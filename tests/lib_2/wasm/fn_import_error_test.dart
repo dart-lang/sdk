@@ -24,54 +24,37 @@ void main() {
     0x80, 0x80, 0x80, 0x00, 0x1a, 0x0b,
   ]);
 
-  WasmModule(data).instantiate(WasmImports("env")
-    ..addMemory("memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("__memory_base", 1024, false)
+  var mod = WasmModule(data);
+  var imp = WasmImports()
     ..addFunction<Int64 Function(Int32, Int64, Float, Double)>(
-        "someFn", (num a, num b, num c, num d) => 123));
+        "env", "someFn", (num a, num b, num c, num d) => 123);
+  mod.instantiate(imp);
 
-  Expect.throwsArgumentError(
-      () => WasmModule(data).instantiate(WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)));
+  imp = WasmImports();
+  Expect.throwsArgumentError(() => mod.instantiate(imp));
 
-  Expect.throwsArgumentError(
-      () => WasmModule(data).instantiate(WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addFunction<Int64 Function(Int32)>("someFn", (num a) => 123)));
+  imp = WasmImports()
+    ..addFunction<Int64 Function(Int32)>("env", "someFn", (num a) => 123);
+  Expect.throwsArgumentError(() => mod.instantiate(imp));
 
-  Expect.throwsArgumentError(() => WasmModule(data).instantiate(
-      WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addFunction<Double Function(Int32, Int64, Float, Double)>(
-            "someFn", (num a, num b, num c, num d) => 123)));
+  imp = WasmImports()
+    ..addFunction<Double Function(Int32, Int64, Float, Double)>(
+        "env", "someFn", (num a, num b, num c, num d) => 123);
+  Expect.throwsArgumentError(() => mod.instantiate(imp));
 
-  Expect.throwsArgumentError(() => WasmModule(data).instantiate(
-      WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addFunction<Int64 Function(Int32, Int64, Float, Float)>(
-            "someFn", (num a, num b, num c, num d) => 123)));
+  imp = WasmImports()
+    ..addFunction<Int64 Function(Int32, Int64, Float, Float)>(
+        "env", "someFn", (num a, num b, num c, num d) => 123);
+  Expect.throwsArgumentError(() => mod.instantiate(imp));
 
-  Expect.throwsArgumentError(() => WasmModule(data).instantiate(
-      WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addFunction<dynamic Function(Int32, Int64, Float, Double)>(
-            "someFn", (num a, num b, num c, num d) => 123)));
+  Expect.throwsArgumentError(() => WasmImports()
+    ..addFunction<dynamic Function(Int32, Int64, Float, Double)>(
+        "env", "someFn", (num a, num b, num c, num d) => 123));
 
-  Expect.throwsArgumentError(() => WasmModule(data).instantiate(
-      WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addFunction<Int64 Function(Int32, Int64, dynamic, Double)>(
-            "someFn", (num a, num b, num c, num d) => 123)));
+  Expect.throwsArgumentError(() => WasmImports()
+    ..addFunction<Int64 Function(Int32, Int64, dynamic, Double)>(
+        "env", "someFn", (num a, num b, num c, num d) => 123));
 
-  Expect.throwsArgumentError(
-      () => WasmModule(data).instantiate(WasmImports("env")
-        ..addMemory("memory", WasmMemory(256, 1024))
-        ..addGlobal<Int32>("__memory_base", 1024, false)
-        ..addGlobal<Int64>("someFn", 123, false)));
+  imp = WasmImports()..addGlobal<Int64>("env", "someFn", 123, false);
+  Expect.throwsArgumentError(() => mod.instantiate(imp));
 }

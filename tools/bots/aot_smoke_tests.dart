@@ -38,7 +38,7 @@ void main(List<String> args) {
   test("dart2aot: Can compile and run AOT", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');
-      final String tmpAot = path.join(tmp, 'dart_aot_test.dart.aot');
+      final String tmpAot = path.join(tmp, 'dart_aot_test.aot');
 
       {
         final ProcessResult result =
@@ -62,7 +62,7 @@ void main(List<String> args) {
   test("dart2native: Can compile and run AOT", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');
-      final String tmpAot = path.join(tmp, 'dart_aot_test.dart.aot');
+      final String tmpAot = path.join(tmp, 'dart_aot_test.aot');
 
       {
         final ProcessResult result = await Process.run(dart2native,

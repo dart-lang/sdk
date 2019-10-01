@@ -76,9 +76,9 @@ class ContextLocatorImpl implements ContextLocator {
   List<AnalysisContext> locateContexts(
       {@required List<String> includedPaths,
       List<String> excludedPaths: const <String>[],
-      String optionsFile: null,
-      String packagesFile: null,
-      String sdkPath: null}) {
+      String optionsFile,
+      String packagesFile,
+      String sdkPath}) {
     List<ContextRoot> roots = locateRoots(
         includedPaths: includedPaths,
         excludedPaths: excludedPaths,
@@ -120,9 +120,9 @@ class ContextLocatorImpl implements ContextLocator {
   @override
   List<ContextRoot> locateRoots(
       {@required List<String> includedPaths,
-      List<String> excludedPaths: null,
-      String optionsFile: null,
-      String packagesFile: null}) {
+      List<String> excludedPaths,
+      String optionsFile,
+      String packagesFile}) {
     //
     // Compute the list of folders and files that are to be included.
     //

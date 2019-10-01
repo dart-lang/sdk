@@ -189,7 +189,7 @@ class _ClassVerifier {
     _checkForMismatchedAccessorTypes(interface);
 
     if (!classElement.isAbstract) {
-      List<ExecutableElement> inheritedAbstract = null;
+      List<ExecutableElement> inheritedAbstract;
 
       for (var name in interface.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {

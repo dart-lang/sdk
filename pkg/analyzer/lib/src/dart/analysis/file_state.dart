@@ -13,7 +13,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -30,7 +29,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -397,224 +395,6 @@ class FileState {
   bool refresh({bool allowCached: false}) {
     counterFileStateRefresh++;
 
-    if (AnalysisDriver.useSummary2) {
-      return _refresh2(allowCached: allowCached);
-    }
-
-    var timerWasRunning = timerFileStateRefresh.isRunning;
-    if (!timerWasRunning) {
-      timerFileStateRefresh.start();
-    }
-
-    _invalidateCurrentUnresolvedData();
-
-    {
-      var rawFileState = _fsState._fileContentCache.get(path, allowCached);
-      _content = rawFileState.content;
-      _exists = rawFileState.exists;
-      _contentHash = rawFileState.contentHash;
-    }
-
-    // Prepare the unlinked bundle key.
-    {
-      var signature = new ApiSignature();
-      signature.addUint32List(_fsState._unlinkedSalt);
-      signature.addString(_contentHash);
-      _unlinkedKey = '${signature.toHex()}.unlinked';
-    }
-
-    // Prepare bytes of the unlinked bundle - existing or new.
-    List<int> bytes;
-    {
-      bytes = _fsState._byteStore.get(_unlinkedKey);
-      if (bytes == null || bytes.isEmpty) {
-        CompilationUnit unit = parse();
-        _fsState._logger.run('Create unlinked for $path', () {
-          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          DefinedNames definedNames = computeDefinedNames(unit);
-          List<String> referencedNames = computeReferencedNames(unit).toList();
-          List<String> subtypedNames = computeSubtypedNames(unit).toList();
-          bytes = new AnalysisDriverUnlinkedUnitBuilder(
-                  unit: unlinkedUnit,
-                  definedTopLevelNames: definedNames.topLevelNames.toList(),
-                  definedClassMemberNames:
-                      definedNames.classMemberNames.toList(),
-                  referencedNames: referencedNames,
-                  subtypedNames: subtypedNames)
-              .toBuffer();
-          counterUnlinkedLinkedBytes += bytes.length;
-          _fsState._byteStore.put(_unlinkedKey, bytes);
-        });
-      }
-    }
-
-    // Read the unlinked bundle.
-    _driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
-    _unlinked = _driverUnlinkedUnit.unit;
-    _lineInfo = new LineInfo(_unlinked.lineStarts);
-
-    // Prepare API signature.
-    List<int> newApiSignature = new Uint8List.fromList(_unlinked.apiSignature);
-    bool apiSignatureChanged = _apiSignature != null &&
-        !_equalByteLists(_apiSignature, newApiSignature);
-    _apiSignature = newApiSignature;
-
-    // The API signature changed.
-    //   Flush affected library cycles.
-    //   Flush exported top-level declarations of all files.
-    if (apiSignatureChanged) {
-      _libraryCycle?.invalidate();
-
-      // If this is a part, invalidate the libraries.
-      var libraries = _fsState._partToLibraries[this];
-      if (libraries != null) {
-        for (var library in libraries) {
-          library.libraryCycle?.invalidate();
-        }
-      }
-    }
-
-    // This file is potentially not a library for its previous parts anymore.
-    if (_partedFiles != null) {
-      for (FileState part in _partedFiles) {
-        _fsState._partToLibraries[part]?.remove(this);
-      }
-    }
-
-    // Build the graph.
-    _importedFiles = <FileState>[];
-    _exportedFiles = <FileState>[];
-    _partedFiles = <FileState>[];
-    _exportFilters = <NameFilter>[];
-    for (UnlinkedImport import in _unlinked.imports) {
-      String uri = import.isImplicit ? 'dart:core' : import.uri;
-      FileState file = _fileForRelativeUri(uri);
-      _importedFiles.add(file);
-    }
-    for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
-      String uri = export.uri;
-      FileState file = _fileForRelativeUri(uri);
-      _exportedFiles.add(file);
-      _exportFilters
-          .add(new NameFilter.forUnlinkedCombinators(export.combinators));
-    }
-    for (String uri in _unlinked.publicNamespace.parts) {
-      FileState file = _fileForRelativeUri(uri);
-      _partedFiles.add(file);
-      // TODO(scheglov) Sort for stable results?
-      _fsState._partToLibraries
-          .putIfAbsent(file, () => <FileState>[])
-          .add(this);
-    }
-    _libraryFiles = [this]..addAll(_partedFiles);
-
-    // Compute referenced files.
-    _directReferencedFiles = new Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles)
-      ..addAll(_partedFiles);
-    _directReferencedLibraries = Set<FileState>()
-      ..addAll(_importedFiles)
-      ..addAll(_exportedFiles);
-
-    // Update mapping from subtyped names to files.
-    for (var name in _driverUnlinkedUnit.subtypedNames) {
-      var files = _fsState._subtypedNameToFiles[name];
-      if (files == null) {
-        files = new Set<FileState>();
-        _fsState._subtypedNameToFiles[name] = files;
-      }
-      files.add(this);
-    }
-
-    if (!timerWasRunning) {
-      timerFileStateRefresh.stop();
-    }
-
-    // Return whether the API signature changed.
-    return apiSignatureChanged;
-  }
-
-  @override
-  String toString() => path ?? '<unresolved>';
-
-  CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
-    var token = new Token.eof(0);
-    return astFactory.compilationUnit(
-        beginToken: token, endToken: token, featureSet: featureSet)
-      ..lineInfo = new LineInfo(const <int>[0]);
-  }
-
-  /**
-   * Return the [FileState] for the given [relativeUri], maybe "unresolved"
-   * file if the URI cannot be parsed, cannot correspond any file, etc.
-   */
-  FileState _fileForRelativeUri(String relativeUri) {
-    if (relativeUri.isEmpty) {
-      return _fsState.unresolvedFile;
-    }
-
-    Uri absoluteUri;
-    try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
-    } on FormatException {
-      return _fsState.unresolvedFile;
-    }
-
-    return _fsState.getFileForUri(absoluteUri);
-  }
-
-  /**
-   * Invalidate any data that depends on the current unlinked data of the file,
-   * because [refresh] is going to recompute the unlinked data.
-   */
-  void _invalidateCurrentUnresolvedData() {
-    // Invalidate unlinked information.
-    _definedTopLevelNames = null;
-    _definedClassMemberNames = null;
-    _referencedNames = null;
-
-    if (_driverUnlinkedUnit != null) {
-      for (var name in _driverUnlinkedUnit.subtypedNames) {
-        var files = _fsState._subtypedNameToFiles[name];
-        files?.remove(this);
-      }
-    }
-  }
-
-  CompilationUnit _parse(AnalysisErrorListener errorListener) {
-    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    FeatureSet featureSet = analysisOptions.contextFeatures;
-    if (source == null) {
-      return _createEmptyCompilationUnit(featureSet);
-    }
-
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener)
-      ..configureFeatures(featureSet);
-    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
-      return scanner.tokenize(reportScannerErrors: false);
-    });
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-    bool useFasta = analysisOptions.useFastaParser;
-    // Pass the feature set from the scanner to the parser
-    // because the scanner may have detected a language version comment
-    // and downgraded the feature set it holds.
-    Parser parser = new Parser(source, errorListener,
-        featureSet: scanner.featureSet, useFasta: useFasta);
-    parser.enableOptionalNewAndConst = true;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-
-    // StringToken uses a static instance of StringCanonicalizer, so we need
-    // to clear it explicitly once we are done using it for this file.
-    StringToken.canonicalizer.clear();
-
-    return unit;
-  }
-
-  bool _refresh2({bool allowCached: false}) {
     var timerWasRunning = timerFileStateRefresh.isRunning;
     if (!timerWasRunning) {
       timerFileStateRefresh.start();
@@ -745,6 +525,85 @@ class FileState {
 
     // Return whether the API signature changed.
     return apiSignatureChanged;
+  }
+
+  @override
+  String toString() => path ?? '<unresolved>';
+
+  CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
+    var token = new Token.eof(0);
+    return astFactory.compilationUnit(
+        beginToken: token, endToken: token, featureSet: featureSet)
+      ..lineInfo = new LineInfo(const <int>[0]);
+  }
+
+  /**
+   * Return the [FileState] for the given [relativeUri], maybe "unresolved"
+   * file if the URI cannot be parsed, cannot correspond any file, etc.
+   */
+  FileState _fileForRelativeUri(String relativeUri) {
+    if (relativeUri.isEmpty) {
+      return _fsState.unresolvedFile;
+    }
+
+    Uri absoluteUri;
+    try {
+      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+    } on FormatException {
+      return _fsState.unresolvedFile;
+    }
+
+    return _fsState.getFileForUri(absoluteUri);
+  }
+
+  /**
+   * Invalidate any data that depends on the current unlinked data of the file,
+   * because [refresh] is going to recompute the unlinked data.
+   */
+  void _invalidateCurrentUnresolvedData() {
+    // Invalidate unlinked information.
+    _definedTopLevelNames = null;
+    _definedClassMemberNames = null;
+    _referencedNames = null;
+
+    if (_driverUnlinkedUnit != null) {
+      for (var name in _driverUnlinkedUnit.subtypedNames) {
+        var files = _fsState._subtypedNameToFiles[name];
+        files?.remove(this);
+      }
+    }
+  }
+
+  CompilationUnit _parse(AnalysisErrorListener errorListener) {
+    AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
+    FeatureSet featureSet = analysisOptions.contextFeatures;
+    if (source == null) {
+      return _createEmptyCompilationUnit(featureSet);
+    }
+
+    CharSequenceReader reader = new CharSequenceReader(content);
+    Scanner scanner = new Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
+    Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
+      return scanner.tokenize(reportScannerErrors: false);
+    });
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    bool useFasta = analysisOptions.useFastaParser;
+    // Pass the feature set from the scanner to the parser
+    // because the scanner may have detected a language version comment
+    // and downgraded the feature set it holds.
+    Parser parser = new Parser(source, errorListener,
+        featureSet: scanner.featureSet, useFasta: useFasta);
+    parser.enableOptionalNewAndConst = true;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
+
+    // StringToken uses a static instance of StringCanonicalizer, so we need
+    // to clear it explicitly once we are done using it for this file.
+    StringToken.canonicalizer.clear();
+
+    return unit;
   }
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {

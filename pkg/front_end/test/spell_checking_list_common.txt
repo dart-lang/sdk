@@ -464,6 +464,7 @@ comparable
 compare
 comparing
 comparison
+comparisons
 compatibility
 compatible
 compilation
@@ -1413,6 +1414,7 @@ interpreter
 interpreting
 intersect
 intersection
+intertwined
 into
 intrinsic
 introduce
@@ -1887,6 +1889,7 @@ outlining
 output
 outside
 over
+overall
 overflow
 overloadable
 overloaded
@@ -2742,6 +2745,7 @@ throws
 thumb
 thus
 time
+timeline
 times
 tip
 to
@@ -2802,6 +2806,7 @@ triples
 triplet
 triplets
 trivial
+trouble
 true
 truly
 truncate

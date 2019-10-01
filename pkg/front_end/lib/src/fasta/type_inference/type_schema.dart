@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         NamedType,
+        Nullability,
         TypedefType,
         Visitor;
 
@@ -17,8 +18,6 @@ import 'package:kernel/import_table.dart' show ImportTable;
 
 import 'package:kernel/text/ast_to_text.dart'
     show Annotator, NameSystem, Printer, globalDebuggingNames;
-
-import '../problems.dart' show unsupported;
 
 /// Determines whether a type schema contains `?` somewhere inside it.
 bool isKnown(DartType schema) => schema.accept(new _IsKnownVisitor());
@@ -60,7 +59,7 @@ class TypeSchemaPrinter extends Printer {
 /// purely part of the local inference process.
 class UnknownType extends DartType {
   @override
-  get nullability => unsupported("nullability", -1, null);
+  Nullability get nullability => null;
 
   const UnknownType();
 
@@ -81,6 +80,9 @@ class UnknownType extends DartType {
 
   @override
   visitChildren(Visitor<dynamic> v) {}
+
+  @override
+  UnknownType withNullability(Nullability nullability) => this;
 }
 
 /// Visitor that computes [isKnown].

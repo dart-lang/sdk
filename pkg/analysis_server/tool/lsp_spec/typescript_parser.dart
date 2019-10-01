@@ -539,7 +539,7 @@ class Parser {
         if (_match([TokenType.LESS])) {
           while (true) {
             typeArgs.add(_type(containerName, fieldName));
-            if (_peek() != TokenType.COMMA) {
+            if (_peek().type != TokenType.COMMA) {
               _consume(TokenType.GREATER, 'Expected >');
               break;
             }

@@ -208,8 +208,22 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     });
 
     // Initialize with no dynamic registrations advertised.
-    await initialize();
+    final initResponse = await initialize();
     await pumpEventQueue();
+
+    // When dynamic registration is not supported, we will always statically
+    // request text document open/close and incremental updates.
+    InitializeResult initResult = initResponse.result;
+    expect(initResult.capabilities, isNotNull);
+    expect(initResult.capabilities.textDocumentSync, isNotNull);
+    initResult.capabilities.textDocumentSync.map(
+      (options) {
+        expect(options.openClose, isTrue);
+        expect(options.change, equals(TextDocumentSyncKind.Incremental));
+      },
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
+    );
 
     expect(didGetRegisterCapabilityRequest, isFalse);
   }
@@ -237,7 +251,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // for ex including analysis_options.yaml in text synchronization but not
     // for hovers.
     List<Registration> registrations;
-    await handleExpectedRequest<void, RegistrationParams, void>(
+    final initResponse =
+        await handleExpectedRequest<ResponseMessage, RegistrationParams, void>(
       Method.client_registerCapability,
       () => initialize(
           // Support dynamic registration for both text sync + hovers.
@@ -246,6 +261,21 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
                   emptyTextDocumentClientCapabilities))),
       handler: (registrationParams) =>
           registrations = registrationParams.registrations,
+    );
+
+    // Because we support dynamic registration for synchronisation, we won't send
+    // static registrations for them.
+    // https://github.com/dart-lang/sdk/issues/38490
+    InitializeResult initResult = initResponse.result;
+    expect(initResult.capabilities, isNotNull);
+    expect(initResult.capabilities.textDocumentSync, isNotNull);
+    initResult.capabilities.textDocumentSync.map(
+      (options) {
+        expect(options.openClose, isFalse);
+        expect(options.change, equals(TextDocumentSyncKind.None));
+      },
+      (_) =>
+          throw 'Expected textDocumentSync capabilities to be a $TextDocumentSyncOptions',
     );
 
     // Should container Hover, DidOpen, DidClose, DidChange.

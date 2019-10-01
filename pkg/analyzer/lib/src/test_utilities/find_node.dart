@@ -35,6 +35,10 @@ class FindNode {
     return _node(search, (n) => n is Block);
   }
 
+  BooleanLiteral booleanLiteral(String search) {
+    return _node(search, (n) => n is BooleanLiteral);
+  }
+
   BreakStatement breakStatement(String search) {
     return _node(search, (n) => n is BreakStatement);
   }
@@ -73,6 +77,10 @@ class FindNode {
 
   DoStatement doStatement(String search) {
     return _node(search, (n) => n is DoStatement);
+  }
+
+  DoubleLiteral doubleLiteral(String search) {
+    return _node(search, (n) => n is DoubleLiteral);
   }
 
   ExportDirective export(String search) {
@@ -179,6 +187,10 @@ class FindNode {
     return _node(search, (n) => n is NamedExpression);
   }
 
+  NullLiteral nullLiteral(String search) {
+    return _node(search, (n) => n is NullLiteral);
+  }
+
   ParenthesizedExpression parenthesized(String search) {
     return _node(search, (n) => n is ParenthesizedExpression);
   }
@@ -239,6 +251,10 @@ class FindNode {
     return _node(search, (n) => n is SwitchStatement);
   }
 
+  SymbolLiteral symbolLiteral(String search) {
+    return _node(search, (n) => n is SymbolLiteral);
+  }
+
   ThisExpression this_(String search) {
     return _node(search, (n) => n is ThisExpression);
   }
@@ -290,7 +306,7 @@ class FindNode {
 
   AstNode _node(String search, bool Function(AstNode) predicate) {
     var index = content.indexOf(search);
-    if (content.indexOf(search, index + 1) != -1) {
+    if (content.contains(search, index + 1)) {
       throw new StateError('The pattern |$search| is not unique in:\n$content');
     }
     if (index < 0) {

@@ -4,14 +4,12 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -19,10 +17,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
@@ -76,7 +70,6 @@ class _Builder {
   final Iterable<Source> librarySources;
 
   final Set<String> libraryUris = new Set<String>();
-  final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
   final List<summary2.LinkInputLibrary> inputLibraries = [];
 
   final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
@@ -89,24 +82,14 @@ class _Builder {
   List<int> build() {
     librarySources.forEach(_addLibrary);
 
-    var useSummary2 = AnalysisDriver.useSummary2;
-    try {
-      AnalysisDriver.useSummary2 = false;
-      Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
-        throw new StateError('Unexpected call to GetDependencyCallback($uri).');
-      }, (uri) {
-        UnlinkedUnit unlinked = unlinkedMap[uri];
-        if (unlinked == null) {
-          throw new StateError('Unable to find unresolved unit $uri.');
-        }
-        return unlinked;
-      }, DeclaredVariables(), context.analysisOptions);
-      map.forEach(bundleAssembler.addLinkedLibrary);
-    } finally {
-      AnalysisDriver.useSummary2 = useSummary2;
-    }
+    var elementFactory = summary2.LinkedElementFactory(
+      context,
+      null,
+      summary2.Reference.root(),
+    );
 
-    _link2();
+    var linkResult = summary2.link(elementFactory, inputLibraries);
+    bundleAssembler.setBundle2(linkResult.bundle);
 
     return bundleAssembler.assemble().toBuffer();
   }
@@ -120,7 +103,6 @@ class _Builder {
     var inputUnits = <summary2.LinkInputUnit>[];
 
     CompilationUnit definingUnit = _parse(source);
-    _addUnlinked(source, definingUnit);
     inputUnits.add(
       summary2.LinkInputUnit(null, source, false, definingUnit),
     );
@@ -134,7 +116,6 @@ class _Builder {
         String partUri = directive.uri.stringValue;
         Source partSource = context.sourceFactory.resolveUri(source, partUri);
         CompilationUnit partUnit = _parse(partSource);
-        _addUnlinked(partSource, partUnit);
         inputUnits.add(
           summary2.LinkInputUnit(partUri, partSource, false, partUnit),
         );
@@ -144,24 +125,6 @@ class _Builder {
     inputLibraries.add(
       summary2.LinkInputLibrary(source, inputUnits),
     );
-  }
-
-  void _addUnlinked(Source source, CompilationUnit unit) {
-    String uriStr = source.uri.toString();
-    UnlinkedUnitBuilder unlinked = serializeAstUnlinked(unit);
-    unlinkedMap[uriStr] = unlinked;
-    bundleAssembler.addUnlinkedUnit(source, unlinked);
-  }
-
-  void _link2() {
-    var elementFactory = summary2.LinkedElementFactory(
-      context,
-      null,
-      summary2.Reference.root(),
-    );
-
-    var linkResult = summary2.link(elementFactory, inputLibraries);
-    bundleAssembler.setBundle2(linkResult.bundle);
   }
 
   CompilationUnit _parse(Source source) {

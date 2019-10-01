@@ -9,8 +9,8 @@ import "dart:wasm";
 import "dart:typed_data";
 
 void main() {
-  var imp = WasmImports("env");
-  Expect.throwsArgumentError(() => imp.addGlobal<int>("a", 1, true));
-  Expect.throwsArgumentError(() => imp.addGlobal<double>("b", 2, true));
-  Expect.throwsArgumentError(() => imp.addGlobal<dynamic>("c", 3, true));
+  var imp = WasmImports();
+  Expect.throwsArgumentError(() => imp.addGlobal<int>("env", "a", 1, true));
+  Expect.throwsArgumentError(() => imp.addGlobal<double>("env", "b", 2, true));
+  Expect.throwsArgumentError(() => imp.addGlobal<dynamic>("env", "c", 3, true));
 }

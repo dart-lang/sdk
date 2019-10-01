@@ -1951,13 +1951,19 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates one-byte string of length 'end - start'. The content is not
-// initialized. 'length-reg' contains tagged length.
+// Allocates a _OneByteString. The content is not initialized.
+// 'length-reg' contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in EAX.
-static void TryAllocateOnebyteString(Assembler* assembler,
+static void TryAllocateOneByteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // negative length: call to runtime to produce error.
+  __ cmpl(length_reg, Immediate(0));
+  __ j(LESS, failure);
+
   NOT_IN_PRODUCT(
       __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false));
   if (length_reg != EDI) {
@@ -2048,7 +2054,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subl(EDI, Address(ESP, +kStartIndexOffset));
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, EDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, EDI);
   __ Bind(&ok);
   // EAX: new string as tagged pointer.
   // Copy string.
@@ -2098,7 +2104,7 @@ void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
                                              Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, EDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

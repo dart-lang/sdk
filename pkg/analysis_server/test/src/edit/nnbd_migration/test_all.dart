@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'info_builder_test.dart' as info_builder;
+import 'offset_mapper_test.dart' as offset_mapper;
 
 main() {
   defineReflectiveSuite(() {
     info_builder.main();
+    offset_mapper.main();
   }, name: 'nnbd_migration');
 }

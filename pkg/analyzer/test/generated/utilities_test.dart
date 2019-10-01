@@ -1212,8 +1212,8 @@ library l;''');
       _assertHasPrevious(clone);
     }
     Token stopOriginalToken = originalNode.endToken.next;
-    Token skipCloneComment = null;
-    Token skipOriginalComment = null;
+    Token skipCloneComment;
+    Token skipOriginalComment;
     while (original != stopOriginalToken) {
       expect(clone, isNotNull);
       _assertEqualToken(clone, original);
@@ -3659,6 +3659,7 @@ class SourceRangeTest {
   void test_equals() {
     SourceRange r = new SourceRange(10, 1);
     expect(r == null, isFalse);
+    // ignore: unrelated_type_equality_checks
     expect(r == this, isFalse);
     expect(r == new SourceRange(20, 2), isFalse);
     expect(r == new SourceRange(10, 1), isTrue);

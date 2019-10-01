@@ -14,8 +14,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart'
-    show FieldElementForLink_ClassField, ParameterElementForLink;
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 
 /**
@@ -149,7 +147,7 @@ class InstanceMemberInferrer {
    */
   DartType _computeParameterType(ParameterElement parameter, int index,
       List<FunctionType> overriddenTypes) {
-    DartType parameterType = null;
+    DartType parameterType;
     int length = overriddenTypes.length;
     for (int i = 0; i < length; i++) {
       ParameterElement matchingParameter = _getCorrespondingParameter(
@@ -177,9 +175,6 @@ class InstanceMemberInferrer {
               kind: TopLevelInferenceErrorKind.overrideConflictParameterType,
             ),
           );
-        } else if (parameter is ParameterElementForLink) {
-          parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
-              kind: TopLevelInferenceErrorKind.overrideConflictParameterType));
         }
         return typeProvider.dynamicType;
       }
@@ -196,7 +191,7 @@ class InstanceMemberInferrer {
    * want to be smarter about it.
    */
   DartType _computeReturnType(Iterable<DartType> overriddenReturnTypes) {
-    DartType returnType = null;
+    DartType returnType;
     for (DartType type in overriddenReturnTypes) {
       if (type == null) {
         type = typeProvider.dynamicType;
@@ -428,9 +423,6 @@ class InstanceMemberInferrer {
             kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
           ),
         );
-      } else if (field is FieldElementForLink_ClassField) {
-        field.setInferenceError(new TopLevelInferenceErrorBuilder(
-            kind: TopLevelInferenceErrorKind.overrideConflictFieldType));
       }
       return;
     }
@@ -575,7 +567,7 @@ class VariableGatherer extends RecursiveAstVisitor {
    * Initialize a newly created gatherer to gather all of the variables that
    * pass the given [filter] (or all variables if no filter is provided).
    */
-  VariableGatherer([this.filter = null]);
+  VariableGatherer([this.filter]);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

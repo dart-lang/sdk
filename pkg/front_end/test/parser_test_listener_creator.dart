@@ -11,8 +11,17 @@ import 'package:front_end/src/fasta/parser/listener.dart';
 import 'package:front_end/src/fasta/parser/member_kind.dart';
 import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-main() {
+StringSink out;
+
+main(List<String> args) {
+  if (args.contains("--stdout")) {
+    out = stdout;
+  } else {
+    out = new StringBuffer();
+  }
+
   File f = new File.fromUri(
       Platform.script.resolve("../lib/src/fasta/parser/listener.dart"));
   List<int> rawBytes = f.readAsBytesSync();
@@ -23,7 +32,7 @@ main() {
   Utf8BytesScanner scanner = new Utf8BytesScanner(bytes, includeComments: true);
   Token firstToken = scanner.tokenize();
 
-  print("""
+  out.write("""
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -47,15 +56,17 @@ class ParserTestListener implements Listener {
   void doPrint(String s) {
     sb.writeln(("  " * indent) + s);
   }
-  """);
+""");
 
   ParserCreatorListener listener = new ParserCreatorListener();
   ClassMemberParser parser = new ClassMemberParser(listener);
   parser.parseUnit(firstToken);
 
-  print("""
+  out.writeln("}");
+
+  if (out is StringBuffer) {
+    stdout.write(new DartFormatter().format("$out"));
   }
-  """);
 }
 
 class ParserCreatorListener extends Listener {
@@ -79,13 +90,14 @@ class ParserCreatorListener extends Listener {
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     if (insideListenerClass) {
+      out.write("  ");
       Token token = beginToken;
       Token latestToken;
       while (true) {
         if (latestToken != null && latestToken.charEnd < token.charOffset) {
-          stdout.write(" ");
+          out.write(" ");
         }
-        stdout.write(token.lexeme);
+        out.write(token.lexeme);
         if ((token is BeginToken &&
                 token.type == TokenType.OPEN_CURLY_BRACKET) ||
             token is SimpleToken && token.type == TokenType.FUNCTION) {
@@ -99,29 +111,29 @@ class ParserCreatorListener extends Listener {
       }
 
       if (token is SimpleToken && token.type == TokenType.FUNCTION) {
-        stdout.write(" null;");
+        out.write(" null;");
       } else {
-        stdout.write("\n");
+        out.write("\n    ");
         if (currentMethodName.startsWith("end")) {
-          stdout.write("indent--;\n");
+          out.write("indent--;\n    ");
         }
-        stdout.write("doPrint('$currentMethodName(");
+        out.write("doPrint('$currentMethodName(");
         String separator = "";
         for (int i = 0; i < parameters.length; i++) {
-          stdout.write(separator);
-          stdout.write(r"''$");
-          stdout.write(parameters[i]);
+          out.write(separator);
+          out.write(r"' '$");
+          out.write(parameters[i]);
           separator = ", ";
         }
-        stdout.write(")');\n");
+        out.write(")');\n  ");
 
         if (currentMethodName.startsWith("begin")) {
-          stdout.write("indent++;\n");
+          out.write("  indent++;\n  ");
         }
 
-        stdout.write("}");
+        out.write("}");
       }
-      stdout.write("\n\n");
+      out.write("\n\n");
     }
     parameters.clear();
     currentMethodName = null;

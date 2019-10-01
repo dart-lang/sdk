@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
@@ -238,7 +239,12 @@ class LinkedUnitContext {
   }
 
   DartType getDefaultType(TypeParameter node) {
-    return LazyTypeParameter.getDefaultType(_astReader, node);
+    var type = LazyTypeParameter.getDefaultType(_astReader, node);
+    if (type is TypeBuilder) {
+      type = (type as TypeBuilder).build();
+      LazyAst.setDefaultType(node, type);
+    }
+    return type;
   }
 
   String getDefaultValueCode(AstNode node) {

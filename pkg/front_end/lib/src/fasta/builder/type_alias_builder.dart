@@ -150,10 +150,9 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
-    // TODO(dmitryas): Use [nullability].
     DartType thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
-    FunctionType result = thisType;
+    FunctionType result = thisType.withNullability(nullability);
     if (typedef.typeParameters.isEmpty && arguments == null) return result;
     Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
     for (int i = 0; i < typedef.typeParameters.length; i++) {
@@ -209,8 +208,9 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
       NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
     DartType thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
-    FunctionType result = thisType;
-    if (typedef.typeParameters.isEmpty && arguments == null) return result;
+    if (typedef.typeParameters.isEmpty && arguments == null) {
+      return thisType.withNullability(nullabilityBuilder.build(library));
+    }
     // Otherwise, substitute.
     return buildTypesWithBuiltArguments(
         library,

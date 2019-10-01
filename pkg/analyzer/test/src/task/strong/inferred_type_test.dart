@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -367,11 +366,7 @@ var v = null;
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'dynamic');
-    if (AnalysisDriver.useSummary2) {
-      expect(v.initializer.type.toString(), 'dynamic Function()');
-    } else {
-      expect(v.initializer.type.toString(), 'Null Function()');
-    }
+    expect(v.initializer.type.toString(), 'dynamic Function()');
   }
 
   test_bottom_inClosure() async {
@@ -2416,8 +2411,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    if (AnalysisDriver.useSummary2) {
-      await checkFileElement('''
+    await checkFileElement('''
 class B {
   void f() {}
 }
@@ -2426,17 +2420,6 @@ class C extends B {
 }
 var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C().f();
 ''');
-    } else {
-      await checkFileElement('''
-class B {
-  void f() {}
-}
-class C extends B {
-  f() {}
-}
-var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*error:USE_OF_VOID_RESULT*/f();
-''');
-    }
   }
 
   test_inferConstsTransitively() async {

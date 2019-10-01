@@ -41,7 +41,7 @@ class AnalysisOptionsProvider {
   /// The given [root] directory will be searched first. If no file is found and
   /// if [crawlUp] is `true`, then enclosing directories will be searched.
   File getOptionsFile(Folder root, {bool crawlUp: false}) {
-    Resource resource = null;
+    Resource resource;
     for (Folder folder = root; folder != null; folder = folder.parent) {
       resource = folder.getChild(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       if (resource.exists) {

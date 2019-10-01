@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -234,9 +233,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     _setGenericFunctionType(node.returnType, element.returnType);
     (node.functionExpression as FunctionExpressionImpl).declaredElement =
         element;
-    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
-      node.returnType?.accept(this);
-    }
+    node.returnType?.accept(this);
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
@@ -278,35 +275,13 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
-      var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
-      node.accept(builder);
+    var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
+    node.accept(builder);
 
-      var nodeImpl = node as GenericFunctionTypeImpl;
-      _enclosingUnit.encloseElement(
-        nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
-      );
-      return;
-    }
-    if (_walker.elementBuilder != null) {
-      _walker.elementBuilder.visitGenericFunctionType(node);
-    } else {
-      var element = node.type?.element;
-      if (element is GenericFunctionTypeElement) {
-        _setGenericFunctionType(node.returnType, element.returnType);
-        _walk(new ElementWalker.forGenericFunctionType(element), () {
-          super.visitGenericFunctionType(node);
-        });
-      } else {
-        var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
-        node.accept(builder);
-
-        var nodeImpl = node as GenericFunctionTypeImpl;
-        _enclosingUnit.encloseElement(
-          nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
-        );
-      }
-    }
+    var nodeImpl = node as GenericFunctionTypeImpl;
+    _enclosingUnit.encloseElement(
+      nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
+    );
   }
 
   @override
@@ -379,9 +354,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
-    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
-      node.returnType?.accept(this);
-    }
+    node.returnType?.accept(this);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
@@ -456,19 +429,11 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter &&
-        !AnalysisDriver.useSummary2) {
-      // Work around dartbug.com/28515.
-      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-      var element = new TypeParameterElementImpl.forNode(node.name);
-      node.name?.staticElement = element;
-    } else {
-      TypeParameterElement element =
-          _match(node.name, _walker.getTypeParameter());
-      _setGenericFunctionType(node.bound, element.bound);
-      super.visitTypeParameter(node);
-      resolveMetadata(node, node.metadata, element);
-    }
+    TypeParameterElement element =
+        _match(node.name, _walker.getTypeParameter());
+    _setGenericFunctionType(node.bound, element.bound);
+    super.visitTypeParameter(node);
+    resolveMetadata(node, node.metadata, element);
   }
 
   @override
@@ -809,6 +774,6 @@ class _ElementMismatchException extends AnalysisException {
   /// and [cause].
   _ElementMismatchException(
       CompilationUnitElement compilationUnit, Element element,
-      [CaughtException cause = null])
+      [CaughtException cause])
       : super('Element mismatch in $compilationUnit at $element', cause);
 }

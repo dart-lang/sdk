@@ -6189,7 +6189,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    String groupEnd = null;
+    String groupEnd;
     _writer.print('(');
     NodeList<FormalParameter> parameters = node.parameters;
     int size = parameters.length;
@@ -7496,7 +7496,7 @@ class ToSourceVisitor2 implements AstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    String groupEnd = null;
+    String groupEnd;
     sink.write('(');
     NodeList<FormalParameter> parameters = node.parameters;
     int size = parameters.length;

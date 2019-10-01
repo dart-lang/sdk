@@ -503,7 +503,7 @@ class ParsedArguments {
   /// Preprocess arguments to determine whether DDK is used in batch mode or as a
   /// persistent worker.
   ///
-  /// When used in batch mode, we expect a `--batch` parameter last.
+  /// When used in batch mode, we expect a `--batch` parameter.
   ///
   /// When used as a persistent bazel worker, the `--persistent_worker` might be
   /// present, and an argument of the form `@path/to/file` might be provided. The
@@ -518,19 +518,19 @@ class ParsedArguments {
     bool isKernel = false;
     bool reuseResult = false;
     bool useIncrementalCompiler = false;
-    var len = args.length;
-    for (int i = 0; i < len; i++) {
-      var arg = args[i];
-      var isLastArg = i == len - 1;
-      if (isLastArg && arg.startsWith('@')) {
-        var extra = _readLines(arg.substring(1)).toList();
-        if (extra.remove('--kernel') || extra.remove('-k')) {
-          isKernel = true;
-        }
-        newArgs.addAll(extra);
-      } else if (arg == '--persistent_worker') {
+
+    Iterable<String> argsToParse = args;
+
+    // Expand `@path/to/file`
+    if (args.last.startsWith('@')) {
+      var extra = _readLines(args.last.substring(1));
+      argsToParse = args.take(args.length - 1).followedBy(extra);
+    }
+
+    for (var arg in argsToParse) {
+      if (arg == '--persistent_worker') {
         isWorker = true;
-      } else if (isLastArg && arg == '--batch') {
+      } else if (arg == '--batch') {
         isBatch = true;
       } else if (arg == '--kernel' || arg == '-k') {
         isKernel = true;

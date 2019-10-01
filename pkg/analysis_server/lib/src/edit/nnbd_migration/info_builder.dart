@@ -6,6 +6,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -34,6 +35,10 @@ class InfoBuilder {
 
   /// The listener used to gather the changes to be applied.
   final DartFixListener listener;
+
+  /// A map from the path of a compilation unit to the information about that
+  /// unit.
+  final Map<String, UnitInfo> unitMap = {};
 
   /// Initialize a newly created builder.
   InfoBuilder(this.info, this.listener);
@@ -65,28 +70,35 @@ class InfoBuilder {
     for (FixReasonInfo reason in fixInfo.reasons) {
       if (reason is NullabilityNodeInfo) {
         for (EdgeInfo edge in reason.upstreamEdges) {
-          EdgeOriginInfo origin = info.edgeOrigin[edge];
-          if (origin != null) {
-            AstNode node = origin.node;
-            if (node.parent is ArgumentList) {
-              if (node is NullLiteral) {
-                details.add(RegionDetail(
-                    'null is explicitly passed as an argument.',
-                    _targetFor(origin)));
+          if (edge.isTriggered) {
+            EdgeOriginInfo origin = info.edgeOrigin[edge];
+            if (origin != null) {
+              AstNode node = origin.node;
+              if (node.parent is ArgumentList) {
+                if (node is NullLiteral) {
+                  details.add(RegionDetail(
+                      "'null' is explicitly passed as an argument",
+                      _targetFor(origin)));
+                } else {
+                  details.add(RegionDetail(
+                      "A nullable value is explicitly passed as an argument",
+                      _targetFor(origin)));
+                }
               } else {
-                details.add(RegionDetail(
-                    'A nullable value is explicitly passed as an argument.',
-                    _targetFor(origin)));
+                if (node is NullLiteral) {
+                  details.add(RegionDetail(
+                      "'null' is explicitly assigned", _targetFor(origin)));
+                } else {
+                  details.add(RegionDetail(
+                      "A nullable value is assigned", _targetFor(origin)));
+                }
               }
-            } else {
-              details.add(RegionDetail(
-                  'A nullable value is assigned.', _targetFor(origin)));
             }
           }
         }
       } else if (reason is EdgeInfo) {
         // TODO(brianwilkerson) Implement this after finding an example whose
-        //  reason is an edge.
+        //  reason is an edge that should contribute a detail.
       } else {
         throw UnimplementedError(
             'Unexpected class of reason: ${reason.runtimeType}');
@@ -112,46 +124,39 @@ class InfoBuilder {
   /// Return the migration information for the given unit.
   UnitInfo _explainUnit(SourceInformation sourceInfo, ParsedUnitResult result,
       SourceFileEdit fileEdit) {
-    List<RegionInfo> regions = [];
+    UnitInfo unitInfo = _unitForPath(result.path);
     String content = result.content;
     // [fileEdit] is null when a file has no edits.
-    if (fileEdit == null) {
-      return UnitInfo(result.path, content, regions);
-    }
-    List<SourceEdit> edits = fileEdit.edits;
-    edits.sort((first, second) => first.offset.compareTo(second.offset));
-    // Compute the deltas for the regions that will be computed as we apply the
-    // edits. We need the deltas because the offsets to the regions are relative
-    // to the edited source, but the edits are being applied in reverse order so
-    // the offset in the pre-edited source will not match the offset in the
-    // post-edited source. The deltas compensate for that difference.
-    List<int> deltas = [];
-    int previousDelta = 0;
-    for (SourceEdit edit in edits) {
-      deltas.add(previousDelta);
-      previousDelta += (edit.replacement.length - edit.length);
-    }
-    // Apply edits in reverse order and build the regions.
-    int index = edits.length - 1;
-    for (SourceEdit edit in edits.reversed) {
-      int offset = edit.offset;
-      int length = edit.length;
-      String replacement = edit.replacement;
-      int end = offset + length;
-      int delta = deltas[index--];
-      // Insert the replacement text without deleting the replaced text.
-      content = content.replaceRange(end, end, replacement);
-      FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
-      String explanation = '${fixInfo.fix.description.appliedMessage}.';
-      List<RegionDetail> details = _computeDetails(fixInfo);
-      if (length > 0) {
-        regions.add(RegionInfo(offset + delta, length, explanation, details));
+    if (fileEdit != null) {
+      List<RegionInfo> regions = unitInfo.regions;
+      List<SourceEdit> edits = fileEdit.edits;
+      edits.sort((first, second) => first.offset.compareTo(second.offset));
+      OffsetMapper mapper = OffsetMapper.forEdits(edits);
+      // Apply edits in reverse order and build the regions.
+      for (SourceEdit edit in edits.reversed) {
+        int offset = edit.offset;
+        int length = edit.length;
+        String replacement = edit.replacement;
+        int end = offset + length;
+        // Insert the replacement text without deleting the replaced text.
+        content = content.replaceRange(end, end, replacement);
+        FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
+        if (fixInfo != null) {
+          String explanation = '${fixInfo.fix.description.appliedMessage}.';
+          List<RegionDetail> details = _computeDetails(fixInfo);
+          if (length > 0) {
+            regions.add(
+                RegionInfo(mapper.map(offset), length, explanation, details));
+          }
+          regions.add(RegionInfo(
+              mapper.map(end), replacement.length, explanation, details));
+        }
       }
-      regions.add(
-          RegionInfo(end + delta, replacement.length, explanation, details));
+      regions.sort((first, second) => first.offset.compareTo(second.offset));
+      unitInfo.offsetMapper = mapper;
     }
-    regions.sort((first, second) => first.offset.compareTo(second.offset));
-    return UnitInfo(result.path, content, regions);
+    unitInfo.content = content;
+    return unitInfo;
   }
 
   /// Return information about the fix that was applied at the given [offset],
@@ -168,8 +173,19 @@ class InfoBuilder {
     return null;
   }
 
+  /// Return the navigation target corresponding to the given [origin].
   NavigationTarget _targetFor(EdgeOriginInfo origin) {
     AstNode node = origin.node;
-    return NavigationTarget(origin.source.fullName, node.offset, node.length);
+    String filePath = origin.source.fullName;
+    UnitInfo unitInfo = _unitForPath(filePath);
+    NavigationTarget target =
+        NavigationTarget(filePath, node.offset, node.length);
+    unitInfo.targets.add(target);
+    return target;
+  }
+
+  /// Return the unit info for the file at the given [path].
+  UnitInfo _unitForPath(String path) {
+    return unitMap.putIfAbsent(path, () => UnitInfo(path));
   }
 }

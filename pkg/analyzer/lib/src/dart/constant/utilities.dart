@@ -90,6 +90,20 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifierImpl copy = super.visitPrefixedIdentifier(node);
+    copy.staticType = node.staticType;
+    return copy;
+  }
+
+  @override
+  PropertyAccess visitPropertyAccess(PropertyAccess node) {
+    PropertyAccessImpl copy = super.visitPropertyAccess(node);
+    copy.staticType = node.staticType;
+    return copy;
+  }
+
+  @override
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation invocation =
@@ -110,9 +124,11 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
-    identifier.staticElement = node.staticElement;
-    return identifier;
+    SimpleIdentifierImpl copy = super.visitSimpleIdentifier(node);
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    copy.tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
+    return copy;
   }
 
   @override

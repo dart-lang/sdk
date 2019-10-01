@@ -381,8 +381,14 @@ class _ElementRequest {
     _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
-  MethodElementImpl _method(ClassElementImpl enclosing, Reference reference) {
-    enclosing.methods;
+  MethodElementImpl _method(ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.methods;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.methods;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
+    }
     // Requesting methods sets elements for all of them.
     assert(reference.element != null);
     return reference.element;

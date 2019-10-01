@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -367,7 +366,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     List<TypeParameterElement> getFreeParameters(DartType rootType) {
-      List<TypeParameterElement> parameters = null;
+      List<TypeParameterElement> parameters;
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
@@ -384,15 +383,13 @@ class Dart2TypeSystem extends TypeSystem {
             parameters ??= <TypeParameterElement>[];
             parameters.add(element);
           }
-        } else if (AnalysisDriver.useSummary2) {
+        } else {
           if (type is FunctionType) {
             appendParameters(type.returnType);
             type.parameters.map((p) => p.type).forEach(appendParameters);
           } else if (type is InterfaceType) {
             type.typeArguments.forEach(appendParameters);
           }
-        } else if (type is ParameterizedType) {
-          type.typeArguments.forEach(appendParameters);
         }
       }
 
@@ -466,13 +463,9 @@ class Dart2TypeSystem extends TypeSystem {
       return const <DartType>[];
     }
 
-    if (AnalysisDriver.useSummary2) {
-      return typeParameters
-          .map((p) => (p as TypeParameterElementImpl).defaultType)
-          .toList();
-    } else {
-      return instantiateTypeFormalsToBounds(typeParameters);
-    }
+    return typeParameters
+        .map((p) => (p as TypeParameterElementImpl).defaultType)
+        .toList();
   }
 
   @override
@@ -1184,7 +1177,7 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   static List<T> _transformList<T>(List<T> list, T f(T t)) {
-    List<T> newList = null;
+    List<T> newList;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var newItem = f(item);
@@ -2144,7 +2137,7 @@ class InterfaceLeastUpperBoundHelper {
   static int _computeLongestInheritancePathToObject(
       ClassElement element, int depth, Set<ClassElement> visitedElements) {
     // Object case
-    if (element.supertype == null || visitedElements.contains(element)) {
+    if (element.isDartCoreObject || visitedElements.contains(element)) {
       return depth;
     }
     int longestPath = 1;
@@ -2801,13 +2794,7 @@ abstract class TypeSystem implements public.TypeSystem {
     // Calculate the LUB of the return type.
     DartType returnType = getLeastUpperBound(f.returnType, g.returnType);
 
-    if (AnalysisDriver.useSummary2) {
-      return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
-    }
-
-    var element = FunctionElementImpl.synthetic(parameters, returnType);
-    element.typeParameters = typeFormals;
-    return element.type;
+    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
   }
 
   /**

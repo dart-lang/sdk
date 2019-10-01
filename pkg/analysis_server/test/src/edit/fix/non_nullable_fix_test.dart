@@ -136,12 +136,11 @@ class NonNullableFixTest extends AbstractAnalysisTest {
     Folder outputDir = getFolder('/outputDir');
     await performFix(included: [projectPath], outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    expect(outputDir.getChildAssumingFile('bin__bin.html').exists, isTrue);
-    expect(outputDir.getChildAssumingFile('lib__lib1.html').exists, isTrue);
-    expect(outputDir.getChildAssumingFile('lib__lib2.html').exists, isTrue);
-    expect(
-        outputDir.getChildAssumingFile('lib__src__lib3.html').exists, isTrue);
-    expect(outputDir.getChildAssumingFile('test__test.html').exists, isTrue);
+    expect(getFile('/outputDir/bin/bin.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/lib1.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/lib2.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/src/lib3.html').exists, isTrue);
+    expect(getFile('/outputDir/test/test.html').exists, isTrue);
   }
 
   test_outputDirContainsFilesRootedInASubdirectory() async {
@@ -151,9 +150,9 @@ class NonNullableFixTest extends AbstractAnalysisTest {
         included: [context.join(projectPath, 'lib')],
         outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    expect(outputDir.getChildAssumingFile('lib1.html').exists, isTrue);
-    expect(outputDir.getChildAssumingFile('lib2.html').exists, isTrue);
-    expect(outputDir.getChildAssumingFile('src__lib3.html').exists, isTrue);
+    expect(getFile('/outputDir/lib1.html').exists, isTrue);
+    expect(getFile('/outputDir/lib2.html').exists, isTrue);
+    expect(getFile('/outputDir/src/lib3.html').exists, isTrue);
   }
 
   test_outputDirContainsFilesRootedInParentOfSingleFile() async {

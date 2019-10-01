@@ -47,7 +47,8 @@ class DescriptorList : public ZoneAllocated {
 class StackMapTableBuilder : public ZoneAllocated {
  public:
   StackMapTableBuilder()
-      : stack_map_(StackMap::ZoneHandle()),
+      : pc_offset_(Smi::ZoneHandle()),
+        stack_map_(StackMap::ZoneHandle()),
         list_(GrowableObjectArray::ZoneHandle(
             GrowableObjectArray::New(Heap::kOld))) {}
   ~StackMapTableBuilder() {}
@@ -61,9 +62,11 @@ class StackMapTableBuilder : public ZoneAllocated {
   RawArray* FinalizeStackMaps(const Code& code);
 
  private:
-  intptr_t Length() const { return list_.Length(); }
+  intptr_t Length() const { return list_.Length() / 2; }
+  RawSmi* OffsetAt(intptr_t index) const;
   RawStackMap* MapAt(intptr_t index) const;
 
+  Smi& pc_offset_;
   StackMap& stack_map_;
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);

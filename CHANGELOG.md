@@ -42,6 +42,13 @@ The Linter was updated to `0.1.98`, which includes:
 * new lint: `avoid_equals_and_hash_code_on_mutable_classes`
 * extended `avoid_slow_async_io` to flag async `Directory` methods
 
+## 2.5.1 - 2019-09-27
+
+This is a patch release that prevents type inference failures in the analyzer
+(Issue [38365][]).
+
+[38365]: https://github.com/dart-lang/sdk/issues/38365
+
 ## 2.5.0 - 2019-09-10
 
 ### Language

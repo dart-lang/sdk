@@ -40,16 +40,17 @@ abstract class WasmModule {
 // WasmImports holds all the imports for a WasmInstance.
 abstract class WasmImports {
   // Create an imports object.
-  external factory WasmImports(String moduleName);
+  external factory WasmImports();
 
   // Add a global variable to the imports.
-  void addGlobal<T>(String name, num value, bool mutable);
+  void addGlobal<T>(String moduleName, String name, num value, bool mutable);
 
   // Add a memory to the imports.
-  void addMemory(String name, WasmMemory memory);
+  void addMemory(String moduleName, String name, WasmMemory memory);
 
   // Add a function to the imports.
-  void addFunction<T extends Function>(String name, Function fn);
+  void addFunction<T extends Function>(
+      String moduleName, String name, Function fn);
 }
 
 // WasmMemory is a sandbox for a WasmInstance to run in.

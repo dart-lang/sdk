@@ -92,13 +92,12 @@ class _ServiceTesteeLauncher {
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
-      bool useAuthToken,
+      Uri serviceInfoUri,
       List<String> extraArgs) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(pause_on_unhandled_exceptions != null);
     assert(testeeControlsServer != null);
-    assert(useAuthToken != null);
 
     if (_shouldLaunchSkyShell()) {
       return _spawnSkyProcess(pause_on_start, pause_on_exit,
@@ -109,7 +108,7 @@ class _ServiceTesteeLauncher {
           pause_on_exit,
           pause_on_unhandled_exceptions,
           testeeControlsServer,
-          useAuthToken,
+          serviceInfoUri,
           extraArgs);
     }
   }
@@ -119,7 +118,7 @@ class _ServiceTesteeLauncher {
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
-      bool useAuthToken,
+      Uri serviceInfoUri,
       List<String> extraArgs) {
     assert(!_shouldLaunchSkyShell());
 
@@ -132,9 +131,8 @@ class _ServiceTesteeLauncher {
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
-    if (!useAuthToken) {
-      fullArgs.add('--disable-service-auth-codes');
-    }
+    fullArgs.add('--write-service-info=$serviceInfoUri');
+
     if (pause_on_unhandled_exceptions) {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
@@ -149,8 +147,7 @@ class _ServiceTesteeLauncher {
     }
     fullArgs.addAll(args);
 
-    return _spawnCommon(dartExecutable, fullArgs,
-        <String, String>{});
+    return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
   Future<Process> _spawnSkyProcess(
@@ -211,37 +208,27 @@ class _ServiceTesteeLauncher {
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
-      bool useAuthToken,
-      List<String> extraArgs) {
-    return _spawnProcess(
-        pause_on_start,
-        pause_on_exit,
-        pause_on_unhandled_exceptions,
-        testeeControlsServer,
-        useAuthToken,
-        extraArgs).then((p) {
-      Completer<Uri> completer = new Completer<Uri>();
+      List<String> extraArgs) async {
+    final completer = new Completer<Uri>();
+    final serviceInfoDir =
+        await Directory.systemTemp.createTemp('dart_service');
+    final serviceInfoUri = serviceInfoDir.uri.resolve('service_info.json');
+    final serviceInfoFile = await File.fromUri(serviceInfoUri).create();
+    _spawnProcess(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
+            testeeControlsServer, serviceInfoUri, extraArgs)
+        .then((p) async {
       process = p;
       Uri uri;
-      var blank;
-      var first = true;
+      final blankCompleter = Completer();
+      bool blankLineReceived = false;
       process.stdout
           .transform(utf8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
-        const kObservatoryListening = 'Observatory listening on ';
-        if (line.startsWith(kObservatoryListening)) {
-          uri = Uri.parse(line.substring(kObservatoryListening.length));
-        }
-        if (pause_on_start || line == '') {
+        if (!blankLineReceived && (pause_on_start || line == '')) {
           // Received blank line.
-          blank = true;
-        }
-        if ((uri != null) && (blank == true) && (first == true)) {
-          completer.complete(uri);
-          // Stop repeat completions.
-          first = false;
-          print('** Signaled to run test queries on $uri');
+          blankLineReceived = true;
+          blankCompleter.complete();
         }
         print('>testee>out> $line');
       });
@@ -257,8 +244,20 @@ class _ServiceTesteeLauncher {
         }
         print("** Process exited");
       });
-      return completer.future;
+
+      // Wait for the blank line which signals that we're ready to run.
+      await blankCompleter.future;
+      while ((await serviceInfoFile.length()) <= 5) {
+        await Future.delayed(Duration(milliseconds: 50));
+      }
+      final content = await serviceInfoFile.readAsString();
+      final infoJson = json.decode(content);
+      uri = Uri.parse(infoJson['uri']);
+      completer.complete(uri);
+      print('** Signaled to run test queries on $uri');
+      await serviceInfoDir.delete(recursive: true);
     });
+    return completer.future;
   }
 
   void requestExit() {
@@ -287,14 +286,13 @@ class _ServiceTesterRunner {
       bool pause_on_exit: false,
       bool verbose_vm: false,
       bool pause_on_unhandled_exceptions: false,
-      bool testeeControlsServer: false,
-      bool useAuthToken: false}) {
+      bool testeeControlsServer: false}) {
     var process = new _ServiceTesteeLauncher();
     bool testsDone = false;
     runZoned(() {
       process
           .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
-              testeeControlsServer, useAuthToken, extraArgs)
+              testeeControlsServer, extraArgs)
           .then((Uri serverAddress) async {
         if (mainArgs.contains("--gdb")) {
           var pid = process.process.pid;
@@ -406,7 +404,6 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
     bool verbose_vm: false,
     bool pause_on_unhandled_exceptions: false,
     bool testeeControlsServer: false,
-    bool useAuthToken: false,
     List<String> extraArgs}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
@@ -424,8 +421,7 @@ Future runIsolateTests(List<String> mainArgs, List<IsolateTest> tests,
         pause_on_exit: pause_on_exit,
         verbose_vm: verbose_vm,
         pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
-        testeeControlsServer: testeeControlsServer,
-        useAuthToken: useAuthToken);
+        testeeControlsServer: testeeControlsServer);
   }
 }
 

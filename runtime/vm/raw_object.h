@@ -1367,6 +1367,8 @@ class RawCode : public RawObject {
     RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
+  // The stackmaps_ array contains alternating Smi and StackMap values, where
+  // each Smi value is the PC offset for the following StackMap value.
   RawArray* stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
@@ -1477,6 +1479,15 @@ class RawInstructions : public RawObject {
   // Currently, only flag indicates 1 or 2 entry points.
   uint32_t size_and_flags_;
   uint32_t unchecked_entrypoint_pc_offset_;
+
+  // There is a gap between size_and_flags_ and the entry point
+  // because we align entry point by 4 words on all platforms.
+  // This allows us to have a free field here without affecting
+  // the aligned size of the Instructions object header.
+  // This also means that entry point offset is the same
+  // whether this field is included or excluded.
+  // TODO(37103): This field should be removed.
+  CodeStatistics* stats_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1610,10 +1621,6 @@ class RawCodeSourceMap : public RawObject {
 class RawStackMap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
   VISIT_NOTHING();
-
-  // Offset from code entry point corresponding to this stack map
-  // representation.
-  uint32_t pc_offset_;
 
   uint16_t length_;               // Length of payload, in bits.
   uint16_t slow_path_bit_count_;  // Slow path live values, included in length_.

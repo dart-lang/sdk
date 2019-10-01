@@ -231,7 +231,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // type.
     NodeList<SwitchMember> switchMembers = node.members;
     bool foundError = false;
-    DartType firstType = null;
+    DartType firstType;
     for (SwitchMember switchMember in switchMembers) {
       if (switchMember is SwitchCase) {
         Expression expression = switchMember.expression;

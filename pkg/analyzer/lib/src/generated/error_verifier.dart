@@ -14,7 +14,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -280,7 +279,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The elements that will be defined later in the current scope, but right
    * now are not declared.
    */
-  HiddenElements _hiddenElements = null;
+  HiddenElements _hiddenElements;
 
   /**
    * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
@@ -938,13 +937,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               node.identifier,
               [node.identifier]);
         }
-      }
-
-      // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
-      if (node.typeParameters != null && !AnalysisDriver.useSummary2) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED,
-            node);
       }
 
       super.visitFunctionTypedFormalParameter(node);
@@ -2064,7 +2056,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   void _checkForAssignmentToFinal(Expression expression) {
     // prepare element
-    Element element = null;
+    Element element;
     AstNode highlightedNode = expression;
     if (expression is Identifier) {
       element = expression.staticElement;
@@ -3654,7 +3646,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement accessorElement =
         accessorDeclaration.declaredElement as ExecutableElement;
     if (accessorElement is PropertyAccessorElement) {
-      PropertyAccessorElement counterpartAccessor = null;
+      PropertyAccessorElement counterpartAccessor;
       if (accessorElement.isGetter) {
         counterpartAccessor = accessorElement.correspondingSetter;
       } else {
@@ -3671,8 +3663,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       // Default of null == no accessor or no type (dynamic)
-      DartType getterType = null;
-      DartType setterType = null;
+      DartType getterType;
+      DartType setterType;
       // Get an existing counterpart accessor if any.
       if (accessorElement.isGetter) {
         getterType = _getGetterType(accessorElement);

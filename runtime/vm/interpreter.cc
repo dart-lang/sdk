@@ -262,6 +262,9 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           intptr_t class_id,
                                           intptr_t instance_size,
                                           RawObject** result) {
+  ASSERT(instance_size > 0);
+  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+
   const uword start = thread->top();
 #ifndef PRODUCT
   auto table = thread->isolate()->shared_class_table();
@@ -269,7 +272,8 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
     return false;
   }
 #endif
-  if (LIKELY((start + instance_size) < thread->end())) {
+  const intptr_t remaining = thread->end() - start;
+  if (LIKELY(remaining >= instance_size)) {
     thread->set_top(start + instance_size);
 #ifndef PRODUCT
     table->UpdateAllocatedNew(class_id, instance_size);
@@ -1848,6 +1852,27 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(UncheckedDirectCall, D_F);
+    DEBUG_CHECK;
+    // Invoke target function.
+    {
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      *++SP = LOAD_CONSTANT(kidx);
+      RawObject** call_base = SP - argc;
+      RawObject** call_top = SP;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(InterfaceCall, D_F);
     DEBUG_CHECK;
     {
@@ -2669,6 +2694,19 @@ SwitchDispatch:
     BYTECODE(EqualsNull, 0);
     DEBUG_CHECK;
     SP[0] = (SP[0] == null_value) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckReceiverForNull, D);
+    SP -= 1;
+
+    if (UNLIKELY(SP[0] == null_value)) {
+      // Load selector.
+      SP[0] = LOAD_CONSTANT(rD);
+      goto ThrowNullError;
+    }
+
     DISPATCH();
   }
 

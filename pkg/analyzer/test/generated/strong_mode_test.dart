@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -2700,12 +2699,8 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
       FunctionType fType = invoke.staticInvokeType;
-      if (AnalysisDriver.useSummary2) {
-        expect('$fType',
-            'void Function(T Function(T), int Function(T, T), T Function(T))');
-      } else {
-        expect(fType.typeArguments[0].toString(), 'T');
-      }
+      expect('$fType',
+          'void Function(T Function(T), int Function(T, T), T Function(T))');
     }
   }
 
@@ -2732,11 +2727,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
       FunctionType fType = invoke.staticInvokeType;
-      if (AnalysisDriver.useSummary2) {
-        expect('$fType', 'void Function(List<T>, int Function(T, T), List<T>)');
-      } else {
-        expect(fType.typeArguments[0].toString(), 'T');
-      }
+      expect('$fType', 'void Function(List<T>, int Function(T, T), List<T>)');
     }
   }
 
@@ -2763,11 +2754,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
       FunctionType fType = invoke.staticInvokeType;
-      if (AnalysisDriver.useSummary2) {
-        expect('$fType', 'void Function(T, int Function(T, T), T)');
-      } else {
-        expect(fType.typeArguments[0].toString(), 'T');
-      }
+      expect('$fType', 'void Function(T, int Function(T, T), T)');
     }
   }
 
@@ -4218,9 +4205,6 @@ void main() {
   }
 
   test_genericFunction_parameter() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void g(T f<T>(T x)) {}
 ''');
@@ -4385,9 +4369,6 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
@@ -4397,9 +4378,6 @@ void test<S>(T pf<T>(T e)) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
@@ -4409,9 +4387,6 @@ void test<S>(T pf<T>(T e)) {
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 class C<E> {
   T f<T>(T e) => null;
@@ -4477,9 +4452,6 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
@@ -4489,9 +4461,6 @@ void test<S>(T pf<T>(T e)) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
@@ -4554,9 +4523,6 @@ main() {
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
-    // TODO(paulberry): remove when dartbug.com/28515 fixed.
-    if (!AnalysisDriver.useSummary2) return;
-
     await assertNoErrorsInCode(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;

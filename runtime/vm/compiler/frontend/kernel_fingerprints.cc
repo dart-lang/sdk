@@ -163,6 +163,11 @@ void KernelFingerprintHelper::CalculateTypeParameterFingerprint() {
   CalculateListOfExpressionsFingerprint();
   helper.SetJustRead(TypeParameterHelper::kAnnotations);
 
+  helper.ReadUntilExcluding(TypeParameterHelper::kVariance);
+  Variance variance = ReadVariance();
+  BuildHash(variance);
+  helper.SetJustRead(TypeParameterHelper::kVariance);
+
   helper.ReadUntilExcluding(TypeParameterHelper::kBound);
   // The helper isn't needed after this point.
   CalculateDartTypeFingerprint();
