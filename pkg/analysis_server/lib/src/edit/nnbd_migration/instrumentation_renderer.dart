@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:meta/meta.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
@@ -18,8 +19,13 @@ class InstrumentationRenderer {
   /// other.
   final MigrationInfo migrationInfo;
 
+  /// An object used to map the file paths of analyzed files to the file paths
+  /// of the HTML files used to view the content of those files.
+  final PathMapper pathMapper;
+
   /// Creates an output object for the given library info.
-  InstrumentationRenderer(this.libraryInfo, this.migrationInfo);
+  InstrumentationRenderer(
+      this.libraryInfo, this.migrationInfo, this.pathMapper);
 
   /// Builds an HTML view of the instrumentation information in [libraryInfo].
   String render() {
@@ -29,14 +35,17 @@ class InstrumentationRenderer {
       'highlightJsPath': migrationInfo.highlightJsPath(libraryInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(libraryInfo),
     };
+    // TODO(brianwilkerson) Change this so that we generate a separate file for
+    //  each compilation unit rather than one per library.
+    String navContent;
     for (var compilationUnit in libraryInfo.units) {
       mustacheContext['units'].add({
         'path': compilationUnit.path,
         'regions': _computeRegions(compilationUnit),
-        'targetRegions': _computeTargetRegions(compilationUnit),
       });
+      navContent = _computeNavigationContent(compilationUnit);
     }
-    return _template.renderString(mustacheContext);
+    return _createTemplate(navContent).renderString(mustacheContext);
   }
 
   /// Return a list of Mustache context, based on the [unitInfo] for both
@@ -86,46 +95,75 @@ class InstrumentationRenderer {
     return regions;
   }
 
-  /// Return a list of Mustache context, based on the [unitInfo] for both
-  /// target and non-target regions:
-  ///
-  /// * 'content': The content of the region.
-  /// * 'isTarget': A flag indicating whether the region has a name associated
-  ///   with it.
-  /// * 'target': The name of the region, if the region has a name.
-  List<Map> _computeTargetRegions(UnitInfo unitInfo) {
+  /// Return the content of the file with navigation links and anchors added.
+  String _computeNavigationContent(UnitInfo unitInfo) {
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
-    List<NavigationTarget> targets = unitInfo.targets.toList();
-    targets.sort((first, second) => first.offset.compareTo(second.offset));
-    List<Map> targetRegions = [];
+    List<NavigationRegion> regions = []
+      ..addAll(unitInfo.sources ?? <NavigationSource>[])
+      ..addAll(unitInfo.targets);
+    regions.sort((first, second) {
+      int offsetComparison = first.offset.compareTo(second.offset);
+      if (offsetComparison == 0) {
+        return first is NavigationSource ? -1 : 1;
+      }
+      return offsetComparison;
+    });
+
+    StringBuffer navContent = StringBuffer();
     int previousOffset = 0;
-    for (NavigationTarget target in targets) {
-      int offset = mapper.map(target.offset);
-      int length = target.length;
+    for (int i = 0; i < regions.length; i++) {
+      NavigationRegion region = regions[i];
+      int offset = mapper.map(region.offset);
+      int length = region.length;
       if (offset > previousOffset) {
-        // Display a non-target region.
-        targetRegions.add({
-          'content': content.substring(previousOffset, offset),
-          'isTarget': false,
-        });
-        // Add a target region.
-        targetRegions.add({
-          'content': content.substring(offset, offset + length),
-          'isTarget': true,
-          'target': 'o${target.offset}',
-        });
+        // Write a non-target region.
+        navContent.write(content.substring(previousOffset, offset));
+        if (region is NavigationSource) {
+          if (i + 1 < regions.length &&
+              regions[i + 1].offset == region.offset) {
+            NavigationTarget target = region.target;
+            if (target == regions[i + 1]) {
+              // Add a target region. We skip the source because it links to
+              // itself, which is pointless.
+              navContent.write('<a id="o${region.offset}">');
+              navContent.write(content.substring(offset, offset + length));
+              navContent.write('</a>');
+            } else {
+              // Add a source and target region.
+              // TODO(brianwilkerson) Map the target's file path to the path of
+              //  the corresponding html file. I'd like to do this by adding a
+              //  `FilePathMapper` object so that it can't become inconsistent
+              //  with the code used to decide where to write the html.
+              String htmlPath = pathMapper.map(target.filePath);
+              navContent.write('<a id="o${region.offset}" ');
+              navContent.write('href="$htmlPath#o${target.offset}">');
+              navContent.write(content.substring(offset, offset + length));
+              navContent.write('</a>');
+            }
+            i++;
+          } else {
+            // Add a source region.
+            NavigationTarget target = region.target;
+            String htmlPath = pathMapper.map(target.filePath);
+            navContent.write('<a href="$htmlPath#o${target.offset}">');
+            navContent.write(content.substring(offset, offset + length));
+            navContent.write('</a>');
+          }
+        } else {
+          // Add a target region.
+          navContent.write('<a id="o${region.offset}">');
+          navContent.write(content.substring(offset, offset + length));
+          navContent.write('</a>');
+        }
         previousOffset = offset + length;
       }
     }
     if (previousOffset < content.length) {
       // Last non-target region.
-      targetRegions.add({
-        'content': content.substring(previousOffset),
-        'isTarget': false,
-      });
+      navContent.write(content.substring(previousOffset));
     }
-    return targetRegions;
+    return navContent.toString();
   }
 
   /// Return the URL that will navigate to the given [target].
@@ -196,11 +234,11 @@ class MigrationInfo {
 }
 
 /// A mustache template for one library's instrumentation output.
-mustache.Template _template = mustache.Template(r'''
+mustache.Template _createTemplate(String navContent) => mustache.Template(r'''
 <html>
   <head>
     <title>Non-nullable fix instrumentation report</title>
-    <script src="{{ highlightJsPath }}"></script>
+<!--    <script src="{{ highlightJsPath }}"></script>-->
     <script>
     function highlightTarget() {
       var url = document.URL;
@@ -216,6 +254,16 @@ mustache.Template _template = mustache.Template(r'''
     </script>
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
+a:link {
+  color: #000000;
+  text-decoration-line: none;
+}
+
+a:visited {
+  color: #000000;
+  text-decoration-line: none;
+}
+
 body {
   font-family: sans-serif;
   padding: 1em;
@@ -224,6 +272,12 @@ body {
 h2 {
   font-size: 1em;
   font-weight: bold;
+}
+
+.code {
+  position: absolute;
+  left: 0.5em;
+  top: 0.5em;
 }
 
 .content {
@@ -291,38 +345,35 @@ h2 {
       {{/ links }}
     </div>
     {{# units }}'''
-    '<h2>{{{ path }}}</h2>'
-    '<div class="content">'
-    '<div class="highlighting">'
-    '{{! These regions are written out, unmodified, as they need to be found }}'
-    '{{! in one simple text string for highlight.js to hightlight them. }}'
-    '{{# regions }}'
-    '{{ content }}'
-    '{{/ regions }}'
+        '<h2>{{{ path }}}</h2>'
+        '<div class="content">'
+//    '<div class="highlighting">'
+//    '{{! These regions are written out, unmodified, as they need to be found }}'
+//    '{{! in one simple text string for highlight.js to hightlight them. }}'
+//    '{{# regions }}'
+//    '{{ content }}'
+//    '{{/ regions }}'
+//    '</div>'
+        '<div class ="code">'
+        '{{! The regions are written a second time, but hidden, to include }}'
+        '{{! anchors. }}' +
+    navContent +
     '</div>'
-    '<div class="regions">'
-    '{{! The regions are written a second time, but hidden, to include }}'
-    '{{! anchors. }}'
-    '{{# targetRegions }}'
-    '{{^ isTarget }}{{ content }}{{/ isTarget }}'
-    '{{# isTarget }}<a id="{{ target }}">{{ content }}</a>{{/ isTarget }}'
-    '{{/ targetRegions }}'
-    '</div>'
-    '<div class="regions">'
-    '{{! The regions are then written again, overlaying the first two copies }}'
-    '{{! of the content, to provide tooltips for modified regions. }}'
-    '{{# regions }}'
-    '{{^ modified }}{{ content }}{{/ modified }}'
-    '{{# modified }}<span class="region">{{ content }}'
-    '<span class="tooltip">{{ explanation }}<ul>'
-    '{{# details }}'
-    '<li>'
-    '<a href="{{ target }}">{{ description }}</a>'
-    '</li>'
-    '{{/ details }}</ul></span></span>{{/ modified }}'
-    '{{/ regions }}'
-    '</div></div>'
-    r'''
+        '<div class="regions">'
+        '{{! The regions are then written again, overlaying the first two copies }}'
+        '{{! of the content, to provide tooltips for modified regions. }}'
+        '{{# regions }}'
+        '{{^ modified }}{{ content }}{{/ modified }}'
+        '{{# modified }}<span class="region">{{ content }}'
+        '<span class="tooltip">{{ explanation }}<ul>'
+        '{{# details }}'
+        '<li>'
+        '<a href="{{ target }}">{{ description }}</a>'
+        '</li>'
+        '{{/ details }}</ul></span></span>{{/ modified }}'
+        '{{/ regions }}'
+        '</div></div>'
+        r'''
     {{/ units }}
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", (event) => {

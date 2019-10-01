@@ -6,12 +6,13 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -222,21 +223,25 @@ analyzer:
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo =
         MigrationInfo(libraryInfos, pathContext, includedRoot);
-    for (LibraryInfo info in libraryInfos) {
-      assert(info.units.isNotEmpty);
+    PathMapper pathMapper = PathMapper();
+    for (LibraryInfo libraryInfo in libraryInfos) {
+      assert(libraryInfo.units.isNotEmpty);
+      // TODO(brianwilkerson) When we generate one HTML file per compilation
+      //  unit, move this logic into `PathMapper` and repeat it for each unit.
       String libraryPath =
-          pathContext.setExtension(info.units.first.path, '.html');
+          pathContext.setExtension(libraryInfo.units.first.path, '.html');
       String relativePath =
           pathContext.relative(libraryPath, from: includedRoot);
-      List<String> directories =
-          pathContext.split(pathContext.dirname(relativePath));
-      for (int i = 0; i < directories.length; i++) {
-        String directory = pathContext.joinAll(directories.sublist(0, i + 1));
-        folder.getChildAssumingFolder(directory).create();
+      String htmlPath = pathContext.join(folder.path, relativePath);
+      for (UnitInfo unitInfo in libraryInfo.units) {
+        pathMapper.pathMap[unitInfo.path] = htmlPath;
       }
-      File output =
-          provider.getFile(pathContext.join(folder.path, relativePath));
-      String rendered = InstrumentationRenderer(info, migrationInfo).render();
+    }
+    for (LibraryInfo info in libraryInfos) {
+      File output = provider.getFile(pathMapper.map(info.units.first.path));
+      output.parent.create();
+      String rendered =
+          InstrumentationRenderer(info, migrationInfo, pathMapper).render();
       output.writeAsStringSync(rendered);
     }
     // Generate resource files:

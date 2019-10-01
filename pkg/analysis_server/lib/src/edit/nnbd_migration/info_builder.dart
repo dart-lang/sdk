@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
@@ -14,6 +15,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceEdit, SourceFileEdit;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
+import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -57,7 +60,8 @@ class InfoBuilder {
       AnalysisSession session =
           server.getAnalysisDriver(filePath).currentSession;
       if (!session.getFile(filePath).isPart) {
-        ParsedLibraryResult result = await session.getParsedLibrary(filePath);
+        ResolvedLibraryResult result =
+            await session.getResolvedLibrary(filePath);
         libraries
             .add(_explainLibrary(result, info, sourceInfo[source], listener));
       }
@@ -110,7 +114,7 @@ class InfoBuilder {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
               details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
-                  _targetFor(origin.source.fullName, origin.node)));
+                  _targetForNode(origin.source.fullName, origin.node)));
             }
           }
         }
@@ -120,7 +124,7 @@ class InfoBuilder {
         if (nodeInfo != null) {
           details.add(RegionDetail(
               _buildDescriptionForDestination(nodeInfo.astNode),
-              _targetFor(nodeInfo.filePath, nodeInfo.astNode)));
+              _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
         }
       } else {
         throw UnimplementedError(
@@ -130,24 +134,55 @@ class InfoBuilder {
     return details;
   }
 
+  /// Return the navigation sources for the unit associated with the [result].
+  List<NavigationSource> _computeNavigationSources(ResolvedUnitResult result) {
+    NavigationCollectorImpl collector = new NavigationCollectorImpl();
+    computeDartNavigation(
+        result.session.resourceProvider, collector, result.unit, null, null);
+    collector.createRegions();
+    List<String> files = collector.files;
+    List<protocol.NavigationRegion> regions = collector.regions;
+    List<protocol.NavigationTarget> rawTargets = collector.targets;
+    List<NavigationTarget> convertedTargets =
+        List<NavigationTarget>(rawTargets.length);
+    return regions.map((region) {
+      List<int> targets = region.targets;
+      if (targets.isEmpty) {
+        throw StateError('Targets is empty');
+      }
+      NavigationTarget target = convertedTargets[targets[0]];
+      if (target == null) {
+        protocol.NavigationTarget rawTarget = rawTargets[targets[0]];
+        target = _targetFor(
+            files[rawTarget.fileIndex], rawTarget.offset, rawTarget.length);
+        convertedTargets[targets[0]] = target;
+      }
+      return NavigationSource(region.offset, region.length, target);
+    }).toList();
+  }
+
   /// Return the migration information for the given library.
   LibraryInfo _explainLibrary(
-      ParsedLibraryResult result,
+      ResolvedLibraryResult result,
       InstrumentationInformation info,
       SourceInformation sourceInfo,
       DartFixListener listener) {
     List<UnitInfo> units = [];
-    for (ParsedUnitResult unit in result.units) {
-      SourceFileEdit edit = listener.sourceChange.getFileEdit(unit.path);
-      units.add(_explainUnit(sourceInfo, unit, edit));
+    for (ResolvedUnitResult unitResult in result.units) {
+      SourceFileEdit edit = listener.sourceChange.getFileEdit(unitResult.path);
+      units.add(_explainUnit(sourceInfo, unitResult, edit));
     }
     return LibraryInfo(units);
   }
 
-  /// Return the migration information for the given unit.
-  UnitInfo _explainUnit(SourceInformation sourceInfo, ParsedUnitResult result,
+  /// Return the migration information for the unit associated with the
+  /// [result].
+  UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
       SourceFileEdit fileEdit) {
     UnitInfo unitInfo = _unitForPath(result.path);
+    if (unitInfo.sources == null) {
+      unitInfo.sources = _computeNavigationSources(result);
+    }
     String content = result.content;
     // [fileEdit] is null when a file has no edits.
     if (fileEdit != null) {
@@ -202,19 +237,25 @@ class InfoBuilder {
     // TODO(brianwilkerson) Generalize this.
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     CompilationUnitElement unitElement = unit?.declaredElement;
-    if (unitElement != null) {
-      String filePath = unitElement.source.fullName;
-      var resourceProvider = unitElement.session.resourceProvider;
-      return resourceProvider.pathContext.split(filePath).contains('test');
+    if (unitElement == null) {
+      return false;
     }
+    String filePath = unitElement.source.fullName;
+    var resourceProvider = unitElement.session.resourceProvider;
+    return resourceProvider.pathContext.split(filePath).contains('test');
   }
 
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
-  NavigationTarget _targetFor(String filePath, AstNode node) {
+  NavigationTarget _targetForNode(String filePath, AstNode node) {
+    return _targetFor(filePath, node.offset, node.length);
+  }
+
+  /// Return the navigation target in the file with the given [filePath] at the
+  /// given [offset] ans with the given [length].
+  NavigationTarget _targetFor(String filePath, int offset, int length) {
     UnitInfo unitInfo = _unitForPath(filePath);
-    NavigationTarget target =
-        NavigationTarget(filePath, node.offset, node.length);
+    NavigationTarget target = NavigationTarget(filePath, offset, length);
     unitInfo.targets.add(target);
     return target;
   }

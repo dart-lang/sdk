@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +25,8 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   String renderLibrary(LibraryInfo libraryInfo) {
     MigrationInfo migrationInfo =
         MigrationInfo([libraryInfo], resourceProvider.pathContext, '/project');
-    return InstrumentationRenderer(libraryInfo, migrationInfo).render();
+    return InstrumentationRenderer(libraryInfo, migrationInfo, PathMapper())
+        .render();
   }
 
   test_outputContainsEachPath() async {
