@@ -1441,7 +1441,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
       {TypeSystem typeSystem})
       : this._typeSystem =
-            typeSystem ?? new Dart2TypeSystem(null, featureSet: featureSet),
+            typeSystem ?? new Dart2TypeSystem(null), // fixme pass nnbd
         _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
@@ -3633,7 +3633,7 @@ class ResolverVisitor extends ScopedVisitor {
       flow.conditional_elseBegin(thenExpression);
       _flowAnalysis.checkUnreachableNode(elseExpression);
       elseExpression.accept(this);
-      flow.conditional_end(node, elseExpression);
+      flow.conditional_end(condition, elseExpression);
     } else {
       elseExpression.accept(this);
     }
@@ -4091,6 +4091,52 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIfElement(IfElement node) {
     Expression condition = node.condition;
+    var flow = _flowAnalysis?.flow;
+
+    // TODO(scheglov) Do we need these checks for null?
+    condition?.accept(this);
+
+    CollectionElement thenExpression = node.thenElement;
+    InferenceContext.setTypeFromNode(thenExpression, node);
+
+    if (_flowAnalysis != null) {
+      if (flow != null) {
+        flow.conditional_thenBegin(condition);
+        _flowAnalysis.checkUnreachableNode(thenExpression);
+      }
+      thenExpression.accept(this);
+    } else {
+      _promoteManager.visitIfElement_thenElement(
+        condition,
+        thenExpression,
+        () {
+          thenExpression.accept(this);
+        },
+      );
+    }
+
+    CollectionElement elseExpression = node.elseElement;
+    InferenceContext.setTypeFromNode(elseExpression, node);
+
+    if (flow != null) {
+      flow.conditional_elseBegin(thenExpression);
+      if (elseExpression != null) {
+        _flowAnalysis.checkUnreachableNode(elseExpression);
+        elseExpression.accept(this);
+      }
+      flow.conditional_end(condition, elseExpression);
+    } else {
+      elseExpression?.accept(this);
+    }
+
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+  }
+
+/*
+  @override
+  void visitIfElement(IfElement node) {
+    Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
@@ -4106,7 +4152,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
-  }
+  }*/
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -6929,7 +6975,11 @@ class TypeResolverVisitor extends ScopedVisitor {
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
-    _typeSystem = TypeSystem.create(definingLibrary.context, featureSet);
+    var options =
+        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
+    _typeSystem = new Dart2TypeSystem(typeProvider,
+        implicitCasts: options.implicitCasts,
+        strictInference: options.strictInference);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
         this.isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);

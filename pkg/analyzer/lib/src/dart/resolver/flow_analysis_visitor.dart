@@ -29,12 +29,12 @@ class AnalyzerFunctionBodyAccess
   }
 }
 
-class AnalyzerNodeOperations implements NodeOperations<Expression> {
+class AnalyzerNodeOperations implements NodeOperations<CollectionElement> {
   const AnalyzerNodeOperations();
 
   @override
-  Expression unwrapParenthesized(Expression node) {
-    return node.unParenthesized;
+  CollectionElement unwrapParenthesized(CollectionElement node) {
+    return node is Expression ? node.unParenthesized : node;
   }
 }
 
@@ -45,7 +45,7 @@ class AnalyzerNodeOperations implements NodeOperations<Expression> {
 /// be extracted.
 class FlowAnalysisHelper {
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final NodeOperations<Expression> _nodeOperations;
+  final NodeOperations<CollectionElement> _nodeOperations;
 
   /// The reused instance for creating new [FlowAnalysis] instances.
   final _TypeSystemTypeOperations _typeOperations;
@@ -57,7 +57,7 @@ class FlowAnalysisHelper {
   final FlowAnalysisResult result;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<Statement, Expression, VariableElement, DartType> flow;
+  FlowAnalysis<Statement, CollectionElement, VariableElement, DartType> flow;
 
   int _blockFunctionBodyLevel = 0;
 
@@ -163,7 +163,8 @@ class FlowAnalysisHelper {
     if (_blockFunctionBodyLevel > 1) {
       assert(flow != null);
     } else {
-      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+      flow =
+          FlowAnalysis<Statement, CollectionElement, VariableElement, DartType>(
         _nodeOperations,
         _typeOperations,
         AnalyzerFunctionBodyAccess(node),

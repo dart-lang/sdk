@@ -117,10 +117,10 @@ class Dart2TypeSystem extends TypeSystem {
   final TypeProvider typeProvider;
 
   Dart2TypeSystem(this.typeProvider,
-      {this.implicitCasts: true,
-      this.strictInference: false,
-      @required FeatureSet featureSet})
-      : this.nonNullableFeature = featureSet.isEnabled(Feature.non_nullable);
+      {this.implicitCasts: true, this.strictInference: false})
+      : nonNullableFeature = typeProvider != null &&
+            (typeProvider.intType as TypeImpl).nullabilitySuffix ==
+                NullabilitySuffix.none;
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -2862,14 +2862,11 @@ abstract class TypeSystem implements public.TypeSystem {
   /**
    * Create either a strong mode or regular type system based on context.
    */
-  static TypeSystem create(AnalysisContext context, FeatureSet featureSet) {
+  static TypeSystem create(AnalysisContext context) {
     var options = context.analysisOptions as AnalysisOptionsImpl;
-    return new Dart2TypeSystem(
-      context.typeProvider,
-      implicitCasts: options.implicitCasts,
-      strictInference: options.strictInference,
-      featureSet: featureSet,
-    );
+    return new Dart2TypeSystem(context.typeProvider,
+        implicitCasts: options.implicitCasts,
+        strictInference: options.strictInference);
   }
 }
 

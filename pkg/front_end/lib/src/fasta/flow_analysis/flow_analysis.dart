@@ -226,14 +226,16 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   void conditional_end(
       Expression conditionalExpression, Expression elseExpression) {
+    bool hasElse = elseExpression != null;
+
     FlowModel<Variable, Type> afterThen = _stack.removeLast();
     FlowModel<Variable, Type> afterElse = _current;
 
-    _conditionalEnd(elseExpression);
+    if (hasElse) _conditionalEnd(elseExpression);
     // Tail of the stack: falseThen, trueThen, falseElse, trueElse
 
-    FlowModel<Variable, Type> trueElse = _stack.removeLast();
-    FlowModel<Variable, Type> falseElse = _stack.removeLast();
+    FlowModel<Variable, Type> trueElse = hasElse ? _stack.removeLast() : null;
+    FlowModel<Variable, Type> falseElse = hasElse ? _stack.removeLast() : null;
 
     FlowModel<Variable, Type> trueThen = _stack.removeLast();
     FlowModel<Variable, Type> falseThen = _stack.removeLast();
