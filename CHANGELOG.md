@@ -1,3 +1,11 @@
+# 0.1.99
+
+* fixed unsafe cast in `overridden_fields`
+* (internal) migrated to the mock SDK in `package:analyzer` for testing
+* fixed empty argument list access in `use_full_hex_values_for_flutter_color_fix`
+* new lint: `prefer_relative_imports`
+* improved messages for `await_only_futures`
+
 # 0.1.98
 
 * fixed null raw expression accesses in `use_to_and_as_if_applicable`
