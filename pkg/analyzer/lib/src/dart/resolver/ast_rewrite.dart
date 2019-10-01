@@ -4,13 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -20,7 +16,6 @@ import 'package:analyzer/src/generated/type_system.dart';
 /// A visitor that will re-write an AST to support the optional `new` and
 /// `const` feature.
 class AstRewriteVisitor extends ScopedVisitor {
-  final bool addConstKeyword;
   final TypeSystem typeSystem;
 
   /// Initialize a newly created visitor.
@@ -30,8 +25,7 @@ class AstRewriteVisitor extends ScopedVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      this.addConstKeyword: false})
+      {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
 
@@ -60,7 +54,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.constructorName(typeName, null, null);
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
-                _getKeyword(node), constructorName, node.argumentList);
+                null, constructorName, node.argumentList);
         NodeReplacer.replace(node, instanceCreationExpression);
       } else if (element is ExtensionElement) {
         ExtensionOverride extensionOverride = astFactory.extensionOverride(
@@ -94,7 +88,7 @@ class AstRewriteVisitor extends ScopedVisitor {
           // TODO(scheglov) I think we should drop "typeArguments" below.
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  _getKeyword(node), constructorName, node.argumentList,
+                  null, constructorName, node.argumentList,
                   typeArguments: typeArguments);
           NodeReplacer.replace(node, instanceCreationExpression);
         }
@@ -113,7 +107,7 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.constructorName(typeName, null, null);
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
-                  _getKeyword(node), constructorName, node.argumentList);
+                  null, constructorName, node.argumentList);
           NodeReplacer.replace(node, instanceCreationExpression);
         } else if (prefixedElement is ExtensionElement) {
           PrefixedIdentifier extensionName =
@@ -147,49 +141,11 @@ class AstRewriteVisitor extends ScopedVisitor {
                 astFactory.constructorName(typeName, node.operator, methodName);
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
-                    _getKeyword(node), constructorName, node.argumentList);
+                    null, constructorName, node.argumentList);
             NodeReplacer.replace(node, instanceCreationExpression);
           }
         }
       }
     }
-  }
-
-  /// Return the token that should be used in the [InstanceCreationExpression]
-  /// that corresponds to the given invocation [node].
-  Token _getKeyword(MethodInvocation node) {
-    return addConstKeyword
-        ? new KeywordToken(Keyword.CONST, node.offset)
-        : null;
-  }
-
-  /// Return the type of the given class [element] after substituting any type
-  /// arguments from the list of [typeArguments] for the class' type parameters.
-  static InterfaceType getType(TypeSystem typeSystem, ClassElement element,
-      TypeArgumentList typeArguments) {
-    DartType type = element.type;
-
-    List<TypeParameterElement> typeParameters = element.typeParameters;
-    if (typeParameters.isEmpty) {
-      return type;
-    }
-
-    if (typeArguments == null) {
-      return typeSystem.instantiateToBounds(type);
-    }
-
-    List<DartType> argumentTypes;
-    if (typeArguments.arguments.length == typeParameters.length) {
-      argumentTypes = typeArguments.arguments
-          .map((TypeAnnotation argument) => argument.type)
-          .toList();
-    } else {
-      argumentTypes = List<DartType>.filled(
-          typeParameters.length, DynamicTypeImpl.instance);
-    }
-    List<DartType> parameterTypes = typeParameters
-        .map((TypeParameterElement parameter) => parameter.type)
-        .toList();
-    return type.substitute2(argumentTypes, parameterTypes);
   }
 }
