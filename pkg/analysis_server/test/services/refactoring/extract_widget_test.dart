@@ -121,7 +121,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
-        new Test(),
+        Test(),
         new Text('CCC'),
         new Text('DDD'),
       ],
@@ -173,7 +173,7 @@ Widget main() {
   Widget foo() {
     return new Row(
       children: <Widget>[
-        new Test(),
+        Test(),
         new Text('BBB'),
       ],
     );
@@ -214,7 +214,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -249,7 +249,7 @@ Widget main() {
 import 'package:flutter/material.dart';
 
 Widget main() {
-  return new Test();
+  return Test();
 }
 
 class Test extends StatelessWidget {
@@ -301,7 +301,7 @@ import 'package:flutter/material.dart';
 Widget main() {
   return new Row(
     children: <Widget>[
-      new Test(),
+      Test(),
       new Text('BBB'),
     ],
   );
@@ -409,7 +409,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -462,7 +462,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -524,8 +524,8 @@ class MyWidget extends StatelessWidget {
     int bar = 1;
     return new Row(
       children: <Widget>[
-        new Test(foo: foo, p1: 'aaa', p2: bar),
-        new Test(foo: foo, p1: 'bbb', p2: 2),
+        Test(foo: foo, p1: 'aaa', p2: bar),
+        Test(foo: foo, p1: 'bbb', p2: 2),
       ],
     );
   }
@@ -596,8 +596,8 @@ class MyWidget extends StatelessWidget {
     int bar = 1;
     return new Row(
       children: <Widget>[
-        new Test(foo: foo, p1: 'aaa', p2: bar),
-        new Test(foo: foo, p1: 'bbb', p2: 2),
+        Test(foo: foo, p1: 'aaa', p2: bar),
+        Test(foo: foo, p1: 'bbb', p2: 2),
       ],
     );
   }
@@ -651,7 +651,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: field);
+    return Test(field: field);
   }
 }
 
@@ -703,7 +703,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -747,7 +747,7 @@ String field;
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Test();
+    return Test();
   }
 }
 
@@ -853,7 +853,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(c: c);
+    return Test(c: c);
   }
 }
 
@@ -919,7 +919,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(local: local);
+    return Test(local: local);
   }
 }
 
@@ -987,7 +987,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: _field);
+    return Test(field: _field);
   }
 }
 
@@ -1033,7 +1033,7 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Test(field: field, field2: _field);
+    return Test(field: field, field2: _field);
   }
 }
 
@@ -1086,7 +1086,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new Test(field: field, local: local);
+    return Test(field: field, local: local);
   }
 }
 
@@ -1157,7 +1157,7 @@ Widget main() {
   var index = 0;
   var a = 'a $index';
 // start
-  return new Test(index: index, a: a);
+  return Test(index: index, a: a);
 // end
 }
 
