@@ -22,11 +22,16 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   /// library.
   // TODO(srawlins): Add tests for navigation links, which use multiple
   // libraries.
-  String renderLibrary(LibraryInfo libraryInfo) {
-    MigrationInfo migrationInfo =
-        MigrationInfo([libraryInfo], resourceProvider.pathContext, '/project');
-    return InstrumentationRenderer(libraryInfo, migrationInfo, PathMapper())
-        .render();
+  List<String> renderLibrary(LibraryInfo libraryInfo) {
+    MigrationInfo migrationInfo = MigrationInfo(
+        libraryInfo.units, resourceProvider.pathContext, '/project');
+    List<String> contents = [];
+    for (UnitInfo unitInfo in libraryInfo.units) {
+      contents.add(
+          InstrumentationRenderer(unitInfo, migrationInfo, PathMapper())
+              .render());
+    }
+    return contents;
   }
 
   test_outputContainsEachPath() async {
@@ -38,10 +43,9 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/part2.dart', 'int? c = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    String output = renderLibrary(info);
-    expect(output, contains('<h2>/lib/a.dart</h2>'));
-    expect(output, contains('<h2>/lib/part1.dart</h2>'));
-    expect(output, contains('<h2>/lib/part2.dart</h2>'));
+    expect(renderLibrary(info)[0], contains('<h2>/lib/a.dart</h2>'));
+    expect(renderLibrary(info)[1], contains('<h2>/lib/part1.dart</h2>'));
+    expect(renderLibrary(info)[2], contains('<h2>/lib/part2.dart</h2>'));
   }
 
   test_outputContainsEscapedHtml() async {
@@ -49,7 +53,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/a.dart', 'List<String>? a = null;',
           regions: [RegionInfo(12, 1, 'null was assigned', [])]),
     ]);
-    String output = renderLibrary(info);
+    String output = renderLibrary(info)[0];
     expect(
         output,
         contains('List&lt;String&gt;<span class="region">?'
@@ -61,7 +65,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
     LibraryInfo info = LibraryInfo([
       unit('/lib/a.dart', 'bool a = true && false;', regions: []),
     ]);
-    String output = renderLibrary(info);
+    String output = renderLibrary(info)[0];
     expect(output, contains('bool a = true &amp;&amp; false;'));
   }
 
@@ -70,7 +74,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    String output = renderLibrary(info);
+    String output = renderLibrary(info)[0];
     expect(
         output,
         contains('int<span class="region">?'

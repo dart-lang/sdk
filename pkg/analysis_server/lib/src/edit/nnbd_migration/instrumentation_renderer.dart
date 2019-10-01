@@ -12,8 +12,8 @@ import 'package:path/path.dart' as path;
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
-  /// Display information for a library.
-  final LibraryInfo libraryInfo;
+  /// Display information for a compilation unit.
+  final UnitInfo unitInfo;
 
   /// Information for a whole migration, so that libraries can reference each
   /// other.
@@ -24,27 +24,21 @@ class InstrumentationRenderer {
   final PathMapper pathMapper;
 
   /// Creates an output object for the given library info.
-  InstrumentationRenderer(
-      this.libraryInfo, this.migrationInfo, this.pathMapper);
+  InstrumentationRenderer(this.unitInfo, this.migrationInfo, this.pathMapper);
 
-  /// Builds an HTML view of the instrumentation information in [libraryInfo].
+  /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
     Map<String, dynamic> mustacheContext = {
       'units': <Map<String, dynamic>>[],
-      'links': migrationInfo.libraryLinks(libraryInfo),
-      'highlightJsPath': migrationInfo.highlightJsPath(libraryInfo),
-      'highlightStylePath': migrationInfo.highlightStylePath(libraryInfo),
+      'links': migrationInfo.unitLinks(unitInfo),
+      'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
+      'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),
     };
-    // TODO(brianwilkerson) Change this so that we generate a separate file for
-    //  each compilation unit rather than one per library.
-    String navContent;
-    for (var compilationUnit in libraryInfo.units) {
-      mustacheContext['units'].add({
-        'path': compilationUnit.path,
-        'regions': _computeRegions(compilationUnit),
-      });
-      navContent = _computeNavigationContent(compilationUnit);
-    }
+    mustacheContext['units'].add({
+      'path': unitInfo.path,
+      'regions': _computeRegions(unitInfo),
+    });
+    String navContent = _computeNavigationContent(unitInfo);
     return _createTemplate(navContent).renderString(mustacheContext);
   }
 
@@ -170,7 +164,7 @@ class InstrumentationRenderer {
   String _uriForTarget(NavigationTarget target) {
     path.Context pathContext = migrationInfo.pathContext;
     String targetPath = pathContext.setExtension(target.filePath, '.html');
-    String sourceDir = pathContext.dirname(libraryInfo.units.first.path);
+    String sourceDir = pathContext.dirname(unitInfo.path);
     String relativePath = pathContext.relative(targetPath, from: sourceDir);
     return '$relativePath#o${target.offset.toString()}';
   }
@@ -182,8 +176,8 @@ class InstrumentationRenderer {
 /// with information about the rest of the libraries represented in the
 /// instrumentation output.
 class MigrationInfo {
-  /// The information about the libraries that are are migrated.
-  final List<LibraryInfo> libraries;
+  /// The information about the compilation units that are are migrated.
+  final List<UnitInfo> units;
 
   /// The resource provider's path context.
   final path.Context pathContext;
@@ -191,46 +185,42 @@ class MigrationInfo {
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  MigrationInfo(this.libraries, this.pathContext, this.includedRoot);
+  MigrationInfo(this.units, this.pathContext, this.includedRoot);
 
-  /// Generate mustache context for library links, for navigation in the
-  /// instrumentation document for [thisLibrary].
-  List<Map<String, Object>> libraryLinks(LibraryInfo thisLibrary) {
+  /// Generate mustache context for unit links, for navigation in the
+  /// instrumentation document for [thisUnit].
+  List<Map<String, Object>> unitLinks(UnitInfo thisUnit) {
     return [
-      for (var library in libraries)
+      for (var unit in units)
         {
-          'name': _computeName(library),
-          'isLink': library != thisLibrary,
-          if (library != thisLibrary)
-            'href': _pathTo(library, source: thisLibrary)
+          'name': _computeName(unit),
+          'isLink': unit != thisUnit,
+          if (unit != thisUnit) 'href': _pathTo(target: unit, source: thisUnit)
         }
     ];
   }
 
-  /// Return the path to [library] from [includedRoot], to be used as a display
+  /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
-  String _computeName(LibraryInfo library) =>
-      pathContext.relative(library.units.first.path, from: includedRoot);
+  String _computeName(UnitInfo unit) =>
+      pathContext.relative(unit.path, from: includedRoot);
 
   /// The path to [target], relative to [from].
-  String _pathTo(LibraryInfo target, {@required LibraryInfo source}) {
-    assert(target.units.isNotEmpty);
-    assert(source.units.isNotEmpty);
-    String targetPath =
-        pathContext.setExtension(target.units.first.path, '.html');
-    String sourceDir = pathContext.dirname(source.units.first.path);
+  String _pathTo({@required UnitInfo target, @required UnitInfo source}) {
+    String targetPath = pathContext.setExtension(target.path, '.html');
+    String sourceDir = pathContext.dirname(source.path);
     return pathContext.relative(targetPath, from: sourceDir);
   }
 
-  /// The path to the highlight.js script, relative to [libraryInfo].
-  String highlightJsPath(LibraryInfo libraryInfo) =>
+  /// The path to the highlight.js script, relative to [unitInfo].
+  String highlightJsPath(UnitInfo unitInfo) =>
       pathContext.relative(pathContext.join(includedRoot, 'highlight.pack.js'),
-          from: pathContext.dirname(libraryInfo.units.first.path));
+          from: pathContext.dirname(unitInfo.path));
 
-  /// The path to the highlight.js stylesheet, relative to [libraryInfo].
-  String highlightStylePath(LibraryInfo libraryInfo) =>
+  /// The path to the highlight.js stylesheet, relative to [unitInfo].
+  String highlightStylePath(UnitInfo unitInfo) =>
       pathContext.relative(pathContext.join(includedRoot, 'androidstudio.css'),
-          from: pathContext.dirname(libraryInfo.units.first.path));
+          from: pathContext.dirname(unitInfo.path));
 }
 
 /// A mustache template for one library's instrumentation output.

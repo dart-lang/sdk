@@ -217,31 +217,25 @@ analyzer:
 
   /// Generate output into the given [folder].
   void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    List<LibraryInfo> libraryInfos =
+    List<UnitInfo> unitInfos =
         await InfoBuilder(instrumentationListener.data, listener)
             .explainMigration();
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo =
-        MigrationInfo(libraryInfos, pathContext, includedRoot);
+        MigrationInfo(unitInfos, pathContext, includedRoot);
     PathMapper pathMapper = PathMapper();
-    for (LibraryInfo libraryInfo in libraryInfos) {
-      assert(libraryInfo.units.isNotEmpty);
-      // TODO(brianwilkerson) When we generate one HTML file per compilation
-      //  unit, move this logic into `PathMapper` and repeat it for each unit.
-      String libraryPath =
-          pathContext.setExtension(libraryInfo.units.first.path, '.html');
+    for (UnitInfo unitInfo in unitInfos) {
+      String libraryPath = pathContext.setExtension(unitInfo.path, '.html');
       String relativePath =
           pathContext.relative(libraryPath, from: includedRoot);
       String htmlPath = pathContext.join(folder.path, relativePath);
-      for (UnitInfo unitInfo in libraryInfo.units) {
-        pathMapper.pathMap[unitInfo.path] = htmlPath;
-      }
+      pathMapper.pathMap[unitInfo.path] = htmlPath;
     }
-    for (LibraryInfo info in libraryInfos) {
-      File output = provider.getFile(pathMapper.map(info.units.first.path));
+    for (UnitInfo unitInfo in unitInfos) {
+      File output = provider.getFile(pathMapper.map(unitInfo.path));
       output.parent.create();
       String rendered =
-          InstrumentationRenderer(info, migrationInfo, pathMapper).render();
+          InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
       output.writeAsStringSync(rendered);
     }
     // Generate resource files:

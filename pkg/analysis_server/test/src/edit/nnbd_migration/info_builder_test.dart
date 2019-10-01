@@ -25,7 +25,7 @@ main() {
 class InfoBuilderTest extends AbstractAnalysisTest {
   /// The information produced by the InfoBuilder, or `null` if [buildInfo] has
   /// not yet completed.
-  List<LibraryInfo> infos;
+  List<UnitInfo> infos;
 
   /// Use the InfoBuilder to build information. The information will be stored
   /// in [infos].
@@ -62,9 +62,7 @@ void g() {
 ''');
     await buildInfo();
     expect(infos, hasLength(1));
-    List<UnitInfo> units = infos[0].units;
-    expect(units, hasLength(1));
-    UnitInfo unit = units[0];
+    UnitInfo unit = infos[0];
     expect(unit.path, testFile);
     expect(unit.content, '''
 void f(String? s) {}

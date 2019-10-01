@@ -52,21 +52,25 @@ class InfoBuilder {
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
-  Future<List<LibraryInfo>> explainMigration() async {
-    Map<Source, SourceInformation> sourceInfo = info.sourceInformation;
-    List<LibraryInfo> libraries = [];
-    for (Source source in sourceInfo.keys) {
+  Future<List<UnitInfo>> explainMigration() async {
+    Map<Source, SourceInformation> sourceInfoMap = info.sourceInformation;
+    List<UnitInfo> units = [];
+    for (Source source in sourceInfoMap.keys) {
       String filePath = source.fullName;
       AnalysisSession session =
           server.getAnalysisDriver(filePath).currentSession;
       if (!session.getFile(filePath).isPart) {
         ResolvedLibraryResult result =
             await session.getResolvedLibrary(filePath);
-        libraries
-            .add(_explainLibrary(result, info, sourceInfo[source], listener));
+        SourceInformation sourceInfo = sourceInfoMap[source];
+        for (ResolvedUnitResult unitResult in result.units) {
+          SourceFileEdit edit =
+              listener.sourceChange.getFileEdit(unitResult.path);
+          units.add(_explainUnit(sourceInfo, unitResult, edit));
+        }
       }
     }
-    return libraries;
+    return units;
   }
 
   /// Return details for a fix built from the given [edge], or `null` if the
@@ -161,20 +165,6 @@ class InfoBuilder {
     }).toList();
   }
 
-  /// Return the migration information for the given library.
-  LibraryInfo _explainLibrary(
-      ResolvedLibraryResult result,
-      InstrumentationInformation info,
-      SourceInformation sourceInfo,
-      DartFixListener listener) {
-    List<UnitInfo> units = [];
-    for (ResolvedUnitResult unitResult in result.units) {
-      SourceFileEdit edit = listener.sourceChange.getFileEdit(unitResult.path);
-      units.add(_explainUnit(sourceInfo, unitResult, edit));
-    }
-    return LibraryInfo(units);
-  }
-
   /// Return the migration information for the unit associated with the
   /// [result].
   UnitInfo _explainUnit(SourceInformation sourceInfo, ResolvedUnitResult result,
@@ -245,12 +235,6 @@ class InfoBuilder {
     return resourceProvider.pathContext.split(filePath).contains('test');
   }
 
-  /// Return the navigation target corresponding to the given [node] in the file
-  /// with the given [filePath].
-  NavigationTarget _targetForNode(String filePath, AstNode node) {
-    return _targetFor(filePath, node.offset, node.length);
-  }
-
   /// Return the navigation target in the file with the given [filePath] at the
   /// given [offset] ans with the given [length].
   NavigationTarget _targetFor(String filePath, int offset, int length) {
@@ -258,6 +242,12 @@ class InfoBuilder {
     NavigationTarget target = NavigationTarget(filePath, offset, length);
     unitInfo.targets.add(target);
     return target;
+  }
+
+  /// Return the navigation target corresponding to the given [node] in the file
+  /// with the given [filePath].
+  NavigationTarget _targetForNode(String filePath, AstNode node) {
+    return _targetFor(filePath, node.offset, node.length);
   }
 
   /// Return the unit info for the file at the given [path].
