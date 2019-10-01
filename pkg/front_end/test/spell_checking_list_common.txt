@@ -1414,6 +1414,7 @@ interpreter
 interpreting
 intersect
 intersection
+intertwined
 into
 intrinsic
 introduce
@@ -2805,6 +2806,7 @@ triples
 triplet
 triplets
 trivial
+trouble
 true
 truly
 truncate
