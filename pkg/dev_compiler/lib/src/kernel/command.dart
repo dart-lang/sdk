@@ -243,6 +243,7 @@ Future<CompilerResult> _compile(List<String> args,
   fe.IncrementalCompiler incrementalCompiler;
   fe.WorkerInputComponent cachedSdkInput;
   bool recordUsedInputs = argResults['used-inputs-file'] != null;
+  List<Uri> inputSummaries = summaryModules.keys.toList();
   if (useAnalyzer || !useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -251,7 +252,7 @@ Future<CompilerResult> _compile(List<String> args,
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
-        summaryModules.keys.toList(),
+        inputSummaries,
         DevCompilerTarget(
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
@@ -286,7 +287,7 @@ Future<CompilerResult> _compile(List<String> args,
         compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
-        summaryModules.keys.toList(),
+        inputSummaries,
         inputDigests,
         DevCompilerTarget(
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
@@ -298,8 +299,6 @@ Future<CompilerResult> _compile(List<String> args,
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];
   }
-
-  List<Uri> inputSummaries = compilerState.options.inputSummaries;
 
   // TODO(jmesserly): is there a cleaner way to do this?
   //
