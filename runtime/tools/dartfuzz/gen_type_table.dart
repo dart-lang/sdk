@@ -7,6 +7,10 @@
 // Usage:
 //   dart gen_type_table.dart > dartfuzz_type_table.dart
 //
+// Reformat:
+//   tools/sdks/dart-sdk/bin/dartfmt -w \
+//   runtime/tools/dartfuzz/dartfuzz_type_table.dart
+//
 // Then send out modified dartfuzz_type_table.dart for review together
 // with a modified dartfuzz.dart that increases the version.
 
@@ -20,7 +24,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-import 'dartfuzz_util.dart';
+import 'gen_util.dart';
 
 // Minimum number of operators that are required for a type to be included in
 // the type table.
@@ -478,8 +482,8 @@ void printTypeTable(Set<InterfaceType> allTypes,
 
   String className = 'DartType${fp ? "" : "NoFp"}${flatTp ? "FlatTp" : ""}';
 
-  print('class $className '
-      '${subclass ? "extends DartType" : ""} {');
+  print('class $className'
+      '${subclass ? " extends DartType" : ""} {');
   print("  final String name;");
   if (!subclass) {
     print("  const DartType._withName(this.name);");
@@ -537,21 +541,21 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   Set<DartType> interfaces(DartType tp) {
-    if(_interfaceRels.containsKey(tp)) {
+    if (_interfaceRels.containsKey(tp)) {
       return _interfaceRels[tp];
     }
     return null;
   }
 
   DartType indexType(DartType tp) {
-    if(_indexedBy.containsKey(tp)) {
+    if (_indexedBy.containsKey(tp)) {
       return _indexedBy[tp];
     }
     return null;
   }
 
   Set<DartType> indexableElementTypes(DartType tp) {
-    if(_indexableElementOf.containsKey(tp)) {
+    if (_indexableElementOf.containsKey(tp)) {
       return _indexableElementOf[tp];
     }
     return null;
@@ -562,7 +566,7 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   DartType elementType(DartType tp) {
-    if(_subscriptsTo.containsKey(tp)) {
+    if (_subscriptsTo.containsKey(tp)) {
       return _subscriptsTo[tp];
     }
     return null;
@@ -573,21 +577,21 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   Set<String> uniOps(DartType tp) {
-    if(_uniOps.containsKey(tp)) {
+    if (_uniOps.containsKey(tp)) {
       return _uniOps[tp];
     }
     return <String>{};
   }
 
   Set<String> binOps(DartType tp) {
-    if(_binOps.containsKey(tp)) {
+    if (_binOps.containsKey(tp)) {
       return _binOps[tp].keys.toSet();
     }
     return <String>{};
   }
 
   Set<List<DartType>> binOpParameters(DartType tp, String op) {
-    if(_binOps.containsKey(tp) &&
+    if (_binOps.containsKey(tp) &&
         _binOps[tp].containsKey(op)) {
       return _binOps[tp][op];
     }
@@ -595,14 +599,14 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   Set<String> assignOps(DartType tp) {
-    if(_assignOps.containsKey(tp)) {
+    if (_assignOps.containsKey(tp)) {
       return _assignOps[tp].keys.toSet();
     }
     return <String>{};
   }
 
   Set<DartType> assignOpRhs(DartType tp, String op) {
-    if(_assignOps.containsKey(tp) &&
+    if (_assignOps.containsKey(tp) &&
         _assignOps[tp].containsKey(op)) {
       return _assignOps[tp][op];
     }
@@ -614,14 +618,14 @@ void printTypeTable(Set<InterfaceType> allTypes,
   }
 
   Set<String> constructors(DartType tp) {
-    if(_constructors.containsKey(tp)) {
+    if (_constructors.containsKey(tp)) {
       return _constructors[tp].keys.toSet();
     }
     return <String>{};
   }
 
   List<DartType> constructorParameters(DartType tp, String constructor) {
-    if(_constructors.containsKey(tp) &&
+    if (_constructors.containsKey(tp) &&
         _constructors[tp].containsKey(constructor)) {
       return _constructors[tp][constructor];
     }
@@ -1198,7 +1202,7 @@ int countOperators(ClassElement ce) {
 
 // Analyze typed_data and core libraries to extract data types.
 void getDataTypes(Set<InterfaceType> allTypes, String dartTop) async {
-  final AnalysisSession session = DartFuzzUtil.createAnalysisSession(dartTop);
+  final AnalysisSession session = GenUtil.createAnalysisSession(dartTop);
 
   // Visit libraries for type table generation.
   await visitLibraryAtUri(session, 'dart:typed_data', allTypes);
@@ -1298,7 +1302,7 @@ main(List<String> arguments) async {
             'exponentially with this, ' +
             'therefore types with higher nesting ' +
             'depth are partially filtered.',
-        defaultsTo: '0');
+        defaultsTo: '1');
   try {
     final results = parser.parse(arguments);
     int depth = int.parse(results['depth']);

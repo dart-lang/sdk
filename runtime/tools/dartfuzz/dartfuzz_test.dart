@@ -9,7 +9,6 @@ import 'dart:math';
 import 'package:args/args.dart';
 
 import 'dartfuzz.dart';
-import 'dartfuzz_util.dart';
 
 const debug = false;
 const sigkill = 9;
@@ -581,7 +580,7 @@ class DartFuzzTestSession {
       this.mode1,
       this.mode2,
       this.rerun)
-      : top = DartFuzzUtil.getTop(tp);
+      : top = getTop(tp);
 
   start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');

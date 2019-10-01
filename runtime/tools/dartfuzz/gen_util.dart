@@ -9,7 +9,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 
 /// Wrapper class for some static utilities.
-class DartFuzzUtil {
+class GenUtil {
   // Picks a top directory (command line, environment, or current).
   static String getTop(String top) {
     if (top == null || top == '') {

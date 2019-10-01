@@ -19,7 +19,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-import 'dartfuzz_util.dart';
+import 'gen_util.dart';
 
 // Class to represent a library method by name and prototype representation.
 class DartLib {
@@ -38,7 +38,7 @@ var setTable = <DartLib>[];
 var mapTable = <DartLib>[];
 
 main() async {
-  final AnalysisSession session = DartFuzzUtil.createAnalysisSession();
+  final AnalysisSession session = GenUtil.createAnalysisSession();
 
   // Visit libraries for table generation.
   await visitLibraryAtUri(session, 'dart:async');
