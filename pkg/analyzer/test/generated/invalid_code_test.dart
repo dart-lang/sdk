@@ -166,6 +166,29 @@ const v = [<S extends num>(S x) => x is int ? x : 0];
 ''');
   }
 
+  test_fuzz_15() async {
+    // `@A` is not a valid annotation, it is missing arguments.
+    // There was a bug that we did not check for arguments being missing.
+    await _assertCanBeAnalyzed(r'''
+class A<T> {}
+
+@A
+class B {}
+''');
+  }
+
+  test_fuzz_16() async {
+    // The default constructor of `A` does not have formal parameters.
+    // But we give it arguments.
+    // There was a bug that we did not check for this mismatch.
+    await _assertCanBeAnalyzed(r'''
+class A<T> {}
+
+@A(0)
+class B {}
+''');
+  }
+
   test_fuzz_38091() async {
     // https://github.com/dart-lang/sdk/issues/38091
     // this caused an infinite loop in parser recovery
