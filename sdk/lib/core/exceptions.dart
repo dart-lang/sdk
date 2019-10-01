@@ -13,9 +13,10 @@ part of dart.core;
  * so that the error can be addressed programmatically. It is intended to be
  * caught, and it should contain useful data fields.
  *
- * Creating instances of [Exception] directly with [:new Exception("message"):]
- * is discouraged, and only included as a temporary measure during development,
- * until the actual exceptions used by a library are done.
+ * Creating instances of [Exception] directly with `Exception("message")`
+ * is discouraged in library code since it doesn't give users a precise
+ * type they can catch. It may be reasonable to use instances of this
+ * class in tests or during development.
  */
 abstract class Exception {
   factory Exception([var message]) => _Exception(message);
