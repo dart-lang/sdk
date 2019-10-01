@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart' show HintCode, StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -93,6 +94,17 @@ bool _isTop(DartType t) {
  * A type system that implements the type semantics for Dart 2.0.
  */
 class Dart2TypeSystem extends TypeSystem {
+  ///
+  /// Create the same TypeSystem with a different provider
+  ///
+  TypeSystem withTypeProvider(TypeProvider typeProvider) {
+    if (this.typeProvider == typeProvider) {
+      return this;
+    }
+    return new Dart2TypeSystem(typeProvider,
+        implicitCasts: implicitCasts, strictInference: strictInference);
+  }
+
   /// Track types currently being compared via type parameter bounds so that we
   /// can detect recursion.
   static Set<TypeComparison> _typeParameterBoundsComparisons =
@@ -694,10 +706,8 @@ class Dart2TypeSystem extends TypeSystem {
         return true;
       }
 
-      DartType bound = t1.element.bound;
-      return bound == null
-          ? false
-          : _typeParameterBoundsSubtype(bound, t2, false);
+      DartType bound = t1.element.bound ?? _defaultBound;
+      return _typeParameterBoundsSubtype(bound, t2, false);
     }
 
     if (t2 is TypeParameterType) {
@@ -789,7 +799,7 @@ class Dart2TypeSystem extends TypeSystem {
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
+      if (isSubtypeOf(to, from.bound ?? _defaultBound)) {
         return new TypeParameterMember(from.element, null, to).type;
       }
     }
@@ -1315,7 +1325,7 @@ class GenericInferrer {
       var typeParamBound = typeParam.bound != null
           ? Substitution.fromPairs(typeFormals, inferredTypes)
               .substituteType(typeParam.bound)
-          : typeProvider.dynamicType;
+          : _typeSystem._defaultBound;
 
       var inferred = inferredTypes[i];
       bool success =
@@ -1388,7 +1398,7 @@ class GenericInferrer {
         if (failAtError) return null;
         TypeParameterElement typeParam = typeFormals[i];
         var typeParamBound = Substitution.fromPairs(typeFormals, inferredTypes)
-            .substituteType(typeParam.bound ?? typeProvider.objectType);
+            .substituteType(typeParam.bound ?? _typeSystem._defaultBound);
         // TODO(jmesserly): improve this error message.
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
@@ -2273,6 +2283,10 @@ abstract class TypeSystem implements public.TypeSystem {
   ///
   bool get nonNullableFeature;
 
+  DartType get _defaultBound => nonNullableFeature
+      ? makeNullable(typeProvider.objectType as TypeImpl)
+      : typeProvider.objectType;
+
   @override
   DartType flatten(DartType type) {
     if (type is InterfaceType) {
@@ -2568,7 +2582,7 @@ abstract class TypeSystem implements public.TypeSystem {
         type.element.name,
       );
 
-      var bound = type.element.bound ?? typeProvider.objectType;
+      var bound = type.element.bound ?? _defaultBound;
       promotedElement.bound = promoteToNonNull(bound);
 
       return TypeParameterTypeImpl(
@@ -2648,7 +2662,7 @@ abstract class TypeSystem implements public.TypeSystem {
 
       var bound = element.bound as TypeImpl;
       if (bound == null) {
-        return typeProvider.objectType;
+        return _defaultBound;
       }
 
       NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
@@ -2855,6 +2869,11 @@ abstract class TypeSystem implements public.TypeSystem {
         implicitCasts: options.implicitCasts,
         strictInference: options.strictInference);
   }
+
+  ///
+  /// Create the same TypeSystem with a different provider
+  ///
+  TypeSystem withTypeProvider(TypeProviderImpl typeProvider);
 }
 
 /// A type that is being inferred but is not currently known.

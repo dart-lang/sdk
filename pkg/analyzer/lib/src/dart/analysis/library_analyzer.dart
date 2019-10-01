@@ -69,7 +69,7 @@ class LibraryAnalyzer {
   final LinkedElementFactory _elementFactory;
   TypeProviderImpl _typeProvider;
 
-  final TypeSystem _typeSystem;
+  TypeSystem _typeSystem;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -102,8 +102,7 @@ class LibraryAnalyzer {
       this._library,
       this._resourceProvider,
       {TestingData testingData})
-      : _typeSystem = _context.typeSystem,
-        _testingData = testingData;
+      : _testingData = testingData;
 
   /**
    * Compute analysis results for all units of the library.
@@ -133,8 +132,10 @@ class LibraryAnalyzer {
     _typeProvider = _context.typeProvider;
     if (featureSet.isEnabled(Feature.non_nullable)) {
       _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
+      _typeSystem = _context.typeSystem.withTypeProvider(_typeProvider);
     } else {
       _typeProvider = _typeProvider.withNullability(NullabilitySuffix.star);
+      _typeSystem = _context.typeSystem.withTypeProvider(_typeProvider);
     }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
@@ -209,6 +210,10 @@ class LibraryAnalyzer {
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
     timerLibraryAnalyzer.stop();
+
+    _typeProvider = null;
+    _typeSystem = null;
+
     return results;
   }
 
@@ -242,7 +247,7 @@ class LibraryAnalyzer {
    * Compute [_constants] in all units.
    */
   void _computeConstants() {
-    computeConstants(_typeProvider, _context.typeSystem, _declaredVariables,
+    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
         _constants.toList(), _analysisOptions.experimentStatus);
   }
 
@@ -255,7 +260,7 @@ class LibraryAnalyzer {
     ErrorReporter errorReporter = _getErrorReporter(file);
 
     unit.accept(new DeadCodeVerifier(errorReporter, unit.featureSet,
-        typeSystem: _context.typeSystem));
+        typeSystem: _typeSystem));
 
     // Dart2js analysis.
     if (_analysisOptions.dart2jsHint) {
@@ -264,7 +269,7 @@ class LibraryAnalyzer {
 
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, file.content,
-        typeSystem: _context.typeSystem,
+        typeSystem: _typeSystem,
         inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
@@ -359,7 +364,7 @@ class LibraryAnalyzer {
 
     CodeChecker checker = new CodeChecker(
       _typeProvider,
-      _context.typeSystem,
+      _typeSystem,
       _inheritance,
       errorListener,
       _analysisOptions,
@@ -382,7 +387,7 @@ class LibraryAnalyzer {
     // Compute inheritance and override errors.
     //
     var inheritanceOverrideVerifier = new InheritanceOverrideVerifier(
-        _context.typeSystem, _inheritance, errorReporter);
+        _typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -641,12 +646,12 @@ class LibraryAnalyzer {
     new DeclarationResolver().resolve(unit, unitElement);
     timerLibraryAnalyzerSplicer.stop();
 
-    unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, errorListener,
+    unit.accept(new AstRewriteVisitor(
+        _typeSystem, _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    new TypeParameterBoundsResolver(_context.typeSystem, _libraryElement,
-            source, errorListener, unit.featureSet)
+    new TypeParameterBoundsResolver(_typeSystem, _libraryElement, source,
+            errorListener, unit.featureSet)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
@@ -672,7 +677,7 @@ class LibraryAnalyzer {
     FlowAnalysisHelper flowAnalysisHelper;
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
       flowAnalysisHelper =
-          FlowAnalysisHelper(_context.typeSystem, unit, _testingData != null);
+          FlowAnalysisHelper(_typeSystem, unit, _testingData != null);
       _testingData?.recordFlowAnalysisResult(
           file.uri, flowAnalysisHelper.result);
     }
