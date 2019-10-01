@@ -5095,12 +5095,6 @@ class StackMap : public Object {
 
   intptr_t Length() const { return raw_ptr()->length_; }
 
-  uint32_t PcOffset() const { return raw_ptr()->pc_offset_; }
-  void SetPcOffset(uint32_t value) const {
-    ASSERT(value <= kMaxUint32);
-    StoreNonPointer(&raw_ptr()->pc_offset_, value);
-  }
-
   intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
   void SetSlowPathBitCount(intptr_t bit_count) const {
     ASSERT(bit_count <= kMaxUint16);
@@ -5132,13 +5126,7 @@ class StackMap : public Object {
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
-  static RawStackMap* New(intptr_t pc_offset,
-                          BitmapBuilder* bmap,
-                          intptr_t register_bit_count);
-
-  static RawStackMap* New(intptr_t length,
-                          intptr_t register_bit_count,
-                          intptr_t pc_offset);
+  static RawStackMap* New(BitmapBuilder* bmap, intptr_t slow_path_bit_count);
 
  private:
   void SetLength(intptr_t length) const {
