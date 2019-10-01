@@ -426,20 +426,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Iterable<NativeType> _getNativeTypeAnnotations(Field node) {
-    final Iterable<NativeType> preConstant2018 = node.annotations
-        .whereType<ConstructorInvocation>()
-        .map((expr) => expr.target.parent)
-        .map((klass) => _getFieldType(klass))
-        .where((type) => type != null);
-    final Iterable<NativeType> postConstant2018 = node.annotations
+    return node.annotations
         .whereType<ConstantExpression>()
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
-    // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
-    return postConstant2018.followedBy(preConstant2018);
   }
 }
 
