@@ -69,15 +69,17 @@ void checkElementText(
   bool annotateNullability: false,
 }) {
   var writer = new _ElementWriter(
-      withCodeRanges: withCodeRanges,
-      withConstElements: withConstElements,
-      withExportScope: withExportScope,
-      withFullyResolvedAst: withFullyResolvedAst,
-      withOffsets: withOffsets,
-      withSyntheticAccessors: withSyntheticAccessors,
-      withSyntheticFields: withSyntheticFields,
-      withTypes: withTypes,
-      annotateNullability: annotateNullability);
+    selfUriStr: '${library.source.uri}',
+    withCodeRanges: withCodeRanges,
+    withConstElements: withConstElements,
+    withExportScope: withExportScope,
+    withFullyResolvedAst: withFullyResolvedAst,
+    withOffsets: withOffsets,
+    withSyntheticAccessors: withSyntheticAccessors,
+    withSyntheticFields: withSyntheticFields,
+    withTypes: withTypes,
+    annotateNullability: annotateNullability,
+  );
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -138,6 +140,7 @@ void checkElementText(
  * Writes the canonical text presentation of elements.
  */
 class _ElementWriter {
+  final String selfUriStr;
   final bool withCodeRanges;
   final bool withExportScope;
   final bool withFullyResolvedAst;
@@ -151,16 +154,18 @@ class _ElementWriter {
 
   String indent = '';
 
-  _ElementWriter(
-      {this.withCodeRanges,
-      this.withConstElements: true,
-      this.withExportScope: false,
-      this.withFullyResolvedAst: false,
-      this.withOffsets: false,
-      this.withSyntheticAccessors: false,
-      this.withSyntheticFields: false,
-      this.withTypes: false,
-      this.annotateNullability: false});
+  _ElementWriter({
+    this.selfUriStr,
+    this.withCodeRanges,
+    this.withConstElements: true,
+    this.withExportScope: false,
+    this.withFullyResolvedAst: false,
+    this.withOffsets: false,
+    this.withSyntheticAccessors: false,
+    this.withSyntheticFields: false,
+    this.withTypes: false,
+    this.annotateNullability: false,
+  });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -1239,7 +1244,7 @@ class _ElementWriter {
     buffer.write(indent);
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: 'file:///test.dart',
+        selfUriStr: selfUriStr,
         sink: buffer,
         indent: indent,
       ),
