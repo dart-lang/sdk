@@ -167,6 +167,7 @@ class BytecodeFlowGraphBuilder {
                         int num_args);
   void BuildIntOp(const String& name, Token::Kind token_kind, int num_args);
   void BuildDoubleOp(const String& name, Token::Kind token_kind, int num_args);
+  void BuildDirectCallCommon(bool is_unchecked_call);
   void BuildInterfaceCallCommon(bool is_unchecked_call,
                                 bool is_instantiated_call);
 

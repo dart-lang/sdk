@@ -394,6 +394,11 @@ class BytecodeAssembler {
     _emitInstructionDF(Opcode.kDirectCall, rd, rf);
   }
 
+  void emitUncheckedDirectCall(int rd, int rf) {
+    emitSourcePositionForCall();
+    _emitInstructionDF(Opcode.kUncheckedDirectCall, rd, rf);
+  }
+
   void emitInterfaceCall(int rd, int rf) {
     emitSourcePositionForCall();
     _emitInstructionDF(Opcode.kInterfaceCall, rd, rf);
@@ -564,5 +569,10 @@ class BytecodeAssembler {
   void emitAllocateClosure(int rd) {
     emitSourcePosition();
     _emitInstructionD(Opcode.kAllocateClosure, rd);
+  }
+
+  void emitCheckReceiverForNull(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kCheckReceiverForNull, rd);
   }
 }

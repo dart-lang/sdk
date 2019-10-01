@@ -649,8 +649,8 @@ namespace dart {
   V(JumpIfNotNull_Wide,                    T, WIDE, tgt, ___, ___)             \
   V(DirectCall,                          D_F, ORDN, num, num, ___)             \
   V(DirectCall_Wide,                     D_F, WIDE, num, num, ___)             \
-  V(Unused21,                              0, RESV, ___, ___, ___)             \
-  V(Unused22,                              0, RESV, ___, ___, ___)             \
+  V(UncheckedDirectCall,                 D_F, ORDN, num, num, ___)             \
+  V(UncheckedDirectCall_Wide,            D_F, WIDE, num, num, ___)             \
   V(InterfaceCall,                       D_F, ORDN, num, num, ___)             \
   V(InterfaceCall_Wide,                  D_F, WIDE, num, num, ___)             \
   V(Unused23,                              0, RESV, ___, ___, ___)             \
@@ -689,8 +689,8 @@ namespace dart {
   V(MoveSpecial_Wide,                    A_Y, WIDE, num, xeg, ___)             \
   V(BooleanNegateTOS,                      0, ORDN, ___, ___, ___)             \
   V(EqualsNull,                            0, ORDN, ___, ___, ___)             \
-  V(Unused36,                              0, RESV, ___, ___, ___)             \
-  V(Unused37,                              0, RESV, ___, ___, ___)             \
+  V(CheckReceiverForNull,                  D, ORDN, lit, ___, ___)             \
+  V(CheckReceiverForNull_Wide,             D, WIDE, lit, ___, ___)             \
   V(NegateInt,                             0, ORDN, ___, ___, ___)             \
   V(AddInt,                                0, ORDN, ___, ___, ___)             \
   V(SubInt,                                0, ORDN, ___, ___, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 20;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 21;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -981,6 +981,8 @@ class KernelBytecode {
       case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
+      case KernelBytecode::kUncheckedDirectCall:
+      case KernelBytecode::kUncheckedDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:
       case KernelBytecode::kInterfaceCall_Wide:
       case KernelBytecode::kInstantiatedInterfaceCall:

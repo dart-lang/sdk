@@ -645,7 +645,7 @@ L1:
   Push                 FP[-7]
   Push                 FP[-6]
   Push                 FP[-5]
-  DirectCall           CP#9, 5
+  UncheckedDirectCall  CP#9, 5
   ReturnTOS
 }
 Parameter flags: [0, 1, 2]

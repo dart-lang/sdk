@@ -123,7 +123,7 @@ Bytecode {
   Push                 FP[-6]
   PushConstant         CP#1
   PushInt              2
-  DirectCall           CP#2, 4
+  UncheckedDirectCall  CP#2, 4
   ReturnTOS
 }
 ConstantPool {
@@ -201,7 +201,7 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   PushInt              3
-  DirectCall           CP#0, 2
+  UncheckedDirectCall  CP#0, 2
   Drop1
   PushNull
   ReturnTOS

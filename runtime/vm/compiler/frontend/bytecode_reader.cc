@@ -715,6 +715,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kInterfaceCall,
     kInstantiatedInterfaceCall,
     kDynamicCall,
+    kDirectCallViaDynamicForwarder,
   };
 
   enum InvocationKind {
@@ -914,6 +915,23 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         ++i;
         ASSERT(i < obj_count);
         obj = Object::null();
+      } break;
+      case ConstantPoolTag::kDirectCallViaDynamicForwarder: {
+        // DirectCallViaDynamicForwarder constant occupies 2 entries.
+        // The first entry is used for target function.
+        obj = ReadObject();
+        ASSERT(obj.IsFunction());
+        name = Function::Cast(obj).name();
+        name = Function::CreateDynamicInvocationForwarderName(name);
+        obj = Function::Cast(obj).GetDynamicInvocationForwarder(name);
+
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for arguments descriptor.
+        obj = ReadObject();
       } break;
       default:
         UNREACHABLE();
