@@ -10,9 +10,9 @@ library;
 //   num Function(num) numId = c.getter;
 //                               ^
 //
-// pkg/front_end/testcases/extensions/tear_offs.dart:31:32: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
+// pkg/front_end/testcases/extensions/tear_offs.dart:31:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
 //   bool Function(bool) boolId = Extension(c).getter;
-//                                ^
+//                                             ^
 //
 import self as self;
 import "dart:core" as core;
@@ -59,7 +59,7 @@ static method errors() → dynamic {
   (core::num*) →* core::num* numId = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:30:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
   num Function(num) numId = c.getter;
                               ^" in self::Extension|get#getter(c) as{TypeError} (core::num*) →* core::num*;
-  (core::bool*) →* core::bool* boolId = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:31:32: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
+  (core::bool*) →* core::bool* boolId = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:31:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
   bool Function(bool) boolId = Extension(c).getter;
-                               ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
+                                            ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
 }

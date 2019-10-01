@@ -1961,10 +1961,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       List<DartType> explicitTypeArguments,
       int extensionTypeParameterCount,
       {bool isNullAware}) {
+    assert(getterBuilder != null || setterBuilder != null);
     String targetName;
     Procedure readTarget;
     Procedure invokeTarget;
     if (getterBuilder != null) {
+      assert(!getterBuilder.isStatic);
       if (getterBuilder is AccessErrorBuilder) {
         AccessErrorBuilder error = getterBuilder;
         getterBuilder = error.builder;
@@ -1989,12 +1991,21 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       }
     }
     Procedure writeTarget;
-    if (setterBuilder is AccessErrorBuilder) {
-      targetName ??= setterBuilder.name;
-    } else if (setterBuilder != null && setterBuilder.isSetter) {
-      MemberBuilder memberBuilder = setterBuilder;
-      writeTarget = memberBuilder.member;
-      targetName ??= memberBuilder.name;
+    if (setterBuilder != null) {
+      assert(!setterBuilder.isStatic);
+      if (setterBuilder is AccessErrorBuilder) {
+        targetName ??= setterBuilder.name;
+      } else if (setterBuilder.isSetter) {
+        MemberBuilder memberBuilder = setterBuilder;
+        writeTarget = memberBuilder.member;
+        targetName ??= memberBuilder.name;
+      } else {
+        return unhandled(
+            "${setterBuilder.runtimeType}",
+            "InstanceExtensionAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
     }
     return new ExplicitExtensionInstanceAccessGenerator(
         helper,
@@ -2554,10 +2565,16 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return _makeInvalidRead();
   }
 
-  Generator _createInstanceAccess(Name name, {bool isNullAware}) {
+  Generator _createInstanceAccess(Token token, Name name, {bool isNullAware}) {
     Builder getter = extensionBuilder.lookupLocalMember(name.name);
+    if (getter != null && getter.isStatic) {
+      getter = null;
+    }
     Builder setter =
         extensionBuilder.lookupLocalMember(name.name, setter: true);
+    if (setter != null && setter.isStatic) {
+      setter = null;
+    }
     if (getter == null && setter == null) {
       return new UnresolvedNameGenerator(_helper, token, name);
     }
@@ -2580,7 +2597,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
           messageNotAConstantExpression, fileOffset, token.length);
     }
     Generator generator =
-        _createInstanceAccess(send.name, isNullAware: isNullAware);
+        _createInstanceAccess(send.token, send.name, isNullAware: isNullAware);
     if (send.arguments != null) {
       return generator.doInvocation(offsetForToken(send.token), send.arguments);
     } else {
@@ -2590,7 +2607,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   doInvocation(int offset, Arguments arguments) {
-    Generator generator = _createInstanceAccess(callName, isNullAware: false);
+    Generator generator =
+        _createInstanceAccess(token, callName, isNullAware: false);
     return generator.doInvocation(offset, arguments);
   }
 
