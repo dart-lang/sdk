@@ -64,7 +64,16 @@ class DevCompilerTarget extends Target {
       uri.scheme == 'dart' &&
       (uri.path == 'core' || uri.path == '_interceptors');
 
+  /// Returns [true] if [uri] represents a test script has been whitelisted to
+  /// import private platform libraries.
+  ///
+  /// Unit tests for the dart:_runtime library have imports like this. It is
+  /// only allowed from a specific SDK test directory or through the modular
+  /// test framework.
   bool _allowedTestLibrary(Uri uri) {
+    // Multi-root scheme used by modular test framework.
+    if (uri.scheme == 'dev-dart-app') return true;
+
     String scriptName = uri.path;
     return scriptName.contains('tests/compiler/dartdevc_native');
   }
