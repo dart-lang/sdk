@@ -84,6 +84,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _sink.addBytes(bytes);
   }
 
+  @pragma("vm:prefer-inline")
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
@@ -2608,6 +2609,7 @@ class BufferedSink {
         _doubleBufferUint8[6], _doubleBufferUint8[7]);
   }
 
+  @pragma("vm:prefer-inline")
   void addByte(int byte) {
     _buffer[length++] = byte;
     if (length == SIZE) {
@@ -2618,6 +2620,7 @@ class BufferedSink {
     }
   }
 
+  @pragma("vm:prefer-inline")
   void addByte2(int byte1, int byte2) {
     if (length < SAFE_SIZE) {
       _buffer[length++] = byte1;
@@ -2628,6 +2631,7 @@ class BufferedSink {
     }
   }
 
+  @pragma("vm:prefer-inline")
   void addByte4(int byte1, int byte2, int byte3, int byte4) {
     if (length < SAFE_SIZE) {
       _buffer[length++] = byte1;
