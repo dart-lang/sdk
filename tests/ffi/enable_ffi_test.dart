@@ -4,17 +4,17 @@
 //
 // Dart test program for testing the --enable-ffi=false flag.
 //
+// Note: In AoT and Android the flag is passed to Dart when executing the
+// precompiled executable, so the error shows up as a runtime error rather than
+// a compile time error.
+//
 // VMOptions=--enable-ffi=false
 
-library FfiTest;
-
-import 'dart:ffi' as ffi; //# 01: compile-time error
-
-import "package:expect/expect.dart";
+import 'dart:ffi'; //# 01: compile-time error, runtime error
 
 void main() {
-  ffi.Pointer<ffi.Int64> p = ffi.allocate(); //# 01: compile-time error, runtime error
-  p.store(42); //# 01: compile-time error, runtime error
-  Expect.equals(42, p.load<int>()); //# 01: compile-time error, runtime error
+  Pointer<Int8> p = //# 01: compile-time error, runtime error
+      Pointer.allocate(); //# 01: compile-time error, runtime error
+  print(p.address); //# 01: compile-time error, runtime error
   p.free(); //# 01: compile-time error, runtime error
 }

@@ -114,6 +114,8 @@ class VmTarget extends Target {
         // need to index dart:collection, as it is only needed for desugaring of
         // const sets. We can remove it from this list at that time.
         "dart:collection",
+        // The bytecode pipeline uses the index to check if dart:ffi is used.
+        "dart:ffi",
         // TODO(askesc): This is for the VM host endian optimization, which
         // could possibly be done more cleanly after the VM no longer supports
         // doing constant evaluation on its own. See http://dartbug.com/32836
