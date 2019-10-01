@@ -71,8 +71,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
-    _writeln('IntegerLiteral(${node.literal.lexeme})');
+    _writeln('IntegerLiteral');
     _withIndent(() {
+      _writelnWithIndent('literal: ${node.literal}');
       _writeType('staticType', node.staticType);
     });
   }

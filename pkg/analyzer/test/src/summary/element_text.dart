@@ -250,6 +250,13 @@ class _ElementWriter {
     });
 
     buffer.writeln('}');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+      });
+    }
   }
 
   void writeCodeRange(Element e) {
@@ -380,6 +387,13 @@ class _ElementWriter {
     });
 
     buffer.writeln('}');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+      });
+    }
   }
 
   void writeFunctionElement(FunctionElement e) {
@@ -544,6 +558,13 @@ class _ElementWriter {
       buffer.writeln(';');
     } else {
       buffer.writeln(' {}');
+    }
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedTypeParameters(e.typeParameters);
+        _writeResolvedMetadata(e.metadata);
+      });
     }
   }
 
@@ -1075,7 +1096,9 @@ class _ElementWriter {
   }
 
   void writeTypeParameterElements(List<TypeParameterElement> elements) {
-    writeList('<', '>', elements, ', ', writeTypeParameterElement);
+    if (!withFullyResolvedAst) {
+      writeList('<', '>', elements, ', ', writeTypeParameterElement);
+    }
   }
 
   void writeUnitElement(CompilationUnitElement e) {
@@ -1221,6 +1244,22 @@ class _ElementWriter {
         indent: indent,
       ),
     );
+  }
+
+  void _writeResolvedTypeParameters(List<TypeParameterElement> elements) {
+    if (elements.isNotEmpty) {
+      _writelnWithIndent('typeParameters');
+      _withIndent(() {
+        for (TypeParameterElementImpl e in elements) {
+          _writelnWithIndent(e.name);
+          _withIndent(() {
+            _writelnWithIndent('bound: ${e.bound}');
+            _writelnWithIndent('defaultType: ${e.defaultType}');
+            _writeResolvedMetadata(e.metadata);
+          });
+        }
+      });
+    }
   }
 }
 

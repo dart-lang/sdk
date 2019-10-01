@@ -8105,6 +8105,62 @@ class C {
 ''');
   }
 
+  test_metadata_class_scope() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+class C<@foo T> {
+  static const foo = 1;
+  @foo
+  void bar() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class C {
+  static const int foo;
+    constantInitializer
+      IntegerLiteral
+        literal: 1
+        staticType: int
+  void bar() {}
+    metadata
+      Annotation
+        element: self::C::foo
+        name: SimpleIdentifier
+          staticElement: self::C::foo
+          staticType: int
+          token: foo
+}
+  metadata
+    Annotation
+      element: self::foo
+      name: SimpleIdentifier
+        staticElement: self::foo
+        staticType: int
+        token: foo
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+      metadata
+        Annotation
+          element: self::foo
+          name: SimpleIdentifier
+            staticElement: self::foo
+            staticType: int
+            token: foo
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_metadata_classDeclaration() async {
     var library = await checkLibrary(r'''
 const a = null;
@@ -8284,6 +8340,63 @@ const dynamic a = null;
 export 'foo.dart';
 const dynamic a = null;
 ''');
+  }
+
+  test_metadata_extension_scope() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+extension E<@foo T> on int {
+  static const foo = 1;
+  @foo
+  void bar() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+extension E on int {
+  static const int foo;
+    constantInitializer
+      IntegerLiteral
+        literal: 1
+        staticType: int
+  void bar() {}
+    metadata
+      Annotation
+        element: self::E::foo
+        name: SimpleIdentifier
+          staticElement: self::E::foo
+          staticType: int
+          token: foo
+}
+  metadata
+    Annotation
+      element: self::foo
+      name: SimpleIdentifier
+        staticElement: self::foo
+        staticType: int
+        token: foo
+  typeParameters
+    T
+      bound: null
+      defaultType: null
+      metadata
+        Annotation
+          element: self::foo
+          name: SimpleIdentifier
+            staticElement: self::foo
+            staticType: int
+            token: foo
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
   }
 
   test_metadata_extensionDeclaration() async {
@@ -8540,6 +8653,62 @@ const dynamic a = null;
 ''');
   }
 
+  test_metadata_mixin_scope() async {
+    var library = await checkLibrary(r'''
+const foo = 0;
+
+@foo
+mixin M<@foo T> {
+  static const foo = 1;
+  @foo
+  void bar() {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+mixin M on Object {
+  static const int foo;
+    constantInitializer
+      IntegerLiteral
+        literal: 1
+        staticType: int
+  void bar() {}
+    metadata
+      Annotation
+        element: self::M::foo
+        name: SimpleIdentifier
+          staticElement: self::M::foo
+          staticType: int
+          token: foo
+}
+  metadata
+    Annotation
+      element: self::foo
+      name: SimpleIdentifier
+        staticElement: self::foo
+        staticType: int
+        token: foo
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
+      metadata
+        Annotation
+          element: self::foo
+          name: SimpleIdentifier
+            staticElement: self::foo
+            staticType: int
+            token: foo
+const int foo;
+  constantInitializer
+    IntegerLiteral
+      literal: 0
+      staticType: int
+''',
+        withFullyResolvedAst: true);
+  }
+
   test_metadata_mixinDeclaration() async {
     var library = await checkLibrary(r'''
 const a = null;
@@ -8589,92 +8758,6 @@ import 'a.dart' as a;
 class C {
 }
 ''');
-  }
-
-  test_metadata_referenceStaticMethod() async {
-    featureSet = enableExtensionMethods;
-    var library = await checkLibrary(r'''
-class A {
-  const A(Object value);
-}
-
-class C {
-  @A(m)
-  static int f;
-  static void m() {}
-}
-
-mixin M {
-  @A(m)
-  static int f;
-  static void m() {}
-}
-
-extension E on int {
-  @A(m)
-  static int f;
-  static void m() {}
-}
-''');
-    checkElementText(
-        library,
-        r'''
-class A {
-  const A(Object value);
-}
-class C {
-  static int f;
-    metadata
-      Annotation
-        arguments: ArgumentList
-          arguments
-            SimpleIdentifier
-              staticElement: self::C::m
-              staticType: void Function()
-              token: m
-        element: self::A::•
-        name: SimpleIdentifier
-          staticElement: self::A
-          staticType: Type
-          token: A
-  static void m() {}
-}
-mixin M on Object {
-  static int f;
-    metadata
-      Annotation
-        arguments: ArgumentList
-          arguments
-            SimpleIdentifier
-              staticElement: self::M::m
-              staticType: void Function()
-              token: m
-        element: self::A::•
-        name: SimpleIdentifier
-          staticElement: self::A
-          staticType: Type
-          token: A
-  static void m() {}
-}
-extension E on int {
-  static int f;
-    metadata
-      Annotation
-        arguments: ArgumentList
-          arguments
-            SimpleIdentifier
-              staticElement: self::E::m
-              staticType: void Function()
-              token: m
-        element: self::A::•
-        name: SimpleIdentifier
-          staticElement: self::A
-          staticType: Type
-          token: A
-  static void m() {}
-}
-''',
-        withFullyResolvedAst: true);
   }
 
   test_metadata_simpleFormalParameter() async {
@@ -11117,9 +11200,13 @@ const A<int> a = A();
     checkElementText(
         library,
         r'''
-class A<T> {
+class A {
   const A();
 }
+  typeParameters
+    T
+      bound: null
+      defaultType: dynamic
 const A<int> a;
   constantInitializer
     InstanceCreationExpression

@@ -37,10 +37,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
       node.members.accept(this);
     } finally {
       _scope = _libraryScope;
@@ -88,10 +89,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
       node.members.accept(this);
     } finally {
       _scope = _libraryScope;
@@ -172,10 +174,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+
     _scope = LinkingNodeContext.get(node).scope;
     try {
-      node.metadata.accept(this);
-      node.typeParameters?.accept(this);
       node.members.accept(this);
     } finally {
       _scope = _libraryScope;
