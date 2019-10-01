@@ -5456,6 +5456,9 @@ class Script extends Obj {
   static Script parse(Map<String, dynamic> json) =>
       json == null ? null : Script._fromJson(json);
 
+  final _tokenToLine = <int, int>{};
+  final _tokenToColumn = <int, int>{};
+
   /// The uri from which this script was loaded.
   String uri;
 
@@ -5496,6 +5499,34 @@ class Script extends Obj {
         ? null
         : List<List<int>>.from(
             json['tokenPosTable'].map((dynamic list) => List<int>.from(list)));
+    _parseTokenPosTable();
+  }
+
+  /// This function maps a token position to a line number.
+  /// The VM considers the first line to be line 1.
+  int getLineNumberFromTokenPos(int tokenPos) => _tokenToLine[tokenPos];
+
+  /// This function maps a token position to a column number.
+  /// The VM considers the first column to be column 1.
+  int getColumnNumberFromTokenPos(int tokenPos) => _tokenToColumn[tokenPos];
+
+  void _parseTokenPosTable() {
+    if (tokenPosTable == null) {
+      return;
+    }
+    final lineSet = Set<int>();
+    for (List line in tokenPosTable) {
+      // Each entry begins with a line number...
+      int lineNumber = line[0];
+      lineSet.add(lineNumber);
+      for (var pos = 1; pos < line.length; pos += 2) {
+        // ...and is followed by (token offset, col number) pairs.
+        final int tokenOffset = line[pos];
+        final int colNumber = line[pos + 1];
+        _tokenToLine[tokenOffset] = lineNumber;
+        _tokenToColumn[tokenOffset] = colNumber;
+      }
+    }
   }
 
   @override

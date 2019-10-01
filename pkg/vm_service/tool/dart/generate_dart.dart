@@ -1333,6 +1333,10 @@ class Type extends Member {
     if (name == 'Response') {
       gen.writeln('Map<String, dynamic> json;');
     }
+    if (name == 'Script') {
+      gen.writeln('final _tokenToLine = <int, int>{};');
+      gen.writeln('final _tokenToColumn = <int, int>{};');
+    }
 
     // fields
     fields.forEach((TypeField field) => field.generate(gen));
@@ -1425,6 +1429,7 @@ class Type extends Member {
         }
         gen.writeln("List<List<int>>.from(json['tokenPosTable'].map"
             "((dynamic list) => List<int>.from(list)));");
+        gen.writeln('_parseTokenPosTable();');
       } else if (field.type.isArray) {
         TypeRef fieldType = field.type.types.first;
         String typesList = _typeRefListToString(field.type.types);
@@ -1470,6 +1475,10 @@ class Type extends Member {
       gen.writeln('}');
     }
     gen.writeln();
+
+    if (name == 'Script') {
+      generateScriptTypeMethods(gen);
+    }
 
     // toJson support, the base Response type is not supported
     if (name == 'Response') {
@@ -1553,6 +1562,39 @@ Map<String, dynamic> toJson() {
     }
 
     gen.writeln('}');
+  }
+
+  // Special methods for Script objects.
+  void generateScriptTypeMethods(DartGenerator gen) {
+    gen.writeDocs('''This function maps a token position to a line number.
+The VM considers the first line to be line 1.''');
+    gen.writeln(
+        'int getLineNumberFromTokenPos(int tokenPos) => _tokenToLine[tokenPos];');
+    gen.writeln();
+    gen.writeDocs('''This function maps a token position to a column number.
+The VM considers the first column to be column 1.''');
+    gen.writeln(
+        'int getColumnNumberFromTokenPos(int tokenPos) => _tokenToColumn[tokenPos];');
+    gen.writeln();
+    gen.writeln('''
+void _parseTokenPosTable() {
+  if (tokenPosTable == null) {
+    return;
+  }
+  final lineSet = Set<int>();
+  for (List line in tokenPosTable) {
+    // Each entry begins with a line number...
+    int lineNumber = line[0];
+    lineSet.add(lineNumber);
+    for (var pos = 1; pos < line.length; pos += 2) {
+      // ...and is followed by (token offset, col number) pairs.
+      final int tokenOffset = line[pos];
+      final int colNumber = line[pos + 1];
+      _tokenToLine[tokenOffset] = lineNumber;
+      _tokenToColumn[tokenOffset] = colNumber;
+    }
+  }
+}''');
   }
 
   // Writes the code to retrieve the serialized value of a field.

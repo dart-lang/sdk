@@ -74,4 +74,4 @@ var tests = <VMTest>[
   }
 ];
 
-main(args) async => runVMTests(args, tests);
+main([args = const <String>[]]) async => runVMTests(args, tests);
