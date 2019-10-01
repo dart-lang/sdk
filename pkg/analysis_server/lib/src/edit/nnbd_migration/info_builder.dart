@@ -10,6 +10,7 @@ import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show Location, SourceEdit, SourceFileEdit;
@@ -64,6 +65,41 @@ class InfoBuilder {
     return libraries;
   }
 
+  /// Return details for a fix built from the given [edge], or `null` if the
+  /// edge does not have an origin.
+  String _buildDescriptionForDestination(AstNode node) {
+    // Other found types:
+    // - ConstructorDeclaration
+    if (node.parent is FormalParameterList) {
+      return "A nullable value can't be passed as an argument";
+    } else {
+      return "A nullable value can't be used here";
+    }
+  }
+
+  /// Return details for a fix built from the given [edge], or `null` if the
+  /// edge does not have an origin.
+  String _buildDescriptionForOrigin(AstNode node) {
+    String /*!*/ description;
+    if (node.parent is ArgumentList) {
+      if (node is NullLiteral) {
+        description = "An explicit 'null' is passed as an argument";
+      } else {
+        description = "A nullable value is explicitly passed as an argument";
+      }
+    } else {
+      if (node is NullLiteral) {
+        description = "An explicit 'null' is assigned";
+      } else {
+        description = "A nullable value is assigned";
+      }
+    }
+    if (_inTestCode(node)) {
+      description += " in test code";
+    }
+    return description;
+  }
+
   /// Compute the details for the fix with the given [fixInfo].
   List<RegionDetail> _computeDetails(FixInfo fixInfo) {
     List<RegionDetail> details = [];
@@ -73,32 +109,19 @@ class InfoBuilder {
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
-              AstNode node = origin.node;
-              if (node.parent is ArgumentList) {
-                if (node is NullLiteral) {
-                  details.add(RegionDetail(
-                      "'null' is explicitly passed as an argument",
-                      _targetFor(origin)));
-                } else {
-                  details.add(RegionDetail(
-                      "A nullable value is explicitly passed as an argument",
-                      _targetFor(origin)));
-                }
-              } else {
-                if (node is NullLiteral) {
-                  details.add(RegionDetail(
-                      "'null' is explicitly assigned", _targetFor(origin)));
-                } else {
-                  details.add(RegionDetail(
-                      "A nullable value is assigned", _targetFor(origin)));
-                }
-              }
+              details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
+                  _targetFor(origin.source.fullName, origin.node)));
             }
           }
         }
       } else if (reason is EdgeInfo) {
-        // TODO(brianwilkerson) Implement this after finding an example whose
-        //  reason is an edge that should contribute a detail.
+        NullabilityNodeInfo destination = reason.destinationNode;
+        var nodeInfo = info.nodeInfoFor(destination);
+        if (nodeInfo != null) {
+          details.add(RegionDetail(
+              _buildDescriptionForDestination(nodeInfo.astNode),
+              _targetFor(nodeInfo.filePath, nodeInfo.astNode)));
+        }
       } else {
         throw UnimplementedError(
             'Unexpected class of reason: ${reason.runtimeType}');
@@ -173,10 +196,22 @@ class InfoBuilder {
     return null;
   }
 
-  /// Return the navigation target corresponding to the given [origin].
-  NavigationTarget _targetFor(EdgeOriginInfo origin) {
-    AstNode node = origin.node;
-    String filePath = origin.source.fullName;
+  /// Return `true` if the given [node] is from a compilation unit within the
+  /// 'test' directory of the package.
+  bool _inTestCode(AstNode node) {
+    // TODO(brianwilkerson) Generalize this.
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    CompilationUnitElement unitElement = unit?.declaredElement;
+    if (unitElement != null) {
+      String filePath = unitElement.source.fullName;
+      var resourceProvider = unitElement.session.resourceProvider;
+      return resourceProvider.pathContext.split(filePath).contains('test');
+    }
+  }
+
+  /// Return the navigation target corresponding to the given [node] in the file
+  /// with the given [filePath].
+  NavigationTarget _targetFor(String filePath, AstNode node) {
     UnitInfo unitInfo = _unitForPath(filePath);
     NavigationTarget target =
         NavigationTarget(filePath, node.offset, node.length);

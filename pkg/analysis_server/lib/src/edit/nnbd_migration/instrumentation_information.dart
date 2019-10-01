@@ -34,6 +34,55 @@ class InstrumentationInformation {
 
   /// Initialize a newly created holder of instrumentation information.
   InstrumentationInformation();
+
+  /// Return information about the given [node].
+  NodeInformation nodeInfoFor(NullabilityNodeInfo node) {
+    for (MapEntry<Source, SourceInformation> sourceEntry
+        in sourceInformation.entries) {
+      SourceInformation sourceInfo = sourceEntry.value;
+      for (MapEntry<AstNode, DecoratedTypeInfo> entry
+          in sourceInfo.implicitReturnType.entries) {
+        if (entry.value.node == node) {
+          return NodeInformation(
+              sourceEntry.key.fullName, entry.key, entry.value);
+        }
+      }
+      for (MapEntry<AstNode, DecoratedTypeInfo> entry
+          in sourceInfo.implicitType.entries) {
+        if (entry.value.node == node) {
+          return NodeInformation(
+              sourceEntry.key.fullName, entry.key, entry.value);
+        }
+      }
+      for (MapEntry<AstNode, List<DecoratedTypeInfo>> entry
+          in sourceInfo.implicitTypeArguments.entries) {
+        for (var type in entry.value) {
+          if (type.node == node) {
+            return NodeInformation(sourceEntry.key.fullName, entry.key, type);
+          }
+        }
+      }
+    }
+    // The loop below doesn't help because we still don't have access to an AST
+    // node.
+//    for (MapEntry<Element, DecoratedTypeInfo> entry in externalDecoratedType.entries) {
+//      if (entry.value.node == node) {
+//        return NodeInformation(null, null, entry.value);
+//      }
+//    }
+    return null;
+  }
+}
+
+/// The instrumentation information about a [NullabilityNodeInfo].
+class NodeInformation {
+  final String filePath;
+
+  final AstNode astNode;
+
+  final DecoratedTypeInfo decoratedType;
+
+  NodeInformation(this.filePath, this.astNode, this.decoratedType);
 }
 
 /// The instrumentation information gathered from the migration engine that is
