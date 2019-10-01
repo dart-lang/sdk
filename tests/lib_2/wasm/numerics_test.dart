@@ -29,9 +29,7 @@ void main() {
     0x01, 0x92, 0x0b,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports()
-    ..addMemory("env", "memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("env", "__memory_base", 1024, false));
+  var inst = WasmModule(data).instantiate(WasmImports());
   var addI64 = inst.lookupFunction<Int64 Function(Int64, Int64)>("addI64");
   var addI32 = inst.lookupFunction<Int32 Function(Int32, Int32)>("addI32");
   var addF64 = inst.lookupFunction<Double Function(Double, Double)>("addF64");

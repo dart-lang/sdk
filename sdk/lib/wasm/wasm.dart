@@ -80,6 +80,9 @@ abstract class WasmMemory {
 abstract class WasmInstance {
   // Find an exported function with the given signature.
   WasmFunction<T> lookupFunction<T extends Function>(String name);
+
+  // Returns this instances's memory.
+  WasmMemory get memory;
 }
 
 // WasmFunction is a callable function in a WasmInstance.

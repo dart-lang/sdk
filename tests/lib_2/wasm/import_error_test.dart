@@ -10,6 +10,8 @@ import "dart:typed_data";
 
 void main() {
   var imp = WasmImports();
+  imp.addGlobal<Int64>("env", "x", 123, false);
+  imp.addGlobal<Double>("env", "y", 4.56, true);
   Expect.throwsArgumentError(() => imp.addGlobal<int>("env", "a", 1, true));
   Expect.throwsArgumentError(() => imp.addGlobal<double>("env", "b", 2, true));
   Expect.throwsArgumentError(() => imp.addGlobal<dynamic>("env", "c", 3, true));
