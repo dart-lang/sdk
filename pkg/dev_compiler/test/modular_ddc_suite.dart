@@ -36,7 +36,17 @@ main(List<String> args) async {
       IOPipeline([
         DDCStep(),
         RunD8(),
-      ], cacheSharedModules: true, saveIntermediateResultsForTesting: false));
+      ], cacheSharedModules: true));
+
+  // DDC only test suite.
+  await runSuite(
+      sdkRoot.resolve('tests/compiler/dartdevc/modular/'),
+      'tests/compiler/dartdevc/modular',
+      _options,
+      IOPipeline([
+        DDCStep(),
+        RunD8(),
+      ], cacheSharedModules: true));
 }
 
 const sumId = DataId("sum");
