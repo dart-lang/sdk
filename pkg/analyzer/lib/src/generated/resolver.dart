@@ -4095,7 +4095,7 @@ class ResolverVisitor extends ScopedVisitor {
     condition?.accept(this);
 
     CollectionElement thenExpression = node.thenElement;
-    InferenceContext.setTypeFromNode(thenExpression, node);
+    InferenceContext.setType(condition, typeProvider.boolType);
 
     if (_flowAnalysis != null) {
       if (flow != null) {
