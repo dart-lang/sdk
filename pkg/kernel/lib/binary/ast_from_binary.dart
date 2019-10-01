@@ -2384,6 +2384,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
+  Extension readExtension() {
+    final nodeOffset = _byteOffset;
+    final result = super.readExtension();
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
   Field readField() {
     final nodeOffset = _byteOffset;
     final result = super.readField();
