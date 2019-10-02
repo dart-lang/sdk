@@ -182,6 +182,11 @@ class IsSubtypeOf {
   }
 }
 
+enum SubtypeCheckMode {
+  withNullabilities,
+  ignoringNullabilities,
+}
+
 /// The part of [TypeEnvironment] that deals with subtype tests.
 ///
 /// This lives in a separate class so it can be tested independently of the SDK.
@@ -218,9 +223,18 @@ abstract class SubtypeTester {
   }
 
   /// Returns true if [subtype] is a subtype of [supertype].
-  bool isSubtypeOf(DartType subtype, DartType supertype) {
-    return performNullabilityAwareSubtypeCheck(subtype, supertype)
-        .isSubtypeWhenIgnoringNullabilities();
+  bool isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
+    IsSubtypeOf result =
+        performNullabilityAwareSubtypeCheck(subtype, supertype);
+    switch (mode) {
+      case SubtypeCheckMode.ignoringNullabilities:
+        return result.isSubtypeWhenIgnoringNullabilities();
+      case SubtypeCheckMode.withNullabilities:
+        return result.isSubtypeWhenUsingNullabilities();
+      default:
+        throw new StateError("Unhandled subtype checking mode '$mode'");
+    }
   }
 
   /// Performs a nullability-aware subtype check.

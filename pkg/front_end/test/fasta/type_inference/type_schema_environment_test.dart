@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/testing/mock_sdk_component.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -691,13 +692,17 @@ class TypeSchemaEnvironmentTest {
   void test_unknown_at_bottom() {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
-    expect(env.isSubtypeOf(unknownType, A), isTrue);
+    expect(
+        env.isSubtypeOf(unknownType, A, SubtypeCheckMode.ignoringNullabilities),
+        isTrue);
   }
 
   void test_unknown_at_top() {
     var A = coreTypes.rawType(_addClass(_class('A')), Nullability.legacy);
     var env = _makeEnv();
-    expect(env.isSubtypeOf(A, unknownType), isTrue);
+    expect(
+        env.isSubtypeOf(A, unknownType, SubtypeCheckMode.ignoringNullabilities),
+        isTrue);
   }
 
   Class _addClass(Class c) {

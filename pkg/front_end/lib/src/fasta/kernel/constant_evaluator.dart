@@ -1858,7 +1858,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         }
       }
     }
-    return typeEnvironment.isSubtypeOf(constantType, type);
+    return typeEnvironment.isSubtypeOf(
+        constantType, type, SubtypeCheckMode.ignoringNullabilities);
   }
 
   Constant ensureIsSubtype(Constant constant, DartType type, TreeNode node) {

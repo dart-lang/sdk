@@ -24,6 +24,8 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/type_environment.dart';
+
 import 'package:kernel/clone.dart';
 
 import '../../base/instrumentation.dart'

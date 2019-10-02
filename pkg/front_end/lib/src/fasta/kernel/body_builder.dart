@@ -7,6 +7,7 @@ library fasta.body_builder;
 import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../builder/declaration_builder.dart';
 
@@ -911,7 +912,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
+        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType,
+            SubtypeCheckMode.ignoringNullabilities)) {
           problem = fasta.messageIllegalAsyncReturnType;
         }
         break;
@@ -920,7 +922,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
+        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType,
+            SubtypeCheckMode.ignoringNullabilities)) {
           problem = fasta.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -929,8 +932,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
           problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(
-            iterableBottomType, returnType)) {
+        } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
+            SubtypeCheckMode.ignoringNullabilities)) {
           problem = fasta.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -5044,7 +5047,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = assignmentOffset;
       } else {
         if (formalType != null &&
-            !typeEnvironment.isSubtypeOf(formalType, builder.field.type)) {
+            !typeEnvironment.isSubtypeOf(formalType, builder.field.type,
+                SubtypeCheckMode.ignoringNullabilities)) {
           libraryBuilder.addProblem(
               fasta.templateInitializingFormalTypeMismatch
                   .withArguments(name, formalType, builder.field.type),

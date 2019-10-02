@@ -22,6 +22,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_environment.dart';
 
 import 'ffi.dart'
     show
@@ -196,7 +197,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
           final DartType returnType = exceptionalReturn.getStaticType(env);
 
-          if (!env.isSubtypeOf(returnType, funcType.returnType)) {
+          if (!env.isSubtypeOf(returnType, funcType.returnType,
+              SubtypeCheckMode.ignoringNullabilities)) {
             diagnosticReporter.report(
                 templateFfiDartTypeMismatch.withArguments(
                     returnType, funcType.returnType),
@@ -360,8 +362,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         convertNativeTypeToDartType(containerTypeArg, allowStructs);
     if (elementType == shouldBeElementType) return;
     // Both subtypes and implicit downcasts are allowed statically.
-    if (env.isSubtypeOf(shouldBeElementType, elementType)) return;
-    if (env.isSubtypeOf(elementType, shouldBeElementType)) return;
+    if (env.isSubtypeOf(shouldBeElementType, elementType,
+        SubtypeCheckMode.ignoringNullabilities)) return;
+    if (env.isSubtypeOf(elementType, shouldBeElementType,
+        SubtypeCheckMode.ignoringNullabilities)) return;
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(
             elementType, shouldBeElementType, containerTypeArg),
@@ -409,8 +413,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return false;
     }
     final Class nativeClass = (nativeType as InterfaceType).classNode;
-    if (env.isSubtypeOf(
-        InterfaceType(nativeClass), InterfaceType(pointerClass))) {
+    if (env.isSubtypeOf(InterfaceType(nativeClass), InterfaceType(pointerClass),
+        SubtypeCheckMode.ignoringNullabilities)) {
       return true;
     }
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {

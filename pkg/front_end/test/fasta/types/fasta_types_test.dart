@@ -26,6 +26,7 @@ import "package:front_end/src/fasta/kernel/kernel_builder.dart"
     show ClassHierarchyBuilder, ClassBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
+import 'package:kernel/type_environment.dart';
 
 import "kernel_type_parser.dart" show KernelEnvironment, KernelFromParsedType;
 
@@ -73,7 +74,8 @@ class FastaTypesTest extends SubtypeTest<DartType, KernelEnvironment> {
   }
 
   bool isSubtypeImpl(DartType subtype, DartType supertype) {
-    return hierarchy.types.isSubtypeOfKernel(subtype, supertype);
+    return hierarchy.types.isSubtypeOfKernel(
+        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
   }
 
   KernelEnvironment extend(String typeParameters) {

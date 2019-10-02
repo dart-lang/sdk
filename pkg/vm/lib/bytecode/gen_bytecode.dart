@@ -23,7 +23,8 @@ import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show SubtypeCheckMode, TypeEnvironment;
 import 'assembler.dart';
 import 'bytecode_serialization.dart' show StringTable;
 import 'constant_pool.dart';
@@ -2162,7 +2163,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.addString(name));
     bool isIntOk = typeEnvironment.isSubtypeOf(
-        typeEnvironment.coreTypes.intLegacyRawType, type);
+        typeEnvironment.coreTypes.intLegacyRawType,
+        type,
+        SubtypeCheckMode.ignoringNullabilities);
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }

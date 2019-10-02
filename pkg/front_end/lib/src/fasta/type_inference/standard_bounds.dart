@@ -20,6 +20,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+
 import 'type_schema.dart' show UnknownType;
 
 abstract class StandardBounds {
@@ -30,7 +32,7 @@ abstract class StandardBounds {
   InterfaceType get objectLegacyRawType;
   InterfaceType get functionLegacyRawType;
 
-  bool isSubtypeOf(DartType subtype, DartType supertype);
+  bool isSubtypeOf(DartType subtype, DartType supertype, SubtypeCheckMode mode);
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2);
@@ -94,11 +96,11 @@ abstract class StandardBounds {
 
     // Otherwise, the lower bounds  of two types is one of them it if it is a
     // subtype of the other.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
 
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
 
@@ -408,10 +410,10 @@ abstract class StandardBounds {
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
     if (type1 is InterfaceType &&
@@ -463,10 +465,10 @@ abstract class StandardBounds {
     // type variable first.  Alternatively, you could probably choose to treat
     // it as just an instance of the interface type upper bound problem, with
     // the "inheritance" chain extended by the bounds placed on the variables.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
     if (type1 is TypeParameterType) {

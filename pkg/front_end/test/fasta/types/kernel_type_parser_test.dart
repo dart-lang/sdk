@@ -12,7 +12,8 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/text/ast_to_text.dart" show Printer;
 
-import "package:kernel/type_environment.dart" show TypeEnvironment;
+import "package:kernel/type_environment.dart"
+    show SubtypeCheckMode, TypeEnvironment;
 
 import "kernel_type_parser.dart"
     show KernelEnvironment, KernelFromParsedType, parseLibrary;
@@ -119,8 +120,8 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
   }
 
   bool isSubtypeImpl(DartType subtype, DartType supertype) {
-    return new TypeEnvironment(coreTypes, hierarchy)
-        .isSubtypeOf(subtype, supertype);
+    return new TypeEnvironment(coreTypes, hierarchy).isSubtypeOf(
+        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
   }
 
   KernelEnvironment extend(String typeParameters) {

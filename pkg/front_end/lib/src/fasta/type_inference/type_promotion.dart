@@ -5,6 +5,8 @@
 import 'package:kernel/ast.dart'
     show DartType, Expression, TypeParameterType, VariableDeclaration;
 
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+
 import '../fasta_codes.dart' show templateInternalProblemStackNotEmpty;
 
 import '../problems.dart' show internalProblem;
@@ -682,13 +684,14 @@ class _IsCheck extends TypePromotionFact {
     // What we do now depends on the relationship between the previous type of
     // the variable and the type we are checking against.
     DartType previousType = previousPromotedType ?? variable.type;
-    if (promoter.typeSchemaEnvironment.isSubtypeOf(checkedType, previousType)) {
+    if (promoter.typeSchemaEnvironment.isSubtypeOf(
+        checkedType, previousType, SubtypeCheckMode.ignoringNullabilities)) {
       // The type we are checking against is a subtype of the previous type of
       // the variable, so this is a refinement; we can promote.
       return checkedType;
     } else if (previousType is TypeParameterType &&
-        promoter.typeSchemaEnvironment
-            .isSubtypeOf(checkedType, previousType.bound)) {
+        promoter.typeSchemaEnvironment.isSubtypeOf(checkedType,
+            previousType.bound, SubtypeCheckMode.ignoringNullabilities)) {
       // The type we are checking against is a subtype of the bound of the
       // previous type of the variable; we can promote the bound.
       return new TypeParameterType(

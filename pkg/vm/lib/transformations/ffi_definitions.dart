@@ -20,6 +20,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import 'ffi.dart';
 
@@ -142,7 +143,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return env.isSubtypeOf(
         field.type,
         InterfaceType(pointerClass,
-            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]));
+            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]),
+        SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool _checkFieldAnnotations(Class node) {
@@ -178,7 +180,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final DartType shouldBeDartType =
             convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
         if (shouldBeDartType == null ||
-            !env.isSubtypeOf(dartType, shouldBeDartType)) {
+            !env.isSubtypeOf(dartType, shouldBeDartType,
+                SubtypeCheckMode.ignoringNullabilities)) {
           diagnosticReporter.report(
               templateFfiTypeMismatch.withArguments(
                   dartType, shouldBeDartType, nativeType),

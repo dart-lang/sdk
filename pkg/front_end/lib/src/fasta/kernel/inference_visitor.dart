@@ -1380,9 +1380,13 @@ class InferenceVisitor
           mapEntryClass, <DartType>[actualKeyType, actualValueType]);
 
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
-          spreadType, inferrer.coreTypes.mapRawType(inferrer.library.nullable));
-      bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(spreadType,
-          inferrer.coreTypes.iterableRawType(inferrer.library.nullable));
+          spreadType,
+          inferrer.coreTypes.mapRawType(inferrer.library.nullable),
+          SubtypeCheckMode.ignoringNullabilities);
+      bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(
+          spreadType,
+          inferrer.coreTypes.iterableRawType(inferrer.library.nullable),
+          SubtypeCheckMode.ignoringNullabilities);
       if (isMap && !isIterable) {
         mapSpreadOffset = entry.fileOffset;
       }
