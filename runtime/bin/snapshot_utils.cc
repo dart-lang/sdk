@@ -158,41 +158,10 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name) {
   return TryReadAppSnapshotBlobs(script_name, file);
 }
 
-AppSnapshot* Snapshot::TryReadAppendedAppSnapshotBlobs(
-    const char* container_path) {
-  File* file = File::Open(NULL, container_path, File::kRead);
-  if (file == nullptr) {
-    return nullptr;
-  }
-  RefCntReleaseScope<File> rs(file);
-
-  // Check for payload appended at the end of the container file.
-  // If header is found, jump to payload offset.
-  int64_t appended_header[2];
-  if (!file->SetPosition(file->Length() - sizeof(appended_header))) {
-    return nullptr;
-  }
-  if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
-    return nullptr;
-  }
-  // Length is always encoded as Little Endian.
-  const uint64_t appended_length =
-      Utils::LittleEndianToHost64(appended_header[0]);
-  if (memcmp(&appended_header[1], appjit_magic_number.bytes,
-             appjit_magic_number.length) != 0 ||
-      appended_length <= 0 || !file->SetPosition(appended_length)) {
-    return nullptr;
-  }
-
-  return TryReadAppSnapshotBlobs(container_path, file);
-}
-
 #if defined(DART_PRECOMPILED_RUNTIME)
-
-#if defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
 class ElfAppSnapshot : public AppSnapshot {
  public:
-  ElfAppSnapshot(LoadedElfLibrary elf,
+  ElfAppSnapshot(Dart_LoadedElf* elf,
                  const uint8_t* vm_snapshot_data,
                  const uint8_t* vm_snapshot_instructions,
                  const uint8_t* isolate_snapshot_data,
@@ -216,13 +185,60 @@ class ElfAppSnapshot : public AppSnapshot {
   }
 
  private:
-  LoadedElfLibrary elf_;
+  Dart_LoadedElf* elf_;
   const uint8_t* vm_snapshot_data_;
   const uint8_t* vm_snapshot_instructions_;
   const uint8_t* isolate_snapshot_data_;
   const uint8_t* isolate_snapshot_instructions_;
 };
-#endif  // defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
+
+static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
+                                          uint64_t file_offset) {
+  const char* error = nullptr;
+  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
+                *isolate_data_buffer = nullptr,
+                *isolate_instructions_buffer = nullptr;
+  Dart_LoadedElf* handle =
+      Dart_LoadELF(script_name, file_offset, &error, &vm_data_buffer,
+                   &vm_instructions_buffer, &isolate_data_buffer,
+                   &isolate_instructions_buffer);
+  if (handle == nullptr) {
+    Syslog::PrintErr("Loading failed: %s\n", error);
+    return nullptr;
+  }
+  return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
+                            isolate_data_buffer, isolate_instructions_buffer);
+  return nullptr;
+}
+
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
+    const char* container_path) {
+  File* file = File::Open(NULL, container_path, File::kRead);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  RefCntReleaseScope<File> rs(file);
+
+  // Check for payload appended at the end of the container file.
+  // If header is found, jump to payload offset.
+  int64_t appended_header[2];
+  if (!file->SetPosition(file->Length() - sizeof(appended_header))) {
+    return nullptr;
+  }
+  if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
+    return nullptr;
+  }
+  // Length is always encoded as Little Endian.
+  const uint64_t appended_offset =
+      Utils::LittleEndianToHost64(appended_header[0]);
+  if (memcmp(&appended_header[1], appjit_magic_number.bytes,
+             appjit_magic_number.length) != 0 ||
+      appended_offset <= 0) {
+    return nullptr;
+  }
+
+  return TryReadAppSnapshotElf(container_path, appended_offset);
+}
 
 class DylibAppSnapshot : public AppSnapshot {
  public:
@@ -294,25 +310,6 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
                               isolate_data_buffer, isolate_instructions_buffer);
 }
 
-static AppSnapshot* TryReadAppSnapshotElf(const char* script_name) {
-#if defined(TARGET_OS_WINDOWS) || defined(USING_SIMULATOR)
-  const char* error = nullptr;
-  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
-                *isolate_data_buffer = nullptr,
-                *isolate_instructions_buffer = nullptr;
-  void* handle = Dart_LoadELF(script_name, &error, &vm_data_buffer,
-                              &vm_instructions_buffer, &isolate_data_buffer,
-                              &isolate_instructions_buffer);
-  if (handle == nullptr) {
-    Syslog::PrintErr("Loading failed: %s\n", error);
-    return nullptr;
-  }
-  return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
-                            isolate_data_buffer, isolate_instructions_buffer);
-#else
-  return nullptr;
-#endif
-}
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
@@ -343,7 +340,7 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
     return snapshot;
   }
 
-  snapshot = TryReadAppSnapshotElf(script_name);
+  snapshot = TryReadAppSnapshotElf(script_name, /*file_offset=*/0);
   if (snapshot != nullptr) {
     return snapshot;
   }
