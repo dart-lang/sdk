@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.55';
+const String version = '1.56';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -641,8 +641,14 @@ class DartFuzz {
     if (rhsType == null) {
       throw 'No rhs type for assign ${tp.name} $assignOp';
     }
-    // Emit an expression for the right hand side.
-    emitExpr(0, rhsType, rhsFilter: rhsFilter);
+
+    // We need to avoid cases of "abcde" *= large number in loops.
+    if (assignOp == "*=" && tp == DartType.STRING && rhsType == DartType.INT) {
+      emitSmallPositiveInt();
+    } else {
+      // Emit an expression for the right hand side.
+      emitExpr(0, rhsType, rhsFilter: rhsFilter);
+    }
     emit(';', newline: true);
     return true;
   }
@@ -1381,8 +1387,7 @@ class DartFuzz {
     // as these might lead to timeouts and/or oom errors.
     if (binop == "*" &&
         DartType.isGrowableType(binOpParams[0]) &&
-        dartType.isInterfaceOfType(binOpParams[1], DartType.NUM) &&
-        rand.nextInt(2) == 0) {
+        dartType.isInterfaceOfType(binOpParams[1], DartType.NUM)) {
       emit('(');
       emitExpr(depth + 1, binOpParams[0], rhsFilter: rhsFilter);
       emit(' $binop ');
@@ -1390,8 +1395,7 @@ class DartFuzz {
       emit(')');
     } else if (binop == "*" &&
         DartType.isGrowableType(binOpParams[1]) &&
-        dartType.isInterfaceOfType(binOpParams[0], DartType.NUM) &&
-        rand.nextInt(2) == 0) {
+        dartType.isInterfaceOfType(binOpParams[0], DartType.NUM)) {
       emit('(');
       emitLiteral(depth + 1, binOpParams[0], smallPositiveValue: true);
       emit(' $binop ');
