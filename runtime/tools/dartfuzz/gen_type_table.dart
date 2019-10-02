@@ -1309,7 +1309,7 @@ main(List<String> arguments) async {
     Set<InterfaceType> allTypes = new Set<InterfaceType>();
     // Filter types to instantiate parameterized types with, this excludes
     // complex types like Int8List (might be added later).
-    Set<String> iTypeFilter = {'int', 'bool', 'double', 'String', 'num'};
+    Set<String> iTypeFilter = {'int', 'bool', 'double', 'String'};
     // Extract basic types from dart::core and dart::typed_data.
     await getDataTypes(allTypes, results['dart-top']);
     // Instantiate parameterized types like List<E>.
