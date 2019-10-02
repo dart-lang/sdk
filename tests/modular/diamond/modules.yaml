@@ -1,0 +1,3 @@
+dependencies:
+  main: [a, b]
+  a: b
