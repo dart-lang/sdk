@@ -579,7 +579,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 19, end 36, handler 36, needs-stack-trace, types [CP#0]
+  try-index 0, outer -1, start 19, end 36, handler 36, needs-stack-trace, synthetic, types [CP#0]
 }
 ConstantPool {
   [0] = Type dynamic
@@ -702,8 +702,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 53, end 162, handler 162, needs-stack-trace, types [CP#20]
-  try-index 1, outer 0, start 70, end 124, handler 124, needs-stack-trace, types [CP#20]
+  try-index 0, outer -1, start 53, end 162, handler 162, needs-stack-trace, synthetic, types [CP#20]
+  try-index 1, outer 0, start 70, end 124, handler 124, needs-stack-trace, synthetic, types [CP#20]
 }
 ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
@@ -822,7 +822,7 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 23, end 61, handler 61, needs-stack-trace, types [CP#6]
+  try-index 0, outer -1, start 23, end 61, handler 61, needs-stack-trace, synthetic, types [CP#6]
 }
 ConstantPool {
   [0] = ClosureFunction 0
@@ -982,7 +982,7 @@ L2:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 4, end 40, handler 40, needs-stack-trace, types [CP#3]
+  try-index 0, outer -1, start 4, end 40, handler 40, needs-stack-trace, synthetic, types [CP#3]
   try-index 1, outer 0, start 4, end 14, handler 14, types [CP#3]
 }
 ConstantPool {

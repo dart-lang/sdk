@@ -4040,6 +4040,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final TryBlock tryBlock = _startTryBlock(node);
+    tryBlock.isSynthetic = true;
     finallyBlocks[node] = <FinallyBlock>[];
 
     _generateNode(node.body);
