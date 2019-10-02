@@ -202,8 +202,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
-  skip_test_addPluginToContextRoot() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_addPluginToContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -214,8 +216,30 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_broadcastRequest_many() async {
-    // skipped due to flaky timeouts, #38629
+  @failingTest
+  test_addPluginToContextRoot_pubspec() async {
+    // We can't successfully run pub until after the analyzer_plugin package has
+    // been published.
+    fail('Cannot run pub');
+//    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
+//    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
+//    await withPubspecPlugin(test: (String pluginPath) async {
+//      ContextRoot contextRoot = _newContextRoot(pkgPath);
+//      await manager.addPluginToContextRoot(contextRoot, pluginPath);
+//      String packagesPath =
+//          resourceProvider.pathContext.join(pluginPath, '.packages');
+//      File packagesFile = resourceProvider.getFile(packagesPath);
+//      bool exists = packagesFile.exists;
+//      await manager.stopAll();
+//      expect(exists, isTrue, reason: '.packages file was not created');
+//    });
+//    pkg1Dir.deleteSync(recursive: true);
+  }
+
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_broadcastRequest_many() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -241,8 +265,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_broadcastRequest_many_noContextRoot() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_broadcastRequest_many_noContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -266,8 +292,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_broadcastWatchEvent() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_broadcastWatchEvent() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -290,8 +318,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_pluginsForContextRoot_multiple() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_pluginsForContextRoot_multiple() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -318,8 +348,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_pluginsForContextRoot_one() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_pluginsForContextRoot_one() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -335,8 +367,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
-  skip_test_removedContextRoot() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_removedContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -351,8 +385,10 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   }
 
   @TestTimeout(const Timeout.factor(4))
-  skip_test_restartPlugins() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_restartPlugins() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkg1Path = pkg1Dir.resolveSymbolicLinksSync();
     io.Directory pkg2Dir = io.Directory.systemTemp.createTempSync('pkg2');
@@ -389,26 +425,6 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
               });
         });
     pkg1Dir.deleteSync(recursive: true);
-  }
-
-  @failingTest
-  test_addPluginToContextRoot_pubspec() async {
-    // We can't successfully run pub until after the analyzer_plugin package has
-    // been published.
-    fail('Cannot run pub');
-//    io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
-//    String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
-//    await withPubspecPlugin(test: (String pluginPath) async {
-//      ContextRoot contextRoot = _newContextRoot(pkgPath);
-//      await manager.addPluginToContextRoot(contextRoot, pluginPath);
-//      String packagesPath =
-//          resourceProvider.pathContext.join(pluginPath, '.packages');
-//      File packagesFile = resourceProvider.getFile(packagesPath);
-//      bool exists = packagesFile.exists;
-//      await manager.stopAll();
-//      expect(exists, isTrue, reason: '.packages file was not created');
-//    });
-//    pkg1Dir.deleteSync(recursive: true);
   }
 }
 
@@ -522,8 +538,10 @@ class PluginManagerTest with ResourceProviderMixin {
 
 @reflectiveTest
 class PluginSessionFromDiskTest extends PluginTestSupport {
-  skip_test_start_notRunning() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_start_notRunning() async {
     await withPlugin(test: (String pluginPath) async {
       String packagesPath = path.join(pluginPath, '.packages');
       String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');

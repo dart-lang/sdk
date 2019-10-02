@@ -15,8 +15,10 @@ main() {
 
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
-  skip_test_initialAnalysis() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_initialAnalysis() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
@@ -31,8 +33,10 @@ class DiagnosticTest extends AbstractLspAnalysisServerIntegrationTest {
     expect(diagnostic.range.end.character, equals(12));
   }
 
-  skip_test_lints() async {
-    // skipped due to flaky timeouts, #38629
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
+  test_lints() async {
     newFile(mainFilePath, content: '''main() async => await 1;''');
     newFile(analysisOptionsPath, content: '''
 linter:

@@ -136,7 +136,7 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
-  "test_reflective_loader_tag": "0.1.8",
+  "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test-v1.6.4",
   "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
   "typed_data_tag": "1.1.6",

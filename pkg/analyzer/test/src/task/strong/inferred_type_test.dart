@@ -3394,9 +3394,7 @@ foo() {
   }
 
   test_inferTypesOnGenericInstantiationsInLibraryCycle() async {
-    // Note: this is a regression test for a non-deterministic behavior we used to
-    // have with inference in library cycles. If you see this test flake out,
-    // change `test` to `skip_test` and reopen bug #48.
+    // Note: this is a regression test for bug #48.
     addFile('''
 import 'main.dart';
 abstract class I<E> {
