@@ -200,26 +200,6 @@ void Precompiler::DoCompileAll() {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
 
-    // Check that both the file open and write callbacks are available, though
-    // we only use the latter during IL processing.
-    if (FLAG_serialize_flow_graphs_to != nullptr &&
-        Dart::file_write_callback() != nullptr) {
-      if (auto file_open = Dart::file_open_callback()) {
-        auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
-        set_il_serialization_stream(file);
-      }
-      if (FLAG_populate_llvm_constant_pool) {
-        auto const object_store = I->object_store();
-        auto& llvm_constants = GrowableObjectArray::Handle(
-            zone_, GrowableObjectArray::New(16, Heap::kOld));
-        auto& llvm_constants_hash_table = Array::Handle(
-            zone_, HashTables::New<FlowGraphSerializer::LLVMConstantsMap>(
-                       16, Heap::kOld));
-        object_store->set_llvm_constant_pool(llvm_constants);
-        object_store->set_llvm_constant_hash_table(llvm_constants_hash_table);
-      }
-    }
-
     if (FLAG_use_bare_instructions) {
       // Since we keep the object pool until the end of AOT compilation, it
       // will hang on to its entries until the very end. Therefore we have
@@ -254,6 +234,29 @@ void Precompiler::DoCompileAll() {
 
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+
+      // After this point, it should be safe to serialize flow graphs produced
+      // during compilation and add constants to the LLVM constant pool.
+      //
+      // Check that both the file open and write callbacks are available, though
+      // we only use the latter during IL processing.
+      if (FLAG_serialize_flow_graphs_to != nullptr &&
+          Dart::file_write_callback() != nullptr) {
+        if (auto file_open = Dart::file_open_callback()) {
+          auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
+          set_il_serialization_stream(file);
+        }
+        if (FLAG_populate_llvm_constant_pool) {
+          auto const object_store = I->object_store();
+          auto& llvm_constants = GrowableObjectArray::Handle(
+              Z, GrowableObjectArray::New(16, Heap::kOld));
+          auto& llvm_constants_hash_table = Array::Handle(
+              Z, HashTables::New<FlowGraphSerializer::LLVMConstantsMap>(
+                     16, Heap::kOld));
+          object_store->set_llvm_constant_pool(llvm_constants);
+          object_store->set_llvm_constant_hash_table(llvm_constants_hash_table);
+        }
+      }
 
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
@@ -346,8 +349,8 @@ void Precompiler::DoCompileAll() {
           Dart::file_write_callback() != nullptr) {
         if (auto file_close = Dart::file_close_callback()) {
           file_close(il_serialization_stream());
-          set_il_serialization_stream(nullptr);
         }
+        set_il_serialization_stream(nullptr);
         if (FLAG_populate_llvm_constant_pool) {
           // We don't want the Array backing for the map from constants to
           // indices in the snapshot, only the constant pool itself.

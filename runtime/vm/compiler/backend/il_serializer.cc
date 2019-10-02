@@ -745,7 +745,9 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
         elem->AddExtra("type", type->ToSExpression(this));
       }
     }
-    if (FLAG_populate_llvm_constant_pool) {
+    // Only add constants to the LLVM constant pool that are actually used in
+    // the flow graph.
+    if (FLAG_populate_llvm_constant_pool && definition->HasUses()) {
       auto const pool_len = llvm_pool_.Length();
       llvm_index_ = Smi::New(pool_len);
       llvm_index_ =
