@@ -73,61 +73,75 @@ abstract class BaseProcessor {
     }
     SimpleIdentifier name = node;
     final parent = node.parent;
-    if (parent is VariableDeclaration) {
+
+    var type;
+
+    // Getter.
+    if (parent is MethodDeclaration) {
+      MethodDeclaration methodDeclaration = parent;
+      var element = methodDeclaration.declaredElement;
+      if (element is PropertyAccessorElement) {
+        PropertyAccessorElement propertyAccessor = element;
+        type = propertyAccessor.returnType;
+      }
+      // Field.
+    } else if (parent is VariableDeclaration) {
       VariableDeclaration variableDeclaration = parent;
       final element = variableDeclaration.declaredElement;
       if (element is FieldElement) {
         FieldElement fieldElement = element;
-        final type = fieldElement.type;
-        if (type.isDartCoreBool) {
-          ClassDeclaration classDeclaration =
-              parent.thisOrAncestorOfType<ClassDeclaration>();
-          final debugFillProperties =
-              classDeclaration.getMethod('debugFillProperties');
-          if (debugFillProperties != null) {
-            final body = debugFillProperties.body;
-            if (body is BlockFunctionBody) {
-              BlockFunctionBody functionBody = body;
+        type = fieldElement.type;
+      }
+    }
 
-              var offset;
-              var prefix;
-              if (functionBody.block.statements.isEmpty) {
-                offset = functionBody.block.leftBracket.offset;
-                prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
-              } else {
-                offset = functionBody.block.statements.last.endToken.offset;
-                prefix = utils.getLinePrefix(offset);
-              }
+    if (type == null) {
+      return null;
+    } else if (type.isDartCoreBool) {
+      ClassDeclaration classDeclaration =
+          parent.thisOrAncestorOfType<ClassDeclaration>();
+      final debugFillProperties =
+          classDeclaration.getMethod('debugFillProperties');
+      if (debugFillProperties != null) {
+        final body = debugFillProperties.body;
+        if (body is BlockFunctionBody) {
+          BlockFunctionBody functionBody = body;
 
-              var parameters = debugFillProperties.parameters.parameters;
-              var propertiesBuilderName;
-              for (var parameter in parameters) {
-                if (parameter is SimpleFormalParameter) {
-                  final type = parameter.type;
-                  if (type is TypeName) {
-                    if (type.name.name == 'DiagnosticPropertiesBuilder') {
-                      propertiesBuilderName = parameter.identifier.name;
-                      break;
-                    }
-                  }
+          var offset;
+          var prefix;
+          if (functionBody.block.statements.isEmpty) {
+            offset = functionBody.block.leftBracket.offset;
+            prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
+          } else {
+            offset = functionBody.block.statements.last.endToken.offset;
+            prefix = utils.getLinePrefix(offset);
+          }
+
+          var parameters = debugFillProperties.parameters.parameters;
+          var propertiesBuilderName;
+          for (var parameter in parameters) {
+            if (parameter is SimpleFormalParameter) {
+              final type = parameter.type;
+              if (type is TypeName) {
+                if (type.name.name == 'DiagnosticPropertiesBuilder') {
+                  propertiesBuilderName = parameter.identifier.name;
+                  break;
                 }
               }
-              if (propertiesBuilderName == null) {
-                return null;
-              }
-
-              final changeBuilder = _newDartChangeBuilder();
-              await changeBuilder.addFileEdit(file,
-                  (DartFileEditBuilder builder) {
-                builder.addInsertion(utils.getLineNext(offset),
-                    (DartEditBuilder builder) {
-                  builder.write(
-                      "$prefix$propertiesBuilderName.add(DiagnosticsProperty<bool>('${name.name}', ${name.name}));$eol");
-                });
-              });
-              return changeBuilder;
             }
           }
+          if (propertiesBuilderName == null) {
+            return null;
+          }
+
+          final changeBuilder = _newDartChangeBuilder();
+          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+            builder.addInsertion(utils.getLineNext(offset),
+                (DartEditBuilder builder) {
+              builder.write(
+                  "$prefix$propertiesBuilderName.add(DiagnosticsProperty<bool>('${name.name}', ${name.name}));$eol");
+            });
+          });
+          return changeBuilder;
         }
       }
     }

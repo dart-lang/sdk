@@ -91,8 +91,31 @@ class Absorber extends Widget {
 ''');
   }
 
+  test_boolGetter_debugFillProperties() async {
+    await resolveTestUnit('''
+class Absorber extends Widget {
+  bool get /*LINT*/absorbing => _absorbing;
+  bool _absorbing;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class Absorber extends Widget {
+  bool get /*LINT*/absorbing => _absorbing;
+  bool _absorbing;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<bool>('absorbing', absorbing));
+  }
+}
+''');
+  }
+
   // todo (pq): tests for no debugFillProperties method
-  // todo (pq): tests for getters
   // todo (pq): consider a test for a body w/ no CR
   // todo (pq): support for ColorProperty -- for Color
   // todo (pq): support for EnumProperty -- for any enum class
