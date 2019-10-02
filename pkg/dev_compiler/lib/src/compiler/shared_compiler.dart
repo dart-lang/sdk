@@ -446,14 +446,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Returns the canonical name to refer to the Dart library.
   @protected
   js_ast.Identifier emitLibraryName(Library library) {
-    // It's either one of the libraries in this module, or it's an import.
-    var libraryId = js_ast.TemporaryId(jsLibraryName(library));
     // Avoid adding the dart:_runtime to _imports when our runtime unit tests
     // import it explicitly. It will always be implicitly imported.
     if (isSdkInternalRuntime(library)) return runtimeModule;
 
+    // It's either one of the libraries in this module, or it's an import.
     return _libraries[library] ??
-        _imports.putIfAbsent(library, () => libraryId);
+        _imports.putIfAbsent(
+            library, () => js_ast.TemporaryId(jsLibraryName(library)));
   }
 
   /// Emits imports and extension methods into [items].
