@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -314,6 +315,23 @@ void f(A a) {
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
     validateBinaryExpression();
+  }
+
+  test_operator_onTearoff() async {
+    // https://github.com/dart-lang/sdk/issues/38653
+    await assertErrorsInCode('''
+f(){
+  E(null).v++;
+}
+extension E on Object{
+  v() {}
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 15, 1),
+    ]);
+    findDeclarationAndOverride(
+        declarationName: 'E ', overrideSearch: 'E(null)');
+    validateOverride();
   }
 
   test_operator_prefix_noTypeArguments() async {

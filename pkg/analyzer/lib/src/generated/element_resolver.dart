@@ -709,7 +709,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
               [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
-          PropertyAccessorElement getter = result.getter;
+          ExecutableElement getter = result.getter;
           if (getter == null) {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
