@@ -218,6 +218,8 @@ abstract class CommonElements {
   /// Returns `true` if [element] is a superclass of `List`.
   bool isListSupertype(ClassEntity element);
 
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType);
+
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false});
 
@@ -1014,6 +1016,12 @@ class CommonElementsImpl
       ClassEntity cls, List<DartType> typeArguments) {
     return _env.createInterfaceType(cls, typeArguments);
   }
+
+  @override
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
+      sourceType.treatAsRaw
+          ? _env.getRawType(jsArrayClass)
+          : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,

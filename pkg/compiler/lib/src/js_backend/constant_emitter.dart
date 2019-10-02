@@ -473,10 +473,7 @@ class ConstantEmitter extends ModularConstantEmitter {
 
   jsAst.Expression maybeAddListTypeArgumentsNewRti(
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
-    // List<T> --> JSArray<T>
-    if (type.element != _commonElements.jsArrayClass) {
-      type = InterfaceType(_commonElements.jsArrayClass, type.typeArguments);
-    }
+    assert(type.element == _commonElements.jsArrayClass);
     if (_rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),

@@ -728,7 +728,8 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
     }
     DartType type = elementMap.commonElements
         .listType(elementMap.getDartType(node.typeArgument));
-    return constant_system.createList(type, elements);
+    return constant_system.createList(
+        elementMap.commonElements, type, elements);
   }
 
   @override

@@ -375,8 +375,8 @@ class ListConstantExpression extends ConstantExpression {
 
   @override
   ConstantValue evaluate(EvaluationEnvironment environment) {
-    return constant_system.createList(
-        type, values.map((v) => v.evaluate(environment)).toList());
+    return constant_system.createList(environment.commonElements, type,
+        values.map((v) => v.evaluate(environment)).toList());
   }
 
   @override

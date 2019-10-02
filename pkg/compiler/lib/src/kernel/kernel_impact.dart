@@ -847,7 +847,8 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
         if (member.isAbstract) {
           cls = elementMap.elementEnvironment.getSuperClass(cls);
         } else {
-          return member.enclosingClass != commonElements.objectClass;
+          return member.enclosingClass != commonElements.objectClass &&
+              member.enclosingClass != commonElements.jsInterceptorClass;
         }
       }
       return false;
