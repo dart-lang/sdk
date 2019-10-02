@@ -563,6 +563,7 @@ enum MiscDP1SourceOp {
   MiscDP1SourceMask = 0x5fe00000,
   MiscDP1SourceFixed = DPRegisterFixed | B30 | B28 | B23 | B22,
   CLZ = MiscDP1SourceFixed | B12,
+  RBIT = MiscDP1SourceFixed,  // opc = '00'
 };
 
 // C3.5.8

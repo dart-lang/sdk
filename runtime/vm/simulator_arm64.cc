@@ -2437,6 +2437,32 @@ void Simulator::DecodeMiscDP1Source(Instr* instr) {
       }
       break;
     }
+    case 0: {
+      // Format(instr, "rbit'sf 'rd, 'rn");
+      int64_t rd_val = 0;
+      uint64_t bval;
+      uint64_t rbit;
+      if (instr->SFField() == 1) {
+        bval = static_cast<uint64_t>(rn_val64);
+        rbit = static_cast<uint64_t>(1) << 63;
+      } else {
+        bval = static_cast<uint64_t>(rn_val32);
+        rbit = static_cast<uint64_t>(1) << 31;
+      }
+      while (bval != 0) {
+        if (bval & 0x1) {
+          rd_val |= rbit;
+        }
+        bval >>= 1;
+        rbit >>= 1;
+      }
+      if (instr->SFField() == 1) {
+        set_register(instr, rd, rd_val, R31IsZR);
+      } else {
+        set_wregister(rd, rd_val, R31IsZR);
+      }
+      break;
+    }
     default:
       UnimplementedInstruction(instr);
       break;
