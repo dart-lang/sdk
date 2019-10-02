@@ -117,6 +117,10 @@ class InfoBuilder {
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
+              // TODO(brianwilkerson) If the origin is an InheritanceOrigin then
+              //  the node is the method declaration in the subclass and we want
+              //  to link to the corresponding parameter in the declaration in
+              //  the superclass.
               details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
                   _targetForNode(origin.source.fullName, origin.node)));
             }

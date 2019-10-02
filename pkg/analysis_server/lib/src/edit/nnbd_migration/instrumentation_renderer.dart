@@ -95,7 +95,7 @@ h2 {
   top: 100%;
   visibility: hidden;
   white-space: normal;
-  width: 200px;
+  width: 400px;
   z-index: 1;
 }
 
