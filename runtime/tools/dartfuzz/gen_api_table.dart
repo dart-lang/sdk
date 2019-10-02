@@ -291,6 +291,7 @@ class DartLib {
 
 void dumpTable(String identifier, List<DartLib> table) {
   print('  static const $identifier = [');
+  table.sort((a, b) => a.name.compareTo(b.name));
   table.forEach((t) => print('    DartLib(\'${t.name}\', \'${t.proto}\'),'));
   print('  ];');
 }

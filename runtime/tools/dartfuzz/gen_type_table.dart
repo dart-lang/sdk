@@ -248,21 +248,25 @@ void printTypeMap4(
   final String prefix = "${subclass ? "DartType." : ""}";
   print("  static const Map<DartType, Map<String, " +
       "Set<List<DartType>>>> ${name} = {");
-  filterTypesMap4(types, fp: fp, flatTp: flatTp).forEach((baseType, ops) {
+  Map<String, Map<String, Set<List<String>>>> filteredTypes =
+      filterTypesMap4(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var ops = filteredTypes[baseType];
     print("    ${prefix}${baseType}: {");
-    ops.forEach((op, paramTypeL) {
+    for (var op in ops.keys.toList()..sort()) {
+      var paramTypeL = ops[op];
       print("      '${op}': {");
-      paramTypeL.forEach((paramTypes) {
+      for (var paramTypes in paramTypeL) {
         stdout.write("          [");
         for (String paramType in paramTypes) {
           stdout.write("${prefix}${paramType}, ");
         }
         print("],");
-      });
+      }
       print("        },");
-    });
+    }
     print("    },");
-  });
+  }
   print("  };");
 }
 
@@ -294,17 +298,21 @@ void printTypeMap3Set(String name, Map<String, Map<String, Set<String>>> types,
   print("  static const Map<DartType, " +
       "Map<String, Set<DartType>>> ${name} = {");
 
-  filterTypesMap3Set(types, fp: fp, flatTp: flatTp).forEach((baseType, ops) {
+  Map<String, Map<String, Set<String>>> filteredTypes =
+      filterTypesMap3Set(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var ops = filteredTypes[baseType];
     print("    ${prefix}${baseType}: {");
-    ops.forEach((op, paramTypes) {
+    for (var op in ops.keys.toList()) {
+      var paramTypes = ops[op];
       stdout.write("      '${op}': {");
-      for (String paramType in paramTypes) {
+      for (String paramType in paramTypes.toList()..sort()) {
         stdout.write("${prefix}${paramType}, ");
       }
       print("}, ");
-    });
+    }
     print("    },");
-  });
+  }
   print("  };");
 }
 
@@ -335,17 +343,20 @@ void printTypeMap3(String name, Map<String, Map<String, List<String>>> types,
   final String prefix = "${subclass ? "DartType." : ""}";
   print("  static const Map<DartType, Map<String, " +
       "List<DartType>>> ${name} = {");
-  filterTypesMap3(types, fp: fp, flatTp: flatTp).forEach((baseType, ops) {
+  var filteredTypes = filterTypesMap3(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var ops = filteredTypes[baseType];
     print("    ${prefix}${baseType}: {");
-    ops.forEach((op, paramTypes) {
+    for (var op in ops.keys.toList()..sort()) {
+      var paramTypes = ops[op];
       stdout.write("      '${op}': [");
-      for (String paramType in paramTypes) {
+      for (String paramType in paramTypes.toList()..sort()) {
         stdout.write("${prefix}${paramType}, ");
       }
       print("], ");
-    });
+    }
     print("    },");
-  });
+  }
   print("  };");
 }
 
@@ -372,14 +383,15 @@ void printTypeMap2(String name, Map<String, Set<String>> types,
   final bool subclass = !fp || flatTp;
   final String prefix = "${subclass ? "DartType." : ""}";
   print("  static const Map<DartType, Set<DartType>> ${name} = {");
-  filterTypesMap2(types, fp: fp, flatTp: flatTp)
-      .forEach((baseType, paramTypes) {
+  var filteredTypes = filterTypesMap2(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var paramTypes = filteredTypes[baseType];
     stdout.write("    ${prefix}${baseType}: { ");
-    for (String paramType in paramTypes) {
+    for (String paramType in paramTypes.toList()..sort()) {
       stdout.write("${prefix}${paramType}, ");
     }
     print("},");
-  });
+  }
   print("  };");
 }
 
@@ -405,10 +417,12 @@ void printTypeMap1(String name, Map<String, String> types,
   final bool subclass = !fp || flatTp;
   final String prefix = "${subclass ? "DartType." : ""}";
   print("  static const Map<DartType, DartType> ${name} = {");
-  filterTypesMap1(types, fp: fp, flatTp: flatTp).forEach((baseType, paramType) {
+  var filteredTypes = filterTypesMap1(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var paramType = filteredTypes[baseType];
     print("    ${prefix}"
         "${baseType}: ${prefix}${paramType}, ");
-  });
+  }
   print("  };");
 }
 
@@ -432,7 +446,8 @@ void printTypeSet(String name, Set<String> types,
   final bool subclass = !fp || flatTp;
   final String prefix = "${subclass ? "DartType." : ""}";
   stdout.write("  static const Set<DartType> ${name} = {");
-  for (String typName in filterTypesSet(types, fp: fp, flatTp: flatTp)) {
+  for (String typName in filterTypesSet(types, fp: fp, flatTp: flatTp).toList()
+    ..sort()) {
     stdout.write("${prefix}$typName, ");
   }
   print("};");
@@ -457,10 +472,11 @@ void printTypeMapSet(String name, Map<String, Set<String>> types,
   final bool subclass = !fp || flatTp;
   final String prefix = "${subclass ? "DartType." : ""}";
   print("  static const Map<DartType, Set<String>> $name = {");
-  filterTypeMapSet(types, fp: fp, flatTp: flatTp)
-      .forEach((baseType, paramTypes) {
+  var filteredTypes = filterTypeMapSet(types, fp: fp, flatTp: flatTp);
+  for (var baseType in filteredTypes.keys.toList()..sort()) {
+    var paramTypes = filteredTypes[baseType].toList()..sort();
     print("    ${prefix}${baseType}: {" + paramTypes.join(", ") + "},");
-  });
+  }
   print("  };");
 }
 
