@@ -630,6 +630,10 @@ static void UpdateTypeTestCache(
   }
   const intptr_t len = new_cache.NumberOfChecks();
   if (len >= FLAG_max_subtype_cache_entries) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("Not updating subtype test cache as its length reached %d\n",
+                   FLAG_max_subtype_cache_entries);
+    }
     return;
   }
 #if defined(DEBUG)
@@ -834,7 +838,34 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
     !defined(DART_PRECOMPILED_RUNTIME)
   if (mode == kTypeCheckFromLazySpecializeStub) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("  Specializing type testing stub for %s\n",
+                   dst_type.ToCString());
+    }
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
+    // Only create the cache when we come from a normal stub.
+    should_update_cache = false;
+  }
+
+  // Fast path of type testing stub wasn't able to handle given type, yet it
+  // passed the type check. It means that fast-path was using outdated cid
+  // ranges and new classes appeared since the stub was generated.
+  // Re-generate the stub.
+  if ((mode == kTypeCheckFromSlowStub) && dst_type.IsType() &&
+      (TypeTestingStubGenerator::DefaultCodeForType(dst_type, /*lazy=*/false) !=
+       dst_type.type_test_stub()) &&
+      dst_type.IsInstantiated()) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("  Rebuilding type testing stub for %s\n",
+                   dst_type.ToCString());
+    }
+#if defined(DEBUG)
+    const auto& old_code = Code::Handle(dst_type.type_test_stub());
+#endif
+    TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
+#if defined(DEBUG)
+    ASSERT(old_code.raw() != dst_type.type_test_stub());
+#endif
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
   }
