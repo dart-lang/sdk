@@ -20,9 +20,8 @@ namespace elf {
 /// Dart_CreateAppAOTSnapshotAsElf.
 class LoadedElf {
  public:
-  explicit LoadedElf(const char* filename, uint64_t elf_data_offset)
-      : filename_(strdup(filename), std::free),
-        elf_data_offset_(elf_data_offset) {}
+  explicit LoadedElf(const char* filename)
+      : filename_(strdup(filename), std::free) {}
   ~LoadedElf();
 
   /// Loads the ELF object into memory. Returns whether the load was successful.
@@ -62,7 +61,6 @@ class LoadedElf {
                              const void** mapping_start);
 
   std::unique_ptr<char, decltype(std::free)*> filename_;
-  const uint64_t elf_data_offset_;
 
   // Initialized on a successful Load().
   File* file_;
@@ -121,13 +119,9 @@ bool LoadedElf::Load() {
     return false;
   }
 
-  CHECK_ERROR(Utils::IsAligned(elf_data_offset_, PageSize()),
-              "File offset must be page-aligned.");
-
   file_ = File::Open(/*namespc=*/nullptr, filename_.get(),
                      bin::File::FileOpenMode::kRead);
   CHECK_ERROR(file_ != nullptr, "Cannot open ELF object file.");
-  CHECK_ERROR(file_->SetPosition(elf_data_offset_), "Invalid file offset.");
 
   CHECK(ReadHeader());
   CHECK(ReadProgramTable());
@@ -268,7 +262,7 @@ bool LoadedElf::LoadSegments() {
 
     void* const memory_start =
         static_cast<char*>(base_->address()) + memory_offset - adjustment;
-    const uword file_start = elf_data_offset_ + file_offset - adjustment;
+    const uword file_start = file_offset - adjustment;
     const uword length = header.memory_size + adjustment;
 
     File::MapType map_type = File::kReadOnly;
@@ -356,11 +350,9 @@ bool LoadedElf::ResolveSymbols(const uint8_t** vm_data,
 MappedMemory* LoadedElf::MapFilePiece(uword file_start,
                                       uword file_length,
                                       const void** mem_start) {
-  const uword adjustment = (elf_data_offset_ + file_start) % PageSize();
-  const uword mapping_offset = elf_data_offset_ + file_start - adjustment;
+  const uword mapping_offset = Utils::RoundDown(file_start, PageSize());
   const uword mapping_length =
-      Utils::RoundUp(elf_data_offset_ + file_start + file_length, PageSize()) -
-      mapping_offset;
+      Utils::RoundUp(file_length + file_start % PageSize(), PageSize());
   MappedMemory* const mapping =
       file_->Map(bin::File::kReadOnly, mapping_offset, mapping_length);
 
@@ -376,15 +368,14 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 }  // namespace bin
 }  // namespace dart
 
-DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
-                                         uint64_t file_offset,
-                                         const char** error,
-                                         const uint8_t** vm_snapshot_data,
-                                         const uint8_t** vm_snapshot_instrs,
-                                         const uint8_t** vm_isolate_data,
-                                         const uint8_t** vm_isolate_instrs) {
+DART_EXPORT void* Dart_LoadELF(const char* filename,
+                               const char** error,
+                               const uint8_t** vm_snapshot_data,
+                               const uint8_t** vm_snapshot_instrs,
+                               const uint8_t** vm_isolate_data,
+                               const uint8_t** vm_isolate_instrs) {
   std::unique_ptr<dart::bin::elf::LoadedElf> elf(
-      new dart::bin::elf::LoadedElf(filename, file_offset));
+      new dart::bin::elf::LoadedElf(filename));
 
   if (!elf->Load() ||
       !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,
@@ -393,9 +384,9 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF(const char* filename,
     return nullptr;
   }
 
-  return reinterpret_cast<Dart_LoadedElf*>(elf.release());
+  return elf.release();
 }
 
-DART_EXPORT void Dart_UnloadELF(Dart_LoadedElf* loaded) {
+DART_EXPORT void Dart_UnloadELF(void* loaded) {
   delete reinterpret_cast<dart::bin::elf::LoadedElf*>(loaded);
 }

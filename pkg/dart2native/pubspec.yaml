@@ -10,6 +10,7 @@ executables:
 
 dependencies:
    args: ^1.4.0
+   path:
 
 dev_dependencies:
 
