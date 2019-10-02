@@ -227,6 +227,7 @@
       "pkg/async_helper/",
       "pkg/build_integration/",
       "pkg/dart_internal/",
+      "pkg/dart2native/",
       "pkg/expect/",
       "pkg/front_end/",
       "pkg/js/",
