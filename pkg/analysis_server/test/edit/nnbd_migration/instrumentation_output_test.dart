@@ -23,34 +23,36 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   // TODO(srawlins): Add tests for navigation links, which use multiple
   // libraries.
   List<String> renderLibrary(LibraryInfo libraryInfo) {
+    String packageRoot = resourceProvider.convertPath('/package');
+    String outputDir = resourceProvider.convertPath('/output');
     MigrationInfo migrationInfo = MigrationInfo(
-        libraryInfo.units, resourceProvider.pathContext, '/project');
+        libraryInfo.units, resourceProvider.pathContext, packageRoot);
     List<String> contents = [];
     for (UnitInfo unitInfo in libraryInfo.units) {
-      contents.add(
-          InstrumentationRenderer(unitInfo, migrationInfo, PathMapper())
-              .render());
+      contents.add(InstrumentationRenderer(unitInfo, migrationInfo,
+              PathMapper(resourceProvider, outputDir, packageRoot))
+          .render());
     }
     return contents;
   }
 
   test_outputContainsEachPath() async {
     LibraryInfo info = LibraryInfo([
-      unit('/lib/a.dart', 'int? a = null;',
+      unit('/package/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
-      unit('/lib/part1.dart', 'int? b = null;',
+      unit('/package/lib/part1.dart', 'int? b = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
-      unit('/lib/part2.dart', 'int? c = null;',
+      unit('/package/lib/part2.dart', 'int? c = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    expect(renderLibrary(info)[0], contains('<h2>/lib/a.dart</h2>'));
-    expect(renderLibrary(info)[1], contains('<h2>/lib/part1.dart</h2>'));
-    expect(renderLibrary(info)[2], contains('<h2>/lib/part2.dart</h2>'));
+    expect(renderLibrary(info)[0], contains('lib/a.dart'));
+    expect(renderLibrary(info)[1], contains('lib/part1.dart'));
+    expect(renderLibrary(info)[2], contains('lib/part2.dart'));
   }
 
   test_outputContainsEscapedHtml() async {
     LibraryInfo info = LibraryInfo([
-      unit('/lib/a.dart', 'List<String>? a = null;',
+      unit('/package/lib/a.dart', 'List<String>? a = null;',
           regions: [RegionInfo(12, 1, 'null was assigned', [])]),
     ]);
     String output = renderLibrary(info)[0];
@@ -63,7 +65,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
 
   test_outputContainsEscapedHtml_ampersand() async {
     LibraryInfo info = LibraryInfo([
-      unit('/lib/a.dart', 'bool a = true && false;', regions: []),
+      unit('/package/lib/a.dart', 'bool a = true && false;', regions: []),
     ]);
     String output = renderLibrary(info)[0];
     expect(output, contains('bool a = true &amp;&amp; false;'));
@@ -71,7 +73,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
 
   test_outputContainsModifiedAndUnmodifiedRegions() async {
     LibraryInfo info = LibraryInfo([
-      unit('/lib/a.dart', 'int? a = null;',
+      unit('/package/lib/a.dart', 'int? a = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
     String output = renderLibrary(info)[0];
@@ -83,7 +85,7 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   }
 
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
-    return UnitInfo(path)
+    return UnitInfo(resourceProvider.convertPath(path))
       ..content = content
       ..regions.addAll(regions);
   }

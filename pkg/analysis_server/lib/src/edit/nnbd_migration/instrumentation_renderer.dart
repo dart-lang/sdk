@@ -10,7 +10,7 @@ import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
 /// A mustache template for one library's instrumentation output.
-mustache.Template _createTemplate(String navContent) => mustache.Template(r'''
+mustache.Template _template = mustache.Template(r'''
 <html>
   <head>
     <title>Non-nullable fix instrumentation report</title>
@@ -121,8 +121,8 @@ h2 {
       {{/ links }}
     </div>
     {{# units }}'''
-        '<h2>{{{ path }}}</h2>'
-        '<div class="content">'
+    '<h2>{{{ path }}}</h2>'
+    '<div class="content">'
 //    '<div class="highlighting">'
 //    '{{! These regions are written out, unmodified, as they need to be found }}'
 //    '{{! in one simple text string for highlight.js to hightlight them. }}'
@@ -130,26 +130,26 @@ h2 {
 //    '{{ content }}'
 //    '{{/ regions }}'
 //    '</div>'
-        '<div class ="code">'
-        '{{! The regions are written a second time, but hidden, to include }}'
-        '{{! anchors. }}' +
-    navContent +
+    '<div class ="code">'
+    '{{! Write the file content, modified to include navigation information, }}'
+    '{{! both anchors and links. }}'
+    '{{{ navContent }}}'
     '</div>'
-        '<div class="regions">'
-        '{{! The regions are then written again, overlaying the first two copies }}'
-        '{{! of the content, to provide tooltips for modified regions. }}'
-        '{{# regions }}'
-        '{{^ modified }}{{ content }}{{/ modified }}'
-        '{{# modified }}<span class="region">{{ content }}'
-        '<span class="tooltip">{{ explanation }}<ul>'
-        '{{# details }}'
-        '<li>'
-        '<a href="{{ target }}">{{ description }}</a>'
-        '</li>'
-        '{{/ details }}</ul></span></span>{{/ modified }}'
-        '{{/ regions }}'
-        '</div></div>'
-        r'''
+    '<div class="regions">'
+    '{{! The regions are then written again, overlaying the first two copies }}'
+    '{{! of the content, to provide tooltips for modified regions. }}'
+    '{{# regions }}'
+    '{{^ modified }}{{ content }}{{/ modified }}'
+    '{{# modified }}<span class="region">{{ content }}'
+    '<span class="tooltip">{{ explanation }}<ul>'
+    '{{# details }}'
+    '<li>'
+    '<a href="{{ target }}">{{ description }}</a>'
+    '</li>'
+    '{{/ details }}</ul></span></span>{{/ modified }}'
+    '{{/ regions }}'
+    '</div></div>'
+    r'''
     {{/ units }}
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -185,13 +185,13 @@ class InstrumentationRenderer {
       'links': migrationInfo.unitLinks(unitInfo),
       'highlightJsPath': migrationInfo.highlightJsPath(unitInfo),
       'highlightStylePath': migrationInfo.highlightStylePath(unitInfo),
+      'navContent': _computeNavigationContent(unitInfo),
     };
     mustacheContext['units'].add({
       'path': unitInfo.path,
       'regions': _computeRegions(unitInfo),
     });
-    String navContent = _computeNavigationContent(unitInfo);
-    return _createTemplate(navContent).renderString(mustacheContext);
+    return _template.renderString(mustacheContext);
   }
 
   /// Return the content of the file with navigation links and anchors added.

@@ -217,28 +217,46 @@ analyzer:
 
   /// Generate output into the given [folder].
   void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    List<UnitInfo> unitInfos =
-        await InfoBuilder(instrumentationListener.data, listener)
-            .explainMigration();
+    // Remove any previously generated output.
+    folder.getChildren().forEach((resource) => resource.delete());
+    // Gather the data needed in order to produce the output.
+    InfoBuilder infoBuilder =
+        InfoBuilder(instrumentationListener.data, listener);
+    List<UnitInfo> unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo =
         MigrationInfo(unitInfos, pathContext, includedRoot);
-    PathMapper pathMapper = PathMapper();
-    for (UnitInfo unitInfo in unitInfos) {
-      String libraryPath = pathContext.setExtension(unitInfo.path, '.html');
-      String relativePath =
-          pathContext.relative(libraryPath, from: includedRoot);
-      String htmlPath = pathContext.join(folder.path, relativePath);
-      pathMapper.pathMap[unitInfo.path] = htmlPath;
-    }
-    for (UnitInfo unitInfo in unitInfos) {
+    PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
+
+    /// Produce output for the compilation unit represented by the [unitInfo].
+    void render(UnitInfo unitInfo) {
       File output = provider.getFile(pathMapper.map(unitInfo.path));
       output.parent.create();
       String rendered =
           InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
       output.writeAsStringSync(rendered);
     }
-    // Generate resource files:
+
+    // Generate the files in the package being migrated.
+    for (UnitInfo unitInfo in unitInfos) {
+      render(unitInfo);
+    }
+    // Generate other dart files.
+    for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
+      if (!unitInfos.contains(unitInfo)) {
+        if (unitInfo.content == null) {
+          try {
+            unitInfo.content =
+                provider.getFile(unitInfo.path).readAsStringSync();
+          } catch (_) {
+            // If we can't read the content of the file, then skip it.
+            continue;
+          }
+        }
+        render(unitInfo);
+      }
+    }
+    // Generate resource files.
     File highlightJsOutput =
         provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
     highlightJsOutput.writeAsStringSync(decodeHighlightJs());

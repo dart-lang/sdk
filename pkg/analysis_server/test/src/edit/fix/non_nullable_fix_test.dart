@@ -136,11 +136,11 @@ class NonNullableFixTest extends AbstractAnalysisTest {
     Folder outputDir = getFolder('/outputDir');
     await performFix(included: [projectPath], outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    expect(getFile('/outputDir/bin/bin.html').exists, isTrue);
-    expect(getFile('/outputDir/lib/lib1.html').exists, isTrue);
-    expect(getFile('/outputDir/lib/lib2.html').exists, isTrue);
-    expect(getFile('/outputDir/lib/src/lib3.html').exists, isTrue);
-    expect(getFile('/outputDir/test/test.html').exists, isTrue);
+    expect(getFile('/outputDir/project/bin/bin.html').exists, isTrue);
+    expect(getFile('/outputDir/project/lib/lib1.html').exists, isTrue);
+    expect(getFile('/outputDir/project/lib/lib2.html').exists, isTrue);
+    expect(getFile('/outputDir/project/lib/src/lib3.html').exists, isTrue);
+    expect(getFile('/outputDir/project/test/test.html').exists, isTrue);
   }
 
   test_outputDirContainsFilesRootedInASubdirectory() async {
@@ -150,9 +150,9 @@ class NonNullableFixTest extends AbstractAnalysisTest {
         included: [context.join(projectPath, 'lib')],
         outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    expect(getFile('/outputDir/lib1.html').exists, isTrue);
-    expect(getFile('/outputDir/lib2.html').exists, isTrue);
-    expect(getFile('/outputDir/src/lib3.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/lib1.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/lib2.html').exists, isTrue);
+    expect(getFile('/outputDir/lib/src/lib3.html').exists, isTrue);
   }
 
   test_outputDirContainsFilesRootedInParentOfSingleFile() async {
@@ -162,6 +162,11 @@ class NonNullableFixTest extends AbstractAnalysisTest {
         included: [context.join(projectPath, 'lib', 'lib2.dart')],
         outputDir: outputDir.path);
     expect(outputDir.exists, true);
-    expect(outputDir.getChildAssumingFile('lib2.html').exists, isTrue);
+    expect(
+        outputDir
+            .getChildAssumingFolder('lib')
+            .getChildAssumingFile('lib2.html')
+            .exists,
+        isTrue);
   }
 }
