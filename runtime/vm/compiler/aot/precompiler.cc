@@ -250,11 +250,14 @@ void Precompiler::DoCompileAll() {
           auto const object_store = I->object_store();
           auto& llvm_constants = GrowableObjectArray::Handle(
               Z, GrowableObjectArray::New(16, Heap::kOld));
-          auto& llvm_constants_hash_table = Array::Handle(
-              Z, HashTables::New<FlowGraphSerializer::LLVMConstantsMap>(
-                     16, Heap::kOld));
+          auto& llvm_functions = GrowableObjectArray::Handle(
+              Z, GrowableObjectArray::New(16, Heap::kOld));
+          auto& llvm_constant_hash_table = Array::Handle(
+              Z, HashTables::New<FlowGraphSerializer::LLVMPoolMap>(16,
+                                                                   Heap::kOld));
           object_store->set_llvm_constant_pool(llvm_constants);
-          object_store->set_llvm_constant_hash_table(llvm_constants_hash_table);
+          object_store->set_llvm_function_pool(llvm_functions);
+          object_store->set_llvm_constant_hash_table(llvm_constant_hash_table);
         }
       }
 
@@ -352,8 +355,8 @@ void Precompiler::DoCompileAll() {
         }
         set_il_serialization_stream(nullptr);
         if (FLAG_populate_llvm_constant_pool) {
-          // We don't want the Array backing for the map from constants to
-          // indices in the snapshot, only the constant pool itself.
+          // We don't want the Array backing for any mappings in the snapshot,
+          // only the pools themselves.
           I->object_store()->set_llvm_constant_hash_table(Array::null_array());
         }
       }

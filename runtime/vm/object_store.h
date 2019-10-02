@@ -125,6 +125,7 @@ class ObjectPointerVisitor;
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
+  RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \
