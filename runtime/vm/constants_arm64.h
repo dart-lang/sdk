@@ -32,7 +32,7 @@ enum Register {
   R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
-  R18 = 18,  // "platform register" on iOS.
+  R18 = 18,  // reserved on iOS, shadow call stack on Fuchsia.
   R19 = 19,
   R20 = 20,
   R21 = 21,
@@ -151,12 +151,21 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
                                     (1 << R3) | (1 << R4) | (1 << R5) |
                                     (1 << R6) | (1 << R7);
+#if defined(TARGET_OS_FUCHSIA)
+const RegList kAbiPreservedCpuRegs =
+    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
+    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R18;
+const Register kAbiLastPreservedCpuReg = R28;
+const int kAbiPreservedCpuRegCount = 11;
+#else
 const RegList kAbiPreservedCpuRegs =
     (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
     (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
 const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
+#endif
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -165,8 +174,7 @@ const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
     (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
     (1 << LR) | (1 << BARRIER_MASK) | (1 << R31) |  // C++ SP
-    (1 << R18);                                     // iOS platform register.
-// TODO(rmacnak): Only reserve on Mac & iOS.
+    (1 << R18);
 constexpr intptr_t kNumberOfReservedCpuRegisters = 10;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =

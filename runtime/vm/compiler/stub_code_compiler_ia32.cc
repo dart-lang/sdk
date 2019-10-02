@@ -988,6 +988,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Set up THR, which caches the current thread in Dart code.
   __ movl(THR, EAX);
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save the current VMTag on the stack.
   __ movl(ECX, Assembler::VMTagAddress());
   __ pushl(ECX);
@@ -1068,6 +1072,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the current VMTag from the stack.
   __ popl(Assembler::VMTagAddress());
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
   __ popl(ESI);
@@ -1108,6 +1116,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Set up THR, which caches the current thread in Dart code.
   __ movl(THR, EAX);
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the current VMTag on the stack.
   __ movl(ECX, Assembler::VMTagAddress());
@@ -1180,6 +1192,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Restore the current VMTag from the stack.
   __ popl(Assembler::VMTagAddress());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -2520,6 +2536,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
           Address(ESP, 1 * target::kWordSize));  // Load target PC into EBX.
   __ movl(ESP,
           Address(ESP, 2 * target::kWordSize));  // Load target stack_pointer.
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   // Set tag.
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.

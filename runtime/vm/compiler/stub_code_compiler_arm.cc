@@ -1221,6 +1221,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ mov(THR, Operand(R3));
   }
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save the current VMTag on the stack.
   __ LoadFromOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
   __ Push(R9);
@@ -1310,6 +1314,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(kWord, R4, THR, target::Thread::vm_tag_offset());
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   __ PopNativeCalleeSavedRegisters();
 
   __ set_constant_pool_allowed(false);
@@ -1357,6 +1365,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   if (THR != R3) {
     __ mov(THR, Operand(R3));
   }
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(kWord, R9, THR, target::Thread::vm_tag_offset());
@@ -1445,6 +1457,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   } else {
     __ AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
   }
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Restore CPU registers.
   __ PopList(kAbiPreservedCpuRegs);
   __ set_constant_pool_allowed(false);
@@ -3024,6 +3041,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(THR, Operand(R3));  // Thread.
   __ mov(FP, Operand(R2));   // Frame_pointer.
   __ mov(SP, Operand(IP));   // Set Stack pointer.
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartCompiledTagId);
   __ StoreToOffset(kWord, R2, THR, target::Thread::vm_tag_offset());

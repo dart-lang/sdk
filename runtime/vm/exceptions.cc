@@ -625,6 +625,10 @@ void Exceptions::JumpToFrame(Thread* thread,
   OSThread::SetCurrentSafestackPointer(saved_ssp);
 #endif
 
+#if defined(USING_SHADOW_CALL_STACK)
+  // The shadow call stack register will be restored by the JumpToFrame stub.
+#endif
+
   func(program_counter, stack_pointer, frame_pointer, thread);
 #endif
   UNREACHABLE();

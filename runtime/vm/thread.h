@@ -287,6 +287,9 @@ class Thread : public ThreadState {
     saved_safestack_limit_ = limit;
   }
 #endif
+  static uword saved_shadow_call_stack_offset() {
+    return OFFSET_OF(Thread, saved_shadow_call_stack_);
+  }
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
@@ -892,6 +895,7 @@ class Thread : public ThreadState {
   RawObject* active_stacktrace_;
   RawObjectPool* global_object_pool_;
   uword resume_pc_;
+  uword saved_shadow_call_stack_ = 0;
   uword execution_state_;
   uword safepoint_state_;
   RawGrowableObjectArray* ffi_callback_code_;
