@@ -68,3 +68,32 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
     return new BytecodeMetadata(bytecodeComponent);
   }
 }
+
+class BinaryCacheMetadataRepository extends MetadataRepository<List<int>> {
+  static const repositoryTag = 'vm.bytecode.cache';
+
+  @override
+  String get tag => repositoryTag;
+
+  @override
+  final Map<TreeNode, List<int>> mapping = <TreeNode, List<int>>{};
+
+  @override
+  void writeToBinary(List<int> metadata, Node node, BinarySink sink) {
+    sink.writeByteList(metadata);
+  }
+
+  @override
+  List<int> readFromBinary(Node node, BinarySource source) {
+    List<int> result = source.readByteList();
+    _weakMap[node] = result;
+    return result;
+  }
+
+  static List<int> lookup(Node node) => _weakMap[node];
+  static void insert(Node node, List<int> metadata) {
+    _weakMap[node] = metadata;
+  }
+
+  static final _weakMap = new Expando<List<int>>();
+}

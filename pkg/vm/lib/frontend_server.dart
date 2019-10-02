@@ -25,6 +25,9 @@ import 'package:kernel/kernel.dart'
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
+import 'package:vm/metadata/binary_cache.dart'
+    show BinaryCacheMetadataRepository;
+
 import 'package:vm/bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
@@ -364,6 +367,15 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
+    if (compilerOptions.bytecode && _initializeFromDill != null) {
+      // If we are generating bytecode, put bytecode only (not AST) in
+      // [_kernelBinaryFilename], which the user of this tool will eventually
+      // feed to Flutter engine or flutter_tester. Use a separate file to cache
+      // the AST result to initialize the incremental compiler for the next
+      // invocation of this tool.
+      _initializeFromDill += ".ast";
+    }
+
     _compilerOptions = compilerOptions;
     _bytecodeOptions = bytecodeOptions;
 
@@ -470,20 +482,53 @@ class FrontendCompiler implements CompilerInterface {
 
   writeDillFile(Component component, String filename,
       {bool filterExternal: false}) async {
-    final IOSink sink = new File(filename).openWrite();
+    // Remove the cache that came either from this function or from
+    // initializing from a kernel file.
+    component.metadata.remove(BinaryCacheMetadataRepository.repositoryTag);
+
     if (_compilerOptions.bytecode) {
-      await runWithFrontEndCompilerContext(
-          _mainSource, _compilerOptions, component, () async {
-        if (_options['incremental']) {
-          await forEachPackage(component,
-              (String package, List<Library> libraries) async {
-            _writePackage(component, package, libraries, sink);
-          });
-        } else {
-          _writePackage(component, "main", component.libraries, sink);
+      {
+        // Generate bytecode as the output proper.
+        final IOSink sink = new File(filename).openWrite();
+        await runWithFrontEndCompilerContext(
+            _mainSource, _compilerOptions, component, () async {
+          if (_options['incremental']) {
+            await forEachPackage(component,
+                (String package, List<Library> libraries) async {
+              _writePackage(component, package, libraries, sink);
+            });
+          } else {
+            _writePackage(component, 'main', component.libraries, sink);
+          }
+        });
+        await sink.close();
+      }
+
+      {
+        // Generate AST as a cache.
+        final repository = new BinaryCacheMetadataRepository();
+        component.addMetadataRepository(repository);
+        for (var lib in component.libraries) {
+          var bytes = BinaryCacheMetadataRepository.lookup(lib);
+          if (bytes != null) {
+            repository.mapping[lib] = bytes;
+          }
         }
-      });
+
+        final IOSink sink = new File(filename + ".ast").openWrite();
+        final BinaryPrinter printer = filterExternal
+            ? new LimitedBinaryPrinter(
+                sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+            : printerFactory.newBinaryPrinter(sink);
+
+        sortComponent(component);
+
+        printer.writeComponentFile(component);
+        await sink.close();
+      }
     } else {
+      // Generate AST as the output proper.
+      final IOSink sink = new File(filename).openWrite();
       final BinaryPrinter printer = filterExternal
           ? new LimitedBinaryPrinter(
               sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
@@ -496,8 +541,8 @@ class FrontendCompiler implements CompilerInterface {
       }
 
       printer.writeComponentFile(component);
+      await sink.close();
     }
-    await sink.close();
   }
 
   Future<Null> invalidateIfInitializingFromDill() async {
@@ -557,17 +602,6 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  bool _elementsIdentical(List a, List b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (!identical(a[i], b[i])) return false;
-    }
-    return true;
-  }
-
-  final _packageLibraries = new Expando<List<Library>>();
-  final _packageBytes = new Expando<List<int>>();
-
   void _writePackage(Component component, String package,
       List<Library> libraries, IOSink sink) {
     final canCache = libraries.isNotEmpty &&
@@ -576,10 +610,9 @@ class FrontendCompiler implements CompilerInterface {
         package != "main";
 
     if (canCache) {
-      var cachedLibraries = _packageLibraries[libraries.first];
-      if ((cachedLibraries != null) &&
-          _elementsIdentical(cachedLibraries, libraries)) {
-        sink.add(_packageBytes[libraries.first]);
+      var cachedBytes = BinaryCacheMetadataRepository.lookup(libraries.first);
+      if (cachedBytes != null) {
+        sink.add(cachedBytes);
         return;
       }
     }
@@ -605,8 +638,7 @@ class FrontendCompiler implements CompilerInterface {
     final bytes = byteSink.builder.takeBytes();
     sink.add(bytes);
     if (canCache) {
-      _packageLibraries[libraries.first] = libraries;
-      _packageBytes[libraries.first] = bytes;
+      BinaryCacheMetadataRepository.insert(libraries.first, bytes);
     }
   }
 
