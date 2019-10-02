@@ -142,6 +142,28 @@ abstract class TypeEnvironment extends SubtypeTester {
   }
 }
 
+/// Result of a nullability-aware subtype check.
+///
+/// It is assumed that if a subtype check succeeds for two types in full-NNBD
+/// mode, it also succeeds for those two types if the nullability markers on the
+/// types and all of their sub-terms are ignored (that is, in the pre-NNBD
+/// mode).  By contraposition, if a subtype check fails for two types when the
+/// nullability markers are ignored, it should also fail for those types in
+/// full-NNBD mode.
+enum IsSubtypeOf {
+  /// Subtype check succeeds in both modes.
+  always,
+
+  /// Subtype check succeeds only if the nullability markers are ignored.
+  ///
+  /// This implies that if the nullability markers aren't ignored, the subtype
+  /// check fails.
+  onlyIfIgnoringNullabilities,
+
+  /// Subtype check fails in both modes.
+  never,
+}
+
 /// The part of [TypeEnvironment] that deals with subtype tests.
 ///
 /// This lives in a separate class so it can be tested independently of the SDK.
@@ -179,15 +201,24 @@ abstract class SubtypeTester {
 
   /// Returns true if [subtype] is a subtype of [supertype].
   bool isSubtypeOf(DartType subtype, DartType supertype) {
+    return performNullabilityAwareSubtypeCheck(subtype, supertype) !=
+        IsSubtypeOf.never;
+  }
+
+  /// Performs a nullability-aware subtype check.
+  ///
+  /// The outcome is described in the comments to [IsSubtypeOf].
+  IsSubtypeOf performNullabilityAwareSubtypeCheck(
+      DartType subtype, DartType supertype) {
     subtype = subtype.unalias;
     supertype = supertype.unalias;
-    if (identical(subtype, supertype)) return true;
-    if (subtype is BottomType) return true;
+    if (identical(subtype, supertype)) return IsSubtypeOf.always;
+    if (subtype is BottomType) return IsSubtypeOf.always;
     if (subtype == nullType) {
       // See rule 4 of the subtype rules from the Dart Language Specification.
-      return supertype is! BottomType;
+      return supertype is BottomType ? IsSubtypeOf.never : IsSubtypeOf.always;
     }
-    if (isTop(supertype)) return true;
+    if (isTop(supertype)) return IsSubtypeOf.always;
 
     // Handle FutureOr<T> union type.
     if (subtype is InterfaceType &&
@@ -197,14 +228,18 @@ abstract class SubtypeTester {
           identical(supertype.classNode, futureOrClass)) {
         var supertypeArg = supertype.typeArguments[0];
         // FutureOr<A> <: FutureOr<B> iff A <: B
-        return isSubtypeOf(subtypeArg, supertypeArg);
+        return performNullabilityAwareSubtypeCheck(subtypeArg, supertypeArg);
       }
 
       // given t1 is Future<A> | A, then:
       // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
       var subtypeFuture = futureType(subtypeArg);
-      return isSubtypeOf(subtypeFuture, supertype) &&
-          isSubtypeOf(subtypeArg, supertype);
+      return performNullabilityAwareSubtypeCheck(subtypeFuture, supertype) ==
+                  IsSubtypeOf.always &&
+              performNullabilityAwareSubtypeCheck(subtypeArg, supertype) ==
+                  IsSubtypeOf.always
+          ? IsSubtypeOf.always
+          : IsSubtypeOf.never;
     }
 
     if (supertype is InterfaceType &&
@@ -213,58 +248,66 @@ abstract class SubtypeTester {
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var supertypeArg = supertype.typeArguments[0];
       var supertypeFuture = futureType(supertypeArg);
-      return isSubtypeOf(subtype, supertypeFuture) ||
-          isSubtypeOf(subtype, supertypeArg);
+      return performNullabilityAwareSubtypeCheck(subtype, supertypeFuture) ==
+                  IsSubtypeOf.always ||
+              performNullabilityAwareSubtypeCheck(subtype, supertypeArg) ==
+                  IsSubtypeOf.always
+          ? IsSubtypeOf.always
+          : IsSubtypeOf.never;
     }
 
     if (subtype is InterfaceType && supertype is InterfaceType) {
       var upcastType = getTypeAsInstanceOf(subtype, supertype.classNode);
-      if (upcastType == null) return false;
+      if (upcastType == null) return IsSubtypeOf.never;
       for (int i = 0; i < upcastType.typeArguments.length; ++i) {
         // Termination: the 'supertype' parameter decreases in size.
         if (!isSubtypeOf(
             upcastType.typeArguments[i], supertype.typeArguments[i])) {
-          return false;
+          return IsSubtypeOf.never;
         }
       }
-      return true;
+      return IsSubtypeOf.always;
     }
     if (subtype is TypeParameterType) {
       if (supertype is TypeParameterType &&
           subtype.parameter == supertype.parameter) {
         if (supertype.promotedBound != null) {
-          return isSubtypeOf(subtype.bound, supertype.bound);
+          return performNullabilityAwareSubtypeCheck(
+              subtype.bound, supertype.bound);
         } else {
           // Promoted bound should always be a subtype of the declared bound.
           assert(subtype.promotedBound == null ||
-              isSubtypeOf(subtype.bound, supertype.bound));
-          return true;
+              performNullabilityAwareSubtypeCheck(
+                      subtype.bound, supertype.bound) ==
+                  IsSubtypeOf.always);
+          return IsSubtypeOf.always;
         }
       }
       // Termination: if there are no cyclically bound type parameters, this
       // recursive call can only occur a finite number of times, before reaching
       // a shrinking recursive call (or terminating).
-      return isSubtypeOf(subtype.bound, supertype);
+      return performNullabilityAwareSubtypeCheck(subtype.bound, supertype);
     }
     if (subtype is FunctionType) {
-      if (supertype == functionLegacyRawType) return true;
+      if (supertype == functionLegacyRawType) return IsSubtypeOf.always;
       if (supertype is FunctionType) {
-        return _isFunctionSubtypeOf(subtype, supertype);
+        return _performNullabilityAwareFunctionSubtypeCheck(subtype, supertype);
       }
     }
-    return false;
+    return IsSubtypeOf.never;
   }
 
-  bool _isFunctionSubtypeOf(FunctionType subtype, FunctionType supertype) {
+  IsSubtypeOf _performNullabilityAwareFunctionSubtypeCheck(
+      FunctionType subtype, FunctionType supertype) {
     if (subtype.requiredParameterCount > supertype.requiredParameterCount) {
-      return false;
+      return IsSubtypeOf.never;
     }
     if (subtype.positionalParameters.length <
         supertype.positionalParameters.length) {
-      return false;
+      return IsSubtypeOf.never;
     }
     if (subtype.typeParameters.length != supertype.typeParameters.length) {
-      return false;
+      return IsSubtypeOf.never;
     }
     if (subtype.typeParameters.isNotEmpty) {
       var substitution = <TypeParameter, DartType>{};
@@ -283,20 +326,20 @@ abstract class SubtypeTester {
         // TODO(dmitryas): Replace it with one recursive descent instead of two.
         if (!isSubtypeOf(superParameter.bound, subBound) ||
             !isSubtypeOf(subBound, superParameter.bound)) {
-          return false;
+          return IsSubtypeOf.never;
         }
       }
       subtype = substitute(subtype.withoutTypeParameters, substitution);
     }
     if (!isSubtypeOf(subtype.returnType, supertype.returnType)) {
-      return false;
+      return IsSubtypeOf.never;
     }
     for (int i = 0; i < supertype.positionalParameters.length; ++i) {
       var supertypeParameter = supertype.positionalParameters[i];
       var subtypeParameter = subtype.positionalParameters[i];
       // Termination: Both types shrink in size.
       if (!isSubtypeOf(supertypeParameter, subtypeParameter)) {
-        return false;
+        return IsSubtypeOf.never;
       }
     }
     int subtypeNameIndex = 0;
@@ -306,13 +349,15 @@ abstract class SubtypeTester {
               supertypeParameter.name) {
         ++subtypeNameIndex;
       }
-      if (subtypeNameIndex == subtype.namedParameters.length) return false;
+      if (subtypeNameIndex == subtype.namedParameters.length) {
+        return IsSubtypeOf.never;
+      }
       NamedType subtypeParameter = subtype.namedParameters[subtypeNameIndex];
       // Termination: Both types shrink in size.
       if (!isSubtypeOf(supertypeParameter.type, subtypeParameter.type)) {
-        return false;
+        return IsSubtypeOf.never;
       }
     }
-    return true;
+    return IsSubtypeOf.always;
   }
 }
