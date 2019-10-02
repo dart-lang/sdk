@@ -50,6 +50,26 @@ int Utils::HighestBit(int64_t v) {
   return r;
 }
 
+uint64_t Utils::ReverseBits64(uint64_t x) {
+  const uint64_t one = static_cast<uint64_t>(1);
+  uint64_t result = 0;
+  for (uint64_t rbit = one << 63; x != 0; x >>= 1) {
+    if ((x & one) != 0) result |= rbit;
+    rbit >>= 1;
+  }
+  return result;
+}
+
+uint32_t Utils::ReverseBits32(uint32_t x) {
+  const uint32_t one = static_cast<uint32_t>(1);
+  uint32_t result = 0;
+  for (uint32_t rbit = one << 31; x != 0; x >>= 1) {
+    if ((x & one) != 0) result |= rbit;
+    rbit >>= 1;
+  }
+  return result;
+}
+
 // Implementation according to H.S.Warren's "Hacker's Delight"
 // (Addison Wesley, 2002) Chapter 10 and T.Grablund, P.L.Montogomery's
 // "Division by Invariant Integers Using Multiplication" (PLDI 1994).

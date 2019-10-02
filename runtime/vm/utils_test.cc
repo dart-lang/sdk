@@ -160,6 +160,22 @@ VM_UNIT_TEST_CASE(CountZeros) {
   EXPECT_EQ(0, Utils::CountLeadingZeros(kTopBit));
 }
 
+VM_UNIT_TEST_CASE(ReverseBits32) {
+  EXPECT_EQ(0xffffffffU, Utils::ReverseBits32(0xffffffffU));
+  EXPECT_EQ(0xf0000000U, Utils::ReverseBits32(0x0000000fU));
+  EXPECT_EQ(0x00000001U, Utils::ReverseBits32(0x80000000U));
+  EXPECT_EQ(0x22222222U, Utils::ReverseBits32(0x44444444U));
+  EXPECT_EQ(0x1E6A2C48U, Utils::ReverseBits32(0x12345678U));
+}
+
+VM_UNIT_TEST_CASE(ReverseBits64) {
+  EXPECT_EQ(0xffffffffffffffffLLU, Utils::ReverseBits64(0xffffffffffffffffLLU));
+  EXPECT_EQ(0xf000000000000000LLU, Utils::ReverseBits64(0x000000000000000fLLU));
+  EXPECT_EQ(0x0000000000000001LLU, Utils::ReverseBits64(0x8000000000000000LLU));
+  EXPECT_EQ(0x2222222222222222LLU, Utils::ReverseBits64(0x4444444444444444LLU));
+  EXPECT_EQ(0x8f7b3d591e6a2c48LLU, Utils::ReverseBits64(0x123456789abcdef1LLU));
+}
+
 VM_UNIT_TEST_CASE(IsInt) {
   EXPECT(Utils::IsInt(8, 16));
   EXPECT(Utils::IsInt(8, 127));

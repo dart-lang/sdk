@@ -195,9 +195,6 @@ class Simulator {
   // Perform a division.
   void DoDivision(Instr* instr);
 
-  // Perform bit reversal.
-  void DoRbit(Instr* instr);
-
   inline uint8_t ReadBU(uword addr);
   inline int8_t ReadB(uword addr);
   inline void WriteB(uword addr, uint8_t value);
