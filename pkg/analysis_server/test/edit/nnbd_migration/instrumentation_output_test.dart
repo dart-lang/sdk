@@ -45,9 +45,12 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
       unit('/package/lib/part2.dart', 'int? c = null;',
           regions: [RegionInfo(3, 1, 'null was assigned', [])]),
     ]);
-    expect(renderLibrary(info)[0], contains('lib/a.dart'));
-    expect(renderLibrary(info)[1], contains('lib/part1.dart'));
-    expect(renderLibrary(info)[2], contains('lib/part2.dart'));
+    List<String> contents = renderLibrary(info);
+    expect(contents[0], contains(resourceProvider.convertPath('lib/a.dart')));
+    expect(
+        contents[1], contains(resourceProvider.convertPath('lib/part1.dart')));
+    expect(
+        contents[2], contains(resourceProvider.convertPath('lib/part2.dart')));
   }
 
   test_outputContainsEscapedHtml() async {
