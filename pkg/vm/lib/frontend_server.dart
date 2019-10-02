@@ -41,6 +41,7 @@ import 'package:vm/kernel_front_end.dart'
         parseCommandLineDefines,
         runWithFrontEndCompilerContext,
         setVMEnvironmentDefines,
+        sortComponent,
         writeDepfile;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
@@ -363,22 +364,20 @@ class FrontendCompiler implements CompilerInterface {
       ];
     }
 
+    _compilerOptions = compilerOptions;
+    _bytecodeOptions = bytecodeOptions;
+
     Component component;
     Iterable<Uri> compiledSources;
     if (options['incremental']) {
-      _compilerOptions = compilerOptions;
-      _bytecodeOptions = bytecodeOptions;
       setVMEnvironmentDefines(environmentDefines, _compilerOptions);
 
       _compilerOptions.omitPlatform = false;
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
-      component = await _runWithPrintRedirection(() async {
-        final c = await _generator.compile();
-        compiledSources = c.uriToSource.keys;
-        return await _generateBytecodeIfNeeded(c);
-      });
+      component = await _runWithPrintRedirection(() => _generator.compile());
+      compiledSources = component.uriToSource.keys;
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -472,26 +471,32 @@ class FrontendCompiler implements CompilerInterface {
   writeDillFile(Component component, String filename,
       {bool filterExternal: false}) async {
     final IOSink sink = new File(filename).openWrite();
-    final BinaryPrinter printer = filterExternal
-        ? new LimitedBinaryPrinter(
-            sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
-        : printerFactory.newBinaryPrinter(sink);
-
-    component.libraries.sort((Library l1, Library l2) {
-      return "${l1.fileUri}".compareTo("${l2.fileUri}");
-    });
-
-    component.computeCanonicalNames();
-    for (Library library in component.libraries) {
-      library.additionalExports.sort((Reference r1, Reference r2) {
-        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+    if (_compilerOptions.bytecode) {
+      await runWithFrontEndCompilerContext(
+          _mainSource, _compilerOptions, component, () async {
+        if (_options['incremental']) {
+          await forEachPackage(component,
+              (String package, List<Library> libraries) async {
+            _writePackage(component, package, libraries, sink);
+          });
+        } else {
+          _writePackage(component, "main", component.libraries, sink);
+        }
       });
-    }
-    if (unsafePackageSerialization == true) {
-      writePackagesToSinkAndTrimComponent(component, sink);
-    }
+    } else {
+      final BinaryPrinter printer = filterExternal
+          ? new LimitedBinaryPrinter(
+              sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
+          : printerFactory.newBinaryPrinter(sink);
 
-    printer.writeComponentFile(component);
+      sortComponent(component);
+
+      if (unsafePackageSerialization == true) {
+        writePackagesToSinkAndTrimComponent(component, sink);
+      }
+
+      printer.writeComponentFile(component);
+    }
     await sink.close();
   }
 
@@ -560,8 +565,8 @@ class FrontendCompiler implements CompilerInterface {
     return true;
   }
 
-  final _packageLibraries = new Expando();
-  final _packageBytes = new Expando();
+  final _packageLibraries = new Expando<List<Library>>();
+  final _packageBytes = new Expando<List<int>>();
 
   void _writePackage(Component component, String package,
       List<Library> libraries, IOSink sink) {
@@ -621,19 +626,7 @@ class FrontendCompiler implements CompilerInterface {
     }
     final compiledSources = deltaProgram.uriToSource.keys;
 
-    if (_compilerOptions.bytecode) {
-      final IOSink sink = new File(_kernelBinaryFilename).openWrite();
-      await runWithFrontEndCompilerContext(
-          _mainSource, _compilerOptions, deltaProgram, () async {
-        await forEachPackage(deltaProgram,
-            (String package, List<Library> libraries) async {
-          _writePackage(deltaProgram, package, libraries, sink);
-        });
-      });
-      await sink.close();
-    } else {
-      await writeDillFile(deltaProgram, _kernelBinaryFilename);
-    }
+    await writeDillFile(deltaProgram, _kernelBinaryFilename);
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(compiledSources);

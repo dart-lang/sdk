@@ -660,10 +660,10 @@ String packageFor(Library lib) {
   return 'main';
 }
 
-Future<Null> forEachPackage<T>(Component component,
-    T action(String package, List<Library> libraries)) async {
-  // Package sharing: make the encoding not depend on the order in which parts
-  // of a package are loaded.
+/// Sort the libraries etc in the component. Helps packages to produce identical
+/// output when their parts are imported in different orders in different
+/// contexts.
+void sortComponent(Component component) {
   component.libraries.sort((Library a, Library b) {
     return a.importUri.toString().compareTo(b.importUri.toString());
   });
@@ -673,6 +673,11 @@ Future<Null> forEachPackage<T>(Component component,
       return a.canonicalName.toString().compareTo(b.canonicalName.toString());
     });
   }
+}
+
+Future<Null> forEachPackage<T>(Component component,
+    T action(String package, List<Library> libraries)) async {
+  sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
   for (Library lib in component.libraries) {
