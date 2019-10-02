@@ -3171,7 +3171,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  NullabilitySuffix get _noneOrStarSuffix {
+  NullabilitySuffix get noneOrStarSuffix {
     return _nonNullableEnabled
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
@@ -3241,7 +3241,7 @@ class ResolverVisitor extends ScopedVisitor {
     // parameter and return type are in terms of the surrounding context.
     return fnType.instantiate(typeParameters.map((TypeParameter t) {
       return t.declaredElement.instantiate(
-        nullabilitySuffix: _noneOrStarSuffix,
+        nullabilitySuffix: noneOrStarSuffix,
       );
     }).toList());
   }

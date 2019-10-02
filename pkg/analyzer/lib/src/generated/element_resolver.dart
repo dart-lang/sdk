@@ -1099,6 +1099,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
     return _resolveTypeParameter(type);
   }
 
+  InterfaceType _instantiateAnnotationClass(ClassElement element) {
+    return element.instantiate(
+      typeArguments: List.filled(
+        element.typeParameters.length,
+        _dynamicType,
+      ),
+      nullabilitySuffix: _resolver.noneOrStarSuffix,
+    );
+  }
+
   /**
    * Check for a generic method & apply type arguments if any were passed.
    */
@@ -1298,7 +1308,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class(args)
       if (element1 is ClassElement) {
-        constructor = element1.type.lookUpConstructor(null, _definingLibrary);
+        constructor = _instantiateAnnotationClass(element1)
+            .lookUpConstructor(null, _definingLibrary);
       } else if (element1 == null) {
         undefined = true;
       }
@@ -1326,8 +1337,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
-        constructor =
-            element1.type.lookUpConstructor(nameNode2.name, _definingLibrary);
+        constructor = _instantiateAnnotationClass(element1)
+            .lookUpConstructor(nameNode2.name, _definingLibrary);
         nameNode2.staticElement = constructor;
       }
       if (element1 == null && element2 == null) {
@@ -1352,7 +1363,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
           return;
         }
         // prefix.Class.constructor(args)
-        constructor = element2.type.lookUpConstructor(name3, _definingLibrary);
+        constructor = _instantiateAnnotationClass(element2)
+            .lookUpConstructor(name3, _definingLibrary);
         nameNode3.staticElement = constructor;
       } else if (element2 == null) {
         undefined = true;
