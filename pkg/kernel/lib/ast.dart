@@ -6772,9 +6772,12 @@ abstract class MetadataRepository<T> {
   /// or referenced from the metadata payload.
   ///
   /// Currently due to binary format specifics Catch and MapEntry nodes
-  /// can't have metadata attached to them.
+  /// can't have metadata attached to them. Also, metadata is not saved on
+  /// Block nodes inside BlockExpressions.
   static bool isSupported(TreeNode node) {
-    return !(node is MapEntry || node is Catch);
+    return !(node is MapEntry ||
+        node is Catch ||
+        (node is Block && node.parent is BlockExpression));
   }
 }
 
