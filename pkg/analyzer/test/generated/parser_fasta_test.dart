@@ -1681,6 +1681,34 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.members, hasLength(0));
   }
 
+  void test_constructor_named() {
+    var unit = parseCompilationUnit('''
+extension E on C {
+  E.named();
+}
+class C {}
+''', errors: [
+      expectedError(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 21, 1),
+    ]);
+    expect(unit.declarations, hasLength(2));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_constructor_unnamed() {
+    var unit = parseCompilationUnit('''
+extension E on C {
+  E();
+}
+class C {}
+''', errors: [
+      expectedError(ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 21, 1),
+    ]);
+    expect(unit.declarations, hasLength(2));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.members, hasLength(0));
+  }
+
   void test_missing_on() {
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
@@ -1799,133 +1827,6 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'void');
     expect(extension.members, hasLength(0));
-  }
-}
-
-@reflectiveTest
-class VarianceParserTest_Fasta extends FastaParserTestCase {
-  @override
-  CompilationUnit parseCompilationUnit(String content,
-      {List<ErrorCode> codes,
-      List<ExpectedError> errors,
-      FeatureSet featureSet}) {
-    return super.parseCompilationUnit(content,
-        codes: codes,
-        errors: errors,
-        featureSet: featureSet ??
-            FeatureSet.forTesting(
-              sdkVersion: '2.5.0',
-              additionalFeatures: [Feature.variance],
-            ));
-  }
-
-  void test_class_enabled_single() {
-    var unit = parseCompilationUnit('class A<in T> { }');
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, 'A');
-    expect(classDecl.typeParameters.typeParameters, hasLength(1));
-    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
-  }
-
-  void test_class_enabled_multipleVariances() {
-    var unit = parseCompilationUnit('class A<in out inout T> { }', errors: [
-      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 11, 3),
-      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 15, 5)
-    ]);
-    expect(unit.declarations, hasLength(1));
-    var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.name, 'A');
-    expect(classDecl.typeParameters.typeParameters, hasLength(1));
-    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
-  }
-
-  void test_class_disabled_single() {
-    parseCompilationUnit('class A<out T> { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_class_disabled_multiple() {
-    parseCompilationUnit('class A<in T, inout U, out V> { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 2),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_mixin_enabled_single() {
-    var unit = parseCompilationUnit('mixin A<inout T> { }');
-    expect(unit.declarations, hasLength(1));
-    var mixinDecl = unit.declarations[0] as MixinDeclaration;
-    expect(mixinDecl.name.name, 'A');
-    expect(mixinDecl.typeParameters.typeParameters, hasLength(1));
-    expect(mixinDecl.typeParameters.typeParameters[0].name.name, 'T');
-  }
-
-  void test_mixin_disabled_single() {
-    parseCompilationUnit('mixin A<inout T> { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_mixin_disabled_multiple() {
-    parseCompilationUnit('mixin A<inout T, out U> { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_typedef_enabled() {
-    parseCompilationUnit('typedef A<inout X> = X Function(X);', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
-    ]);
-  }
-
-  void test_typedef_disabled() {
-    parseCompilationUnit('typedef A<inout X> = X Function(X);',
-        errors: [
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_list_enabled() {
-    parseCompilationUnit('List<out String> stringList = [];', errors: [
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
-    ]);
-  }
-
-  void test_list_disabled() {
-    parseCompilationUnit('List<out String> stringList = [];',
-        errors: [
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
-  }
-
-  void test_function_enabled() {
-    parseCompilationUnit('void A(in int value) {}', errors: [
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
-    ]);
-  }
-
-  void test_function_disabled() {
-    parseCompilationUnit('void A(in int value) {}',
-        errors: [
-          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
-          expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
   }
 }
 
@@ -2959,6 +2860,21 @@ main() {
     parseCompilationUnit('f() { var x = g!.x + 7; }');
   }
 
+  void test_nullCheckBeforeIndex() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { foo.bar!.baz[arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    expect(expression.index.toSource(), 'arg');
+    var propertyAccess = expression.target as PropertyAccess;
+    expect(propertyAccess.propertyName.toSource(), 'baz');
+    var target = propertyAccess.target as PostfixExpression;
+    expect(target.operand.toSource(), 'foo.bar');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_nullCheckBeforeMethodCall() {
     parseCompilationUnit('f() { var x = g!.m() + 7; }');
   }
@@ -3117,21 +3033,6 @@ main() {
     expect(target.operator.lexeme, '!');
 
     expect(target.operand.toSource(), "foo");
-  }
-
-  void test_nullCheckBeforeIndex() {
-    // https://github.com/dart-lang/sdk/issues/37708
-    var unit = parseCompilationUnit('f() { foo.bar!.baz[arg]; }');
-    var funct = unit.declarations[0] as FunctionDeclaration;
-    var body = funct.functionExpression.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ExpressionStatement;
-    var expression = statement.expression as IndexExpression;
-    expect(expression.index.toSource(), 'arg');
-    var propertyAccess = expression.target as PropertyAccess;
-    expect(propertyAccess.propertyName.toSource(), 'baz');
-    var target = propertyAccess.target as PostfixExpression;
-    expect(target.operand.toSource(), 'foo.bar');
-    expect(target.operator.lexeme, '!');
   }
 
   void test_nullCheckOnLiteral_disabled() {
@@ -4354,5 +4255,132 @@ mixin A {
     expect(declarationList.keyword, isNull);
     expect(declarationList.type, isNotNull);
     expect(declarationList.variables, hasLength(1));
+  }
+}
+
+@reflectiveTest
+class VarianceParserTest_Fasta extends FastaParserTestCase {
+  @override
+  CompilationUnit parseCompilationUnit(String content,
+      {List<ErrorCode> codes,
+      List<ExpectedError> errors,
+      FeatureSet featureSet}) {
+    return super.parseCompilationUnit(content,
+        codes: codes,
+        errors: errors,
+        featureSet: featureSet ??
+            FeatureSet.forTesting(
+              sdkVersion: '2.5.0',
+              additionalFeatures: [Feature.variance],
+            ));
+  }
+
+  void test_class_disabled_multiple() {
+    parseCompilationUnit('class A<in T, inout U, out V> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 2),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_class_disabled_single() {
+    parseCompilationUnit('class A<out T> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_class_enabled_multipleVariances() {
+    var unit = parseCompilationUnit('class A<in out inout T> { }', errors: [
+      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 11, 3),
+      expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 15, 5)
+    ]);
+    expect(unit.declarations, hasLength(1));
+    var classDecl = unit.declarations[0] as ClassDeclaration;
+    expect(classDecl.name.name, 'A');
+    expect(classDecl.typeParameters.typeParameters, hasLength(1));
+    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+  }
+
+  void test_class_enabled_single() {
+    var unit = parseCompilationUnit('class A<in T> { }');
+    expect(unit.declarations, hasLength(1));
+    var classDecl = unit.declarations[0] as ClassDeclaration;
+    expect(classDecl.name.name, 'A');
+    expect(classDecl.typeParameters.typeParameters, hasLength(1));
+    expect(classDecl.typeParameters.typeParameters[0].name.name, 'T');
+  }
+
+  void test_function_disabled() {
+    parseCompilationUnit('void A(in int value) {}',
+        errors: [
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_function_enabled() {
+    parseCompilationUnit('void A(in int value) {}', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 2),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+    ]);
+  }
+
+  void test_list_disabled() {
+    parseCompilationUnit('List<out String> stringList = [];',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_list_enabled() {
+    parseCompilationUnit('List<out String> stringList = [];', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6),
+    ]);
+  }
+
+  void test_mixin_disabled_multiple() {
+    parseCompilationUnit('mixin A<inout T, out U> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_mixin_disabled_single() {
+    parseCompilationUnit('mixin A<inout T> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_mixin_enabled_single() {
+    var unit = parseCompilationUnit('mixin A<inout T> { }');
+    expect(unit.declarations, hasLength(1));
+    var mixinDecl = unit.declarations[0] as MixinDeclaration;
+    expect(mixinDecl.name.name, 'A');
+    expect(mixinDecl.typeParameters.typeParameters, hasLength(1));
+    expect(mixinDecl.typeParameters.typeParameters[0].name.name, 'T');
+  }
+
+  void test_typedef_disabled() {
+    parseCompilationUnit('typedef A<inout X> = X Function(X);',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
+  void test_typedef_enabled() {
+    parseCompilationUnit('typedef A<inout X> = X Function(X);', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1),
+    ]);
   }
 }

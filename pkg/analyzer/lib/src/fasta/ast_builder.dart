@@ -1747,6 +1747,15 @@ class AstBuilder extends StackListener {
     // extensions. They are invalid and the parser has already reported an
     // error at this point. In the future, we should include them in order
     // to get navigation, search, etc.
+    pop(); // body
+    pop(); // initializers
+    pop(); // separator
+    pop(); // parameters
+    pop(); // typeParameters
+    pop(); // name
+    pop(); // returnType
+    pop(); // modifiers
+    pop(); // metadata
   }
 
   @override
