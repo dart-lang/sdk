@@ -986,6 +986,19 @@ ASSEMBLER_TEST_RUN(Clz, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Clz, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
+  __ mov(R0, Operand(0x15));
+  __ rbit(R0, R0);
+  __ bx(LR);
+}
+
+ASSEMBLER_TEST_RUN(Rbit, test) {
+  EXPECT(test != NULL);
+  typedef int (*Rbit)() DART_UNUSED;
+  const int32_t expected = 0xa8000000;
+  EXPECT_EQ(expected, EXECUTE_TEST_CODE_INT32(Rbit, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   Label skip;
 

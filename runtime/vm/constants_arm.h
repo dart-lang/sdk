@@ -753,6 +753,13 @@ class Instr {
             (Bits(22, 3) == 4));
   }
 
+  inline bool IsRbit() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 3);
+    return ((Bits(4, 4) == 3) && (Bits(8, 4) == 15) && (Bits(16, 4) == 15) &&
+            (Bits(20, 8) == 111));
+  }
+
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);

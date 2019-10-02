@@ -2230,9 +2230,29 @@ void Simulator::DoDivision(Instr* instr) {
   }
 }
 
+void Simulator::DoRbit(Instr* instr) {
+  // Format(instr, "rbit'cond 'rd, 'rm");
+  Register rm = instr->RmField();
+  Register rd = instr->RdField();
+  uint32_t bval = static_cast<uint32_t>(get_register(rm));
+  uint32_t rbit = static_cast<uint32_t>(1) << 31;
+  int32_t rd_val = 0;
+  while (bval != 0) {
+    if (bval & 0x1) {
+      rd_val |= rbit;
+    }
+    bval >>= 1;
+    rbit >>= 1;
+  }
+  set_register(rd, rd_val);
+}
+
 void Simulator::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
     DoDivision(instr);
+    return;
+  } else if (instr->IsRbit()) {
+    DoRbit(instr);
     return;
   }
   Register rd = instr->RdField();
