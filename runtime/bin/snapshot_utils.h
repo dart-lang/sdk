@@ -37,8 +37,7 @@ class Snapshot {
                                     const uint8_t* shared_instructions);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
-  static AppSnapshot* TryReadAppendedAppSnapshotBlobs(
-      const char* container_path);
+  static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
   static AppSnapshot* TryReadAppSnapshot(const char* script_name);
   static void WriteAppSnapshot(const char* filename,
                                uint8_t* vm_data_buffer,

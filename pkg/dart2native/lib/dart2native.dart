@@ -5,8 +5,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path/path.dart' as path;
-
 const appSnapshotPageSize = 4096;
 const appjitMagicNumber = <int>[0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0];
 
@@ -64,8 +62,8 @@ Future generateAotKernel(
 Future generateAotSnapshot(String genSnapshot, String kernelFile,
     String snapshotFile, bool enableAsserts) {
   return Process.run(genSnapshot, [
-    '--snapshot-kind=app-aot-blobs',
-    '--blobs_container_filename=${snapshotFile}',
+    '--snapshot-kind=app-aot-elf',
+    '--elf=${snapshotFile}',
     if (enableAsserts) '--enable-asserts',
     kernelFile
   ]);
