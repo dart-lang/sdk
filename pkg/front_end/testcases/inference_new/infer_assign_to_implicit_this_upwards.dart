@@ -33,8 +33,8 @@ class Test1 {
         /*@target=Test1::t*/ /*@target=Test1::t*/ t;
 
     var /*@ type=int* */ v11 =
-        /*@ type=int* */ /*@target=Test1::t*/ /*@target=Test1::t*/ t
-        /*@ type=int* */ /*@ target=num::+ */ ++;
+        /*@ type=int* */ /*@target=Test1::t*/ /*@target=Test1::t*/
+        /*@ type=int* */ t /*@ target=num::+ */ ++;
   }
 }
 
@@ -70,8 +70,8 @@ class Test2 {
         /*@target=Test2::t*/ /*@target=Test2::t*/ t;
 
     var /*@ type=num* */ v11 =
-        /*@ type=num* */ /*@target=Test2::t*/ /*@target=Test2::t*/ t
-        /*@ type=num* */ /*@ target=num::+ */ ++;
+        /*@ type=num* */ /*@target=Test2::t*/ /*@target=Test2::t*/
+        /*@ type=num* */ t /*@ target=num::+ */ ++;
   }
 }
 
@@ -102,8 +102,8 @@ class Test3 {
         /*@ target=double::+ */ ++ /*@target=Test3::t*/ /*@target=Test3::t*/ t;
 
     var /*@ type=double* */ v11 =
-        /*@ type=double* */ /*@target=Test3::t*/ /*@target=Test3::t*/ t
-        /*@ type=double* */ /*@ target=double::+ */ ++;
+        /*@ type=double* */ /*@target=Test3::t*/ /*@target=Test3::t*/
+        /*@ type=double* */ t /*@ target=double::+ */ ++;
   }
 }
 

@@ -22,9 +22,9 @@ var v_prefix_mm = (/*@ target=num::- */ --new /*@ type=A* */ A()
     . /*@target=A::f*/ /*@target=A::f*/ f);
 var v_postfix_pp = (new /*@ type=A* */ A()
     . /*@ type=int* */ /*@target=A::f*/ /*@target=A::f*/
-    f /*@ type=int* */ /*@ target=num::+ */ ++);
+    /*@ type=int* */ f /*@ target=num::+ */ ++);
 var v_postfix_mm = (new /*@ type=A* */ A()
     . /*@ type=int* */ /*@target=A::f*/ /*@target=A::f*/
-    f /*@ type=int* */ /*@ target=num::- */ --);
+    /*@ type=int* */ f /*@ target=num::- */ --);
 
 main() {}

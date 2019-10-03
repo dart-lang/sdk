@@ -42,8 +42,7 @@ class LoadLibraryBuilder extends Builder {
 
   LoadLibrary createLoadLibrary(
       int charOffset, Forest forest, Arguments arguments) {
-    return forest.createLoadLibrary(importDependency, arguments)
-      ..fileOffset = charOffset;
+    return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
   Procedure createTearoffMethod(Forest forest) {

@@ -61,8 +61,8 @@ class NullabilityBuilder {
       case SyntacticNullability.omitted:
         return ifOmitted;
     }
-    return unhandled("$_syntacticNullability", "buildNullability",
-        TreeNode.noOffset, noLocation);
+    return unhandled(
+        "$_syntacticNullability", "buildNullability", noLocation, null);
   }
 
   void writeNullabilityOn(StringBuffer sb) {
@@ -77,8 +77,7 @@ class NullabilityBuilder {
         // Do nothing.
         return;
     }
-    unhandled("$_syntacticNullability", "writeNullabilityOn", TreeNode.noOffset,
-        noLocation);
+    unhandled("$_syntacticNullability", "writeNullabilityOn", noLocation, null);
   }
 
   String toString() {

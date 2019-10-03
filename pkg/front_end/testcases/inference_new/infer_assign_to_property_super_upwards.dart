@@ -43,9 +43,8 @@ class Test1 extends Base {
         . /*@target=Base::intProp*/ /*@target=Base::intProp*/ intProp;
 
     var /*@ type=int* */ v11 = super
-            . /*@ type=int* */ /*@target=Base::intProp*/ /*@target=Base::intProp*/
-            intProp
-        /*@ type=int* */ /*@ target=num::+ */ ++;
+        . /*@ type=int* */ /*@target=Base::intProp*/ /*@target=Base::intProp*/
+        /*@ type=int* */ intProp /*@ target=num::+ */ ++;
   }
 }
 
@@ -89,7 +88,7 @@ class Test2 extends Base {
 
     var /*@ type=num* */ v11 = super
         . /*@ type=num* */ /*@target=Base::numProp*/ /*@target=Base::numProp*/
-        numProp /*@ type=num* */ /*@ target=num::+ */ ++;
+        /*@ type=num* */ numProp /*@ target=num::+ */ ++;
   }
 }
 
@@ -128,7 +127,7 @@ class Test3 extends Base {
 
     var /*@ type=double* */ v11 = super
         . /*@ type=double* */ /*@target=Base::doubleProp*/ /*@target=Base::doubleProp*/
-        doubleProp /*@ type=double* */ /*@ target=double::+ */ ++;
+        /*@ type=double* */ doubleProp /*@ target=double::+ */ ++;
   }
 }
 

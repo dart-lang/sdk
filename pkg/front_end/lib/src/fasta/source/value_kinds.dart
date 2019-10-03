@@ -37,6 +37,8 @@ abstract class ValueKind {
   static const ValueKind ArgumentsOrNull =
       const _SingleValueKind<type.Arguments>(NullValue.Arguments);
   static const ValueKind Expression = const _SingleValueKind<type.Expression>();
+  static const ValueKind ExpressionOrNull =
+      const _SingleValueKind<type.Expression>(NullValue.Expression);
   static const ValueKind Identifier = const _SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
       const _SingleValueKind<type.Identifier>(NullValue.Identifier);
@@ -65,6 +67,7 @@ abstract class ValueKind {
       const _UnionValueKind([Name, ParserRecovery]);
   static const ValueKind MetadataListOrNull =
       const _SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
+  static const ValueKind ObjectList = const _SingleValueKind<List<Object>>();
   static const ValueKind Operator = const _SingleValueKind<type.Operator>();
   static const ValueKind ParserRecovery =
       const _SingleValueKind<type.ParserRecovery>();
@@ -72,6 +75,7 @@ abstract class ValueKind {
       const _SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const _SingleValueKind<type.QualifiedName>();
+  static const ValueKind Statement = const _SingleValueKind<type.Statement>();
   static const ValueKind Token = const _SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const _SingleValueKind<type.Token>(NullValue.Token);
