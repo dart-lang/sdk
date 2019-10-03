@@ -472,20 +472,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         nullabilitySuffix: nullabilitySuffix);
   }
 
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   *
-   * Note: this constructor mishandles generics.
-   * See https://github.com/dart-lang/sdk/issues/34657.
-   */
-  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
-    return new _FunctionTypeImplLazy._(
-        element, element?.name, null, null, null, null, false,
-        nullabilitySuffix: nullabilitySuffix);
-  }
-
   /// Creates a function type that's not associated with any element in the
   /// element tree.
   factory FunctionTypeImpl.synthetic(DartType returnType,

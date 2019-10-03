@@ -1697,40 +1697,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(s.isSubtypeOf(t), isFalse);
   }
 
-  void test_namedParameterTypes_pruned_no_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.function.parameters = [
-      ElementFactory.namedParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f).namedParameterTypes['x'];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_namedParameterTypes_pruned_with_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.function.parameters = [
-      ElementFactory.namedParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f, typeArguments: [typeProvider.intType])
-            .namedParameterTypes['x'];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_newPrune_no_previous_prune() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    FunctionTypeImpl type = functionTypeAliasType(f);
-    List<FunctionTypeAliasElement> pruneList = type.newPrune;
-    expect(pruneList, hasLength(1));
-    expect(pruneList[0], same(f));
-  }
-
   void test_newPrune_non_typedef() {
     // No pruning needs to be done for function types that aren't associated
     // with typedefs because those types can't be directly referred to by the
@@ -1740,107 +1706,12 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(type.newPrune, isNull);
   }
 
-  void test_newPrune_synthetic_typedef() {
-    // No pruning needs to be done for function types that are associated with
-    // synthetic typedefs because those types are only created for
-    // function-typed formal parameters, which can't be directly referred to by
-    // the user (and hence can't participate in circularities).
-    var f = ElementFactory.genericTypeAliasElement('f');
-    f.isSynthetic = true;
-    FunctionTypeImpl type = functionTypeAliasType(f);
-    expect(type.newPrune, isNull);
-  }
-
-  void test_newPrune_with_previous_prune() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    FunctionTypeImpl type = functionTypeAliasType(f);
-    FunctionTypeImpl prunedType = type.pruned([g]);
-    List<FunctionTypeAliasElement> pruneList = prunedType.newPrune;
-    expect(pruneList, hasLength(2));
-    expect(pruneList, contains(f));
-    expect(pruneList, contains(g));
-  }
-
-  void test_normalParameterTypes_pruned_no_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.function.parameters = [
-      ElementFactory.requiredParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f).normalParameterTypes[0];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_normalParameterTypes_pruned_with_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.function.parameters = [
-      ElementFactory.requiredParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f, typeArguments: [typeProvider.intType])
-            .normalParameterTypes[0];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_optionalParameterTypes_pruned_no_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.function.parameters = [
-      ElementFactory.positionalParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f).optionalParameterTypes[0];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_optionalParameterTypes_pruned_with_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.function.parameters = [
-      ElementFactory.positionalParameter2('x', functionTypeAliasType(g))
-    ];
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f, typeArguments: [typeProvider.intType])
-            .optionalParameterTypes[0];
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
   void test_resolveToBound() {
     FunctionElementImpl f = ElementFactory.functionElement('f');
     FunctionTypeImpl type = f.type;
 
     // Returns this.
     expect(type.resolveToBound(null), same(type));
-  }
-
-  void test_returnType_pruned_no_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.function.returnType = functionTypeAliasType(g);
-    FunctionTypeImpl paramType = functionTypeAliasType(f).returnType;
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
-  }
-
-  void test_returnType_pruned_with_type_arguments() {
-    var f = ElementFactory.genericTypeAliasElement('f');
-    var g = ElementFactory.genericTypeAliasElement('g');
-    f.typeParameters = [ElementFactory.typeParameterElement('T')];
-    f.function.returnType = functionTypeAliasType(g);
-    FunctionTypeImpl paramType =
-        functionTypeAliasType(f, typeArguments: [typeProvider.intType])
-            .returnType;
-    expect(paramType.prunedTypedefs, hasLength(1));
-    expect(paramType.prunedTypedefs[0], same(f));
   }
 
   void test_substitute2_equal() {
@@ -1916,7 +1787,10 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     var s = ElementFactory.genericTypeAliasElement("s");
     t.function.returnType = functionTypeAliasType(s);
     s.function.returnType = functionTypeAliasType(t);
-    expect(functionTypeAliasType(t).toString(), '... Function() Function()');
+    expect(
+      functionTypeAliasType(t).toString(),
+      'dynamic Function() Function()',
+    );
   }
 
   void test_toString_recursive_via_interface_type() {
@@ -1926,7 +1800,10 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       typeArguments: [functionTypeAliasType(f)],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    expect(functionTypeAliasType(f).toString(), 'C<...> Function()');
+    expect(
+      functionTypeAliasType(f).toString(),
+      'C<dynamic Function()> Function()',
+    );
   }
 
   void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {
