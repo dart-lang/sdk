@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.56';
+const String version = '1.57';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1084,7 +1084,8 @@ class DartFuzz {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
     // TODO (felih): disable complex collection constructs for new types for
     // now.
-    if (DartType.isComplexType(tp)) {
+    if (!{DartType.MAP_INT_STRING, DartType.LIST_INT, DartType.SET_INT}
+        .contains(tp)) {
       emitElement(depth, tp, rhsFilter: rhsFilter);
       return;
     }
