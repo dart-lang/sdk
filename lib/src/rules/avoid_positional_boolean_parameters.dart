@@ -100,9 +100,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isFormalParameterToLint(FormalParameter node) =>
-      DartTypeUtilities.implementsInterface(
-          node.identifier.staticType, 'bool', 'dart.core') &&
-      !node.isNamed;
+      !node.isNamed &&
+      DartTypeUtilities.isClass(node.declaredElement.type, 'bool', 'dart.core');
 
   bool _isOverridingMember(Element member) {
     if (member == null) {
