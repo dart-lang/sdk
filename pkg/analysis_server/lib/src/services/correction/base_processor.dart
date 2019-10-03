@@ -99,6 +99,7 @@ abstract class BaseProcessor {
     }
 
     var constructorInvocation;
+    var hasTypeArgs = false;
     if (type.isDartCoreBool) {
       constructorInvocation = 'DiagnosticsProperty<bool>';
     } else if (type.isDartCoreInt) {
@@ -109,9 +110,14 @@ abstract class BaseProcessor {
       constructorInvocation = 'StringProperty';
     } else if (isEnum(type)) {
       constructorInvocation = 'EnumProperty';
+    } else if (isIterable(type)) {
+      constructorInvocation = 'IterableProperty';
+      hasTypeArgs = true;
+    } else if (flutter.isColor(type)) {
+      constructorInvocation = 'ColorProperty';
+    } else if (flutter.isMatrix4(type)) {
+      constructorInvocation = 'TransformProperty';
     }
-
-    // todo (pq): migrate type string generation to within change and use DartEditBuilder.writeType
 
     if (constructorInvocation == null) {
       return null;
@@ -158,7 +164,13 @@ abstract class BaseProcessor {
           builder.addInsertion(utils.getLineNext(offset),
               (DartEditBuilder builder) {
             builder.write(
-                "$prefix$propertiesBuilderName.add($constructorInvocation('${name.name}', ${name.name}));$eol");
+                "$prefix$propertiesBuilderName.add($constructorInvocation");
+            if (hasTypeArgs) {
+              builder.write('<');
+              builder.writeTypes((type as InterfaceType).typeArguments);
+              builder.write('>');
+            }
+            builder.write("('${name.name}', ${name.name}));$eol");
           });
         });
         return changeBuilder;
@@ -1211,6 +1223,28 @@ abstract class BaseProcessor {
   bool isEnum(DartType type) {
     final element = type.element;
     return element is ClassElement && element.isEnum;
+  }
+
+  bool isIterable(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    ClassElement element = type.element;
+
+    bool isExactIterable(ClassElement element) {
+      return element?.name == 'Iterable' && element.library.isDartCore;
+    }
+
+    if (isExactIterable(element)) {
+      return true;
+    }
+    for (InterfaceType type in element.allSupertypes) {
+      if (isExactIterable(type.element)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @protected

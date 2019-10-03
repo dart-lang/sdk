@@ -115,6 +115,31 @@ class Absorber extends Widget {
 ''');
   }
 
+  test_colorField_debugFillProperties() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+class A extends Widget {
+  Color /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+class A extends Widget {
+  Color /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(ColorProperty('field', field));
+  }
+}
+''');
+  }
+
   test_doubleField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
@@ -183,6 +208,75 @@ class A extends Widget {
 ''');
   }
 
+  test_iterableField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  Iterable<String> /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  Iterable<String> /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<String>('field', field));
+  }
+}
+''');
+  }
+
+  test_listField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  List<List<String>> /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  List<List<String>> /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IterableProperty<List<String>>('field', field));
+  }
+}
+''');
+  }
+
+  test_matrix4Field_debugFillProperties() async {
+    addVectorMathPackage();
+    await resolveTestUnit('''
+import 'package:vector_math/vector_math_64.dart';
+class A extends Widget {
+  Matrix4 /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:vector_math/vector_math_64.dart';
+class A extends Widget {
+  Matrix4 /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(TransformProperty('field', field));
+  }
+}
+''');
+  }
+
   test_stringField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
@@ -207,8 +301,5 @@ class A extends Widget {
 
   // todo (pq): tests for no debugFillProperties method
   // todo (pq): consider a test for a body w/ no CR
-  // todo (pq): support for ColorProperty -- for Color
-  // todo (pq): support for IterableProperty -- any iterable
-  // todo (pq): support for TransformProperty -- Matrix4
   // todo (pq): support for DiagnosticsProperty for any T that doesn't match one of the other cases
 }
