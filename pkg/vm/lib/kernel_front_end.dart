@@ -686,10 +686,8 @@ Future<Null> forEachPackage<T>(Component component,
   if (packages.containsKey(null)) {
     packages.remove(null);
   }
-  if (packages.containsKey('main')) {
-    // Make sure main package is last.
-    packages['main'] = packages.remove('main');
-  }
+  // Make sure main package is last.
+  packages['main'] = packages.remove('main') ?? const <Library>[];
 
   for (String package in packages.keys) {
     final main = component.mainMethod;
