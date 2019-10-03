@@ -10,15 +10,18 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final LibraryElement _libraryElement;
   final Scope _libraryScope;
   final CompilationUnitElement _unitElement;
+  Scope _scope;
 
-  MetadataResolver(this._linker, this._libraryElement, this._libraryScope,
-      this._unitElement);
+  MetadataResolver(
+      this._linker, this._libraryElement, this._libraryScope, this._unitElement)
+      : _scope = _libraryScope;
 
   @override
   void visitAnnotation(Annotation node) {
@@ -27,7 +30,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     var holder = ElementHolder();
     node.accept(LocalElementBuilder(holder, null));
 
-    var astResolver = AstResolver(_linker, _libraryElement, _libraryScope);
+    var astResolver = AstResolver(_linker, _libraryElement, _scope);
     astResolver.rewriteAst(node);
     astResolver.resolve(node);
   }
@@ -36,7 +39,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    node.members.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
   }
 
   @override
@@ -82,7 +91,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    node.members.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
   }
 
   @override
@@ -161,7 +176,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
-    node.members.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
   }
 
   @override

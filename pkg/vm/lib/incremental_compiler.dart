@@ -5,6 +5,7 @@
 /// Defines wrapper class around incremental compiler to support
 /// the flow, where incremental deltas can be rejected by VM.
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -44,15 +45,21 @@ class IncrementalCompiler {
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
   Future<Component> compile({Uri entryPoint}) async {
-    _entryPoint = entryPoint ?? _entryPoint;
-    List<Uri> entryPoints;
-    if (entryPoint != null) entryPoints = [entryPoint];
-    Component component = await _generator.computeDelta(
-        entryPoints: entryPoints, fullComponent: fullComponent);
-    initialized = true;
-    fullComponent = false;
-    _pendingDeltas.add(component);
-    return _combinePendingDeltas(false);
+    final task = new TimelineTask();
+    try {
+      task.start("IncrementalCompiler.compile");
+      _entryPoint = entryPoint ?? _entryPoint;
+      List<Uri> entryPoints;
+      if (entryPoint != null) entryPoints = [entryPoint];
+      Component component = await _generator.computeDelta(
+          entryPoints: entryPoints, fullComponent: fullComponent);
+      initialized = true;
+      fullComponent = false;
+      _pendingDeltas.add(component);
+      return _combinePendingDeltas(false);
+    } finally {
+      task.finish();
+    }
   }
 
   _combinePendingDeltas(bool includePlatform) {

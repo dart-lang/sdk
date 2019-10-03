@@ -66,8 +66,9 @@ def GetGNArgs(args):
     return args.split()
 
 
-def GetOutDir(mode, arch, target_os):
-    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetOutDir(mode, arch, target_os, use_nnbd):
+    return utils.GetBuildRoot(HOST_OS, mode, arch, target_os, use_nnbd)
 
 
 def ToCommandLine(gn_args):
@@ -166,7 +167,8 @@ def UseSysroot(args, gn_args):
     return True
 
 
-def ToGnArgs(args, mode, arch, target_os):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -284,6 +286,8 @@ def ToGnArgs(args, mode, arch, target_os):
         gn_args['dart_debug_optimization_level'] = args.debug_opt_level
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
+    gn_args['use_nnbd'] = use_nnbd
+
     return gn_args
 
 
@@ -385,6 +389,12 @@ def parse_args(args):
         help='Target OSs (comma-separated).',
         metavar='[all,host,android]',
         default='host')
+    # TODO(38701): Remove this once the forked NNBD SDK is merged back in.
+    common_group.add_argument(
+        "--nnbd",
+        help='Use the NNBD fork of the SDK.',
+        default=False,
+        action='store_true')
     common_group.add_argument(
         "-v",
         "--verbose",
@@ -533,12 +543,13 @@ def Main(argv):
     for target_os in args.os:
         for mode in args.mode:
             for arch in args.arch:
-                out_dir = GetOutDir(mode, arch, target_os)
+                out_dir = GetOutDir(mode, arch, target_os, args.nnbd)
                 # TODO(infra): Re-enable --check. Many targets fail to use
                 # public_deps to re-expose header files to their dependents.
                 # See dartbug.com/32364
                 command = [gn, 'gen', out_dir]
-                gn_args = ToCommandLine(ToGnArgs(args, mode, arch, target_os))
+                gn_args = ToCommandLine(
+                    ToGnArgs(args, mode, arch, target_os, args.nnbd))
                 gn_args += GetGNArgs(args)
                 if args.verbose:
                     print("gn gen --check in %s" % out_dir)

@@ -16,6 +16,8 @@ _base_fuchsia_config = [
   "$_dart_runtime:dart_os_fuchsia_config",
 ]
 
+_base_host_targeting_host_config = [ "$_dart_runtime:dart_config" ]
+
 _maybe_product = [ "$_dart_runtime:dart_maybe_product_config" ]
 
 _product = [ "$_dart_runtime:dart_product_config" ]
@@ -57,6 +59,13 @@ _nosnapshot_with_precompiler_fuchsia_config =
 _nosnapshot_with_precompiler_product_fuchsia_config =
     _base_fuchsia_config + _nosnapshot_precompiler_base + _product
 
+_nosnapshot_with_precompiler_host_targeting_host_config =
+    _base_host_targeting_host_config + _nosnapshot_precompiler_base +
+    _maybe_product
+
+_nosnapshot_with_precompiler_product_host_targeting_host_config =
+    _base_host_targeting_host_config + _nosnapshot_precompiler_base + _product
+
 _all_configs = [
   {
     suffix = "_jit"
@@ -96,6 +105,16 @@ _all_configs = [
   {
     suffix = "_nosnapshot_with_precompiler_product_fuchsia"
     configs = _nosnapshot_with_precompiler_product_fuchsia_config
+    snapshot = false
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler_host_targeting_host"
+    configs = _nosnapshot_with_precompiler_host_targeting_host_config
+    snapshot = false
+  },
+  {
+    suffix = "_nosnapshot_with_precompiler_product_host_targeting_host"
+    configs = _nosnapshot_with_precompiler_product_host_targeting_host_config
     snapshot = false
   },
   {

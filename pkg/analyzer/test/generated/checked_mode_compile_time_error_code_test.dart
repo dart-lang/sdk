@@ -165,6 +165,10 @@ foo(x) => 1;
 var v = const A(foo);
 ''', [
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 116, 3),
+      error(
+          CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+          116,
+          3),
     ]);
   }
 

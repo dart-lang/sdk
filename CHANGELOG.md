@@ -31,16 +31,20 @@ main() { foo(() {}); }
 
 #### Linter
 
-The Linter was updated to `0.1.98`, which includes:
+The Linter was updated to `0.1.99`, which includes:
 
-* fixed null raw expression accesses in `use_to_and_as_if_applicable`
-* internal migration to using analyzer `InheritanceManager3`
-* internal migration away from using analyzer `resolutionMap`
-* various fixes and improvements to anticipate support for extension-methods
-* new lint: `camel_case_extensions`
-* rule template generation improvements
-* new lint: `avoid_equals_and_hash_code_on_mutable_classes`
-* extended `avoid_slow_async_io` to flag async `Directory` methods
+* fixed unsafe casts in `overridden_fields`
+* (internal) migration to the mock SDK in `package:analyzer` for testing
+* fixed empty argument list access in `use_full_hex_values_for_flutter_color_fix`
+* new lint: `prefer_relative_imports`
+* improved messages for `await_only_futures`
+
+## 2.5.1 - 2019-09-27
+
+This is a patch release that prevents type inference failures in the analyzer
+(Issue [38365][]).
+
+[38365]: https://github.com/dart-lang/sdk/issues/38365
 
 ## 2.5.0 - 2019-09-10
 

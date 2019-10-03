@@ -2,22 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == compare_analyzer_cfe ]
-const_native_factory_test: Fail # Issue 29763
-deferred_global_test: Fail # Issue 34503
-generic_field_mixin2_test: Fail # Issue 34489
-generic_local_functions_test: Fail # Issue 28515
-generic_methods_generic_function_parameter_test: Fail # Issue 28515
-issue34488_test/01: Fail # Issue 34488
-issue34488_test/02: Fail # Issue 34488
-issue34488_test/03: Fail # Issue 34488
-issue34488_test/04: Fail # Issue 34488
-issue34488_test/05: Fail # Issue 34488
-issue34488_test/06: Fail # Issue 34488
-issue34488_test/none: Fail # Issue 34488
-mixin_class_from_core_library_test: Fail # Issue 34488
-nested_generic_closure_test: Fail # Issue 28515
-
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
@@ -48,11 +32,6 @@ regress_29784_test/02: SkipByDesign # Requires checked mode.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
-[ $fasta ]
-partial_instantiation_static_bounds_check_test/01: MissingCompileTimeError # Issue 34327
-partial_instantiation_static_bounds_check_test/02: MissingCompileTimeError # Issue 34327
-partial_instantiation_static_bounds_check_test/03: MissingCompileTimeError # Issue 34327
-
 [ $compiler != dart2js && $compiler != dartdevc && !$checked ]
 function_type/*: Skip # Needs checked mode.
 
@@ -60,6 +39,5 @@ function_type/*: Skip # Needs checked mode.
 built_in_identifier_type_annotation_test/set: Crash # Not supported by legacy VM front-end.
 
 [ $hot_reload || $hot_reload_rollback ]
-issue_22780_test/01: Pass, Crash # Issue 29094
-static_closure_identical_test: Pass, Fail # Closure identity
+issue_22780_test/01: Crash # Issue 29094
 vm/optimized_stacktrace_test: Slow

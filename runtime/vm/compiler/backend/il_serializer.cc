@@ -39,10 +39,13 @@ FlowGraphSerializer::FlowGraphSerializer(Zone* zone,
       zone_(zone),
       object_store_(flow_graph->thread()->isolate()->object_store()),
       open_recursive_types_(zone_),
-      llvm_pool_(
+      llvm_constants_(
           GrowableObjectArray::Handle(zone_,
                                       object_store_->llvm_constant_pool())),
-      llvm_map_(zone_, object_store_->llvm_constant_hash_table()),
+      llvm_functions_(
+          GrowableObjectArray::Handle(zone_,
+                                      object_store_->llvm_function_pool())),
+      llvm_constant_map_(zone_, object_store_->llvm_constant_hash_table()),
       llvm_index_(Smi::Handle(zone_)),
       tmp_string_(String::Handle(zone_)),
       array_type_args_((TypeArguments::Handle(zone_))),
@@ -70,7 +73,7 @@ FlowGraphSerializer::FlowGraphSerializer(Zone* zone,
 }
 
 FlowGraphSerializer::~FlowGraphSerializer() {
-  object_store_->set_llvm_constant_hash_table(llvm_map_.Release());
+  object_store_->set_llvm_constant_hash_table(llvm_constant_map_.Release());
 }
 
 void FlowGraphSerializer::SerializeToBuffer(const FlowGraph* flow_graph,
@@ -325,6 +328,11 @@ SExpression* FlowGraphSerializer::FlowGraphToSExp() {
   ASSERT(block_order[0]->IsGraphEntry());
   for (intptr_t i = 1; i < block_order.length(); ++i) {
     sexp->Add(block_order[i]->ToSExpression(this));
+  }
+  if (FLAG_populate_llvm_constant_pool) {
+    auto const new_index = llvm_functions_.Length();
+    llvm_functions_.Add(flow_graph_->function());
+    AddExtraInteger(sexp, "llvm_index", new_index);
   }
   return sexp;
 }
@@ -745,13 +753,14 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
         elem->AddExtra("type", type->ToSExpression(this));
       }
     }
-    if (FLAG_populate_llvm_constant_pool) {
-      auto const pool_len = llvm_pool_.Length();
+    // Only add constants to the LLVM constant pool that are actually used in
+    // the flow graph.
+    if (FLAG_populate_llvm_constant_pool && definition->HasUses()) {
+      auto const pool_len = llvm_constants_.Length();
       llvm_index_ = Smi::New(pool_len);
-      llvm_index_ =
-          Smi::RawCast(llvm_map_.InsertOrGetValue(value, llvm_index_));
+      llvm_index_ ^= llvm_constant_map_.InsertOrGetValue(value, llvm_index_);
       if (llvm_index_.Value() == pool_len) {
-        llvm_pool_.Add(value);
+        llvm_constants_.Add(value);
       }
       AddExtraInteger(elem, "llvm_index", llvm_index_.Value());
     }

@@ -394,14 +394,14 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT(def->value()->definition() != def);
 }
 
-void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* instr) {
+void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());
 }
 
 void FlowGraphChecker::VisitPolymorphicInstanceCall(
-    PolymorphicInstanceCallInstr* instr) {
+    PolymorphicInstanceCallInstr* call) {
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());

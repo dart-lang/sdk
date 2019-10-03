@@ -353,7 +353,8 @@ abstract class ImpactBuilderBase extends StaticTypeVisitor
 
   @override
   void handleAsExpression(ir.AsExpression node, ir.DartType operandType) {
-    if (typeEnvironment.isSubtypeOf(operandType, node.type)) {
+    if (typeEnvironment.isSubtypeOf(
+        operandType, node.type, ir.SubtypeCheckMode.ignoringNullabilities)) {
       // Skip unneeded casts.
       return;
     }

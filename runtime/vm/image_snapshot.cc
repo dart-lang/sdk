@@ -189,7 +189,7 @@ static intptr_t StackMapSizeInSnapshot(intptr_t len_in_bits) {
   const intptr_t len_in_bytes =
       Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
   const intptr_t unrounded_size_in_bytes =
-      3 * compiler::target::kWordSize + len_in_bytes;
+      2 * compiler::target::kWordSize + len_in_bytes;
   return Utils::RoundUp(unrounded_size_in_bytes,
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
@@ -443,7 +443,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      stream->WriteFixed<uint32_t>(map.PcOffset());
       stream->WriteFixed<uint16_t>(map.Length());
       stream->WriteFixed<uint16_t>(map.SlowPathBitCount());
       stream->WriteBytes(map.raw()->ptr()->data(), len_in_bytes);

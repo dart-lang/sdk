@@ -131,9 +131,9 @@ class FlowGraphSerializer : ValueObject {
   IntMap<const Type*> open_recursive_types_;
 
   // Used for --populate-llvm-constant-pool in ConstantPoolToSExp.
-  class LLVMConstantMapKeyEqualsTraits : public AllStatic {
+  class LLVMPoolMapKeyEqualsTraits : public AllStatic {
    public:
-    static const char* Name() { return "LLVMConstantMapKeyEqualsTraits"; }
+    static const char* Name() { return "LLVMPoolMapKeyEqualsTraits"; }
     static bool ReportStats() { return false; }
 
     static bool IsMatch(const Object& a, const Object& b) {
@@ -145,10 +145,11 @@ class FlowGraphSerializer : ValueObject {
       return obj.GetClassId();
     }
   };
-  typedef UnorderedHashMap<LLVMConstantMapKeyEqualsTraits> LLVMConstantsMap;
+  typedef UnorderedHashMap<LLVMPoolMapKeyEqualsTraits> LLVMPoolMap;
 
-  GrowableObjectArray& llvm_pool_;
-  LLVMConstantsMap llvm_map_;
+  GrowableObjectArray& llvm_constants_;
+  GrowableObjectArray& llvm_functions_;
+  LLVMPoolMap llvm_constant_map_;
   Smi& llvm_index_;
 
   // Handles used across functions, where the contained value is used

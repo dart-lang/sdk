@@ -5044,7 +5044,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //      }
     //
     var isTypeError = node.isTypeError;
-    if (!isTypeError && _types.isSubtypeOf(from, to)) return jsFrom;
+    if (!isTypeError &&
+        _types.isSubtypeOf(from, to, SubtypeCheckMode.ignoringNullabilities)) {
+      return jsFrom;
+    }
 
     // All Dart number types map to a JS double.
     if (_typeRep.isNumber(from) && _typeRep.isNumber(to)) {

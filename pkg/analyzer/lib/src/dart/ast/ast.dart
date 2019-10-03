@@ -716,7 +716,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   /// representing the parameter to which the value of the right operand will be
   /// bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForRightHandSide {
-    ExecutableElement executableElement = null;
+    ExecutableElement executableElement;
     if (staticElement != null) {
       executableElement = staticElement;
     } else {
@@ -5938,7 +5938,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
-  AuxiliaryElements auxiliaryElements = null;
+  AuxiliaryElements auxiliaryElements;
 
   /// Initialize a newly created index expression.
   IndexExpressionImpl.forCascade(
@@ -8921,7 +8921,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
-  AuxiliaryElements auxiliaryElements = null;
+  AuxiliaryElements auxiliaryElements;
 
   @override
   List<DartType> tearOffTypeArgumentTypes;

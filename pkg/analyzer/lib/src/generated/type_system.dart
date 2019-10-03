@@ -361,7 +361,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     List<TypeParameterElement> getFreeParameters(DartType rootType) {
-      List<TypeParameterElement> parameters = null;
+      List<TypeParameterElement> parameters;
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
@@ -1174,7 +1174,7 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   static List<T> _transformList<T>(List<T> list, T f(T t)) {
-    List<T> newList = null;
+    List<T> newList;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
       var newItem = f(item);

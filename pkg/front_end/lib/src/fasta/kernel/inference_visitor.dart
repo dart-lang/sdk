@@ -366,12 +366,9 @@ class InferenceVisitor
     }
     bool hasExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(
-        typeContext,
-        node.fileOffset,
-        node.target.function.thisFunctionType,
-        computeConstructorReturnType(node.target),
-        node.arguments,
+    DartType inferredType = inferrer.inferInvocation(typeContext,
+        node.fileOffset, node.target.function.thisFunctionType, node.arguments,
+        returnType: computeConstructorReturnType(node.target),
         isConst: node.isConst);
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
@@ -396,8 +393,8 @@ class InferenceVisitor
         : new FunctionType([], const DynamicType());
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(typeContext,
-        node.fileOffset, calleeType, calleeType.returnType, node.arguments);
+    DartType inferredType = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments);
     Expression replacement = new StaticInvocation(node.target, node.arguments);
     if (!inferrer.isTopLevel &&
         !hadExplicitTypeArguments &&
@@ -531,12 +528,9 @@ class InferenceVisitor
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(
-        typeContext,
-        node.fileOffset,
-        node.target.function.thisFunctionType,
-        computeConstructorReturnType(node.target),
-        node.arguments,
+    DartType inferredType = inferrer.inferInvocation(typeContext,
+        node.fileOffset, node.target.function.thisFunctionType, node.arguments,
+        returnType: computeConstructorReturnType(node.target),
         isConst: node.isConst);
     node.hasBeenInferred = true;
     if (!inferrer.isTopLevel) {
@@ -795,8 +789,8 @@ class InferenceVisitor
         node.fileOffset,
         substitution.substituteType(
             node.target.function.thisFunctionType.withoutTypeParameters),
-        inferrer.thisType,
         node.argumentsJudgment,
+        returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
 
@@ -1386,9 +1380,13 @@ class InferenceVisitor
           mapEntryClass, <DartType>[actualKeyType, actualValueType]);
 
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
-          spreadType, inferrer.coreTypes.mapRawType(inferrer.library.nullable));
-      bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(spreadType,
-          inferrer.coreTypes.iterableRawType(inferrer.library.nullable));
+          spreadType,
+          inferrer.coreTypes.mapRawType(inferrer.library.nullable),
+          SubtypeCheckMode.ignoringNullabilities);
+      bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(
+          spreadType,
+          inferrer.coreTypes.iterableRawType(inferrer.library.nullable),
+          SubtypeCheckMode.ignoringNullabilities);
       if (isMap && !isIterable) {
         mapSpreadOffset = entry.fileOffset;
       }
@@ -4162,12 +4160,9 @@ class InferenceVisitor
       typeArguments[i] = new TypeParameterType(classTypeParameters[i]);
     }
     ArgumentsImpl.setNonInferrableArgumentTypes(node.arguments, typeArguments);
-    inferrer.inferInvocation(
-        null,
-        node.fileOffset,
-        node.target.function.thisFunctionType,
-        node.target.enclosingClass.thisType,
-        node.arguments,
+    inferrer.inferInvocation(null, node.fileOffset,
+        node.target.function.thisFunctionType, node.arguments,
+        returnType: node.target.enclosingClass.thisType,
         skipTypeArgumentInference: true);
     ArgumentsImpl.removeNonInferrableArgumentTypes(node.arguments);
   }
@@ -4313,8 +4308,8 @@ class InferenceVisitor
         : new FunctionType([], const DynamicType());
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(typeContext,
-        node.fileOffset, calleeType, calleeType.returnType, node.arguments);
+    DartType inferredType = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments);
     if (!inferrer.isTopLevel &&
         !hadExplicitTypeArguments &&
         node.target != null) {
@@ -4356,8 +4351,8 @@ class InferenceVisitor
         node.fileOffset,
         substitution.substituteType(
             node.target.function.thisFunctionType.withoutTypeParameters),
-        inferrer.thisType,
         node.arguments,
+        returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
 
@@ -4620,8 +4615,8 @@ class InferenceVisitor
         inferrer.typeSchemaEnvironment.futureType(const DynamicType());
     if (node.arguments != null) {
       FunctionType calleeType = new FunctionType([], inferredType);
-      inferrer.inferInvocation(typeContext, node.fileOffset, calleeType,
-          calleeType.returnType, node.arguments);
+      inferrer.inferInvocation(
+          typeContext, node.fileOffset, calleeType, node.arguments);
     }
     return new ExpressionInferenceResult(inferredType);
   }

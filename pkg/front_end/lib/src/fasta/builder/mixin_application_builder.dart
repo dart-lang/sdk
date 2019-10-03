@@ -4,7 +4,8 @@
 
 library fasta.mixin_application_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeVariableBuilder;
+import 'builder.dart'
+    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
@@ -22,6 +23,10 @@ class MixinApplicationBuilder extends TypeBuilder {
   MixinApplicationBuilder(this.supertype, this.mixins);
 
   String get name => null;
+
+  NullabilityBuilder get nullabilityBuilder {
+    return unsupported("nullabilityBuilder", -1, null);
+  }
 
   String get debugName => "MixinApplicationBuilder";
 
@@ -59,6 +64,12 @@ class MixinApplicationBuilder extends TypeBuilder {
   @override
   buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
     return unsupported("buildInvalidType", message.charOffset, message.uri);
+  }
+
+  @override
+  MixinApplicationBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return unsupported("withNullabilityBuilder", -1, null);
   }
 
   MixinApplicationBuilder clone(List<TypeBuilder> newTypes) {

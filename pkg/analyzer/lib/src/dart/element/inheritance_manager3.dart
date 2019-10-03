@@ -340,7 +340,7 @@ class InheritanceManager3 extends InheritanceManagerBase {
   List<Conflict> _findMostSpecificFromNamedCandidates(
       Map<Name, ExecutableElement> map,
       Map<Name, List<ExecutableElement>> namedCandidates) {
-    List<Conflict> conflicts = null;
+    List<Conflict> conflicts;
 
     for (var name in namedCandidates.keys) {
       if (map.containsKey(name)) {

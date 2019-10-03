@@ -25,7 +25,7 @@ main() {
 class InfoBuilderTest extends AbstractAnalysisTest {
   /// The information produced by the InfoBuilder, or `null` if [buildInfo] has
   /// not yet completed.
-  List<LibraryInfo> infos;
+  List<UnitInfo> infos;
 
   /// Use the InfoBuilder to build information. The information will be stored
   /// in [infos].
@@ -53,7 +53,7 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     infos = await builder.explainMigration();
   }
 
-  test_parameter_nullableFromInvocation() async {
+  test_parameter_nullable_fromInvocation() async {
     addTestFile('''
 void f(String s) {}
 void g() {
@@ -62,9 +62,7 @@ void g() {
 ''');
     await buildInfo();
     expect(infos, hasLength(1));
-    List<UnitInfo> units = infos[0].units;
-    expect(units, hasLength(1));
-    UnitInfo unit = units[0];
+    UnitInfo unit = infos[0];
     expect(unit.path, testFile);
     expect(unit.content, '''
 void f(String? s) {}
@@ -77,5 +75,37 @@ void g() {
     RegionInfo region = regions[0];
     expect(region.offset, 13);
     expect(region.length, 1);
+    List<RegionDetail> details = region.details;
+    expect(details, hasLength(1));
+  }
+
+  test_parameter_nullable_fromOverriden() async {
+    addTestFile('''
+class A {
+  void m(p) {}
+}
+class B extends A {
+  void m(Object p) {}
+}
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, '''
+class A {
+  void m(p) {}
+}
+class B extends A {
+  void m(Object? p) {}
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    RegionInfo region = regions[0];
+    expect(region.offset, 62);
+    expect(region.length, 1);
+    List<RegionDetail> details = region.details;
+    expect(details, hasLength(1));
   }
 }

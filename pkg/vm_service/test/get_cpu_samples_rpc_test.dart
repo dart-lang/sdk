@@ -57,5 +57,5 @@ var vmArgs = [
   '--profile-vm=false', // So this also works with DBC and KBC.
 ];
 
-main(args) async =>
+main([args = const <String>[]]) async =>
     runIsolateTests(args, tests, testeeBefore: testeeDo, extraArgs: vmArgs);

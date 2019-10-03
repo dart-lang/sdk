@@ -296,4 +296,10 @@ class NamedTypeBuilder extends TypeBuilder {
     newTypes.add(newType);
     return newType;
   }
+
+  NamedTypeBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return new NamedTypeBuilder(name, nullabilityBuilder, arguments)
+      ..bind(declaration);
+  }
 }

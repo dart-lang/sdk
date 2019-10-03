@@ -198,6 +198,7 @@
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
+  FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
   NOT_IN_DBC(FIELD(Thread, slow_type_test_stub_offset))                        \
   FIELD(Thread, stack_limit_offset)                                            \

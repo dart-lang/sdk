@@ -797,7 +797,7 @@ void BytecodeFlowGraphBuilder::BuildPush() {
   LoadLocal(local_index);
 }
 
-void BytecodeFlowGraphBuilder::BuildDirectCall() {
+void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -857,7 +857,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
       *ic_data_array_, B->GetNextDeoptId(),
       target.IsDynamicFunction() ? ICData::kSuper : ICData::kStatic);
 
-  if (target.MayHaveUncheckedEntryPoint(isolate())) {
+  if (is_unchecked_call) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
 
@@ -865,6 +865,14 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
 
   code_ <<= call;
   B->Push(call);
+}
+
+void BytecodeFlowGraphBuilder::BuildDirectCall() {
+  BuildDirectCallCommon(/* is_unchecked_call = */ false);
+}
+
+void BytecodeFlowGraphBuilder::BuildUncheckedDirectCall() {
+  BuildDirectCallCommon(/* is_unchecked_call = */ true);
 }
 
 static void ComputeTokenKindAndCheckedArguments(
@@ -1344,6 +1352,19 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
       AssertSubtypeInstr(position_, instantiator_type_args, function_type_args,
                          sub_type, super_type, dst_name, B->GetNextDeoptId());
   code_ <<= instr;
+}
+
+void BytecodeFlowGraphBuilder::BuildCheckReceiverForNull() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const String& selector = String::Cast(ConstantAt(DecodeOperandD()).value());
+
+  LocalVariable* receiver_temp = B->MakeTemporary();
+  code_ +=
+      B->CheckNull(position_, receiver_temp, selector, /*clear_temp=*/false);
+  code_ += B->Drop();
 }
 
 void BytecodeFlowGraphBuilder::BuildJump() {

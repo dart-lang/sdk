@@ -95,6 +95,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// zero, we stop writing any new exception contexts in this process.
   static int allowedNumberOfContextsToWrite = 10;
 
+  /// Whether summary2 should be used to resynthesize elements.
+  @Deprecated('Clients should assume summary2 is used.  '
+      'Summary1 support has been removed.')
+  static bool get useSummary2 => true;
+
   /// The scheduler that schedules analysis work in this, and possibly other
   /// analysis drivers.
   final AnalysisDriverScheduler _scheduler;
@@ -1592,7 +1597,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _reportException(String path, exception, StackTrace stackTrace) {
-    String contextKey = null;
+    String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
       exception = state.exception;

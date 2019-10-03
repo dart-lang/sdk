@@ -353,7 +353,7 @@ enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operat
 type ExtensionMemberDescriptor {
   StringReference name;
   ExtensionMemberKind kind;
-  Byte flags (isStatic, isExternal);
+  Byte flags (isStatic);
   MemberReference member;
 }
 

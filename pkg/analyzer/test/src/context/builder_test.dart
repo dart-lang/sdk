@@ -65,7 +65,7 @@ class ContextBuilderTest with ResourceProviderMixin {
    * The path to the default SDK, or `null` if the test has not explicitly
    * invoked [createDefaultSdk].
    */
-  String defaultSdkPath = null;
+  String defaultSdkPath;
 
   _MockLintRule _mockLintRule;
   _MockLintRule _mockLintRule2;

@@ -99,7 +99,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.98",
+  "linter_tag": "0.1.99",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -136,7 +136,7 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
-  "test_reflective_loader_tag": "0.1.8",
+  "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test-v1.6.4",
   "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
   "typed_data_tag": "1.1.6",
@@ -174,7 +174,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.6.0-dev.3.0",
+          "version": "version:2.6.0-dev.4.0",
       }],
       "dep_type": "cipd",
   },

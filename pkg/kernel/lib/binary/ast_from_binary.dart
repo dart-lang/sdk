@@ -5,6 +5,7 @@ library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import '../ast.dart';
@@ -454,34 +455,36 @@ class BinaryBuilder {
   ///
   /// The input bytes may contain multiple files concatenated.
   void readComponent(Component component, {bool checkCanonicalNames: false}) {
-    _checkEmptyInput();
+    Timeline.timeSync("BinaryBuilder.readComponent", () {
+      _checkEmptyInput();
 
-    // Check that we have a .dill file and it has the correct version before we
-    // start decoding it.  Otherwise we will fail for cryptic reasons.
-    int offset = _byteOffset;
-    int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-    int version = readUint32();
-    if (version != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(version);
-    }
-    _byteOffset = offset;
-    List<int> componentFileSizes = _indexComponents();
-    if (componentFileSizes.length > 1) {
-      _disableLazyReading = true;
-      _disableLazyClassReading = true;
-    }
-    int componentFileIndex = 0;
-    while (_byteOffset < _bytes.length) {
-      _readOneComponent(component, componentFileSizes[componentFileIndex]);
-      ++componentFileIndex;
-    }
+      // Check that we have a .dill file and it has the correct version before we
+      // start decoding it.  Otherwise we will fail for cryptic reasons.
+      int offset = _byteOffset;
+      int magic = readUint32();
+      if (magic != Tag.ComponentFile) {
+        throw ArgumentError('Not a .dill file (wrong magic number).');
+      }
+      int version = readUint32();
+      if (version != Tag.BinaryFormatVersion) {
+        throw InvalidKernelVersionError(version);
+      }
+      _byteOffset = offset;
+      List<int> componentFileSizes = _indexComponents();
+      if (componentFileSizes.length > 1) {
+        _disableLazyReading = true;
+        _disableLazyClassReading = true;
+      }
+      int componentFileIndex = 0;
+      while (_byteOffset < _bytes.length) {
+        _readOneComponent(component, componentFileSizes[componentFileIndex]);
+        ++componentFileIndex;
+      }
 
-    if (checkCanonicalNames) {
-      _checkCanonicalNameChildren(component.root);
-    }
+      if (checkCanonicalNames) {
+        _checkCanonicalNameChildren(component.root);
+      }
+    });
   }
 
   /// Deserializes the source and stores it in [component].
@@ -2266,8 +2269,16 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// and are awaiting to be parsed and attached to nodes.
   List<_MetadataSubsection> _subsections;
 
-  BinaryBuilderWithMetadata(bytes, [filename])
-      : super(bytes, filename: filename);
+  BinaryBuilderWithMetadata(List<int> bytes,
+      {String filename,
+      bool disableLazyReading = false,
+      bool disableLazyClassReading = false,
+      bool alwaysCreateNewNamedNodes})
+      : super(bytes,
+            filename: filename,
+            disableLazyReading: disableLazyReading,
+            disableLazyClassReading: disableLazyClassReading,
+            alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes);
 
   @override
   void _readMetadataMappings(
@@ -2377,6 +2388,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Class readClass(int endOffset) {
     final nodeOffset = _byteOffset;
     final result = super.readClass(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Extension readExtension() {
+    final nodeOffset = _byteOffset;
+    final result = super.readExtension();
     return _associateMetadata(result, nodeOffset);
   }
 

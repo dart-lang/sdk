@@ -224,7 +224,7 @@ void _reportFailure(
 class AbstractStrongTest with ResourceProviderMixin {
   bool _checkCalled = true;
 
-  AnalysisDriver _driver = null;
+  AnalysisDriver _driver;
 
   Map<String, List<Folder>> packageMap;
 

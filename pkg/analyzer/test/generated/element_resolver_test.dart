@@ -588,7 +588,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitConstructorName_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    String constructorName = null;
+    String constructorName;
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
@@ -738,7 +738,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    String constructorName = null;
+    String constructorName;
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     classA.constructors = <ConstructorElement>[constructor];
@@ -754,7 +754,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed_namedParameter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
-    String constructorName = null;
+    String constructorName;
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classA, constructorName);
     String parameterName = "a";

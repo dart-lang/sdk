@@ -114,6 +114,11 @@ class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
     _buffer = _init(initialPages, maxPages);
   }
 
+  _NativeWasmMemory.fromInstance(_NativeWasmInstance inst) {
+    _buffer = _initFromInstance(inst);
+    _pages = _getPages();
+  }
+
   int get lengthInPages => _pages;
   int get lengthInBytes => _buffer.lengthInBytes;
   int operator [](int index) => _buffer[index];
@@ -130,6 +135,9 @@ class _NativeWasmMemory extends NativeFieldWrapperClass1 implements WasmMemory {
 
   Uint8List _init(int initialPages, int maxPages) native 'Wasm_initMemory';
   Uint8List _grow(int deltaPages) native 'Wasm_growMemory';
+  Uint8List _initFromInstance(_NativeWasmInstance inst)
+      native 'Wasm_initMemoryFromInstance';
+  int _getPages() native 'Wasm_getMemoryPages';
 }
 
 class _NativeWasmInstance extends NativeFieldWrapperClass1
@@ -145,6 +153,10 @@ class _NativeWasmInstance extends NativeFieldWrapperClass1
 
   WasmFunction<T> lookupFunction<T extends Function>(String name) {
     return _NativeWasmFunction<T>(this, name);
+  }
+
+  WasmMemory get memory {
+    return _NativeWasmMemory.fromInstance(this);
   }
 
   void _init(_NativeWasmModule module, _NativeWasmImports imports)

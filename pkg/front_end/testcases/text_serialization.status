@@ -12,6 +12,7 @@ expression/main: TextSerializationFailure # Was: Pass
 extensions/annotations: TextSerializationFailure
 extensions/check_bounds: TextSerializationFailure
 extensions/compounds: TextSerializationFailure
+extensions/conflict_with_object: TextSerializationFailure
 extensions/conflicts: TextSerializationFailure
 extensions/default_values: TextSerializationFailure
 extensions/direct_instance_access: TextSerializationFailure
@@ -27,17 +28,19 @@ extensions/extension_constructor: TextSerializationFailure
 extensions/extension_methods: TextSerializationFailure
 extensions/extension_setter: TextSerializationFailure
 extensions/extension_setter_error: TypeCheckError
+extensions/generic_function_in_generic_extension: TextSerializationFailure
 extensions/getter_setter_conflict: TextSerializationFailure
 extensions/if_null: TextSerializationFailure
 extensions/implicit_extension_inference: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
 extensions/index: TextSerializationFailure
-extensions/internal_resolution: TextSerializationFailure
 extensions/instance_access: TextSerializationFailure
 extensions/instance_access_of_static: TextSerializationFailure
 extensions/instance_members: TextSerializationFailure
 extensions/instance_tearoff: TextSerializationFailure
+extensions/internal_resolution: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
+extensions/invalid_explicit_static_access: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
 extensions/on_function_type: TextSerializationFailure
@@ -158,6 +161,7 @@ general/function_type_is_check: TextSerializationFailure # Was: Pass
 general/function_type_recovery: TextSerializationFailure # Was: Pass
 general/functions: TextSerializationFailure # Was: Pass
 general/future_or_test: TextSerializationFailure # Was: Pass
+general/generic_function_type_in_message: TextSerializationFailure
 general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
@@ -857,10 +861,12 @@ instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was:
 nested_variance_test: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/function_types: TextSerializationFailure
+nnbd/intersection_types: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
+nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
@@ -1045,6 +1051,7 @@ regress/issue_36647_2: TextSerializationFailure
 regress/issue_36669: TextSerializationFailure
 regress/issue_36793: TextSerializationFailure
 regress/issue_37285: TextSerializationFailure
+regress/issue_37681: TextSerializationFailure
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds_get: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds_set: TextSerializationFailure # Was: Pass
@@ -1118,6 +1125,6 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
+top_level_variance_test: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
 variance/mixin_type_parameter_modifier: TextSerializationFailure
-top_level_variance_test: TextSerializationFailure

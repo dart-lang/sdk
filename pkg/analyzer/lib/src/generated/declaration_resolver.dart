@@ -774,6 +774,6 @@ class _ElementMismatchException extends AnalysisException {
   /// and [cause].
   _ElementMismatchException(
       CompilationUnitElement compilationUnit, Element element,
-      [CaughtException cause = null])
+      [CaughtException cause])
       : super('Element mismatch in $compilationUnit at $element', cause);
 }

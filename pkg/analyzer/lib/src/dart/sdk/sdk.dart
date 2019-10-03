@@ -616,8 +616,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
    */
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {
     List<String> searchedPaths = <String>[];
-    var lastStackTrace = null;
-    var lastException = null;
+    StackTrace lastStackTrace;
+    Object lastException;
     for (File librariesFile in _libraryMapLocations) {
       try {
         String contents = librariesFile.readAsStringSync();

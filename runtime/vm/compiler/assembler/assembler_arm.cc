@@ -302,6 +302,19 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::rbit(Register rd, Register rm, Condition cond) {
+  ASSERT(rd != kNoRegister);
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(rd != PC);
+  ASSERT(rm != PC);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B26 |
+                     B25 | B23 | B22 | B21 | B20 | (0xf << 16) |
+                     ArmEncode::Rd(rd) | (0xf << 8) | B5 | B4 |
+                     static_cast<int32_t>(rm);
+  Emit(encoding);
+}
+
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift | B25 | B24 |

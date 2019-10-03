@@ -796,6 +796,19 @@ ASSEMBLER_TEST_RUN(Clz, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
+  const int64_t immediate = 0x0000000000000015;
+  __ LoadImmediate(R0, immediate);
+  __ rbit(R0, R0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Rbit, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  const int64_t expected = 0xa800000000000000;
+  EXPECT_EQ(expected, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;

@@ -1012,7 +1012,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
     var type = functionType.returnType;
 
-    ClassElement expectedElement = null;
+    ClassElement expectedElement;
     if (body.isAsynchronous) {
       if (body.isGenerator) {
         // Stream<T> -> T

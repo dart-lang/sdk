@@ -62,7 +62,7 @@ Extension lookupExtension(Library library, String extensionName,
       (Extension extension) => extension.name == extensionName, orElse: () {
     if (required) {
       throw new ArgumentError(
-          "Extension '$extensionName' not found in '$library'.");
+          "Extension '$extensionName' not found in '${library.importUri}'.");
     }
     return null;
   });
@@ -151,7 +151,7 @@ MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
       lookupClassBuilder(compilerResult, cls, required: required);
   MemberBuilder memberBuilder;
   if (classBuilder != null) {
-    if (member is Constructor) {
+    if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.constructors.local[memberName];
     } else if (member is Procedure && member.isSetter) {
       memberBuilder = classBuilder.scope.setters[memberName];
@@ -527,9 +527,6 @@ String errorsToText(List<FormattedMessage> errors) {
 /// Returns a textual representation of [descriptor] to be used in testing.
 String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   StringBuffer sb = new StringBuffer();
-  if (descriptor.isExternal) {
-    sb.write('external ');
-  }
   if (descriptor.isStatic) {
     sb.write('static ');
   }

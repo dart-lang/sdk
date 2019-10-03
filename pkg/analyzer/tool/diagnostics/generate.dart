@@ -73,7 +73,7 @@ class CodePath {
     List<CodePath> paths = [];
     for (int i = 0; i < documentationPaths.length; i++) {
       String docPath = pathContext.joinAll(documentationPaths[i]);
-      String declPath = null;
+      String declPath;
       if (declarationPaths[i] != null) {
         declPath = pathContext.joinAll(declarationPaths[i]);
       }

@@ -12831,9 +12831,7 @@ void StackMap::SetBit(intptr_t bit_index, bool value) const {
   }
 }
 
-RawStackMap* StackMap::New(intptr_t pc_offset,
-                           BitmapBuilder* bmap,
-                           intptr_t slow_path_bit_count) {
+RawStackMap* StackMap::New(BitmapBuilder* bmap, intptr_t slow_path_bit_count) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   StackMap& result = StackMap::Handle();
@@ -12860,8 +12858,6 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
     result ^= raw;
     result.SetLength(length);
   }
-  ASSERT(pc_offset >= 0);
-  result.SetPcOffset(pc_offset);
   if (payload_size > 0) {
     // Ensure leftover bits are deterministic.
     result.raw()->ptr()->data()[payload_size - 1] = 0;
@@ -12873,64 +12869,23 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   return result.raw();
 }
 
-RawStackMap* StackMap::New(intptr_t length,
-                           intptr_t slow_path_bit_count,
-                           intptr_t pc_offset) {
-  ASSERT(Object::stackmap_class() != Class::null());
-  StackMap& result = StackMap::Handle();
-  // Guard against integer overflow of the instance size computation.
-  intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((length < 0) || (length > kMaxUint16) ||
-      (payload_size > kMaxLengthInBytes)) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
-  }
-  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
-           "\n",
-           slow_path_bit_count);
-  }
-
-  {
-    // StackMap data objects are associated with a code object, allocate them
-    // in old generation.
-    RawObject* raw = Object::Allocate(
-        StackMap::kClassId, StackMap::InstanceSize(length), Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result ^= raw;
-    result.SetLength(length);
-  }
-  ASSERT(pc_offset >= 0);
-  result.SetPcOffset(pc_offset);
-  result.SetSlowPathBitCount(slow_path_bit_count);
-  return result.raw();
-}
-
 const char* StackMap::ToCString() const {
-#define FORMAT "%#05x: "
-  if (IsNull()) {
-    return "{null}";
-  } else {
-    intptr_t fixed_length = Utils::SNPrint(NULL, 0, FORMAT, PcOffset()) + 1;
-    Thread* thread = Thread::Current();
-    // Guard against integer overflow in the computation of alloc_size.
-    //
-    // TODO(kmillikin): We could just truncate the string if someone
-    // tries to print a 2 billion plus entry stackmap.
-    if (Length() > (kIntptrMax - fixed_length)) {
-      FATAL1("Length() is unexpectedly large (%" Pd ")", Length());
-    }
-    intptr_t alloc_size = fixed_length + Length();
-    char* chars = thread->zone()->Alloc<char>(alloc_size);
-    intptr_t index = Utils::SNPrint(chars, alloc_size, FORMAT, PcOffset());
-    for (intptr_t i = 0; i < Length(); i++) {
-      chars[index++] = IsObject(i) ? '1' : '0';
-    }
-    chars[index] = '\0';
-    return chars;
+  if (IsNull()) return "{null}";
+  // Guard against integer overflow in the computation of alloc_size.
+  //
+  // TODO(kmillikin): We could just truncate the string if someone
+  // tries to print a 2 billion plus entry stackmap.
+  if (Length() > kIntptrMax) {
+    FATAL1("Length() is unexpectedly large (%" Pd ")", Length());
   }
-#undef FORMAT
+  Thread* thread = Thread::Current();
+  intptr_t alloc_size = Length() + 1;
+  char* chars = thread->zone()->Alloc<char>(alloc_size);
+  for (intptr_t i = 0; i < Length(); i++) {
+    chars[i] = IsObject(i) ? '1' : '0';
+  }
+  chars[alloc_size - 1] = '\0';
+  return chars;
 }
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -15178,12 +15133,15 @@ RawStackMap* Code::GetStackMap(uint32_t pc_offset,
   // frame slots which are marked as having objects.
   *maps = stackmaps();
   *map = StackMap::null();
-  for (intptr_t i = 0; i < maps->Length(); i++) {
-    *map ^= maps->At(i);
+  for (intptr_t i = 0; i < maps->Length(); i += 2) {
+    // The reinterpret_cast from Smi::RawCast is inlined here because in
+    // debug mode, it creates Handles due to the ASSERT.
+    const uint32_t offset =
+        ValueFromRawSmi(reinterpret_cast<RawSmi*>(maps->At(i)));
+    if (offset != pc_offset) continue;
+    *map ^= maps->At(i + 1);
     ASSERT(!map->IsNull());
-    if (map->PcOffset() == pc_offset) {
-      return map->raw();  // We found a stack map for this frame.
-    }
+    return map->raw();
   }
   // If we are missing a stack map, this must either be unoptimized code, or
   // the entry to an osr function. (In which case all stack slots are

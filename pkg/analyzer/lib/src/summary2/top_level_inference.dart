@@ -94,9 +94,9 @@ class ConstantInitializersResolver {
         variable.initializer.accept(LocalElementBuilder(holder, null));
         (element as VariableElementImpl).encloseElements(holder.functions);
 
-        InferenceContext.setType(variable.initializer, typeNode.type);
         var astResolver = AstResolver(linker, _library, _scope);
         astResolver.rewriteAst(variable.initializer);
+        InferenceContext.setType(variable.initializer, typeNode.type);
         astResolver.resolve(variable.initializer);
       }
     }

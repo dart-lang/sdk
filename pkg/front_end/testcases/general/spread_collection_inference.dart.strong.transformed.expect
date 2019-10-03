@@ -13,31 +13,26 @@ library;
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:98:36: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   int lhs30 = /*@ typeArgs=int* */ [...spread];
 //                                    ^
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:100:36: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
 //  - 'Set' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   int set30 = /*@ typeArgs=int* */ {...spread, 42};
 //                                    ^
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:103:7: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
 //  - 'Set' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       {...spread};
 //       ^
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:106:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
 //  - 'Map' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       {...mapSpread, "baz": 42};
 //       ^
 //
 // pkg/front_end/testcases/general/spread_collection_inference.dart:109:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
 //  - 'Map' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //       {...mapSpread};
 //       ^
 //
@@ -235,7 +230,6 @@ Try providing type arguments for the literal explicitly to disambiguate it.
                            ^";
   core::int* lhs30 = let final<BottomType> #t44 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:98:36: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int lhs30 = /*@ typeArgs=int* */ [...spread];
                                    ^" in ( block {
     final core::List<core::int*>* #t45 = <core::int*>[];
@@ -244,7 +238,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
   } =>#t45) as{TypeError} core::int*;
   core::int* set30 = let final<BottomType> #t47 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:100:36: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   int set30 = /*@ typeArgs=int* */ {...spread, 42};
                                    ^" in ( block {
     final core::Set<core::int*>* #t48 = col::LinkedHashSet::•<core::int*>();
@@ -254,7 +247,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
   } =>#t48) as{TypeError} core::int*;
   core::int* set30ambiguous = let final<BottomType> #t50 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:103:7: Error: A value of type 'Set<int>' can't be assigned to a variable of type 'int'.
  - 'Set' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       {...spread};
       ^" in ( block {
     final core::Set<core::int*>* #t51 = col::LinkedHashSet::•<core::int*>();
@@ -265,7 +257,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
   } =>#t51) as{TypeError} core::int*;
   core::int* map30 = let final<BottomType> #t54 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:106:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
  - 'Map' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       {...mapSpread, \"baz\": 42};
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t55 = <core::String*, core::int*>{};
@@ -275,7 +266,6 @@ Try changing the type of the left hand side, or casting the right hand side to '
   } =>#t55) as{TypeError} core::int*;
   core::int* map30ambiguous = let final<BottomType> #t57 = invalid-expression "pkg/front_end/testcases/general/spread_collection_inference.dart:109:7: Error: A value of type 'Map<String, int>' can't be assigned to a variable of type 'int'.
  - 'Map' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
       {...mapSpread};
       ^" in ( block {
     final core::Map<core::String*, core::int*>* #t58 = <core::String*, core::int*>{};

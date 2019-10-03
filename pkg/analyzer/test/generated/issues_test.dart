@@ -16,6 +16,26 @@ main() {
 /// not obvious where to put the test otherwise.
 @reflectiveTest
 class IssuesTest extends DriverResolutionTest {
+  /// https://github.com/dart-lang/sdk/issues/38565
+  ///
+  /// The issue was that type inference for annotation instantiation
+  /// was done incorrectly, without resolving arguments to the annotation
+  /// constructor. So, we were trying to perform type inference using null
+  /// types of arguments.
+  test_issue38565() async {
+    await resolveTestCode('''
+class A<T> {
+  const A(int a);
+}
+
+class C {
+  @A(0)
+  int field;
+}
+''');
+    // Should not crash.
+  }
+
   /// https://github.com/dart-lang/sdk/issues/38589
   test_issue38589() async {
     await resolveTestCode('''

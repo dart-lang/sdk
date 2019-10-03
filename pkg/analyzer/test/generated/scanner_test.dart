@@ -222,7 +222,7 @@ class TokenStreamValidator {
     if (token == null) {
       return;
     }
-    Token previousToken = null;
+    Token previousToken;
     int previousEnd = -1;
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {

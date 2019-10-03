@@ -25,9 +25,7 @@ void main() {
     0x80, 0x08, 0x0b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports()
-    ..addMemory("env", "memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("env", "__memory_base", 1024, false));
+  var inst = WasmModule(data).instantiate(WasmImports());
   var setFn = inst.lookupFunction<Void Function(Int64, Int64)>("set");
   var getFn = inst.lookupFunction<Int64 Function()>("get");
   Expect.isNull(setFn.call([123, 456]));

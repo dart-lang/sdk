@@ -113,6 +113,13 @@ type ConstantDynamicCall extends ConstantPoolEntry {
   PackedObject argDesc;
 }
 
+// Occupies 2 entries in the constant pool.
+type ConstantDirectCallViaDynamicForwarder extends ConstantPoolEntry {
+  Byte tag = 32;
+  PackedObject target;
+  PackedObject argDesc;
+}
+
 */
 
 enum ConstantTag {
@@ -148,6 +155,7 @@ enum ConstantTag {
   kInterfaceCall,
   kInstantiatedInterfaceCall,
   kDynamicCall,
+  kDirectCallViaDynamicForwarder,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -204,6 +212,8 @@ abstract class ConstantPoolEntry {
         return new ConstantInstantiatedInterfaceCall.read(reader);
       case ConstantTag.kDynamicCall:
         return new ConstantDynamicCall.read(reader);
+      case ConstantTag.kDirectCallViaDynamicForwarder:
+        return new ConstantDirectCallViaDynamicForwarder.read(reader);
       // Make analyzer happy.
       case ConstantTag.kUnused1:
       case ConstantTag.kUnused2:
@@ -553,6 +563,41 @@ class ConstantDirectCall extends ConstantPoolEntry {
       this.argDesc == other.argDesc;
 }
 
+class ConstantDirectCallViaDynamicForwarder extends ConstantPoolEntry {
+  final ObjectHandle target;
+  final ObjectHandle argDesc;
+
+  ConstantDirectCallViaDynamicForwarder(this.target, this.argDesc);
+
+  // Reserve 1 extra slot for arguments descriptor, following target slot.
+  int get numReservedEntries => 1;
+
+  @override
+  ConstantTag get tag => ConstantTag.kDirectCallViaDynamicForwarder;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(target);
+    writer.writePackedObject(argDesc);
+  }
+
+  ConstantDirectCallViaDynamicForwarder.read(BufferedReader reader)
+      : target = reader.readPackedObject(),
+        argDesc = reader.readPackedObject();
+
+  @override
+  String toString() => "DirectCallViaDynamicForwarder '$target', $argDesc";
+
+  @override
+  int get hashCode => _combineHashes(target.hashCode, argDesc.hashCode);
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantDirectCallViaDynamicForwarder &&
+      this.target == other.target &&
+      this.argDesc == other.argDesc;
+}
+
 class ConstantInterfaceCall extends ConstantPoolEntry {
   final ObjectHandle target;
   final ObjectHandle argDesc;
@@ -700,12 +745,15 @@ class ConstantPool {
           hasReceiver: hasReceiver, isFactory: isFactory)));
 
   int addDirectCall(
-          InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
-      _add(new ConstantDirectCall(
-          objectTable.getMemberHandle(target,
-              isGetter: invocationKind == InvocationKind.getter,
-              isSetter: invocationKind == InvocationKind.setter),
-          argDesc));
+      InvocationKind invocationKind, Member target, ObjectHandle argDesc,
+      [bool isDynamicForwarder = false]) {
+    final targetHandle = objectTable.getMemberHandle(target,
+        isGetter: invocationKind == InvocationKind.getter,
+        isSetter: invocationKind == InvocationKind.setter);
+    return _add(isDynamicForwarder
+        ? new ConstantDirectCallViaDynamicForwarder(targetHandle, argDesc)
+        : new ConstantDirectCall(targetHandle, argDesc));
+  }
 
   int addInterfaceCall(
           InvocationKind invocationKind, Member target, ObjectHandle argDesc) =>
@@ -771,6 +819,11 @@ class ConstantPool {
 
   int addObjectRef(Node node) =>
       _add(new ConstantObjectRef(objectTable.getHandle(node)));
+
+  int addSelectorName(Name name, InvocationKind invocationKind) =>
+      _add(new ConstantObjectRef(objectTable.getSelectorNameHandle(name,
+          isGetter: invocationKind == InvocationKind.getter,
+          isSetter: invocationKind == InvocationKind.setter)));
 
   int _add(ConstantPoolEntry entry) {
     return _canonicalizationCache.putIfAbsent(entry, () {

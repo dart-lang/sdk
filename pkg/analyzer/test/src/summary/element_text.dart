@@ -69,15 +69,17 @@ void checkElementText(
   bool annotateNullability: false,
 }) {
   var writer = new _ElementWriter(
-      withCodeRanges: withCodeRanges,
-      withConstElements: withConstElements,
-      withExportScope: withExportScope,
-      withFullyResolvedAst: withFullyResolvedAst,
-      withOffsets: withOffsets,
-      withSyntheticAccessors: withSyntheticAccessors,
-      withSyntheticFields: withSyntheticFields,
-      withTypes: withTypes,
-      annotateNullability: annotateNullability);
+    selfUriStr: '${library.source.uri}',
+    withCodeRanges: withCodeRanges,
+    withConstElements: withConstElements,
+    withExportScope: withExportScope,
+    withFullyResolvedAst: withFullyResolvedAst,
+    withOffsets: withOffsets,
+    withSyntheticAccessors: withSyntheticAccessors,
+    withSyntheticFields: withSyntheticFields,
+    withTypes: withTypes,
+    annotateNullability: annotateNullability,
+  );
   writer.writeLibraryElement(library);
 
   String actualText = writer.buffer.toString();
@@ -138,6 +140,7 @@ void checkElementText(
  * Writes the canonical text presentation of elements.
  */
 class _ElementWriter {
+  final String selfUriStr;
   final bool withCodeRanges;
   final bool withExportScope;
   final bool withFullyResolvedAst;
@@ -149,16 +152,20 @@ class _ElementWriter {
   final bool annotateNullability;
   final StringBuffer buffer = new StringBuffer();
 
-  _ElementWriter(
-      {this.withCodeRanges,
-      this.withConstElements: true,
-      this.withExportScope: false,
-      this.withFullyResolvedAst: false,
-      this.withOffsets: false,
-      this.withSyntheticAccessors: false,
-      this.withSyntheticFields: false,
-      this.withTypes: false,
-      this.annotateNullability: false});
+  String indent = '';
+
+  _ElementWriter({
+    this.selfUriStr,
+    this.withCodeRanges,
+    this.withConstElements: true,
+    this.withExportScope: false,
+    this.withFullyResolvedAst: false,
+    this.withOffsets: false,
+    this.withSyntheticAccessors: false,
+    this.withSyntheticFields: false,
+    this.withTypes: false,
+    this.annotateNullability: false,
+  });
 
   bool isDynamicType(DartType type) => type is DynamicTypeImpl;
 
@@ -226,25 +233,35 @@ class _ElementWriter {
 
     buffer.writeln(' {');
 
-    e.fields.forEach(writePropertyInducingElement);
-    e.accessors.forEach(writePropertyAccessorElement);
+    _withIndent(() {
+      e.fields.forEach(writePropertyInducingElement);
+      e.accessors.forEach(writePropertyAccessorElement);
 
-    if (e.isEnum) {
-      expect(e.constructors, isEmpty);
-    } else {
-      expect(e.constructors, isNotEmpty);
-    }
+      if (e.isEnum) {
+        expect(e.constructors, isEmpty);
+      } else {
+        expect(e.constructors, isNotEmpty);
+      }
 
-    if (e.constructors.length == 1 &&
-        e.constructors[0].isSynthetic &&
-        e.mixins.isEmpty) {
-      expect(e.constructors[0].parameters, isEmpty);
-    } else {
-      e.constructors.forEach(writeConstructorElement);
-    }
+      if (e.constructors.length == 1 &&
+          e.constructors[0].isSynthetic &&
+          e.mixins.isEmpty) {
+        expect(e.constructors[0].parameters, isEmpty);
+      } else {
+        e.constructors.forEach(writeConstructorElement);
+      }
 
-    e.methods.forEach(writeMethodElement);
+      e.methods.forEach(writeMethodElement);
+    });
+
     buffer.writeln('}');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+      });
+    }
   }
 
   void writeCodeRange(Element e) {
@@ -292,16 +309,28 @@ class _ElementWriter {
       }
     }
 
-    if (e is ConstructorElementImpl) {
-      if (e.constantInitializers != null) {
-        writeList(' : ', '', e.constantInitializers, ', ', writeNode);
+    var initializers = (e as ConstructorElementImpl).constantInitializers;
+    if (withFullyResolvedAst) {
+      buffer.writeln(';');
+      if (initializers != null && initializers.isNotEmpty) {
+        _withIndent(() {
+          _writelnWithIndent('constantInitializers');
+          _withIndent(() {
+            for (var initializer in initializers) {
+              _writeResolvedNode(initializer);
+            }
+          });
+        });
       }
+    } else {
+      if (initializers != null) {
+        writeList(' : ', '', initializers, ', ', writeNode);
+      }
+      buffer.writeln(';');
     }
 
     expect(e.isAsynchronous, isFalse);
     expect(e.isGenerator, isFalse);
-
-    buffer.writeln(';');
   }
 
   void writeDocumentation(Element e, [String prefix = '']) {
@@ -355,10 +384,21 @@ class _ElementWriter {
     }
 
     buffer.writeln(' {');
-    e.fields.forEach(writePropertyInducingElement);
-    e.accessors.forEach(writePropertyAccessorElement);
-    e.methods.forEach(writeMethodElement);
+
+    _withIndent(() {
+      e.fields.forEach(writePropertyInducingElement);
+      e.accessors.forEach(writePropertyAccessorElement);
+      e.methods.forEach(writeMethodElement);
+    });
+
     buffer.writeln('}');
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        _writeResolvedTypeParameters(e.typeParameters);
+      });
+    }
   }
 
   void writeFunctionElement(FunctionElement e) {
@@ -488,6 +528,10 @@ class _ElementWriter {
   }
 
   void writeMetadata(Element e, String prefix, String separator) {
+    if (withFullyResolvedAst) {
+      return;
+    }
+
     if (e.metadata.isNotEmpty) {
       writeList(prefix, '', e.metadata, '$separator$prefix', (a) {
         writeNode((a as ElementAnnotationImpl).annotationAst);
@@ -520,6 +564,13 @@ class _ElementWriter {
     } else {
       buffer.writeln(' {}');
     }
+
+    if (withFullyResolvedAst) {
+      _withIndent(() {
+        _writeResolvedTypeParameters(e.typeParameters);
+        _writeResolvedMetadata(e.metadata);
+      });
+    }
   }
 
   void writeName(Element e) {
@@ -540,14 +591,7 @@ class _ElementWriter {
     }
   }
 
-  void writeNode(AstNode e, {String indent: '', Expression enclosing}) {
-    if (withFullyResolvedAst) {
-      buffer.writeln();
-      var printer = ResolvedAstPrinter(buffer, indent);
-      e.accept(printer);
-      return;
-    }
-
+  void writeNode(AstNode e, {Expression enclosing}) {
     bool needsParenthesis = e is Expression &&
         enclosing != null &&
         e.precedence < enclosing.precedence;
@@ -961,25 +1005,35 @@ class _ElementWriter {
 
     writeVariableTypeInferenceError(e);
 
-    if (e is ConstVariableElement) {
-      Expression initializer = (e as ConstVariableElement).constantInitializer;
-      if (initializer != null) {
-        buffer.write(' = ');
-        writeNode(
-          initializer,
-          indent: ' ' * (e is FieldElement ? 4 : 2),
-        );
-        if (withFullyResolvedAst) {
-          return;
+    if (withFullyResolvedAst) {
+      buffer.writeln(';');
+      _withIndent(() {
+        _writeResolvedMetadata(e.metadata);
+        if (e is ConstVariableElement) {
+          var initializer = (e as ConstVariableElement).constantInitializer;
+          if (initializer != null) {
+            _writelnWithIndent('constantInitializer');
+            _withIndent(() {
+              _writeResolvedNode(initializer);
+            });
+          }
+        }
+      });
+    } else {
+      if (e is ConstVariableElement) {
+        Expression initializer =
+            (e as ConstVariableElement).constantInitializer;
+        if (initializer != null) {
+          buffer.write(' = ');
+          writeNode(initializer);
         }
       }
+      buffer.writeln(';');
     }
 
     // TODO(scheglov) Paul: One of the things that was hardest to get right
     // when resynthesizing the element model was the synthetic function for the
     // initializer.  Can we write that out (along with its return type)?
-
-    buffer.writeln(';');
   }
 
   void writeType(DartType type) {
@@ -1047,7 +1101,9 @@ class _ElementWriter {
   }
 
   void writeTypeParameterElements(List<TypeParameterElement> elements) {
-    writeList('<', '>', elements, ', ', writeTypeParameterElement);
+    if (!withFullyResolvedAst) {
+      writeList('<', '>', elements, ', ', writeTypeParameterElement);
+    }
   }
 
   void writeUnitElement(CompilationUnitElement e) {
@@ -1135,6 +1191,18 @@ class _ElementWriter {
     return components.join(';');
   }
 
+  void _withIndent(void Function() f) {
+    var indent = this.indent;
+    this.indent = '$indent  ';
+    f();
+    this.indent = indent;
+  }
+
+  void _writelnWithIndent(String line) {
+    buffer.write(indent);
+    buffer.writeln(line);
+  }
+
   bool _writeParameters(Iterable<ParameterElement> parameters, bool commaNeeded,
       String prefix, String suffix) {
     if (parameters.isEmpty) return commaNeeded;
@@ -1159,6 +1227,44 @@ class _ElementWriter {
     }
     buffer.write(suffix);
     return commaNeeded;
+  }
+
+  void _writeResolvedMetadata(List<ElementAnnotation> metadata) {
+    if (metadata.isNotEmpty) {
+      _writelnWithIndent('metadata');
+      _withIndent(() {
+        for (ElementAnnotationImpl annotation in metadata) {
+          _writeResolvedNode(annotation.annotationAst);
+        }
+      });
+    }
+  }
+
+  void _writeResolvedNode(AstNode node) {
+    buffer.write(indent);
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: selfUriStr,
+        sink: buffer,
+        indent: indent,
+      ),
+    );
+  }
+
+  void _writeResolvedTypeParameters(List<TypeParameterElement> elements) {
+    if (elements.isNotEmpty) {
+      _writelnWithIndent('typeParameters');
+      _withIndent(() {
+        for (TypeParameterElementImpl e in elements) {
+          _writelnWithIndent(e.name);
+          _withIndent(() {
+            _writelnWithIndent('bound: ${e.bound}');
+            _writelnWithIndent('defaultType: ${e.defaultType}');
+            _writeResolvedMetadata(e.metadata);
+          });
+        }
+      });
+    }
   }
 }
 

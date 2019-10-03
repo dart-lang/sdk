@@ -1367,6 +1367,8 @@ class RawCode : public RawObject {
     RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
+  // The stackmaps_ array contains alternating Smi and StackMap values, where
+  // each Smi value is the PC offset for the following StackMap value.
   RawArray* stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
@@ -1619,10 +1621,6 @@ class RawCodeSourceMap : public RawObject {
 class RawStackMap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
   VISIT_NOTHING();
-
-  // Offset from code entry point corresponding to this stack map
-  // representation.
-  uint32_t pc_offset_;
 
   uint16_t length_;               // Length of payload, in bits.
   uint16_t slow_path_bit_count_;  // Slow path live values, included in length_.

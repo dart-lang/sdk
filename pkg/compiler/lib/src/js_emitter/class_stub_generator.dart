@@ -35,57 +35,6 @@ class ClassStubGenerator {
 
   InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
-  jsAst.Expression generateClassConstructor(
-      ClassEntity classElement, List<jsAst.Name> fields, bool hasRtiField) {
-    // TODO(sra): Implement placeholders in VariableDeclaration position:
-    //
-    //     String constructorName = namer.getNameOfClass(classElement);
-    //     return js.statement('function #(#) { #; }',
-    //        [ constructorName, fields,
-    //            fields.map(
-    //                (name) => js('this.# = #', [name, name]))]));
-    dynamic typeParameters = const <jsAst.Parameter>[];
-    dynamic typeInits = const <jsAst.Expression>[];
-    if (hasRtiField) {
-      dynamic rtiName = _namer.rtiFieldJsName;
-      typeParameters = rtiName;
-      typeInits = js('this.# = #', [rtiName, rtiName]);
-    }
-    List<jsAst.Parameter> parameters = new List<jsAst.Parameter>.generate(
-        fields.length, (i) => new jsAst.Parameter('t$i'));
-    List<jsAst.Expression> fieldInitializers =
-        new List<jsAst.Expression>.generate(fields.length, (i) {
-      return js('this.# = #', [fields[i], parameters[i]]);
-    });
-    return js('function(#, #) { #; #; this.#();}', [
-      parameters,
-      typeParameters,
-      fieldInitializers,
-      typeInits,
-      _namer.fixedNames.deferredAction
-    ]);
-  }
-
-  jsAst.Expression generateGetter(MemberEntity member, jsAst.Name fieldName) {
-    ClassEntity cls = member.enclosingClass;
-    String receiver =
-        _interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
-    List<String> args =
-        _interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
-    return js('function(#) { return #.# }', [args, receiver, fieldName]);
-  }
-
-  jsAst.Expression generateSetter(MemberEntity member, jsAst.Name fieldName) {
-    ClassEntity cls = member.enclosingClass;
-    String receiver =
-        _interceptorData.isInterceptedClass(cls) ? 'receiver' : 'this';
-    List<String> args =
-        _interceptorData.isInterceptedMethod(member) ? ['receiver'] : [];
-    // TODO(floitsch): remove 'return'?
-    return js(
-        'function(#, v) { return #.# = v; }', [args, receiver, fieldName]);
-  }
-
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [member] must be a declaration element.

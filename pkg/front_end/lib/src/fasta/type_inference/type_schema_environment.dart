@@ -19,6 +19,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
@@ -267,7 +269,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
         DartType extendsConstraint = typeParamBound;
-        success = isSubtypeOf(inferred, extendsConstraint);
+        success = isSubtypeOf(inferred, extendsConstraint,
+            SubtypeCheckMode.ignoringNullabilities);
       }
 
       if (!success) {
@@ -288,10 +291,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  bool isSubtypeOf(DartType subtype, DartType supertype) {
+  bool isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
     if (subtype is UnknownType) return true;
     if (subtype == Null && supertype is UnknownType) return true;
-    return super.isSubtypeOf(subtype, supertype);
+    return super.isSubtypeOf(subtype, supertype, mode);
   }
 
   bool isEmptyContext(DartType context) {
@@ -359,8 +363,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
-    return isSubtypeOf(constraint.lower, type) &&
-        isSubtypeOf(type, constraint.upper);
+    return isSubtypeOf(
+            constraint.lower, type, SubtypeCheckMode.ignoringNullabilities) &&
+        isSubtypeOf(
+            type, constraint.upper, SubtypeCheckMode.ignoringNullabilities);
   }
 
   DartType _inferTypeParameterFromAll(DartType typeFromContextInference,

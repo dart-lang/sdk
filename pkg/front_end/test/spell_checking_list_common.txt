@@ -464,6 +464,7 @@ comparable
 compare
 comparing
 comparison
+comparisons
 compatibility
 compatible
 compilation
@@ -567,6 +568,7 @@ continue
 continued
 continues
 continuing
+contraposition
 contrast
 contravariance
 contravariant
@@ -1413,6 +1415,7 @@ interpreter
 interpreting
 intersect
 intersection
+intertwined
 into
 intrinsic
 introduce
@@ -1887,6 +1890,7 @@ outlining
 output
 outside
 over
+overall
 overflow
 overloadable
 overloaded
@@ -2697,6 +2701,7 @@ terminates
 terminating
 termination
 terminology
+terms
 ternary
 test
 testcase
@@ -2742,6 +2747,7 @@ throws
 thumb
 thus
 time
+timeline
 times
 tip
 to
@@ -2802,6 +2808,7 @@ triples
 triplet
 triplets
 trivial
+trouble
 true
 truly
 truncate

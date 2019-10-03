@@ -150,6 +150,17 @@ class Utils {
   static int CountLeadingZeros(uword x);
   static int CountTrailingZeros(uword x);
 
+  static uint64_t ReverseBits64(uint64_t x);
+  static uint32_t ReverseBits32(uint32_t x);
+
+  static uword ReverseBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return ReverseBits64(x);
+#else
+    return ReverseBits32(x);
+#endif
+  }
+
   // Computes magic numbers to implement DIV or MOD operator.
   static void CalculateMagicAndShiftForDivRem(int64_t divisor,
                                               int64_t* magic,

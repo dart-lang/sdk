@@ -58,6 +58,10 @@ class InitializeMessageHandler
     final renameOptionsSupport =
         params.capabilities.textDocument?.rename?.prepareSupport ?? false;
 
+    final dynamicTextSyncRegistration = params
+            .capabilities.textDocument?.synchronization?.dynamicRegistration ??
+        false;
+
     // When adding new capabilities to the server that may apply to specific file
     // types, it's important to update
     // [IntializedMessageHandler._performDynamicRegistration()] to notify
@@ -66,8 +70,13 @@ class InitializeMessageHandler
     // requests where we have only partial support for some types).
     server.capabilities = new ServerCapabilities(
         Either2<TextDocumentSyncOptions, num>.t1(new TextDocumentSyncOptions(
-          true,
-          TextDocumentSyncKind.Incremental,
+          // The open/close and sync kind flags are registered dynamically if the
+          // client supports them, so these static registrations are based on whether
+          // the client supports dynamic registration.
+          dynamicTextSyncRegistration ? false : true,
+          dynamicTextSyncRegistration
+              ? TextDocumentSyncKind.None
+              : TextDocumentSyncKind.Incremental,
           false,
           false,
           null,

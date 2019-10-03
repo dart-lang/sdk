@@ -51,7 +51,10 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_algebra.dart' as type_algebra
     show getSubstitutionMap;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show SubtypeCheckMode, TypeEnvironment;
+
+import '../../base/common.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -165,6 +168,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
   Map<String, ConstructorRedirection> redirectingConstructors;
 
   ClassBuilder actualOrigin;
+
+  ClassBuilder patchForTesting;
 
   ClassBuilder(
       List<MetadataBuilder> metadata,
@@ -1165,9 +1170,12 @@ abstract class ClassBuilder extends DeclarationBuilder {
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
-    if (types.isSubtypeOfKernel(subtype, supertype)) {
+    if (types.isSubtypeOfKernel(
+        subtype, supertype, SubtypeCheckMode.ignoringNullabilities)) {
       // No problem--the proper subtyping relation is satisfied.
-    } else if (isCovariant && types.isSubtypeOfKernel(supertype, subtype)) {
+    } else if (isCovariant &&
+        types.isSubtypeOfKernel(
+            supertype, subtype, SubtypeCheckMode.ignoringNullabilities)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
     } else if (subtype is InvalidType || supertype is InvalidType) {
@@ -1523,6 +1531,9 @@ abstract class ClassBuilder extends DeclarationBuilder {
   void applyPatch(Builder patch) {
     if (patch is ClassBuilder) {
       patch.actualOrigin = this;
+      if (retainDataForTesting) {
+        patchForTesting = patch;
+      }
       // TODO(ahe): Complain if `patch.supertype` isn't null.
       scope.local.forEach((String name, Builder member) {
         Builder memberPatch = patch.scope.local[name];
@@ -1627,7 +1638,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
-        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound)) {
+        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+            SubtypeCheckMode.ignoringNullabilities)) {
           addProblem(
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument, typeParameterBound),
@@ -1685,7 +1697,8 @@ abstract class ClassBuilder extends DeclarationBuilder {
     if (redirecteeType == null) return;
 
     // Check whether [redirecteeType] <: [factoryType].
-    if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType)) {
+    if (!typeEnvironment.isSubtypeOf(
+        redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
       addProblem(
           templateIncompatibleRedirecteeFunctionType.withArguments(
               redirecteeType, factoryType),

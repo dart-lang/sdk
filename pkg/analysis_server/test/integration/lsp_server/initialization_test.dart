@@ -17,6 +17,9 @@ main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = new RequestMessage(

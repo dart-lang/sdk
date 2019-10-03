@@ -886,7 +886,10 @@ void Simulator::set_register(Instr* instr,
                              R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+#if !defined(TARGET_OS_FUCHSIA)
   ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
+#endif
+
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = value;
     // If we're setting CSP, make sure it is 16-byte aligned. In truth, CSP
@@ -2430,6 +2433,17 @@ void Simulator::DecodeMiscDP1Source(Instr* instr) {
       if (instr->SFField() == 1) {
         set_register(instr, rd, rd_val, R31IsZR);
       } else {
+        set_wregister(rd, rd_val, R31IsZR);
+      }
+      break;
+    }
+    case 0: {
+      // Format(instr, "rbit'sf 'rd, 'rn");
+      if (instr->SFField() == 1) {
+        const uint64_t rd_val = Utils::ReverseBits64(rn_val64);
+        set_register(instr, rd, rd_val, R31IsZR);
+      } else {
+        const uint32_t rd_val = Utils::ReverseBits32(rn_val32);
         set_wregister(rd, rd_val, R31IsZR);
       }
       break;

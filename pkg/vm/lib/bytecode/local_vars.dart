@@ -14,6 +14,7 @@ import 'package:vm/bytecode/generics.dart';
 
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
+import '../metadata/direct_call.dart' show DirectCallMetadata;
 
 class LocalVariables {
   final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
@@ -30,6 +31,7 @@ class LocalVariables {
       <ForInStatement, VariableDeclaration>{};
   final BytecodeOptions options;
   final TypeEnvironment typeEnvironment;
+  final Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -191,7 +193,8 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.typeEnvironment) {
+  LocalVariables(Member node, this.options, this.typeEnvironment,
+      this.directCallMetadata) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -1210,6 +1213,11 @@ class _Allocator extends RecursiveVisitor<Null> {
     int numTemps = 0;
     if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
       numTemps = 1;
+    } else if (locals.directCallMetadata != null) {
+      final directCall = locals.directCallMetadata[node];
+      if (directCall != null && directCall.checkReceiverForNull) {
+        numTemps = 1;
+      }
     }
     _visit(node, temps: numTemps);
   }
@@ -1217,6 +1225,18 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitPropertySet(PropertySet node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitPropertyGet(PropertyGet node) {
+    int numTemps = 0;
+    if (locals.directCallMetadata != null) {
+      final directCall = locals.directCallMetadata[node];
+      if (directCall != null && directCall.checkReceiverForNull) {
+        numTemps = 1;
+      }
+    }
+    _visit(node, temps: numTemps);
   }
 
   @override

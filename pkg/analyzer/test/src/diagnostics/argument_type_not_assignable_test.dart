@@ -36,7 +36,7 @@ f() {
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
     String message = result.errors[0].message;
-    expect(message.indexOf("_A") >= 0, isTrue);
+    expect(message.contains("_A"), isTrue);
   }
 
   test_annotation_namedConstructor() async {

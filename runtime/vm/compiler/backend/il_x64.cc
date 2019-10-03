@@ -170,6 +170,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                   CallingConventions::kCalleeSaveXmmRegisters);
 
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Leave the entry frame.
   __ LeaveFrame();
 
@@ -1029,6 +1035,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Create a dummy frame holding the pushed arguments. This simplifies
   // NativeReturnInstr::EmitNativeCode.
   __ EnterFrame(0);
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the argument registers, in reverse order.
   for (intptr_t i = argument_locations_->length(); i-- > 0;) {

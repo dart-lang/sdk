@@ -308,32 +308,42 @@ def IsCrossBuild(target_os, arch):
             (target_os != GuessOS()))
 
 
-def GetBuildConf(mode, arch, conf_os=None):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildConf(mode, arch, conf_os=None, use_nnbd=False):
+    nnbd = "NNBD" if use_nnbd else ""
     if conf_os == 'android':
-        return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
+        return '%s%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper(),
+                             nnbd)
     else:
         # Ask for a cross build if the host and target architectures don't match.
         host_arch = ARCH_GUESS
         cross_build = ''
         if GetArchFamily(host_arch) != GetArchFamily(arch):
             cross_build = 'X'
-        return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
+        return '%s%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper(),
+                             nnbd)
 
 
 def GetBuildDir(host_os):
     return BUILD_ROOT[host_os]
 
 
-def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, use_nnbd=False):
     build_root = GetBuildDir(host_os)
     if mode:
-        build_root = os.path.join(build_root, GetBuildConf(
-            mode, arch, target_os))
+        build_root = os.path.join(build_root,
+                                  GetBuildConf(mode, arch, target_os, use_nnbd))
     return build_root
 
 
-def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
-    build_root = GetBuildRoot(host_os, mode, arch, target_os)
+# TODO(38701): Remove use_nnbd once the forked NNBD SDK is merged back in.
+def GetBuildSdkBin(host_os,
+                   mode=None,
+                   arch=None,
+                   target_os=None,
+                   use_nnbd=False):
+    build_root = GetBuildRoot(host_os, mode, arch, target_os, use_nnbd)
     return os.path.join(build_root, 'dart-sdk', 'bin')
 
 

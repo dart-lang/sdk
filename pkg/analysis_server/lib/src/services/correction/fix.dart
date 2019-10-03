@@ -142,6 +142,10 @@ class DartFixKind {
       const FixKind('ADD_CONST', 50, "Add 'const' modifier");
   static const ADD_CURLY_BRACES =
       const FixKind('ADD_CURLY_BRACES', 50, "Add curly braces");
+  static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = const FixKind(
+      'ADD_DIAGNOSTIC_PROPERTY_REFERENCE',
+      50,
+      "Add a debug reference to this property");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 70, "Add final field formal parameters");
   static const ADD_MISSING_ENUM_CASE_CLAUSES = const FixKind(

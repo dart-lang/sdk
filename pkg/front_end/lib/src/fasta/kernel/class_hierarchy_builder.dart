@@ -26,6 +26,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_environment.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -1997,8 +1998,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  bool isSubtypeOf(DartType subtype, DartType supertype) {
-    return hierarchy.types.isSubtypeOfKernel(subtype, supertype);
+  bool isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
+    return hierarchy.types.isSubtypeOfKernel(subtype, supertype, mode);
   }
 
   @override
@@ -2095,7 +2097,8 @@ class DelayedOverrideCheck {
             if (a.hadTypesInferred) {
               if (b.isSetter &&
                   (!impliesSetter(a) ||
-                      hierarchy.types.isSubtypeOfKernel(type, a.field.type))) {
+                      hierarchy.types.isSubtypeOfKernel(type, a.field.type,
+                          SubtypeCheckMode.ignoringNullabilities))) {
                 type = a.field.type;
               } else {
                 reportCantInferFieldType(classBuilder, a);
@@ -2263,9 +2266,11 @@ class InterfaceConflict extends DelayedMember {
 
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
     if (isSetter) {
-      return hierarchy.types.isSubtypeOfKernel(b, a);
+      return hierarchy.types
+          .isSubtypeOfKernel(b, a, SubtypeCheckMode.ignoringNullabilities);
     } else {
-      return hierarchy.types.isSubtypeOfKernel(a, b);
+      return hierarchy.types
+          .isSubtypeOfKernel(a, b, SubtypeCheckMode.ignoringNullabilities);
     }
   }
 

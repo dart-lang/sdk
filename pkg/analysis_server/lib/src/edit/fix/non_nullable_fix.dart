@@ -6,12 +6,13 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -216,30 +217,46 @@ analyzer:
 
   /// Generate output into the given [folder].
   void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
-    List<LibraryInfo> libraryInfos =
-        await InfoBuilder(instrumentationListener.data, listener)
-            .explainMigration();
+    // Remove any previously generated output.
+    folder.getChildren().forEach((resource) => resource.delete());
+    // Gather the data needed in order to produce the output.
+    InfoBuilder infoBuilder =
+        InfoBuilder(instrumentationListener.data, listener);
+    List<UnitInfo> unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo =
-        MigrationInfo(libraryInfos, pathContext, includedRoot);
-    for (LibraryInfo info in libraryInfos) {
-      assert(info.units.isNotEmpty);
-      String libraryPath =
-          pathContext.setExtension(info.units.first.path, '.html');
-      String relativePath =
-          pathContext.relative(libraryPath, from: includedRoot);
-      List<String> directories =
-          pathContext.split(pathContext.dirname(relativePath));
-      for (int i = 0; i < directories.length; i++) {
-        String directory = pathContext.joinAll(directories.sublist(0, i + 1));
-        folder.getChildAssumingFolder(directory).create();
-      }
-      File output =
-          provider.getFile(pathContext.join(folder.path, relativePath));
-      String rendered = InstrumentationRenderer(info, migrationInfo).render();
+        MigrationInfo(unitInfos, pathContext, includedRoot);
+    PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
+
+    /// Produce output for the compilation unit represented by the [unitInfo].
+    void render(UnitInfo unitInfo) {
+      File output = provider.getFile(pathMapper.map(unitInfo.path));
+      output.parent.create();
+      String rendered =
+          InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
       output.writeAsStringSync(rendered);
     }
-    // Generate resource files:
+
+    // Generate the files in the package being migrated.
+    for (UnitInfo unitInfo in unitInfos) {
+      render(unitInfo);
+    }
+    // Generate other dart files.
+    for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
+      if (!unitInfos.contains(unitInfo)) {
+        if (unitInfo.content == null) {
+          try {
+            unitInfo.content =
+                provider.getFile(unitInfo.path).readAsStringSync();
+          } catch (_) {
+            // If we can't read the content of the file, then skip it.
+            continue;
+          }
+        }
+        render(unitInfo);
+      }
+    }
+    // Generate resource files.
     File highlightJsOutput =
         provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
     highlightJsOutput.writeAsStringSync(decodeHighlightJs());

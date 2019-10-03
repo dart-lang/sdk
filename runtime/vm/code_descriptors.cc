@@ -49,21 +49,22 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 void StackMapTableBuilder::AddEntry(intptr_t pc_offset,
                                     BitmapBuilder* bitmap,
                                     intptr_t register_bit_count) {
-  stack_map_ = StackMap::New(pc_offset, bitmap, register_bit_count);
+  ASSERT(Smi::IsValid(pc_offset));
+  pc_offset_ = Smi::New(pc_offset);
+  stack_map_ = StackMap::New(bitmap, register_bit_count);
+  list_.Add(pc_offset_, Heap::kOld);
   list_.Add(stack_map_, Heap::kOld);
 }
 
 bool StackMapTableBuilder::Verify() {
   intptr_t num_entries = Length();
-  StackMap& map1 = StackMap::Handle();
-  StackMap& map2 = StackMap::Handle();
   for (intptr_t i = 1; i < num_entries; i++) {
-    map1 = MapAt(i - 1);
-    map2 = MapAt(i);
+    pc_offset_ = OffsetAt(i - 1);
+    auto const offset1 = pc_offset_.Value();
+    pc_offset_ = OffsetAt(i);
+    auto const offset2 = pc_offset_.Value();
     // Ensure there are no duplicates and the entries are sorted.
-    if (map1.PcOffset() >= map2.PcOffset()) {
-      return false;
-    }
+    if (offset1 >= offset2) return false;
   }
   return true;
 }
@@ -77,10 +78,14 @@ RawArray* StackMapTableBuilder::FinalizeStackMaps(const Code& code) {
   return Array::MakeFixedLength(list_);
 }
 
+RawSmi* StackMapTableBuilder::OffsetAt(intptr_t index) const {
+  pc_offset_ ^= list_.At(2 * index);
+  return pc_offset_.raw();
+}
+
 RawStackMap* StackMapTableBuilder::MapAt(intptr_t index) const {
-  StackMap& map = StackMap::Handle();
-  map ^= list_.At(index);
-  return map.raw();
+  stack_map_ ^= list_.At(2 * index + 1);
+  return stack_map_.raw();
 }
 
 RawExceptionHandlers* ExceptionHandlerList::FinalizeExceptionHandlers(

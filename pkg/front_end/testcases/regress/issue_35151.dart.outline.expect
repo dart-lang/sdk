@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: A field can only be initialized in it's declaring class
+// pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: A field can only be initialized in its declaring class
 // Try passing a value into the superclass constructor, or moving the initialization into the constructor body.
 //   B() : super.a = 42;
 //               ^

@@ -15,19 +15,35 @@ class LibraryInfo {
   LibraryInfo(this.units);
 }
 
+/// A location from or to which a user might want to navigate.
+abstract class NavigationRegion {
+  /// The offset of the region.
+  final int offset;
+
+  /// The length of the region.
+  final int length;
+
+  /// Initialize a newly created link.
+  NavigationRegion(this.offset, this.length);
+}
+
+/// A location from which a user might want to navigate.
+class NavigationSource extends NavigationRegion {
+  /// The target to which the user should be navigated.
+  final NavigationTarget target;
+
+  /// Initialize a newly created link.
+  NavigationSource(int offset, int length, this.target) : super(offset, length);
+}
+
 /// A location to which a user might want to navigate.
-class NavigationTarget {
+class NavigationTarget extends NavigationRegion {
   /// The file containing the anchor.
   final String filePath;
 
-  /// The offset of the anchor.
-  final int offset;
-
-  /// The length of the anchor.
-  final int length;
-
   /// Initialize a newly created anchor.
-  NavigationTarget(this.filePath, this.offset, this.length);
+  NavigationTarget(this.filePath, int offset, int length)
+      : super(offset, length);
 
   @override
   int get hashCode => JenkinsSmiHash.hash3(filePath.hashCode, offset, length);
@@ -84,6 +100,10 @@ class UnitInfo {
   /// The information about the regions that have an explanation associated with
   /// them. The offsets in these regions are offsets into the post-edit content.
   final List<RegionInfo> regions = [];
+
+  /// The navigation sources that are located in this file. The offsets in these
+  /// sources are offsets into the pre-edit content.
+  List<NavigationSource> sources;
 
   /// The navigation targets that are located in this file. The offsets in these
   /// targets are offsets into the pre-edit content.

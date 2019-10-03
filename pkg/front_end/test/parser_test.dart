@@ -31,6 +31,8 @@ import 'utils/kernel_chain.dart' show MatchContext;
 
 import 'parser_test_listener.dart' show ParserTestListener;
 
+import 'parser_test_parser.dart' show TestParser;
+
 const String EXPECTATIONS = '''
 [
   {
@@ -58,17 +60,18 @@ class Context extends ChainContext with MatchContext {
   Context(this.updateExpectations);
 
   final List<Step> steps = const <Step>[
-    const ParserStep(),
+    const ListenerStep(),
+    const IntertwinedStep(),
   ];
 
   final ExpectationSet expectationSet =
       new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
 }
 
-class ParserStep extends Step<TestDescription, TestDescription, Context> {
-  const ParserStep();
+class ListenerStep extends Step<TestDescription, TestDescription, Context> {
+  const ListenerStep();
 
-  String get name => "parser";
+  String get name => "listener";
 
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) async {
@@ -92,5 +95,45 @@ class ParserStep extends Step<TestDescription, TestDescription, Context> {
 
     return context.match<TestDescription>(
         ".expect", "${parserTestListener.sb}", description.uri, description);
+  }
+}
+
+class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
+  const IntertwinedStep();
+
+  String get name => "intertwined";
+
+  Future<Result<TestDescription>> run(
+      TestDescription description, Context context) async {
+    File f = new File.fromUri(description.uri);
+    List<int> rawBytes = f.readAsBytesSync();
+
+    Uint8List bytes = new Uint8List(rawBytes.length + 1);
+    bytes.setRange(0, rawBytes.length, rawBytes);
+
+    Utf8BytesScanner scanner =
+        new Utf8BytesScanner(bytes, includeComments: true);
+    Token firstToken = scanner.tokenize();
+
+    if (firstToken == null) {
+      return crash(description, StackTrace.current);
+    }
+
+    ParserTestListener2 parserTestListener = new ParserTestListener2();
+    TestParser parser = new TestParser(parserTestListener);
+    parserTestListener.parser = parser;
+    parser.sb = parserTestListener.sb;
+    parser.parseUnit(firstToken);
+
+    return context.match<TestDescription>(
+        ".intertwined.expect", "${parser.sb}", description.uri, description);
+  }
+}
+
+class ParserTestListener2 extends ParserTestListener {
+  TestParser parser;
+
+  void doPrint(String s) {
+    sb.writeln(("  " * parser.indent) + "listener: " + s);
   }
 }

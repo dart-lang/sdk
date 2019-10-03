@@ -1,0 +1,104 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:18:16: Error: Method not found: 'method'.
+//   Extension(s).method();
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:19:16: Error: Getter not found: 'method'.
+//   Extension(s).method;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:20:16: Error: Setter not found: 'method'.
+//   Extension(s).method = 42;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:21:16: Error: Getter not found: 'getter'.
+//   Extension(s).getter;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:22:16: Error: Setter not found: 'getter'.
+//   Extension(s).getter = 42;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:23:16: Error: Getter not found: 'setter'.
+//   Extension(s).setter;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:24:16: Error: Setter not found: 'setter'.
+//   Extension(s).setter = 42;
+//                ^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:25:16: Error: Getter not found: 'property'.
+//   Extension(s).property;
+//                ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:26:16: Error: Setter not found: 'property'.
+//   Extension(s).property = 42;
+//                ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:27:16: Error: Getter not found: 'field'.
+//   Extension(s).field;
+//                ^^^^^
+//
+// pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:28:16: Error: Setter not found: 'field'.
+//   Extension(s).field = 42;
+//                ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::String* {
+  static method method = self::Extension|method;
+  static get getter = get self::Extension|getter;
+  static get property = get self::Extension|property;
+  static field field = self::Extension|field;
+  static set setter = set self::Extension|setter;
+  static set property = set self::Extension|property;
+}
+static field dynamic Extension|field;
+static method Extension|method() → dynamic {}
+static get Extension|getter() → dynamic
+  return null;
+static set Extension|setter(dynamic _) → void {}
+static get Extension|property() → dynamic
+  return null;
+static set Extension|property(dynamic _) → void {}
+static method main() → dynamic {}
+static method errors() → dynamic {
+  core::String* s = "";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:18:16: Error: Method not found: 'method'.
+  Extension(s).method();
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:19:16: Error: Getter not found: 'method'.
+  Extension(s).method;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:20:16: Error: Setter not found: 'method'.
+  Extension(s).method = 42;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:21:16: Error: Getter not found: 'getter'.
+  Extension(s).getter;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:22:16: Error: Setter not found: 'getter'.
+  Extension(s).getter = 42;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:23:16: Error: Getter not found: 'setter'.
+  Extension(s).setter;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:24:16: Error: Setter not found: 'setter'.
+  Extension(s).setter = 42;
+               ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:25:16: Error: Getter not found: 'property'.
+  Extension(s).property;
+               ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:26:16: Error: Setter not found: 'property'.
+  Extension(s).property = 42;
+               ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:27:16: Error: Getter not found: 'field'.
+  Extension(s).field;
+               ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/invalid_explicit_static_access.dart:28:16: Error: Setter not found: 'field'.
+  Extension(s).field = 42;
+               ^^^^^";
+}

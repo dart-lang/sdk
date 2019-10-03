@@ -73,7 +73,8 @@ Future<void> hasPausedFor(
       }
     }
   });
-  await service.streamListen(EventStreams.kDebug);
+
+  await _subscribeDebugStream(service);
 
   // Pause may have happened before we subscribed.
   final isolate = await service.getIsolate(isolateRef.id);
@@ -124,22 +125,6 @@ IsolateTest setBreakpointAtLine(int line) {
   };
 }
 
-int _tokenToLine(Script script, int tokenPos) {
-  final table = script.tokenPosTable;
-  for (List line in table) {
-    // Each entry begins with a line number...
-    int lineNumber = line[0];
-    for (var pos = 1; pos < line.length; pos += 2) {
-      // ...and is followed by (token offset, col number) pairs.
-      int tokenOffset = line[pos];
-      if (tokenOffset == tokenPos) {
-        return lineNumber;
-      }
-    }
-  }
-  throw ArgumentError('Invalid tokenPos: $tokenPos');
-}
-
 IsolateTest stoppedAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print("Checking we are at line $line");
@@ -155,14 +140,15 @@ IsolateTest stoppedAtLine(int line) {
 
     final top = frames[0];
     final script = await service.getObject(isolate.id, top.location.script.id);
-    int actualLine = _tokenToLine(script, top.location.tokenPos);
+    int actualLine = script.getLineNumberFromTokenPos(top.location.tokenPos);
     if (actualLine != line) {
       print("Actual: $actualLine Line: $line");
       final sb = StringBuffer();
       sb.write("Expected to be at line $line but actually at line $actualLine");
       sb.write("\nFull stack trace:\n");
       for (Frame f in stack.frames) {
-        sb.write(" $f [${_tokenToLine(script, f.location.tokenPos)}]\n");
+        sb.write(
+            " $f [${script.getLineNumberFromTokenPos(f.location.tokenPos)}]\n");
       }
       throw sb.toString();
     } else {
@@ -189,17 +175,40 @@ Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
   return completer.future;
 }
 
+Future<void> _subscribeDebugStream(VmService service) async {
+  try {
+    await service.streamListen(EventStreams.kDebug);
+  } catch (_) {
+    /* swallow exception */
+  }
+}
+
+Future<void> _unsubscribeDebugStream(VmService service) async {
+  try {
+    await service.streamCancel(EventStreams.kDebug);
+  } catch (_) {
+    /* swallow exception */
+  }
+}
+
 Future<void> stepOver(VmService service, IsolateRef isolateRef) async {
+  await service.streamListen(EventStreams.kDebug);
+  await _subscribeDebugStream(service);
   await service.resume(isolateRef.id, step: 'Over');
-  return hasStoppedAtBreakpoint(service, isolateRef);
+  await hasStoppedAtBreakpoint(service, isolateRef);
+  await _unsubscribeDebugStream(service);
 }
 
 Future<void> stepInto(VmService service, IsolateRef isolateRef) async {
+  await _subscribeDebugStream(service);
   await service.resume(isolateRef.id, step: 'Into');
-  return hasStoppedAtBreakpoint(service, isolateRef);
+  await hasStoppedAtBreakpoint(service, isolateRef);
+  await _unsubscribeDebugStream(service);
 }
 
 Future<void> stepOut(VmService service, IsolateRef isolateRef) async {
+  await _subscribeDebugStream(service);
   await service.resume(isolateRef.id, step: 'Out');
-  return hasStoppedAtBreakpoint(service, isolateRef);
+  await hasStoppedAtBreakpoint(service, isolateRef);
+  await _unsubscribeDebugStream(service);
 }

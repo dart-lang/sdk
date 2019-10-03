@@ -1212,8 +1212,8 @@ library l;''');
       _assertHasPrevious(clone);
     }
     Token stopOriginalToken = originalNode.endToken.next;
-    Token skipCloneComment = null;
-    Token skipOriginalComment = null;
+    Token skipCloneComment;
+    Token skipOriginalComment;
     while (original != stopOriginalToken) {
       expect(clone, isNotNull);
       _assertEqualToken(clone, original);

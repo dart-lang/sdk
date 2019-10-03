@@ -2234,6 +2234,12 @@ void Simulator::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
     DoDivision(instr);
     return;
+  } else if (instr->IsRbit()) {
+    // Format(instr, "rbit'cond 'rd, 'rm");
+    Register rm = instr->RmField();
+    Register rd = instr->RdField();
+    set_register(rd, Utils::ReverseBits32(get_register(rm)));
+    return;
   }
   Register rd = instr->RdField();
   Register rn = instr->RnField();

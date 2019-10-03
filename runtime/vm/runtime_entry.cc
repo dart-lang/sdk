@@ -248,29 +248,29 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
     args.SetAt(2, String::Handle(zone, String::New("is not an integer")));
     Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  if (length.IsSmi()) {
-    const intptr_t len = Smi::Cast(length).Value();
-    if (Array::IsValidLength(len)) {
-      const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
-      arguments.SetReturn(array);
-      TypeArguments& element_type =
-          TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
-      // An Array is raw or takes one type argument. However, its type argument
-      // vector may be longer than 1 due to a type optimization reusing the type
-      // argument vector of the instantiator.
-      ASSERT(element_type.IsNull() ||
-             (element_type.Length() >= 1 && element_type.IsInstantiated()));
-      array.SetTypeArguments(element_type);  // May be null.
-      return;
-    }
+  const int64_t len = Integer::Cast(length).AsInt64Value();
+  if (len < 0) {
+    // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
+    Exceptions::ThrowRangeError("length", Integer::Cast(length), 0,
+                                Array::kMaxElements);
   }
-  // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
-  const Array& args = Array::Handle(zone, Array::New(4));
-  args.SetAt(0, length);
-  args.SetAt(1, Integer::Handle(zone, Integer::New(0)));
-  args.SetAt(2, Integer::Handle(zone, Integer::New(Array::kMaxElements)));
-  args.SetAt(3, Symbols::Length());
-  Exceptions::ThrowByType(Exceptions::kRange, args);
+  if (len > Array::kMaxElements) {
+    const Instance& exception = Instance::Handle(
+        zone, thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+  }
+
+  const Array& array =
+      Array::Handle(zone, Array::New(static_cast<intptr_t>(len), Heap::kNew));
+  arguments.SetReturn(array);
+  TypeArguments& element_type =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(1));
+  // An Array is raw or takes one type argument. However, its type argument
+  // vector may be longer than 1 due to a type optimization reusing the type
+  // argument vector of the instantiator.
+  ASSERT(element_type.IsNull() ||
+         (element_type.Length() >= 1 && element_type.IsInstantiated()));
+  array.SetTypeArguments(element_type);  // May be null.
 }
 
 // Helper returning the token position of the Dart caller.
@@ -630,6 +630,10 @@ static void UpdateTypeTestCache(
   }
   const intptr_t len = new_cache.NumberOfChecks();
   if (len >= FLAG_max_subtype_cache_entries) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("Not updating subtype test cache as its length reached %d\n",
+                   FLAG_max_subtype_cache_entries);
+    }
     return;
   }
 #if defined(DEBUG)
@@ -834,7 +838,34 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32) &&                 \
     !defined(DART_PRECOMPILED_RUNTIME)
   if (mode == kTypeCheckFromLazySpecializeStub) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("  Specializing type testing stub for %s\n",
+                   dst_type.ToCString());
+    }
     TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
+    // Only create the cache when we come from a normal stub.
+    should_update_cache = false;
+  }
+
+  // Fast path of type testing stub wasn't able to handle given type, yet it
+  // passed the type check. It means that fast-path was using outdated cid
+  // ranges and new classes appeared since the stub was generated.
+  // Re-generate the stub.
+  if ((mode == kTypeCheckFromSlowStub) && dst_type.IsType() &&
+      (TypeTestingStubGenerator::DefaultCodeForType(dst_type, /*lazy=*/false) !=
+       dst_type.type_test_stub()) &&
+      dst_type.IsInstantiated()) {
+    if (FLAG_trace_type_checks) {
+      OS::PrintErr("  Rebuilding type testing stub for %s\n",
+                   dst_type.ToCString());
+    }
+#if defined(DEBUG)
+    const auto& old_code = Code::Handle(dst_type.type_test_stub());
+#endif
+    TypeTestingStubGenerator::SpecializeStubFor(thread, dst_type);
+#if defined(DEBUG)
+    ASSERT(old_code.raw() != dst_type.type_test_stub());
+#endif
     // Only create the cache when we come from a normal stub.
     should_update_cache = false;
   }

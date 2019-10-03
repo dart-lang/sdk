@@ -134,9 +134,7 @@ class DartAssistKind {
   static const FLUTTER_MOVE_UP =
       const AssistKind('dart.assist.flutter.move.up', 30, "Move widget up");
   static const FLUTTER_REMOVE_WIDGET = const AssistKind(
-      'dart.assist.flutter.removeWidget',
-      30,
-      "Replace widget with its children");
+      'dart.assist.flutter.removeWidget', 30, "Remove this widget");
   static const FLUTTER_SWAP_WITH_CHILD = const AssistKind(
       'dart.assist.flutter.swap.withChild', 30, "Swap with child");
   static const FLUTTER_SWAP_WITH_PARENT = const AssistKind(

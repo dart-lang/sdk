@@ -5,7 +5,6 @@ library test;
 // pkg/front_end/testcases/inference/future_then_upwards.dart:21:49: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
 //  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards.dart'.
 //  - 'Future' is from 'dart:async'.
-// Try changing the type of the left hand side, or casting the right hand side to 'Future<int>'.
 //   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
 //                                                 ^
 //
@@ -38,7 +37,6 @@ static method main() → void {
   asy::Future<core::int*>* f2 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/future_then_upwards.dart:21:49: Error: A value of type 'MyFuture<double>' can't be assigned to a variable of type 'Future<int>'.
  - 'MyFuture' is from 'pkg/front_end/testcases/inference/future_then_upwards.dart'.
  - 'Future' is from 'dart:async'.
-Try changing the type of the left hand side, or casting the right hand side to 'Future<int>'.
   Future<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;
                                                 ^" in f as{TypeError} asy::Future<core::int*>*;
   asy::Future<core::num*>* f3 = self::foo().{self::MyFuture::then}<core::double*>((dynamic _) → core::double* => 2.3) as asy::Future<core::double*>*;

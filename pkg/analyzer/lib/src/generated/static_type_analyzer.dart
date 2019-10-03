@@ -107,9 +107,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * inferred type parameters found by the resolver.
    */
   void inferConstructorName(ConstructorName node, InterfaceType type) {
+    // TODO(scheglov) Inline.
     node.type.type = type;
-    if (type != _typeSystem.instantiateToBounds(type.element.type)) {
-      _resolver.inferenceContext.recordInference(node.parent, type);
+    // TODO(scheglov) Remove when DDC stops using analyzer.
+    var element = type.element;
+    if (element.typeParameters.isNotEmpty) {
+      var typeParameterBounds = _typeSystem.instantiateTypeFormalsToBounds(
+        element.typeParameters,
+      );
+      var instantiatedToBounds = element.instantiate(
+        typeArguments: typeParameterBounds,
+        nullabilitySuffix: _noneOrStarSuffix,
+      );
+      if (type != instantiatedToBounds) {
+        _resolver.inferenceContext.recordInference(node.parent, type);
+      }
     }
   }
 
@@ -1389,13 +1401,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       ClassElement returnType = library.getType(elementName);
       if (returnType != null) {
-        if (returnType.typeParameters.isNotEmpty) {
-          // Caller can't deal with unbound type parameters, so substitute
-          // `dynamic`.
-          return returnType.type.instantiate(
-              returnType.typeParameters.map((_) => _dynamicType).toList());
-        }
-        return returnType.type;
+        return returnType.instantiate(
+          typeArguments: List.filled(
+            returnType.typeParameters.length,
+            _dynamicType,
+          ),
+          nullabilitySuffix: _noneOrStarSuffix,
+        );
       }
     }
     return null;
@@ -1802,7 +1814,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         e.library.source.uri.toString() == 'dart:_foreign_helper' &&
         e.name == 'JS') {
       String typeStr = _getFirstArgumentAsString(node.argumentList);
-      DartType returnType = null;
+      DartType returnType;
       if (typeStr == '-dynamic') {
         returnType = _typeProvider.bottomType;
       } else {

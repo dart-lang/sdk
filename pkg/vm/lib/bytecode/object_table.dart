@@ -1705,7 +1705,6 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     } else {
       throw "Unexpected Member's parent ${parent.runtimeType} $parent";
     }
-    if (member is Constructor || member is Procedure && member.isFactory) {}
     final nameHandle = getNameHandle(
         member.name.library, mangleMemberName(member, isGetter, isSetter));
     bool isField = member is Field && !isGetter && !isSetter;

@@ -471,9 +471,11 @@ class WasmFunction {
 
 class WasmInstance {
  public:
-  WasmInstance() : _instance(nullptr), _exports(nullptr) {}
+  WasmInstance() : _instance(nullptr), _exports(nullptr), _memory(nullptr) {}
 
   bool Instantiate(wasmer_module_t* module, WasmImports* imports) {
+    ASSERT(_instance == nullptr);
+
     // Instantiate module.
     if (wasmer_module_instantiate(module, &_instance, imports->RawImports(),
                                   imports->NumImports()) !=
@@ -481,13 +483,20 @@ class WasmInstance {
       return false;
     }
 
-    // Load all functions.
+    // Load all exports.
     wasmer_instance_exports(_instance, &_exports);
     intptr_t num_exports = wasmer_exports_len(_exports);
     for (intptr_t i = 0; i < num_exports; ++i) {
       wasmer_export_t* exp = wasmer_exports_get(_exports, i);
-      if (wasmer_export_kind(exp) == wasmer_import_export_kind::WASM_FUNCTION) {
+      wasmer_import_export_kind kind = wasmer_export_kind(exp);
+      if (kind == wasmer_import_export_kind::WASM_FUNCTION) {
         if (!AddFunction(exp)) {
+          return false;
+        }
+      } else if (kind == wasmer_import_export_kind::WASM_MEMORY) {
+        ASSERT(_memory == nullptr);
+        if (wasmer_export_to_memory(exp, &_memory) !=
+            wasmer_result_t::WASMER_OK) {
           return false;
         }
       }
@@ -541,10 +550,13 @@ class WasmInstance {
     o << '}' << std::endl;
   }
 
+  wasmer_memory_t* memory() { return _memory; }
+
  private:
   wasmer_instance_t* _instance;
   wasmer_exports_t* _exports;
   MallocDirectChainedHashMap<CStringKeyValueTrait<WasmFunction*>> _functions;
+  wasmer_memory_t* _memory;
 
   static classid_t ToDartType(wasmer_value_tag wasm_type) {
     switch (wasm_type) {
@@ -840,6 +852,36 @@ DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(Wasm_initMemoryFromInstance, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, mem_wrap, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, inst_wrap, arguments->NativeArgAt(1));
+
+  ASSERT(mem_wrap.NumNativeFields() == 1);
+  ASSERT(inst_wrap.NumNativeFields() == 1);
+
+  WasmInstance* inst =
+      reinterpret_cast<WasmInstance*>(inst_wrap.GetNativeField(0));
+
+  wasmer_memory_t* memory = inst->memory();
+
+  mem_wrap.SetNativeField(0, reinterpret_cast<intptr_t>(memory));
+  FinalizablePersistentHandle::New(thread->isolate(), mem_wrap, memory,
+                                   FinalizeWasmMemory,
+                                   wasmer_memory_length(memory));
+  return WasmMemoryToExternalTypedData(memory);
+}
+
+DEFINE_NATIVE_ENTRY(Wasm_getMemoryPages, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, mem_wrap, arguments->NativeArgAt(0));
+
+  ASSERT(mem_wrap.NumNativeFields() == 1);
+
+  wasmer_memory_t* memory =
+      reinterpret_cast<wasmer_memory_t*>(mem_wrap.GetNativeField(0));
+
+  return Integer::New(wasmer_memory_length(memory));
+}
+
 DEFINE_NATIVE_ENTRY(Wasm_initFunction, 0, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, fn_wrap, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, inst_wrap, arguments->NativeArgAt(1));
@@ -974,6 +1016,16 @@ DEFINE_NATIVE_ENTRY(Wasm_growMemory, 0, 3) {
 }
 
 DEFINE_NATIVE_ENTRY(Wasm_initInstance, 0, 3) {
+  Exceptions::ThrowUnsupportedError("WASM is disabled");
+  return nullptr;
+}
+
+DEFINE_NATIVE_ENTRY(Wasm_initMemoryFromInstance, 0, 2) {
+  Exceptions::ThrowUnsupportedError("WASM is disabled");
+  return nullptr;
+}
+
+DEFINE_NATIVE_ENTRY(Wasm_getMemoryPages, 0, 1) {
   Exceptions::ThrowUnsupportedError("WASM is disabled");
   return nullptr;
 }

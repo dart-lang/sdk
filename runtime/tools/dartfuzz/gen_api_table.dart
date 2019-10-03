@@ -18,9 +18,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 
-import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'gen_util.dart';
 
 // Class to represent a library method by name and prototype representation.
 class DartLib {
@@ -39,27 +38,7 @@ var setTable = <DartLib>[];
 var mapTable = <DartLib>[];
 
 main() async {
-  // Set paths. Note that for this particular use case, packageRoot can be
-  // any directory. Here, we set it to the top of the SDK development, and
-  // derive the required sdkPath from there.
-  final String packageRoot = Platform.environment['DART_TOP'];
-  if (packageRoot == null) {
-    throw StateError('No environment variable DART_TOP');
-  }
-  final sdkPath = '$packageRoot/tools/sdks/dart-sdk';
-
-  // This does most of the hard work of getting the analyzer configured
-  // correctly. Typically the included paths are the files and directories
-  // that need to be analyzed, but the SDK is always available, so it isn't
-  // really important for this particular use case. We use the implementation
-  // class in order to pass in the sdkPath directly.
-  final provider = PhysicalResourceProvider.INSTANCE;
-  final collection = AnalysisContextCollectionImpl(
-      includedPaths: <String>[packageRoot],
-      excludedPaths: <String>[packageRoot + "/pkg/front_end/test"],
-      resourceProvider: provider,
-      sdkPath: sdkPath);
-  final AnalysisSession session = collection.contexts[0].currentSession;
+  final AnalysisSession session = GenUtil.createAnalysisSession();
 
   // Visit libraries for table generation.
   await visitLibraryAtUri(session, 'dart:async');
@@ -312,6 +291,7 @@ class DartLib {
 
 void dumpTable(String identifier, List<DartLib> table) {
   print('  static const $identifier = [');
+  table.sort((a, b) => a.name.compareTo(b.name));
   table.forEach((t) => print('    DartLib(\'${t.name}\', \'${t.proto}\'),'));
   print('  ];');
 }

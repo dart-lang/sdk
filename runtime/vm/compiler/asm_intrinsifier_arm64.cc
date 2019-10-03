@@ -1999,15 +1999,18 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates one-byte string of length 'end - start'. The content is not
-// initialized.
-// 'length-reg' (R2) contains tagged length.
+// Allocates a _OneByteString. The content is not initialized.
+// 'length-reg' (R2) contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in R0.
-static void TryAllocateOnebyteString(Assembler* assembler,
+static void TryAllocateOneByteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = R2;
-  Label fail;
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // negative length: call to runtime to produce error.
+  __ tbnz(failure, length_reg, compiler::target::kBitsPerWord - 1);
+
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
@@ -2030,7 +2033,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // length_reg: allocation size.
   __ adds(R1, R0, Operand(length_reg));
-  __ b(&fail, CS);  // Fail on unsigned overflow.
+  __ b(failure, CS);  // Fail on unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
@@ -2038,7 +2041,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R2: allocation size.
   __ ldr(R7, Address(THR, target::Thread::end_offset()));
   __ cmp(R1, Operand(R7));
-  __ b(&fail, CS);
+  __ b(failure, CS);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
@@ -2072,9 +2075,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ StoreIntoObjectNoBarrier(
       R0, FieldAddress(R0, target::String::length_offset()), R6);
   __ b(ok);
-
-  __ Bind(&fail);
-  __ b(failure);
 }
 
 // Arg0: OneByteString (receiver).
@@ -2094,7 +2094,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ BranchIfNotSmi(R3, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
   __ Bind(&ok);
   // R0: new string as tagged pointer.
   // Copy string.
@@ -2155,7 +2155,7 @@ void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
   Label ok;
 
   __ ldr(R2, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body);
 
   __ Bind(&ok);
   __ ret();

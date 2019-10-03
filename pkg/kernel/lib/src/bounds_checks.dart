@@ -20,7 +20,7 @@ import '../ast.dart'
 
 import '../type_algebra.dart' show Substitution, substitute;
 
-import '../type_environment.dart' show TypeEnvironment;
+import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
 
 import '../util/graph.dart' show Graph, computeStrongComponents;
 
@@ -275,7 +275,9 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(argument, variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
-        argument, substitute(variables[i].bound, substitutionMap))) {
+        argument,
+        substitute(variables[i].bound, substitutionMap),
+        SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(argument, variables[i], type));
     }
@@ -321,7 +323,9 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       result
           .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
-        argument, substitute(variables[i].bound, substitutionMap))) {
+        argument,
+        substitute(variables[i].bound, substitutionMap),
+        SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
       result
           .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
@@ -361,7 +365,9 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(argument, parameters[i], null));
     } else if (!typeEnvironment.isSubtypeOf(
-        argument, substitute(parameters[i].bound, substitutionMap))) {
+        argument,
+        substitute(parameters[i].bound, substitutionMap),
+        SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(argument, parameters[i], null));
     }

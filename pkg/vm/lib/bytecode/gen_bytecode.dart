@@ -23,7 +23,8 @@ import 'package:kernel/text/ast_to_text.dart'
     show globalDebuggingNames, NameSystem;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show SubtypeCheckMode, TypeEnvironment;
 import 'assembler.dart';
 import 'bytecode_serialization.dart' show StringTable;
 import 'constant_pool.dart';
@@ -53,8 +54,11 @@ import 'recognized_methods.dart' show RecognizedMethods;
 import 'recursive_types_validator.dart' show IllegalRecursiveTypeException;
 import 'source_positions.dart' show LineStarts, SourcePositions;
 import '../metadata/bytecode.dart';
+import '../metadata/direct_call.dart'
+    show DirectCallMetadata, DirectCallMetadataRepository;
 
 import 'dart:convert' show utf8;
+import 'dart:developer';
 import 'dart:math' as math;
 
 // This symbol is used as the name in assert assignable's to indicate it comes
@@ -69,37 +73,39 @@ void generateBytecode(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
 }) {
-  options ??= new BytecodeOptions();
-  verifyBytecodeInstructionDeclarations();
-  coreTypes ??= new CoreTypes(component);
-  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  hierarchy ??= new ClassHierarchy(component,
-      onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
-  final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
-  libraries ??= component.libraries;
+  Timeline.timeSync("generateBytecode", () {
+    options ??= new BytecodeOptions();
+    verifyBytecodeInstructionDeclarations();
+    coreTypes ??= new CoreTypes(component);
+    void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
+    hierarchy ??= new ClassHierarchy(component,
+        onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
+    final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
+    libraries ??= component.libraries;
 
-  // Save/restore global NameSystem to avoid accumulating garbage.
-  // NameSystem holds the whole AST as it is strongly connected due to
-  // parent pointers. Objects are added to NameSystem when toString()
-  // is called from AST nodes.  Bytecode generator widely uses
-  // Expression.getStaticType, which calls Expression.getStaticTypeAsInstanceOf,
-  // which uses toString() when it crashes due to http://dartbug.com/34496.
-  final savedGlobalDebuggingNames = globalDebuggingNames;
-  globalDebuggingNames = new NameSystem();
+    // Save/restore global NameSystem to avoid accumulating garbage.
+    // NameSystem holds the whole AST as it is strongly connected due to
+    // parent pointers. Objects are added to NameSystem when toString()
+    // is called from AST nodes.  Bytecode generator widely uses
+    // Expression.getStaticType, which calls Expression.getStaticTypeAsInstanceOf,
+    // which uses toString() when it crashes due to http://dartbug.com/34496.
+    final savedGlobalDebuggingNames = globalDebuggingNames;
+    globalDebuggingNames = new NameSystem();
 
-  try {
-    final bytecodeGenerator = new BytecodeGenerator(
-        component, coreTypes, hierarchy, typeEnvironment, options);
-    for (var library in libraries) {
-      bytecodeGenerator.visitLibrary(library);
+    try {
+      final bytecodeGenerator = new BytecodeGenerator(
+          component, coreTypes, hierarchy, typeEnvironment, options);
+      for (var library in libraries) {
+        bytecodeGenerator.visitLibrary(library);
+      }
+    } on IllegalRecursiveTypeException catch (e) {
+      CompilerContext.current.options.report(
+          templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
+          Severity.error);
+    } finally {
+      globalDebuggingNames = savedGlobalDebuggingNames;
     }
-  } on IllegalRecursiveTypeException catch (e) {
-    CompilerContext.current.options.report(
-        templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
-        Severity.error);
-  } finally {
-    globalDebuggingNames = savedGlobalDebuggingNames;
-  }
+  });
 }
 
 class BytecodeGenerator extends RecursiveVisitor<Null> {
@@ -115,6 +121,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   ObjectTable objectTable;
   Component bytecodeComponent;
   NullabilityDetector nullabilityDetector;
+  Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   List<ClassDeclaration> classDeclarations;
   List<FieldDeclaration> fieldDeclarations;
@@ -165,6 +172,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       bytecodeComponent.mainLibrary =
           objectTable.getHandle(component.mainMethod.enclosingLibrary);
     }
+
+    directCallMetadata =
+        component.metadata[DirectCallMetadataRepository.repositoryTag]?.mapping;
   }
 
   @override
@@ -1132,21 +1142,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genDirectCall(Member target, ObjectHandle argDesc, int totalArgCount,
-      {bool isGet: false, bool isSet: false, TreeNode context}) {
+      {bool isGet: false,
+      bool isSet: false,
+      bool isDynamicForwarder: false,
+      bool isUnchecked: false,
+      TreeNode context}) {
     assert(!isGet || !isSet);
     final kind = isGet
         ? InvocationKind.getter
         : (isSet ? InvocationKind.setter : InvocationKind.method);
-    final cpIndex = cp.addDirectCall(kind, target, argDesc);
+    final cpIndex = cp.addDirectCall(kind, target, argDesc, isDynamicForwarder);
 
     if (totalArgCount >= argumentsLimit) {
       throw new TooManyArgumentsException(context.fileOffset);
     }
-    asm.emitDirectCall(cpIndex, totalArgCount);
+    if (isUnchecked) {
+      asm.emitUncheckedDirectCall(cpIndex, totalArgCount);
+    } else {
+      asm.emitDirectCall(cpIndex, totalArgCount);
+    }
   }
 
   void _genDirectCallWithArgs(Member target, Arguments args,
-      {bool hasReceiver: false, bool isFactory: false, TreeNode context}) {
+      {bool hasReceiver: false,
+      bool isFactory: false,
+      bool isUnchecked: false,
+      TreeNode context}) {
     final argDesc = objectTable.getArgDescHandleByArguments(args,
         hasReceiver: hasReceiver, isFactory: isFactory);
 
@@ -1160,7 +1181,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       totalArgCount++;
     }
 
-    _genDirectCall(target, argDesc, totalArgCount, context: context);
+    _genDirectCall(target, argDesc, totalArgCount,
+        isUnchecked: isUnchecked, context: context);
   }
 
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
@@ -1514,7 +1536,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedMaxSourcePositions = <int>[];
     maxSourcePosition = node.fileOffset;
 
-    locals = new LocalVariables(node, options, typeEnvironment);
+    locals =
+        new LocalVariables(node, options, typeEnvironment, directCallMetadata);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
@@ -2140,7 +2163,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushInstantiatorAndFunctionTypeArguments([type]);
     asm.emitPushConstant(cp.addString(name));
     bool isIntOk = typeEnvironment.isSubtypeOf(
-        typeEnvironment.coreTypes.intLegacyRawType, type);
+        typeEnvironment.coreTypes.intLegacyRawType,
+        type,
+        SubtypeCheckMode.ignoringNullabilities);
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }
@@ -3020,27 +3045,62 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    _genArguments(node.receiver, args);
+    final directCall =
+        directCallMetadata != null ? directCallMetadata[node] : null;
+    if (directCall != null && directCall.checkReceiverForNull) {
+      final int receiverTemp = locals.tempIndexInFrame(node);
+      _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
+      asm.emitPush(receiverTemp);
+      asm.emitCheckReceiverForNull(
+          cp.addSelectorName(node.name, InvocationKind.method));
+    } else {
+      _genArguments(node.receiver, args);
+    }
 
     Member interfaceTarget = node.interfaceTarget;
     if (interfaceTarget is Field ||
         interfaceTarget is Procedure && interfaceTarget.isGetter) {
       // Call via field or getter. Treat it as a dynamic call because
       // interface target doesn't fully represent what is being called.
+      assert(directCall == null);
       interfaceTarget = null;
     }
+
     final argDesc =
         objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
-    _genInstanceCall(InvocationKind.method, interfaceTarget, node.name,
-        node.receiver, totalArgCount, argDesc);
+
+    if (directCall != null) {
+      final isDynamicForwarder = (interfaceTarget == null);
+      final isUnchecked =
+          isUncheckedCall(interfaceTarget, node.receiver, typeEnvironment);
+      _genDirectCall(directCall.target, argDesc, totalArgCount,
+          isDynamicForwarder: isDynamicForwarder, isUnchecked: isUnchecked);
+    } else {
+      _genInstanceCall(InvocationKind.method, interfaceTarget, node.name,
+          node.receiver, totalArgCount, argDesc);
+    }
   }
 
   @override
   visitPropertyGet(PropertyGet node) {
     _generateNode(node.receiver);
     final argDesc = objectTable.getArgDescHandle(1);
-    _genInstanceCall(InvocationKind.getter, node.interfaceTarget, node.name,
-        node.receiver, 1, argDesc);
+
+    final directCall =
+        directCallMetadata != null ? directCallMetadata[node] : null;
+    if (directCall != null) {
+      if (directCall.checkReceiverForNull) {
+        final int receiverTemp = locals.tempIndexInFrame(node);
+        asm.emitStoreLocal(receiverTemp);
+        asm.emitPush(receiverTemp);
+        asm.emitCheckReceiverForNull(
+            cp.addSelectorName(node.name, InvocationKind.getter));
+      }
+      _genDirectCall(directCall.target, argDesc, 1, isGet: true);
+    } else {
+      _genInstanceCall(InvocationKind.getter, node.interfaceTarget, node.name,
+          node.receiver, 1, argDesc);
+    }
   }
 
   @override
@@ -3049,15 +3109,38 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final bool hasResult = !isExpressionWithoutResult(node);
 
     _generateNode(node.receiver);
-    _generateNode(node.value);
+
+    final directCall =
+        directCallMetadata != null ? directCallMetadata[node] : null;
+    if (directCall != null && directCall.checkReceiverForNull) {
+      asm.emitStoreLocal(temp);
+      _generateNode(node.value);
+      asm.emitPush(temp);
+      asm.emitCheckReceiverForNull(
+          cp.addSelectorName(node.name, InvocationKind.setter));
+    } else {
+      _generateNode(node.value);
+    }
 
     if (hasResult) {
       asm.emitStoreLocal(temp);
     }
 
-    final argDesc = objectTable.getArgDescHandle(2);
-    _genInstanceCall(InvocationKind.setter, node.interfaceTarget, node.name,
-        node.receiver, 2, argDesc);
+    const int numArguments = 2;
+    final argDesc = objectTable.getArgDescHandle(numArguments);
+
+    if (directCall != null) {
+      final isDynamicForwarder = (node.interfaceTarget == null);
+      final isUnchecked =
+          isUncheckedCall(node.interfaceTarget, node.receiver, typeEnvironment);
+      _genDirectCall(directCall.target, argDesc, numArguments,
+          isSet: true,
+          isDynamicForwarder: isDynamicForwarder,
+          isUnchecked: isUnchecked);
+    } else {
+      _genInstanceCall(InvocationKind.setter, node.interfaceTarget, node.name,
+          node.receiver, numArguments, argDesc);
+    }
 
     asm.emitDrop1();
 
@@ -3084,7 +3167,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     _genArguments(new ThisExpression(), args);
-    _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
+    _genDirectCallWithArgs(target, args,
+        hasReceiver: true, isUnchecked: true, context: node);
   }
 
   @override
@@ -3121,7 +3205,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
 
       assert(target is Field || (target is Procedure && target.isSetter));
-      _genDirectCall(target, objectTable.getArgDescHandle(2), 2, isSet: true);
+      _genDirectCall(target, objectTable.getArgDescHandle(2), 2,
+          isSet: true, isUnchecked: true);
     }
 
     asm.emitDrop1();
@@ -3955,6 +4040,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     final TryBlock tryBlock = _startTryBlock(node);
+    tryBlock.isSynthetic = true;
     finallyBlocks[node] = <FinallyBlock>[];
 
     _generateNode(node.body);

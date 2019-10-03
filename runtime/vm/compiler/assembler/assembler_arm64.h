@@ -777,6 +777,11 @@ class Assembler : public AssemblerBase {
     EmitMiscDP1Source(CLZ, rd, rn, kDoubleWord);
   }
 
+  // Reverse bits.
+  void rbit(Register rd, Register rn) {
+    EmitMiscDP1Source(RBIT, rd, rn, kDoubleWord);
+  }
+
   // Misc. arithmetic.
   void udiv(Register rd, Register rn, Register rm) {
     EmitMiscDP2Source(UDIV, rd, rn, rm, kDoubleWord);

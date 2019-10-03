@@ -585,8 +585,8 @@ class ConstantEvaluationEngine {
       while (baseParameter is ParameterMember) {
         baseParameter = (baseParameter as ParameterMember).baseElement;
       }
-      DartObjectImpl argumentValue = null;
-      AstNode errorTarget = null;
+      DartObjectImpl argumentValue;
+      AstNode errorTarget;
       if (baseParameter.isNamed) {
         argumentValue = namedValues[baseParameter.name];
         errorTarget = namedNodes[baseParameter.name];
@@ -652,8 +652,8 @@ class ConstantEvaluationEngine {
     ConstantVisitor initializerVisitor = new ConstantVisitor(
         this, externalErrorReporter,
         lexicalEnvironment: parameterMap);
-    String superName = null;
-    NodeList<Expression> superArguments = null;
+    String superName;
+    NodeList<Expression> superArguments;
     for (var i = 0; i < initializers.length; i++) {
       var initializer = initializers[i];
       if (initializer is ConstructorFieldInitializer) {
@@ -875,11 +875,7 @@ class ConstantEvaluationEngine {
       // fixed.
       return true;
     }
-    // TODO(scheglov ) Switch to using this, but not now, dartbug.com/33441
-    if (typeSystem.isSubtypeOf(objType, type)) {
-      return true;
-    }
-    return objType.isSubtypeOf(type);
+    return typeSystem.isSubtypeOf(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
@@ -1018,7 +1014,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     for (StringLiteral string in node.strings) {
       if (result == null) {
         result = string.accept(this);
@@ -1432,7 +1428,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitStringInterpolation(StringInterpolation node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     bool first = true;
     for (InterpolationElement element in node.elements) {
       if (first) {

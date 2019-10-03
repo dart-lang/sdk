@@ -445,6 +445,7 @@ class Assembler : public AssemblerBase {
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
+  void rbit(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);

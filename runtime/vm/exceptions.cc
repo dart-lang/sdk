@@ -625,6 +625,10 @@ void Exceptions::JumpToFrame(Thread* thread,
   OSThread::SetCurrentSafestackPointer(saved_ssp);
 #endif
 
+#if defined(USING_SHADOW_CALL_STACK)
+  // The shadow call stack register will be restored by the JumpToFrame stub.
+#endif
+
   func(program_counter, stack_pointer, frame_pointer, thread);
 #endif
   UNREACHABLE();
@@ -1003,12 +1007,6 @@ void Exceptions::ThrowUnsupportedError(const char* msg) {
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, String::Handle(String::New(msg)));
   Exceptions::ThrowByType(Exceptions::kUnsupported, args);
-}
-
-void Exceptions::ThrowRangeErrorMsg(const char* msg) {
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, String::Handle(String::New(msg)));
-  Exceptions::ThrowByType(Exceptions::kRangeMsg, args);
 }
 
 void Exceptions::ThrowCompileTimeError(const LanguageError& error) {

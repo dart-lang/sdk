@@ -345,12 +345,13 @@ class DartFuzzTest {
     fp = samePrecision(mode1, mode2);
     // Occasionally test FFI.
     ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
+    flatTp = !nestedTypesAllowed(mode1, mode2) || (rand.nextInt(5) == 0);
     runner1 =
         TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
     runner2 =
         TestRunner.getTestRunner(mode2, top, tmpDir.path, env, fileName, rand);
     isolate =
-        'Isolate (${tmpDir.path}) ${ffi ? "" : "NO-"}FFI ${fp ? "" : "NO-"}FP : '
+        'Isolate (${tmpDir.path}) ${fp ? "" : "NO-"}FP ${ffi ? "" : "NO-"}FFI ${flatTp ? "" : "NO-"}FLAT : '
         '${runner1.description} - ${runner2.description}';
 
     start_time = DateTime.now().millisecondsSinceEpoch;
@@ -374,6 +375,9 @@ class DartFuzzTest {
   bool ffiCapable(String mode1, String mode2) =>
       (mode1.startsWith('jit') || mode1.startsWith('kbc')) &&
       (mode2.startsWith('jit') || mode2.startsWith('kbc')) &&
+      (!mode1.contains('arm') && !mode2.contains('arm'));
+
+  bool nestedTypesAllowed(String mode1, String mode2) =>
       (!mode1.contains('arm') && !mode2.contains('arm'));
 
   bool timeIsUp() {
@@ -404,7 +408,7 @@ class DartFuzzTest {
 
   void generateTest() {
     final file = File(fileName).openSync(mode: FileMode.write);
-    DartFuzz(seed, fp, ffi, file).run();
+    DartFuzz(seed, fp, ffi, flatTp, file).run();
     file.closeSync();
   }
 
@@ -514,7 +518,8 @@ class DartFuzzTest {
 
   void showReproduce() {
     print("\n-- BEGIN REPRODUCE  --\n");
-    print("dartfuzz.dart --${ffi ? "" : "no-"}ffi --${fp ? "" : "no-"}fp "
+    print("dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
+        "--${flatTp ? "" : "no-"}flat "
         "--seed ${seed} $fileName");
     print("\n-- RUN 1 --\n");
     runner1.printReproductionCommand();
@@ -542,6 +547,7 @@ class DartFuzzTest {
   TestRunner runner2;
   bool fp;
   bool ffi;
+  bool flatTp;
   String isolate;
   int seed;
 

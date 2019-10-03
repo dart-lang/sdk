@@ -400,6 +400,8 @@ namespace dart {
   V(Wasm_initMemory, 3)                                                        \
   V(Wasm_growMemory, 2)                                                        \
   V(Wasm_initInstance, 3)                                                      \
+  V(Wasm_initMemoryFromInstance, 2)                                            \
+  V(Wasm_getMemoryPages, 1)                                                    \
   V(Wasm_initFunction, 4)                                                      \
   V(Wasm_callFunction, 2)
 

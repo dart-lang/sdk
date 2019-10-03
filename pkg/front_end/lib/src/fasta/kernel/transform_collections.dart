@@ -46,7 +46,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_environment.dart' show TypeEnvironment;
+import 'package:kernel/type_environment.dart'
+    show SubtypeCheckMode, TypeEnvironment;
 
 import 'package:kernel/visitor.dart' show Transformer;
 
@@ -248,7 +249,8 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration elt;
     Statement loopBody;
     if (element.elementType == null ||
-        !typeEnvironment.isSubtypeOf(element.elementType, elementType)) {
+        !typeEnvironment.isSubtypeOf(element.elementType, elementType,
+            SubtypeCheckMode.ignoringNullabilities)) {
       elt = new VariableDeclaration(null,
           type: const DynamicType(), isFinal: true);
       VariableDeclaration castedVar = new VariableDeclaration.forValue(
@@ -439,7 +441,8 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration elt;
     Statement loopBody;
     if (entry.entryType == null ||
-        !typeEnvironment.isSubtypeOf(entry.entryType, entryType)) {
+        !typeEnvironment.isSubtypeOf(entry.entryType, entryType,
+            SubtypeCheckMode.ignoringNullabilities)) {
       elt = new VariableDeclaration(null,
           type: new InterfaceType(mapEntryClass,
               <DartType>[const DynamicType(), const DynamicType()]),

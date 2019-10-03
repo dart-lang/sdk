@@ -5,7 +5,7 @@
 #ifndef RUNTIME_BIN_ELF_LOADER_H_
 #define RUNTIME_BIN_ELF_LOADER_H_
 
-#include <include/dart_api.h>
+#include "../include/dart_api.h"
 
 typedef void* LoadedElfLibrary;
 
@@ -16,7 +16,7 @@ typedef void* LoadedElfLibrary;
 /// string should not be 'free'-d.
 ///
 /// Looks up the Dart snapshot symbols "_kVmSnapshotData",
-/// "_kVmSnapshotInstructions", "_kVmIsoalteData" and "_kVmIsolateInstructions"
+/// "_kVmSnapshotInstructions", "_kVmIsolateData" and "_kVmIsolateInstructions"
 /// into the respectively named out-parameters.
 DART_EXPORT LoadedElfLibrary Dart_LoadELF(const char* filename,
                                           const char** error,

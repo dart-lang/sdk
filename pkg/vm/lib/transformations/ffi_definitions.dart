@@ -20,6 +20,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import 'ffi.dart';
 
@@ -142,7 +143,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return env.isSubtypeOf(
         field.type,
         InterfaceType(pointerClass,
-            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]));
+            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]),
+        SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool _checkFieldAnnotations(Class node) {
@@ -178,7 +180,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final DartType shouldBeDartType =
             convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
         if (shouldBeDartType == null ||
-            !env.isSubtypeOf(dartType, shouldBeDartType)) {
+            !env.isSubtypeOf(dartType, shouldBeDartType,
+                SubtypeCheckMode.ignoringNullabilities)) {
           diagnosticReporter.report(
               templateFfiTypeMismatch.withArguments(
                   dartType, shouldBeDartType, nativeType),
@@ -426,20 +429,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Iterable<NativeType> _getNativeTypeAnnotations(Field node) {
-    final Iterable<NativeType> preConstant2018 = node.annotations
-        .whereType<ConstructorInvocation>()
-        .map((expr) => expr.target.parent)
-        .map((klass) => _getFieldType(klass))
-        .where((type) => type != null);
-    final Iterable<NativeType> postConstant2018 = node.annotations
+    return node.annotations
         .whereType<ConstantExpression>()
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
-    // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
-    return postConstant2018.followedBy(preConstant2018);
   }
 }
 

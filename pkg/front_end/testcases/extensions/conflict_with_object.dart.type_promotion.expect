@@ -1,0 +1,12 @@
+pkg/front_end/testcases/extensions/conflict_with_object.dart:16:9: Context: Write to value@422
+  value = Extension("").noSuchMethod;
+        ^
+pkg/front_end/testcases/extensions/conflict_with_object.dart:20:9: Context: Write to value@422
+  value = Extension("").runtimeType();
+        ^
+pkg/front_end/testcases/extensions/conflict_with_object.dart:27:9: Context: Write to value@762
+  value = "".noSuchMethod;
+        ^
+pkg/front_end/testcases/extensions/conflict_with_object.dart:29:9: Context: Write to value@762
+  value = "".runtimeType;
+        ^

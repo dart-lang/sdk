@@ -269,7 +269,6 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       }
     }
 
-    // TODO(sigmund): add support for experiments with the incremental compiler.
     state = await fe.initializeIncrementalCompiler(
         previousState,
         {

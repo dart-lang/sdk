@@ -72,6 +72,7 @@
 
 extension-methods:
   help: "Extension Methods"
+  enabledIn: '2.6.0'
 
 non-nullable:
   help: "Non Nullable by default"

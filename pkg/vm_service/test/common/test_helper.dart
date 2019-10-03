@@ -255,7 +255,7 @@ class _ServiceTesterRunner {
     var process = _ServiceTesteeLauncher();
     VmService vm;
     IsolateRef isolate;
-    setUpAll(() async {
+    setUp(() async {
       await process
           .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
               testeeControlsServer, useAuthToken, extraArgs)
@@ -297,9 +297,9 @@ class _ServiceTesterRunner {
           testIndex++;
         }
       }
-    });
+    }, retry: 3);
 
-    tearDownAll(() {
+    tearDown(() {
       print('All service tests completed successfully.');
       process.requestExit();
     });

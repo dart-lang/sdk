@@ -7,14 +7,14 @@ import 'dart:math';
 
 import 'package:args/args.dart';
 
-import 'dartfuzz_values.dart';
 import 'dartfuzz_api_table.dart';
 import 'dartfuzz_ffi_api.dart';
+import 'dartfuzz_type_table.dart';
 
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.53';
+const String version = '1.57';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -39,10 +39,7 @@ const methodName = 'foo';
 class RhsFilter {
   RhsFilter(this._remaining, this.lhsVar);
   factory RhsFilter.fromDartType(DartType tp, String lhsVar) {
-    if (tp == DartType.STRING ||
-        tp == DartType.INT_LIST ||
-        tp == DartType.INT_SET ||
-        tp == DartType.INT_STRING_MAP) {
+    if (DartType.isGrowableType(tp)) {
       return RhsFilter(1, lhsVar);
     }
     return null;
@@ -114,7 +111,7 @@ class DartApi {
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
-  DartFuzz(this.seed, this.fp, this.ffi, this.file,
+  DartFuzz(this.seed, this.fp, this.ffi, this.flatTp, this.file,
       {this.minimize = false, this.smask, this.emask});
 
   void run() {
@@ -124,6 +121,8 @@ class DartFuzz {
     nest = 0;
     currentClass = null;
     currentMethod = null;
+    // Setup Dart types.
+    dartType = DartType.fromDartConfig(enableFp: fp, disableNesting: flatTp);
     // Setup minimization parameters.
     initMinimization();
     // Setup the library and ffi api.
@@ -131,16 +130,14 @@ class DartFuzz {
     // Setup the types.
     localVars = <DartType>[];
     iterVars = <String>[];
-
     globalVars = fillTypes1(limit: numGlobalVars);
-    globalVars.addAll(DartType.allTypes); // always one each
+    globalVars.addAll(dartType.allTypes);
     globalMethods =
         fillTypes2(limit2: numGlobalMethods, limit1: numMethodParams);
     classFields = fillTypes2(limit2: numClasses, limit1: numLocalVars);
     final int numClassMethods = 1 + numClasses - classFields.length;
     classMethods = fillTypes3(classFields.length,
         limit2: numClassMethods, limit1: numMethodParams);
-
     virtualClassMethods = <Map<int, List<int>>>[];
     classParents = <int>[];
     // Setup optional ffi methods and types.
@@ -165,6 +162,13 @@ class DartFuzz {
     assert(indent == 0);
     assert(nest == 0);
     assert(localVars.isEmpty);
+  }
+
+  // Randomly specialize interface if possible. E.g. num to int.
+  DartType maybeSpecializeInterface(DartType tp) {
+    if (!dartType.isSpecializable(tp)) return tp;
+    DartType resolvedTp = oneOfSet(dartType.interfaces(tp));
+    return resolvedTp;
   }
 
   //
@@ -192,13 +196,13 @@ class DartFuzz {
       case DartType.STRING:
         emit('"a"');
         break;
-      case DartType.INT_LIST:
+      case DartType.LIST_INT:
         emit('[1]');
         break;
-      case DartType.INT_SET:
+      case DartType.SET_INT:
         emit('{1}');
         break;
-      case DartType.INT_STRING_MAP:
+      case DartType.MAP_INT_STRING:
         emit('{1: "a"}');
         break;
       default:
@@ -304,7 +308,7 @@ class DartFuzz {
     emitLn('// The Dart Project Fuzz Tester ($version).');
     emitLn('// Program generated as:');
     emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp ' +
-        '--${ffi ? "" : "no-"}ffi');
+        '--${ffi ? "" : "no-"}ffi --${flatTp ? "" : "no-"}flat');
     emitLn('');
     emitLn("import 'dart:async';");
     emitLn("import 'dart:cli';");
@@ -567,7 +571,7 @@ class DartFuzz {
     for (int i = 0; i < vars.length; i++) {
       DartType tp = vars[i];
       emitLn('${tp.name} $name$i = ', newline: false);
-      emitLiteral(0, tp);
+      emitConstructorOrLiteral(0, tp);
       emit(';', newline: true);
     }
     emit('', newline: true);
@@ -616,22 +620,42 @@ class DartFuzz {
 
   // Emit an assignment statement.
   bool emitAssign() {
-    DartType tp = getType();
+    // Select a type at random.
+    final tp = oneOfSet(dartType.allTypes);
+    // Select one of the assign operations for the given type.
+    final assignOp = oneOfSet(dartType.assignOps(tp));
+    if (assignOp == null) {
+      throw 'No assign operation for ${tp.name}';
+    }
     emitLn('', newline: false);
+    // Emit a variable of the lhs type.
     final emittedVar = emitVar(0, tp, isLhs: true);
     RhsFilter rhsFilter = RhsFilter.fromDartType(tp, emittedVar);
-    final assignOp = emitAssignOp(tp);
     if ({'*=', '+='}.contains(assignOp)) {
       rhsFilter?.consume();
     }
-    emitExpr(0, tp, rhsFilter: rhsFilter);
+    emit(" $assignOp ");
+    // Select one of the possible rhs types for the given lhs type and assign
+    // operation.
+    DartType rhsType = oneOfSet(dartType.assignOpRhs(tp, assignOp));
+    if (rhsType == null) {
+      throw 'No rhs type for assign ${tp.name} $assignOp';
+    }
+
+    // We need to avoid cases of "abcde" *= large number in loops.
+    if (assignOp == "*=" && tp == DartType.STRING && rhsType == DartType.INT) {
+      emitSmallPositiveInt();
+    } else {
+      // Emit an expression for the right hand side.
+      emitExpr(0, rhsType, rhsFilter: rhsFilter);
+    }
     emit(';', newline: true);
     return true;
   }
 
   // Emit a print statement.
   bool emitPrint() {
-    DartType tp = getType();
+    DartType tp = oneOfSet(dartType.allTypes);
     emitLn('print(', newline: false);
     emitExpr(0, tp);
     emit(');', newline: true);
@@ -653,7 +677,7 @@ class DartFuzz {
 
   // Emit a throw statement.
   bool emitThrow() {
-    DartType tp = getType();
+    DartType tp = oneOfSet(dartType.allTypes);
     emitLn('throw ', newline: false);
     emitExpr(0, tp);
     emit(';', newline: true);
@@ -710,14 +734,21 @@ class DartFuzz {
   // Emit a simple membership for-in-loop.
   bool emitForIn(int depth) {
     final int i = localVars.length;
-    emitLn('for (int $localName$i in ', newline: false);
+    // Select one iterable type to be used in 'for in' statement.
+    final iterType = oneOfSet(dartType.iterableTypes1);
+    // Get the element type contained within the iterable type.
+    final elementType = dartType.elementType(iterType);
+    if (elementType == null) {
+      throw 'No element type for iteration type ${iterType.name}';
+    }
+    emitLn('for (${elementType.name} $localName$i in ', newline: false);
     localVars.add(null); // declared, but don't use
-    emitExpr(0, rand.nextBool() ? DartType.INT_LIST : DartType.INT_SET);
+    emitExpr(0, iterType);
     localVars.removeLast(); // will get type
     emit(') {', newline: true);
     indent += 2;
     nest++;
-    localVars.add(DartType.INT);
+    localVars.add(elementType);
     emitStatements(depth + 1);
     localVars.removeLast();
     nest--;
@@ -731,15 +762,19 @@ class DartFuzz {
     final int i = localVars.length;
     final int j = i + 1;
     emitLn("", newline: false);
-    final emittedVar = emitScalarVar(DartType.INT_STRING_MAP, isLhs: false);
+    // Select one map type to be used in forEach loop.
+    final mapType = oneOfSet(dartType.mapTypes);
+    final emittedVar = emitScalarVar(mapType, isLhs: false);
     iterVars.add(emittedVar);
     emit('.forEach(($localName$i, $localName$j) {\n');
     indent += 2;
     final int nestTmp = nest;
     // Reset, since forEach cannot break out of own or enclosing context.
     nest = 0;
-    localVars.add(DartType.INT);
-    localVars.add(DartType.STRING);
+    // Get the type of the map key and add it to the local variables.
+    localVars.add(dartType.indexType(mapType));
+    // Get the type of the map values and add it to the local variables.
+    localVars.add(dartType.elementType(mapType));
     emitStatements(depth + 1);
     localVars.removeLast();
     localVars.removeLast();
@@ -837,7 +872,7 @@ class DartFuzz {
 
   // Emit a new program scope that introduces a new local variable.
   bool emitScope(int depth) {
-    DartType tp = getType();
+    DartType tp = oneOfSet(dartType.allTypes);
     final int i = localVars.length;
     emitLn('{ ${tp.name} $localName$i = ', newline: false);
     localVars.add(null); // declared, but don't use
@@ -970,7 +1005,7 @@ class DartFuzz {
         emitSmallNegativeInt();
         break;
       default:
-        emit('${oneOf(DartFuzzValues.interestingIntegers)}');
+        emit('${oneOf(interestingIntegers)}');
         break;
     }
   }
@@ -979,15 +1014,26 @@ class DartFuzz {
     emit('${rand.nextDouble()}');
   }
 
+  void emitNum({bool smallPositiveValue = false}) {
+    if (!fp || rand.nextInt(2) == 0) {
+      if (smallPositiveValue) {
+        emitSmallPositiveInt();
+      } else {
+        emitInt();
+      }
+    } else {
+      emitDouble();
+    }
+  }
+
   void emitChar() {
     switch (rand.nextInt(10)) {
       // Favors regular char.
       case 0:
-        emit(oneOf(DartFuzzValues.interestingChars));
+        emit(oneOf(interestingChars));
         break;
       default:
-        emit(DartFuzzValues
-            .regularChars[rand.nextInt(DartFuzzValues.regularChars.length)]);
+        emit(regularChars[rand.nextInt(regularChars.length)]);
         break;
     }
   }
@@ -1001,6 +1047,8 @@ class DartFuzz {
   }
 
   void emitElementExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
+    // This check determines whether we are emitting a global variable.
+    // I.e. whenever we are not currently emitting part of a class.
     if (currentMethod != null) {
       emitExpr(depth, tp, rhsFilter: rhsFilter);
     } else {
@@ -1009,18 +1057,39 @@ class DartFuzz {
   }
 
   void emitElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
-    if (tp == DartType.INT_STRING_MAP) {
-      emitSmallPositiveInt();
+    // Get the element type contained in type tp.
+    // E.g. element type of List<String> is String.
+    final elementType = dartType.elementType(tp);
+    // Decide whether we need to generate Map or List/Set type elements.
+    if (DartType.isMapType(tp)) {
+      // Emit construct for the map key type.
+      final indexType = dartType.indexType(tp);
+      // This check determines whether we are emitting a global variable.
+      // I.e. whenever we are not currently emitting part of a class.
+      if (currentMethod != null) {
+        emitExpr(depth, indexType, rhsFilter: rhsFilter);
+      } else {
+        emitLiteral(depth, indexType, rhsFilter: rhsFilter);
+      }
       emit(' : ');
-      emitElementExpr(depth, DartType.STRING, rhsFilter: rhsFilter);
+      // Emit construct for the map value type.
+      emitElementExpr(depth, elementType, rhsFilter: rhsFilter);
     } else {
-      emitElementExpr(depth, DartType.INT, rhsFilter: rhsFilter);
+      // List and Set types.
+      emitElementExpr(depth, elementType, rhsFilter: rhsFilter);
     }
   }
 
   void emitCollectionElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
     int r = depth <= exprDepth ? rand.nextInt(10) : 10;
-    switch (r + 3) {
+    // TODO (felih): disable complex collection constructs for new types for
+    // now.
+    if (!{DartType.MAP_INT_STRING, DartType.LIST_INT, DartType.SET_INT}
+        .contains(tp)) {
+      emitElement(depth, tp, rhsFilter: rhsFilter);
+      return;
+    }
+    switch (r) {
       // Favors elements over control-flow collections.
       case 0:
         // TODO (ajcbik): Remove restriction once compiler is fixed.
@@ -1044,6 +1113,8 @@ class DartFuzz {
       case 2:
         {
           final int i = localVars.length;
+          // TODO (felih): update to use new type system. Add types like
+          // LIST_STRING etc.
           emit('for (int $localName$i ');
           // For-loop (induction, list, set).
           localVars.add(null); // declared, but don't use
@@ -1055,13 +1126,13 @@ class DartFuzz {
               break;
             case 1:
               emit('in ');
-              emitCollection(depth + 1, DartType.INT_LIST,
+              emitCollection(depth + 1, DartType.LIST_INT,
                   rhsFilter: rhsFilter);
               emit(') ');
               break;
             default:
               emit('in ');
-              emitCollection(depth + 1, DartType.INT_SET, rhsFilter: rhsFilter);
+              emitCollection(depth + 1, DartType.SET_INT, rhsFilter: rhsFilter);
               emit(') ');
               break;
           }
@@ -1082,18 +1153,22 @@ class DartFuzz {
   }
 
   void emitCollection(int depth, DartType tp, {RhsFilter rhsFilter}) {
-    emit(tp == DartType.INT_LIST ? '[ ' : '{ ');
-    for (int i = 0, n = 1 + rand.nextInt(8); i < n; i++) {
+    // Collection length decreases as depth increases.
+    int collectionLength = max(1, 8 - depth);
+    emit(DartType.isListType(tp) ? '[ ' : '{ ');
+    for (int i = 0, n = 1 + rand.nextInt(collectionLength); i < n; i++) {
       emitCollectionElement(depth, tp, rhsFilter: rhsFilter);
       if (i != (n - 1)) {
         emit(', ');
       }
     }
-    emit(tp == DartType.INT_LIST ? ' ]' : ' }');
+    emit(DartType.isListType(tp) ? ' ]' : ' }');
   }
 
   void emitLiteral(int depth, DartType tp,
       {bool smallPositiveValue = false, RhsFilter rhsFilter}) {
+    // Randomly specialize interface if possible. E.g. num to int.
+    tp = maybeSpecializeInterface(tp);
     if (tp == DartType.BOOL) {
       emitBool();
     } else if (tp == DartType.INT) {
@@ -1104,20 +1179,70 @@ class DartFuzz {
       }
     } else if (tp == DartType.DOUBLE) {
       emitDouble();
+    } else if (tp == DartType.NUM) {
+      emitNum(smallPositiveValue: smallPositiveValue);
     } else if (tp == DartType.STRING) {
       emitString();
-    } else if (tp == DartType.INT_LIST ||
-        tp == DartType.INT_SET ||
-        tp == DartType.INT_STRING_MAP) {
+    } else if (dartType.constructors(tp).isNotEmpty) {
+      // Constructors serve as literals for non trivially constructable types.
+      // Important note: We have to test for existence of a non trivial
+      // constructor before testing for list type assiciation, since some types
+      // like ListInt32 are of list type but can not be constructed
+      // from a literal.
+      emitConstructorOrLiteral(depth + 1, tp, rhsFilter: rhsFilter);
+    } else if (DartType.isCollectionType(tp)) {
       final resetExprStmt = processExprOpen(tp);
-      emitCollection(depth, tp, rhsFilter: RhsFilter.cloneEmpty(rhsFilter));
+      emitCollection(depth + 1, tp, rhsFilter: rhsFilter);
       processExprClose(resetExprStmt);
     } else {
-      assert(false);
+      throw 'Can not emit literal for type ${tp.name}';
+    }
+  }
+
+  // Emit a constructor for a type, this can either be a trivial constructor
+  // (i.e. parsed from a literal) or an actual function invocation.
+  void emitConstructorOrLiteral(int depth, DartType tp, {RhsFilter rhsFilter}) {
+    // If there is at least one non trivial constructor for the type tp
+    // select one of these constructors.
+    if (dartType.hasConstructor(tp)) {
+      String constructor = oneOfSet(dartType.constructors(tp));
+      // There are two types of constructors, named constructors and 'empty'
+      // constructors (e.g. X.fromList(...) and new X(...) respectively).
+      // Empty constructors are invoked with new + type name, non-empty
+      // constructors are static functions of the type.
+      if (!constructor.isEmpty) {
+        emit('${tp.name}');
+        emit('.${constructor}');
+      } else {
+        emit('new ${tp.name}');
+      }
+      emit('(');
+      // Iterate over constructor parameters.
+      List<DartType> constructorParameters =
+          dartType.constructorParameters(tp, constructor);
+      if (constructorParameters == null) {
+        throw 'No constructor parameters for ${tp.name}.$constructor';
+      }
+      for (int i = 0, n = constructorParameters.length; i < n; ++i) {
+        // If we are emitting a constructor parameter, we want to use small
+        // values to avoid programs that run out of memory.
+        // TODO (felih): maybe allow occasionally?
+        emitLiteral(depth + 1, constructorParameters[i],
+            smallPositiveValue: true, rhsFilter: rhsFilter);
+        if (i != n - 1) {
+          emit(", ");
+        }
+      }
+      emit(')');
+    } else {
+      // Otherwise type can be constructed from a literal.
+      emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
     }
   }
 
   String emitScalarVar(DartType tp, {bool isLhs = false, RhsFilter rhsFilter}) {
+    // Randomly specialize interface type, unless emitting left hand side.
+    if (!isLhs) tp = maybeSpecializeInterface(tp);
     // Collect all choices from globals, fields, locals, and parameters.
     Set<String> choices = <String>{};
     for (int i = 0; i < globalVars.length; i++) {
@@ -1156,7 +1281,7 @@ class DartFuzz {
       if (cleanChoices.isNotEmpty) {
         choices = cleanChoices;
       } else if (!isLhs) {
-        // If we are emitting an RHS variable, we can emit a terminal.
+        // If we are emitting an rhs variable, we can emit a terminal.
         // note that if the variable type is a collection, this might
         // still result in a recursion.
         emitLiteral(0, tp);
@@ -1179,17 +1304,17 @@ class DartFuzz {
   String emitSubscriptedVar(int depth, DartType tp,
       {bool isLhs = false, RhsFilter rhsFilter}) {
     String ret;
-    if (tp == DartType.INT) {
-      ret =
-          emitScalarVar(DartType.INT_LIST, isLhs: isLhs, rhsFilter: rhsFilter);
+    // Check if type tp is an indexable element of some other type.
+    if (dartType.isIndexableElementType(tp)) {
+      // Select a list or map type that contains elements of type tp.
+      final iterType = oneOfSet(dartType.indexableElementTypes(tp));
+      // Get the index type for the respective list or map type.
+      final indexType = dartType.indexType(iterType);
+      // Emit a variable of the selected list or map type.
+      ret = emitScalarVar(iterType, isLhs: isLhs, rhsFilter: rhsFilter);
       emit('[');
-      emitExpr(depth + 1, DartType.INT);
-      emit(']');
-    } else if (tp == DartType.STRING) {
-      ret = emitScalarVar(DartType.INT_STRING_MAP,
-          isLhs: isLhs, rhsFilter: rhsFilter);
-      emit('[');
-      emitExpr(depth + 1, DartType.INT);
+      // Emit an expression resolving into the index type.
+      emitExpr(depth + 1, indexType);
       emit(']');
     } else {
       ret = emitScalarVar(tp,
@@ -1235,36 +1360,55 @@ class DartFuzz {
 
   // Emit expression with unary operator: (~(x))
   void emitUnaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
-    if (tp == DartType.BOOL || tp == DartType.INT || tp == DartType.DOUBLE) {
-      emit('(');
-      emitUnaryOp(tp);
-      emit('(');
-      emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
-      emit('))');
-    } else {
-      emitTerminal(depth, tp, rhsFilter: rhsFilter); // resort to terminal
+    if (dartType.uniOps(tp).isEmpty) {
+      return emitTerminal(depth, tp, rhsFilter: rhsFilter);
     }
+    emit('(');
+    emit(oneOfSet(dartType.uniOps(tp)));
+    emit('(');
+    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
+    emit('))');
   }
 
   // Emit expression with binary operator: (x + y)
   void emitBinaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
-    if (tp == DartType.BOOL) {
-      // For boolean, allow type switch with relational op.
-      if (rand.nextInt(2) == 0) {
-        DartType deeper_tp = getType();
-        emit('(');
-        emitExpr(depth + 1, deeper_tp, rhsFilter: rhsFilter);
-        emitRelOp(deeper_tp);
-        emitExpr(depth + 1, deeper_tp, rhsFilter: rhsFilter);
-        emit(')');
-        return;
-      }
+    if (dartType.binOps(tp).isEmpty) {
+      return emitLiteral(depth, tp);
     }
-    emit('(');
-    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
-    emitBinaryOp(tp);
-    emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
-    emit(')');
+
+    String binop = oneOfSet(dartType.binOps(tp));
+    List<DartType> binOpParams = oneOfSet(dartType.binOpParameters(tp, binop));
+
+    // Avoid recursive assignments of the form a = a * 100.
+    if (binop == "*") {
+      rhsFilter?.consume();
+    }
+
+    // Reduce the number of operations of type growable * large value
+    // as these might lead to timeouts and/or oom errors.
+    if (binop == "*" &&
+        DartType.isGrowableType(binOpParams[0]) &&
+        dartType.isInterfaceOfType(binOpParams[1], DartType.NUM)) {
+      emit('(');
+      emitExpr(depth + 1, binOpParams[0], rhsFilter: rhsFilter);
+      emit(' $binop ');
+      emitLiteral(depth + 1, binOpParams[1], smallPositiveValue: true);
+      emit(')');
+    } else if (binop == "*" &&
+        DartType.isGrowableType(binOpParams[1]) &&
+        dartType.isInterfaceOfType(binOpParams[0], DartType.NUM)) {
+      emit('(');
+      emitLiteral(depth + 1, binOpParams[0], smallPositiveValue: true);
+      emit(' $binop ');
+      emitExpr(depth + 1, binOpParams[1], rhsFilter: rhsFilter);
+      emit(')');
+    } else {
+      emit('(');
+      emitExpr(depth + 1, binOpParams[0], rhsFilter: rhsFilter);
+      emit(' $binop ');
+      emitExpr(depth + 1, binOpParams[1], rhsFilter: rhsFilter);
+      emit(')');
+    }
   }
 
   // Emit expression with ternary operator: (b ? x : y)
@@ -1295,7 +1439,13 @@ class DartFuzz {
   // Emit library call.
   void emitLibraryCall(int depth, DartType tp, {RhsFilter rhsFilter}) {
     DartLib lib = getLibraryMethod(tp);
-    final String proto = lib.proto;
+    if (lib == null) {
+      // no matching lib: resort to literal.
+      emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
+      return;
+    }
+    emit('(');
+    String proto = lib.proto;
     // Receiver.
     if (proto[0] != 'V') {
       emit('(');
@@ -1317,6 +1467,11 @@ class DartFuzz {
       }
       emit(')');
     }
+    // Add cast to avoid error of double or int being interpreted as num.
+    if (dartType.isInterfaceOfType(tp, DartType.NUM)) {
+      emit(' as ${tp.name}');
+    }
+    emit(')');
   }
 
   // Emit call to a specific method.
@@ -1422,77 +1577,6 @@ class DartFuzz {
   // Operators.
   //
 
-  // Emit same type in-out assignment operator.
-  String emitAssignOp(DartType tp) {
-    if (tp == DartType.INT) {
-      final assignOp = oneOf(const <String>[
-        ' += ',
-        ' -= ',
-        ' *= ',
-        ' ~/= ',
-        ' %= ',
-        ' &= ',
-        ' |= ',
-        ' ^= ',
-        ' >>= ',
-        ' <<= ',
-        ' ??= ',
-        ' = '
-      ]);
-      emit(assignOp);
-      return assignOp;
-    } else if (tp == DartType.DOUBLE) {
-      final assignOp =
-          oneOf(const <String>[' += ', ' -= ', ' *= ', ' /= ', ' ??= ', ' = ']);
-      emit(assignOp);
-      return assignOp;
-    } else {
-      final assignOp = oneOf(const <String>[' ??= ', ' = ']);
-      emit(assignOp);
-      return assignOp;
-    }
-  }
-
-  // Emit same type in-out unary operator.
-  void emitUnaryOp(DartType tp) {
-    if (tp == DartType.BOOL) {
-      emit('!');
-    } else if (tp == DartType.INT) {
-      emit(oneOf(const <String>['-', '~']));
-    } else if (tp == DartType.DOUBLE) {
-      emit('-');
-    } else {
-      assert(false);
-    }
-  }
-
-  // Emit same type in-out binary operator.
-  void emitBinaryOp(DartType tp) {
-    if (tp == DartType.BOOL) {
-      emit(oneOf(const <String>[' && ', ' || ']));
-    } else if (tp == DartType.INT) {
-      emit(oneOf(const <String>[
-        ' + ',
-        ' - ',
-        ' * ',
-        ' ~/ ',
-        ' % ',
-        ' & ',
-        ' | ',
-        ' ^ ',
-        ' >> ',
-        ' << ',
-        ' ?? '
-      ]));
-    } else if (tp == DartType.DOUBLE) {
-      emit(oneOf(const <String>[' + ', ' - ', ' * ', ' / ', ' ?? ']));
-    } else if (tp == DartType.STRING || tp == DartType.INT_LIST) {
-      emit(oneOf(const <String>[' + ', ' ?? ']));
-    } else {
-      emit(' ?? ');
-    }
-  }
-
   // Emit same type in-out increment operator.
   void emitPreOrPostOp(DartType tp) {
     if (tp == DartType.INT) {
@@ -1524,15 +1608,16 @@ class DartFuzz {
     } else if (tp == DartType.DOUBLE) {
       return oneOf(api.doubleLibs);
     } else if (tp == DartType.STRING) {
-      return oneOf(api.stringLibs);
-    } else if (tp == DartType.INT_LIST) {
-      return oneOf(api.listLibs);
-    } else if (tp == DartType.INT_SET) {
-      return oneOf(api.setLibs);
-    } else if (tp == DartType.INT_STRING_MAP) {
-      return oneOf(api.mapLibs);
+      return oneOf(DartLib.stringLibs);
+    } else if (tp == DartType.LIST_INT) {
+      return oneOf(DartLib.listLibs);
+    } else if (tp == DartType.SET_INT) {
+      return oneOf(DartLib.setLibs);
+    } else if (tp == DartType.MAP_INT_STRING) {
+      return oneOf(DartLib.mapLibs);
     }
-    throw ArgumentError('Invalid DartType: $tp');
+    // No library method available that returns this type.
+    return null;
   }
 
   // Emit a library argument, possibly subject to restrictions.
@@ -1557,13 +1642,13 @@ class DartFuzz {
         emitString(length: 2);
         break;
       case 'L':
-        emitExpr(depth, DartType.INT_LIST, rhsFilter: rhsFilter);
+        emitExpr(depth, DartType.LIST_INT, rhsFilter: rhsFilter);
         break;
       case 'X':
-        emitExpr(depth, DartType.INT_SET, rhsFilter: rhsFilter);
+        emitExpr(depth, DartType.SET_INT, rhsFilter: rhsFilter);
         break;
       case 'M':
-        emitExpr(depth, DartType.INT_STRING_MAP, rhsFilter: rhsFilter);
+        emitExpr(depth, DartType.MAP_INT_STRING, rhsFilter: rhsFilter);
         break;
       default:
         throw ArgumentError('Invalid p value: $p');
@@ -1573,34 +1658,13 @@ class DartFuzz {
   //
   // Types.
   //
-
-  // Get a random value type.
-  DartType getType() {
-    switch (rand.nextInt(7)) {
-      case 0:
-        return DartType.BOOL;
-      case 1:
-        return DartType.INT;
-      case 2:
-        return fp ? DartType.DOUBLE : DartType.INT;
-      case 3:
-        return DartType.STRING;
-      case 4:
-        return DartType.INT_LIST;
-      case 5:
-        return DartType.INT_SET;
-      default:
-        return DartType.INT_STRING_MAP;
-    }
-  }
-
   List<DartType> fillTypes1({int limit = 4, bool isFfi = false}) {
     final list = <DartType>[];
     for (int i = 0, n = 1 + rand.nextInt(limit); i < n; i++) {
       if (isFfi) {
         list.add(fp ? oneOf([DartType.INT, DartType.DOUBLE]) : DartType.INT);
       } else {
-        list.add(getType());
+        list.add(oneOfSet(dartType.allTypes));
       }
     }
     return list;
@@ -1692,6 +1756,10 @@ class DartFuzz {
     return choices[rand.nextInt(choices.length)];
   }
 
+  T oneOfSet<T>(Set<T> choices) {
+    return choices.elementAt(rand.nextInt(choices.length));
+  }
+
   // Special return code to handle oom errors.
   static const oomExitCode = 254;
 
@@ -1703,6 +1771,9 @@ class DartFuzz {
 
   // Enables FFI method calls.
   final bool ffi;
+
+  // Disables nested types.
+  final bool flatTp;
 
   // File used for output.
   final RandomAccessFile file;
@@ -1716,6 +1787,9 @@ class DartFuzz {
   int nest;
   int currentClass;
   int currentMethod;
+
+  // DartType instance.
+  DartType dartType;
 
   // Types of local variables currently in scope.
   List<DartType> localVars;
@@ -1753,6 +1827,56 @@ class DartFuzz {
   bool skipExprCntr;
   int stmtCntr;
   int exprCntr;
+
+  // Interesting characters.
+  static const List<String> interestingChars = [
+    '\\u2665',
+    '\\u{1f600}', // rune
+  ];
+
+  // Regular characters.
+  static const regularChars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#&()+- ';
+
+  // Interesting integer values.
+  static const List<int> interestingIntegers = [
+    0x0000000000000000,
+    0x0000000000000001,
+    0x000000007fffffff,
+    0x0000000080000000,
+    0x0000000080000001,
+    0x00000000ffffffff,
+    0x0000000100000000,
+    0x0000000100000001,
+    0x000000017fffffff,
+    0x0000000180000000,
+    0x0000000180000001,
+    0x00000001ffffffff,
+    0x7fffffff00000000,
+    0x7fffffff00000001,
+    0x7fffffff7fffffff,
+    0x7fffffff80000000,
+    0x7fffffff80000001,
+    0x7fffffffffffffff,
+    0x8000000000000000,
+    0x8000000000000001,
+    0x800000007fffffff,
+    0x8000000080000000,
+    0x8000000080000001,
+    0x80000000ffffffff,
+    0x8000000100000000,
+    0x8000000100000001,
+    0x800000017fffffff,
+    0x8000000180000000,
+    0x8000000180000001,
+    0x80000001ffffffff,
+    0xffffffff00000000,
+    0xffffffff00000001,
+    0xffffffff7fffffff,
+    0xffffffff80000000,
+    0xffffffff80000001,
+    0xffffffffffffffff
+  ];
 }
 
 // Generate seed. By default (no user-defined nonzero seed given),
@@ -1777,6 +1901,8 @@ main(List<String> arguments) {
     ..addFlag('fp', help: 'enables floating-point operations', defaultsTo: true)
     ..addFlag('ffi',
         help: 'enables FFI method calls (default: off)', defaultsTo: false)
+    ..addFlag('flat',
+        help: 'enables flat types (default: off)', defaultsTo: false)
     // Minimization mode extensions.
     ..addFlag('mini',
         help: 'enables minimization mode (default: off)', defaultsTo: false)
@@ -1793,11 +1919,12 @@ main(List<String> arguments) {
     final seed = getSeed(results['seed']);
     final fp = results['fp'];
     final ffi = results['ffi'];
+    final flatTp = results['flat'];
     final file = File(results.rest.single).openSync(mode: FileMode.write);
     final minimize = results['mini'];
     final smask = BigInt.parse(results['smask']);
     final emask = BigInt.parse(results['emask']);
-    final dartFuzz = DartFuzz(seed, fp, ffi, file,
+    final dartFuzz = DartFuzz(seed, fp, ffi, flatTp, file,
         minimize: minimize, smask: smask, emask: emask);
     dartFuzz.run();
     file.closeSync();

@@ -112,7 +112,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return new Row(
       children: <Widget>[
-        new NewWidget(),
+        NewWidget(),
         new Text('CCC'),
         new Text('DDD'),
       ],

@@ -27,7 +27,7 @@ const _knownFeatures = <String, ExperimentalFeature>{
 List<bool> _buildExperimentalFlagsArray() => <bool>[
       true, // constant-update-2018
       true, // control-flow-collections
-      IsEnabledByDefault.extension_methods,
+      true, // extension-methods
       IsEnabledByDefault.non_nullable,
       true, // set-literals
       true, // spread-collections
@@ -95,7 +95,8 @@ class ExperimentalFeatures {
       EnableString.extension_methods,
       IsEnabledByDefault.extension_methods,
       IsExpired.extension_methods,
-      'Extension Methods');
+      'Extension Methods',
+      firstSupportedVersion: '2.6.0');
 
   static const non_nullable = const ExperimentalFeature(
       3,
@@ -160,7 +161,7 @@ class IsEnabledByDefault {
   static const bool control_flow_collections = true;
 
   /// Default state of the experiment "extension-methods"
-  static const bool extension_methods = false;
+  static const bool extension_methods = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;

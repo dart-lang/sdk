@@ -20,9 +20,7 @@ void main() {
     0x7e, 0x0b,
   ]);
 
-  var inst = WasmModule(data).instantiate(WasmImports()
-    ..addMemory("env", "memory", WasmMemory(256, 1024))
-    ..addGlobal<Int32>("env", "__memory_base", 1024, false));
+  var inst = WasmModule(data).instantiate(WasmImports());
   var fn = inst.lookupFunction<Int64 Function(Int64)>("square");
 
   Expect.throwsArgumentError(() => fn.call([]));

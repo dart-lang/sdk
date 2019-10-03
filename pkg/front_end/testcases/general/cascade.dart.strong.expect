@@ -4,7 +4,6 @@ library;
 //
 // pkg/front_end/testcases/general/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
 //  - 'List' is from 'dart:core'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //     [1]
 //     ^
 //
@@ -35,7 +34,6 @@ static method main() → dynamic {
   core::print(list);
   list = let final core::List<core::int*>* #t13 = <core::int*>[let final<BottomType> #t14 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:26:5: Error: A value of type 'List<int>' can't be assigned to a variable of type 'int'.
  - 'List' is from 'dart:core'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
     [1]
     ^" in <core::int*>[1] as{TypeError} core::int*] in let final dynamic #t15 = invalid-expression "pkg/front_end/testcases/general/cascade.dart:28:13: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.

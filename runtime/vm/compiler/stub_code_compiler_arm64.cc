@@ -1323,12 +1323,19 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(TMP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(TMP);
 
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
     __ mov(THR, R3);
   }
+
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
@@ -1346,7 +1353,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
+#if defined(TARGET_OS_FUCHSIA)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
+#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -22);
+#endif
   __ Push(R6);
 
   // Mark that the thread is executing Dart code. Do this after initializing the
@@ -1417,7 +1428,18 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-  __ PopNativeCalleeSavedRegisters();
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ mov (R3, THR);
+#endif
+
+  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -1450,25 +1472,19 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
                  target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
   __ Push(TMP);
 
-  // Save the callee-saved registers.
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    // We use str instead of the Push macro because we will be pushing the PP
-    // register when it is not holding a pool-pointer since we are coming from
-    // C++ code.
-    __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
-  }
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
-  // Save the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PushDouble(r);
-  }
+  __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
     __ mov(THR, R3);
   }
+
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
@@ -1486,7 +1502,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
+#if defined(TARGET_OS_FUCHSIA)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
+#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -22);
+#endif
   __ Push(R6);
 
   // Mark that the thread is executing Dart code. Do this after initializing the
@@ -1548,21 +1568,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-  // Restore the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PopDouble(r);
-  }
+#if defined(TARGET_OS_FUCHSIA)
+  __ mov (R3, THR);
+#endif
 
-  // Restore C++ ABI callee-saved registers.
-  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
-    Register r = static_cast<Register>(i);
-    // We use ldr instead of the Pop macro because we will be popping the PP
-    // register when it is not holding a pool-pointer since we are returning to
-    // C++ code. We also skip the dart stack pointer SP, since we are still
-    // using it as the stack pointer.
-    __ ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
-  }
+  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -3127,6 +3143,11 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(SP, R1);  // Stack pointer.
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(THR, R3);
+#if defined(TARGET_OS_FUCHSIA)
+  __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
   // Set the tag.

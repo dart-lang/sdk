@@ -17,6 +17,7 @@ import 'package:kernel/transformations/continuation.dart' as transformAsync
 import 'package:kernel/vm/constants_native_effects.dart'
     show VmConstantsBackend;
 
+import '../metadata/binary_cache.dart' show BinaryCacheMetadataRepository;
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/list_factory_specializer.dart'
     as listFactorySpecializer;
@@ -114,6 +115,8 @@ class VmTarget extends Target {
         // need to index dart:collection, as it is only needed for desugaring of
         // const sets. We can remove it from this list at that time.
         "dart:collection",
+        // The bytecode pipeline uses the index to check if dart:ffi is used.
+        "dart:ffi",
         // TODO(askesc): This is for the VM host endian optimization, which
         // could possibly be done more cleanly after the VM no longer supports
         // doing constant evaluation on its own. See http://dartbug.com/32836
@@ -367,6 +370,7 @@ class VmTarget extends Target {
   @override
   Component configureComponent(Component component) {
     callSiteAnnotator.addRepositoryTo(component);
+    component.addMetadataRepository(new BinaryCacheMetadataRepository());
     return super.configureComponent(component);
   }
 

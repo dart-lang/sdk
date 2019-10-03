@@ -12,8 +12,9 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart'
-    show FreshTypeParameters, getFreshTypeParameters, Substitution;
+import 'package:kernel/type_algebra.dart';
+
+import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
@@ -349,8 +350,8 @@ class ClosureContext {
     assert(_needToInferReturnType);
     DartType inferredType =
         inferrer.inferReturnType(_inferredUnwrappedReturnOrYieldType);
-    if (!inferrer.typeSchemaEnvironment
-        .isSubtypeOf(inferredType, returnOrYieldContext)) {
+    if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
+        returnOrYieldContext, SubtypeCheckMode.ignoringNullabilities)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
       inferredType = greatestClosure(inferrer.coreTypes, returnOrYieldContext);
@@ -525,8 +526,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   bool isAssignable(DartType expectedType, DartType actualType) {
-    return typeSchemaEnvironment.isSubtypeOf(expectedType, actualType) ||
-        typeSchemaEnvironment.isSubtypeOf(actualType, expectedType);
+    return typeSchemaEnvironment.isSubtypeOf(
+            expectedType, actualType, SubtypeCheckMode.ignoringNullabilities) ||
+        typeSchemaEnvironment.isSubtypeOf(
+            actualType, expectedType, SubtypeCheckMode.ignoringNullabilities);
   }
 
   /// Checks whether [actualType] can be assigned to the greatest closure of
@@ -602,12 +605,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
 
     if (expectedType == null ||
-        typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+        typeSchemaEnvironment.isSubtypeOf(
+            actualType, expectedType, SubtypeCheckMode.ignoringNullabilities)) {
       // Types are compatible.
       return null;
     }
 
-    if (!typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+    if (!typeSchemaEnvironment.isSubtypeOf(
+        expectedType, actualType, SubtypeCheckMode.ignoringNullabilities)) {
       // Error: not assignable.  Perform error recovery.
       TreeNode parent = expression.parent;
       Expression errorNode = new AsExpression(
@@ -790,7 +795,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
               DartType typeArgument = inferredTypeArguments[index];
               DartType bound =
                   inferredSubstitution.substituteType(typeParameter.bound);
-              if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound)) {
+              if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound,
+                  SubtypeCheckMode.ignoringNullabilities)) {
                 return;
               }
             }
@@ -805,7 +811,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
                 .substituteType(extensionBuilder.extension.onType);
           }
 
-          if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
+          if (typeSchemaEnvironment.isSubtypeOf(
+              receiverType, onType, SubtypeCheckMode.ignoringNullabilities)) {
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
                 onType,
                 onTypeInstantiateToBounds,
@@ -1639,26 +1646,33 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   DartType inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, DartType returnType, Arguments arguments,
+      FunctionType calleeType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
+      DartType returnType,
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false}) {
+    assert(
+        returnType == null || !containsFreeFunctionTypeVariables(returnType),
+        "Return type $returnType contains free variables."
+        "Provided function type: $calleeType.");
     int extensionTypeParameterCount = getExtensionTypeParameterCount(arguments);
     if (extensionTypeParameterCount != 0) {
+      assert(returnType == null,
+          "Unexpected explicit return type for extension method invocation.");
       return _inferGenericExtensionMethodInvocation(extensionTypeParameterCount,
-          typeContext, offset, calleeType, returnType, arguments,
+          typeContext, offset, calleeType, arguments,
           isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
           receiverType: receiverType,
           skipTypeArgumentInference: skipTypeArgumentInference,
           isConst: isConst,
           isImplicitExtensionMember: isImplicitExtensionMember);
     }
-    return _inferInvocation(
-        typeContext, offset, calleeType, returnType, arguments,
+    return _inferInvocation(typeContext, offset, calleeType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
+        returnType: returnType,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst,
         isImplicitExtensionMember: isImplicitExtensionMember);
@@ -1669,7 +1683,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType typeContext,
       int offset,
       FunctionType calleeType,
-      DartType returnType,
       Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       DartType receiverType,
@@ -1685,8 +1698,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Arguments extensionArguments = helper.forest.createArguments(
         arguments.fileOffset, [arguments.positional.first],
         types: getExplicitExtensionTypeArguments(arguments));
-    _inferInvocation(const UnknownType(), offset, extensionFunctionType,
-        extensionFunctionType.returnType, extensionArguments,
+    _inferInvocation(
+        const UnknownType(), offset, extensionFunctionType, extensionArguments,
         skipTypeArgumentInference: skipTypeArgumentInference,
         receiverType: receiverType,
         isImplicitExtensionMember: isImplicitExtensionMember);
@@ -1705,13 +1718,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeParameters: targetTypeParameters);
     targetFunctionType =
         extensionSubstitution.substituteType(targetFunctionType);
-    DartType targetReturnType =
-        extensionSubstitution.substituteType(returnType);
     Arguments targetArguments = helper.forest.createArguments(
         arguments.fileOffset, arguments.positional.skip(1).toList(),
         named: arguments.named, types: getExplicitTypeArguments(arguments));
-    DartType inferredType = _inferInvocation(typeContext, offset,
-        targetFunctionType, targetReturnType, targetArguments,
+    DartType inferredType = _inferInvocation(
+        typeContext, offset, targetFunctionType, targetArguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         skipTypeArgumentInference: skipTypeArgumentInference,
         isConst: isConst);
@@ -1731,13 +1742,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Performs the type inference steps that are shared by all kinds of
   /// invocations (constructors, instance methods, and static methods).
   DartType _inferInvocation(DartType typeContext, int offset,
-      FunctionType calleeType, DartType returnType, Arguments arguments,
+      FunctionType calleeType, Arguments arguments,
       {bool isOverloadedArithmeticOperator: false,
       bool isBinaryOperator: false,
       DartType receiverType,
+      DartType returnType,
       bool skipTypeArgumentInference: false,
       bool isConst: false,
       bool isImplicitExtensionMember: false}) {
+    assert(
+        returnType == null || !containsFreeFunctionTypeVariables(returnType),
+        "Return type $returnType contains free variables."
+        "Provided function type: $calleeType.");
     lastInferredSubstitution = null;
     lastCalleeType = null;
     List<TypeParameter> calleeTypeParameters = calleeType.typeParameters;
@@ -1753,7 +1769,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // in which me must do this, to avoid a performance regression?
       FreshTypeParameters fresh = getFreshTypeParameters(calleeTypeParameters);
       calleeType = fresh.applyToFunctionType(calleeType);
-      returnType = fresh.substitute(returnType);
+      if (returnType != null) {
+        returnType = fresh.substitute(returnType);
+      }
       calleeTypeParameters = fresh.freshTypeParameters;
     }
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
@@ -1776,8 +1794,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       inferredTypes = new List<DartType>.filled(
           calleeTypeParameters.length, const UnknownType());
-      typeSchemaEnvironment.inferGenericFunctionOrType(returnType,
-          calleeTypeParameters, null, null, typeContext, inferredTypes);
+      typeSchemaEnvironment.inferGenericFunctionOrType(
+          returnType ?? calleeType.returnType,
+          calleeTypeParameters,
+          null,
+          null,
+          typeContext,
+          inferredTypes);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
     } else if (explicitTypeArguments != null &&
@@ -1869,7 +1892,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     if (inferenceNeeded) {
       typeSchemaEnvironment.inferGenericFunctionOrType(
-          returnType,
+          returnType ?? calleeType.returnType,
           calleeTypeParameters,
           formalTypes,
           actualTypes,
@@ -1912,9 +1935,21 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     DartType inferredType;
     lastInferredSubstitution = substitution;
     lastCalleeType = calleeType;
-    inferredType = substitution == null
-        ? returnType
-        : substitution.substituteType(returnType);
+    if (returnType != null) {
+      inferredType = substitution == null
+          ? returnType
+          : substitution.substituteType(returnType);
+    } else {
+      if (substitution != null) {
+        calleeType =
+            substitution.substituteType(calleeType.withoutTypeParameters);
+      }
+      inferredType = calleeType.returnType;
+    }
+    assert(
+        !containsFreeFunctionTypeVariables(inferredType),
+        "Inferred return type $inferredType contains free variables."
+        "Inferred function type: $calleeType.");
     return inferredType;
   }
 
@@ -2142,8 +2177,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           target, node, node.receiver, arguments);
       arguments = replacement.arguments;
     }
-    DartType inferredType = inferInvocation(typeContext, node.fileOffset,
-        functionType, functionType.returnType, arguments,
+    DartType inferredType = inferInvocation(
+        typeContext, node.fileOffset, functionType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
@@ -2252,8 +2287,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       parent?.replaceChild(expression, error);
       return const ExpressionInferenceResult(const DynamicType());
     }
-    DartType inferredType = inferInvocation(typeContext, fileOffset,
-        functionType, functionType.returnType, arguments,
+    DartType inferredType = inferInvocation(
+        typeContext, fileOffset, functionType, arguments,
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType,
         isImplicitExtensionMember: target.isExtensionMember);
@@ -2614,7 +2649,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     if (expectedType is FunctionType) return true;
     if (expectedType == typeSchemaEnvironment.functionLegacyRawType) {
-      if (!typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+      if (!typeSchemaEnvironment.isSubtypeOf(
+          actualType, expectedType, SubtypeCheckMode.ignoringNullabilities)) {
         return true;
       }
     }
@@ -2915,10 +2951,10 @@ class ExtensionAccessCandidate {
       ExtensionAccessCandidate other) {
     if (this.isPlatform == other.isPlatform) {
       // Both are platform or not platform.
-      bool thisIsSubtype =
-          typeSchemaEnvironment.isSubtypeOf(this.onType, other.onType);
-      bool thisIsSupertype =
-          typeSchemaEnvironment.isSubtypeOf(other.onType, this.onType);
+      bool thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
+          this.onType, other.onType, SubtypeCheckMode.ignoringNullabilities);
+      bool thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
+          other.onType, this.onType, SubtypeCheckMode.ignoringNullabilities);
       if (thisIsSubtype && !thisIsSupertype) {
         // This is subtype of other and not vice-versa.
         return true;
@@ -2927,9 +2963,13 @@ class ExtensionAccessCandidate {
         return false;
       } else if (thisIsSubtype || thisIsSupertype) {
         thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
-            this.onTypeInstantiateToBounds, other.onTypeInstantiateToBounds);
+            this.onTypeInstantiateToBounds,
+            other.onTypeInstantiateToBounds,
+            SubtypeCheckMode.ignoringNullabilities);
         thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
-            other.onTypeInstantiateToBounds, this.onTypeInstantiateToBounds);
+            other.onTypeInstantiateToBounds,
+            this.onTypeInstantiateToBounds,
+            SubtypeCheckMode.ignoringNullabilities);
         if (thisIsSubtype && !thisIsSupertype) {
           // This is subtype of other and not vice-versa.
           return true;

@@ -374,7 +374,7 @@ class Server {
     final serviceInfo = <String, dynamic>{
       'uri': serverAddress.toString(),
     };
-    final file = File(_serviceInfoFilename);
+    final file = File.fromUri(Uri.parse(_serviceInfoFilename));
     file.writeAsString(json.encode(serviceInfo));
   }
 

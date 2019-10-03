@@ -876,7 +876,7 @@ class _IndexRequest {
     }
     // Create locations for every usage of the element.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElement enclosingUnitElement = null;
+    CompilationUnitElement enclosingUnitElement;
     for (;
         i < index.usedElements.length && index.usedElements[i] == elementId;
         i++) {
@@ -956,7 +956,7 @@ class _IndexRequest {
 
     // Create results for every usage of the name.
     List<SearchResult> results = <SearchResult>[];
-    CompilationUnitElement enclosingUnitElement = null;
+    CompilationUnitElement enclosingUnitElement;
     for (; i < index.usedNames.length && index.usedNames[i] == nameId; i++) {
       IndexRelationKind relationKind = index.usedNameKinds[i];
       SearchResultKind resultKind = relationToResultKind[relationKind];

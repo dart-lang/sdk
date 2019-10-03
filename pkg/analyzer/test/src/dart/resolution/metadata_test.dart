@@ -103,6 +103,7 @@ C c;
     expect(value.getField('a').getField('f').toIntValue(), 42);
   }
 
+  @FailingTest(reason: 'Reverted because of dartbug.com/38565')
   test_sameLibrary_genericClass_constructor_unnamed() async {
     await assertNoErrorsInCode(r'''
 class A<T> {

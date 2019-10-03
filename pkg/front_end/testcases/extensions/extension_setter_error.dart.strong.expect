@@ -4,7 +4,6 @@ library;
 //
 // pkg/front_end/testcases/extensions/extension_setter_error.dart:13:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
 //  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/extension_setter_error.dart'.
-// Try changing the type of the left hand side, or casting the right hand side to 'GenericClass<double>'.
 //   expect(null, GenericExtension<double>(genericClass).setter = null);
 //                                         ^
 //
@@ -24,7 +23,6 @@ static method error() → dynamic {
   self::GenericClass<core::int*>* genericClass = new self::GenericClass::•<core::int*>();
   self::expect(null, let final self::GenericClass<core::int*>* #t1 = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/extensions/extension_setter_error.dart:13:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/extension_setter_error.dart'.
-Try changing the type of the left hand side, or casting the right hand side to 'GenericClass<double>'.
   expect(null, GenericExtension<double>(genericClass).setter = null);
                                         ^" in genericClass as{TypeError} self::GenericClass<core::double*>* in let final core::Null? #t3 = null in let final void #t4 = self::GenericExtension|set#setter<core::double*>(#t1, #t3) in #t3);
 }

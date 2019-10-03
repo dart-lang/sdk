@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io' show exit;
+import 'dart:io' as io;
 
 import 'package:args/args.dart' show ArgParser;
 import 'package:kernel/text/ast_to_text.dart'
@@ -31,7 +31,7 @@ main(List<String> arguments) async {
   if (arguments.isNotEmpty && arguments.last == '--batch') {
     await runBatchModeCompiler();
   } else {
-    exit(await compile(arguments));
+    io.exitCode = await compile(arguments);
   }
 }
 

@@ -1244,6 +1244,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ movq(THR, kThreadReg);
   }
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save the current VMTag on the stack.
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
@@ -1328,6 +1332,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the current VMTag from the stack.
   __ popq(Assembler::VMTagAddress());
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                   CallingConventions::kCalleeSaveXmmRegisters);
@@ -1386,6 +1394,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   if (THR != kThreadReg) {
     __ movq(THR, kThreadReg);
   }
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Assembler::VMTagAddress());
@@ -1476,6 +1488,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Restore the current VMTag from the stack.
   __ popq(Assembler::VMTagAddress());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -3100,6 +3116,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movq(THR, CallingConventions::kArg4Reg);
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   // Set the tag.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
@@ -3152,6 +3171,9 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 
   // Push the deopt pc.
   __ pushq(Address(THR, target::Thread::resume_pc_offset()));
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.

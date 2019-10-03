@@ -1,4 +1,7 @@
 # Changelog
+## 2.1.1
+- Added `getLineNumberFromTokenPos` and `getColumnNumberFromTokenPos` methods
+  to `Script`.
 
 ## 2.1.0
 - Added `HeapSnapshotGraph` class which parses the binary events posted to the

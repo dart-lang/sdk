@@ -628,6 +628,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.curly_braces_in_flow_control_structures) {
         await _addFix_addCurlyBraces();
       }
+      if (name == LintNames.diagnostic_describe_all_properties) {
+        await _addFix_addDiagnosticPropertyReference();
+      }
       if (name == LintNames.empty_catches) {
         await _addFix_removeEmptyCatch();
       }
@@ -779,6 +782,12 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_addCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addFixFromBuilder(changeBuilder, DartFixKind.ADD_CURLY_BRACES);
+  }
+
+  Future<void> _addFix_addDiagnosticPropertyReference() async {
+    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
+    _addFixFromBuilder(
+        changeBuilder, DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addFix_addExplicitCast() async {
@@ -3525,6 +3534,47 @@ class FixProcessor extends BaseProcessor {
     }
   }
 
+  Future<void> _addFix_removeUnusedElement() async {
+    final sourceRanges = <SourceRange>[];
+    final referencedNode = node.parent;
+    if (referencedNode is ClassDeclaration ||
+        referencedNode is EnumDeclaration ||
+        referencedNode is FunctionDeclaration ||
+        referencedNode is FunctionTypeAlias ||
+        referencedNode is MethodDeclaration ||
+        referencedNode is VariableDeclaration) {
+      final element = referencedNode is Declaration
+          ? referencedNode.declaredElement
+          : (referencedNode as NamedCompilationUnitMember).declaredElement;
+      final references = _findAllReferences(unit, element);
+      // todo (pq): consider filtering for references that are limited to within the class.
+      if (references.length == 1) {
+        var sourceRange;
+        if (referencedNode is VariableDeclaration) {
+          VariableDeclarationList parent = referencedNode.parent;
+          if (parent.variables.length == 1) {
+            sourceRange = utils.getLinesRange(range.node(parent.parent));
+          } else {
+            sourceRange = range.nodeInList(parent.variables, node);
+          }
+        } else {
+          sourceRange = utils.getLinesRange(range.node(referencedNode));
+        }
+        sourceRanges.add(sourceRange);
+      }
+    }
+
+    if (sourceRanges.isNotEmpty) {
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        for (var sourceRange in sourceRanges) {
+          builder.addDeletion(sourceRange);
+        }
+      });
+      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_ELEMENT);
+    }
+  }
+
   Future<void> _addFix_removeUnusedField() async {
     final declaration = node.parent;
     if (declaration is! VariableDeclaration) {
@@ -3586,47 +3636,6 @@ class FixProcessor extends BaseProcessor {
       }
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_FIELD);
-  }
-
-  Future<void> _addFix_removeUnusedElement() async {
-    final sourceRanges = <SourceRange>[];
-    final referencedNode = node.parent;
-    if (referencedNode is ClassDeclaration ||
-        referencedNode is EnumDeclaration ||
-        referencedNode is FunctionDeclaration ||
-        referencedNode is FunctionTypeAlias ||
-        referencedNode is MethodDeclaration ||
-        referencedNode is VariableDeclaration) {
-      final element = referencedNode is Declaration
-          ? referencedNode.declaredElement
-          : (referencedNode as NamedCompilationUnitMember).declaredElement;
-      final references = _findAllReferences(unit, element);
-      // todo (pq): consider filtering for references that are limited to within the class.
-      if (references.length == 1) {
-        var sourceRange;
-        if (referencedNode is VariableDeclaration) {
-          VariableDeclarationList parent = referencedNode.parent;
-          if (parent.variables.length == 1) {
-            sourceRange = utils.getLinesRange(range.node(parent.parent));
-          } else {
-            sourceRange = range.nodeInList(parent.variables, node);
-          }
-        } else {
-          sourceRange = utils.getLinesRange(range.node(referencedNode));
-        }
-        sourceRanges.add(sourceRange);
-      }
-    }
-
-    if (sourceRanges.isNotEmpty) {
-      final changeBuilder = _newDartChangeBuilder();
-      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        for (var sourceRange in sourceRanges) {
-          builder.addDeletion(sourceRange);
-        }
-      });
-      _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_UNUSED_ELEMENT);
-    }
   }
 
   Future<void> _addFix_removeUnusedImport() async {
