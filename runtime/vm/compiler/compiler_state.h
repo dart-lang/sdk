@@ -98,6 +98,8 @@ class CompilerState : public ThreadStackResource {
   //
   // TODO(vegorov): create context classes for distinct context IDs and
   // populate them with slots without creating variables.
+  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // share id 255.
   const ZoneGrowableArray<const Slot*>& GetDummyContextSlots(
       intptr_t context_id,
       intptr_t num_context_slots);
@@ -113,6 +115,8 @@ class CompilerState : public ThreadStackResource {
   // same index.
   //
   // TODO(vegorov): disambiguate slots for different context IDs.
+  // Beware that context_id is satured at 8-bits, so multiple contexts may
+  // share id 255.
   LocalVariable* GetDummyCapturedVariable(intptr_t context_id, intptr_t index);
 
  private:

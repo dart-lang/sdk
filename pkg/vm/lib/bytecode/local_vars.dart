@@ -4,7 +4,7 @@
 
 library vm.bytecode.local_vars;
 
-import 'dart:math' show max;
+import 'dart:math' show min, max;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
@@ -848,10 +848,8 @@ class _Allocator extends RecursiveVisitor<Null> {
 
       if (_currentScope.contextOwner == _currentScope) {
         _currentScope.contextLevel = parentContextLevel + 1;
-        _currentScope.contextId = _contextIdCounter++;
-        if (_currentScope.contextId >= contextIdLimit) {
-          throw new ContextIdOverflowException();
-        }
+        int saturatedContextId = min(_contextIdCounter++, contextIdLimit - 1);
+        _currentScope.contextId = saturatedContextId;
       } else {
         _currentScope.contextLevel = _currentScope.contextOwner.contextLevel;
         _currentScope.contextId = _currentScope.contextOwner.contextId;
@@ -1292,5 +1290,3 @@ class _Allocator extends RecursiveVisitor<Null> {
 
 class LocalVariableIndexOverflowException
     extends BytecodeLimitExceededException {}
-
-class ContextIdOverflowException extends BytecodeLimitExceededException {}
