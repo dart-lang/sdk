@@ -760,13 +760,13 @@ class CodeKeyValueTrait {
     if (pair->static_calls_target_table() != key->static_calls_target_table()) {
       return false;
     }
-    if (pair->pc_descriptors() == key->pc_descriptors()) {
+    if (pair->pc_descriptors() != key->pc_descriptors()) {
       return false;
     }
-    if (pair->stackmaps() == key->stackmaps()) {
+    if (pair->stackmaps() != key->stackmaps()) {
       return false;
     }
-    if (pair->catch_entry_moves_maps() == key->catch_entry_moves_maps()) {
+    if (pair->catch_entry_moves_maps() != key->catch_entry_moves_maps()) {
       return false;
     }
     return Instructions::Equals(pair->instructions(), key->instructions());
