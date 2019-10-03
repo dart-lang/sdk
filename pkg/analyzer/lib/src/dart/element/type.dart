@@ -44,13 +44,6 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 typedef FunctionTypedElement FunctionTypedElementComputer();
 
 /**
- * Computer of type arguments which is used to delay computing of type
- * arguments until they are requested, instead of at the [ParameterizedType]
- * creation time.
- */
-typedef List<DartType> TypeArgumentsComputer();
-
-/**
  * A [Type] that represents the type 'bottom'.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -1183,12 +1176,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<DartType> _typeArguments = const <DartType>[];
 
   /**
-   * If not `null` and [_typeArguments] is `null`, the actual type arguments
-   * should be computed (once) using this function.
-   */
-  TypeArgumentsComputer _typeArgumentsComputer;
-
-  /**
    * The set of typedefs which should not be expanded when exploring this type,
    * to avoid creating infinite types in response to self-referential typedefs.
    */
@@ -1221,32 +1208,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       {this.prunedTypedefs, this.nullabilitySuffix = NullabilitySuffix.star})
       : super(element, element.displayName);
 
-  /**
-   * Initialize a newly created type to be declared by the given [element],
-   * with the given [name] and [typeArguments].
-   */
-  InterfaceTypeImpl.elementWithNameAndArgs(
-      ClassElement element, String name, this._typeArgumentsComputer,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : prunedTypedefs = null,
-        super(element, name) {
-    _typeArguments = null;
-  }
-
   InterfaceTypeImpl.explicit(ClassElement element, List<DartType> typeArguments,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : prunedTypedefs = null,
         _typeArguments = typeArguments,
         super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to have the given [name]. This constructor
-   * should only be used in cases where there is no declaration of the type.
-   */
-  InterfaceTypeImpl.named(String name,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : prunedTypedefs = null,
-        super(null, name);
 
   /**
    * Private constructor.
@@ -1258,7 +1224,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl._withNullability(InterfaceTypeImpl original,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : _typeArguments = original._typeArguments,
-        _typeArgumentsComputer = original._typeArgumentsComputer,
         prunedTypedefs = original.prunedTypedefs,
         super(original.element, original.name);
 
@@ -1509,10 +1474,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<DartType> get typeArguments {
-    if (_typeArguments == null) {
-      _typeArguments = _typeArgumentsComputer();
-      _typeArgumentsComputer = null;
-    }
     return _typeArguments;
   }
 
@@ -1521,7 +1482,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   void set typeArguments(List<DartType> typeArguments) {
     _typeArguments = typeArguments;
-    _typeArgumentsComputer = null;
   }
 
   @override
