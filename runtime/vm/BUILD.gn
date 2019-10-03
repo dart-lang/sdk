@@ -68,7 +68,10 @@ library_for_all_configs("libdart_vm") {
   extra_deps = [ "//third_party/icu" ]
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:sys_cpp" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
+        "$fuchsia_sdk_root/pkg:sys_cpp",
+      ]
     } else {
       extra_deps += [
         # TODO(US-399): Remove time_service specific code when it is no longer
