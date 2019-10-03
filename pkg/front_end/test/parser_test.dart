@@ -11,6 +11,7 @@ import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:front_end/src/fasta/parser.dart' show Parser;
+import 'package:front_end/src/fasta/scanner.dart';
 
 import 'package:front_end/src/fasta/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -54,6 +55,11 @@ Future<Context> createContext(
   return new Context(environment["updateExpectations"] == "true");
 }
 
+ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+    enableTripleShift: true,
+    enableExtensionMethods: true,
+    enableNonNullable: true);
+
 class Context extends ChainContext with MatchContext {
   final updateExpectations;
 
@@ -81,8 +87,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Uint8List bytes = new Uint8List(rawBytes.length + 1);
     bytes.setRange(0, rawBytes.length, rawBytes);
 
-    Utf8BytesScanner scanner =
-        new Utf8BytesScanner(bytes, includeComments: true);
+    Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+        includeComments: true, configuration: scannerConfiguration);
     Token firstToken = scanner.tokenize();
 
     if (firstToken == null) {
@@ -111,8 +117,8 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     Uint8List bytes = new Uint8List(rawBytes.length + 1);
     bytes.setRange(0, rawBytes.length, rawBytes);
 
-    Utf8BytesScanner scanner =
-        new Utf8BytesScanner(bytes, includeComments: true);
+    Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
+        includeComments: true, configuration: scannerConfiguration);
     Token firstToken = scanner.tokenize();
 
     if (firstToken == null) {
