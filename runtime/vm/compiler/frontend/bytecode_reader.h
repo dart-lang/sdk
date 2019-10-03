@@ -215,6 +215,7 @@ class BytecodeReaderHelper : public ValueObject {
   RawString* ReadString(bool is_canonical = true);
   RawScript* ReadSourceFile(const String& uri, intptr_t offset);
   RawTypeArguments* ReadTypeArguments();
+  void ReadAttributes(const Object& key);
   RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
   void ParseForwarderFunction(ParsedFunction* parsed_function,
                               const Function& function,
@@ -356,6 +357,9 @@ class BytecodeReader : public AllStatic {
 
   // Read members of the given class.
   static void FinishClassLoading(const Class& cls);
+
+  // Value of attribute [name] of Function/Field [key].
+  static RawObject* GetBytecodeAttribute(const Object& key, const String& name);
 
 #if !defined(PRODUCT)
   // Compute local variable descriptors for [function] with [bytecode].
@@ -530,6 +534,22 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
 };
+
+class BytecodeAttributesMapTraits {
+ public:
+  static const char* Name() { return "BytecodeAttributesMapTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Object& key) {
+    return String::HashRawSymbol(key.IsFunction() ? Function::Cast(key).name()
+                                                  : Field::Cast(key).name());
+  }
+};
+typedef UnorderedHashMap<BytecodeAttributesMapTraits> BytecodeAttributesMap;
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

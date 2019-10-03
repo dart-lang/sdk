@@ -800,11 +800,29 @@ static ProcedureAttributesMetadata ProcedureAttributesOf(
   return attrs;
 }
 
+static ProcedureAttributesMetadata ProcedureAttributesFromBytecodeAttribute(
+    Zone* zone,
+    const Object& function_or_field) {
+  ProcedureAttributesMetadata attrs;
+  const auto& value = Object::Handle(
+      zone,
+      BytecodeReader::GetBytecodeAttribute(
+          function_or_field, Symbols::vm_procedure_attributes_metadata()));
+  if (!value.IsNull()) {
+    if (!value.IsSmi()) {
+      FATAL3("Unexpected value of %s bytecode attribute on %s: %s",
+             Symbols::vm_procedure_attributes_metadata().ToCString(),
+             function_or_field.ToCString(), value.ToCString());
+    }
+    attrs.InitializeFromFlags(Smi::Cast(value).Value());
+  }
+  return attrs;
+}
+
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
   if (function.is_declared_in_bytecode()) {
-    // TODO(alexmarkov): add AOT metadata to bytecode.
-    return ProcedureAttributesMetadata();
+    return ProcedureAttributesFromBytecodeAttribute(zone, function);
   }
   const Script& script = Script::Handle(zone, function.script());
   return ProcedureAttributesOf(
@@ -815,8 +833,7 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone) {
   if (field.is_declared_in_bytecode()) {
-    // TODO(alexmarkov): add AOT metadata to bytecode.
-    return ProcedureAttributesMetadata();
+    return ProcedureAttributesFromBytecodeAttribute(zone, field);
   }
   const Class& parent = Class::Handle(zone, field.Owner());
   const Script& script = Script::Handle(zone, parent.script());

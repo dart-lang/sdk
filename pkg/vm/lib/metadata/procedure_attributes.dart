@@ -41,16 +41,16 @@ class ProcedureAttributesMetadataRepository
   static const int kTearOffUsesBit = 1 << 2;
   static const int kThisUsesBit = 1 << 3;
 
+  static const repositoryTag = 'vm.procedure-attributes.metadata';
+
   @override
-  final String tag = 'vm.procedure-attributes.metadata';
+  final String tag = repositoryTag;
 
   @override
   final Map<TreeNode, ProcedureAttributesMetadata> mapping =
       <TreeNode, ProcedureAttributesMetadata>{};
 
-  @override
-  void writeToBinary(
-      ProcedureAttributesMetadata metadata, Node node, BinarySink sink) {
+  int _getFlags(ProcedureAttributesMetadata metadata) {
     int flags = 0;
     if (metadata.hasDynamicUses) {
       flags |= kDynamicUsesBit;
@@ -64,7 +64,13 @@ class ProcedureAttributesMetadataRepository
     if (metadata.hasTearOffUses) {
       flags |= kTearOffUsesBit;
     }
-    sink.writeByte(flags);
+    return flags;
+  }
+
+  @override
+  void writeToBinary(
+      ProcedureAttributesMetadata metadata, Node node, BinarySink sink) {
+    sink.writeByte(_getFlags(metadata));
   }
 
   @override
@@ -82,4 +88,8 @@ class ProcedureAttributesMetadataRepository
         hasNonThisUses: hasNonThisUses,
         hasTearOffUses: hasTearOffUses);
   }
+
+  /// Converts [metadata] into a bytecode attribute.
+  Constant getBytecodeAttribute(ProcedureAttributesMetadata metadata) =>
+      IntConstant(_getFlags(metadata));
 }

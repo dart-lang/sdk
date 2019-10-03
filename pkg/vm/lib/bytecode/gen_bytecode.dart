@@ -56,6 +56,8 @@ import 'source_positions.dart' show LineStarts, SourcePositions;
 import '../metadata/bytecode.dart';
 import '../metadata/direct_call.dart'
     show DirectCallMetadata, DirectCallMetadataRepository;
+import '../metadata/procedure_attributes.dart'
+    show ProcedureAttributesMetadata, ProcedureAttributesMetadataRepository;
 
 import 'dart:convert' show utf8;
 import 'dart:developer';
@@ -122,6 +124,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Component bytecodeComponent;
   NullabilityDetector nullabilityDetector;
   Map<TreeNode, DirectCallMetadata> directCallMetadata;
+  ProcedureAttributesMetadataRepository procedureAttributesMetadataRepository;
+  ProcedureAttributesMetadata procedureAttributesMetadata;
 
   List<ClassDeclaration> classDeclarations;
   List<FieldDeclaration> fieldDeclarations;
@@ -175,6 +179,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     directCallMetadata =
         component.metadata[DirectCallMetadataRepository.repositoryTag]?.mapping;
+
+    procedureAttributesMetadataRepository =
+        component.metadata[ProcedureAttributesMetadataRepository.repositoryTag];
   }
 
   @override
@@ -402,6 +409,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return new Annotations(decl, hasPragma);
   }
 
+  ObjectHandle getMemberAttributes(Member member) {
+    if (procedureAttributesMetadata == null) {
+      return null;
+    }
+    final procedureAttributes = procedureAttributesMetadataRepository
+        .getBytecodeAttribute(procedureAttributesMetadata);
+    // List of pairs (tag, value).
+    final attrs = ListConstant(const DynamicType(), <Constant>[
+      StringConstant(ProcedureAttributesMetadataRepository.repositoryTag),
+      procedureAttributes,
+    ]);
+    return objectTable.getHandle(attrs);
+  }
+
   // Insert annotations for the function and its parameters into the annotations
   // section. Return the annotations for the function only. The bytecode reader
   // will implicitly find the parameter annotations by reading N packed objects
@@ -564,6 +585,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FieldDeclaration.hasPragmaFlag;
       }
     }
+    final ObjectHandle attributes = getMemberAttributes(field);
+    if (attributes != null) {
+      flags |= FieldDeclaration.hasAttributesFlag;
+    }
     ObjectHandle script;
     if (field.fileUri != null &&
         field.fileUri != (field.parent as FileUriNode).fileUri) {
@@ -583,7 +608,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         getterName,
         setterName,
         initializer,
-        annotations.object);
+        annotations.object,
+        attributes);
   }
 
   FunctionDeclaration getFunctionDeclaration(Member member, Code code) {
@@ -665,12 +691,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       position = (member as dynamic).startFileOffset;
       endPosition = member.fileEndOffset;
     }
-    Annotations annotations = getFunctionAnnotations(member);
+    final Annotations annotations = getFunctionAnnotations(member);
     if (annotations.object != null) {
       flags |= FunctionDeclaration.hasAnnotationsFlag;
       if (annotations.hasPragma) {
         flags |= FunctionDeclaration.hasPragmaFlag;
       }
+    }
+    final ObjectHandle attributes = getMemberAttributes(member);
+    if (attributes != null) {
+      flags |= FunctionDeclaration.hasAttributesFlag;
     }
     ObjectHandle script;
     if (member.fileUri != null &&
@@ -706,7 +736,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         objectTable.getHandle(function.returnType),
         nativeName,
         code,
-        annotations.object);
+        annotations.object,
+        attributes);
   }
 
   bool isReflectable(Member member) {
@@ -1516,6 +1547,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           new List<TypeParameter>.from(enclosingFunction.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
+    procedureAttributesMetadata = procedureAttributesMetadataRepository != null
+        ? procedureAttributesMetadataRepository.mapping[node]
+        : null;
     if (!hasCode) {
       return;
     }
@@ -1655,6 +1689,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm = null;
     savedAssemblers = null;
     hasErrors = false;
+    procedureAttributesMetadata = null;
   }
 
   SourcePositions finalizeSourcePositions() {
@@ -1907,9 +1942,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         initializedPosition);
   }
 
-  // TODO(alexmarkov): Revise if we need to AOT-compile from bytecode.
   bool get canSkipTypeChecksForNonCovariantArguments =>
       !isClosure && enclosingMember.name.name != 'call';
+
+  bool get skipTypeChecksForGenericCovariantImplArguments =>
+      procedureAttributesMetadata != null &&
+      !procedureAttributesMetadata.hasNonThisUses &&
+      // TODO(alexmarkov): fix building of flow graph for implicit closures so
+      // it would include missing checks and remove this condition.
+      !procedureAttributesMetadata.hasTearOffUses;
 
   Member _getForwardingStubSuperTarget() {
     if (!isClosure) {
@@ -2075,7 +2116,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   bool _typeParameterNeedsBoundCheck(TypeParameter typeParam,
       Map<TypeParameter, DartType> forwardingTypeParameterBounds) {
     if (canSkipTypeChecksForNonCovariantArguments &&
-        !typeParam.isGenericCovariantImpl) {
+        (!typeParam.isGenericCovariantImpl ||
+            skipTypeChecksForGenericCovariantImplArguments)) {
       return false;
     }
     final DartType bound = (forwardingTypeParameterBounds != null)
@@ -2092,7 +2134,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       Map<VariableDeclaration, DartType> forwardingParameterTypes) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !param.isCovariant &&
-        !param.isGenericCovariantImpl) {
+        (!param.isGenericCovariantImpl ||
+            skipTypeChecksForGenericCovariantImplArguments)) {
       return false;
     }
     final DartType type = (forwardingParameterTypes != null)

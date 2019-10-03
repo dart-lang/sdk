@@ -1872,6 +1872,21 @@ RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments() {
   return type_arguments.Canonicalize();
 }
 
+void BytecodeReaderHelper::ReadAttributes(const Object& key) {
+  ASSERT(key.IsFunction() || key.IsField());
+  const auto& value = Object::Handle(Z, ReadObject());
+
+  Array& attributes =
+      Array::Handle(Z, I->object_store()->bytecode_attributes());
+  if (attributes.IsNull()) {
+    attributes = HashTables::New<BytecodeAttributesMap>(16, Heap::kOld);
+  }
+  BytecodeAttributesMap map(attributes.raw());
+  bool present = map.UpdateOrInsert(key, value);
+  ASSERT(!present);
+  I->object_store()->set_bytecode_attributes(map.Release());
+}
+
 void BytecodeReaderHelper::ReadMembers(const Class& cls, bool discard_fields) {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.is_type_finalized());
@@ -1905,6 +1920,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasPragmaFlag = 1 << 11;
   const int kHasCustomScriptFlag = 1 << 12;
   const int kHasInitializerCodeFlag = 1 << 13;
+  const int kHasAttributesFlag = 1 << 14;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -2051,6 +2067,10 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       }
     }
 
+    if ((flags & kHasAttributesFlag) != 0) {
+      ReadAttributes(field);
+    }
+
     fields.SetAt(i, field);
   }
 
@@ -2120,6 +2140,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasAnnotationsFlag = 1 << 20;
   const int kHasPragmaFlag = 1 << 21;
   const int kHasCustomScriptFlag = 1 << 22;
+  const int kHasAttributesFlag = 1 << 23;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2294,6 +2315,11 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
           }
         }
       }
+    }
+
+    if ((flags & kHasAttributesFlag) != 0) {
+      ASSERT(!is_expression_evaluation);
+      ReadAttributes(function);
     }
 
     if (is_expression_evaluation) {
@@ -2906,6 +2932,12 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       (flags & Code::kHasForwardingStubTargetFlag) != 0;
   const bool has_default_function_type_args =
       (flags & Code::kHasDefaultFunctionTypeArgsFlag) != 0;
+  const auto proc_attrs = kernel::ProcedureAttributesOf(target, Z);
+  // TODO(alexmarkov): fix building of flow graph for implicit closures so
+  // it would include missing checks and remove 'proc_attrs.has_tearoff_uses'
+  // from this condition.
+  const bool body_has_generic_covariant_impl_type_checks =
+      proc_attrs.has_non_this_uses || proc_attrs.has_tearoff_uses;
 
   if (has_parameters_flags) {
     const intptr_t num_params = reader_.ReadUInt();
@@ -2925,7 +2957,8 @@ void BytecodeReaderHelper::ParseForwarderFunction(
       }
 
       const bool checked_in_method_body =
-          is_covariant || is_generic_covariant_impl;
+          is_covariant || (is_generic_covariant_impl &&
+                           body_has_generic_covariant_impl_type_checks);
 
       if (checked_in_method_body) {
         variable->set_type_check_mode(LocalVariable::kSkipTypeCheck);
@@ -3440,6 +3473,30 @@ void BytecodeReader::FinishClassLoading(const Class& cls) {
   const bool discard_fields = cls.InjectCIDFields();
 
   bytecode_reader.ReadMembers(cls, discard_fields);
+}
+
+RawObject* BytecodeReader::GetBytecodeAttribute(const Object& key,
+                                                const String& name) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const auto* object_store = thread->isolate()->object_store();
+  if (object_store->bytecode_attributes() == Object::null()) {
+    return Object::null();
+  }
+  BytecodeAttributesMap map(object_store->bytecode_attributes());
+  const auto& attrs = Array::CheckedHandle(zone, map.GetOrNull(key));
+  ASSERT(map.Release().raw() == object_store->bytecode_attributes());
+  if (attrs.IsNull()) {
+    return Object::null();
+  }
+  auto& obj = Object::Handle(zone);
+  for (intptr_t i = 0, n = attrs.Length(); i + 1 < n; i += 2) {
+    obj = attrs.At(i);
+    if (obj.raw() == name.raw()) {
+      return attrs.At(i + 1);
+    }
+  }
+  return Object::null();
 }
 
 #if !defined(PRODUCT)
