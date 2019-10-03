@@ -1063,7 +1063,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
+    __ ldr(PP, compiler::Address(
+                   THR, compiler::target::Thread::global_object_pool_offset()));
   }
 
   // Leave dummy exit frame.
@@ -1101,7 +1102,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PopNativeCalleeSavedRegisters();
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1164,7 +1165,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushImmediate(0);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
