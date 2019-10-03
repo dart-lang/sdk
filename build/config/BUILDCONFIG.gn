@@ -130,6 +130,10 @@ declare_args() {
 
   # Compile for Thread Sanitizer to find threading bugs.
   is_tsan = false
+
+  # Whether to use the NNBD fork of the SDK core libraries.
+  # TODO(rnystrom): Remove this when the fork has been merged back in.
+  use_nnbd = false
 }
 
 # =============================================================================
