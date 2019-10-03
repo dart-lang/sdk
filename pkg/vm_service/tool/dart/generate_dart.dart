@@ -104,6 +104,7 @@ final String _implCode = r'''
   void dispose() {
     _streamSub.cancel();
     _completers.values.forEach((c) => c.completeError('disposed'));
+    _completers.clear();
     if (_disposeHandler != null) {
       _disposeHandler();
     }
