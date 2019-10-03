@@ -39,11 +39,6 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 }
 
 /**
- * Type of callbacks used by [DeferredFunctionTypeImpl].
- */
-typedef FunctionTypedElement FunctionTypedElementComputer();
-
-/**
  * A [Type] that represents the type 'bottom'.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -319,54 +314,6 @@ class CircularTypeImpl extends DynamicTypeImpl {
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-}
-
-/**
- * The type of a function, method, constructor, getter, or setter that has been
- * resynthesized from a summary.  The actual underlying element won't be
- * constructed until it's needed.
- */
-class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
-  /**
-   * Callback which should be invoked when the element associated with this
-   * function type is needed.
-   *
-   * Once the callback has been invoked, it is set to `null` to reduce GC
-   * pressure.
-   */
-  FunctionTypedElementComputer _computeElement;
-
-  /**
-   * If [_computeElement] has been called, the value it returned.  Otherwise
-   * `null`.
-   */
-  FunctionTypedElement _computedElement;
-
-  DeferredFunctionTypeImpl(this._computeElement, String name,
-      List<DartType> typeArguments, bool isInstantiated,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-      FunctionTypedElement computedElement})
-      : _computedElement = computedElement,
-        super._(null, name, null, typeArguments, null, null, isInstantiated,
-            nullabilitySuffix: nullabilitySuffix);
-
-  @override
-  FunctionTypedElement get element {
-    if (_computeElement != null) {
-      _computedElement = _computeElement();
-      _computeElement = null;
-    }
-    return _computedElement;
-  }
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return DeferredFunctionTypeImpl(
-        _computeElement, name, typeArguments, isInstantiated,
-        computedElement: _computedElement,
-        nullabilitySuffix: nullabilitySuffix);
-  }
 }
 
 /**
