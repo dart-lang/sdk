@@ -2014,9 +2014,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleNativeClause(Token nativeToken, bool hasName) {
     debugEvent("NativeClause");
     if (hasName) {
-      Expression name = pop();
-      assert(name is StringLiteral,
-          "Unexpected native name: $name (${name.runtimeType}).");
+      pop() as StringLiteral;
     }
   }
 

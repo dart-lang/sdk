@@ -912,7 +912,7 @@ class SourceLoader extends Loader {
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].check(builderHierarchy);
-      changedClasses.add(delayedMemberChecks[i].parent.cls);
+      changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
         "Computed ${delayedMemberChecks.length} combined member signatures");

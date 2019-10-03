@@ -220,4 +220,8 @@ abstract class Builder {
   /// Resolve constructors (lookup names in scope) recorded in this builder and
   /// return the number of constructors resolved.
   int resolveConstructors(covariant Builder parent) => 0;
+
+  /// Return `true` if this builder is a duplicate of another with the same
+  /// name. This is `false` for the builder first declared amongst duplicates.
+  bool get isDuplicate => next != null;
 }

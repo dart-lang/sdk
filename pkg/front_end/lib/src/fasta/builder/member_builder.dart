@@ -17,7 +17,9 @@ import 'declaration.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
 
-abstract class MemberBuilder extends ModifierBuilder {
+import '../kernel/class_hierarchy_builder.dart';
+
+abstract class MemberBuilder extends ModifierBuilder implements ClassMember {
   /// For top-level members, the parent is set correctly during
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
@@ -93,4 +95,7 @@ abstract class MemberBuilder extends ModifierBuilder {
   void inferCopiedType(covariant Object other) {
     unsupported("inferType", charOffset, fileUri);
   }
+
+  @override
+  ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 }
