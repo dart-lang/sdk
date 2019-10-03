@@ -1525,8 +1525,13 @@ class _OverrideChecker {
     if (members.isEmpty) return covariantChecks;
 
     for (var iface in covariantInterfaces) {
-      var unsafeSupertype =
-          rules.instantiateToBounds(iface.type) as InterfaceType;
+      var typeParameters = iface.typeParameters;
+      var defaultTypeArguments =
+          rules.instantiateTypeFormalsToBounds(typeParameters);
+      var unsafeSupertype = iface.instantiate(
+        typeArguments: defaultTypeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
       for (var m in members) {
         _findCovariantChecksForMember(m, unsafeSupertype, covariantChecks);
       }
