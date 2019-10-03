@@ -74,7 +74,7 @@ abstract class BaseProcessor {
     SimpleIdentifier name = node;
     final parent = node.parent;
 
-    var type;
+    DartType type;
 
     // Getter.
     if (parent is MethodDeclaration) {
@@ -96,53 +96,72 @@ abstract class BaseProcessor {
 
     if (type == null) {
       return null;
-    } else if (type.isDartCoreBool) {
-      ClassDeclaration classDeclaration =
-          parent.thisOrAncestorOfType<ClassDeclaration>();
-      final debugFillProperties =
-          classDeclaration.getMethod('debugFillProperties');
-      if (debugFillProperties != null) {
-        final body = debugFillProperties.body;
-        if (body is BlockFunctionBody) {
-          BlockFunctionBody functionBody = body;
+    }
 
-          var offset;
-          var prefix;
-          if (functionBody.block.statements.isEmpty) {
-            offset = functionBody.block.leftBracket.offset;
-            prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
-          } else {
-            offset = functionBody.block.statements.last.endToken.offset;
-            prefix = utils.getLinePrefix(offset);
-          }
+    var constructorInvocation;
+    if (type.isDartCoreBool) {
+      constructorInvocation = 'DiagnosticsProperty<bool>';
+    } else if (type.isDartCoreInt) {
+      constructorInvocation = 'IntProperty';
+    } else if (type.isDartCoreDouble) {
+      constructorInvocation = 'DoubleProperty';
+    } else if (type.isDartCoreString) {
+      constructorInvocation = 'StringProperty';
+    } else if (isEnum(type)) {
+      constructorInvocation = 'EnumProperty';
+    }
 
-          var parameters = debugFillProperties.parameters.parameters;
-          var propertiesBuilderName;
-          for (var parameter in parameters) {
-            if (parameter is SimpleFormalParameter) {
-              final type = parameter.type;
-              if (type is TypeName) {
-                if (type.name.name == 'DiagnosticPropertiesBuilder') {
-                  propertiesBuilderName = parameter.identifier.name;
-                  break;
-                }
+    // todo (pq): migrate type string generation to within change and use DartEditBuilder.writeType
+
+    if (constructorInvocation == null) {
+      return null;
+    }
+
+    ClassDeclaration classDeclaration =
+        parent.thisOrAncestorOfType<ClassDeclaration>();
+    final debugFillProperties =
+        classDeclaration.getMethod('debugFillProperties');
+    if (debugFillProperties != null) {
+      final body = debugFillProperties.body;
+      if (body is BlockFunctionBody) {
+        BlockFunctionBody functionBody = body;
+
+        var offset;
+        var prefix;
+        if (functionBody.block.statements.isEmpty) {
+          offset = functionBody.block.leftBracket.offset;
+          prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
+        } else {
+          offset = functionBody.block.statements.last.endToken.offset;
+          prefix = utils.getLinePrefix(offset);
+        }
+
+        var parameters = debugFillProperties.parameters.parameters;
+        var propertiesBuilderName;
+        for (var parameter in parameters) {
+          if (parameter is SimpleFormalParameter) {
+            final type = parameter.type;
+            if (type is TypeName) {
+              if (type.name.name == 'DiagnosticPropertiesBuilder') {
+                propertiesBuilderName = parameter.identifier.name;
+                break;
               }
             }
           }
-          if (propertiesBuilderName == null) {
-            return null;
-          }
-
-          final changeBuilder = _newDartChangeBuilder();
-          await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-            builder.addInsertion(utils.getLineNext(offset),
-                (DartEditBuilder builder) {
-              builder.write(
-                  "$prefix$propertiesBuilderName.add(DiagnosticsProperty<bool>('${name.name}', ${name.name}));$eol");
-            });
-          });
-          return changeBuilder;
         }
+        if (propertiesBuilderName == null) {
+          return null;
+        }
+
+        final changeBuilder = _newDartChangeBuilder();
+        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+          builder.addInsertion(utils.getLineNext(offset),
+              (DartEditBuilder builder) {
+            builder.write(
+                "$prefix$propertiesBuilderName.add($constructorInvocation('${name.name}', ${name.name}));$eol");
+          });
+        });
+        return changeBuilder;
       }
     }
 
@@ -1187,6 +1206,11 @@ abstract class BaseProcessor {
       }
     }
     return null;
+  }
+
+  bool isEnum(DartType type) {
+    final element = type.element;
+    return element is ClassElement && element.isEnum;
   }
 
   @protected

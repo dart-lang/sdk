@@ -115,14 +115,100 @@ class Absorber extends Widget {
 ''');
   }
 
+  test_doubleField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  double /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  double /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DoubleProperty('field', field));
+  }
+}
+''');
+  }
+
+  test_enumField_debugFillProperties() async {
+    await resolveTestUnit('''
+enum foo {bar}
+class A extends Widget {
+  foo /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+enum foo {bar}
+class A extends Widget {
+  foo /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(EnumProperty('field', field));
+  }
+}
+''');
+  }
+
+  test_intField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  int /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  int /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(IntProperty('field', field));
+  }
+}
+''');
+  }
+
+  test_stringField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  String /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  String /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('field', field));
+  }
+}
+''');
+  }
+
   // todo (pq): tests for no debugFillProperties method
   // todo (pq): consider a test for a body w/ no CR
   // todo (pq): support for ColorProperty -- for Color
-  // todo (pq): support for EnumProperty -- for any enum class
-  // todo (pq): support for IntProperty -- int
-  // todo (pq): support for DoubleProperty -- double
   // todo (pq): support for IterableProperty -- any iterable
-  // todo (pq): support for StringProperty -- string
   // todo (pq): support for TransformProperty -- Matrix4
   // todo (pq): support for DiagnosticsProperty for any T that doesn't match one of the other cases
 }
