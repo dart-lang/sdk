@@ -13,7 +13,8 @@ primeTimeline() {
   Timeline.startSync('apple');
   Timeline.instantSync('ISYNC', arguments: {'fruit': 'banana'});
   Timeline.finishSync();
-  TimelineTask task = new TimelineTask();
+  TimelineTask parentTask = TimelineTask.withTaskId(42);
+  TimelineTask task = TimelineTask(parent: parentTask);
   task.start('TASK1', arguments: {'task1-start-key': 'task1-start-value'});
   task.instant('ITASK',
       arguments: {'task1-instant-key': 'task1-instant-value'});
@@ -126,8 +127,8 @@ var tests = <VMTest>[
         eventsContains(dartEvents, 'i', 'ISYNC', {'fruit': 'banana'}), isTrue);
     expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
     expect(
-        eventsContains(
-            dartEvents, 'b', 'TASK1', {'task1-start-key': 'task1-start-value'}),
+        eventsContains(dartEvents, 'b', 'TASK1',
+            {'task1-start-key': 'task1-start-value', 'parentId': 42}),
         isTrue);
     expect(
         eventsContains(dartEvents, 'e', 'TASK1',

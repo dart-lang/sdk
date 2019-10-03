@@ -23,6 +23,11 @@ main() { foo(() {}); }
 * Default values of parameters of abstract methods are no longer available
   via `dart:mirrors`.
 
+#### `dart:developer`
+
+* Added optional `parent` paremeter to `TimelineTask` constructors to allow for
+  linking of asynchronous timeline events in the DevTools timeline view.
+
 ### Dart VM
 
 ### Tools
