@@ -5426,11 +5426,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               // Try to pattern match matchingInterfaceType against
               // mixinSupertypeConstraint to find the correct set of type
               // parameters to apply to the mixin.
-              var matchedType = _typeSystem.matchSupertypeConstraints(
-                  mixinElement,
-                  mixinSupertypeConstraints,
-                  matchingInterfaceTypes);
-              if (matchedType == null) {
+              var inferredTypeArguments = _typeSystem.matchSupertypeConstraints(
+                mixinElement,
+                mixinSupertypeConstraints,
+                matchingInterfaceTypes,
+              );
+              if (inferredTypeArguments == null) {
                 _errorReporter.reportErrorForToken(
                     CompileTimeErrorCode
                         .MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
