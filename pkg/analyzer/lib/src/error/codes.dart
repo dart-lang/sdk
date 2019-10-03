@@ -6435,7 +6435,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
       const StaticWarningCode('NEW_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be created with a 'new' expression.",
+          "Abstract classes can't be instantiated.",
           correction: "Try creating an instance of a subtype.");
 
   /**
