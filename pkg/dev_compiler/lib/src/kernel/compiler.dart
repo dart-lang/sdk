@@ -5491,10 +5491,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitPartialInstantiationConstant(
           PartialInstantiationConstant node) =>
-      runtimeCall('gbind(#, #)', [
+      canonicalizeConstObject(runtimeCall('gbind(#, #)', [
         visitConstant(node.tearOffConstant),
         node.types.map(_emitType).toList()
-      ]);
+      ]));
 
   @override
   js_ast.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
