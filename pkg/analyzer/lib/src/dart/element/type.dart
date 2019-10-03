@@ -493,68 +493,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         nullabilitySuffix: nullabilitySuffix);
   }
 
-  /**
-   * Initialize a newly created function type that is semantically the same as
-   * [original], but which has been syntactically renamed with fresh type
-   * parameters at its outer binding site (if any).
-   *
-   * If type formals is empty, this returns the original unless [force] is set
-   * to [true].
-   */
-  factory FunctionTypeImpl.fresh(FunctionType original,
-      {bool force = false,
-      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
-    // We build up a substitution for the type parameters,
-    // {variablesFresh/variables} then apply it.
-
-    var originalFormals = original.typeFormals;
-    var formalCount = originalFormals.length;
-    if (formalCount == 0 && !force) return original;
-
-    // Allocate fresh type variables
-    var typeVars = <TypeParameterElement>[];
-    var freshTypeVars = <DartType>[];
-    var freshVarElements = <TypeParameterElement>[];
-    for (int i = 0; i < formalCount; i++) {
-      var typeParamElement = originalFormals[i];
-
-      var freshElement =
-          new TypeParameterElementImpl.synthetic(typeParamElement.name);
-      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-
-      typeVars.add(typeParamElement);
-      freshTypeVars.add(freshTypeVar);
-      freshVarElements.add(freshElement);
-    }
-
-    // Simultaneous substitution to rename the bounds
-    for (int i = 0; i < formalCount; i++) {
-      var typeParamElement = originalFormals[i];
-      var bound = typeParamElement.bound;
-      if (bound != null) {
-        var freshElement = freshVarElements[i] as TypeParameterElementImpl;
-        freshElement.bound = Substitution.fromPairs(typeVars, freshTypeVars)
-            .substituteType(bound);
-      }
-    }
-
-    // Instantiate the original type with the fresh type variables
-    // (replacing the old type variables)
-    var newType = original.instantiate(freshTypeVars);
-
-    // Build a synthetic element for the type, binding the fresh type parameters
-    var name = original.name ?? "";
-    var element = original.element;
-    var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = element?.enclosingElement;
-    function.isSynthetic = true;
-    function.returnType = newType.returnType;
-    function.typeParameters = freshVarElements;
-    function.shareParameters(newType.parameters);
-    return function.type =
-        new FunctionTypeImpl(function, nullabilitySuffix: nullabilitySuffix);
-  }
-
   /// Creates a function type that's not associated with any element in the
   /// element tree.
   factory FunctionTypeImpl.synthetic(DartType returnType,

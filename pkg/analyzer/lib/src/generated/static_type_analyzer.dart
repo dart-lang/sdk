@@ -2161,29 +2161,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   static FunctionType constructorToGenericFunctionType(
       ConstructorElement constructor) {
-    // TODO(jmesserly): it may be worth making this available from the
-    // constructor. It's nice if our inference code can operate uniformly on
-    // function types.
-    ClassElement cls = constructor.enclosingElement;
-    FunctionType type = constructor.type;
-    if (cls.typeParameters.isEmpty) {
-      return type;
+    var classElement = constructor.enclosingElement;
+    var typeParameters = classElement.typeParameters;
+    if (typeParameters.isEmpty) {
+      return constructor.type;
     }
 
-    // Create a synthetic function type using the class type parameters,
-    // and then rename it with fresh variables.
-    var name = cls.name;
-    if (constructor.name != null) {
-      name += '.' + constructor.name;
-    }
-    var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = cls.enclosingElement;
-    function.isSynthetic = true;
-    function.returnType = type.returnType;
-    function.shareTypeParameters(cls.typeParameters);
-    function.shareParameters(type.parameters);
-    function.type = new FunctionTypeImpl(function);
-    return new FunctionTypeImpl.fresh(function.type);
+    return FunctionTypeImpl.synthetic(
+      constructor.returnType,
+      typeParameters,
+      constructor.parameters,
+    );
   }
 
   static DartType _getFreshType(DartType type) {
