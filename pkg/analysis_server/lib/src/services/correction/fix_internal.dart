@@ -693,6 +693,9 @@ class FixProcessor extends BaseProcessor {
       if (name == LintNames.prefer_null_aware_operators) {
         await _addFix_convertToNullAware();
       }
+      if (name == LintNames.prefer_relative_imports) {
+        await _addFix_convertToRelativeImport();
+      }
       if (name == LintNames.prefer_single_quotes) {
         await _addFix_convertSingleQuotes();
       }
@@ -1526,6 +1529,11 @@ class FixProcessor extends BaseProcessor {
   Future<void> _addFix_convertToPackageImport() async {
     final changeBuilder = await createBuilder_convertToPackageImport();
     _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_PACKAGE_IMPORT);
+  }
+
+  Future<void> _addFix_convertToRelativeImport() async {
+    final changeBuilder = await createBuilder_convertToRelativeImport();
+    _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_TO_RELATIVE_IMPORT);
   }
 
   Future<void> _addFix_createClass() async {

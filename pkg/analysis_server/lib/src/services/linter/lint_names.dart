@@ -50,6 +50,7 @@ class LintNames {
   static const String prefer_is_not_empty = 'prefer_is_not_empty';
   static const String prefer_null_aware_operators =
       'prefer_null_aware_operators';
+  static const String prefer_relative_imports = 'prefer_relative_imports';
   static const String prefer_single_quotes = 'prefer_single_quotes';
   static const String prefer_spread_collections = 'prefer_spread_collections';
   static const String slash_for_doc_comments = 'slash_for_doc_comments';

@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// Base class for common processor functionality.
 abstract class BaseProcessor {
@@ -961,6 +962,65 @@ abstract class BaseProcessor {
       return changeBuilder;
     }
     return null;
+  }
+
+  Future<ChangeBuilder> createBuilder_convertToRelativeImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is! ImportDirective) {
+      return null;
+    }
+
+    ImportDirective importDirective = node;
+
+    // Ignore if invalid URI.
+    if (importDirective.uriSource == null) {
+      return null;
+    }
+
+    // Ignore if the uri is not a package: uri.
+    Uri sourceUri = resolvedResult.uri;
+    if (sourceUri.scheme != 'package') {
+      return null;
+    }
+
+    Uri importUri;
+    try {
+      importUri = Uri.parse(importDirective.uriContent);
+    } on FormatException {
+      return null;
+    }
+
+    // Ignore if import uri is not a package: uri.
+    if (importUri.scheme != 'package') {
+      return null;
+    }
+
+    // Verify that the source's uri and the import uri have the same package
+    // name.
+    List<String> sourceSegments = sourceUri.pathSegments;
+    List<String> importSegments = importUri.pathSegments;
+    if (sourceSegments.isEmpty ||
+        importSegments.isEmpty ||
+        sourceSegments.first != importSegments.first) {
+      return null;
+    }
+
+    final String relativePath = path.relative(
+      importUri.path,
+      from: path.dirname(sourceUri.path),
+    );
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (builder) {
+      builder.addSimpleReplacement(
+        range.node(importDirective.uri).getExpanded(-1),
+        relativePath,
+      );
+    });
+    return changeBuilder;
   }
 
   Future<ChangeBuilder> createBuilder_inlineAdd() async {
