@@ -30,6 +30,13 @@ main() { foo(() {}); }
 
 ### Dart VM
 
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Kernel DDC will no longer accept non-dill files as summary inputs.
+* Removed support for the deprecated web extension.
+
 ### Tools
 
 #### Pub

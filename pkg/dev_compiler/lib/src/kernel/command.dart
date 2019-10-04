@@ -25,7 +25,6 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 
-import 'analyzer_to_kernel.dart';
 import 'compiler.dart';
 import 'target.dart';
 
@@ -179,13 +178,16 @@ Future<CompilerResult> _compile(List<String> args,
   var summaryPaths = options.summaryModules.keys.toList();
   var summaryModules = Map.fromIterables(
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
-  var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
   var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
-    sdkSummaryPath =
-        useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
+    sdkSummaryPath = defaultSdkSummaryPath;
     librarySpecPath ??= defaultLibrarySpecPath;
+  }
+  var invalidSummary = summaryPaths.any((s) => !s.endsWith('.dill')) ||
+      !sdkSummaryPath.endsWith('.dill');
+  if (invalidSummary) {
+    throw StateError("Non-dill file detected in input: $summaryPaths");
   }
 
   if (librarySpecPath == null) {
@@ -205,14 +207,12 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
-  useAnalyzer = useAnalyzer || !sdkSummaryPath.endsWith('.dill');
-
   /// The .packages file path provided by the user.
   //
   // TODO(jmesserly): the default location is based on the current working
   // directory, to match the behavior of dartanalyzer/dartdevc. However the
   // Dart VM, CFE (and dart2js?) use the script file location instead. The
-  // difference may be due to the lack of a single entry point for DDC/Analyzer.
+  // difference may be due to the lack of a single entry point for Analyzer.
   // Ultimately this is just the default behavior; in practice users call DDC
   // through a build tool, which generally passes in `--packages=`.
   //
@@ -244,7 +244,7 @@ Future<CompilerResult> _compile(List<String> args,
   fe.WorkerInputComponent cachedSdkInput;
   bool recordUsedInputs = argResults['used-inputs-file'] != null;
   List<Uri> inputSummaries = summaryModules.keys.toList();
-  if (useAnalyzer || !useIncrementalCompiler) {
+  if (!useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
         compileSdk,
@@ -306,15 +306,8 @@ Future<CompilerResult> _compile(List<String> args,
   // `initializeCompiler`. Also we should be able to pass down Components for
   // SDK and summaries.
   //
-  if (useAnalyzer && !identical(oldCompilerState, compilerState)) {
-    var opts = compilerState.processedOpts;
-    var converter = AnalyzerToKernel(sdkSummaryPath, summaryPaths);
-    opts.sdkSummaryComponent = converter.convertSdk();
-    opts.inputSummariesComponents = converter.convertSummaries();
-  }
-
   fe.DdcResult result;
-  if (useAnalyzer || !useIncrementalCompiler) {
+  if (!useIncrementalCompiler) {
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
@@ -411,7 +404,7 @@ Future<CompilerResult> _compile(List<String> args,
 
   if (recordUsedInputs) {
     Set<Uri> usedOutlines = Set<Uri>();
-    if (!useAnalyzer && useIncrementalCompiler) {
+    if (useIncrementalCompiler) {
       compilerState.incrementalCompiler
           .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);
       for (Library lib
@@ -536,9 +529,6 @@ final defaultSdkSummaryPath =
     p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
-
-final defaultAnalyzerSdkSummaryPath =
-    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {

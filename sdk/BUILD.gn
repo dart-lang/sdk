@@ -785,10 +785,7 @@ copy("copy_dev_compiler_js_es6_kernel") {
 
 # Copies all of the JS artifacts needed by DDC.
 group("copy_dev_compiler_js") {
-  visibility = [
-    ":copy_dev_compiler_sdk",
-    ":copy_dev_compiler_tools",
-  ]
+  visibility = [ ":copy_dev_compiler_sdk" ]
   public_deps = [
     ":copy_dev_compiler_js_amd",
     ":copy_dev_compiler_js_amd_kernel",
@@ -799,31 +796,12 @@ group("copy_dev_compiler_js") {
   ]
 }
 
-# This rule copies tools to go along with ddc.
-copy("copy_dev_compiler_tools") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
-  deps = [
-    ":copy_dev_compiler_js",
-    "../utils/dartdevc:dartdevc_web",
-    "../utils/dartdevc:stack_trace_mapper",
-  ]
-  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
-  sources = [
-    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
-    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
-  ]
-  outputs = [
-    "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
-  ]
-}
-
 # This is the main rule for copying ddc's dependencies to lib/
 group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
     ":copy_dev_compiler_js",
     ":copy_dev_compiler_summary",
-    ":copy_dev_compiler_tools",
   ]
 }
 
