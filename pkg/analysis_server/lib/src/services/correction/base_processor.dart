@@ -98,83 +98,112 @@ abstract class BaseProcessor {
       return null;
     }
 
-    var constructorInvocation;
+    var constructorName;
     var hasTypeArgs = false;
     if (type.isDartCoreBool) {
-      constructorInvocation = 'DiagnosticsProperty<bool>';
+      constructorName = 'DiagnosticsProperty<bool>';
     } else if (type.isDartCoreInt) {
-      constructorInvocation = 'IntProperty';
+      constructorName = 'IntProperty';
     } else if (type.isDartCoreDouble) {
-      constructorInvocation = 'DoubleProperty';
+      constructorName = 'DoubleProperty';
     } else if (type.isDartCoreString) {
-      constructorInvocation = 'StringProperty';
+      constructorName = 'StringProperty';
     } else if (isEnum(type)) {
-      constructorInvocation = 'EnumProperty';
+      constructorName = 'EnumProperty';
     } else if (isIterable(type)) {
-      constructorInvocation = 'IterableProperty';
+      constructorName = 'IterableProperty';
       hasTypeArgs = true;
     } else if (flutter.isColor(type)) {
-      constructorInvocation = 'ColorProperty';
+      constructorName = 'ColorProperty';
     } else if (flutter.isMatrix4(type)) {
-      constructorInvocation = 'TransformProperty';
+      constructorName = 'TransformProperty';
     }
 
-    if (constructorInvocation == null) {
+    if (constructorName == null) {
       return null;
     }
 
-    ClassDeclaration classDeclaration =
-        parent.thisOrAncestorOfType<ClassDeclaration>();
+    void writePropertyReference(
+      DartEditBuilder builder, {
+      @required String prefix,
+      @required String builderName,
+    }) {
+      builder.write("$prefix$builderName.add($constructorName");
+      if (hasTypeArgs) {
+        builder.write('<');
+        builder.writeTypes((type as InterfaceType).typeArguments);
+        builder.write('>');
+      }
+      builder.writeln("('${name.name}', ${name.name}));");
+    }
+
+    final classDeclaration = parent.thisOrAncestorOfType<ClassDeclaration>();
     final debugFillProperties =
         classDeclaration.getMethod('debugFillProperties');
-    if (debugFillProperties != null) {
-      final body = debugFillProperties.body;
-      if (body is BlockFunctionBody) {
-        BlockFunctionBody functionBody = body;
+    if (debugFillProperties == null) {
+      final insertOffset =
+          utils.prepareNewMethodLocation(classDeclaration).offset;
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(utils.getLineNext(insertOffset),
+            (DartEditBuilder builder) {
+          final declPrefix =
+              utils.getLinePrefix(classDeclaration.offset) + utils.getIndent(1);
+          final bodyPrefix = declPrefix + utils.getIndent(1);
 
-        var offset;
-        var prefix;
-        if (functionBody.block.statements.isEmpty) {
-          offset = functionBody.block.leftBracket.offset;
-          prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
-        } else {
-          offset = functionBody.block.statements.last.endToken.offset;
-          prefix = utils.getLinePrefix(offset);
-        }
+          builder.writeln('$declPrefix@override');
+          builder.writeln(
+              '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
+          builder
+              .writeln('${bodyPrefix}super.debugFillProperties(properties);');
+          writePropertyReference(builder,
+              prefix: bodyPrefix, builderName: 'properties');
+          builder.writeln('$declPrefix}');
+        });
+      });
+      return changeBuilder;
+    }
 
-        var parameters = debugFillProperties.parameters.parameters;
-        var propertiesBuilderName;
-        for (var parameter in parameters) {
-          if (parameter is SimpleFormalParameter) {
-            final type = parameter.type;
-            if (type is TypeName) {
-              if (type.name.name == 'DiagnosticPropertiesBuilder') {
-                propertiesBuilderName = parameter.identifier.name;
-                break;
-              }
+    final body = debugFillProperties.body;
+    if (body is BlockFunctionBody) {
+      BlockFunctionBody functionBody = body;
+
+      var offset;
+      var prefix;
+      if (functionBody.block.statements.isEmpty) {
+        offset = functionBody.block.leftBracket.offset;
+        prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
+      } else {
+        offset = functionBody.block.statements.last.endToken.offset;
+        prefix = utils.getLinePrefix(offset);
+      }
+
+      var parameters = debugFillProperties.parameters.parameters;
+      var propertiesBuilderName;
+      for (var parameter in parameters) {
+        if (parameter is SimpleFormalParameter) {
+          final type = parameter.type;
+          if (type is TypeName) {
+            if (type.name.name == 'DiagnosticPropertiesBuilder') {
+              propertiesBuilderName = parameter.identifier.name;
+              break;
             }
           }
         }
-        if (propertiesBuilderName == null) {
-          return null;
-        }
-
-        final changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addInsertion(utils.getLineNext(offset),
-              (DartEditBuilder builder) {
-            builder.write(
-                "$prefix$propertiesBuilderName.add($constructorInvocation");
-            if (hasTypeArgs) {
-              builder.write('<');
-              builder.writeTypes((type as InterfaceType).typeArguments);
-              builder.write('>');
-            }
-            builder.write("('${name.name}', ${name.name}));$eol");
-          });
-        });
-        return changeBuilder;
       }
+      if (propertiesBuilderName == null) {
+        return null;
+      }
+
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(utils.getLineNext(offset),
+            (DartEditBuilder builder) {
+          writePropertyReference(builder,
+              prefix: prefix, builderName: propertiesBuilderName);
+        });
+      });
+      return changeBuilder;
     }
 
     return null;

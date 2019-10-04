@@ -299,7 +299,24 @@ class A extends Widget {
 ''');
   }
 
-  // todo (pq): tests for no debugFillProperties method
+  test_stringField_noDebugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  String /*LINT*/field;
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  String /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('field', field));
+  }
+}
+''');
+  }
+
   // todo (pq): consider a test for a body w/ no CR
   // todo (pq): support for DiagnosticsProperty for any T that doesn't match one of the other cases
 }
