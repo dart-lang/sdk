@@ -212,8 +212,13 @@ group("dartdevc_test") {
     ":dartdevc_kernel_sdk",
     ":dartdevc_sdk",
     ":dartdevc_test_pkg",
-    "../../sdk:create_sdk",
   ]
+
+  if (use_nnbd) {
+    deps += [ "../../sdk_nnbd:create_sdk" ]
+  } else {
+    deps += [ "../../sdk:create_sdk" ]
+  }
 }
 
 # Builds everything needed to run dartdevc tests locally using test.dart without
