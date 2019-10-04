@@ -209,7 +209,7 @@ class TimelineTask {
     _stack.add(block);
     block._start({
       if (arguments != null) ...arguments,
-      if (_parent != null) 'parentId': _parent._taskId,
+      if (_parent != null) 'parentId': _parent._taskId.toRadixString(16),
     });
   }
 

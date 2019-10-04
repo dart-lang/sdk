@@ -127,8 +127,10 @@ var tests = <VMTest>[
         eventsContains(dartEvents, 'i', 'ISYNC', {'fruit': 'banana'}), isTrue);
     expect(eventsContains(dartEvents, 'X', 'apple'), isTrue);
     expect(
-        eventsContains(dartEvents, 'b', 'TASK1',
-            {'task1-start-key': 'task1-start-value', 'parentId': 42}),
+        eventsContains(dartEvents, 'b', 'TASK1', {
+          'task1-start-key': 'task1-start-value',
+          'parentId': 42.toRadixString(16)
+        }),
         isTrue);
     expect(
         eventsContains(dartEvents, 'e', 'TASK1',
