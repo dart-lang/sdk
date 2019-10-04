@@ -36,12 +36,14 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../builder/class_builder.dart';
 
+import '../builder/library_builder.dart';
+
 import '../builder/member_builder.dart';
 
 import '../builder/type_alias_builder.dart';
 
 import '../kernel/kernel_builder.dart'
-    show Builder, DynamicTypeBuilder, InvalidTypeBuilder, LibraryBuilder, Scope;
+    show Builder, DynamicTypeBuilder, InvalidTypeBuilder, Scope;
 
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -84,7 +86,7 @@ class LazyLibraryScope extends Scope {
   }
 }
 
-class DillLibraryBuilder extends LibraryBuilder {
+class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 

@@ -30,6 +30,7 @@ import 'builder.dart'
         ClassBuilder,
         Builder,
         FieldBuilder,
+        MemberBuilder,
         ModifierBuilder,
         NameIterator,
         NullabilityBuilder,
@@ -40,30 +41,190 @@ import 'builder.dart'
 
 import 'declaration.dart';
 
-abstract class LibraryBuilder extends ModifierBuilder {
-  final Scope scope;
+import 'modifier_builder.dart';
 
-  final Scope exportScope;
+abstract class LibraryBuilder implements ModifierBuilder {
+  Scope get scope;
 
-  final ScopeBuilder scopeBuilder;
+  Scope get exportScope;
 
-  final ScopeBuilder exportScopeBuilder;
+  ScopeBuilder get scopeBuilder;
 
-  final List<Export> exporters = <Export>[];
+  ScopeBuilder get exportScopeBuilder;
+
+  List<Export> get exporters;
 
   LibraryBuilder partOfLibrary;
 
+  bool mayImplementRestrictedTypes;
+
+  // Deliberately unrelated return type to statically detect more accidental
+  // use until Builder.target is fully retired.
+  @override
+  UnrelatedTarget get target;
+
+  /// Set the langauge version to a specific non-null major and minor version.
+  ///
+  /// If the language version has previously been explicitly set set (i.e. with
+  /// [explicit] set to true), any subsequent call (explicit or not) should be
+  /// ignored.
+  /// Multiple calls with [explicit] set to false should be allowed though.
+  ///
+  /// The main idea is that the .packages file specifies a default language
+  /// version, but that the library can have source code that specifies another
+  /// one which should be supported, but specifying several in code should not
+  /// change anything.
+  ///
+  /// [offset] and [length] refers to the offset and length of the source code
+  /// specifying the language version.
+  void setLanguageVersion(int major, int minor,
+      {int offset: 0, int length, bool explicit});
+
+  bool get isPart;
+
+  Loader get loader;
+
+  /// Returns the [Library] built by this builder.
+  Library get library;
+
+  /// Returns the import uri for the library.
+  ///
+  /// This is the canonical uri for the library, for instance 'dart:core'.
+  Uri get uri;
+
+  Iterator<Builder> get iterator;
+
+  NameIterator get nameIterator;
+
+  Builder addBuilder(String name, Builder declaration, int charOffset);
+
+  void addExporter(
+      LibraryBuilder exporter, List<Combinator> combinators, int charOffset);
+
+  /// Add a problem with a severity determined by the severity of the message.
+  ///
+  /// If [fileUri] is null, it defaults to `this.fileUri`.
+  ///
+  /// See `Loader.addMessage` for an explanation of the
+  /// arguments passed to this method.
+  FormattedMessage addProblem(
+      Message message, int charOffset, int length, Uri fileUri,
+      {bool wasHandled: false,
+      List<LocatedMessage> context,
+      Severity severity,
+      bool problemOnLibrary: false});
+
+  /// Returns true if the export scope was modified.
+  bool addToExportScope(String name, Builder member, [int charOffset = -1]);
+
+  void addToScope(String name, Builder member, int charOffset, bool isImport);
+
+  Builder computeAmbiguousDeclaration(
+      String name, Builder declaration, Builder other, int charOffset,
+      {bool isExport: false, bool isImport: false});
+
+  int finishDeferredLoadTearoffs();
+
+  int finishForwarders();
+
+  int finishNativeMethods();
+
+  int finishPatchMethods();
+
+  /// Looks up [constructorName] in the class named [className].
+  ///
+  /// The class is looked up in this library's export scope unless
+  /// [bypassLibraryPrivacy] is true, in which case it is looked up in the
+  /// library scope of this library.
+  ///
+  /// It is an error if no such class is found, or if the class doesn't have a
+  /// matching constructor (or factory).
+  ///
+  /// If [constructorName] is null or the empty string, it's assumed to be an
+  /// unnamed constructor. it's an error if [constructorName] starts with
+  /// `"_"`, and [bypassLibraryPrivacy] is false.
+  MemberBuilder getConstructor(String className,
+      {String constructorName, bool bypassLibraryPrivacy: false});
+
+  int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType);
+
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
+  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
+      ClassBuilder objectClass);
+
+  void becomeCoreLibrary();
+
+  void addSyntheticDeclarationOfDynamic();
+
+  /// Lookups the member [name] declared in this library.
+  ///
+  /// If [required] is `true` and no member is found an internal problem is
+  /// reported.
+  Builder lookupLocalMember(String name, {bool required: false});
+
+  Builder lookup(String name, int charOffset, Uri fileUri);
+
+  /// If this is a patch library, apply its patches to [origin].
+  void applyPatches();
+
+  void recordAccess(int charOffset, int length, Uri fileUri);
+
+  void buildOutlineExpressions();
+
+  List<FieldBuilder> takeImplicitlyTypedFields();
+
+  bool get isNonNullableByDefault;
+
+  Nullability get nullable;
+
+  Nullability get nonNullable;
+
+  Nullability nullableIfTrue(bool isNullable);
+
+  NullabilityBuilder get nullableBuilder;
+
+  NullabilityBuilder get nonNullableBuilder;
+
+  NullabilityBuilder nullableBuilderIfTrue(bool isNullable);
+}
+
+abstract class LibraryBuilderImpl extends ModifierBuilderImpl
+    implements LibraryBuilder {
+  @override
+  final Scope scope;
+
+  @override
+  final Scope exportScope;
+
+  @override
+  final ScopeBuilder scopeBuilder;
+
+  @override
+  final ScopeBuilder exportScopeBuilder;
+
+  @override
+  final List<Export> exporters = <Export>[];
+
+  @override
+  LibraryBuilder partOfLibrary;
+
+  @override
   bool mayImplementRestrictedTypes = false;
 
-  LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
+  LibraryBuilderImpl(Uri fileUri, this.scope, this.exportScope)
       : scopeBuilder = new ScopeBuilder(scope),
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  @override
   bool get isSynthetic => false;
 
   // Deliberately unrelated return type to statically detect more accidental
   // use until Builder.target is fully retired.
+  @override
   UnrelatedTarget get target => unsupported(
       "LibraryBuilder.target is deprecated. "
       "Use LibraryBuilder.library instead.",
@@ -84,51 +245,45 @@ abstract class LibraryBuilder extends ModifierBuilder {
   ///
   /// [offset] and [length] refers to the offset and length of the source code
   /// specifying the language version.
+  @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length, bool explicit});
 
   @override
   Builder get parent => null;
 
+  @override
   bool get isPart => false;
 
   @override
   String get debugName => "LibraryBuilder";
 
+  @override
   Loader get loader;
 
   @override
   int get modifiers => 0;
 
-  /// Returns the [Library] built by this builder.
-  Library get library;
-
-  /// Returns the import uri for the library.
-  ///
-  /// This is the canonical uri for the library, for instance 'dart:core'.
+  @override
   Uri get uri;
 
+  @override
   Iterator<Builder> get iterator {
     return new LibraryLocalDeclarationIterator(this);
   }
 
+  @override
   NameIterator get nameIterator {
     return new LibraryLocalDeclarationNameIterator(this);
   }
 
-  Builder addBuilder(String name, Builder declaration, int charOffset);
-
+  @override
   void addExporter(
       LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
   }
 
-  /// Add a problem with a severity determined by the severity of the message.
-  ///
-  /// If [fileUri] is null, it defaults to `this.fileUri`.
-  ///
-  /// See `Loader.addMessage` for an explanation of the
-  /// arguments passed to this method.
+  @override
   FormattedMessage addProblem(
       Message message, int charOffset, int length, Uri fileUri,
       {bool wasHandled: false,
@@ -144,7 +299,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
         problemOnLibrary: true);
   }
 
-  /// Returns true if the export scope was modified.
+  @override
   bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
@@ -164,33 +319,20 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return true;
   }
 
-  void addToScope(String name, Builder member, int charOffset, bool isImport);
-
-  Builder computeAmbiguousDeclaration(
-      String name, Builder declaration, Builder other, int charOffset,
-      {bool isExport: false, bool isImport: false});
-
+  @override
   int finishDeferredLoadTearoffs() => 0;
 
+  @override
   int finishForwarders() => 0;
 
+  @override
   int finishNativeMethods() => 0;
 
+  @override
   int finishPatchMethods() => 0;
 
-  /// Looks up [constructorName] in the class named [className].
-  ///
-  /// The class is looked up in this library's export scope unless
-  /// [bypassLibraryPrivacy] is true, in which case it is looked up in the
-  /// library scope of this library.
-  ///
-  /// It is an error if no such class is found, or if the class doesn't have a
-  /// matching constructor (or factory).
-  ///
-  /// If [constructorName] is null or the empty string, it's assumed to be an
-  /// unnamed constructor. it's an error if [constructorName] starts with
-  /// `"_"`, and [bypassLibraryPrivacy] is false.
-  Builder getConstructor(String className,
+  @override
+  MemberBuilder getConstructor(String className,
       {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
@@ -205,7 +347,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      Builder constructor =
+      MemberBuilder constructor =
           cls.findConstructorOrFactory(constructorName, -1, null, this);
       if (constructor == null) {
         // Fall-through to internal error below.
@@ -224,29 +366,23 @@ abstract class LibraryBuilder extends ModifierBuilder {
         null);
   }
 
+  @override
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) => 0;
 
-  /// This method instantiates type parameters to their bounds in some cases
-  /// where they were omitted by the programmer and not provided by the type
-  /// inference.  The method returns the number of distinct type variables
-  /// that were instantiated in this library.
+  @override
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder bottomType,
       ClassBuilder objectClass) {
     return 0;
   }
 
+  @override
   void becomeCoreLibrary() {
     if (scope.local["dynamic"] == null) {
       addSyntheticDeclarationOfDynamic();
     }
   }
 
-  void addSyntheticDeclarationOfDynamic();
-
-  /// Lookups the member [name] declared in this library.
-  ///
-  /// If [required] is `true` and no member is found an internal problem is
-  /// reported.
+  @override
   Builder lookupLocalMember(String name, {bool required: false}) {
     Builder builder = scope.local[name];
     if (required && builder == null) {
@@ -259,35 +395,43 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return builder;
   }
 
+  @override
   Builder lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
   }
 
-  /// If this is a patch library, apply its patches to [origin].
+  @override
   void applyPatches() {
     if (!isPatch) return;
     unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
 
+  @override
   void recordAccess(int charOffset, int length, Uri fileUri) {}
 
+  @override
   void buildOutlineExpressions() {}
 
+  @override
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
 
   // TODO(38287): Compute the predicate using the library version instead.
+  @override
   bool get isNonNullableByDefault => loader.target.enableNonNullable;
 
+  @override
   Nullability get nullable {
     return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
   }
 
+  @override
   Nullability get nonNullable {
     return isNonNullableByDefault
         ? Nullability.nonNullable
         : Nullability.legacy;
   }
 
+  @override
   Nullability nullableIfTrue(bool isNullable) {
     if (isNonNullableByDefault) {
       return isNullable ? Nullability.nullable : Nullability.nonNullable;
@@ -295,16 +439,19 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return Nullability.legacy;
   }
 
+  @override
   NullabilityBuilder get nullableBuilder {
     return isNonNullableByDefault
         ? const NullabilityBuilder.nullable()
         : const NullabilityBuilder.omitted();
   }
 
+  @override
   NullabilityBuilder get nonNullableBuilder {
     return const NullabilityBuilder.omitted();
   }
 
+  @override
   NullabilityBuilder nullableBuilderIfTrue(bool isNullable) {
     return isNullable
         ? const NullabilityBuilder.nullable()

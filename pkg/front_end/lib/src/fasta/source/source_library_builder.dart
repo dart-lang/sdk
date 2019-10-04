@@ -60,13 +60,12 @@ import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
     show
+        Builder,
         ClassBuilder,
         ConstructorReferenceBuilder,
-        Builder,
         EnumConstantInfo,
         FormalParameterBuilder,
         FunctionTypeBuilder,
-        LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
         NameIterator,
@@ -82,6 +81,8 @@ import '../builder/builder.dart'
         flattenName;
 
 import '../builder/extension_builder.dart';
+
+import '../builder/library_builder.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -228,7 +229,7 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
-class SourceLibraryBuilder extends LibraryBuilder {
+class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
   final SourceLoader loader;

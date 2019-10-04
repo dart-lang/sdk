@@ -4,12 +4,7 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart'
-    show
-        LibraryBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
+import 'builder.dart' show LibraryBuilder, NullabilityBuilder, TypeBuilder;
 
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
@@ -29,7 +24,9 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'declaration.dart';
 
-class TypeVariableBuilder extends TypeDeclarationBuilder {
+import 'type_declaration_builder.dart';
+
+class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
   TypeBuilder bound;
 
   TypeBuilder defaultType;

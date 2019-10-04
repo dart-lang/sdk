@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
+import 'package:front_end/src/fasta/builder/declaration.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -187,7 +187,7 @@ class TestListener extends TypePromotionLookAheadListener {
   }
 }
 
-class DebugDeclaration extends Builder {
+class DebugDeclaration extends BuilderImpl {
   final String name;
 
   @override

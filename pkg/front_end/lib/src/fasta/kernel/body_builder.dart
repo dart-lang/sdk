@@ -9,6 +9,8 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../builder/declaration.dart';
+
 import '../builder/declaration_builder.dart';
 
 import '../builder/extension_builder.dart';
@@ -5410,7 +5412,7 @@ class Operator {
   String toString() => "operator($name)";
 }
 
-class JumpTarget extends Builder {
+class JumpTarget extends BuilderImpl {
   final List<Statement> users = <Statement>[];
 
   final JumpTargetKind kind;
@@ -5480,7 +5482,7 @@ class JumpTarget extends Builder {
   String get fullNameForErrors => "<jump-target>";
 }
 
-class LabelTarget extends Builder implements JumpTarget {
+class LabelTarget extends BuilderImpl implements JumpTarget {
   @override
   final MemberBuilder parent;
 

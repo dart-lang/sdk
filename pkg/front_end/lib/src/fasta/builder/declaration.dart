@@ -15,33 +15,31 @@ abstract class Builder {
   /// block scopes.
   Builder next;
 
-  Builder();
-
   Builder get parent;
 
   Uri get fileUri;
 
   int get charOffset;
 
-  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
+  get target;
 
-  Builder get origin => this;
+  Builder get origin;
 
   String get fullNameForErrors;
 
-  bool get hasProblem => false;
+  bool get hasProblem;
 
-  bool get isConst => false;
+  bool get isConst;
 
-  bool get isConstructor => false;
+  bool get isConstructor;
 
-  bool get isFactory => false;
+  bool get isFactory;
 
-  bool get isField => false;
+  bool get isField;
 
-  bool get isFinal => false;
+  bool get isFinal;
 
-  bool get isGetter => false;
+  bool get isGetter;
 
   /// Returns `true` if this builder is an extension declaration.
   ///
@@ -50,7 +48,7 @@ abstract class Builder {
   ///    class A {}
   ///    extension B on A {}
   ///
-  bool get isExtension => false;
+  bool get isExtension;
 
   /// Returns `true` if this builder is a member of a class, mixin, or extension
   /// declaration.
@@ -72,7 +70,7 @@ abstract class Builder {
   ///       static method3b() {}
   ///     }
   ///
-  bool get isDeclarationMember => false;
+  bool get isDeclarationMember;
 
   /// Returns `true` if this builder is a member of a class or mixin
   /// declaration.
@@ -94,7 +92,7 @@ abstract class Builder {
   ///       static method3b() {} // Not a class member.
   ///     }
   ///
-  bool get isClassMember => false;
+  bool get isClassMember;
 
   /// Returns `true` if this builder is a member of an extension declaration.
   ///
@@ -114,7 +112,7 @@ abstract class Builder {
   ///       static method3b() {}
   ///     }
   ///
-  bool get isExtensionMember => false;
+  bool get isExtensionMember;
 
   /// Returns `true` if this builder is an instance member of a class, mixin, or
   /// extension declaration.
@@ -135,7 +133,7 @@ abstract class Builder {
   ///       static method3b() {} // Not a declaration instance member.
   ///     }
   ///
-  bool get isDeclarationInstanceMember => false;
+  bool get isDeclarationInstanceMember;
 
   /// Returns `true` if this builder is an instance member of a class or mixin
   /// extension declaration.
@@ -156,7 +154,7 @@ abstract class Builder {
   ///       static method3b() {} // Not a class instance member.
   ///     }
   ///
-  bool get isClassInstanceMember => false;
+  bool get isClassInstanceMember;
 
   /// Returns `true` if this builder is an instance member of an extension
   /// declaration.
@@ -177,51 +175,153 @@ abstract class Builder {
   ///       static method3b() {} // Not an extension instance member.
   ///     }
   ///
+  bool get isExtensionInstanceMember;
+
+  bool get isLocal;
+
+  bool get isPatch;
+
+  bool get isRegularMethod;
+
+  bool get isSetter;
+
+  bool get isStatic;
+
+  bool get isSynthetic;
+
+  bool get isTopLevel;
+
+  bool get isTypeDeclaration;
+
+  bool get isTypeVariable;
+
+  bool get isMixinApplication;
+
+  bool get isNamedMixinApplication;
+
+  bool get isAnonymousMixinApplication;
+
+  /// Applies [patch] to this declaration.
+  void applyPatch(Builder patch);
+
+  /// Returns the number of patches that was finished.
+  int finishPatch();
+
+  /// Resolve constructors (lookup names in scope) recorded in this builder and
+  /// return the number of constructors resolved.
+  int resolveConstructors(covariant Builder parent);
+
+  /// Return `true` if this builder is a duplicate of another with the same
+  /// name. This is `false` for the builder first declared amongst duplicates.
+  bool get isDuplicate;
+}
+
+abstract class BuilderImpl implements Builder {
+  @override
+  Builder next;
+
+  BuilderImpl();
+
+  @override
+  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
+
+  @override
+  Builder get origin => this;
+
+  bool get hasProblem => false;
+
+  @override
+  bool get isConst => false;
+
+  @override
+  bool get isConstructor => false;
+
+  @override
+  bool get isFactory => false;
+
+  @override
+  bool get isField => false;
+
+  @override
+  bool get isFinal => false;
+
+  @override
+  bool get isGetter => false;
+
+  @override
+  bool get isExtension => false;
+
+  @override
+  bool get isDeclarationMember => false;
+
+  @override
+  bool get isClassMember => false;
+
+  @override
+  bool get isExtensionMember => false;
+
+  @override
+  bool get isDeclarationInstanceMember => false;
+
+  @override
+  bool get isClassInstanceMember => false;
+
+  @override
   bool get isExtensionInstanceMember => false;
 
+  @override
   bool get isLocal => false;
 
+  @override
   bool get isPatch => this != origin;
 
+  @override
   bool get isRegularMethod => false;
 
+  @override
   bool get isSetter => false;
 
+  @override
   bool get isStatic => false;
 
+  @override
   bool get isSynthetic => false;
 
+  @override
   bool get isTopLevel => false;
 
+  @override
   bool get isTypeDeclaration => false;
 
+  @override
   bool get isTypeVariable => false;
 
+  @override
   bool get isMixinApplication => false;
 
+  @override
   bool get isNamedMixinApplication => false;
 
+  @override
   bool get isAnonymousMixinApplication {
     return isMixinApplication && !isNamedMixinApplication;
   }
 
-  /// Applies [patch] to this declaration.
+  @override
   void applyPatch(Builder patch) {
     unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
   }
 
-  /// Returns the number of patches that was finished.
+  @override
   int finishPatch() {
     if (!isPatch) return 0;
     unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
     return 0;
   }
 
-  /// Resolve constructors (lookup names in scope) recorded in this builder and
-  /// return the number of constructors resolved.
+  @override
   int resolveConstructors(covariant Builder parent) => 0;
 
-  /// Return `true` if this builder is a duplicate of another with the same
-  /// name. This is `false` for the builder first declared amongst duplicates.
+  @override
   bool get isDuplicate => next != null;
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../builder/declaration.dart';
+
 import 'kernel_builder.dart' show Builder, Scope;
 
 /// Scope that returns an [UnlinkedDeclaration] if a name can't be resolved.
@@ -16,7 +18,7 @@ class UnlinkedScope extends Scope {
   }
 }
 
-class UnlinkedDeclaration extends Builder {
+class UnlinkedDeclaration extends BuilderImpl {
   final String name;
 
   final bool isInstanceScope;

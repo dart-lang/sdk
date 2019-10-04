@@ -19,12 +19,12 @@ import 'package:kernel/ast.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'kernel_builder.dart' show Builder;
+import '../builder/declaration.dart';
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends Builder {
+class LoadLibraryBuilder extends BuilderImpl {
   final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;

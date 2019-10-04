@@ -19,32 +19,74 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
-import 'builder.dart' show Builder;
+import 'declaration.dart';
 
-abstract class ModifierBuilder extends Builder {
-  Builder parent;
-
-  final int charOffset;
-
-  final Uri fileUri;
-
-  ModifierBuilder(this.parent, this.charOffset, [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri;
-
+abstract class ModifierBuilder implements Builder {
   int get modifiers;
 
+  bool get isAbstract;
+
+  bool get isCovariant;
+
+  bool get isExternal;
+
+  bool get isLate;
+
+  // TODO(johnniwinther): Add this when semantics for
+  // `FormalParameterBuilder.isRequired` has been updated to support required
+  // named parameters.
+  //bool get isRequired;
+
+  bool get hasInitializer;
+
+  bool get isInitializingFormal;
+
+  bool get hasConstConstructor;
+
+  bool get isMixin;
+
+  String get name;
+
+  bool get isNative;
+
+  String get debugName;
+
+  StringBuffer printOn(StringBuffer buffer);
+}
+
+abstract class ModifierBuilderImpl extends BuilderImpl
+    implements ModifierBuilder {
+  @override
+  Builder parent;
+
+  @override
+  final int charOffset;
+
+  @override
+  final Uri fileUri;
+
+  ModifierBuilderImpl(this.parent, this.charOffset, [Uri fileUri])
+      : fileUri = fileUri ?? parent?.fileUri;
+
+  @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
+  @override
   bool get isConst => (modifiers & constMask) != 0;
 
+  @override
   bool get isCovariant => (modifiers & covariantMask) != 0;
 
+  @override
   bool get isExternal => (modifiers & externalMask) != 0;
 
+  @override
   bool get isFinal => (modifiers & finalMask) != 0;
 
+  @override
   bool get isStatic => (modifiers & staticMask) != 0;
 
+  @override
   bool get isLate => (modifiers & lateMask) != 0;
 
   // TODO(johnniwinther): Add this when semantics for
@@ -52,28 +94,32 @@ abstract class ModifierBuilder extends Builder {
   // named parameters.
   //bool get isRequired => (modifiers & requiredMask) != 0;
 
+  @override
   bool get isNamedMixinApplication {
     return (modifiers & namedMixinApplicationMask) != 0;
   }
 
+  @override
   bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
+  @override
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
+  @override
   bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
 
+  @override
   bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
 
-  String get name;
-
+  @override
   bool get isNative => false;
 
-  String get debugName;
-
+  @override
   StringBuffer printOn(StringBuffer buffer) {
     return buffer..write(name ?? fullNameForErrors);
   }
 
+  @override
   String toString() =>
       "${isPatch ? 'patch ' : ''}$debugName(${printOn(new StringBuffer())})";
 }

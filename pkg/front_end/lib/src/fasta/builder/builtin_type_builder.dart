@@ -6,14 +6,11 @@ library fasta.builtin_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builder.dart'
-    show
-        LibraryBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
+import 'builder.dart' show LibraryBuilder, NullabilityBuilder, TypeBuilder;
 
-abstract class BuiltinTypeBuilder extends TypeDeclarationBuilder {
+import 'type_declaration_builder.dart';
+
+abstract class BuiltinTypeBuilder extends TypeDeclarationBuilderImpl {
   final DartType type;
 
   BuiltinTypeBuilder(

@@ -7,16 +7,12 @@ library fasta.dill_class_builder;
 import 'package:kernel/ast.dart'
     show Class, DartType, Member, Supertype, TypeParameter;
 
+import '../builder/class_builder.dart';
+
 import '../problems.dart' show unimplemented;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        Scope,
-        TypeVariableBuilder;
+    show TypeBuilder, LibraryBuilder, MemberBuilder, Scope, TypeVariableBuilder;
 
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 
@@ -24,7 +20,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
-class DillClassBuilder extends ClassBuilder {
+class DillClassBuilder extends ClassBuilderImpl {
   final Class cls;
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
