@@ -28,6 +28,12 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
   AssignmentExpression get node => super.node as AssignmentExpression;
 }
 
+/// An edge origin used for edges that originated because of a default value on
+/// a parameter.
+class DefaultValueOrigin extends EdgeOrigin {
+  DefaultValueOrigin(Source source, Expression node) : super(source, node);
+}
+
 /// Common interface for classes providing information about how an edge came
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.

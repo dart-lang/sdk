@@ -563,7 +563,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       _handleAssignment(defaultValue,
           destinationType: getOrComputeElementType(node.declaredElement),
-          canInsertChecks: false);
+          fromDefaultValue: true);
     }
     return null;
   }
@@ -1591,7 +1591,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Expression destinationExpression,
       AssignmentExpression compoundOperatorInfo,
       Expression questionAssignNode,
-      bool canInsertChecks = true}) {
+      bool fromDefaultValue = false}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
         'Either destinationExpression or destinationType should be supplied, '
@@ -1621,12 +1621,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         throw StateError('No type computed for ${expression.runtimeType} '
             '(${expression.toSource()}) offset=${expression.offset}');
       }
-      ExpressionChecksOrigin expressionChecksOrigin;
-      if (canInsertChecks && !sourceType.type.isDynamic) {
-        expressionChecksOrigin = ExpressionChecksOrigin(
-            source, expression, ExpressionChecks(expression.end));
-        _variables.recordExpressionChecks(
-            source, expression, expressionChecksOrigin);
+      EdgeOrigin edgeOrigin;
+      if (!sourceType.type.isDynamic) {
+        if (fromDefaultValue) {
+          edgeOrigin = DefaultValueOrigin(source, expression);
+        } else {
+          ExpressionChecksOrigin expressionChecksOrigin =
+              ExpressionChecksOrigin(
+                  source, expression, ExpressionChecks(expression.end));
+          _variables.recordExpressionChecks(
+              source, expression, expressionChecksOrigin);
+          edgeOrigin = expressionChecksOrigin;
+        }
       }
       if (compoundOperatorInfo != null) {
         var compoundOperatorMethod = compoundOperatorInfo.staticElement;
@@ -1640,7 +1646,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType compoundOperatorType =
               getOrComputeElementType(compoundOperatorMethod);
           assert(compoundOperatorType.positionalParameters.length > 0);
-          _checkAssignment(expressionChecksOrigin,
+          _checkAssignment(edgeOrigin,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
               hard: _postDominatedLocals.isReferenceInScope(expression));
@@ -1655,7 +1661,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _dynamicType;
         }
       } else {
-        _checkAssignment(expressionChecksOrigin,
+        _checkAssignment(edgeOrigin,
             source: sourceType,
             destination: destinationType,
             hard: questionAssignNode == null &&
