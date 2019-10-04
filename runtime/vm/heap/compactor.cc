@@ -35,7 +35,10 @@ static const intptr_t kBlocksPerPage = kPageSize / kBlockSize;
 // the block's new start address.
 class ForwardingBlock {
  public:
-  ForwardingBlock() : new_address_(0), live_bitvector_(0) {}
+  void Clear() {
+    new_address_ = 0;
+    live_bitvector_ = 0;
+  }
 
   uword Lookup(uword old_addr) const {
     uword block_offset = old_addr & ~kBlockMask;
@@ -87,7 +90,11 @@ class ForwardingBlock {
 
 class ForwardingPage {
  public:
-  ForwardingPage() : blocks_() {}
+  void Clear() {
+    for (intptr_t i = 0; i < kBlocksPerPage; i++) {
+      blocks_[i].Clear();
+    }
+  }
 
   uword Lookup(uword old_addr) { return BlockFor(old_addr)->Lookup(old_addr); }
 
@@ -102,19 +109,16 @@ class ForwardingPage {
  private:
   ForwardingBlock blocks_[kBlocksPerPage];
 
-  DISALLOW_COPY_AND_ASSIGN(ForwardingPage);
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ForwardingPage);
 };
 
-ForwardingPage* HeapPage::AllocateForwardingPage() {
+void HeapPage::AllocateForwardingPage() {
   ASSERT(forwarding_page_ == NULL);
-  forwarding_page_ = new ForwardingPage();
-  return forwarding_page_;
-}
-
-void HeapPage::FreeForwardingPage() {
-  ASSERT(forwarding_page_ != NULL);
-  delete forwarding_page_;
-  forwarding_page_ = NULL;
+  ASSERT((object_start() + sizeof(ForwardingPage)) < object_end());
+  ASSERT(Utils::IsAligned(sizeof(ForwardingPage), kObjectAlignment));
+  object_end_ -= sizeof(ForwardingPage);
+  forwarding_page_ = reinterpret_cast<ForwardingPage*>(object_end_);
 }
 
 class CompactorTask : public ThreadPool::Task {
@@ -301,7 +305,6 @@ void GCCompactor::Compact(HeapPage* pages,
         HeapPage* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
             -(page->memory_->size() >> kWordSizeLog2));
-        page->FreeForwardingPage();
         page->Deallocate();
         page = next;
       }
@@ -317,11 +320,6 @@ void GCCompactor::Compact(HeapPage* pages,
 
     delete[] heads;
     delete[] tails;
-  }
-
-  // Free forwarding information from the suriving pages.
-  for (HeapPage* page = pages; page != NULL; page = page->next()) {
-    page->FreeForwardingPage();
   }
 }
 
@@ -430,7 +428,9 @@ void CompactorTask::PlanPage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  auto forwarding_page = page->AllocateForwardingPage();
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  ASSERT(forwarding_page != nullptr);
+  forwarding_page->Clear();
   while (current < end) {
     current = PlanBlock(current, forwarding_page);
   }
@@ -440,7 +440,8 @@ void CompactorTask::SlidePage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
-  auto forwarding_page = page->forwarding_page();
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  ASSERT(forwarding_page != nullptr);
   while (current < end) {
     current = SlideBlock(current, forwarding_page);
   }
@@ -603,6 +604,7 @@ void GCCompactor::ForwardPointer(RawObject** ptr) {
 
   RawObject* new_target =
       RawObject::FromAddr(forwarding_page->Lookup(old_addr));
+  ASSERT(!new_target->IsSmiOrNewObject());
   *ptr = new_target;
 }
 

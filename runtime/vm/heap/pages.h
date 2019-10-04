@@ -50,8 +50,7 @@ class HeapPage {
   }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
-  ForwardingPage* AllocateForwardingPage();
-  void FreeForwardingPage();
+  void AllocateForwardingPage();
 
   PageType type() const { return type_; }
 
