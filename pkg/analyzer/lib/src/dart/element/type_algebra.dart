@@ -42,6 +42,43 @@ FreshTypeParameters getFreshTypeParameters(
   return new FreshTypeParameters(freshParameters, substitution);
 }
 
+/// Given a generic function [type] of a class member (so that it does not
+/// carry its element and type arguments), substitute its type parameters with
+/// the [newTypeParameters] in the formal parameters and return type.
+FunctionType replaceTypeParameters(
+  FunctionTypeImpl type,
+  List<TypeParameterElement> newTypeParameters,
+) {
+  assert(newTypeParameters.length == type.typeFormals.length);
+  if (newTypeParameters.isEmpty) {
+    return type;
+  }
+
+  var typeArguments = newTypeParameters
+      .map((e) => e.instantiate(nullabilitySuffix: type.nullabilitySuffix))
+      .toList();
+  var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
+
+  ParameterElement transformParameter(ParameterElement p) {
+    var type = p.type;
+    var newType = substitution.substituteType(type);
+    if (identical(newType, type)) return p;
+    return ParameterElementImpl.synthetic(
+      p.name,
+      newType,
+      // ignore: deprecated_member_use_from_same_package
+      p.parameterKind,
+    )..isExplicitlyCovariant = p.isCovariant;
+  }
+
+  return FunctionTypeImpl.synthetic(
+    substitution.substituteType(type.returnType),
+    newTypeParameters,
+    type.parameters.map(transformParameter).toList(),
+    nullabilitySuffix: type.nullabilitySuffix,
+  );
+}
+
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
 ///

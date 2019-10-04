@@ -2856,6 +2856,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    * Return a list containing the type parameter types defined by the given
    * array of type parameter elements ([typeParameters]).
    */
+  @deprecated
   static List<TypeParameterType> getTypes(
       List<TypeParameterElement> typeParameters) {
     int count = typeParameters.length;

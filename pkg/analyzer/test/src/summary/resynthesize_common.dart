@@ -1345,9 +1345,9 @@ typedef F(G value);
 typedef G(F value);
 ''');
     checkElementText(library, r'''
-notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic Function(dynamic)) value);
-notSimplyBounded typedef G = dynamic Function(dynamic Function(dynamic) value);
-notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic Function(dynamic)))> {
+notSimplyBounded typedef F = dynamic Function(dynamic Function(dynamic) value);
+notSimplyBounded typedef G = dynamic Function(dynamic value);
+notSimplyBounded class C<T extends dynamic Function(dynamic Function(dynamic))> {
 }
 ''');
   }

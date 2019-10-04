@@ -1312,16 +1312,17 @@ class ClassElementImpl extends AbstractClassElementImpl
     // to produce constructors for this class.  We want to be robust in the
     // face of errors, so drop any extra type arguments and fill in any missing
     // ones with `dynamic`.
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(supertype.typeParameters);
+    var superTypeParameters = supertype.typeParameters;
     List<DartType> argumentTypes = new List<DartType>.filled(
-        parameterTypes.length, DynamicTypeImpl.instance);
+        superTypeParameters.length, DynamicTypeImpl.instance);
     for (int i = 0; i < supertype.typeArguments.length; i++) {
       if (i >= argumentTypes.length) {
         break;
       }
       argumentTypes[i] = supertype.typeArguments[i];
     }
+    var substitution =
+        Substitution.fromPairs(superTypeParameters, argumentTypes);
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
@@ -1353,7 +1354,7 @@ class ClassElementImpl extends AbstractClassElementImpl
           implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.isSynthetic = true;
           implicitParameter.type =
-              superParameter.type.substitute2(argumentTypes, parameterTypes);
+              substitution.substituteType(superParameter.type);
           implicitParameters[i] = implicitParameter;
         }
         implicitConstructor.parameters = implicitParameters;
@@ -6443,7 +6444,10 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   FunctionType instantiate(List<DartType> argumentTypes) {
-    return doInstantiate(this, argumentTypes);
+    return instantiate2(
+      typeArguments: argumentTypes,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   @override
@@ -6451,10 +6455,22 @@ class GenericTypeAliasElementImpl extends ElementImpl
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
+    if (function == null) {
+      return null;
+    }
+
+    if (typeArguments.length != typeParameters.length) {
+      throw new ArgumentError(
+          "typeArguments.length (${typeArguments.length}) != "
+          "typeParameters.length (${typeParameters.length})");
+    }
+
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+    var type = substitution.substituteType(function.type) as FunctionType;
     return FunctionTypeImpl.synthetic(
-      returnType,
-      typeParameters,
-      parameters,
+      type.returnType,
+      type.typeFormals,
+      type.parameters,
       element: this,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
@@ -6466,47 +6482,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(typeParameters, visitor);
     function?.accept(visitor);
-  }
-
-  static FunctionType doInstantiate(
-      FunctionTypeAliasElement element, List<DartType> argumentTypes) {
-    if (argumentTypes.length != element.typeParameters.length) {
-      throw new ArgumentError('Wrong number of type arguments supplied');
-    }
-    if (element.typeParameters.isEmpty) return element.function.type;
-    return typeAfterSubstitution(element, argumentTypes);
-  }
-
-  /// Return the type of the function defined by this typedef after substituting
-  /// the given [typeArguments] for the type parameters defined for this typedef
-  /// (but not the type parameters defined by the function). If the number of
-  /// [typeArguments] does not match the number of type parameters, then
-  /// `dynamic` will be used in place of each of the type arguments.
-  static FunctionType typeAfterSubstitution(
-      FunctionTypeAliasElement element, List<DartType> typeArguments) {
-    GenericFunctionTypeElement function = element.function;
-    if (function == null) {
-      return null;
-    }
-    FunctionType functionType = function.type;
-
-    List<TypeParameterElement> parameterElements = element.typeParameters;
-    int parameterCount = parameterElements.length;
-
-    if (typeArguments == null ||
-        parameterElements.length != typeArguments.length) {
-      DartType dynamicType = element.context.typeProvider.dynamicType;
-      typeArguments = new List<DartType>.filled(parameterCount, dynamicType);
-    }
-
-    if (element is GenericTypeAliasElementImpl && element.linkedNode != null) {
-      return Substitution.fromPairs(parameterElements, typeArguments)
-          .substituteType(functionType);
-    }
-
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(parameterElements);
-    return functionType.substitute2(typeArguments, parameterTypes);
   }
 }
 
