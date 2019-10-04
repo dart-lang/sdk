@@ -1164,9 +1164,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         parentFunction != null &&
         (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
             parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar)) {
+      final savedSourcePosition = asm.currentSourcePosition;
+      _recordSourcePosition(TreeNode.noOffset);
       _genDirectCall(
           clearAsyncThreadStackTrace, objectTable.getArgDescHandle(0), 0);
       asm.emitDrop1();
+      asm.currentSourcePosition = savedSourcePosition;
     }
 
     asm.emitReturnTOS();
