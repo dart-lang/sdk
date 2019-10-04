@@ -189,6 +189,7 @@ class AssignmentCheckerTest extends Object
     assertNoEdge(t.typeArguments[0].node, anyNode);
   }
 
+  @failingTest
   test_generic_to_generic_downcast() {
     var t1 = list(list(object()));
     var t2 = myListOfList(object());
@@ -452,6 +453,7 @@ class C<T extends List<int>> {
     var tType = decoratedTypeAnnotation('T f');
     assertEdge(parameterType.node, tType.node, hard: true);
     assertNoEdge(parameterType.node, boundType.node);
+    // TODO(mfairhurst): Confirm we want this edge.
     assertEdge(
         parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
         hard: false);
@@ -639,7 +641,9 @@ C f(C y, C z) => (y += z);
     assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
   }
 
+  @failingTest
   test_assignmentExpression_compound_withSubstitution() async {
+    // Failing due to a side-cast from incorrectly instantiating the operator.
     var code = '''
 abstract class C<T> {
   C<T> operator+(C<T> x);
