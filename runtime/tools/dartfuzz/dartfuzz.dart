@@ -1085,13 +1085,7 @@ class DartFuzz {
     if (DartType.isMapType(tp)) {
       // Emit construct for the map key type.
       final indexType = dartType.indexType(tp);
-      // This check determines whether we are emitting a global variable.
-      // I.e. whenever we are not currently emitting part of a class.
-      if (currentMethod != null) {
-        emitExpr(depth, indexType, rhsFilter: rhsFilter);
-      } else {
-        emitLiteral(depth, indexType, rhsFilter: rhsFilter);
-      }
+      emitElementExpr(depth, indexType, rhsFilter: rhsFilter);
       emit(' : ');
       // Emit construct for the map value type.
       emitElementExpr(depth, elementType, rhsFilter: rhsFilter);
