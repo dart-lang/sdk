@@ -1658,7 +1658,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         _checkAssignment(expressionChecksOrigin,
             source: sourceType,
             destination: destinationType,
-            hard: _postDominatedLocals.isReferenceInScope(expression));
+            hard: questionAssignNode == null &&
+                _postDominatedLocals.isReferenceInScope(expression));
       }
       if (questionAssignNode != null) {
         // a ??= b is only nullable if both a and b are nullable.
