@@ -1060,6 +1060,17 @@ void helpAndFail(String message) {
 }
 
 void main(List<String> arguments) {
+  // Expand `@path/to/file`
+  // When running from bazel, argument of the form `@path/to/file` might be
+  // provided. It needs to be replaced by reading all the contents of the
+  // file and expanding them into the resulting argument list.
+  //
+  // TODO: Move this logic to a single place and share it among all tools.
+  if (arguments.last.startsWith('@')) {
+    var extra = _readLines(arguments.last.substring(1));
+    arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
+  }
+
   // Since the sdk/bin/dart2js script adds its own arguments in front of
   // user-supplied arguments we search for '--batch' at the end of the list.
   if (arguments.length > 0 && arguments.last == "--batch") {
@@ -1067,6 +1078,11 @@ void main(List<String> arguments) {
     return;
   }
   internalMain(arguments);
+}
+
+/// Return all non-empty lines in a file found at [path].
+Iterable<String> _readLines(String path) {
+  return File(path).readAsLinesSync().where((line) => line.isNotEmpty);
 }
 
 typedef void ExitFunc(int exitCode);
