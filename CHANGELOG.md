@@ -1,3 +1,8 @@
+# 0.1.100
+
+* (internal) stop accessing `staticType` in favor of getting type of `FormalParameter`s from the declared element
+* (internal) remove stale analyzer work-around for collecting `TypeParameterElement`s in `prefer_const_constructors`
+
 # 0.1.99
 
 * fixed unsafe cast in `overridden_fields`
