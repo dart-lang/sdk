@@ -88,13 +88,10 @@ main() { foo(() {}); }
 
 #### Linter
 
-The Linter was updated to `0.1.99`, which includes:
+The Linter was updated to `0.1.100`, which includes:
 
-* fixed unsafe casts in `overridden_fields`
-* (internal) migration to the mock SDK in `package:analyzer` for testing
-* fixed empty argument list access in `use_full_hex_values_for_flutter_color_fix`
-* new lint: `prefer_relative_imports`
-* improved messages for `await_only_futures`
+* (internal) stop accessing `staticType` in favor of getting type of `FormalParameter`s from the declared element
+* (internal) remove stale analyzer work-around for collecting `TypeParameterElement`s in `prefer_const_constructors`
 
 ## 2.5.1 - 2019-09-27
 
