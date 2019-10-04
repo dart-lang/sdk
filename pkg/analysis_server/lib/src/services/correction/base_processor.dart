@@ -100,10 +100,9 @@ abstract class BaseProcessor {
     }
 
     var constructorName;
-    var hasTypeArgs = false;
-    if (type.isDartCoreBool) {
-      constructorName = 'DiagnosticsProperty<bool>';
-    } else if (type.isDartCoreInt) {
+    var typeArgs;
+
+    if (type.isDartCoreInt) {
       constructorName = 'IntProperty';
     } else if (type.isDartCoreDouble) {
       constructorName = 'DoubleProperty';
@@ -113,15 +112,16 @@ abstract class BaseProcessor {
       constructorName = 'EnumProperty';
     } else if (isIterable(type)) {
       constructorName = 'IterableProperty';
-      hasTypeArgs = true;
+      typeArgs = (type as InterfaceType).typeArguments;
     } else if (flutter.isColor(type)) {
       constructorName = 'ColorProperty';
     } else if (flutter.isMatrix4(type)) {
       constructorName = 'TransformProperty';
-    }
-
-    if (constructorName == null) {
-      return null;
+    } else {
+      constructorName = 'DiagnosticsProperty';
+      if (!type.isDynamic) {
+        typeArgs = [type];
+      }
     }
 
     void writePropertyReference(
@@ -130,9 +130,9 @@ abstract class BaseProcessor {
       @required String builderName,
     }) {
       builder.write("$prefix$builderName.add($constructorName");
-      if (hasTypeArgs) {
+      if (typeArgs != null) {
         builder.write('<');
-        builder.writeTypes((type as InterfaceType).typeArguments);
+        builder.writeTypes(typeArgs);
         builder.write('>');
       }
       builder.writeln("('${name.name}', ${name.name}));");

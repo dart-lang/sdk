@@ -162,6 +162,28 @@ class A extends Widget {
 ''');
   }
 
+  test_dynamicField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  dynamic /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  dynamic /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty('field', field));
+  }
+}
+''');
+  }
+
   test_enumField_debugFillProperties() async {
     await resolveTestUnit('''
 enum foo {bar}
@@ -272,6 +294,28 @@ class A extends Widget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(TransformProperty('field', field));
+  }
+}
+''');
+  }
+
+  test_objectField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  Object /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  Object /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<Object>('field', field));
   }
 }
 ''');
