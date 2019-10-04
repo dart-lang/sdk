@@ -97,7 +97,6 @@ class A {
     ]);
   }
 
-  @soloTest
   test_field_fieldFormalInitializer_required() async {
     addTestFile('''
 class A {
