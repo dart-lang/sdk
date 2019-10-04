@@ -353,7 +353,6 @@ if (target_os != current_os && target_os == "fuchsia") {
   # will not find the actual binary.
   action("copy_dart_nnbd") {
     visibility = [ ":create_common_sdk_nnbd" ]
-
     # TODO(rnystrom): This probably needs to be forked for NNBD.
     dart_label = "../runtime/bin:dart"
     deps = [
@@ -806,14 +805,35 @@ copy("copy_dev_compiler_js_es6_kernel_nnbd") {
 
 # Copies all of the JS artifacts needed by DDC.
 group("copy_dev_compiler_js_nnbd") {
-  visibility = [ ":copy_dev_compiler_sdk_nnbd" ]
+  visibility = [
+    ":copy_dev_compiler_sdk_nnbd",
+    ":copy_dev_compiler_tools_nnbd",
+  ]
   public_deps = [
-    ":copy_dev_compiler_js_amd_kernel_nnbd",
     ":copy_dev_compiler_js_amd_nnbd",
-    ":copy_dev_compiler_js_common_kernel_nnbd",
+    ":copy_dev_compiler_js_amd_kernel_nnbd",
     ":copy_dev_compiler_js_common_nnbd",
-    ":copy_dev_compiler_js_es6_kernel_nnbd",
+    ":copy_dev_compiler_js_common_kernel_nnbd",
     ":copy_dev_compiler_js_es6_nnbd",
+    ":copy_dev_compiler_js_es6_kernel_nnbd",
+  ]
+}
+
+# This rule copies tools to go along with ddc.
+copy("copy_dev_compiler_tools_nnbd") {
+  visibility = [ ":copy_dev_compiler_sdk_nnbd" ]
+  deps = [
+    ":copy_dev_compiler_js_nnbd",
+    "../utils/dartdevc:dartdevc_web",
+    "../utils/dartdevc:stack_trace_mapper",
+  ]
+  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
+  sources = [
+    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk-nnbd/lib/dev_compiler/web/{{source_file_part}}",
   ]
 }
 
@@ -823,6 +843,7 @@ group("copy_dev_compiler_sdk_nnbd") {
   public_deps = [
     ":copy_dev_compiler_js_nnbd",
     ":copy_dev_compiler_summary_nnbd",
+    ":copy_dev_compiler_tools_nnbd",
   ]
 }
 
@@ -1000,8 +1021,8 @@ group("create_common_sdk_nnbd") {
   public_deps = [
     ":copy_analysis_summaries_nnbd",
     ":copy_api_readme_nnbd",
-    ":copy_dart2native_nnbd",
     ":copy_dart_nnbd",
+    ":copy_dart2native_nnbd",
     ":copy_dartdoc_files_nnbd",
     ":copy_headers_nnbd",
     ":copy_libraries_dart_nnbd",
