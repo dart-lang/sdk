@@ -779,7 +779,6 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
-  @deprecated
   @override
   FunctionType instantiate(List<DartType> argumentTypes) =>
       actualElement.instantiate(argumentTypes);
@@ -838,7 +837,6 @@ class GenericTypeAliasElementHandle extends ElementHandle
   @override
   FunctionTypeAlias computeNode() => actualElement.computeNode();
 
-  @deprecated
   @override
   FunctionType instantiate(List<DartType> argumentTypes) =>
       actualElement.instantiate(argumentTypes);

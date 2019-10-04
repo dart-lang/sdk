@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -476,19 +476,16 @@ class InstanceMemberInferrer {
    */
   FunctionType _toOverriddenFunctionType(
       ExecutableElement element, ExecutableElement overriddenElement) {
-    var elementTypeParameters = element.typeParameters;
-    var overriddenTypeParameters = overriddenElement.typeParameters;
-
-    if (elementTypeParameters.length != overriddenTypeParameters.length) {
-      return null;
+    List<DartType> typeFormals =
+        TypeParameterTypeImpl.getTypes(element.type.typeFormals);
+    FunctionType overriddenType = overriddenElement.type;
+    if (overriddenType.typeFormals.isNotEmpty) {
+      if (overriddenType.typeFormals.length != typeFormals.length) {
+        return null;
+      }
+      overriddenType = overriddenType.instantiate(typeFormals);
     }
-
-    var overriddenType = overriddenElement.type;
-    if (elementTypeParameters.isEmpty) {
-      return overriddenType;
-    }
-
-    return replaceTypeParameters(overriddenType, elementTypeParameters);
+    return overriddenType;
   }
 
   /**

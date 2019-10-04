@@ -19,7 +19,6 @@ class LazyAst {
   static const _hasOverrideInferenceKey = 'lazyAst_hasOverrideInference';
   static const _inheritsCovariantKey = 'lazyAst_isCovariant';
   static const _isSimplyBoundedKey = 'lazyAst_simplyBounded';
-  static const _rawFunctionTypeKey = 'lazyAst_rawFunctionType';
   static const _returnTypeKey = 'lazyAst_returnType';
   static const _typeInferenceErrorKey = 'lazyAst_typeInferenceError';
   static const _typeKey = 'lazyAst_type';
@@ -38,10 +37,6 @@ class LazyAst {
 
   static bool getInheritsCovariant(AstNode node) {
     return node.getProperty(_inheritsCovariantKey) ?? false;
-  }
-
-  static DartType getRawFunctionType(AstNode node) {
-    return node.getProperty(_rawFunctionTypeKey);
   }
 
   static DartType getReturnType(AstNode node) {
@@ -78,10 +73,6 @@ class LazyAst {
 
   static void setOverrideInferenceDone(AstNode node) {
     node.setProperty(_hasOverrideInferenceKey, true);
-  }
-
-  static void setRawFunctionType(AstNode node, DartType type) {
-    node.setProperty(_rawFunctionTypeKey, type);
   }
 
   static void setReturnType(AstNode node, DartType type) {

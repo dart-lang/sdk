@@ -6208,11 +6208,9 @@ class TypeNameResolver {
         }
       }
       if (element is GenericTypeAliasElementImpl) {
-        type = element.instantiate2(
-          typeArguments: typeArguments,
-          nullabilitySuffix: _getNullability(node.question != null),
-        );
-        type ??= dynamicType;
+        type = GenericTypeAliasElementImpl.typeAfterSubstitution(
+                element, typeArguments) ??
+            dynamicType;
       } else {
         type = typeSystem.instantiateType(type, typeArguments);
       }
@@ -6221,14 +6219,14 @@ class TypeNameResolver {
       );
     } else {
       if (element is GenericTypeAliasElementImpl) {
-        var typeArguments = typeSystem.instantiateTypeFormalsToBounds(
-          element.typeParameters,
+        List<DartType> typeArguments =
+            typeSystem.instantiateTypeFormalsToBounds2(element);
+        type = GenericTypeAliasElementImpl.typeAfterSubstitution(
+                element, typeArguments) ??
+            dynamicType;
+        type = (type as TypeImpl).withNullability(
+          _getNullability(node.question != null),
         );
-        type = element.instantiate2(
-          typeArguments: typeArguments,
-          nullabilitySuffix: _getNullability(node.question != null),
-        );
-        type ??= dynamicType;
       } else {
         type = typeSystem.instantiateToBounds(type);
       }

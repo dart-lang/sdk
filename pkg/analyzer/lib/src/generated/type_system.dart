@@ -1249,11 +1249,8 @@ class GenericInferrer {
 
     // Since we're trying to infer the instantiation, we want to ignore type
     // formals as we check the parameters and return type.
-    var inferFnType = FunctionTypeImpl.synthetic(
-      fnType.returnType,
-      const [],
-      fnType.parameters,
-    );
+    var inferFnType =
+        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
     tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
   }
 
@@ -2689,6 +2686,16 @@ abstract class TypeSystem implements public.TypeSystem {
       return const <TypeParameterElement>[];
     }
   }
+
+  /**
+   * Given a [DartType] type, return the [DartType]s corresponding
+   * to its formal type parameters (if any).
+   *
+   * @param type the type whose type arguments are to be returned
+   * @return the type arguments associated with the given type
+   */
+  List<DartType> typeFormalsAsTypes(DartType type) =>
+      TypeParameterTypeImpl.getTypes(typeFormalsAsElements(type));
 
   /**
    * Compute the least upper bound of function types [f] and [g].
