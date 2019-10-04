@@ -2098,10 +2098,20 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _registry.registerInstantiation(constantValue.type);
         return HLoadType.type(constantValue.type, instance.instructionType);
       }
+      if (constantValue is ListConstantValue) {
+        InterfaceType type = constantValue.type;
+        _registry.registerInstantiation(type);
+        return HLoadType.type(type, instance.instructionType);
+      }
       return node;
     }
 
-    // TODO(sra): Store-forward list literal types.
+    if (instance is HInvokeStatic &&
+        instance.element == commonElements.setRuntimeTypeInfo) {
+      // TODO(sra): What is the 'instantiated type' we should be registering as
+      // discussed above? Perhaps it should be carried on HLiteralList.
+      return instance.inputs.last;
+    }
 
     return node;
   }
