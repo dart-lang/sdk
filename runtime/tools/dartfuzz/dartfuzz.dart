@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.58';
+const String version = '1.59';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -485,7 +485,6 @@ class DartFuzz {
     indent -= 2;
     emitLn('} on OutOfMemoryError {');
     indent += 2;
-    emitLn("print(\'oom\');");
     emitLn("exit(${oomExitCode});");
     indent -= 2;
     emitLn('} catch (e, st) {');
