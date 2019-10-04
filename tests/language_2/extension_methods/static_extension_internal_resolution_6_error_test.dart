@@ -32,8 +32,7 @@ extension GenericExtension<T> on T {
     T y = self;
     //    ^^^^
     // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
-    //     ^^^
-    // [cfe] unspecified
+    // [cfe] A value of type '#T' can't be assigned to a variable of type 'T'.
   }
 
   void castToShadowedTypeParam<T>() {
@@ -82,20 +81,20 @@ extension StaticExt on AGlobal {
 
   // Invalid to overlap the static and extension scopes
   bool get fieldInInstanceScope => extensionValue;
-  //       ^^^
-  // [cfe] unspecified
+  //       ^
+  // [cfe] 'fieldInInstanceScope' is already declared in this scope.
   bool get getterInInstanceScope => extensionValue;
-  //       ^^^
-  // [cfe] unspecified
+  //       ^
+  // [cfe] 'getterInInstanceScope' is already declared in this scope.
   set setterInInstanceScope(bool x) {
-    //^^^
-    // [cfe] unspecified
+    //^
+    // [cfe] 'setterInInstanceScope' is already declared in this scope.
     checkExtensionValue(x);
   }
 
   bool methodInInstanceScope() => extensionValue;
-  //   ^^^
-  // [cfe] unspecified
+  //   ^
+  // [cfe] 'methodInInstanceScope' is already declared in this scope.
 
   void testNakedIdentifiers() {
     // Symbols in the global scope and the local static scope resolve to

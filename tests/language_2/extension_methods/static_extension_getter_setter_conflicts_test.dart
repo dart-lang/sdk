@@ -26,67 +26,73 @@ void test0() {
   c0.m1 = 0;
   // ^^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
-  // [cfe] unspecified
+  // [cfe] The setter 'm1' isn't defined for the class 'C0'.
   E0(c0).m1 = 0;
   E0(c0).m1;
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
-  // [cfe] unspecified
+  // [cfe] Getter not found: 'm1'.
 
   c0.m1 += 0;
   // ^^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
-  // [cfe] unspecified
+  // [cfe] The setter 'm1' isn't defined for the class 'C0'.
 
   c0.m1++;
   // ^^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
-  // [cfe] unspecified
+  // [cfe] The setter 'm1' isn't defined for the class 'C0'.
 
   c0.m2 = 0;
   c0.m2;
   // ^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-  // [cfe] unspecified
+  // [cfe] The getter 'm2' isn't defined for the class 'C0'.
   c0.m2 += 0;
   // ^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-  // [cfe] unspecified
+  // [cfe] The getter 'm2' isn't defined for the class 'C0'.
   c0.m2++;
   // ^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-  // [cfe] unspecified
+  // [cfe] The getter 'm2' isn't defined for the class 'C0'.
 
   E0(c0).m2;
 
   c0[0];
   c0[0] = 0;
+  //^
+  // [cfe] The method '[]=' isn't defined for the class 'C0'.
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
   E0(c0)[0];
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^
+  // [cfe] Getter not found: '[]'.
   E0(c0)[0] = 0;
 
   c0[0] += 0;
+  //^
+  // [cfe] The method '[]=' isn't defined for the class 'C0'.
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
   c0[0]++;
+  //^
+  // [cfe] The method '[]=' isn't defined for the class 'C0'.
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   E0(c0)[0] += 0;
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^
+  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
   E0(c0)[0]++;
   // ^^^^^^
   // [analyzer] unspecified
-  // [cfe] unspecified
+  //    ^
+  // [cfe] The method '[]' isn't defined for the class 'dynamic'.
 }
 
 // Conflicting extensions.
@@ -112,29 +118,32 @@ void test1() {
   c1a.m1 = 0;
   //  ^^
   // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_LOCAL
-  // [cfe] unspecified
+  // [cfe] The setter 'm1' isn't defined for the class 'C1<int>'.
 
   c1a.m2;
   //  ^^
   // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-  // [cfe] unspecified
+  // [cfe] The getter 'm2' isn't defined for the class 'C1<int>'.
 
   c1a.m2 = 0;
 
   c1a[0] = 0;
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
   //  ^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   c1a[0] += 0;
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
   //  ^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   c1a[0]++;
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<int>'.
   //  ^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   c1a[0];
 
@@ -143,59 +152,59 @@ void test1() {
   c1b.m1;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] unspecified
+  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
 
   c1b.m1 = 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] unspecified
+  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
 
   c1b.m1 += 0;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  //  ^^
-  // [cfe] unspecified
-  //  ^^
-  // [cfe] unspecified
+  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
+  //  ^
+  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
 
   c1b.m1++;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  //  ^^
-  // [cfe] unspecified
-  //  ^^
-  // [cfe] unspecified
+  // [cfe] The getter 'm1' isn't defined for the class 'C1<Object>'.
+  //  ^
+  // [cfe] The setter 'm1' isn't defined for the class 'C1<Object>'.
 
   c1b.m2;
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-  // [cfe] unspecified
+  // [cfe] The getter 'm2' isn't defined for the class 'C1<Object>'.
 
   c1b[0];
+  // ^
+  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
   //  ^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   c1b[0] = 0;
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
   //  ^^
   // [analyzer] unspecified
-  // [cfe] unspecified
 
   c1b[0] += 0;
+  // ^
+  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
   //  ^^
   // [analyzer] unspecified
-  // ^
-  // [cfe] unspecified
-  // ^
-  // [cfe] unspecified
 
   c1b[0]++;
+  // ^
+  // [cfe] The method '[]' isn't defined for the class 'C1<Object>'.
+  // ^
+  // [cfe] The method '[]=' isn't defined for the class 'C1<Object>'.
   //  ^^
   // [analyzer] unspecified
-  // ^
-  // [cfe] unspecified
-  // ^
-  // [cfe] unspecified
 }
 
 // Getter on the extension itself.
@@ -220,29 +229,32 @@ extension E2 on C2 {
     this.m1 = 0;
     //   ^^
     // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
-    // [cfe] unspecified
+    // [cfe] The setter 'm1' isn't defined for the class 'C2'.
 
     this.m2 = 0;
     this.m2;
     //   ^^
     // [analyzer] STATIC_TYPE_WARNING.UNDEFINED_GETTER
-    // [cfe] unspecified
+    // [cfe] The getter 'm2' isn't defined for the class 'C2'.
 
     this[0] = 0;
     this[0];
+    //  ^
+    // [cfe] The method '[]' isn't defined for the class 'C2'.
     //   ^^
     // [analyzer] unspecified
-    // [cfe] unspecified
 
     this[0] += 0;
+    //  ^
+    // [cfe] The method '[]' isn't defined for the class 'C2'.
     //   ^^
     // [analyzer] unspecified
-    // [cfe] unspecified
 
     this[0] ++;
+    //  ^
+    // [cfe] The method '[]' isn't defined for the class 'C2'.
     //   ^^
     // [analyzer] unspecified
-    // [cfe] unspecified
 
     // Check that `this.mc` refers to `C2.mc`.
     this.mc.toRadixString(16);
