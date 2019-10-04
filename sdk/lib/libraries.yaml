@@ -140,9 +140,6 @@ vm:
     nativewrappers:
       uri: "html/dartium/nativewrappers.dart"
 
-    profiler:
-      uri: "profiler/profiler.dart"
-
     cli:
       uri: "cli/cli.dart"
       patches:

@@ -143,9 +143,6 @@
         "patches": "_internal/vm/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
-      "profiler": {
-        "uri": "profiler/profiler.dart"
-      },
       "math": {
         "patches": "_internal/vm/lib/math_patch.dart",
         "uri": "math/math.dart"
