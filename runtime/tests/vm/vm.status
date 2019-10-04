@@ -103,7 +103,6 @@ dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 [ $compiler != dartk && $compiler != dartkb && $compiler != none ]
 dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
-dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
