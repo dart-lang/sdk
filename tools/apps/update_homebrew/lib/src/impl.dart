@@ -1,16 +1,16 @@
 part of '../update_homebrew.dart';
 
-const _osFiles = {
-  'dev': [_x64OsFiles, _ia32OsFiles],
-  'stable': [_x64OsFiles, _ia32OsFiles]
+const _files = {
+  'dev': [_x64Files, _ia32Files],
+  'stable': [_x64Files, _ia32Files]
 };
 
 const _urlBase = 'https://storage.googleapis.com/dart-archive/channels';
-const _x64OsFiles = {
+const _x64Files = {
   'mac': 'sdk/dartsdk-macos-x64-release.zip',
   'linux': 'sdk/dartsdk-linux-x64-release.zip',
 };
-const _ia32OsFiles = {
+const _ia32Files = {
   'mac': 'sdk/dartsdk-macos-ia32-release.zip',
   'linux': 'sdk/dartsdk-linux-ia32-release.zip',
 };
@@ -72,11 +72,11 @@ Future<Map<String, Map>> _getHashes(Map<String, String> revisions) async {
   var hashes = <String, Map>{};
   for (var channel in supportedChannels) {
     hashes[channel] = {'mac': {}, 'linux': {}};
-    for (var osFiles in _osFiles[channel]) {
-      osFiles.forEach((os, osFile) async {
-        var hash = await _getHash256(channel, revisions[channel], osFile);
-        hashes[channel][osFile] = hash;
-      });
+    for (var files in _files[channel]) {
+      for (var file in files.values) {
+        var hash = await _getHash256(channel, revisions[channel], file);
+        hashes[channel][file] = hash;
+      }
     }
   }
   return hashes;
@@ -92,19 +92,19 @@ class Dart < Formula
   version "$stableVersion"
   if OS.mac?
     if Hardware::CPU.is_64_bit?
-      url "$_urlBase/stable/release/${revisions['stable']}/${_x64OsFiles['mac']}"
-      sha256 "${hashes['stable'][_x64OsFiles['mac']]}"
+      url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['mac']}"
+      sha256 "${hashes['stable'][_x64Files['mac']]}"
     else
-      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32OsFiles['mac']}"
-      sha256 "${hashes['stable'][_ia32OsFiles['mac']]}"
+      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['mac']}"
+      sha256 "${hashes['stable'][_ia32Files['mac']]}"
     end
   elsif OS.linux?
     if Hardware::CPU.is_64_bit?
-      url "$_urlBase/stable/release/${revisions['stable']}/${_x64OsFiles['linux']}"
-      sha256 "${hashes['stable'][_x64OsFiles['linux']]}"
+      url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['linux']}"
+      sha256 "${hashes['stable'][_x64Files['linux']]}"
     else
-      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32OsFiles['linux']}"
-      sha256 "${hashes['stable'][_ia32OsFiles['linux']]}"
+      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['linux']}"
+      sha256 "${hashes['stable'][_ia32Files['linux']]}"
     end
   end
 
@@ -112,19 +112,19 @@ class Dart < Formula
     version "$devVersion"
     if OS.mac?
       if Hardware::CPU.is_64_bit?
-        url "$_urlBase/dev/release/${revisions['dev']}/${_x64OsFiles['mac']}"
-        sha256 "${hashes['dev'][_x64OsFiles['mac']]}"
+        url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['mac']}"
+        sha256 "${hashes['dev'][_x64Files['mac']]}"
       else
-        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32OsFiles['mac']}"
-        sha256 "${hashes['dev'][_ia32OsFiles['mac']]}"
+        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['mac']}"
+        sha256 "${hashes['dev'][_ia32Files['mac']]}"
       end
     elsif OS.linux?
       if Hardware::CPU.is_64_bit?
-        url "$_urlBase/dev/release/${revisions['dev']}/${_x64OsFiles['linux']}"
-        sha256 "${hashes['dev'][_x64OsFiles['linux']]}"
+        url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['linux']}"
+        sha256 "${hashes['dev'][_x64Files['linux']]}"
       else
-        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32OsFiles['linux']}"
-        sha256 "${hashes['dev'][_ia32OsFiles['linux']]}"
+        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['linux']}"
+        sha256 "${hashes['dev'][_ia32Files['linux']]}"
       end
     end
   end
