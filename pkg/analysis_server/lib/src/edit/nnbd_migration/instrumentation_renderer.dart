@@ -104,7 +104,7 @@ h2 {
 }
 
 .target {
-  background-color: #FFFFFF;
+  background-color: #FFFF99;
   position: relative;
   visibility: visible;
 }
@@ -180,6 +180,8 @@ class InstrumentationRenderer {
 
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
+    // TODO(brianwilkerson) Restore syntactic highlighting.
+    // TODO(brianwilkerson) Add line numbers beside the content.
     Map<String, dynamic> mustacheContext = {
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.unitLinks(unitInfo),
@@ -314,6 +316,11 @@ class InstrumentationRenderer {
 
   /// Return the URL that will navigate to the given [target].
   String _uriForTarget(NavigationTarget target) {
+    if (target == null) {
+      // TODO(brianwilkerson) This is temporary support until we can get targets
+      //  for all nodes.
+      return '';
+    }
     path.Context pathContext = migrationInfo.pathContext;
     String targetPath = pathContext.setExtension(target.filePath, '.html');
     String sourceDir = pathContext.dirname(unitInfo.path);

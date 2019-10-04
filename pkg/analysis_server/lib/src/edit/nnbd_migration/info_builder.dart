@@ -75,6 +75,83 @@ class InfoBuilder {
 
   /// Return details for a fix built from the given [edge], or `null` if the
   /// edge does not have an origin.
+  String _baseDescriptionForOrigin(AstNode node) {
+    if (node is DefaultFormalParameter) {
+      Expression defaultValue = node.defaultValue;
+      if (defaultValue == null) {
+        return "This parameter has an implicit default value of 'null'";
+      } else if (defaultValue is NullLiteral) {
+        return "This parameter has an explicit default value of 'null'";
+      }
+      return "This parameter has a nullable default value";
+    } else if (node is FieldFormalParameter) {
+      AstNode parent = node.parent;
+      if (parent is DefaultFormalParameter) {
+        Expression defaultValue = parent.defaultValue;
+        if (defaultValue == null) {
+          return "This field is initialized by an optional field formal "
+              "parameter that has an implicit default value of 'null'";
+        } else if (defaultValue is NullLiteral) {
+          return "This field is initialized by an optional field formal "
+              "parameter that has an explicit default value of 'null'";
+        }
+        return "This field is initialized by an optional field formal "
+            "parameter that has a nullable default value";
+      }
+      return "This field is initialized by a field formal parameter and a "
+          "nullable value is passed as an argument";
+    }
+    AstNode parent = node.parent;
+    if (parent is ArgumentList) {
+      if (node is NullLiteral) {
+        return "An explicit 'null' is passed as an argument";
+      }
+      return "A nullable value is explicitly passed as an argument";
+    }
+
+    /// If the [node] is the return expression for a function body, return the
+    /// function body. Otherwise return `null`.
+    AstNode findFunctionBody() {
+      if (parent is ExpressionFunctionBody) {
+        return parent;
+      } else if (parent is ReturnStatement &&
+          parent.parent?.parent is BlockFunctionBody) {
+        return parent.parent.parent;
+      }
+      return null;
+    }
+
+    AstNode functionBody = findFunctionBody();
+    if (functionBody != null) {
+      AstNode function = functionBody.parent;
+      if (function is MethodDeclaration) {
+        if (function.isGetter) {
+          return "This getter returns a nullable value";
+        }
+        return "This method returns a nullable value";
+      }
+      return "This function returns a nullable value";
+    } else if (parent is VariableDeclaration) {
+      AstNode grandparent = parent.parent?.parent;
+      if (grandparent is FieldDeclaration) {
+        if (node is NullLiteral) {
+          return "This field is initialized to null";
+        }
+        return "This field is initialized to a nullable value";
+      }
+      if (node is NullLiteral) {
+        return "This variable is initialized to null";
+      }
+      return "This variable is initialized to a nullable value";
+    }
+    if (node is NullLiteral) {
+      return "An explicit 'null' is assigned";
+    }
+    return "A nullable value is assigned";
+  }
+
+  /// Return details for a fix built from the given [edge], or `null` if the
+  /// edge does not have an origin.
   String _buildDescriptionForDestination(AstNode node) {
     // Other found types:
     // - ConstructorDeclaration
@@ -85,24 +162,12 @@ class InfoBuilder {
     }
   }
 
-  /// Return details for a fix built from the given [edge], or `null` if the
-  /// edge does not have an origin.
-  String _buildDescriptionForOrigin(AstNode node) {
-    String /*!*/ description;
-    if (node.parent is ArgumentList) {
-      if (node is NullLiteral) {
-        description = "An explicit 'null' is passed as an argument";
-      } else {
-        description = "A nullable value is explicitly passed as an argument";
-      }
-    } else {
-      if (node is NullLiteral) {
-        description = "An explicit 'null' is assigned";
-      } else {
-        description = "A nullable value is assigned";
-      }
-    }
-    if (_inTestCode(node)) {
+  /// Return a description of the given [origin].
+  String _buildDescriptionForOrigin(AstNode origin) {
+    String description = _baseDescriptionForOrigin(origin);
+    if (_inTestCode(origin)) {
+      // TODO(brianwilkerson) Don't add this if the graph node with which the
+      //  origin is associated is also in test code.
       description += " in test code";
     }
     return description;
@@ -123,6 +188,9 @@ class InfoBuilder {
               //  the superclass.
               details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
                   _targetForNode(origin.source.fullName, origin.node)));
+            } else {
+              details.add(
+                  RegionDetail('upstream edge with no origin ($edge)', null));
             }
           }
         }
@@ -133,6 +201,8 @@ class InfoBuilder {
           details.add(RegionDetail(
               _buildDescriptionForDestination(nodeInfo.astNode),
               _targetForNode(nodeInfo.filePath, nodeInfo.astNode)));
+        } else {
+          details.add(RegionDetail('node with no info ($destination)', null));
         }
       } else {
         throw UnimplementedError(
