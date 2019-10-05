@@ -2780,6 +2780,11 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return true;
   }
   ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
+  // Exceptions coming from invalid token positions should be skipped
+  ActivationFrame* top_frame = stack_trace->FrameAt(0);
+  if (!top_frame->TokenPos().IsReal() && top_frame->TryIndex() != -1) {
+    return false;
+  }
   ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exception);
   if (handler_frame == NULL) {
     // Did not find an exception handler that catches this exception.

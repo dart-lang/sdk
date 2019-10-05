@@ -10,7 +10,9 @@ import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'service_test_common.dart';
 
-const LINE_A = 16;
+const LINE_A = 18;
+const LINE_B = 23;
+const LINE_C = 26;
 
 throwException() async {
   throw 'exception'; // LINE_A
@@ -18,8 +20,12 @@ throwException() async {
 
 testeeMain() async {
   try {
-    await throwException();
-  } finally {}
+    await throwException(); // LINE_B
+  } finally {
+    try {
+      await throwException(); // LINE_C
+    } finally {}
+  }
 }
 
 var tests = <IsolateTest>[
@@ -29,6 +35,26 @@ var tests = <IsolateTest>[
     print("Stopped!");
     var stack = await isolate.getStack();
     expect(stack['frames'][0].function.toString(), contains('throwException'));
+  },
+  resumeIsolate,
+  hasStoppedWithUnhandledException,
+  (Isolate isolate) async {
+    var stack = await isolate.getStack();
+    print(stack['frames'][0]);
+    // await in testeeMain
+    expect(await stack['frames'][0].location.toUserString(),
+        contains('.dart:${LINE_B}'));
+  },
+  resumeIsolate,
+  hasStoppedWithUnhandledException,
+  stoppedAtLine(LINE_A),
+  resumeIsolate,
+  hasStoppedWithUnhandledException,
+  (Isolate isolate) async {
+    var stack = await isolate.getStack();
+    print(stack['frames'][0]);
+    expect(await stack['frames'][0].location.toUserString(),
+        contains('.dart:${LINE_C}'));
   }
 ];
 
