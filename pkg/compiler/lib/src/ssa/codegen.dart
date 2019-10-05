@@ -28,9 +28,10 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoding;
+    show RecipeEncoder, RecipeEncoding, indexTypeVariable;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart';
@@ -3472,6 +3473,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Call `env._eval("recipe")`.
     use(node.inputs[0]);
     js.Expression environment = pop();
+
+    // Instead of generating `env._eval("$n")`, generate appropriate field
+    // accesses where possible.
+    TypeEnvironmentStructure envStructure = node.envStructure;
+    TypeRecipe typeExpression = node.typeExpression;
+    if (envStructure is FullTypeEnvironmentStructure &&
+        typeExpression is TypeExpressionRecipe) {
+      if (typeExpression.type.isTypeVariable) {
+        TypeVariableType type = typeExpression.type;
+        int index = indexTypeVariable(
+            _closedWorld, _rtiSubstitutions, envStructure, type);
+        if (index != null) {
+          assert(index >= 1);
+          List<TypeVariableType> bindings = envStructure.bindings;
+          if (bindings.isNotEmpty) {
+            // If the environment is a binding RTI, we should never index past
+            // its length (i.e. into its base), since in that case, we could
+            // eval against the base directly.
+            assert(index <= bindings.length);
+          }
+          js.Expression access = js.js('#.#[#]', [
+            environment,
+            _namer.instanceFieldPropertyName(_commonElements.rtiRestField),
+            js.number(index - 1),
+          ]);
+          push(access.withSourceInformation(node.sourceInformation));
+          return;
+        }
+      }
+    }
+
     RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
         _emitter, node.envStructure, node.typeExpression);
     js.Expression recipe = encoding.recipe;

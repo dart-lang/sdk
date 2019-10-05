@@ -141,8 +141,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final List<jsAst.Literal> _fragments = [];
   final List<int> _codes = [];
 
-  RuntimeTypesNeed get _rtiNeed => _encoder._rtiNeed;
-
   _RecipeGenerator(
       this._encoder, this._emitter, this._environment, this._recipe,
       {this.metadata = false, this.hackTypeVariablesToAny = false});
@@ -260,26 +258,14 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
       }
     }
     if (environment is FullTypeEnvironmentStructure) {
-      int i = environment.bindings.indexOf(type);
-      if (i >= 0) {
-        // Indexes are 1-based since '0' encodes using the entire type for the
-        // singleton structure.
-        _emitInteger(i + 1);
-        return;
-      }
-
-      int index = _indexIntoClassTypeVariables(type);
+      int index = indexTypeVariable(
+          _closedWorld, _rtiSubstitutions, environment, type,
+          metadata: metadata);
       if (index != null) {
-        // We should only observe erased type arguments if we're generating
-        // subtype metadata.
-        assert(metadata ||
-            _rtiNeed.classNeedsTypeArguments(environment.classType.element));
-
-        // Indexed class type variables come after the bound function type
-        // variables.
-        _emitInteger(1 + environment.bindings.length + index);
+        _emitInteger(index);
         return;
       }
+
       jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
       _emitName(name);
       typeVariables.add(type);
@@ -288,35 +274,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     // TODO(sra): Handle missing cases. This just emits some readable junk. The
     // backticks ensure it won't parse at runtime.
     '`$type`'.codeUnits.forEach(_emitCode);
-  }
-
-  int /*?*/ _indexIntoClassTypeVariables(TypeVariableType variable) {
-    TypeVariableEntity element = variable.element;
-    ClassEntity cls = element.typeDeclaration;
-
-    if (metadata) {
-      TypeEnvironmentStructure environment = _environment;
-      if (environment is FullTypeEnvironmentStructure) {
-        if (identical(environment.classType.element, cls)) {
-          return element.index;
-        }
-      }
-    }
-
-    // TODO(sra): We might be in a context where the class type variable has an
-    // index, even though in the general case it is not at a specific index.
-
-    ClassHierarchy classHierarchy = _closedWorld.classHierarchy;
-    var test = mustCheckAllSubtypes(_closedWorld, cls)
-        ? classHierarchy.anyStrictSubtypeOf
-        : classHierarchy.anyStrictSubclassOf;
-
-    if (test(cls, (ClassEntity subclass) {
-      return !_rtiSubstitutions.isTrivialSubstitution(subclass, cls);
-    })) {
-      return null;
-    }
-    return element.index;
   }
 
   @override
@@ -478,6 +435,49 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 bool mustCheckAllSubtypes(JClosedWorld world, ClassEntity cls) =>
     world.isUsedAsMixin(cls) ||
     world.extractTypeArgumentsInterfacesNewRti.contains(cls);
+
+int indexTypeVariable(
+    JClosedWorld world,
+    RuntimeTypesSubstitutions rtiSubstitutions,
+    FullTypeEnvironmentStructure environment,
+    TypeVariableType type,
+    {bool metadata = false}) {
+  int i = environment.bindings.indexOf(type);
+  if (i >= 0) {
+    // Indices are 1-based since '0' encodes using the entire type for the
+    // singleton structure.
+    return i + 1;
+  }
+
+  TypeVariableEntity element = type.element;
+  ClassEntity cls = element.typeDeclaration;
+
+  if (metadata) {
+    if (identical(environment.classType.element, cls)) {
+      // Indexed class type variables come after the bound function type
+      // variables.
+      return 1 + environment.bindings.length + element.index;
+    }
+  }
+
+  // TODO(sra): We might be in a context where the class type variable has an
+  // index, even though in the general case it is not at a specific index.
+
+  ClassHierarchy classHierarchy = world.classHierarchy;
+  var test = mustCheckAllSubtypes(world, cls)
+      ? classHierarchy.anyStrictSubtypeOf
+      : classHierarchy.anyStrictSubclassOf;
+  if (test(cls, (ClassEntity subclass) {
+    return !rtiSubstitutions.isTrivialSubstitution(subclass, cls);
+  })) {
+    return null;
+  }
+
+  assert(world.rtiNeed.classNeedsTypeArguments(environment.classType.element));
+  // Indexed class type variables come after the bound function type
+  // variables.
+  return 1 + environment.bindings.length + element.index;
+}
 
 class _RulesetEntry {
   Set<InterfaceType> _supertypes = {};
