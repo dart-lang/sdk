@@ -91,11 +91,6 @@ template("dart2js_compile") {
   }
 }
 
-dart2js_compile("dartdevc_web") {
-  main = rebase_path("../../pkg/dev_compiler/web/main.dart")
-  out = "$root_out_dir/dev_compiler/build/web/ddc_web_compiler.js"
-}
-
 dart2js_compile("stack_trace_mapper") {
   main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"

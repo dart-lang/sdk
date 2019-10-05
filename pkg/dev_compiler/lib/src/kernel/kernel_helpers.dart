@@ -252,8 +252,7 @@ Iterable<Member> getRedirectingFactories(Field f) {
 ///
 /// This is used to ignore synthetic mixin application classes.
 ///
-// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling once
-// we don't have the Analyzer backend to maintain.
+// TODO(jmesserly): consider replacing this with Kernel's mixin unrolling
 Class getSuperclassAndMixins(Class c, List<Class> mixins) {
   assert(mixins.isEmpty);
 

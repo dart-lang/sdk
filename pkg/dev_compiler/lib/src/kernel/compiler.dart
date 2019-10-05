@@ -45,7 +45,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// corresponding Kernel summary module we imported it with.
   final _importToSummary = Map<Library, Component>.identity();
 
-  /// Maps a summary to the JS import name for the module.
+  /// Maps a Kernel summary to the JS import name for the module.
   final _summaryToModule = Map<Component, String>.identity();
 
   /// The variable for the current catch clause
