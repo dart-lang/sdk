@@ -100,6 +100,11 @@ class Rti {
   dynamic _precomputed3;
   dynamic _precomputed4;
 
+  static Rti _getPrecomputed1(Rti rti) => _castToRti(rti._precomputed1);
+  static void _setPrecomputed1(Rti rti, Rti precomputed) {
+    rti._precomputed1 = precomputed;
+  }
+
   // The Type object corresponding to this Rti.
   Object _cachedRuntimeType;
   static _Type _getCachedRuntimeType(Rti rti) =>
@@ -1497,6 +1502,10 @@ class _Universe {
     Rti._setKind(rti, Rti.kindInterface);
     Rti._setPrimary(rti, name);
     Rti._setRest(rti, typeArguments);
+    int length = _Utils.arrayLength(typeArguments);
+    if (length > 0) {
+      Rti._setPrecomputed1(rti, _castToRti(_Utils.arrayAt(typeArguments, 0)));
+    }
     Rti._setCanonicalRecipe(rti, key);
     return _finishRti(universe, rti);
   }
@@ -2079,6 +2088,7 @@ class _Parser {
     if (kind != Rti.kindInterface) {
       throw AssertionError('Indexed base must be an interface type');
     }
+    if (index == 1) return Rti._getPrecomputed1(environment);
     var typeArguments = Rti._getInterfaceTypeArguments(environment);
     int len = _Utils.arrayLength(typeArguments);
     if (index <= len) {
