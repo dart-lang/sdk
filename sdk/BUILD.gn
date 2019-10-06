@@ -195,7 +195,6 @@ if (dart_target_arch != "arm") {
 
 # Libraries that go under lib/
 _full_sdk_libraries = [
-  "_chrome",
   "_internal",
   "async",
   "cli",

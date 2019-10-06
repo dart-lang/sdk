@@ -995,13 +995,11 @@ main(p) {
 
     buildTests('testCompletion_export_dart', '''
 import 'dart:math
-import 'dart:_chrome
 import 'dart:_collection.dev
 export 'dart:!1''', <String>[
       "1+dart:core",
       "1+dart:math",
-      "1-dart:_chrome",
-      "1-dart:_collection.dev"
+      "1-dart:_collection.dev",
     ]);
 
     buildTests(
@@ -1107,13 +1105,11 @@ import '!1';''', <String>["1+dart:!", "1+package:!"]);
 
     buildTests('testCompletion_import_dart', '''
 import 'dart:math
-import 'dart:_chrome
 import 'dart:_collection.dev
 import 'dart:!1''', <String>[
       "1+dart:core",
       "1+dart:math",
-      "1-dart:_chrome",
-      "1-dart:_collection.dev"
+      "1-dart:_collection.dev",
     ]);
 
     buildTests('testCompletion_import_hasStringLiteral_noSemicolon', '''

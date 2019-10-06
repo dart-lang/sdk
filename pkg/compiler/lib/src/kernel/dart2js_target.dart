@@ -151,7 +151,6 @@ class Dart2jsTarget extends Target {
 // compile-platform should just specify which libraries to compile instead.
 const _requiredLibraries = const <String, List<String>>{
   'dart2js': const <String>[
-    'dart:_chrome',
     'dart:_foreign_helper',
     'dart:_interceptors',
     'dart:_internal',
