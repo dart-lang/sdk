@@ -1013,7 +1013,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
-                              kWordSize);
+                              compiler::target::kWordSize);
 
   FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
                      /*stack_delta=*/0);
@@ -1027,7 +1027,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
   __ mov(TMP, compiler::Operand(PC));
-  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
+  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp *
+                                           compiler::target::kWordSize));
 
   // For historical reasons, the PC on ARM points 8 bytes past the current
   // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
