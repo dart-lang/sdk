@@ -1885,6 +1885,26 @@ void BytecodeReaderHelper::ReadAttributes(const Object& key) {
   bool present = map.UpdateOrInsert(key, value);
   ASSERT(!present);
   I->object_store()->set_bytecode_attributes(map.Release());
+
+  if (key.IsField()) {
+    const Field& field = Field::Cast(key);
+    const auto& inferred_type_attr =
+        Array::CheckedHandle(Z, BytecodeReader::GetBytecodeAttribute(
+                                    key, Symbols::vm_inferred_type_metadata()));
+
+    if (!inferred_type_attr.IsNull() &&
+        (InferredTypeBytecodeAttribute::GetPCAt(inferred_type_attr, 0) ==
+         InferredTypeBytecodeAttribute::kFieldTypePC)) {
+      const InferredTypeMetadata type =
+          InferredTypeBytecodeAttribute::GetInferredTypeAt(
+              Z, inferred_type_attr, 0);
+      if (!type.IsTrivial()) {
+        field.set_guarded_cid(type.cid);
+        field.set_is_nullable(type.IsNullable());
+        field.set_guarded_list_length(Field::kNoFixedLength);
+      }
+    }
+  }
 }
 
 void BytecodeReaderHelper::ReadMembers(const Class& cls, bool discard_fields) {
@@ -3497,6 +3517,21 @@ RawObject* BytecodeReader::GetBytecodeAttribute(const Object& key,
     }
   }
   return Object::null();
+}
+
+InferredTypeMetadata InferredTypeBytecodeAttribute::GetInferredTypeAt(
+    Zone* zone,
+    const Array& attr,
+    intptr_t index) {
+  ASSERT(index + kNumElements <= attr.Length());
+  const auto& type = AbstractType::CheckedHandle(zone, attr.At(index + 1));
+  const intptr_t flags = Smi::Value(Smi::RawCast(attr.At(index + 2)));
+  if (!type.IsNull()) {
+    intptr_t cid = Type::Cast(type).type_class_id();
+    return InferredTypeMetadata(cid, flags);
+  } else {
+    return InferredTypeMetadata(kDynamicCid, flags);
+  }
 }
 
 #if !defined(PRODUCT)

@@ -56,6 +56,8 @@ import 'source_positions.dart' show LineStarts, SourcePositions;
 import '../metadata/bytecode.dart';
 import '../metadata/direct_call.dart'
     show DirectCallMetadata, DirectCallMetadataRepository;
+import '../metadata/inferred_type.dart'
+    show InferredType, InferredTypeMetadataRepository;
 import '../metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadata, ProcedureAttributesMetadataRepository;
 
@@ -126,6 +128,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Map<TreeNode, DirectCallMetadata> directCallMetadata;
   ProcedureAttributesMetadataRepository procedureAttributesMetadataRepository;
   ProcedureAttributesMetadata procedureAttributesMetadata;
+  Map<TreeNode, InferredType> inferredTypeMetadata;
+  List<Constant> inferredTypesAttribute;
 
   List<ClassDeclaration> classDeclarations;
   List<FieldDeclaration> fieldDeclarations;
@@ -182,6 +186,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     procedureAttributesMetadataRepository =
         component.metadata[ProcedureAttributesMetadataRepository.repositoryTag];
+
+    inferredTypeMetadata = component
+        .metadata[InferredTypeMetadataRepository.repositoryTag]?.mapping;
   }
 
   @override
@@ -410,17 +417,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   ObjectHandle getMemberAttributes(Member member) {
-    if (procedureAttributesMetadata == null) {
+    if (procedureAttributesMetadata == null && inferredTypesAttribute == null) {
       return null;
     }
-    final procedureAttributes = procedureAttributesMetadataRepository
-        .getBytecodeAttribute(procedureAttributesMetadata);
     // List of pairs (tag, value).
-    final attrs = ListConstant(const DynamicType(), <Constant>[
-      StringConstant(ProcedureAttributesMetadataRepository.repositoryTag),
-      procedureAttributes,
-    ]);
-    return objectTable.getHandle(attrs);
+    final attrs = <Constant>[];
+    if (procedureAttributesMetadata != null) {
+      final attribute = procedureAttributesMetadataRepository
+          .getBytecodeAttribute(procedureAttributesMetadata);
+      attrs.add(
+          StringConstant(ProcedureAttributesMetadataRepository.repositoryTag));
+      attrs.add(attribute);
+    }
+    if (inferredTypesAttribute != null) {
+      attrs.add(StringConstant(InferredTypeMetadataRepository.repositoryTag));
+      attrs.add(ListConstant(const DynamicType(), inferredTypesAttribute));
+    }
+    return objectTable.getHandle(ListConstant(const DynamicType(), attrs));
   }
 
   // Insert annotations for the function and its parameters into the annotations
@@ -1180,7 +1193,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       bool isSet: false,
       bool isDynamicForwarder: false,
       bool isUnchecked: false,
-      TreeNode context}) {
+      TreeNode node}) {
     assert(!isGet || !isSet);
     final kind = isGet
         ? InvocationKind.getter
@@ -1188,7 +1201,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final cpIndex = cp.addDirectCall(kind, target, argDesc, isDynamicForwarder);
 
     if (totalArgCount >= argumentsLimit) {
-      throw new TooManyArgumentsException(context.fileOffset);
+      throw new TooManyArgumentsException(node.fileOffset);
+    }
+    if (inferredTypeMetadata != null && node != null) {
+      _appendInferredType(node, asm.offset);
     }
     if (isUnchecked) {
       asm.emitUncheckedDirectCall(cpIndex, totalArgCount);
@@ -1201,7 +1217,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       {bool hasReceiver: false,
       bool isFactory: false,
       bool isUnchecked: false,
-      TreeNode context}) {
+      TreeNode node}) {
     final argDesc = objectTable.getArgDescHandleByArguments(args,
         hasReceiver: hasReceiver, isFactory: isFactory);
 
@@ -1216,7 +1232,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     _genDirectCall(target, argDesc, totalArgCount,
-        isUnchecked: isUnchecked, context: context);
+        isUnchecked: isUnchecked, node: node);
   }
 
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
@@ -1553,6 +1569,28 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     procedureAttributesMetadata = procedureAttributesMetadataRepository != null
         ? procedureAttributesMetadataRepository.mapping[node]
         : null;
+
+    if (inferredTypeMetadata != null) {
+      if (node is Field) {
+        // Field type is at PC = -1.
+        _appendInferredType(node, -1);
+      } else if (enclosingFunction != null && hasCode) {
+        assert(node is Procedure || node is Constructor);
+        // Parameter types are at PC = -N,..,-1 where N - number of declared
+        // (explicit) parameters.
+        int i = -(enclosingFunction.positionalParameters.length +
+            enclosingFunction.namedParameters.length);
+        for (var v in enclosingFunction.positionalParameters) {
+          _appendInferredType(v, i);
+          ++i;
+        }
+        for (var v in enclosingFunction.namedParameters) {
+          _appendInferredType(v, i);
+          ++i;
+        }
+      }
+    }
+
     if (!hasCode) {
       return;
     }
@@ -1594,6 +1632,32 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _checkArguments(node.function);
     }
     _genEqualsOperatorNullHandling(node);
+  }
+
+  void _appendInferredType(TreeNode node, int pc) {
+    final InferredType md = inferredTypeMetadata[node];
+    if (md == null) {
+      return;
+    }
+    inferredTypesAttribute ??= <Constant>[];
+    // List of triplets (PC, concreteClass, flags).
+    // Verify that PCs are monotonically increasing.
+    assert(inferredTypesAttribute.isEmpty ||
+        (inferredTypesAttribute[inferredTypesAttribute.length - 3]
+                    as IntConstant)
+                .value <
+            pc);
+    inferredTypesAttribute.add(IntConstant(pc));
+    Class concreteClass = md.concreteClass;
+    // VM uses more specific function type and doesn't expect to
+    // see inferred _Closure class.
+    if (concreteClass != null && concreteClass != closureClass) {
+      inferredTypesAttribute
+          .add(TypeLiteralConstant(coreTypes.legacyRawType(concreteClass)));
+    } else {
+      inferredTypesAttribute.add(NullConstant());
+    }
+    inferredTypesAttribute.add(IntConstant(md.flags));
   }
 
   // Generate additional code for 'operator ==' to handle nulls.
@@ -1693,6 +1757,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedAssemblers = null;
     hasErrors = false;
     procedureAttributesMetadata = null;
+    inferredTypeMetadata = null;
+    inferredTypesAttribute = null;
   }
 
   SourcePositions finalizeSourcePositions() {
@@ -2767,7 +2833,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         new Arguments(node.arguments.positional, named: node.arguments.named)
           ..parent = node;
     _genArguments(null, args);
-    _genDirectCallWithArgs(node.target, args, hasReceiver: true, context: node);
+    _genDirectCallWithArgs(node.target, args, hasReceiver: true, node: node);
     asm.emitDrop1();
   }
 
@@ -2777,7 +2843,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genArguments(node.receiver, args);
     final target = node.target;
     if (target is Procedure && !target.isGetter && !target.isSetter) {
-      _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
+      _genDirectCallWithArgs(target, args, hasReceiver: true, node: node);
     } else {
       throw new UnsupportedOperationError(
           'Unsupported DirectMethodInvocation with target ${target.runtimeType} $target');
@@ -2789,7 +2855,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _generateNode(node.receiver);
     final target = node.target;
     if (target is Field || (target is Procedure && target.isGetter)) {
-      _genDirectCall(target, objectTable.getArgDescHandle(1), 1, isGet: true);
+      _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
+          isGet: true, node: node);
     } else {
       throw new UnsupportedOperationError(
           'Unsupported DirectPropertyGet with ${target.runtimeType} $target');
@@ -2810,7 +2877,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final target = node.target;
     assert(target is Field || (target is Procedure && target.isSetter));
-    _genDirectCall(target, objectTable.getArgDescHandle(2), 2, isSet: true);
+    _genDirectCall(target, objectTable.getArgDescHandle(2), 2,
+        isSet: true, node: node);
     asm.emitDrop1();
 
     if (hasResult) {
@@ -3031,7 +3099,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitSpecializedBytecode(opcode);
   }
 
+  bool _isUncheckedCall(
+          Node node, Member interfaceTarget, Expression receiver) =>
+      isUncheckedCall(interfaceTarget, receiver, typeEnvironment) ||
+      (inferredTypeMetadata != null &&
+          inferredTypeMetadata[node]?.skipCheck == true);
+
   void _genInstanceCall(
+      Node node,
       InvocationKind invocationKind,
       Member interfaceTarget,
       Name targetName,
@@ -3040,7 +3115,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       ObjectHandle argDesc) {
     final isDynamic = interfaceTarget == null;
     final isUnchecked = invocationKind != InvocationKind.getter &&
-        isUncheckedCall(interfaceTarget, receiver, typeEnvironment);
+        _isUncheckedCall(node, interfaceTarget, receiver);
+
+    if (inferredTypeMetadata != null) {
+      _appendInferredType(node, asm.offset);
+    }
 
     if (invocationKind != InvocationKind.getter && !isDynamic && !isUnchecked) {
       final staticReceiverType = getStaticType(receiver, typeEnvironment);
@@ -3118,11 +3197,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (directCall != null) {
       final isDynamicForwarder = (interfaceTarget == null);
       final isUnchecked =
-          isUncheckedCall(interfaceTarget, node.receiver, typeEnvironment);
+          _isUncheckedCall(node, interfaceTarget, node.receiver);
       _genDirectCall(directCall.target, argDesc, totalArgCount,
-          isDynamicForwarder: isDynamicForwarder, isUnchecked: isUnchecked);
+          isDynamicForwarder: isDynamicForwarder,
+          isUnchecked: isUnchecked,
+          node: node);
     } else {
-      _genInstanceCall(InvocationKind.method, interfaceTarget, node.name,
+      _genInstanceCall(node, InvocationKind.method, interfaceTarget, node.name,
           node.receiver, totalArgCount, argDesc);
     }
   }
@@ -3142,10 +3223,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitCheckReceiverForNull(
             cp.addSelectorName(node.name, InvocationKind.getter));
       }
-      _genDirectCall(directCall.target, argDesc, 1, isGet: true);
+      _genDirectCall(directCall.target, argDesc, 1, isGet: true, node: node);
     } else {
-      _genInstanceCall(InvocationKind.getter, node.interfaceTarget, node.name,
-          node.receiver, 1, argDesc);
+      _genInstanceCall(node, InvocationKind.getter, node.interfaceTarget,
+          node.name, node.receiver, 1, argDesc);
     }
   }
 
@@ -3178,14 +3259,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (directCall != null) {
       final isDynamicForwarder = (node.interfaceTarget == null);
       final isUnchecked =
-          isUncheckedCall(node.interfaceTarget, node.receiver, typeEnvironment);
+          _isUncheckedCall(node, node.interfaceTarget, node.receiver);
       _genDirectCall(directCall.target, argDesc, numArguments,
           isSet: true,
           isDynamicForwarder: isDynamicForwarder,
-          isUnchecked: isUnchecked);
+          isUnchecked: isUnchecked,
+          node: node);
     } else {
-      _genInstanceCall(InvocationKind.setter, node.interfaceTarget, node.name,
-          node.receiver, numArguments, argDesc);
+      _genInstanceCall(node, InvocationKind.setter, node.interfaceTarget,
+          node.name, node.receiver, numArguments, argDesc);
     }
 
     asm.emitDrop1();
@@ -3214,7 +3296,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     _genArguments(new ThisExpression(), args);
     _genDirectCallWithArgs(target, args,
-        hasReceiver: true, isUnchecked: true, context: node);
+        hasReceiver: true, isUnchecked: true, node: node);
   }
 
   @override
@@ -3228,7 +3310,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     _genPushReceiver();
-    _genDirectCall(target, objectTable.getArgDescHandle(1), 1, isGet: true);
+    _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
+        isGet: true, node: node);
   }
 
   @override
@@ -3252,7 +3335,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
       assert(target is Field || (target is Procedure && target.isSetter));
       _genDirectCall(target, objectTable.getArgDescHandle(2), 2,
-          isSet: true, isUnchecked: true);
+          isSet: true, isUnchecked: true, node: node);
     }
 
     asm.emitDrop1();
@@ -3321,11 +3404,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else if (_hasTrivialInitializer(target)) {
         asm.emitLoadStatic(cp.addStaticField(target));
       } else {
-        _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
+        _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
+            isGet: true, node: node);
       }
     } else if (target is Procedure) {
       if (target.isGetter) {
-        _genDirectCall(target, objectTable.getArgDescHandle(0), 0, isGet: true);
+        _genDirectCall(target, objectTable.getArgDescHandle(0), 0,
+            isGet: true, node: node);
       } else if (target.isFactory || target.isRedirectingFactoryConstructor) {
         throw 'Unexpected target for StaticGet: factory $target';
       } else {
@@ -3367,7 +3452,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     _genArguments(null, args);
     _genDirectCallWithArgs(target, args,
-        isFactory: target.isFactory, context: node);
+        isFactory: target.isFactory, node: node);
   }
 
   @override
@@ -3389,7 +3474,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       int cpIndex = cp.addStaticField(target);
       asm.emitStoreStaticTOS(cpIndex);
     } else {
-      _genDirectCall(target, objectTable.getArgDescHandle(1), 1, isSet: true);
+      _genDirectCall(target, objectTable.getArgDescHandle(1), 1,
+          isSet: true, node: node);
       asm.emitDrop1();
     }
   }
@@ -4242,7 +4328,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final args = node.arguments;
     assert(args.types.isEmpty);
     _genArguments(new ThisExpression(), args);
-    _genDirectCallWithArgs(node.target, args, hasReceiver: true, context: node);
+    _genDirectCallWithArgs(node.target, args, hasReceiver: true, node: node);
     asm.emitDrop1();
   }
 
@@ -4260,7 +4346,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     assert(target != null);
-    _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
+    _genDirectCallWithArgs(target, args, hasReceiver: true, node: node);
     asm.emitDrop1();
   }
 

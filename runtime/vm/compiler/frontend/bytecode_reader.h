@@ -370,6 +370,26 @@ class BytecodeReader : public AllStatic {
 #endif
 };
 
+class InferredTypeBytecodeAttribute : public AllStatic {
+ public:
+  // Number of array elements per entry in InferredType bytecode
+  // attribute (PC, type, flags).
+  static constexpr intptr_t kNumElements = 3;
+
+  // Field type is the first entry with PC = -1.
+  static constexpr intptr_t kFieldTypePC = -1;
+
+  // Returns PC at given index.
+  static intptr_t GetPCAt(const Array& attr, intptr_t index) {
+    return Smi::Value(Smi::RawCast(attr.At(index)));
+  }
+
+  // Returns InferredType metadata at given index.
+  static InferredTypeMetadata GetInferredTypeAt(Zone* zone,
+                                                const Array& attr,
+                                                intptr_t index);
+};
+
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
   // These constants should match corresponding constants in class

@@ -7,6 +7,7 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"  // For InferredTypeMetadata
 #include "vm/constants_kbc.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -42,7 +43,8 @@ class BytecodeFlowGraphBuilder {
         stacktrace_var_(nullptr),
         scratch_var_(nullptr),
         prologue_info_(-1, -1),
-        throw_no_such_method_(nullptr) {}
+        throw_no_such_method_(nullptr),
+        inferred_types_attribute_(Array::Handle(zone_)) {}
 
   FlowGraph* BuildGraph();
 
@@ -158,6 +160,7 @@ class BytecodeFlowGraphBuilder {
   intptr_t GetStackDepth() const;
   bool IsStackEmpty() const;
   ArgumentArray GetArguments(int count);
+  InferredTypeMetadata GetInferredType(intptr_t pc);
   void PropagateStackState(intptr_t target_pc);
   void DropUnusedValuesFromStack();
   void BuildJumpIfStrictCompare(Token::Kind cmp_kind);
@@ -236,6 +239,8 @@ class BytecodeFlowGraphBuilder {
   bool build_debug_step_checks_ = false;
   bool seen_parameters_scope_ = false;
   BytecodeScope* current_scope_ = nullptr;
+  Array& inferred_types_attribute_;
+  intptr_t inferred_types_index_ = 0;
 };
 
 }  // namespace kernel
