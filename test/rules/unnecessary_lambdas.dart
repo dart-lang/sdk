@@ -51,7 +51,7 @@ void main() {
   final x = new MyClass();
 
   // ignore: unused_local_variable
-  final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // LINT
+  final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // OK
   // ignore: unused_local_variable
   final correctNotRelevantQuestionPeriod = array[x?.m1].m2; // OK
 

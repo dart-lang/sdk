@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
@@ -32,10 +31,10 @@ names.forEach(print);
 bool _containsNullAwareInvocationInChain(AstNode node) =>
     node != null &&
     ((node is PropertyAccess &&
-            (node.operator?.type == TokenType.QUESTION_PERIOD ||
+            (node.isNullAware ||
                 _containsNullAwareInvocationInChain(node.target))) ||
         (node is MethodInvocation &&
-            (node.operator?.type == TokenType.QUESTION_PERIOD ||
+            (node.isNullAware ||
                 _containsNullAwareInvocationInChain(node.target))) ||
         (node is IndexExpression &&
             _containsNullAwareInvocationInChain(node.target)));
@@ -44,20 +43,6 @@ Iterable<Element> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     DartTypeUtilities.traverseNodesInDFS(node)
         .whereType<SimpleIdentifier>()
         .map((e) => e.staticElement);
-
-bool _isInvocationExpression(AstNode node) => node is InvocationExpression;
-
-bool _isNonFinalElement(Element element) =>
-    (element is PropertyAccessorElement &&
-        (!element.isSynthetic || !element.variable.isFinal)) ||
-    (element is VariableElement && !element.isFinal);
-
-bool _isNonFinalField(AstNode node) =>
-    (node is PropertyAccess &&
-        _isNonFinalElement(node.propertyName.staticElement)) ||
-    (node is MethodInvocation &&
-        (_isNonFinalElement(node.methodName.staticElement))) ||
-    (node is SimpleIdentifier && _isNonFinalElement(node.staticElement));
 
 class UnnecessaryLambdas extends LintRule implements NodeLintRule {
   UnnecessaryLambdas()
@@ -72,6 +57,54 @@ class UnnecessaryLambdas extends LintRule implements NodeLintRule {
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
     registry.addFunctionExpression(this, visitor);
+  }
+}
+
+class _FinalExpressionChecker {
+  final Set<ParameterElement> parameters;
+
+  _FinalExpressionChecker(this.parameters);
+
+  bool isFinalElement(Element element) {
+    if (element is PropertyAccessorElement) {
+      return element.isSynthetic && element.variable.isFinal;
+    } else if (element is VariableElement) {
+      return element.isFinal;
+    }
+    return true;
+  }
+
+  bool isFinalNode(Expression node) {
+    if (node == null) {
+      return true;
+    }
+
+    if (node is FunctionExpression) {
+      var referencedElements = _extractElementsOfSimpleIdentifiers(node);
+      return !referencedElements.any(parameters.contains);
+    }
+
+    if (node is ParenthesizedExpression) {
+      return isFinalNode(node.expression);
+    }
+
+    if (node is PrefixedIdentifier) {
+      return isFinalNode(node.prefix) && isFinalNode(node.identifier);
+    }
+
+    if (node is PropertyAccess) {
+      return isFinalNode(node.target) && isFinalNode(node.propertyName);
+    }
+
+    if (node is SimpleIdentifier) {
+      var element = node.staticElement;
+      if (parameters.contains(element)) {
+        return false;
+      }
+      return isFinalElement(element);
+    }
+
+    return false;
   }
 }
 
@@ -112,32 +145,20 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     final parameters =
-        nodeToLint.parameters.parameters.map((e) => e.identifier.staticElement);
+        nodeToLint.parameters.parameters.map((e) => e.declaredElement).toSet();
 
-    Iterable<Element> restOfElements = [];
     if (node is FunctionExpressionInvocation) {
-      restOfElements = _extractElementsOfSimpleIdentifiers(node.function);
+      var checker = _FinalExpressionChecker(parameters);
+      if (checker.isFinalNode(node.function)) {
+        rule.reportLint(nodeToLint);
+      }
     } else if (node is MethodInvocation) {
-      var nodesInTarget = <AstNode>[];
-      if (node.target != null) {
-        nodesInTarget =
-            DartTypeUtilities.traverseNodesInDFS(node.target).toList();
-        restOfElements = node.target is SimpleIdentifier
-            ? [(node.target as SimpleIdentifier).staticElement]
-            : _extractElementsOfSimpleIdentifiers(node.target);
-      }
-      if (_isNonFinalField(node) ||
-          _isNonFinalField(node.target) ||
-          _isInvocationExpression(node.target) ||
-          _containsNullAwareInvocationInChain(node) ||
-          nodesInTarget.any(_isNonFinalField) ||
-          nodesInTarget.any(_isInvocationExpression)) {
-        return;
+      var checker = _FinalExpressionChecker(parameters);
+      if (!_containsNullAwareInvocationInChain(node) &&
+          checker.isFinalNode(node.target) &&
+          checker.isFinalElement(node.methodName.staticElement)) {
+        rule.reportLint(nodeToLint);
       }
     }
-    if (restOfElements.any(parameters.contains)) {
-      return;
-    }
-    rule.reportLint(nodeToLint);
   }
 }
