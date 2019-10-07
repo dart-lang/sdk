@@ -95,12 +95,12 @@ class Rti {
   // Precomputed derived types. These fields are used to hold derived types that
   // are computed eagerly.
   // TODO(sra): Implement precomputed type optimizations.
+  @pragma('dart2js:noElision')
   dynamic _precomputed1;
   dynamic _precomputed2;
   dynamic _precomputed3;
   dynamic _precomputed4;
 
-  static Rti _getPrecomputed1(Rti rti) => _castToRti(rti._precomputed1);
   static void _setPrecomputed1(Rti rti, Rti precomputed) {
     rti._precomputed1 = precomputed;
   }
@@ -2088,7 +2088,6 @@ class _Parser {
     if (kind != Rti.kindInterface) {
       throw AssertionError('Indexed base must be an interface type');
     }
-    if (index == 1) return Rti._getPrecomputed1(environment);
     var typeArguments = Rti._getInterfaceTypeArguments(environment);
     int len = _Utils.arrayLength(typeArguments);
     if (index <= len) {
