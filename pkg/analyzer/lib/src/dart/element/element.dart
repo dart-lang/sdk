@@ -5915,54 +5915,6 @@ class FunctionElementImpl_forFunctionTypedParameter
   bool get isSynthetic => true;
 }
 
-/// Implementation of [FunctionElementImpl] for a synthetic function element
-/// that was synthesized by a LUB computation.
-class FunctionElementImpl_forLUB extends FunctionElementImpl {
-  final EntityRef _entityRef;
-
-  FunctionElementImpl_forLUB(ElementImpl enclosingElement, this._entityRef)
-      : super.forSerialized(null, enclosingElement);
-
-  @override
-  bool get isSynthetic => true;
-
-  @override
-  List<ParameterElement> get parameters {
-    return _parameters ??= ParameterElementImpl.resynthesizeList(
-        _entityRef.syntheticParams, this,
-        synthetic: true);
-  }
-
-  @override
-  void set parameters(List<ParameterElement> parameters) {
-    assert(false);
-  }
-
-  @override
-  DartType get returnType {
-    return _returnType ??= enclosingUnit.resynthesizerContext
-        .resolveTypeRef(this, _entityRef.syntheticReturnType);
-  }
-
-  @override
-  void set returnType(DartType returnType) {
-    assert(false);
-  }
-
-  @override
-  FunctionType get type {
-    return _type ??= new FunctionTypeImpl(this);
-  }
-
-  @override
-  void set type(FunctionType type) {
-    assert(false);
-  }
-
-  @override
-  List<UnlinkedTypeParam> get unlinkedTypeParams => _entityRef.typeParameters;
-}
-
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
