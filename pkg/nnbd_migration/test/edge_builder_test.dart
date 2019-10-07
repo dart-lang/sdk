@@ -641,7 +641,6 @@ C f(C y, C z) => (y += z);
     assertNullCheck(checkExpression('(y += z)'), fReturnEdge);
   }
 
-  @failingTest
   test_assignmentExpression_compound_withSubstitution() async {
     // Failing due to a side-cast from incorrectly instantiating the operator.
     var code = '''
