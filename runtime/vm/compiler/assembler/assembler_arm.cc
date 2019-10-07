@@ -1732,7 +1732,7 @@ Register AllocateRegister(RegList* used) {
   return (free == 0)
              ? kNoRegister
              : UseRegister(
-                   static_cast<Register>(Utils::CountTrailingZeros(free)),
+                   static_cast<Register>(Utils::CountTrailingZerosWord(free)),
                    used);
 }
 
