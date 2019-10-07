@@ -73,10 +73,6 @@ class LibraryContext {
   })  : this.logger = logger,
         this.byteStore = byteStore,
         this.analysisSession = session {
-    if (externalSummaries != null) {
-      store.addStore(externalSummaries);
-    }
-
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = new RestrictedAnalysisContext(

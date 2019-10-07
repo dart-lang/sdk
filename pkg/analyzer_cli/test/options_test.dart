@@ -52,7 +52,6 @@ main() {
         expect(options.buildAnalysisOutput, isNull);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
-        expect(options.buildSummaryOnlyUnlinked, isFalse);
         expect(options.buildSummaryOutput, isNull);
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
@@ -408,22 +407,6 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     ]);
     expect(options.buildMode, isTrue);
     expect(options.buildSummaryOnly, isTrue);
-  }
-
-  test_buildSummaryOnlyUnlinked() {
-    _parse([
-      '--build-mode',
-      '--build-summary-output=/path/to/aaa.sum',
-      '--build-summary-only',
-      '--build-summary-only-unlinked',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart'
-    ]);
-    expect(
-      errorStringBuffer.toString(),
-      contains(
-        'The option --build-summary-only-unlinked is deprecated.',
-      ),
-    );
   }
 
   test_buildSummaryOutput() {
