@@ -926,6 +926,27 @@ main() {
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38352')
+  test_constWithNonConstantArgument_classShadowedBySetter() async {
+    // TODO(paulberry): once this is fixed, change this test to use
+    // assertErrorsInCode and verify the exact error message(s).
+    var code = '''
+class Annotation {
+  const Annotation(Object obj);
+}
+
+class Bar {}
+
+class Foo {
+  @Annotation(Bar)
+  set Bar(int value) {}
+}
+''';
+    addTestFile(code);
+    await resolveTestFile();
+    assertHasTestErrors();
+  }
+
   test_constWithNonConstantArgument_instanceCreation() async {
     await assertErrorsInCode(r'''
 class A {
