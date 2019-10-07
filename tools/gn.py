@@ -20,6 +20,7 @@ GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
+DART_USE_LSAN = "DART_USE_LSAN"  # Use instead of --lsan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
@@ -33,6 +34,10 @@ DART_GN_ARGS = "DART_GN_ARGS"
 
 def UseASAN():
     return DART_USE_ASAN in os.environ
+
+
+def UseLSAN():
+    return DART_USE_LSAN in os.environ
 
 
 def UseMSAN():
@@ -152,7 +157,7 @@ def ParseStringMap(key, string_map):
 
 
 def UseSanitizer(args):
-    return args.asan or args.msan or args.tsan
+    return args.asan or args.lsan or args.msan or args.tsan
 
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
@@ -249,6 +254,7 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
     gn_args['is_asan'] = args.asan and gn_args['is_clang']
+    gn_args['is_lsan'] = args.lsan and gn_args['is_clang']
     gn_args['is_msan'] = args.msan and gn_args['is_clang']
     gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
@@ -460,6 +466,13 @@ def parse_args(args):
         default=False,
         dest='exclude_kernel_service',
         action='store_true')
+    other_group.add_argument(
+        '--lsan',
+        help='Build with LSAN',
+        default=UseLSAN(),
+        action='store_true')
+    other_group.add_argument(
+        '--no-lsan', help='Disable LSAN', dest='lsan', action='store_false')
     other_group.add_argument(
         '--msan',
         help='Build with MSAN',

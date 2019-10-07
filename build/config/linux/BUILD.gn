@@ -16,7 +16,7 @@ config("sdk") {
     "-Wl,--exclude-libs=libc++.a",
   ]
 
-  if (is_asan) {
+  if (is_asan || is_lsan || is_msan || is_tsan) {
     ldflags += [ "-lrt" ]
   }
 
