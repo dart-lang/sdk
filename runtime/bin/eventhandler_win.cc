@@ -1487,11 +1487,6 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
       ml.Wait();
     }
   }
-
-  // Initialize Winsock32
-  if (!SocketBase::Initialize()) {
-    FATAL("Failed to initialized Windows sockets");
-  }
 }
 
 void EventHandlerImplementation::Shutdown() {
