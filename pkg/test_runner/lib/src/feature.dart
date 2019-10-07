@@ -5,7 +5,7 @@
 /// A capability that a Dart implementation may or may not provide that a test
 /// may require.
 ///
-/// Each [TestConfiguration] specifies the set of features it supports. A test
+/// Each `TestConfiguration` specifies the set of features it supports. A test
 /// can have a "// Requirements" comment indicating the names of features it
 /// requires. If a test requires a feature not supported by the current
 /// configution, the test runner automatically skips it.

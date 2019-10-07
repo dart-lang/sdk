@@ -89,7 +89,9 @@ def HostCpuForArch(arch):
             'simarmv5te', 'simdbc', 'armsimdbc', 'simarm_x64'
     ]:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
+    if arch in [
+            'x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64', 'arm_x64'
+    ]:
         return 'x64'
 
 
@@ -103,6 +105,8 @@ def TargetCpuForArch(arch, target_os):
         return 'arm' if target_os == 'android' else 'x86'
     if arch in ['simdbc64']:
         return 'arm64' if target_os == 'android' else 'x64'
+    if arch == 'arm_x64':
+        return 'arm'
     if arch == 'armsimdbc':
         return 'arm'
     if arch == 'armsimdbc64':
@@ -116,7 +120,7 @@ def DartTargetCpuForArch(arch):
         return 'ia32'
     if arch in ['x64']:
         return 'x64'
-    if arch in ['arm', 'simarm', 'simarm_x64']:
+    if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
@@ -313,7 +317,7 @@ def ProcessOptions(args):
             return False
     for arch in args.arch:
         archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
+            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
             'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
             'armsimdbc64', 'simarm_x64'
         ]
@@ -334,7 +338,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
                     'simdbc64'
             ]:
                 print(
@@ -373,7 +377,7 @@ def parse_args(args):
         '-a',
         type=str,
         help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
+        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,simarmv5te,armv5te,'
         'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
         default='x64')
     common_group.add_argument(

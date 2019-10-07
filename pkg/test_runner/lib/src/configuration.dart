@@ -408,9 +408,10 @@ class TestConfiguration {
         !(architecture == Architecture.ia32 ||
             architecture == Architecture.x64 ||
             architecture == Architecture.arm ||
+            architecture == Architecture.arm_x64 ||
             architecture == Architecture.arm64)) {
       print("Warning: Android only supports the following "
-          "architectures: ia32/x64/arm/arm64.");
+          "architectures: ia32/x64/arm/arm64/arm_x64.");
       isValid = false;
     }
 
