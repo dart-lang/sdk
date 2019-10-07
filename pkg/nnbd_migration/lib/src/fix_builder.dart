@@ -19,6 +19,48 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
+/// Information about the target of an assignment expression analyzed by
+/// [FixBuilder].
+class AssignmentTargetInfo {
+  /// The type that the assignment target has when read.  This is only relevant
+  /// for compound assignments (since they both read and write the assignment
+  /// target)
+  final DartType readType;
+
+  /// The type that the assignment target has when written to.
+  final DartType writeType;
+
+  AssignmentTargetInfo(this.readType, this.writeType);
+}
+
+/// Problem reported by [FixBuilder] when encountering a compound assignment
+/// for which the combination result is nullable.  This occurs if the compound
+/// assignment resolves to a user-defined operator that returns a nullable type,
+/// but the target of the assignment expects a non-nullable type.  We need to
+/// add a null check but it's nontrivial to do so because we would have to
+/// rewrite the assignment as an ordinary assignment (e.g. change `x += y` to
+/// `x = (x + y)!`), but that might change semantics by causing subexpressions
+/// of the target to be evaluated twice.
+///
+/// TODO(paulberry): consider alternatives.
+/// See https://github.com/dart-lang/sdk/issues/38675.
+class CompoundAssignmentCombinedNullable implements Problem {
+  const CompoundAssignmentCombinedNullable();
+}
+
+/// Problem reported by [FixBuilder] when encountering a compound assignment
+/// for which the value read from the target of the assignment has a nullable
+/// type.  We need to add a null check but it's nontrivial to do so because we
+/// would have to rewrite the assignment as an ordinary assignment (e.g. change
+/// `x += y` to `x = x! + y`), but that might change semantics by causing
+/// subexpressions of the target to be evaluated twice.
+///
+/// TODO(paulberry): consider alternatives.
+/// See https://github.com/dart-lang/sdk/issues/38676.
+class CompoundAssignmentReadNullable implements Problem {
+  const CompoundAssignmentReadNullable();
+}
+
 /// This class visits the AST of code being migrated, after graph propagation,
 /// to figure out what changes need to be made to the code.  It doesn't actually
 /// make the changes; it simply reports what changes are necessary through
@@ -58,6 +100,9 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   /// inserted.
   void addNullCheck(Expression subexpression);
 
+  /// Called whenever code is found that can't be automatically fixed.
+  void addProblem(AstNode node, Problem problem);
+
   /// Initializes flow analysis for a function node.
   void createFlowAnalysis(AstNode node) {
     assert(_flowAnalysis == null);
@@ -68,6 +113,61 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
             TypeSystemTypeOperations(_typeSystem),
             AnalyzerFunctionBodyAccess(node is FunctionBody ? node : null));
     _assignedVariables = FlowAnalysisHelper.computeAssignedVariables(node);
+  }
+
+  @override
+  DartType visitAssignmentExpression(AssignmentExpression node) {
+    var targetInfo = visitAssignmentTarget(node.leftHandSide);
+    if (node.operator.type == TokenType.EQ) {
+      return visitSubexpression(node.rightHandSide, targetInfo.writeType);
+    } else if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      // TODO(paulberry): if targetInfo.readType is non-nullable, then the
+      // assignment is dead code.
+      // See https://github.com/dart-lang/sdk/issues/38678
+      // TODO(paulberry): once flow analysis supports `??=`, integrate it here.
+      // See https://github.com/dart-lang/sdk/issues/38680
+      var rhsType =
+          visitSubexpression(node.rightHandSide, targetInfo.writeType);
+      return _typeSystem.leastUpperBound(
+          _typeSystem.promoteToNonNull(targetInfo.readType as TypeImpl),
+          rhsType);
+    } else {
+      var combiner = node.staticElement;
+      DartType combinedType;
+      if (combiner == null) {
+        visitSubexpression(node.rightHandSide, _typeProvider.dynamicType);
+        combinedType = _typeProvider.dynamicType;
+      } else {
+        if (_typeSystem.isNullable(targetInfo.readType)) {
+          addProblem(node, const CompoundAssignmentReadNullable());
+        }
+        var combinerType = _computeMigratedType(combiner) as FunctionType;
+        visitSubexpression(node.rightHandSide, combinerType.parameters[0].type);
+        combinedType =
+            _fixNumericTypes(combinerType.returnType, node.staticType);
+      }
+      if (_doesAssignmentNeedCheck(
+          from: combinedType, to: targetInfo.writeType)) {
+        addProblem(node, const CompoundAssignmentCombinedNullable());
+        combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
+      }
+      return combinedType;
+    }
+  }
+
+  /// Recursively visits an assignment target, returning information about the
+  /// target's read and write types.
+  AssignmentTargetInfo visitAssignmentTarget(Expression node) {
+    if (node is SimpleIdentifier) {
+      var writeType = _computeMigratedType(node.staticElement);
+      var auxiliaryElements = node.auxiliaryElements;
+      var readType = auxiliaryElements == null
+          ? writeType
+          : _computeMigratedType(auxiliaryElements.staticElement);
+      return AssignmentTargetInfo(readType, writeType);
+    } else {
+      throw UnimplementedError('TODO(paulberry)');
+    }
   }
 
   @override
@@ -101,6 +201,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
         // If `a ?? b` is used in a non-nullable context, we don't want to
         // migrate it to `(a ?? b)!`.  We want to migrate it to `a ?? b!`.
         // TODO(paulberry): once flow analysis supports `??`, integrate it here.
+        // See https://github.com/dart-lang/sdk/issues/38680
         var leftType = visitSubexpression(node.leftOperand,
             _typeSystem.makeNullable(_contextType as TypeImpl));
         var rightType = visitSubexpression(node.rightOperand, _contextType);
@@ -152,6 +253,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   @override
   DartType visitSimpleIdentifier(SimpleIdentifier node) {
+    assert(!node.inSetterContext(),
+        'Should use visitAssignmentTarget in setter contexts');
     var element = node.staticElement;
     if (element == null) return _typeProvider.dynamicType;
     if (element is PromotableElement) {
@@ -186,7 +289,6 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   DartType _computeMigratedType(Element element, {DartType targetType}) {
     Element baseElement;
     if (element is Member) {
-      assert(targetType != null);
       baseElement = element.baseElement;
     } else {
       baseElement = element;
@@ -203,7 +305,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
         var functionType = _variables.decoratedElementType(baseElement);
         var decoratedType = baseElement.isGetter
             ? functionType.returnType
-            : throw UnimplementedError('TODO(paulberry)');
+            : functionType.positionalParameters[0];
         type = decoratedType.toFinalType(_typeProvider);
       }
     } else {
@@ -252,3 +354,6 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     }
   }
 }
+
+/// Common supertype for problems reported by [FixBuilder.addProblem].
+abstract class Problem {}
