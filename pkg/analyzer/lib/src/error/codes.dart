@@ -410,6 +410,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
 
+  static const CompileTimeErrorCode ASSERT_IN_REDIRECTING_CONSTRUCTOR =
+      const CompileTimeErrorCode('ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+          "A redirecting constructor can't have an 'assert' initializer.");
+
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
    * for-in statement appears inside a synchronous function.

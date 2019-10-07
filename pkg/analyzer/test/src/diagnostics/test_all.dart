@@ -10,6 +10,8 @@ import 'ambiguous_extension_member_access_test.dart'
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
+import 'assert_in_redirecting_constructor_test.dart'
+    as assert_in_redirecting_constructor;
 import 'assignment_to_const_test.dart' as assignment_to_const;
 import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
 import 'assignment_to_final_no_setter_test.dart'
@@ -338,6 +340,7 @@ main() {
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
+    assert_in_redirecting_constructor.main();
     assignment_to_const.main();
     assignment_to_final_local.main();
     assignment_to_final_no_setter.main();
