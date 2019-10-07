@@ -2720,7 +2720,8 @@ class Function : public Object {
   // dependencies. It will be compiled into optimized code immediately when it's
   // run.
   bool ForceOptimize() const {
-    if (IsFfiTrampoline()) {
+    if (IsFfiTrampoline() || IsFfiLoad() || IsFfiStore() ||
+        IsFfiFromAddress() || IsFfiGetAddress()) {
       return true;
     }
     // On DBC we use native calls instead of IR for the view factories (see
@@ -2881,6 +2882,28 @@ class Function : public Object {
     NoSafepointScope no_safepoint;
     return KindBits::decode(function->ptr()->kind_tag_) ==
            RawFunction::kFfiTrampoline;
+  }
+
+  bool IsFfiLoad() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return MethodRecognizer::kFfiLoadInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiLoadPointer;
+  }
+
+  bool IsFfiStore() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return MethodRecognizer::kFfiStoreInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiStorePointer;
+  }
+
+  bool IsFfiFromAddress() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return kind == MethodRecognizer::kFfiFromAddress;
+  }
+
+  bool IsFfiGetAddress() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return kind == MethodRecognizer::kFfiGetAddress;
   }
 
   bool IsAsyncFunction() const { return modifier() == RawFunction::kAsync; }

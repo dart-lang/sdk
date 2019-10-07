@@ -82,6 +82,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
+  // Every recognized method has a body expressed in IL.
   bool IsRecognizedMethodForFlowGraph(const Function& function);
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 
@@ -164,7 +165,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       const String& dst_name,
       AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 
-  Fragment AssertAssignable(
+  Fragment AssertAssignableLoadTypeArguments(
       TokenPosition position,
       const AbstractType& dst_type,
       const String& dst_name,

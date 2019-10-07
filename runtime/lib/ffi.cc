@@ -48,105 +48,6 @@ static void CheckSized(const AbstractType& type_arg) {
   }
 }
 
-enum class FfiVariance { kCovariant = 0, kContravariant = 1 };
-
-// Checks that a dart type correspond to a [NativeType].
-// Because this is checked already in a kernel transformation, it does not throw
-// an ArgumentException but a boolean which should be asserted.
-//
-// [Int8]                               -> [int]
-// [Int16]                              -> [int]
-// [Int32]                              -> [int]
-// [Int64]                              -> [int]
-// [Uint8]                              -> [int]
-// [Uint16]                             -> [int]
-// [Uint32]                             -> [int]
-// [Uint64]                             -> [int]
-// [IntPtr]                             -> [int]
-// [Double]                             -> [double]
-// [Float]                              -> [double]
-// [Pointer]<T>                         -> [Pointer]<T>
-// T extends [Struct]                   -> T
-// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
-//    where DartRepresentationOf(Tn) -> Sn
-static bool DartAndCTypeCorrespond(const AbstractType& native_type,
-                                   const AbstractType& dart_type,
-                                   FfiVariance variance) {
-  classid_t native_type_cid = native_type.type_class_id();
-  if (RawObject::IsFfiTypeIntClassId(native_type_cid)) {
-    return dart_type.IsSubtypeOf(AbstractType::Handle(Type::IntType()),
-                                 Heap::kNew);
-  }
-  if (RawObject::IsFfiTypeDoubleClassId(native_type_cid)) {
-    return dart_type.IsSubtypeOf(AbstractType::Handle(Type::Double()),
-                                 Heap::kNew);
-  }
-  if (RawObject::IsFfiPointerClassId(native_type_cid)) {
-    return (variance == FfiVariance::kCovariant &&
-            dart_type.IsSubtypeOf(native_type, Heap::kNew)) ||
-           (variance == FfiVariance::kContravariant &&
-            native_type.IsSubtypeOf(dart_type, Heap::kNew)) ||
-           dart_type.IsNullType();
-  }
-  if (RawObject::IsFfiTypeNativeFunctionClassId(native_type_cid)) {
-    if (!dart_type.IsFunctionType()) {
-      return false;
-    }
-    TypeArguments& nativefunction_type_args =
-        TypeArguments::Handle(native_type.arguments());
-    AbstractType& nativefunction_type_arg =
-        AbstractType::Handle(nativefunction_type_args.TypeAt(0));
-    if (!nativefunction_type_arg.IsFunctionType()) {
-      return false;
-    }
-    Function& dart_function =
-        Function::Handle((Type::Cast(dart_type)).signature());
-    if (dart_function.NumTypeParameters() != 0 ||
-        dart_function.HasOptionalPositionalParameters() ||
-        dart_function.HasOptionalNamedParameters()) {
-      return false;
-    }
-    Function& nativefunction_function =
-        Function::Handle(((Type&)nativefunction_type_arg).signature());
-    if (nativefunction_function.NumTypeParameters() != 0 ||
-        nativefunction_function.HasOptionalPositionalParameters() ||
-        nativefunction_function.HasOptionalNamedParameters()) {
-      return false;
-    }
-    if (!(dart_function.NumParameters() ==
-          nativefunction_function.NumParameters())) {
-      return false;
-    }
-    if (!DartAndCTypeCorrespond(
-            AbstractType::Handle(nativefunction_function.result_type()),
-            AbstractType::Handle(dart_function.result_type()), variance)) {
-      return false;
-    }
-    for (intptr_t i = 0; i < dart_function.NumParameters(); i++) {
-      if (!DartAndCTypeCorrespond(
-              AbstractType::Handle(nativefunction_function.ParameterTypeAt(i)),
-              AbstractType::Handle(dart_function.ParameterTypeAt(i)),
-              variance)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-static void CheckDartAndCTypeCorrespond(const AbstractType& native_type,
-                                        const AbstractType& dart_type,
-                                        FfiVariance variance) {
-  if (!DartAndCTypeCorrespond(native_type, dart_type, variance)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Expected type '%s' to be different, it should be "
-        "DartRepresentationOf('%s').",
-        String::Handle(dart_type.UserVisibleName()).ToCString(),
-        String::Handle(native_type.UserVisibleName()).ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-}
-
 // The following functions are runtime checks on arguments.
 
 static const Pointer& AsPointer(const Instance& instance) {
@@ -222,38 +123,10 @@ DEFINE_NATIVE_ENTRY(Ffi_fromAddress, 1, 1) {
   return Pointer::New(type_arg, arg_ptr.AsInt64Value());
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
-  AbstractType& pointer_type_arg =
-      AbstractType::Handle(zone, pointer.type_argument());
-  CheckSized(pointer_type_arg);
-  return Pointer::New(pointer_type_arg,
-                      pointer.NativeAddress() +
-                          index.AsInt64Value() * SizeOf(pointer_type_arg));
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_offsetBy, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, offset, arguments->NativeArgAt(1));
-  AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
-
-  return Pointer::New(pointer_type_arg,
-                      pointer.NativeAddress() + offset.AsInt64Value());
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_cast, 1, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  return Pointer::New(type_arg, pointer.NativeAddress());
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_free, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
 
   free(reinterpret_cast<void*>(pointer.NativeAddress()));
-  pointer.SetNativeAddress(0);
 
   return Object::null();
 }
@@ -263,11 +136,10 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   return Integer::New(pointer.NativeAddress());
 }
 
-static RawObject* LoadValue(Zone* zone,
-                            const Pointer& target,
-                            const AbstractType& instance_type_arg) {
-  classid_t type_cid = instance_type_arg.type_class_id();
-  size_t address = target.NativeAddress();
+static RawObject* LoadValueNumeric(Zone* zone,
+                                   const Pointer& target,
+                                   classid_t type_cid) {
+  const size_t address = target.NativeAddress();
   switch (type_cid) {
     case kFfiInt8Cid:
       return Integer::New(*reinterpret_cast<int8_t*>(address));
@@ -291,61 +163,73 @@ static RawObject* LoadValue(Zone* zone,
       return Double::New(*reinterpret_cast<float_t*>(address));
     case kFfiDoubleCid:
       return Double::New(*reinterpret_cast<double_t*>(address));
-    default: {
-      if (IsPointerType(instance_type_arg)) {
-        const AbstractType& type_arg = AbstractType::Handle(
-            TypeArguments::Handle(instance_type_arg.arguments())
-                .TypeAt(Pointer::kNativeTypeArgPos));
-        return Pointer::New(type_arg, reinterpret_cast<size_t>(
-                                          *reinterpret_cast<void**>(address)));
-      } else {
-        // Result is a struct class -- find <class name>.#fromPointer
-        // constructor and call it.
-        Class& cls = Class::Handle(zone, instance_type_arg.type_class());
-        const Function& constructor =
-            Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
-                String::Concat(String::Handle(String::Concat(
-                                   String::Handle(cls.Name()), Symbols::Dot())),
-                               Symbols::StructFromPointer()))));
-        ASSERT(!constructor.IsNull());
-        ASSERT(constructor.IsGenerativeConstructor());
-        ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
-        Instance& new_object = Instance::Handle(Instance::New(cls));
-        new_object.SetTypeArguments(
-            TypeArguments::Handle(instance_type_arg.arguments()));
-        ASSERT(cls.is_allocated() ||
-               Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
-        const Array& args = Array::Handle(zone, Array::New(2));
-        args.SetAt(0, new_object);
-        args.SetAt(1, target);
-        Object& constructorResult =
-            Object::Handle(DartEntry::InvokeFunction(constructor, args));
-        ASSERT(!constructorResult.IsError());
-        return new_object.raw();
-      }
-    }
+    default:
+      UNREACHABLE();
   }
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_load, 1, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
-  CheckSized(pointer_type_arg);
-  CheckDartAndCTypeCorrespond(pointer_type_arg, type_arg,
-                              FfiVariance::kContravariant);
+#define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
+  DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 1) {                                  \
+    GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0)); \
+    return LoadValueNumeric(zone, pointer, kFfi##type##Cid);                   \
+  }
+CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_LOAD)
+#undef DEFINE_NATIVE_ENTRY_LOAD
 
-  return LoadValue(zone, pointer, pointer_type_arg);
+DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
+  const auto& pointer_type_arg =
+      AbstractType::Handle(zone, pointer.type_argument());
+
+  const auto& type_arg =
+      AbstractType::Handle(TypeArguments::Handle(pointer_type_arg.arguments())
+                               .TypeAt(Pointer::kNativeTypeArgPos));
+
+  const size_t address = pointer.NativeAddress();
+
+  return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
 
-static void StoreValue(Zone* zone,
-                       const Pointer& pointer,
-                       classid_t type_cid,
-                       const Instance& new_value) {
-  uint8_t* const address = reinterpret_cast<uint8_t*>(pointer.NativeAddress());
-  AbstractType& pointer_type_arg =
+static RawObject* LoadValueStruct(Zone* zone,
+                                  const Pointer& target,
+                                  const AbstractType& instance_type_arg) {
+  // Result is a struct class -- find <class name>.#fromPointer
+  // constructor and call it.
+  const Class& cls = Class::Handle(zone, instance_type_arg.type_class());
+  const Function& constructor =
+      Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
+          String::Concat(String::Handle(String::Concat(
+                             String::Handle(cls.Name()), Symbols::Dot())),
+                         Symbols::StructFromPointer()))));
+  ASSERT(!constructor.IsNull());
+  ASSERT(constructor.IsGenerativeConstructor());
+  ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
+  const Instance& new_object = Instance::Handle(Instance::New(cls));
+  new_object.SetTypeArguments(
+      TypeArguments::Handle(instance_type_arg.arguments()));
+  ASSERT(cls.is_allocated() || Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
+  const Array& args = Array::Handle(zone, Array::New(2));
+  args.SetAt(0, new_object);
+  args.SetAt(1, target);
+  const Object& constructorResult =
+      Object::Handle(DartEntry::InvokeFunction(constructor, args));
+  ASSERT(!constructorResult.IsError());
+  return new_object.raw();
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
+  const AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
+
+  return LoadValueStruct(zone, pointer, pointer_type_arg);
+}
+
+static void StoreValueNumeric(Zone* zone,
+                              const Pointer& pointer,
+                              classid_t type_cid,
+                              const Instance& new_value) {
+  uint8_t* const address = reinterpret_cast<uint8_t*>(pointer.NativeAddress());
   switch (type_cid) {
     case kFfiInt8Cid:
       *reinterpret_cast<int8_t*>(address) = AsInteger(new_value).AsInt64Value();
@@ -388,28 +272,31 @@ static void StoreValue(Zone* zone,
     case kFfiDoubleCid:
       *reinterpret_cast<double*>(address) = AsDouble(new_value).value();
       break;
-    case kFfiPointerCid: {
-      ASSERT(IsPointerType(pointer_type_arg));
-      ASSERT(new_value.IsPointer());
-      const void* const stored =
-          reinterpret_cast<void*>(AsPointer(new_value).NativeAddress());
-      *reinterpret_cast<const void**>(address) = stored;
-      break;
-    }
     default:
       UNREACHABLE();
   }
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_store, 0, 2) {
+#define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
+  DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 2) {                                 \
+    GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0)); \
+    GET_NATIVE_ARGUMENT(Instance, new_value, arguments->NativeArgAt(1));       \
+    if (new_value.IsNull()) {                                                  \
+      const String& error = String::Handle(                                    \
+          String::NewFormatted("Argument to Pointer.store is null."));         \
+      Exceptions::ThrowArgumentError(error);                                   \
+    }                                                                          \
+    StoreValueNumeric(zone, pointer, kFfi##type##Cid, new_value);              \
+    return Object::null();                                                     \
+  }
+CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
+#undef DEFINE_NATIVE_ENTRY_STORE
+
+DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
   GET_NATIVE_ARGUMENT(Instance, new_value, arguments->NativeArgAt(1));
-  AbstractType& arg_type = AbstractType::Handle(new_value.GetType(Heap::kNew));
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
-  CheckSized(pointer_type_arg);
-  CheckDartAndCTypeCorrespond(pointer_type_arg, arg_type,
-                              FfiVariance::kCovariant);
 
   if (new_value.IsNull()) {
     const String& error = String::Handle(
@@ -417,8 +304,20 @@ DEFINE_NATIVE_ENTRY(Ffi_store, 0, 2) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  classid_t type_cid = pointer_type_arg.type_class_id();
-  StoreValue(zone, pointer, type_cid, new_value);
+  auto& new_value_type =
+      AbstractType::Handle(zone, new_value.GetType(Heap::kNew));
+  if (!new_value_type.IsSubtypeOf(pointer_type_arg, Heap::kNew)) {
+    const String& error = String::Handle(String::NewFormatted(
+        "New value (%s) is not a subtype of '%s'.",
+        String::Handle(new_value_type.UserVisibleName()).ToCString(),
+        String::Handle(pointer_type_arg.UserVisibleName()).ToCString()));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  ASSERT(IsPointerType(pointer_type_arg));
+  ASSERT(new_value.IsPointer());
+  uword* slot = reinterpret_cast<uword*>(pointer.NativeAddress());
+  *slot = AsPointer(new_value).NativeAddress();
   return Object::null();
 }
 

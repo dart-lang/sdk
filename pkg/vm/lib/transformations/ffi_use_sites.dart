@@ -30,7 +30,8 @@ import 'ffi.dart'
         NativeType,
         kNativeTypeIntStart,
         kNativeTypeIntEnd,
-        FfiTransformer;
+        FfiTransformer,
+        optimizedTypes;
 
 /// Checks and replaces calls to dart:ffi struct fields and methods.
 void transformLibraries(
@@ -316,8 +317,6 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         return StaticInvocation(asFunctionInternal,
             Arguments([node.receiver], types: [dartType, nativeSignature]));
       } else if (target == loadMethod) {
-        // TODO(dacoharkes): should load and store be generic?
-        // https://github.com/dart-lang/sdk/issues/35902
         final DartType dartType = node.arguments.types[0];
         final DartType pointerType = node.receiver.getStaticType(env);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
@@ -327,11 +326,20 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeSized(nativeType, node, target.name);
         _ensureNativeTypeToDartType(nativeType, dartType, node,
             allowStructs: true);
+
+        // TODO(37773): When moving to extension methods we can get rid of
+        // this rewiring.
+        final Class nativeClass = (nativeType as InterfaceType).classNode;
+        final NativeType nt = getType(nativeClass);
+        final typeArguments = [
+          if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
+        ];
+        return StaticInvocation(
+            optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod,
+            Arguments([node.receiver], types: typeArguments));
       } else if (target == storeMethod) {
-        // TODO(dacoharkes): should load and store permitted to be generic?
-        // https://github.com/dart-lang/sdk/issues/35902
-        final DartType dartType =
-            node.arguments.positional[0].getStaticType(env);
+        final Expression storeValue = node.arguments.positional.single;
+        final DartType dartType = storeValue.getStaticType(env);
         final DartType pointerType = node.receiver.getStaticType(env);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
@@ -341,6 +349,32 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeSized(nativeType, node, target.name);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+
+        // TODO(37773): When moving to extension methods we can get rid of
+        // this rewiring.
+        final Class nativeClass = (nativeType as InterfaceType).classNode;
+        final NativeType nt = getType(nativeClass);
+        final typeArguments = [
+          if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
+        ];
+        return StaticInvocation(storeMethods[nt],
+            Arguments([node.receiver, storeValue], types: typeArguments));
+      } else if (target == elementAtMethod) {
+        // TODO(37773): When moving to extension methods we can get rid of
+        // this rewiring.
+        final DartType pointerType = node.receiver.getStaticType(env);
+        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+        final Class nativeClass = (nativeType as InterfaceType).classNode;
+        final NativeType nt = getType(nativeClass);
+        if (optimizedTypes.contains(nt)) {
+          final typeArguments = [
+            if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
+          ];
+          return StaticInvocation(
+              elementAtMethods[nt],
+              Arguments([node.receiver, node.arguments.positional[0]],
+                  types: typeArguments));
+        }
       }
     } on _FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
@@ -361,9 +395,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final DartType shouldBeElementType =
         convertNativeTypeToDartType(containerTypeArg, allowStructs);
     if (elementType == shouldBeElementType) return;
-    // Both subtypes and implicit downcasts are allowed statically.
-    if (env.isSubtypeOf(shouldBeElementType, elementType,
-        SubtypeCheckMode.ignoringNullabilities)) return;
+    // We disable implicit downcasts, they will go away when NNBD lands.
     if (env.isSubtypeOf(elementType, shouldBeElementType,
         SubtypeCheckMode.ignoringNullabilities)) return;
     diagnosticReporter.report(
