@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -2094,8 +2093,12 @@ class FixProcessor extends BaseProcessor {
       // should be parameter of function type
       DartType parameterType = parameterElement.type;
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
-        ExecutableElement element = new MethodElementImpl('', -1);
-        parameterType = new FunctionTypeImpl(element);
+        parameterType = FunctionTypeImpl.synthetic(
+          typeProvider.dynamicType,
+          [],
+          [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
       }
       if (parameterType is! FunctionType) {
         return;
