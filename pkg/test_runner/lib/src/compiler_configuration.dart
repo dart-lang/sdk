@@ -750,6 +750,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:
+      case Architecture.arm_x64:
       case Architecture.arm64:
         ccFlags = null;
         break;

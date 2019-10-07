@@ -925,16 +925,17 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
-  instructions_blob_stream_.WriteWord(instructions_length);
+  instructions_blob_stream_.WriteTargetWord(instructions_length);
 #if defined(DART_PRECOMPILER)
-  instructions_blob_stream_.WriteWord(elf_ != nullptr ? bss_base - segment_base
-                                                      : 0);
+  instructions_blob_stream_.WriteTargetWord(
+      elf_ != nullptr ? bss_base - segment_base : 0);
 #else
-  instructions_blob_stream_.WriteWord(0);  // No relocations.
+  instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
-  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
+  const intptr_t header_words =
+      Image::kHeaderSize / sizeof(compiler::target::uword);
   for (intptr_t i = Image::kHeaderFields; i < header_words; i++) {
-    instructions_blob_stream_.WriteWord(0);
+    instructions_blob_stream_.WriteTargetWord(0);
   }
 
   intptr_t text_offset = 0;
