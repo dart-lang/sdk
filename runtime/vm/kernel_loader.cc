@@ -1200,12 +1200,16 @@ void KernelLoader::FinishTopLevelClassLoading(
     // Only instance fields could be covariant.
     ASSERT(!field_helper.IsCovariant() &&
            !field_helper.IsGenericCovariantImpl());
+    const bool is_late = field_helper.IsLate();
+    const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
         Z,
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
                            field_helper.position_, field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     field.set_has_pragma(has_pragma_annotation);
+    field.set_is_late(is_late);
+    field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1550,6 +1554,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // In the VM all const fields are implicitly final whereas in Kernel they
       // are not final because they are not explicitly declared that way.
       const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
+      const bool is_late = field_helper.IsLate();
+      const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
           Z,
           Field::New(name, field_helper.IsStatic(), is_final,
@@ -1560,6 +1566,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
+      field.set_is_late(is_late);
+      field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1889,6 +1897,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
+  bool is_extension_member = procedure_helper.IsExtensionMember();
   String& native_name = String::Handle(Z);
   bool is_potential_native;
   bool has_pragma_annotation;
@@ -1925,6 +1934,7 @@ void KernelLoader::LoadProcedure(const Library& library,
     H.SetExpressionEvaluationFunction(function);
   }
   function.set_kernel_offset(procedure_offset);
+  function.set_is_extension_member(is_extension_member);
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
@@ -2147,6 +2157,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
   getter.set_accessor_field(field);
+  getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
@@ -2167,6 +2178,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
+    setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }

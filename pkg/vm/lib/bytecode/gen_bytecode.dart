@@ -584,6 +584,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (field.isGenericCovariantImpl) {
       flags |= FieldDeclaration.isGenericCovariantImplFlag;
     }
+    if (field.isExtensionMember) {
+      flags |= FieldDeclaration.isExtensionMemberFlag;
+    }
+    if (field.isLate) {
+      flags |= FieldDeclaration.isLateFlag;
+    }
     int position = TreeNode.noOffset;
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && field.fileOffset != TreeNode.noOffset) {
@@ -653,6 +659,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     if (member.isConst) {
       flags |= FunctionDeclaration.isConstFlag;
+    }
+    if (member.isExtensionMember) {
+      flags |= FunctionDeclaration.isExtensionMemberFlag;
     }
 
     FunctionNode function = member.function;

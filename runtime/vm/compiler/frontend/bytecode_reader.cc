@@ -1941,6 +1941,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasCustomScriptFlag = 1 << 12;
   const int kHasInitializerCodeFlag = 1 << 13;
   const int kHasAttributesFlag = 1 << 14;
+  const int kIsLateFlag = 1 << 15;
+  const int kIsExtensionMemberFlag = 1 << 16;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1963,6 +1965,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     const bool is_const = (flags & kIsConstFlag) != 0;
     const bool has_initializer = (flags & kHasInitializerFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
+    const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
 
     name ^= ReadObject();
     type ^= ReadObject();
@@ -1991,6 +1994,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_generic_covariant_impl((flags & kIsGenericCovariantImplFlag) !=
                                         0);
     field.set_has_initializer(has_initializer);
+    field.set_is_late((flags & kIsLateFlag) != 0);
+    field.set_is_extension_member(is_extension_member);
 
     if (!has_initializer) {
       value ^= ReadObject();
@@ -2042,6 +2047,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_debuggable(false);
       function.set_accessor_field(field);
       function.set_is_declared_in_bytecode(true);
+      function.set_is_extension_member(is_extension_member);
       if (is_const && has_initializer) {
         function.set_bytecode_offset(field.bytecode_offset());
       }
@@ -2064,6 +2070,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_debuggable(false);
       function.set_accessor_field(field);
       function.set_is_declared_in_bytecode(true);
+      function.set_is_extension_member(is_extension_member);
       H.SetupFieldAccessorFunction(cls, function, type);
       functions_->SetAt(function_index_++, function);
     }
@@ -2161,6 +2168,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasPragmaFlag = 1 << 21;
   const int kHasCustomScriptFlag = 1 << 22;
   const int kHasAttributesFlag = 1 << 23;
+  const int kIsExtensionMemberFlag = 1 << 24;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2183,6 +2191,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     const bool is_factory = (flags & kIsFactoryFlag) != 0;
     const bool is_native = (flags & kIsNativeFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
+    const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
 
     name ^= ReadObject();
 
@@ -2231,6 +2240,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         (flags & kIsNoSuchMethodForwarderFlag) != 0);
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
+    function.set_is_extension_member(is_extension_member);
 
     if ((flags & kIsSyncStarFlag) != 0) {
       function.set_modifier(RawFunction::kSyncGen);

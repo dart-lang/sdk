@@ -3102,7 +3102,8 @@ class Function : public Object {
   V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
-  V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)
+  V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)                      \
+  V(IsExtensionMember, is_extension_member)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
@@ -3372,6 +3373,10 @@ class Field : public Object {
   bool is_instance() const { return !is_static(); }
   bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
   bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
+  bool is_late() const { return IsLateBit::decode(raw_ptr()->kind_bits_); }
+  bool is_extension_member() const {
+    return IsExtensionMemberBit::decode(raw_ptr()->kind_bits_);
+  }
   bool is_reflectable() const {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
@@ -3652,6 +3657,12 @@ class Field : public Object {
     kUnknownFixedLength = -1,
     kNoFixedLength = -2,
   };
+  void set_is_late(bool value) const {
+    set_kind_bits(IsLateBit::update(value, raw_ptr()->kind_bits_));
+  }
+  void set_is_extension_member(bool value) const {
+    set_kind_bits(IsExtensionMemberBit::update(value, raw_ptr()->kind_bits_));
+  }
   // Returns false if any value read from this field is guaranteed to be
   // not null.
   // Internally we is_nullable_ field contains either kNullCid (nullable) or
@@ -3762,6 +3773,8 @@ class Field : public Object {
     kHasPragmaBit,
     kCovariantBit,
     kGenericCovariantImplBit,
+    kIsLateBit,
+    kIsExtensionMemberBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -3782,6 +3795,9 @@ class Field : public Object {
   class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
   class GenericCovariantImplBit
       : public BitField<uint16_t, bool, kGenericCovariantImplBit, 1> {};
+  class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
+  class IsExtensionMemberBit
+      : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
