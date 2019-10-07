@@ -590,7 +590,7 @@ dart_vm_extra_builder(
 
 # vm|kernel-precomp|android
 dart_vm_extra_builder(
-    "vm-kernel-precomp-android-release-arm_x64",
+    "vm-kernel-precomp-android-release-arm",
     category="vm|kernel-precomp|android|a32",
     properties={"shard_timeout": 5400})  # 1.5h
 dart_vm_extra_builder(
