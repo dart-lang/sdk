@@ -1041,8 +1041,9 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _read_integerLiteral(LinkedNode data) {
+    // TODO(scheglov) Remove `?? _intType` after internal SDK roll.
     return AstTestFactory.integer(data.integerLiteral_value)
-      ..staticType = _intType;
+      ..staticType = _readType(data.expression_type) ?? _intType;
   }
 
   InterpolationExpression _read_interpolationExpression(LinkedNode data) {

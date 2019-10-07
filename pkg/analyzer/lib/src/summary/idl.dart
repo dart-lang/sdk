@@ -1150,6 +1150,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.functionExpressionInvocation,
     LinkedNodeKind.indexExpression,
     LinkedNodeKind.instanceCreationExpression,
+    LinkedNodeKind.integerLiteral,
     LinkedNodeKind.listLiteral,
     LinkedNodeKind.methodInvocation,
     LinkedNodeKind.nullLiteral,

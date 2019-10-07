@@ -7691,6 +7691,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.indexExpression ||
         kind == idl.LinkedNodeKind.instanceCreationExpression ||
+        kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -7725,6 +7726,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.indexExpression ||
         kind == idl.LinkedNodeKind.instanceCreationExpression ||
+        kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -8717,8 +8719,10 @@ class LinkedNodeBuilder extends Object
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.integerLiteral({
+    LinkedNodeTypeBuilder expression_type,
     int integerLiteral_value,
   })  : _kind = idl.LinkedNodeKind.integerLiteral,
+        _variantField_25 = expression_type,
         _variantField_16 = integerLiteral_value;
 
   LinkedNodeBuilder.interpolationExpression({
@@ -9427,6 +9431,7 @@ class LinkedNodeBuilder extends Object
       instanceCreationExpression_typeArguments?.flushInformative();
       expression_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.integerLiteral) {
+      expression_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.interpolationExpression) {
       interpolationExpression_expression?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.interpolationString) {
@@ -10535,6 +10540,8 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.integerLiteral_value ?? 0);
       signature.addInt(this.flags ?? 0);
+      signature.addBool(this.expression_type != null);
+      this.expression_type?.collectApiSignature(signature);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.interpolationExpression) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
@@ -13462,6 +13469,7 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.functionExpressionInvocation ||
         kind == idl.LinkedNodeKind.indexExpression ||
         kind == idl.LinkedNodeKind.instanceCreationExpression ||
+        kind == idl.LinkedNodeKind.integerLiteral ||
         kind == idl.LinkedNodeKind.listLiteral ||
         kind == idl.LinkedNodeKind.methodInvocation ||
         kind == idl.LinkedNodeKind.nullLiteral ||
@@ -14430,6 +14438,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["expression_type"] = expression_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.integerLiteral) {
+      if (expression_type != null)
+        _result["expression_type"] = expression_type.toJson();
       if (integerLiteral_value != 0)
         _result["integerLiteral_value"] = integerLiteral_value;
     }
@@ -15620,6 +15630,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     }
     if (kind == idl.LinkedNodeKind.integerLiteral) {
       return {
+        "expression_type": expression_type,
         "flags": flags,
         "integerLiteral_value": integerLiteral_value,
         "kind": kind,

@@ -850,6 +850,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitIntegerLiteral(IntegerLiteral node) {
     return LinkedNodeBuilder.integerLiteral(
+      expression_type: _writeType(node.staticType),
       integerLiteral_value: node.value,
     );
   }
