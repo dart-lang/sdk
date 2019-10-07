@@ -1766,7 +1766,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedAssemblers = null;
     hasErrors = false;
     procedureAttributesMetadata = null;
-    inferredTypeMetadata = null;
     inferredTypesAttribute = null;
   }
 
@@ -3154,8 +3153,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitMethodInvocation(MethodInvocation node) {
+    final directCall =
+        directCallMetadata != null ? directCallMetadata[node] : null;
     final Opcode opcode = recognizedMethods.specializedBytecodeFor(node);
-    if (opcode != null) {
+    if (opcode != null && directCall == null) {
       _genMethodInvocationUsingSpecializedBytecode(opcode, node);
       return;
     }
@@ -3179,8 +3180,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    final directCall =
-        directCallMetadata != null ? directCallMetadata[node] : null;
     if (directCall != null && directCall.checkReceiverForNull) {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
