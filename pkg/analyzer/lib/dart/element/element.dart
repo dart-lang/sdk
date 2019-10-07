@@ -1207,6 +1207,7 @@ abstract class FunctionTypeAliasElement
   ///     typedef F<T> = void Function<U>(T, U);
   /// then a single type argument should be provided, and it will be substituted
   /// for T.
+  @deprecated
   FunctionType instantiate(List<DartType> argumentTypes);
 
   /// Produces the function type resulting from instantiating this typedef with
