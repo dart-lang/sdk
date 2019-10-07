@@ -1379,7 +1379,6 @@ void FlowGraphCompiler::EmitMove(Location destination,
       __ movups(LocationToStackSlotAddress(destination), FpuTMP);
     }
   } else {
-    ASSERT(!source.IsInvalid());
     ASSERT(source.IsConstant());
     if (destination.IsFpuRegister() || destination.IsDoubleStackSlot()) {
       Register scratch = tmp->AllocateTemporary();

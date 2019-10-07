@@ -918,16 +918,6 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kCheckStack;
   }
 
-  DART_FORCE_INLINE static bool IsCheckFunctionTypeArgs(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kCheckFunctionTypeArgs:
-      case KernelBytecode::kCheckFunctionTypeArgs_Wide:
-        return true;
-      default:
-        return false;
-    }
-  }
-
   DART_FORCE_INLINE static bool IsEntryOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kEntry:

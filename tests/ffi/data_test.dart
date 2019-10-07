@@ -51,7 +51,7 @@ void main() {
   testSizeOfVoid();
   testSizeOfNativeFunction();
   testSizeOfNativeType();
-  testDynamicInvocation();
+  testFreeZeroOut();
 }
 
 void testPointerBasic() {
@@ -498,14 +498,13 @@ void testSizeOfNativeType() {
   });
 }
 
-void testDynamicInvocation() {
-  dynamic p = Pointer<ffi.Int8>.allocate();
-  Expect.throws(() {
-    final int i = p.load();
-  });
-  Expect.throws(() => p.store(1));
-  p.elementAt(5); // Works, but is slow.
-  final int addr = p.address;
-  final Pointer<ffi.Int16> p2 = p.cast<ffi.Int16>();
-  p.free();
+void testFreeZeroOut() {
+  // at least one of these pointers should have address != 0 on all platforms
+  ffi.Pointer<ffi.Int8> p1 = Pointer.allocate();
+  ffi.Pointer<ffi.Int8> p2 = Pointer.allocate();
+  Expect.notEquals(0, p1.address & p2.address);
+  p1.free();
+  p2.free();
+  Expect.equals(0, p1.address);
+  Expect.equals(0, p2.address);
 }

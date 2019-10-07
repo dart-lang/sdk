@@ -22,8 +22,8 @@
 //                  b     P<I>//P<I>   P<NT>//P<I>           P<NT>//P<NT>
 // a
 // P<P<I>>//P<P<I>>     1 ok         2 implicit downcast   3 implicit downcast
-//                                     of argument:          of argument:
-//                                     static error          static error
+//                                     of argument: ok       of argument: fail
+//                                                           at runtime
 //
 // P<P<NT>>//P<P<I>>    4 ok         5 ok                  6 fail at runtime
 //
@@ -81,8 +81,9 @@ void store2() {
   final Pointer<NativeType> b =
       Pointer<Int8>.allocate(); // Reified Pointer<Int8> at runtime.
 
-  // We disable implicit downcasts, they will go away when NNBD lands.
-  a.store(b); //# 1: compile-time error
+  // Successful implicit downcast of argument at runtime.
+  // Should succeed now, should statically be rejected when NNBD lands.
+  a.store(b);
 
   a.free();
   b.free();
@@ -93,8 +94,11 @@ void store3() {
   final Pointer<NativeType> b =
       Pointer<Int8>.allocate().cast<Pointer<NativeType>>();
 
-  // We disable implicit downcasts, they will go away when NNBD lands.
-  a.store(b); //# 2: compile-time error
+  // Failing implicit downcast of argument at runtime.
+  // Should fail now at runtime, should statically be rejected when NNBD lands.
+  Expect.throws(() {
+    a.store(b);
+  });
 
   a.free();
   b.free();
@@ -241,23 +245,19 @@ void load6() {
 }
 
 void main() {
-  // Trigger both the runtime entry and the IL in bytecode.
-  for (int i = 0; i < 100; i++) {
-    print(i);
-    store1();
-    store2();
-    store3();
-    store4();
-    store5();
-    store6();
-    store7();
-    store8();
-    store9();
-    load1();
-    load2();
-    load3();
-    load4();
-    load5();
-    load6();
-  }
+  store1();
+  store2();
+  store3();
+  store4();
+  store5();
+  store6();
+  store7();
+  store8();
+  store9();
+  load1();
+  load2();
+  load3();
+  load4();
+  load5();
+  load6();
 }

@@ -180,17 +180,17 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     }
 
     local_vars_.EnsureLength(num_bytecode_locals, nullptr);
-    intptr_t idx = num_param_locals;
-    for (; idx < num_bytecode_locals; ++idx) {
-      String& name = String::ZoneHandle(
-          Z, Symbols::NewFormatted(thread(), "var%" Pd, idx));
+    for (intptr_t i = num_param_locals; i < num_bytecode_locals; ++i) {
+      String& name =
+          String::ZoneHandle(Z, Symbols::NewFormatted(thread(), "var%" Pd, i));
       LocalVariable* local = new (Z)
           LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                         name, Object::dynamic_type());
-      local->set_index(VariableIndex(-idx));
-      local_vars_[idx] = local;
+      local->set_index(VariableIndex(-i));
+      local_vars_[i] = local;
     }
 
+    intptr_t idx = num_bytecode_locals;
     if (exception_var_ != nullptr) {
       exception_var_->set_index(VariableIndex(-idx));
       ++idx;
@@ -2143,9 +2143,8 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   object_pool_ = bytecode.object_pool();
   bytecode_instr_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
 
-  scratch_var_ = parsed_function_->EnsureExpressionTemp();
-
   if (KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_)) {
+    scratch_var_ = parsed_function_->EnsureExpressionTemp();
     AllocateParametersAndLocalsForEntryOptional();
   } else if (KernelBytecode::IsEntryOpcode(bytecode_instr_)) {
     AllocateLocalVariables(DecodeOperandD());
@@ -2155,46 +2154,6 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
     AllocateFixedParameters();
   } else {
     UNREACHABLE();
-  }
-
-  if (function().IsGeneric()) {
-    // For recognized methods we generate the IL by hand. Yet we need to find
-    // out which [LocalVariable] is holding the function type arguments. We
-    // scan the bytecode for the CheckFunctionTypeArgs bytecode.
-    //
-    // Note that we cannot add an extra local variable for the type argument
-    // in [AllocateLocalVariables]. We sometimes reuse the same ParsedFunction
-    // multiple times. For non-recognized generic bytecode functions
-    // ParsedFunction::RawTypeArgumentsVariable() is set during flow graph
-    // construction (after local variables are allocated). So the next time,
-    // if ParsedFunction is reused, we would allocate an extra local variable.
-    // TODO(alexmarkov): revise how function type args variable is allocated
-    // and avoid looking at CheckFunctionTypeArgs bytecode.
-    const KBCInstr* instr =
-        reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
-    const KBCInstr* end = reinterpret_cast<const KBCInstr*>(
-        bytecode.PayloadStart() + bytecode.Size());
-
-    LocalVariable* type_args_var = nullptr;
-    while (instr < end) {
-      if (KernelBytecode::IsCheckFunctionTypeArgs(instr)) {
-        const intptr_t expected_num_type_args = KernelBytecode::DecodeA(instr);
-        if (expected_num_type_args > 0) {  // Exclude weird closure case.
-          type_args_var = LocalVariableAt(KernelBytecode::DecodeE(instr));
-          break;
-        }
-      }
-      instr = KernelBytecode::Next(instr);
-    }
-
-    // Every generic function *must* have a kCheckFunctionTypeArgs bytecode.
-    ASSERT(type_args_var != nullptr);
-
-    // Normally the flow graph building code of bytecode will, as a side-effect
-    // of building the flow graph, register the function type arguments variable
-    // in the [ParsedFunction] (see [BuildCheckFunctionTypeArgs]).
-    parsed_function_->set_function_type_arguments(type_args_var);
-    parsed_function_->SetRawTypeArgumentsVariable(type_args_var);
   }
 }
 

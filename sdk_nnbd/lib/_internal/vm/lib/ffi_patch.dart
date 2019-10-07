@@ -9,39 +9,11 @@
 import "dart:_internal" show patch;
 import 'dart:typed_data' show TypedData;
 
-const Map<Type, int> _knownSizes = {
-  Int8: 1,
-  Uint8: 1,
-  Int16: 2,
-  Uint16: 2,
-  Int32: 4,
-  Uint32: 4,
-  Int64: 8,
-  Uint64: 8,
-  Float: 4,
-  Double: 8,
-};
-
-final int _intPtrSize = [8, 4, 4][_abi()];
-
 @patch
-int sizeOf<T extends NativeType>() {
-  // This is not super fast, but it is faster than a runtime entry.
-  // Hot loops with elementAt().load() do not use this sizeOf, elementAt is
-  // optimized per NativeType statically to prevent use of sizeOf at runtime.
-  final int knownSize = _knownSizes[T];
-  if (knownSize != null) return knownSize;
-  if (T == IntPtr) return _intPtrSize;
-  if (T == Pointer) return _intPtrSize;
-  // For structs we fall back to a runtime entry.
-  return _sizeOf<T>();
-}
-
-int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
+int sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
 Pointer<T> _allocate<T extends NativeType>(int count) native "Ffi_allocate";
 
-// Implemented in the method recognizer, bytecode interpreter uses runtime.
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
 // The real implementation of this function (for interface calls) lives in
@@ -53,25 +25,6 @@ DS _asFunctionInternal<DS extends Function, NS extends Function>(
 dynamic _asExternalTypedData(Pointer ptr, int count)
     native "Ffi_asExternalTypedData";
 
-// Returns a Function object for a native callback.
-//
-// Calls to [Pointer.fromFunction] are re-written by the FE into calls to this
-// method + _pointerFromFunction. All three arguments must be constants.
-//
-// In AOT we evaluate calls to this function during precompilation and replace
-// them with Constant instruction referencing the callback trampoline, to ensure
-// that it will be precompiled.
-//
-// In all JIT modes we call a native runtime entry. We *cannot* use the IL
-// implementation, since that would pull the callback trampoline into JIT
-// snapshots. The callback trampolines can only be serialized into AOT snapshots
-// because they embed the addresses of runtime routines in JIT mode.
-Object _nativeCallbackFunction<NS extends Function>(Function target,
-    Object exceptionalReturn) native "Ffi_nativeCallbackFunction";
-
-Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(Object function)
-    native "Ffi_pointerFromFunction";
-
 @patch
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
@@ -81,47 +34,39 @@ class Pointer<T extends NativeType> {
   @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
-  // All static calls to this method are replaced by the FE into
-  // _nativeCallbackFunction + _pointerFromFunction.
-  //
-  // We still need to throw an error on a dynamic invocations, invocations
-  // through tearoffs or reflective calls.
   @patch
   static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {
-    throw UnsupportedError(
-        "Pointer.fromFunction cannot be called dynamically.");
-  }
+      Object exceptionalReturn) native "Ffi_fromFunction";
 
   // TODO(sjindel): When NNBD is available, we should change `value` to be
   // non-null.
-  // For statically known types, this is rewired.
   @patch
-  void store(Object value) =>
-      throw UnsupportedError("Pointer.store cannot be called dynamically.");
+  void store(Object value) native "Ffi_store";
 
-  // For statically known types, this is rewired.
   @patch
-  R load<R>() =>
-      throw UnsupportedError("Pointer.load cannot be called dynamically.");
+  R load<R>() native "Ffi_load";
 
-  // Implemented in the method recognizer, bytecode interpreter uses runtime.
   @patch
   int get address native "Ffi_address";
 
-  // For statically known types, this is rewired.
-  // (Method sizeOf is slow, see notes above.)
+  // Note this could also be implmented without an extra native as offsetBy
+  // (elementSize()*index). This would be 2 native calls rather than one. What
+  // would be better?
   @patch
-  Pointer<T> elementAt(int index) =>
-      Pointer.fromAddress(address + sizeOf<T>() * index);
+  Pointer<T> elementAt(int index) native "Ffi_elementAt";
 
+  // Note this could also be implmented without an extra  native as
+  // fromAddress(address). This would be 2 native calls rather than one.
+  // What would be better?
   @patch
-  Pointer<T> offsetBy(int offsetInBytes) =>
-      Pointer.fromAddress(address + offsetInBytes);
+  Pointer<T> offsetBy(int offsetInBytes) native "Ffi_offsetBy";
 
+  // Note this could also be implemented without an extra native as
+  // fromAddress(address). This would be 2 native calls rather than one.
+  // What would be better?
   @patch
-  Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
+  Pointer<U> cast<U extends NativeType>() native "Ffi_cast";
 
   @patch
   R asFunction<R extends Function>() {
@@ -136,105 +81,8 @@ class Pointer<T extends NativeType> {
       _asExternalTypedData(this, count);
 }
 
-/// Returns an integer encoding the ABI used for size and alignment
-/// calculations. See pkg/vm/lib/transformations/ffi.dart.
+// Returns the ABI used for size and alignment calculations.
+// See pkg/vm/lib/transformations/ffi.dart.
 @pragma('vm:prefer-inline')
 int _abi()
     native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";
-
-// The following functions are implemented in the method recognizer, but the
-// bytecode interpreter uses native entries.
-//
-// TODO(38172): Since these are not inlined (force optimize), they force
-// allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
-// and GCing new spaces takes a lot of the benchmark time. The next speedup is
-// getting rid of these allocations by inlining these functions.
-int _loadInt8(Pointer<Int8> pointer) native "Ffi_loadInt8";
-
-int _loadInt16(Pointer<Int16> pointer) native "Ffi_loadInt16";
-
-int _loadInt32(Pointer<Int32> pointer) native "Ffi_loadInt32";
-
-int _loadInt64(Pointer<Int64> pointer) native "Ffi_loadInt64";
-
-int _loadUint8(Pointer<Uint8> pointer) native "Ffi_loadUint8";
-
-int _loadUint16(Pointer<Uint16> pointer) native "Ffi_loadUint16";
-
-int _loadUint32(Pointer<Uint32> pointer) native "Ffi_loadUint32";
-
-int _loadUint64(Pointer<Uint64> pointer) native "Ffi_loadUint64";
-
-int _loadIntPtr(Pointer<IntPtr> pointer) native "Ffi_loadIntPtr";
-
-double _loadFloat(Pointer<Float> pointer) native "Ffi_loadFloat";
-
-double _loadDouble(Pointer<Double> pointer) native "Ffi_loadDouble";
-
-Pointer<S> _loadPointer<S extends NativeType>(Pointer<Pointer<S>> pointer)
-    native "Ffi_loadPointer";
-
-S _loadStruct<S extends Struct>(Pointer<S> pointer) native "Ffi_loadStruct";
-
-void _storeInt8(Pointer<Int8> pointer, int value) native "Ffi_storeInt8";
-
-void _storeInt16(Pointer<Int16> pointer, int value) native "Ffi_storeInt16";
-
-void _storeInt32(Pointer<Int32> pointer, int value) native "Ffi_storeInt32";
-
-void _storeInt64(Pointer<Int64> pointer, int value) native "Ffi_storeInt64";
-
-void _storeUint8(Pointer<Uint8> pointer, int value) native "Ffi_storeUint8";
-
-void _storeUint16(Pointer<Uint16> pointer, int value) native "Ffi_storeUint16";
-
-void _storeUint32(Pointer<Uint32> pointer, int value) native "Ffi_storeUint32";
-
-void _storeUint64(Pointer<Uint64> pointer, int value) native "Ffi_storeUint64";
-
-void _storeIntPtr(Pointer<IntPtr> pointer, int value) native "Ffi_storeIntPtr";
-
-void _storeFloat(Pointer<Float> pointer, double value) native "Ffi_storeFloat";
-
-void _storeDouble(Pointer<Double> pointer, double value)
-    native "Ffi_storeDouble";
-
-void _storePointer<S extends NativeType>(
-    Pointer<Pointer<S>> pointer, Pointer<S> value) native "Ffi_storePointer";
-
-Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 1 * index);
-
-Pointer<Int16> _elementAtInt16(Pointer<Int16> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 2 * index);
-
-Pointer<Int32> _elementAtInt32(Pointer<Int32> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Int64> _elementAtInt64(Pointer<Int64> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<Uint8> _elementAtUint8(Pointer<Uint8> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 1 * index);
-
-Pointer<Uint16> _elementAtUint16(Pointer<Uint16> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 2 * index);
-
-Pointer<Uint32> _elementAtUint32(Pointer<Uint32> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Uint64> _elementAtUint64(Pointer<Uint64> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<IntPtr> _elementAtIntPtr(Pointer<IntPtr> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + _intPtrSize * index);
-
-Pointer<Float> _elementAtFloat(Pointer<Float> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 4 * index);
-
-Pointer<Double> _elementAtDouble(Pointer<Double> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
-        Pointer<Pointer<S>> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + _intPtrSize * index);

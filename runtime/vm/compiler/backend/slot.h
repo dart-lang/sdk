@@ -71,8 +71,7 @@ class ParsedFunction;
   V(ArgumentsDescriptor, type_args_len, Smi, FINAL)                            \
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
   V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
-  V(Pointer, c_memory_address, Dynamic, FINAL)                                 \
-  V(Type, arguments, TypeArguments, FINAL)
+  V(Pointer, c_memory_address, Integer, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
@@ -93,9 +92,6 @@ class Slot : public ZoneAllocated {
 
     // A slot used to store type arguments.
     kTypeArguments,
-
-    // A slot at a specific [index] in a [RawTypeArgument] vector.
-    kTypeArgumentsIndex,
 
     // A slot within a Context object that contains a value of a captured
     // local variable.
@@ -122,9 +118,6 @@ class Slot : public ZoneAllocated {
   static const Slot& GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset);
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
-  // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
-  static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
-
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
                                                const LocalVariable& var);
@@ -146,7 +139,6 @@ class Slot : public ZoneAllocated {
   bool IsDartField() const { return kind() == Kind::kDartField; }
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
-  bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
 
   const char* Name() const;
 

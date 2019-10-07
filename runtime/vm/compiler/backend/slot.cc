@@ -171,15 +171,6 @@ const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
       &variable.name(), /*static_type=*/nullptr));
 }
 
-const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
-  const intptr_t offset =
-      compiler::target::TypeArguments::type_at_offset(index);
-  const Slot& slot =
-      Slot(Kind::kTypeArgumentsIndex, IsImmutableBit::encode(true), kDynamicCid,
-           offset, ":argument", /*static_type=*/nullptr);
-  return SlotCache::Instance(thread).Canonicalize(slot);
-}
-
 const Slot& Slot::Get(const Field& field,
                       const ParsedFunction* parsed_function) {
   Thread* thread = Thread::Current();
@@ -272,7 +263,6 @@ bool Slot::Equals(const Slot* other) const {
 
   switch (kind_) {
     case Kind::kTypeArguments:
-    case Kind::kTypeArgumentsIndex:
       return (offset_in_bytes_ == other->offset_in_bytes_);
 
     case Kind::kCapturedVariable:

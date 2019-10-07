@@ -420,7 +420,6 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
 
 Fragment PrologueBuilder::BuildTypeArgumentsHandling(JoinEntryInstr* nsm) {
   LocalVariable* type_args_var = parsed_function_->RawTypeArgumentsVariable();
-  ASSERT(type_args_var != nullptr);
 
   Fragment handling;
 

@@ -66,8 +66,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// The [value] is automatically marshalled into its native representation.
   /// Note that ints which do not fit in [T] are truncated and sign extended,
   /// and doubles stored into Pointer<[Float]> lose precision.
-  ///
-  /// Note that `address` needs to be aligned to the size of `T`.
   external void store(@DartRepresentationOf("T") Object value);
 
   /// Load a Dart value from this location.
@@ -75,8 +73,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// The value is automatically unmarshalled from its native representation.
   /// Loading a [Struct] reference returns a reference backed by native memory
   /// (the same pointer as it's loaded from).
-  ///
-  /// Note that `address` needs to be aligned to the size of `T`.
   external R load<@DartRepresentationOf("T") R>();
 
   /// Access to the raw pointer value.
@@ -102,6 +98,8 @@ class Pointer<T extends NativeType> extends NativeType {
   external R asFunction<@DartRepresentationOf("T") R extends Function>();
 
   /// Free memory on the C heap pointed to by this pointer with free().
+  ///
+  /// Note that this zeros out the address.
   external void free();
 
   /// Creates an *external* typed data array backed by this pointer.
