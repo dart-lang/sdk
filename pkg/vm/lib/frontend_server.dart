@@ -133,7 +133,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       allowed: BytecodeOptions.commandLineFlags.keys,
       allowedHelp: BytecodeOptions.commandLineFlags)
   ..addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: false)
+      help: 'Include only bytecode into the output file', defaultsTo: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addMultiOption('enable-experiment',
@@ -398,14 +398,12 @@ class FrontendCompiler implements CompilerInterface {
           sdkRoot.resolve(platformKernelDill)
         ];
       }
+      // No bytecode at this step. Bytecode is generated later in _writePackage.
       final results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
-          genBytecode: compilerOptions.bytecode,
-          bytecodeOptions: bytecodeOptions,
-          dropAST: options['drop-ast'],
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
       component = results.component;
       compiledSources = results.compiledSources;
@@ -505,7 +503,10 @@ class FrontendCompiler implements CompilerInterface {
       }
 
       {
-        // Generate AST as a cache.
+        // Generate AST as a cache. This goes to [_initializeFromDill] instead
+        // of [filename] so that a later invocation of frontend_server will the
+        // same arguments will use this to initialize its incremental kernel
+        // compiler.
         final repository = new BinaryCacheMetadataRepository();
         component.addMetadataRepository(repository);
         for (var lib in component.libraries) {
@@ -515,7 +516,7 @@ class FrontendCompiler implements CompilerInterface {
           }
         }
 
-        final IOSink sink = new File(filename + ".ast").openWrite();
+        final IOSink sink = new File(_initializeFromDill).openWrite();
         final BinaryPrinter printer = filterExternal
             ? new LimitedBinaryPrinter(
                 sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
@@ -622,8 +623,8 @@ class FrontendCompiler implements CompilerInterface {
       generateBytecode(partComponent,
           options: _bytecodeOptions,
           libraries: libraries,
-          coreTypes: _generator.getCoreTypes(),
-          hierarchy: _generator.getClassHierarchy());
+          coreTypes: _generator?.getCoreTypes(),
+          hierarchy: _generator?.getClassHierarchy());
 
       if (_options['drop-ast']) {
         partComponent = createFreshComponentWithBytecode(partComponent);
