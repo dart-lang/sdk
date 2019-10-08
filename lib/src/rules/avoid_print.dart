@@ -46,8 +46,8 @@ class _Visitor extends SimpleAstVisitor {
     if (expression is SimpleIdentifier) {
       final Element element = expression.staticElement;
       if (element is FunctionElement &&
-          element?.name == 'print' &&
-          element?.library?.name == 'dart.core') {
+          element.name == 'print' &&
+          element.library.isDartCore) {
         rule.reportLint(expression);
       }
     }
