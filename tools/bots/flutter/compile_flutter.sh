@@ -48,4 +48,4 @@ $checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/
 
 popd
 
-$dart --enable-asserts pkg/vm/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
+$dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
