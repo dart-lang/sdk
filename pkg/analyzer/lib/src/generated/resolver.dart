@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -344,6 +345,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    var callElement = node.staticElement;
+    if (callElement is MethodElement &&
+        callElement.name == FunctionElement.CALL_METHOD_NAME) {
+      _checkForDeprecatedMemberUse(callElement, node);
+    }
+
+    super.visitFunctionExpressionInvocation(node);
+  }
+
+  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
     super.visitFunctionTypeAlias(node);
@@ -442,12 +454,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _checkForNullAwareHints(node, node.operator);
-    DartType staticInvokeType = node.staticInvokeType;
-    Element callElement = staticInvokeType?.element;
-    if (callElement is MethodElement &&
-        callElement.name == FunctionElement.CALL_METHOD_NAME) {
-      _checkForDeprecatedMemberUse(callElement, node);
-    }
     super.visitMethodInvocation(node);
   }
 
@@ -4063,9 +4069,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function?.accept(this);
     node.accept(elementResolver);
-    _inferArgumentTypesForInvocation(node);
-    node.argumentList?.accept(this);
-    node.accept(typeAnalyzer);
+    _visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -4245,9 +4249,15 @@ class ResolverVisitor extends ScopedVisitor {
     node.target?.accept(this);
     node.typeArguments?.accept(this);
     node.accept(elementResolver);
-    _inferArgumentTypesForInvocation(node);
-    node.argumentList?.accept(this);
-    node.accept(typeAnalyzer);
+
+    var functionRewrite = MethodInvocationResolver.getRewriteResult(node);
+    if (functionRewrite != null) {
+      _visitFunctionExpressionInvocation(functionRewrite);
+    } else {
+      _inferArgumentTypesForInvocation(node);
+      node.argumentList?.accept(this);
+      node.accept(typeAnalyzer);
+    }
   }
 
   @override
@@ -4348,10 +4358,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    Expression e = node.expression;
-    InferenceContext.setType(e, inferenceContext.returnContext);
+    InferenceContext.setType(node.expression, inferenceContext.returnContext);
     super.visitReturnStatement(node);
-    DartType type = e?.staticType;
+    DartType type = node.expression?.staticType;
     // Generators cannot return values, so don't try to do any inference if
     // we're processing erroneous code.
     if (type != null && _enclosingFunction?.isGenerator == false) {
@@ -4994,6 +5003,14 @@ class ResolverVisitor extends ScopedVisitor {
           keyType: keyType,
           valueType: valueType);
     }
+  }
+
+  /// Continues resolution of the [FunctionExpressionInvocation] node after
+  /// resolving its function.
+  void _visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _inferArgumentTypesForInvocation(node);
+    node.argumentList?.accept(this);
+    node.accept(typeAnalyzer);
   }
 
   /// Given an [argumentList] and the [parameters] related to the element that

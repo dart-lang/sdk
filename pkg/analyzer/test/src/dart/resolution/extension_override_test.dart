@@ -134,7 +134,7 @@ void f(A a) {
     validatePropertyAccess();
   }
 
-  test_getter_noPrefix_noTypeArguments_methodInvocation() async {
+  test_getter_noPrefix_noTypeArguments_functionExpressionInvocation() async {
     await assertNoErrorsInCode('''
 class A {}
 
@@ -149,13 +149,14 @@ void f(A a) {
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
     validateOverride();
 
-    var invocation = findNode.methodInvocation('g(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.getter('g'),
-      'double Function(int)',
-      expectedMethodNameType: 'double Function(int) Function()',
-    );
+    var invocation = findNode.functionExpressionInvocation('g(0)');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'double Function(int)');
+    assertType(invocation, 'double');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('g', of: 'E'));
+    assertType(function.propertyName, 'double Function(int)');
   }
 
   test_getter_noPrefix_typeArguments() async {

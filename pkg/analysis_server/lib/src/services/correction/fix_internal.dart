@@ -490,7 +490,8 @@ class FixProcessor extends BaseProcessor {
       await _addFix_addExplicitCast();
       await _addFix_changeTypeAnnotation();
     }
-    if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
+    if (errorCode ==
+        StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION) {
       await _addFix_removeParentheses_inGetterInvocation();
     }
     if (errorCode == StaticTypeWarningCode.NON_BOOL_CONDITION) {
@@ -1455,7 +1456,12 @@ class FixProcessor extends BaseProcessor {
       // Prepare parameters.
       List<ParameterElement> parameters;
       var parent = argumentList.parent;
-      if (parent is InstanceCreationExpression) {
+      if (parent is FunctionExpressionInvocation) {
+        var invokeType = parent.staticInvokeType;
+        if (invokeType is FunctionType) {
+          parameters = invokeType.parameters;
+        }
+      } else if (parent is InstanceCreationExpression) {
         parameters = parent.staticElement?.parameters;
       } else if (parent is MethodInvocation) {
         var invokeType = parent.staticInvokeType;
@@ -3441,16 +3447,14 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeParentheses_inGetterInvocation() async {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      MethodInvocation invocation = node.parent as MethodInvocation;
-      if (invocation.methodName == node && invocation.target != null) {
-        var changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addDeletion(range.endEnd(node, invocation));
-        });
-        _addFixFromBuilder(
-            changeBuilder, DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION);
-      }
+    var invocation = coveredNode?.parent;
+    if (invocation is FunctionExpressionInvocation) {
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addDeletion(range.node(invocation.argumentList));
+      });
+      _addFixFromBuilder(
+          changeBuilder, DartFixKind.REMOVE_PARENTHESIS_IN_GETTER_INVOCATION);
     }
   }
 

@@ -99,6 +99,11 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     expect(actual?.toString(), expected);
   }
 
+  void assertInvokeTypeDynamic(InvocationExpression node) {
+    DartType actual = node.staticInvokeType;
+    expect(actual, isDynamicType);
+  }
+
   void assertMember(
     Expression node,
     Element expectedBase,
@@ -2777,10 +2782,10 @@ const c = id(a, b);
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    var invocation = findNode.methodInvocation('id(');
-    assertType(invocation, 'bool');
+    var invocation = findNode.functionExpressionInvocation('id(');
+    assertElement(invocation.function, findElement.topGet('id'));
     assertInvokeType(invocation, 'bool Function(Object, Object)');
-    assertElement(invocation.methodName, findElement.topGet('id'));
+    assertType(invocation, 'bool');
 
     var aRef = invocation.argumentList.arguments[0];
     assertElement(aRef, findElement.topGet('a'));
@@ -3545,9 +3550,9 @@ main() {
     expect(result.errors, isNotEmpty);
     var f = findElement.topGet('f');
 
-    var invocation = findNode.methodInvocation('f(a)');
-    assertElement(invocation.methodName, f);
-    assertType(invocation.methodName, 'void Function()');
+    var invocation = findNode.functionExpressionInvocation('f(a)');
+    assertElement(invocation.function, f);
+    assertInvokeType(invocation, 'void Function()');
     assertType(invocation, 'void');
 
     var aRef = invocation.argumentList.arguments[0];
@@ -3591,18 +3596,12 @@ main() {
     await resolveTestFile();
     expect(result.errors, isNotEmpty);
 
-    TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
+    var invocation = findNode.functionExpressionInvocation('foo(1)');
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
 
-    List<Statement> statements = _getMainStatements(result);
-    ExpressionStatement statement = statements[0];
-
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.staticType, isDynamicType);
-    assertUnresolvedInvokeType(invocation.staticInvokeType);
-
-    SimpleIdentifier name = invocation.methodName;
-    expect(name.staticElement, same(foo.getter));
-    expect(name.staticType, typeProvider.intType);
+    assertElement(invocation.function, findElement.topGet('foo'));
+    assertType(invocation.function, 'int');
   }
 
   @failingTest
@@ -5492,21 +5491,10 @@ class C {
 ''');
     await resolveTestFile();
 
-    ClassDeclaration cDeclaration = result.unit.declarations[0];
-
-    FieldDeclaration fDeclaration = cDeclaration.members[0];
-    VariableDeclaration fNode = fDeclaration.fields.variables[0];
-    FieldElement fElement = fNode.declaredElement;
-
-    MethodDeclaration fooDeclaration = cDeclaration.members[1];
-    BlockFunctionBody fooBody = fooDeclaration.body;
-    List<Statement> fooStatements = fooBody.block.statements;
-
-    ExpressionStatement statement = fooStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement.getter));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
-    expect(invocation.staticType, DynamicTypeImpl.instance);
+    var invocation = findNode.functionExpressionInvocation('f(1)');
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+    assertElement(invocation.function, findElement.getter('f'));
 
     List<Expression> arguments = invocation.argumentList.arguments;
     expect(arguments[0].staticParameterElement, isNull);
@@ -5523,25 +5511,13 @@ class C {
 ''');
     await resolveTestFile();
 
-    ClassDeclaration cDeclaration = result.unit.declarations[0];
-
-    MethodDeclaration fDeclaration = cDeclaration.members[0];
-    PropertyAccessorElement fElement = fDeclaration.declaredElement;
-
-    MethodDeclaration fooDeclaration = cDeclaration.members[1];
-    BlockFunctionBody fooBody = fooDeclaration.body;
-    List<Statement> fooStatements = fooBody.block.statements;
-
-    ExpressionStatement statement = fooStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
-    expect(invocation.staticType, DynamicTypeImpl.instance);
+    var invocation = findNode.functionExpressionInvocation('f(1)');
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
+    assertElement(invocation.function, findElement.getter('f'));
 
     List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression argument = arguments[0];
-    expect(argument.staticParameterElement, isNull);
+    expect(arguments[0].staticParameterElement, isNull);
   }
 
   test_methodInvocation_notFunction_getter_typedef() async {
@@ -5556,21 +5532,10 @@ class C {
 ''');
     await resolveTestFile();
 
-    ClassDeclaration cDeclaration = result.unit.declarations[1];
-
-    MethodDeclaration fDeclaration = cDeclaration.members[0];
-    PropertyAccessorElement fElement = fDeclaration.declaredElement;
-
-    MethodDeclaration fooDeclaration = cDeclaration.members[1];
-    BlockFunctionBody fooBody = fooDeclaration.body;
-    List<Statement> fooStatements = fooBody.block.statements;
-
-    ExpressionStatement statement = fooStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType.toString(),
-        'String Function(int, {b: int})');
-    expect(invocation.staticType, typeProvider.stringType);
+    var invocation = findNode.functionExpressionInvocation('f(1');
+    assertElement(invocation.function, findElement.getter('f'));
+    assertInvokeType(invocation, 'String Function(int, {b: int})');
+    assertType(invocation, 'String');
 
     List<Expression> arguments = invocation.argumentList.arguments;
     _assertArgumentToParameter2(arguments[0], 'int');
@@ -5585,19 +5550,10 @@ main(f) {
 ''');
     await resolveTestFile();
 
-    FunctionDeclaration mainDeclaration = result.unit.declarations[0];
-    FunctionExpression mainFunction = mainDeclaration.functionExpression;
-    ParameterElement fElement =
-        mainFunction.parameters.parameters[0].declaredElement;
-
-    BlockFunctionBody mainBody = mainFunction.body;
-    List<Statement> mainStatements = mainBody.block.statements;
-
-    ExpressionStatement statement = mainStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType, isDynamicType);
-    expect(invocation.staticType, DynamicTypeImpl.instance);
+    var invocation = findNode.functionExpressionInvocation('f(1)');
+    assertElement(invocation.function, findElement.parameter('f'));
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
 
     List<Expression> arguments = invocation.argumentList.arguments;
 
@@ -5613,19 +5569,11 @@ main(String f(int a)) {
 ''');
     await resolveTestFile();
 
-    FunctionDeclaration mainDeclaration = result.unit.declarations[0];
-    FunctionExpression mainFunction = mainDeclaration.functionExpression;
-    ParameterElement fElement =
-        mainFunction.parameters.parameters[0].declaredElement;
-
-    BlockFunctionBody mainBody = mainFunction.body;
-    List<Statement> mainStatements = mainBody.block.statements;
-
-    ExpressionStatement statement = mainStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement));
-    expect(invocation.staticInvokeType.toString(), 'String Function(int)');
-    expect(invocation.staticType, typeProvider.stringType);
+    var fElement = findElement.parameter('f');
+    var invocation = findNode.functionExpressionInvocation('f(1)');
+    assertElement(invocation.function, fElement);
+    assertInvokeType(invocation, 'String Function(int)');
+    assertType(invocation, 'String');
 
     List<Expression> arguments = invocation.argumentList.arguments;
     _assertArgumentToParameter(
@@ -5641,17 +5589,10 @@ main() {
 ''');
     await resolveTestFile();
 
-    TopLevelVariableDeclaration fDeclaration = result.unit.declarations[0];
-    VariableDeclaration fNode = fDeclaration.variables.variables[0];
-    TopLevelVariableElement fElement = fNode.declaredElement;
-
-    List<Statement> mainStatements = _getMainStatements(result);
-
-    ExpressionStatement statement = mainStatements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.methodName.staticElement, same(fElement.getter));
-    expect(invocation.staticInvokeType, isDynamicType);
-    expect(invocation.staticType, DynamicTypeImpl.instance);
+    var invocation = findNode.functionExpressionInvocation('f(1)');
+    assertElement(invocation.function, findElement.topGet('f'));
+    assertInvokeTypeDynamic(invocation);
+    assertTypeDynamic(invocation);
 
     List<Expression> arguments = invocation.argumentList.arguments;
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -440,10 +441,14 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = findNode.methodInvocation('c(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'C')));
+    var invocation = findNode.functionExpressionInvocation('c(2)');
+    assertElement(invocation, findElement.method('call', of: 'C'));
     assertInvokeType(invocation, 'int Function(int)');
+    assertType(invocation, 'int');
+
+    var cRef = invocation.function as SimpleIdentifier;
+    assertElement(cRef, findElement.parameter('c'));
+    assertType(cRef, 'C');
   }
 
   test_instance_call_fromExtension() async {
@@ -458,10 +463,14 @@ f(C c) {
   c(2);
 }
 ''');
-    var invocation = findNode.methodInvocation('c(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'E')));
+    var invocation = findNode.functionExpressionInvocation('c(2)');
+    assertElement(invocation, findElement.method('call', of: 'E'));
     assertInvokeType(invocation, 'int Function(int)');
+    assertType(invocation, 'int');
+
+    var cRef = invocation.function as SimpleIdentifier;
+    assertElement(cRef, findElement.parameter('c'));
+    assertType(cRef, 'C');
   }
 
   test_instance_call_fromExtension_int() async {
@@ -617,13 +626,14 @@ f(C c) {
   c.a(0);
 }
 ''');
-    var invocation = findNode.methodInvocation('a(0);');
-    assertMethodInvocation(
-      invocation,
-      findElement.getter('a'),
-      'double Function(int)',
-      expectedMethodNameType: 'double Function(int) Function()',
-    );
+    var invocation = findNode.functionExpressionInvocation('c.a(0)');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'double Function(int)');
+    assertType(invocation, 'double');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('a', of: 'E'));
+    assertType(function.propertyName, 'double Function(int)');
   }
 
   test_instance_getter_specificSubtypeMatchLocal() async {
@@ -656,9 +666,14 @@ g(int Function(int) f) {
   f.a();
 }
 ''');
-    var invocation = findNode.methodInvocation('f.a()');
-    assertElement(invocation, findElement.getter('a'));
+    var invocation = findNode.functionExpressionInvocation('f.a()');
+    assertElementNull(invocation);
+    assertInvokeType(invocation, 'String Function()');
     assertType(invocation, 'String');
+
+    var function = invocation.function as PropertyAccess;
+    assertElement(function.propertyName, findElement.getter('a', of: 'E'));
+    assertType(function.propertyName, 'String Function()');
   }
 
   test_instance_method_fromDifferentExtension_usingBounds() async {
