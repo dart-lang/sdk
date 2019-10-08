@@ -74,6 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // todo (pq): consider caching for library?
     final pubspecFile = locatePubspecFile(node);
     if (pubspecFile == null) {
+      isInFlutterApp = false;
       return;
     }
 

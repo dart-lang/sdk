@@ -34,6 +34,16 @@ defineTests() {
         exitCode = 0;
       });
 
+      test('no pubspec', () async {
+        await cli.runLinter([
+          'test/_data/flutter_html/no_pubspec',
+          '--rules=flutter_html',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('1 file analyzed, 0 issues found, in'));
+        expect(exitCode, 0);
+      });
+
       test('non flutter app', () async {
         await cli.runLinter([
           'test/_data/flutter_html/non_flutter_app',
