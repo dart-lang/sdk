@@ -248,6 +248,7 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "--exclude-source": false,
   "--omit-platform": false,
   "--fatal": ",",
+  "--fatal-skip": String,
   "--help": false,
   // TODO(johnniwinther): Remove legacy option flags. Legacy mode is no longer
   // supported.
@@ -331,6 +332,8 @@ ProcessedOptions analyzeCommandLine(
 
   final bool warningsAreFatal = fatal.contains("warnings");
 
+  final int fatalSkip = int.tryParse(options["--fatal-skip"] ?? "0") ?? -1;
+
   final bool bytecode = options["--bytecode"];
 
   final bool compileSdk = options.containsKey("--compile-sdk");
@@ -380,6 +383,7 @@ ProcessedOptions analyzeCommandLine(
           ..target = target
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
+          ..skipForDebugging = fatalSkip
           ..embedSourceText = !excludeSource
           ..debugDump = dumpIr
           ..omitPlatform = omitPlatform
@@ -436,6 +440,7 @@ ProcessedOptions analyzeCommandLine(
     ..target = target
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
+    ..skipForDebugging = fatalSkip
     ..embedSourceText = !excludeSource
     ..debugDump = dumpIr
     ..omitPlatform = omitPlatform

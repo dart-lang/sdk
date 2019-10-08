@@ -12,6 +12,7 @@ ability
 able
 abort
 aborted
+aborting
 aborts
 about
 above
@@ -1398,6 +1399,7 @@ interaction
 intercept
 interceptors
 interest
+interesting
 interface
 interfaces
 interferes
@@ -2567,6 +2569,7 @@ step
 steps
 still
 stop
+stopping
 stops
 stopwatch
 store

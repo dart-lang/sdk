@@ -1568,6 +1568,12 @@ FastaUsageLong:
         internal stack trace from the compiler. Multiple kinds can be separated by
         commas, for example, --fatal=errors,warnings.
 
+      --fatal-skip=<number>
+      --fatal-skip=trace
+        Skip this many messages that would otherwise be fatal before aborting the
+        compilation. Default is 0, which stops at the first message. Specify
+        'trace' to print a stack trace for every message without stopping.
+
       --enable-experiment=<flag>
         Enable or disable an experimental flag, used to guard features currently
         in development. Prefix an experiment name with 'no-' to disable it.
@@ -1682,6 +1688,10 @@ LocalDefinitionHidesExport:
 
 LocalDefinitionHidesImport:
   template: "Local definition of '#name' hides import from '#uri'."
+  severity: IGNORED
+
+DebugTrace:
+  template: "Fatal '#name' at:\n#string"
   severity: IGNORED
 
 ExportHidesExport:

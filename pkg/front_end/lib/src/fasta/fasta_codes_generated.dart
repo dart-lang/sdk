@@ -2063,6 +2063,28 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateDebugTrace =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""Fatal '#name' at:
+#string""", withArguments: _withArgumentsDebugTrace);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)> codeDebugTrace =
+    const Code<Message Function(String name, String string)>(
+        "DebugTrace", templateDebugTrace,
+        severity: Severity.ignored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDebugTrace(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeDebugTrace, message: """Fatal '${name}' at:
+${string}""", arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
     messageDeclaredMemberConflictsWithInheritedMember;
 
@@ -3677,6 +3699,12 @@ const MessageCode messageFastaUsageLong =
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
     commas, for example, --fatal=errors,warnings.
+
+  --fatal-skip=<number>
+  --fatal-skip=trace
+    Skip this many messages that would otherwise be fatal before aborting the
+    compilation. Default is 0, which stops at the first message. Specify
+    'trace' to print a stack trace for every message without stopping.
 
   --enable-experiment=<flag>
     Enable or disable an experimental flag, used to guard features currently

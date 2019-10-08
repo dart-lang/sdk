@@ -49,6 +49,7 @@ import '../fasta/fasta_codes.dart'
         noLength,
         templateCannotReadSdkSpecification,
         templateCantReadFile,
+        templateDebugTrace,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -184,6 +185,9 @@ class ProcessedOptions {
 
   bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
 
+  /// The number of fatal diagnostics encountered so far.
+  int fatalDiagnosticCount = 0;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),
@@ -223,8 +227,18 @@ class ProcessedOptions {
     }
     reportDiagnosticMessage(format(message, severity, context));
     if (command_line_reporting.shouldThrowOn(severity)) {
-      throw new DebugAbort(
-          message.uri, message.charOffset, severity, StackTrace.current);
+      if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
+        // Skip this one. The interesting one comes later.
+        return;
+      }
+      if (_raw.skipForDebugging < 0) {
+        print(templateDebugTrace
+            .withArguments("$severity", "${StackTrace.current}")
+            .message);
+      } else {
+        throw new DebugAbort(
+            message.uri, message.charOffset, severity, StackTrace.current);
+      }
     }
   }
 

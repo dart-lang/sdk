@@ -209,6 +209,14 @@ class CompilerOptions {
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
 
+  /// For the [throwOnErrorsForDebugging] or [throwOnWarningsForDebugging]
+  /// options, skip this number of otherwise fatal diagnostics without throwing.
+  /// I.e. the default value of 0 means throw on the first fatal diagnostic.
+  ///
+  /// If the value is negative, print a stack trace for every fatal
+  /// diagnostic, but do not stop the compilation.
+  int skipForDebugging = 0;
+
   /// Whether to generate bytecode.
   bool bytecode = false;
 
