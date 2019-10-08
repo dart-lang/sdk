@@ -39,7 +39,8 @@ export 'procedure_builder.dart'
 
 export 'function_type_builder.dart' show FunctionTypeBuilder;
 
-export 'invalid_type_builder.dart' show InvalidTypeBuilder;
+export 'invalid_type_declaration_builder.dart'
+    show InvalidTypeDeclarationBuilder;
 
 export 'library_builder.dart' show LibraryBuilder;
 

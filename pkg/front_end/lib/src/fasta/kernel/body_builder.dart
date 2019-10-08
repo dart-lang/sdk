@@ -2816,7 +2816,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(new UnresolvedType(
             new NamedTypeBuilder(name,
                 libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
-              ..bind(new InvalidTypeBuilder(
+              ..bind(new InvalidTypeDeclarationBuilder(
                   name,
                   message.withLocation(
                       uri, offset, lengthOfSpan(beginToken, suffix)))),
@@ -2838,7 +2838,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           name.message, name.charOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilder(name.name,
           libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable), null)
-        ..bind(new InvalidTypeBuilder(
+        ..bind(new InvalidTypeDeclarationBuilder(
             name.name,
             name.message.withLocation(
                 name.fileUri, name.charOffset, name.name.length)));
@@ -3809,7 +3809,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         errorName ??= debugName(type.name, name);
       }
-    } else if (type is InvalidTypeBuilder) {
+    } else if (type is InvalidTypeDeclarationBuilder) {
       LocatedMessage message = type.message;
       return evaluateArgumentsBefore(
           arguments,
@@ -5195,7 +5195,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return new UnresolvedType(
           new NamedTypeBuilder(
               typeParameter.name, builder.nullabilityBuilder, null)
-            ..bind(new InvalidTypeBuilder(typeParameter.name, message)),
+            ..bind(
+                new InvalidTypeDeclarationBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);
     }

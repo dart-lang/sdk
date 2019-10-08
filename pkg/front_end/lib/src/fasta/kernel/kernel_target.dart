@@ -90,7 +90,7 @@ import 'kernel_builder.dart'
     show
         ClassBuilder,
         Builder,
-        InvalidTypeBuilder,
+        InvalidTypeDeclarationBuilder,
         FieldBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
@@ -479,7 +479,7 @@ class KernelTarget extends TargetImplementation {
               builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
-    } else if (supertype is InvalidTypeBuilder) {
+    } else if (supertype is InvalidTypeDeclarationBuilder) {
       builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",

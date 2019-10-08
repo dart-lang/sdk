@@ -4,9 +4,10 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show ProcedureKind, Variance;
+import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
 
 import '../builder/builder.dart';
+import '../builder/fixed_type_builder.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -671,7 +672,10 @@ class OutlineBuilder extends StackListener {
     ]));
     debugEvent("endExtensionDeclaration");
     String documentationComment = getDocumentationComment(extensionKeyword);
-    TypeBuilder supertype = pop();
+    Object onType = pop();
+    if (onType is ParserRecovery) {
+      onType = new FixedTypeBuilder(const InvalidType());
+    }
     List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
     int nameOffset = pop();
     String name = pop(NullValue.Name);
@@ -691,7 +695,7 @@ class OutlineBuilder extends StackListener {
         0,
         name,
         typeVariables,
-        supertype,
+        onType,
         startOffset,
         nameOffset,
         endToken.charOffset);
@@ -1637,7 +1641,7 @@ class OutlineBuilder extends StackListener {
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilder(
                 builder.name, const NullabilityBuilder.omitted(), null)
-              ..bind(new InvalidTypeBuilder(
+              ..bind(new InvalidTypeDeclarationBuilder(
                   builder.name,
                   message.withLocation(
                       uri, builder.charOffset, builder.name.length)));

@@ -14,7 +14,7 @@ import '../kernel/kernel_builder.dart' show TypeBuilder, LibraryBuilder;
 
 import 'type_declaration_builder.dart';
 
-class InvalidTypeBuilder extends TypeDeclarationBuilderImpl {
+class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
   String get debugName => "InvalidTypeBuilder";
 
   final LocatedMessage message;
@@ -23,7 +23,7 @@ class InvalidTypeBuilder extends TypeDeclarationBuilderImpl {
 
   final bool suppressMessage;
 
-  InvalidTypeBuilder(String name, this.message,
+  InvalidTypeDeclarationBuilder(String name, this.message,
       {this.context, this.suppressMessage: true})
       : super(null, 0, name, null, message.charOffset, message.uri);
 

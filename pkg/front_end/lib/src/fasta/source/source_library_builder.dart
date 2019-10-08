@@ -165,7 +165,7 @@ import '../kernel/kernel_builder.dart'
         FormalParameterBuilder,
         FunctionTypeBuilder,
         ImplicitFieldType,
-        InvalidTypeBuilder,
+        InvalidTypeDeclarationBuilder,
         ConstructorBuilder,
         EnumBuilder,
         FunctionBuilder,
@@ -1049,7 +1049,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             break;
 
           default:
-            if (member is InvalidTypeBuilder) {
+            if (member is InvalidTypeDeclarationBuilder) {
               unserializableExports ??= <String, String>{};
               unserializableExports[name] = member.message.message;
             } else {
@@ -2175,8 +2175,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool isExport: false, bool isImport: false}) {
     // TODO(ahe): Can I move this to Scope or Prefix?
     if (declaration == other) return declaration;
-    if (declaration is InvalidTypeBuilder) return declaration;
-    if (other is InvalidTypeBuilder) return other;
+    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
+    if (other is InvalidTypeDeclarationBuilder) return other;
     if (declaration is AccessErrorBuilder) {
       AccessErrorBuilder error = declaration;
       declaration = error.builder;
@@ -2265,7 +2265,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // We report the error lazily (setting suppressMessage to false) because the
     // spec 18.1 states that 'It is not an error if N is introduced by two or
     // more imports but never referred to.'
-    return new InvalidTypeBuilder(
+    return new InvalidTypeDeclarationBuilder(
         name, message.withLocation(fileUri, charOffset, name.length),
         suppressMessage: false);
   }
@@ -3114,6 +3114,7 @@ class TypeParameterScopeBuilder {
         // parent declaration.
         parent.addType(type);
       } else if (nameOrQualified is QualifiedName) {
+        NamedTypeBuilder builder = type.builder;
         // Attempt to use a member or type variable as a prefix.
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
             flattenName(
@@ -3121,10 +3122,9 @@ class TypeParameterScopeBuilder {
             nameOrQualified.name);
         library.addProblem(message, type.charOffset,
             nameOrQualified.endCharOffset - type.charOffset, type.fileUri);
-        type.builder.bind(type.builder.buildInvalidType(message.withLocation(
-            type.fileUri,
-            type.charOffset,
-            nameOrQualified.endCharOffset - type.charOffset)));
+        builder.bind(builder.buildInvalidTypeDeclarationBuilder(
+            message.withLocation(type.fileUri, type.charOffset,
+                nameOrQualified.endCharOffset - type.charOffset)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         type.resolveIn(scope, library);

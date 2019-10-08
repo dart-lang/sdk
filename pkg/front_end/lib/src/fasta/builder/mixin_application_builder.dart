@@ -9,8 +9,6 @@ import 'builder.dart'
 
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
-import '../fasta_codes.dart' show LocatedMessage;
-
 import '../problems.dart' show unsupported;
 
 class MixinApplicationBuilder extends TypeBuilder {
@@ -59,11 +57,6 @@ class MixinApplicationBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return unsupported("buildMixedInType", charOffset, fileUri);
-  }
-
-  @override
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
-    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   @override

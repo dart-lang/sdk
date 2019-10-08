@@ -28,7 +28,7 @@ import '../kernel/kernel_builder.dart'
         Builder,
         FieldBuilder,
         FunctionBuilder,
-        InvalidTypeBuilder,
+        InvalidTypeDeclarationBuilder,
         NamedTypeBuilder,
         LibraryBuilder,
         MetadataBuilder,
@@ -250,7 +250,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (message != null) {
       return new NamedTypeBuilder(
           supertype.name, const NullabilityBuilder.omitted(), null)
-        ..bind(new InvalidTypeBuilder(supertype.name,
+        ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;

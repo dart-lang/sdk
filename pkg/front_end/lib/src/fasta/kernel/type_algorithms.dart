@@ -227,7 +227,7 @@ TypeBuilder substituteRange(
           arguments[i] = substitutedArgument;
         }
       }
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       // Don't substitute.
     } else {
       assert(false, "Unexpected named type builder declaration: $declaration.");

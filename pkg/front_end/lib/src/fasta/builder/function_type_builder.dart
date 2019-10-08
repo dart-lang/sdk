@@ -17,10 +17,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypedefType;
 
-import '../fasta_codes.dart'
-    show LocatedMessage, messageSupertypeIsFunction, noLength;
-
-import '../problems.dart' show unsupported;
+import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -125,11 +122,6 @@ class FunctionTypeBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return buildSupertype(library, charOffset, fileUri);
-  }
-
-  @override
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
-    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
