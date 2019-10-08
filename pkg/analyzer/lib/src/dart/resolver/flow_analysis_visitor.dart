@@ -59,8 +59,6 @@ class FlowAnalysisHelper {
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<Statement, Expression, PromotableElement, DartType> flow;
 
-  int _blockFunctionBodyLevel = 0;
-
   factory FlowAnalysisHelper(
       TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
     return FlowAnalysisHelper._(
@@ -148,29 +146,7 @@ class FlowAnalysisHelper {
     flow.handleContinue(target);
   }
 
-  void for_bodyBegin(AstNode node, Expression condition) {
-    flow.for_bodyBegin(node is Statement ? node : null, condition);
-  }
-
-  void for_conditionBegin(AstNode node, Expression condition) {
-    var assigned = assignedVariables.writtenInNode(node);
-    flow.for_conditionBegin(assigned);
-  }
-
-  void functionBody_enter(FunctionBody node) {
-    _blockFunctionBodyLevel++;
-
-    if (_blockFunctionBodyLevel > 1) {
-      assert(flow != null);
-    } else {
-      flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
-        _nodeOperations,
-        _typeOperations,
-        AnalyzerFunctionBodyAccess(node),
-      );
-    }
-
-    var parameters = _enclosingExecutableParameters(node);
+  void executableDeclaration_enter(FormalParameterList parameters) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         flow.write(parameter.declaredElement);
@@ -178,24 +154,19 @@ class FlowAnalysisHelper {
     }
   }
 
-  void functionBody_exit(FunctionBody node) {
-    _blockFunctionBodyLevel--;
-
-    if (_blockFunctionBodyLevel > 0) {
-      return;
-    }
-
-    // Set this.flow to null before doing any clean-up so that if an exception
-    // is raised, the state is already updated correctly, and we don't have
-    // cascading failures.
-    var flow = this.flow;
-    this.flow = null;
-
+  void executableDeclaration_exit(FunctionBody body) {
     if (!flow.isReachable) {
-      result?.functionBodiesThatDontComplete?.add(node);
+      result?.functionBodiesThatDontComplete?.add(body);
     }
+  }
 
-    flow.finish();
+  void for_bodyBegin(AstNode node, Expression condition) {
+    flow.for_bodyBegin(node is Statement ? node : null, condition);
+  }
+
+  void for_conditionBegin(AstNode node, Expression condition) {
+    var assigned = assignedVariables.writtenInNode(node);
+    flow.for_conditionBegin(assigned);
   }
 
   void isExpression(IsExpression node) {
@@ -244,6 +215,25 @@ class FlowAnalysisHelper {
     return false;
   }
 
+  void topLevelDeclaration_enter(FunctionBody body) {
+    assert(flow == null);
+    flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
+      _nodeOperations,
+      _typeOperations,
+      AnalyzerFunctionBodyAccess(body),
+    );
+  }
+
+  void topLevelDeclaration_exit() {
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+
+    flow.finish();
+  }
+
   void variableDeclarationList(VariableDeclarationList node) {
     if (flow != null) {
       var variables = node.variables;
@@ -254,20 +244,6 @@ class FlowAnalysisHelper {
         }
       }
     }
-  }
-
-  FormalParameterList _enclosingExecutableParameters(FunctionBody node) {
-    var parent = node.parent;
-    if (parent is ConstructorDeclaration) {
-      return parent.parameters;
-    }
-    if (parent is FunctionExpression) {
-      return parent.parameters;
-    }
-    if (parent is MethodDeclaration) {
-      return parent.parameters;
-    }
-    return null;
   }
 
   /// Computes the [AssignedVariables] map for the given [node].
@@ -507,7 +483,10 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   @override
   DartType getType(SimpleIdentifier node) {
     var variable = node.staticElement as VariableElement;
-    var promotedType = _manager.flow?.promotedType(variable);
-    return promotedType ?? variable.type;
+    if (variable is PromotableElement) {
+      var promotedType = _manager.flow?.promotedType(variable);
+      if (promotedType != null) return promotedType;
+    }
+    return variable.type;
   }
 }
