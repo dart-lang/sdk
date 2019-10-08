@@ -143,6 +143,8 @@ class InfoBuilder {
         return "This variable is initialized to null";
       }
       return "This variable is initialized to a nullable value";
+    } else if (parent is AsExpression) {
+      return "The value of the expression is nullable";
     }
     if (node is NullLiteral) {
       return "An explicit 'null' is assigned";
@@ -321,7 +323,25 @@ class InfoBuilder {
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
   NavigationTarget _targetForNode(String filePath, AstNode node) {
-    return _targetFor(filePath, node.offset, node.length);
+    AstNode parent = node.parent;
+    if (node is MethodDeclaration) {
+      // Rather than create a NavigationTarget for an entire method declaration
+      // (starting at its doc comment, ending at `}`, return a target pointing
+      // to the method's name.
+      return _targetFor(filePath, node.name.offset, node.name.length);
+    } else if (parent is ReturnStatement) {
+      // Rather than create a NavigationTarget for an entire expression, return
+      // a target pointing to the `return` token.
+      return _targetFor(
+          filePath, parent.returnKeyword.offset, parent.returnKeyword.length);
+    } else if (parent is ExpressionFunctionBody) {
+      // Rather than create a NavigationTarget for an entire expression function
+      // body, return a target pointing to the `=>` token.
+      return _targetFor(filePath, parent.functionDefinition.offset,
+          parent.functionDefinition.length);
+    } else {
+      return _targetFor(filePath, node.offset, node.length);
+    }
   }
 
   /// Return the unit info for the file at the given [path].

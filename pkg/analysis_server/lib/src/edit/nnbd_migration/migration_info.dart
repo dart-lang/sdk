@@ -55,6 +55,9 @@ class NavigationTarget extends NavigationRegion {
         other.offset == offset &&
         other.length == length;
   }
+
+  @override
+  String toString() => 'NavigationTarget["$filePath", $offset, $length]';
 }
 
 /// An additional detail related to a region.
