@@ -21,6 +21,60 @@ main() {
 
 defineTests() {
   group('integration', () {
+    group('flutter_html', () {
+      IOSink currentOut = outSink;
+      CollectingSink collectingOut = CollectingSink();
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
+      tearDown(() {
+        collectingOut.buffer.clear();
+        outSink = currentOut;
+        exitCode = 0;
+      });
+
+      test('non flutter app', () async {
+        await cli.runLinter([
+          'test/_data/flutter_html/non_flutter_app',
+          '--rules=flutter_html',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 0 issues found, in'));
+        expect(exitCode, 0);
+      });
+
+      test('non web app', () async {
+        await cli.runLinter([
+          'test/_data/flutter_html/non_web_app',
+          '--rules=flutter_html',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 3 issues found, in'));
+        expect(exitCode, 1);
+      });
+
+      test('web app', () async {
+        await cli.runLinter([
+          'test/_data/flutter_html/web_app',
+          '--rules=flutter_html',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 0 issues found, in'));
+        expect(exitCode, 0);
+      });
+
+      test('web plugin', () async {
+        await cli.runLinter([
+          'test/_data/flutter_html/web_plugin',
+          '--rules=flutter_html',
+        ], LinterOptions());
+        expect(collectingOut.trim(),
+            contains('2 files analyzed, 0 issues found, in'));
+        expect(exitCode, 0);
+      });
+    });
+
     group('p2', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = CollectingSink();
