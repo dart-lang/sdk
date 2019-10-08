@@ -3511,7 +3511,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // or explicitly written by the user, in both cases we use an assert
     // assignable.
     instructions += LoadLocal(MakeTemporary());
-    instructions += B->AssertAssignable(
+    instructions += B->AssertAssignableLoadTypeArguments(
         position, type,
         is_type_error ? Symbols::Empty() : Symbols::InTypeCast(),
         AssertAssignableInstr::kInsertedByFrontend);

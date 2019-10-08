@@ -109,7 +109,7 @@ namespace dart {
   V(Int32x4Array)                                                              \
   V(Float64x2Array)
 
-#define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
+#define CLASS_LIST_FFI_NUMERIC(V)                                              \
   V(Int8)                                                                      \
   V(Int16)                                                                     \
   V(Int32)                                                                     \
@@ -120,7 +120,10 @@ namespace dart {
   V(Uint64)                                                                    \
   V(IntPtr)                                                                    \
   V(Float)                                                                     \
-  V(Double)                                                                    \
+  V(Double)
+
+#define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
+  CLASS_LIST_FFI_NUMERIC(V)                                                    \
   V(Void)
 
 #define CLASS_LIST_FFI(V)                                                      \

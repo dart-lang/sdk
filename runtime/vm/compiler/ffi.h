@@ -25,6 +25,12 @@ constexpr intptr_t kMinimumArgumentWidth = 4;
 // Storage size for an FFI type (extends 'ffi.NativeType').
 size_t ElementSizeInBytes(intptr_t class_id);
 
+// TypedData class id for a NativeType type, except for Void and NativeFunction.
+classid_t ElementTypedDataCid(classid_t class_id);
+
+// Returns the kFFi<type>Cid for the recognized load/store method [kind].
+classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind);
+
 // These ABIs should be kept in sync with pkg/vm/lib/transformations/ffi.dart.
 enum class Abi {
   kWordSize64 = 0,
@@ -36,7 +42,7 @@ enum class Abi {
 Abi TargetAbi();
 
 // Unboxed representation of an FFI type (extends 'ffi.NativeType').
-Representation TypeRepresentation(const AbstractType& result_type);
+Representation TypeRepresentation(classid_t class_id);
 
 // Unboxed representation of an FFI type (extends 'ffi.NativeType') for 8 and 16
 // bit integers.
