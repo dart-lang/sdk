@@ -6,12 +6,17 @@
 
 void main() {
   print('ha'); // LINT
+  [1,2,3].forEach(print); // LINT
+  Future.value('hello').then(print); // LINT
 }
+
 
 var x = print; // OK
 
 void f() {
   x('ha'); // OK?
+  [1,2,3].forEach(x); // OK
+  Future.value('hello').then(x); // OK
 }
 
 class A {
