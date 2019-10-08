@@ -755,29 +755,45 @@ class DillComparer {
     return result;
   }
 
+  List<String> stack = [];
+
+  int outputLines = 0;
+
+  void printDifference(String s) {
+    outputTo.writeln("----------");
+    outputTo.writeln(s);
+    outputTo.writeln("'Stacktrace':");
+    stack.forEach(outputTo.writeln);
+    outputLines += 3 + stack.length;
+  }
+
   bool _compareInternal(dynamic a, dynamic b) {
     if (a.runtimeType != b.runtimeType) {
-      outputTo.writeln(
+      printDifference(
           "Different runtime types (${a.runtimeType} and ${b.runtimeType})");
       return false;
     }
+
+    bool result = true;
     if (a is List) {
       List listA = a;
       List listB = b;
+      int length = listA.length;
       if (listA.length != listB.length) {
-        outputTo.writeln(
-            "Lists have different length (${listA.length} vs ${listB.length} "
-            "${_getTag(a)}");
-        return false;
+        printDifference(
+            "Lists have different length (${listA.length} vs ${listB.length})");
+        result = false;
+        if (listB.length < listA.length) length = listB.length;
       }
-      for (int i = 0; i < listA.length; i++) {
+      for (int i = 0; i < length; i++) {
+        stack.add("Lists at index $i ${_getTag(a)}");
         if (!_compareInternal(listA[i], listB[i])) {
-          outputTo
-              .writeln("Lists have different values at index $i ${_getTag(a)}");
-          return false;
+          result = false;
         }
+        stack.removeLast();
+        if (outputLines > 1000) return result;
       }
-      return true;
+      return result;
     }
 
     if (a is Map<String, dynamic>) {
@@ -786,23 +802,24 @@ class DillComparer {
       for (String key in mapA.keys) {
         dynamic valueA = mapA[key];
         dynamic valueB = mapB[key];
+        stack.add("Map with key '$key' ${_getTag(a)}");
         if (!_compareInternal(valueA, valueB)) {
-          outputTo.writeln(
-              "Map with key '$key' has different values ${_getTag(a)}");
-          return false;
+          result = false;
         }
+        stack.removeLast();
+        if (outputLines > 1000) return result;
       }
       if (mapA.length != mapB.length) {
-        outputTo.writeln("Maps have different number of entries "
+        printDifference("Maps have different number of entries "
             "(${mapA.length} vs ${mapB.length}). ${_getTag(a)}");
-        return false;
+        result = false;
       }
-      return true;
+      return result;
     }
 
     if (a is int) {
       if (a != b) {
-        outputTo.writeln("Integers differ: $a vs $b");
+        printDifference("Integers differ: $a vs $b");
         return false;
       }
       return true;
