@@ -21,9 +21,7 @@ import '../fasta_codes.dart'
         messagePatchDeclarationOrigin,
         noLength,
         templateConflictsWithMember,
-        templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning,
         templateExtensionMemberConflictsWithObjectMember;
 import 'source_library_builder.dart';
 
@@ -157,20 +155,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
               member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
       }
-      if (member.isDeclarationInstanceMember ==
-          setter.isDeclarationInstanceMember) {
-        addProblem(templateConflictsWithMember.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      } else {
-        addProblem(templateConflictsWithMemberWarning.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetterWarning.withArguments(name),
-            member.charOffset, noLength);
-      }
+      addProblem(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, noLength);
+      // TODO(ahe): Context argument to previous message?
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, noLength);
     });
 
     _extension.onType = onType?.build(libraryBuilder);

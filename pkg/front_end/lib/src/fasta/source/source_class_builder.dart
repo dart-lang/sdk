@@ -19,9 +19,7 @@ import '../fasta_codes.dart'
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
-        templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning,
         templateSupertypeIsIllegal;
 
 import '../kernel/kernel_builder.dart'
@@ -217,20 +215,11 @@ class SourceClassBuilder extends ClassBuilderImpl
               member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
       }
-      if (member.isDeclarationInstanceMember ==
-          setter.isDeclarationInstanceMember) {
-        addProblem(templateConflictsWithMember.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      } else {
-        addProblem(templateConflictsWithMemberWarning.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetterWarning.withArguments(name),
-            member.charOffset, noLength);
-      }
+      addProblem(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, noLength);
+      // TODO(ahe): Context argument to previous message?
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, noLength);
     });
 
     scope.setters.forEach((String name, Builder setter) {

@@ -4909,7 +4909,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       {List<LocatedMessage> context}) {
     int charOffset = expression.fileOffset;
     Severity severity = message.code.severity;
-    if (severity == Severity.error || severity == Severity.errorLegacyWarning) {
+    if (severity == Severity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, charOffset, length),
           context: context);

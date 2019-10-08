@@ -147,7 +147,6 @@ abstract class Compiler {
           case Severity.warning:
             printMessage = !suppressWarnings;
             break;
-          case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
             throw "Unexpected severity: ${message.severity}";
