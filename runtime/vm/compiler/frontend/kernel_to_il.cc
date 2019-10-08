@@ -1074,6 +1074,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedIntPtr);  // Truncating, so signed is ok.
       body += ConvertIntptrToUntagged();      // Requires signed intptr.
@@ -1169,6 +1171,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         // But we type check it as a method on a generic class at runtime.
         body += LoadLocal(arg_value);
         body += LoadLocal(arg_pointer);
+        body += CheckNullOptimized(TokenPosition::kNoSource,
+                                   String::ZoneHandle(Z, function.name()));
         // We pass the Pointer type argument as instantiator_type_args.
         //
         // Call sites to this recognized method are guaranteed to pass a
@@ -1189,6 +1193,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 
       ASSERT(function.NumParameters() == 2);
       body += LoadLocal(arg_pointer);  // Pointer.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedIntPtr);  // Truncating, so signed is ok.
       body += ConvertIntptrToUntagged();      // Requires signed intptr.

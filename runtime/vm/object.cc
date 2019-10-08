@@ -21494,7 +21494,6 @@ RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
 }
 
 bool Pointer::IsPointer(const Instance& obj) {
-  ASSERT(!obj.IsNull());
   return RawObject::IsFfiPointerClassId(obj.raw()->GetClassId());
 }
 

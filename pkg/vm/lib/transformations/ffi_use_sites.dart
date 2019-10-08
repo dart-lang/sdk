@@ -364,6 +364,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         // this rewiring.
         final DartType pointerType = node.receiver.getStaticType(env);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
+        if (nativeType is TypeParameterType) {
+          // Do not rewire generic invocations.
+          return node;
+        }
         final Class nativeClass = (nativeType as InterfaceType).classNode;
         final NativeType nt = getType(nativeClass);
         if (optimizedTypes.contains(nt)) {

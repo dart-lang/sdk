@@ -50,15 +50,6 @@ static void CheckSized(const AbstractType& type_arg) {
 
 // The following functions are runtime checks on arguments.
 
-static const Pointer& AsPointer(const Instance& instance) {
-  if (!instance.IsPointer()) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Expected a Pointer object but found %s", instance.ToCString()));
-    Exceptions::ThrowArgumentError(error);
-  }
-  return Pointer::Cast(instance);
-}
-
 static const Integer& AsInteger(const Instance& instance) {
   if (!instance.IsInteger()) {
     const String& error = String::Handle(String::NewFormatted(
@@ -294,15 +285,9 @@ CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
 
 DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NATIVE_ARGUMENT(Instance, new_value, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, new_value, arguments->NativeArgAt(1));
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
-
-  if (new_value.IsNull()) {
-    const String& error = String::Handle(
-        String::NewFormatted("Argument to Pointer.store is null."));
-    Exceptions::ThrowArgumentError(error);
-  }
 
   auto& new_value_type =
       AbstractType::Handle(zone, new_value.GetType(Heap::kNew));
@@ -315,9 +300,8 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 2) {
   }
 
   ASSERT(IsPointerType(pointer_type_arg));
-  ASSERT(new_value.IsPointer());
   uword* slot = reinterpret_cast<uword*>(pointer.NativeAddress());
-  *slot = AsPointer(new_value).NativeAddress();
+  *slot = new_value.NativeAddress();
   return Object::null();
 }
 
