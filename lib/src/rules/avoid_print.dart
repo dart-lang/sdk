@@ -61,7 +61,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.methodName.name == 'print' && isDartCore(node)) {
       rule.reportLint(node.methodName);
     }
-    
+
     node.argumentList.arguments.forEach(_validateArgument);
   }
 }
