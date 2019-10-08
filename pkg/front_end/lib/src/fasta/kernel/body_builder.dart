@@ -1044,15 +1044,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // that it is unresolved.
           assert(redirectingFactoryBody.isUnresolved);
           String errorName = redirectingFactoryBody.unresolvedName;
-
-          replacementNode = throwNoSuchMethodError(
-              forest.createNullLiteral(invocation.fileOffset),
-              errorName,
-              forest.createArguments(
-                  noLocation, invocation.arguments.positional,
-                  types: invocation.arguments.types,
-                  named: invocation.arguments.named),
-              initialTarget.fileOffset);
+          replacementNode = buildProblem(
+              fasta.templateMethodNotFound.withArguments(errorName),
+              invocation.fileOffset,
+              noLength,
+              suppressMessage: true);
         } else {
           Substitution substitution = Substitution.fromPairs(
               initialTarget.function.typeParameters,

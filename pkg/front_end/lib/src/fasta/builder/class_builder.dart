@@ -499,25 +499,21 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 declaration.setRedirectingFactoryBody(
                     targetBuilder.member, typeArguments);
               } else if (targetBuilder is AmbiguousBuilder) {
-                Message message = templateDuplicatedDeclarationUse
-                    .withArguments(redirectionTarget.fullNameForErrors);
-                if (declaration.isConst) {
-                  addProblem(message, declaration.charOffset, noLength);
-                } else {
-                  addProblem(message, declaration.charOffset, noLength);
-                }
+                addProblem(
+                    templateDuplicatedDeclarationUse
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
                 // CoreTypes aren't computed yet, and this is the outline
                 // phase. So we can't and shouldn't create a method body.
                 declaration.body = new RedirectingFactoryBody.unresolved(
                     redirectionTarget.fullNameForErrors);
               } else {
-                Message message = templateRedirectionTargetNotFound
-                    .withArguments(redirectionTarget.fullNameForErrors);
-                if (declaration.isConst) {
-                  addProblem(message, declaration.charOffset, noLength);
-                } else {
-                  addProblem(message, declaration.charOffset, noLength);
-                }
+                addProblem(
+                    templateRedirectionTargetNotFound
+                        .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
                 // CoreTypes aren't computed yet, and this is the outline
                 // phase. So we can't and shouldn't create a method body.
                 declaration.body = new RedirectingFactoryBody.unresolved(
