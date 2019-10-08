@@ -12,3 +12,5 @@ extension Foo_Bar //LINT
 
 extension FooBar //OK
     on Object {}
+
+extension on Object { }  //OK
