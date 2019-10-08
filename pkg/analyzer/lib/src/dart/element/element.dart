@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
@@ -358,16 +357,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       }
       classElement = classElement.supertype?.element;
     }
-  }
-
-  /// Return the [AbstractClassElementImpl] of the given [classElement].  May
-  /// throw an exception if the [AbstractClassElementImpl] cannot be provided
-  /// (should not happen though).
-  static AbstractClassElementImpl getImpl(ClassElement classElement) {
-    if (classElement is ClassElementHandle) {
-      return getImpl(classElement.actualElement);
-    }
-    return classElement as AbstractClassElementImpl;
   }
 
   /// Return an iterable containing all of the implementations of a method with
@@ -1054,9 +1043,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superElement =
-            AbstractClassElementImpl.getImpl(supertype.element)
-                as ClassElementImpl;
+        ClassElementImpl superElement = supertype.element;
         constructorsToForward =
             superElement._computeMixinAppConstructors(visitedClasses);
       } finally {
@@ -4086,7 +4073,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("export ");
-    LibraryElementImpl.getImpl(exportedLibrary).appendTo(buffer);
+    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 }
 
@@ -5366,7 +5353,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("import ");
-    LibraryElementImpl.getImpl(importedLibrary).appendTo(buffer);
+    (importedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 
   @override
@@ -5820,11 +5807,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         // expensive for libraries resynthesized from summaries, since it will
         // require fully resynthesizing all the libraries in the cycle as well
         // as any libraries they import or export.  Try to find a better way.
-        if (lib is LibraryElementHandle) {
-          return lib.actualElement;
-        } else {
-          return lib;
-        }
+        return lib;
       }
 
       void recurse(LibraryElementImpl child) {
@@ -6053,14 +6036,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     function.returnType = typeProvider.futureDynamicType;
     function.type = new FunctionTypeImpl(function);
     return function;
-  }
-
-  /// Return the [LibraryElementImpl] of the given [element].
-  static LibraryElementImpl getImpl(LibraryElement element) {
-    if (element is LibraryElementHandle) {
-      return getImpl(element.actualElement);
-    }
-    return element as LibraryElementImpl;
   }
 
   static List<ImportElement> getImportsWithPrefixFromImports(

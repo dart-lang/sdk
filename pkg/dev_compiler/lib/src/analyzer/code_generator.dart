@@ -16,7 +16,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
@@ -6740,9 +6739,7 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
   TemporaryVariableElement.forNode(
       Identifier name, this.jsVariable, Element enclosingElement)
       : super.forNode(name) {
-    this.enclosingElement = enclosingElement is ElementHandle
-        ? enclosingElement.actualElement
-        : enclosingElement;
+    this.enclosingElement = enclosingElement;
   }
 
   @override

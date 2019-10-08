@@ -531,7 +531,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -569,7 +569,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     ClassElementImpl outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
@@ -1111,7 +1111,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // TODO(scheglov) Verify for all mixin errors.
     ClassElementImpl outerClass = _enclosingClass;
     try {
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -3904,8 +3904,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(int mixinIndex, TypeName mixinName,
       ClassElement mixinElement, InterfaceType mixinType) {
-    ClassElementImpl mixinElementImpl =
-        AbstractClassElementImpl.getImpl(mixinElement);
+    ClassElementImpl mixinElementImpl = mixinElement;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
     }

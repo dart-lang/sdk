@@ -123,8 +123,7 @@ class _ClassVerifier {
     this.superclass,
     this.withClause,
   })  : libraryUri = library.source.uri,
-        classElement =
-            AbstractClassElementImpl.getImpl(classNameNode.staticElement);
+        classElement = classNameNode.staticElement;
 
   void verify() {
     if (_checkDirectSuperTypes()) {

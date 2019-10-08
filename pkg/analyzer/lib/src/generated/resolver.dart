@@ -233,7 +233,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    var element = AbstractClassElementImpl.getImpl(node.declaredElement);
+    ClassElementImpl element = node.declaredElement;
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 

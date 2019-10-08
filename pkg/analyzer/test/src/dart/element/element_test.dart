@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -35,7 +34,6 @@ main() {
     defineReflectiveTests(ElementLocationImplTest);
     defineReflectiveTests(ElementImplTest);
     defineReflectiveTests(LibraryElementImplTest);
-    defineReflectiveTests(PropertyAccessorElementImplTest);
     defineReflectiveTests(TopLevelVariableElementImplTest);
   });
 }
@@ -3393,55 +3391,6 @@ class LibraryElementImplTest {
     for (int i = 0; i < actualImports.length; i++) {
       expect(actualImports[i], same(expectedImports[i]));
     }
-  }
-}
-
-@reflectiveTest
-class PropertyAccessorElementImplTest {
-  void test_matchesHandle_getter() {
-    CompilationUnitElementImpl compilationUnitElement =
-        ElementFactory.compilationUnit('foo.dart');
-    ElementFactory.library(null, '')
-      ..definingCompilationUnit = compilationUnitElement;
-    PropertyAccessorElementImpl element =
-        ElementFactory.getterElement('x', true, DynamicTypeImpl.instance);
-    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
-    PropertyAccessorElementHandle handle =
-        new PropertyAccessorElementHandle(null, element.location);
-    expect(element.hashCode, handle.hashCode);
-    // ignore: unrelated_type_equality_checks
-    expect(element == handle, isTrue);
-    // ignore: unrelated_type_equality_checks
-    expect(handle == element, isTrue);
-  }
-
-  void test_matchesHandle_setter() {
-    CompilationUnitElementImpl compilationUnitElement =
-        ElementFactory.compilationUnit('foo.dart');
-    ElementFactory.library(null, '')
-      ..definingCompilationUnit = compilationUnitElement;
-    PropertyAccessorElementImpl element =
-        ElementFactory.setterElement('x', true, DynamicTypeImpl.instance);
-    compilationUnitElement.accessors = <PropertyAccessorElement>[element];
-    PropertyAccessorElementHandle handle =
-        new PropertyAccessorElementHandle(null, element.location);
-    expect(element.hashCode, handle.hashCode);
-    // ignore: unrelated_type_equality_checks
-    expect(element == handle, isTrue);
-    // ignore: unrelated_type_equality_checks
-    expect(handle == element, isTrue);
-  }
-}
-
-class TestElementResynthesizer extends ElementResynthesizer {
-  Map<ElementLocation, Element> locationMap;
-
-  TestElementResynthesizer(AnalysisContext context, this.locationMap)
-      : super(context, null);
-
-  @override
-  Element getElement(ElementLocation location) {
-    return locationMap[location];
   }
 }
 
