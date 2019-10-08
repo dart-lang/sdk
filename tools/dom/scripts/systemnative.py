@@ -22,8 +22,7 @@ _url_utils = [
     'protocol', 'search', 'username'
 ]
 
-_promise_to_future = Conversion('convertNativePromiseToDartFuture', 'dynamic',
-                                'Future')
+_promise_to_future = Conversion('promiseToFuture', 'dynamic', 'Future')
 
 
 def array_type(data_type):
