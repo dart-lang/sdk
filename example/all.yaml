@@ -57,6 +57,7 @@ linter:
     - empty_constructor_bodies
     - empty_statements
     - file_names
+    - flutter_html
     - flutter_style_todos
     - hash_and_equals
     - implementation_imports
