@@ -589,7 +589,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           '(parent is ${node.parent.runtimeType})');
     }
     _handleAssignment(node.expression,
-        destinationType: _currentFunctionType.returnType);
+        destinationType: _currentFunctionType.returnType,
+        wrapFuture: node.isAsynchronous);
     return null;
   }
 
@@ -1080,19 +1081,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitReturnStatement(ReturnStatement node) {
     DecoratedType returnType = _currentFunctionType.returnType;
     Expression returnValue = node.expression;
-    // TODO(danrubel): This does not handle situations where the returnType
-    // or the returnValue's type extends or implements dart:async Future.
-    if ((returnType.type.isDartAsyncFuture ||
-            returnType.type.isDartAsyncFutureOr) &&
-        node.thisOrAncestorOfType<FunctionBody>().isAsynchronous &&
-        !returnValue.staticType.isDartAsyncFuture) {
-      returnType = returnType.typeArguments.first;
-    }
+    final isAsync = node.thisOrAncestorOfType<FunctionBody>().isAsynchronous;
     if (returnValue == null) {
       _checkAssignment(null,
-          source: _nullType, destination: returnType, hard: false);
+          source: isAsync ? _futureOf(_nullType) : _nullType,
+          destination: returnType,
+          hard: false);
     } else {
-      _handleAssignment(returnValue, destinationType: returnType);
+      _handleAssignment(returnValue,
+          destinationType: returnType, wrapFuture: isAsync);
     }
 
     _flowAnalysis.handleExit();
@@ -1567,6 +1564,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  DecoratedType _futureOf(DecoratedType type) => DecoratedType.forImplicitType(
+      _typeProvider, _typeProvider.futureType2(type.type), _graph,
+      typeArguments: [type]);
+
   @override
   DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
     // TODO(paulberry): once we've wired up flow analysis, return promoted
@@ -1582,12 +1583,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// [destinationType].  In this case, then the type comes from visiting the
   /// destination expression.  If the destination expression refers to a local
   /// variable, we mark it as assigned in flow analysis at the proper time.
+  ///
+  /// Set [wrapFuture] to true to handle assigning Future<flatten(T)> to R.
   DecoratedType _handleAssignment(Expression expression,
       {DecoratedType destinationType,
       Expression destinationExpression,
       AssignmentExpression compoundOperatorInfo,
       Expression questionAssignNode,
-      bool fromDefaultValue = false}) {
+      bool fromDefaultValue = false,
+      bool wrapFuture = false}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
         'Either destinationExpression or destinationType should be supplied, '
@@ -1613,6 +1617,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     DecoratedType sourceType;
     try {
       sourceType = expression.accept(this);
+      if (wrapFuture) {
+        sourceType = _wrapFuture(sourceType);
+      }
       if (sourceType == null) {
         throw StateError('No type computed for ${expression.runtimeType} '
             '(${expression.toSource()}) offset=${expression.offset}');
@@ -2135,6 +2142,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (x.returnType != null && y.returnType != null) {
       _unionDecoratedTypes(x.returnType, y.returnType, origin);
     }
+  }
+
+  /// Produce Future<flatten(T)> for some T, however, we would like to merely
+  /// upcast T to that type if possible, skipping the flatten when not
+  /// necessary.
+  DecoratedType _wrapFuture(DecoratedType type) {
+    if (_typeSystem.isSubtypeOf(type.type, _typeProvider.futureDynamicType)) {
+      return _decoratedClassHierarchy.asInstanceOf(
+          type, _typeProvider.futureDynamicType.element);
+    }
+
+    return _futureOf(type);
   }
 }
 

@@ -4540,6 +4540,46 @@ class C {
         hard: true);
   }
 
+  test_return_from_async_closureBody_future() async {
+    await analyze('''
+Future<int> f() {
+  return () async {
+    return g();
+  }();
+}
+int g() => 1;
+''');
+    assertEdge(
+        decoratedTypeAnnotation('int g').node,
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+            .sourceNode,
+        hard: false);
+  }
+
+  test_return_from_async_closureExpression_future() async {
+    await analyze('''
+Future<int> Function() f() {
+  return () async => g();
+}
+int g() => 1;
+''');
+    assertEdge(
+        decoratedTypeAnnotation('int g').node,
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+            .sourceNode,
+        hard: false);
+  }
+
+  test_return_from_async_expressionBody_future() async {
+    await analyze('''
+Future<int> f() async => g();
+int g() => 1;
+''');
+    assertEdge(decoratedTypeAnnotation('int g').node,
+        decoratedTypeAnnotation('int>').node,
+        hard: false);
+  }
+
   test_return_from_async_future() async {
     await analyze('''
 Future<int> f() async {
@@ -4547,7 +4587,19 @@ Future<int> f() async {
 }
 int g() => 1;
 ''');
-    // No assertions; just checking that it doesn't crash.
+    assertEdge(decoratedTypeAnnotation('int g').node,
+        decoratedTypeAnnotation('int>').node,
+        hard: false);
+  }
+
+  test_return_from_async_future_void() async {
+    await analyze('''
+Future<void> f() async {
+  return;
+}
+int g() => 1;
+''');
+    assertNoEdge(always, decoratedTypeAnnotation('Future').node);
   }
 
   test_return_from_async_futureOr() async {
