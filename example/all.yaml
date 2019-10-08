@@ -41,6 +41,7 @@ linter:
     - avoid_types_on_closure_parameters
     - avoid_unused_constructor_parameters
     - avoid_void_async
+    - avoid_web_libraries_in_flutter
     - await_only_futures
     - camel_case_extensions
     - camel_case_types
@@ -57,7 +58,6 @@ linter:
     - empty_constructor_bodies
     - empty_statements
     - file_names
-    - flutter_html
     - flutter_style_todos
     - hash_and_equals
     - implementation_imports

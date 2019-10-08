@@ -21,7 +21,7 @@ main() {
 
 defineTests() {
   group('integration', () {
-    group('flutter_html', () {
+    group('avoid_web_libraries_in_flutter', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = CollectingSink();
       setUp(() {
@@ -36,8 +36,8 @@ defineTests() {
 
       test('no pubspec', () async {
         await cli.runLinter([
-          'test/_data/flutter_html/no_pubspec',
-          '--rules=flutter_html',
+          'test/_data/avoid_web_libraries_in_flutter/no_pubspec',
+          '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
             contains('1 file analyzed, 0 issues found, in'));
@@ -46,8 +46,8 @@ defineTests() {
 
       test('non flutter app', () async {
         await cli.runLinter([
-          'test/_data/flutter_html/non_flutter_app',
-          '--rules=flutter_html',
+          'test/_data/avoid_web_libraries_in_flutter/non_flutter_app',
+          '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
             contains('2 files analyzed, 0 issues found, in'));
@@ -56,18 +56,18 @@ defineTests() {
 
       test('non web app', () async {
         await cli.runLinter([
-          'test/_data/flutter_html/non_web_app',
-          '--rules=flutter_html',
+          'test/_data/avoid_web_libraries_in_flutter/non_web_app',
+          '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
-            contains('2 files analyzed, 3 issues found, in'));
+            contains('3 files analyzed, 3 issues found, in'));
         expect(exitCode, 1);
       });
 
       test('web app', () async {
         await cli.runLinter([
-          'test/_data/flutter_html/web_app',
-          '--rules=flutter_html',
+          'test/_data/avoid_web_libraries_in_flutter/web_app',
+          '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
             contains('2 files analyzed, 0 issues found, in'));
@@ -76,8 +76,8 @@ defineTests() {
 
       test('web plugin', () async {
         await cli.runLinter([
-          'test/_data/flutter_html/web_plugin',
-          '--rules=flutter_html',
+          'test/_data/avoid_web_libraries_in_flutter/web_plugin',
+          '--rules=avoid_web_libraries_in_flutter',
         ], LinterOptions());
         expect(collectingOut.trim(),
             contains('2 files analyzed, 0 issues found, in'));

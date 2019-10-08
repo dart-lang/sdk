@@ -42,6 +42,7 @@ import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
 import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
 import 'package:linter/src/rules/avoid_void_async.dart';
+import 'package:linter/src/rules/avoid_web_libraries_in_flutter.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_extensions.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
@@ -58,7 +59,6 @@ import 'package:linter/src/rules/empty_catches.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
 import 'package:linter/src/rules/empty_statements.dart';
 import 'package:linter/src/rules/file_names.dart';
-import 'package:linter/src/rules/flutter_html.dart';
 import 'package:linter/src/rules/flutter_style_todos.dart';
 import 'package:linter/src/rules/hash_and_equals.dart';
 import 'package:linter/src/rules/implementation_imports.dart';
@@ -199,6 +199,7 @@ void registerLintRules() {
     ..register(AvoidTypesOnClosureParameters())
     ..register(AvoidUnusedConstructorParameters())
     ..register(AvoidVoidAsync())
+    ..register(AvoidWebLibrariesInFlutter())
     ..register(AwaitOnlyFutures())
     ..register(CamelCaseExtensions())
     ..register(CamelCaseTypes())
@@ -215,7 +216,6 @@ void registerLintRules() {
     ..register(EmptyConstructorBodies())
     ..register(EmptyStatements())
     ..register(FileNames())
-    ..register(FlutterHtml())
     ..register(FlutterStyleTodos())
     ..register(HashAndEquals())
     ..register(ImplementationImports())

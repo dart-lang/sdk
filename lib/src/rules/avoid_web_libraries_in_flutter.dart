@@ -4,20 +4,21 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:yaml/yaml.dart';
 
-const _desc = r'Avoid using web-only libraries outside Flutter web packages';
+const _desc = r'Avoid using web-only libraries outside Flutter web projects';
 
-const _details = r'''Avoid using web packages, `dart:html`, `dart:js` and 
-`dart:js_util` in non-web Flutter packages.  These packages are not supported
+const _details = r'''Avoid using web libraries, `dart:html`, `dart:js` and 
+`dart:js_util` in non-web Flutter projects.  These libraries are not supported
 outside a web context and functionality that depends on them will fail at
 runtime.
 
-Web package access is allowed in:
+Web library access is allowed in:
 
-* packages meant to run on the web (e.g., have a `web/` directory)
+* projects meant to run on the web (e.g., have a `web/` directory)
 * plugin packages that declare `web` as a supported context
 
 otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are flagged.
@@ -43,10 +44,10 @@ YamlMap _parseYaml(String content) {
   return YamlMap();
 }
 
-class FlutterHtml extends LintRule implements NodeLintRule {
-  FlutterHtml()
+class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
+  AvoidWebLibrariesInFlutter()
       : super(
-            name: 'flutter_html',
+            name: 'avoid_web_libraries_in_flutter',
             description: _desc,
             details: _details,
             maturity: Maturity.experimental,
@@ -62,20 +63,19 @@ class FlutterHtml extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  bool isInFlutterApp = true;
-  bool isInFlutterWebContext = false;
+  File pubspecFile;
 
   final rule;
-
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    // todo (pq): consider caching for library?
-    final pubspecFile = locatePubspecFile(node);
+    pubspecFile = locatePubspecFile(node);
+  }
+
+  bool checkForValidation() {
     if (pubspecFile == null) {
-      isInFlutterApp = false;
-      return;
+      return false;
     }
 
     var parsedPubspec;
@@ -84,24 +84,27 @@ class _Visitor extends SimpleAstVisitor<void> {
       parsedPubspec = _parseYaml(content);
       // ignore: avoid_catches_without_on_clauses
     } catch (_) {
-      return;
+      return false;
     }
 
+    // Check for Flutter.
     if ((parsedPubspec['dependencies'] ?? const {})['flutter'] == null) {
-      isInFlutterApp = false;
-      return;
+      return false;
     }
 
-    isInFlutterWebContext = pubspecFile.parent.getChild('web').exists ||
-        ((parsedPubspec['flutter'] ?? const {})['plugin'] ?? const {})['web'] !=
+    // Check for a web directory or a web plugin context declaration.
+    return !pubspecFile.parent.getChild('web').exists &&
+        ((parsedPubspec['flutter'] ?? const {})['plugin'] ?? const {})['web'] ==
             null;
   }
 
+  bool _shouldValidateUri;
+
+  bool get shouldValidateUri => _shouldValidateUri ??= checkForValidation();
+
   @override
   void visitImportDirective(ImportDirective node) {
-    if (!isInFlutterApp || isInFlutterWebContext) return;
-
-    if (_webLibs.contains(node.uri.stringValue)) {
+    if (_webLibs.contains(node.uri.stringValue) && shouldValidateUri) {
       rule.reportLint(node);
     }
   }
