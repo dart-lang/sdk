@@ -4,6 +4,8 @@
 
 // VMOptions=--optimization-counter-threshold=5
 
+import 'dart:ffi';
+
 import "package:test/test.dart";
 
 import '../lib/sqlite.dart';
@@ -11,6 +13,8 @@ import '../lib/src/ffi/utf8.dart';
 
 void main() {
   test("sqlite integration test", () {
+    // TODO(dacoharkes): Put the database relative to this file,
+    // instead of where the script was invoked from.
     Database d = Database("test.db");
     d.execute("drop table if exists Cookies;");
     d.execute("""
@@ -165,7 +169,7 @@ void main() {
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
     final medium = Utf8.allocate(test);
-    expect(test, medium.load<Utf8>().toString());
+    expect(test, medium.ref.toString());
     medium.free();
   });
 }

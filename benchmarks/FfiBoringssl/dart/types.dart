@@ -12,14 +12,14 @@ class EVP_MD_CTX extends Struct<EVP_MD_CTX> {}
 
 /// Type for `void*` used to represent opaque data.
 class Data extends Struct<Data> {
-  static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().load();
+  static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().ref;
 
   Pointer<Uint8> asUint8Pointer() => this.addressOf.cast();
 }
 
 /// Type for `uint8_t*` used to represent byte data.
 class Bytes extends Struct<Bytes> {
-  static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().load();
+  static Data fromUint8Pointer(Pointer<Uint8> p) => p.cast<Data>().ref;
 
   Pointer<Uint8> asUint8Pointer() => this.addressOf.cast();
 }

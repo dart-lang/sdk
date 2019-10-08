@@ -17,7 +17,7 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 void doStoreInt32(Pointer<VeryLargeStruct> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).load<VeryLargeStruct>().c = 1;
+    pointer[i].c = 1;
   }
 }
 
@@ -28,7 +28,7 @@ void doStoreInt32(Pointer<VeryLargeStruct> pointer, int length) {
 int doLoadInt32(Pointer<VeryLargeStruct> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<VeryLargeStruct>().c;
+    x += pointer[i].c;
   }
   return x;
 }

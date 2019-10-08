@@ -37,22 +37,22 @@ void main() {
 
 void testNonAlias() {
   final source = Pointer<Int64>.allocate();
-  source.store(42);
-  final int a = source.load();
-  source.store(1984);
-  // alias.load() should be re-executed, as we wrote to alias.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  source.value = 1984;
+  // alias.value should be re-executed, as we wrote to alias.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
 void testAliasCast() {
   final source = Pointer<Int64>.allocate();
   final alias = source.cast<Int8>().cast<Int64>();
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
@@ -60,22 +60,22 @@ void testAliasCast2() {
   final source = Pointer<Int64>.allocate();
   final alias = source.cast<Int16>().cast<Int64>();
   final alias2 = source.cast<Int8>().cast<Int64>();
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   source.free();
 }
 
 void testAliasOffsetBy() {
   final source = Pointer<Int64>.allocate(count: 2);
   final alias = source.offsetBy(8).offsetBy(-8);
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
@@ -83,22 +83,22 @@ void testAliasOffsetBy2() {
   final source = Pointer<Int64>.allocate(count: 3);
   final alias = source.offsetBy(16).offsetBy(-16);
   final alias2 = source.offsetBy(8).offsetBy(-8);
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   source.free();
 }
 
 void testAliasElementAt() {
   final source = Pointer<Int64>.allocate(count: 2);
   final alias = source.elementAt(1).elementAt(-1);
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
@@ -106,22 +106,22 @@ void testAliasElementAt2() {
   final source = Pointer<Int64>.allocate(count: 3);
   final alias = source.elementAt(2).elementAt(-2);
   final alias2 = source.elementAt(1).elementAt(-1);
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   source.free();
 }
 
 void testAliasFromAddress() {
   final source = Pointer<Int64>.allocate();
   final alias = Pointer<Int64>.fromAddress(source.address);
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
@@ -129,24 +129,24 @@ void testAliasFromAddress2() {
   final source = Pointer<Int64>.allocate();
   final alias = Pointer<Int64>.fromAddress(source.address);
   final alias2 = Pointer<Int64>.fromAddress(source.address);
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   source.free();
 }
 
 void testAliasFromAddressViaMemory() {
   final helper = Pointer<IntPtr>.allocate();
   final source = Pointer<Int64>.allocate();
-  helper.store(source.address);
-  final alias = Pointer<Int64>.fromAddress(helper.load());
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  helper.value = source.address;
+  final alias = Pointer<Int64>.fromAddress(helper.value);
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   helper.free();
   source.free();
 }
@@ -154,14 +154,14 @@ void testAliasFromAddressViaMemory() {
 void testAliasFromAddressViaMemory2() {
   final helper = Pointer<IntPtr>.allocate();
   final source = Pointer<Int64>.allocate();
-  helper.store(source.address);
-  final alias = Pointer<Int64>.fromAddress(helper.load());
-  final alias2 = Pointer<Int64>.fromAddress(helper.load());
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  helper.value = source.address;
+  final alias = Pointer<Int64>.fromAddress(helper.value);
+  final alias2 = Pointer<Int64>.fromAddress(helper.value);
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   helper.free();
   source.free();
 }
@@ -178,11 +178,11 @@ void testAliasFromAddressViaNativeFunction() {
   final source = Pointer<Int64>.allocate();
   final alias =
       Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
-  source.store(42);
-  final int a = source.load();
-  alias.store(1984);
-  // source.load() should be re-executed, we wrote alias which aliases source.
-  Expect.notEquals(a, source.load<int>());
+  source.value = 42;
+  final int a = source.value;
+  alias.value = 1984;
+  // source.value should be re-executed, we wrote alias which aliases source.
+  Expect.notEquals(a, source.value);
   source.free();
 }
 
@@ -192,11 +192,11 @@ void testAliasFromAddressViaNativeFunction2() {
       Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   final alias2 =
       Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
-  alias.store(42);
-  final int a = alias.load();
-  alias2.store(1984);
-  // alias.load() should be re-executed, we wrote alias2 which aliases alias.
-  Expect.notEquals(a, alias.load<int>());
+  alias.value = 42;
+  final int a = alias.value;
+  alias2.value = 1984;
+  // alias.value should be re-executed, we wrote alias2 which aliases alias.
+  Expect.notEquals(a, alias.value);
   source.free();
 }
 
@@ -207,9 +207,9 @@ Pointer<Int8> makeDerived(Pointer<Int64> source) =>
 testPartialOverlap() {
   final source = Pointer<Int64>.allocate(count: 2);
   final derived = makeDerived(source);
-  source.store(0x1122334455667788);
-  final int value = source.load();
-  derived.store(0xaa);
-  Expect.notEquals(value, source.load<int>());
+  source.value = 0x1122334455667788;
+  final int value = source.value;
+  derived.value = 0xaa;
+  Expect.notEquals(value, source.value);
   source.free();
 }

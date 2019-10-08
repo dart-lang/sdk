@@ -19,74 +19,74 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 void doStoreInt8(Pointer<Int8> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint8(Pointer<Uint8> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt16(Pointer<Int16> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint16(Pointer<Uint16> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt32(Pointer<Int32> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint32(Pointer<Uint32> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt64(Pointer<Int64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint64(Pointer<Uint64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreFloat(Pointer<Float> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1.0);
+    pointer[i] = 1.0;
   }
 }
 
 void doStoreDouble(Pointer<Double> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1.0);
+    pointer[i] = 1.0;
   }
 }
 
 void doStorePointer(
     Pointer<Pointer<Int8>> pointer, int length, Pointer<Int8> data) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(data);
+    pointer[i] = data;
   }
 }
 
 void doStoreInt64Mint(Pointer<Int64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(0x7FFFFFFFFFFFFFFF);
+    pointer[i] = 0x7FFFFFFFFFFFFFFF;
   }
 }
 
@@ -97,7 +97,7 @@ void doStoreInt64Mint(Pointer<Int64> pointer, int length) {
 int doLoadInt8(Pointer<Int8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -105,7 +105,7 @@ int doLoadInt8(Pointer<Int8> pointer, int length) {
 int doLoadUint8(Pointer<Uint8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -113,7 +113,7 @@ int doLoadUint8(Pointer<Uint8> pointer, int length) {
 int doLoadInt16(Pointer<Int16> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -121,7 +121,7 @@ int doLoadInt16(Pointer<Int16> pointer, int length) {
 int doLoadUint16(Pointer<Uint16> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -129,7 +129,7 @@ int doLoadUint16(Pointer<Uint16> pointer, int length) {
 int doLoadInt32(Pointer<Int32> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -137,7 +137,7 @@ int doLoadInt32(Pointer<Int32> pointer, int length) {
 int doLoadUint32(Pointer<Uint32> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -145,7 +145,7 @@ int doLoadUint32(Pointer<Uint32> pointer, int length) {
 int doLoadInt64(Pointer<Int64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -153,7 +153,7 @@ int doLoadInt64(Pointer<Int64> pointer, int length) {
 int doLoadUint64(Pointer<Uint64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -161,7 +161,7 @@ int doLoadUint64(Pointer<Uint64> pointer, int length) {
 double doLoadFloat(Pointer<Float> pointer, int length) {
   double x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<double>();
+    x += pointer[i];
   }
   return x;
 }
@@ -169,7 +169,7 @@ double doLoadFloat(Pointer<Float> pointer, int length) {
 double doLoadDouble(Pointer<Double> pointer, int length) {
   double x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<double>();
+    x += pointer[i];
   }
   return x;
 }
@@ -179,7 +179,7 @@ int doLoadPointer(Pointer<Pointer<Int8>> pointer, int length) {
   Pointer<Int8> x;
   int address_xor = 0;
   for (int i = 0; i < length; i++) {
-    x = pointer.elementAt(i).load();
+    x = pointer[i];
     address_xor ^= x.address;
   }
   return address_xor;
@@ -188,7 +188,7 @@ int doLoadPointer(Pointer<Pointer<Int8>> pointer, int length) {
 int doLoadInt64Mint(Pointer<Int64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }

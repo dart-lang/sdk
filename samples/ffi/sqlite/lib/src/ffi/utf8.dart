@@ -29,9 +29,9 @@ class Utf8 extends Struct<Utf8> {
     List<int> units = Utf8Encoder().convert(dartStr);
     Pointer<Utf8> str = Pointer.allocate(count: units.length + 1);
     for (int i = 0; i < units.length; ++i) {
-      str.elementAt(i).load<Utf8>().char = units[i];
+      str[i].char = units[i];
     }
-    str.elementAt(units.length).load<Utf8>().char = 0;
+    str[units.length].char = 0;
     return str.cast();
   }
 
@@ -40,9 +40,9 @@ class Utf8 extends Struct<Utf8> {
     final str = addressOf;
     if (str == nullptr) return null;
     int len = 0;
-    while (str.elementAt(++len).load<Utf8>().char != 0);
+    while (str[++len].char != 0);
     List<int> units = List(len);
-    for (int i = 0; i < len; ++i) units[i] = str.elementAt(i).load<Utf8>().char;
+    for (int i = 0; i < len; ++i) units[i] = str[i].char;
     return Utf8Decoder().convert(units);
   }
 }

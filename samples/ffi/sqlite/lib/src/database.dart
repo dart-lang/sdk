@@ -30,7 +30,7 @@ class Database {
     final pathC = Utf8.allocate(path);
     final int resultCode =
         bindings.sqlite3_open_v2(pathC, dbOut, flags, Pointer.fromAddress(0));
-    _database = dbOut.load();
+    _database = dbOut.value;
     dbOut.free();
     pathC.free();
 
@@ -66,7 +66,7 @@ class Database {
     Pointer<Utf8> queryC = Utf8.allocate(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, Pointer.fromAddress(0));
-    Pointer<Statement> statement = statementOut.load();
+    Pointer<Statement> statement = statementOut.value;
     statementOut.free();
     queryC.free();
 
@@ -85,7 +85,7 @@ class Database {
     Pointer<Utf8> queryC = Utf8.allocate(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, Pointer.fromAddress(0));
-    Pointer<Statement> statement = statementOut.load();
+    Pointer<Statement> statement = statementOut.value;
     statementOut.free();
     queryC.free();
 
@@ -98,7 +98,7 @@ class Database {
     int columnCount = bindings.sqlite3_column_count(statement);
     for (int i = 0; i < columnCount; i++) {
       String columnName =
-          bindings.sqlite3_column_name(statement, i).load<Utf8>().toString();
+          bindings.sqlite3_column_name(statement, i).ref.toString();
       columnIndices[columnName] = i;
     }
 
@@ -106,13 +106,12 @@ class Database {
   }
 
   SQLiteException _loadError([int errorCode]) {
-    String errorMessage =
-        bindings.sqlite3_errmsg(_database).load<Utf8>().toString();
+    String errorMessage = bindings.sqlite3_errmsg(_database).ref.toString();
     if (errorCode == null) {
       return SQLiteException(errorMessage);
     }
     String errorCodeExplanation =
-        bindings.sqlite3_errstr(errorCode).load<Utf8>().toString();
+        bindings.sqlite3_errstr(errorCode).ref.toString();
     return SQLiteException(
         "$errorMessage (Code $errorCode: $errorCodeExplanation)");
   }
@@ -214,7 +213,7 @@ class Row {
     } else {
       dynamicType = _typeFromText(bindings
           .sqlite3_column_decltype(_statement, columnIndex)
-          .load<Utf8>()
+          .ref
           .toString());
     }
 
@@ -251,10 +250,7 @@ class Row {
   /// Reads column [columnIndex] and converts to [Type.Text] if not text.
   String readColumnByIndexAsText(int columnIndex) {
     _checkIsCurrentRow();
-    return bindings
-        .sqlite3_column_text(_statement, columnIndex)
-        .load<Utf8>()
-        .toString();
+    return bindings.sqlite3_column_text(_statement, columnIndex).ref.toString();
   }
 
   void _checkIsCurrentRow() {

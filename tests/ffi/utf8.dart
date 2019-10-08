@@ -5,19 +5,18 @@
 library Utf8;
 
 import 'dart:convert';
-import 'dart:ffi' as ffi;
-import 'dart:ffi' show Pointer;
+import 'dart:ffi';
 
 /// Sample non-struct Pointer wrapper for dart:ffi library.
-class Utf8 extends ffi.Struct<Utf8> {
-  @ffi.Uint8()
+class Utf8 extends Struct<Utf8> {
+  @Uint8()
   int char;
 
   static String fromUtf8(Pointer<Utf8> str) {
     List<int> units = [];
     int len = 0;
     while (true) {
-      int char = str.elementAt(len++).load<Utf8>().char;
+      int char = str[len++].char;
       if (char == 0) break;
       units.add(char);
     }
@@ -29,9 +28,9 @@ class Utf8 extends ffi.Struct<Utf8> {
     Pointer<Utf8> result =
         Pointer<Utf8>.allocate(count: units.length + 1).cast();
     for (int i = 0; i < units.length; i++) {
-      result.elementAt(i).load<Utf8>().char = units[i];
+      result[i].char = units[i];
     }
-    result.elementAt(units.length).load<Utf8>().char = 0;
+    result[units.length].char = 0;
     return result;
   }
 }

@@ -29,7 +29,7 @@ Uint8List toUint8List(Bytes bytes, int length) {
   final result = Uint8List(length);
   final uint8bytes = bytes.asUint8Pointer();
   for (int i = 0; i < length; i++) {
-    result[i] = uint8bytes.elementAt(i).load<int>();
+    result[i] = uint8bytes[i];
   }
   return result;
 }
@@ -38,7 +38,7 @@ void copyFromUint8ListToTarget(Uint8List source, Data target) {
   final int length = source.length;
   final uint8target = target.asUint8Pointer();
   for (int i = 0; i < length; i++) {
-    uint8target.offsetBy(i).store(source[i]);
+    uint8target[i] = source[i];
   }
 }
 
@@ -51,7 +51,7 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
       Pointer<Uint8>.allocate(count: resultSize).cast();
   EVP_DigestFinal(context, result, nullptr.cast());
   EVP_MD_CTX_free(context);
-  final String hash = base64Encode(toUint8List(result.load(), resultSize));
+  final String hash = base64Encode(toUint8List(result.ref, resultSize));
   result.free();
   return hash;
 }
@@ -86,7 +86,7 @@ class DigestCMemory extends BenchmarkBase {
 
   void setup() {
     data = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(inventData(L), data.load());
+    copyFromUint8ListToTarget(inventData(L), data.ref);
     hash(data, L, hashAlgorithm);
   }
 
@@ -113,7 +113,7 @@ class DigestDartMemory extends BenchmarkBase {
   void setup() {
     data = inventData(L);
     final Pointer<Data> dataInC = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(data, dataInC.load());
+    copyFromUint8ListToTarget(data, dataInC.ref);
     hash(dataInC, L, hashAlgorithm);
     dataInC.free();
   }
@@ -122,7 +122,7 @@ class DigestDartMemory extends BenchmarkBase {
 
   void run() {
     final Pointer<Data> dataInC = Pointer<Uint8>.allocate(count: L).cast();
-    copyFromUint8ListToTarget(data, dataInC.load());
+    copyFromUint8ListToTarget(data, dataInC.ref);
     final String result = hash(dataInC, L, hashAlgorithm);
     dataInC.free();
     if (result != expectedHash) {

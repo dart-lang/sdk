@@ -143,7 +143,7 @@ double manyArgs(
 }
 
 typedef StoreType = Pointer<Int64> Function(Pointer<Int64>);
-Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..store(1337);
+Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..value = 1337;
 
 typedef NullPointersType = Pointer<Int64> Function(Pointer<Int64>);
 Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr.elementAt(1);
@@ -182,15 +182,19 @@ void testGC() {
 typedef WaitForHelper = Void Function(Pointer<Void>);
 void waitForHelper(Pointer<Void> helper) {
   print("helper: $helper");
-  testLibrary.lookupFunction<WaitForHelper, WaitForHelper>("WaitForHelper")(helper);
+  testLibrary
+      .lookupFunction<WaitForHelper, WaitForHelper>("WaitForHelper")(helper);
 }
 
 final List<Test> testcases = [
-  Test("SimpleAddition", Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
-  Test("IntComputation", Pointer.fromFunction<IntComputationType>(intComputation, 0)),
-  Test(
-      "UintComputation", Pointer.fromFunction<UintComputationType>(uintComputation, 0)),
-  Test("SimpleMultiply", Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
+  Test("SimpleAddition",
+      Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  Test("IntComputation",
+      Pointer.fromFunction<IntComputationType>(intComputation, 0)),
+  Test("UintComputation",
+      Pointer.fromFunction<UintComputationType>(uintComputation, 0)),
+  Test("SimpleMultiply",
+      Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
   Test("SimpleMultiplyFloat",
       Pointer.fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat, 0.0)),
   Test("ManyInts", Pointer.fromFunction<ManyIntsType>(manyInts, 0)),
@@ -202,17 +206,17 @@ final List<Test> testcases = [
   Test("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid)),
   Test("ThrowExceptionDouble",
       Pointer.fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
-  Test(
-      "ThrowExceptionPointer",
-      Pointer.fromFunction<ThrowExceptionPointer>(
-          throwExceptionPointer)),
-  Test("ThrowException", Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
+  Test("ThrowExceptionPointer",
+      Pointer.fromFunction<ThrowExceptionPointer>(throwExceptionPointer)),
+  Test("ThrowException",
+      Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
   Test("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
   Test("UnprotectCode", Pointer.fromFunction<WaitForHelper>(waitForHelper)),
 ];
 
 testCallbackWrongThread() =>
-    Test("CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid)).run();
+    Test("CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid))
+        .run();
 
 testCallbackOutsideIsolate() =>
     Test("CallbackOutsideIsolate", Pointer.fromFunction<ReturnVoid>(returnVoid))
@@ -227,7 +231,8 @@ isolateHelper(int callbackPointer) {
 }
 
 testCallbackWrongIsolate() async {
-  final int callbackPointer = Pointer.fromFunction<ReturnVoid>(returnVoid).address;
+  final int callbackPointer =
+      Pointer.fromFunction<ReturnVoid>(returnVoid).address;
   final ReceivePort exitPort = ReceivePort();
   await Isolate.spawn(isolateHelper, callbackPointer,
       errorsAreFatal: true, onExit: exitPort.sendPort);
@@ -262,7 +267,7 @@ void main() async {
     await testCallbackWrongIsolate(); //# 03: ok
   }
 
-  testManyCallbacks();  //# 04: ok
+  testManyCallbacks(); //# 04: ok
 }
 
 void testManyCallbacks() {
