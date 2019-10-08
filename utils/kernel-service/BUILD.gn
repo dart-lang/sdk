@@ -47,7 +47,7 @@ copy("copy_kernel-service_snapshot") {
 }
 
 application_snapshot("frontend_server") {
-  main_dart = "../../pkg/vm/bin/frontend_server_starter.dart"
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
   deps = [
     "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]

@@ -38,6 +38,7 @@ dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
 fixnum:third_party/pkg/fixnum/lib
+frontend_server:pkg/frontend_server/lib
 front_end:pkg/front_end/lib
 gardening:tools/gardening/lib
 glob:third_party/pkg/glob/lib
