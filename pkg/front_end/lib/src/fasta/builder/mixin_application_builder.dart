@@ -4,12 +4,14 @@
 
 library fasta.mixin_application_builder;
 
-import 'builder.dart'
-    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
-
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
 import '../problems.dart' show unsupported;
+
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 class MixinApplicationBuilder extends TypeBuilder {
   final TypeBuilder supertype;

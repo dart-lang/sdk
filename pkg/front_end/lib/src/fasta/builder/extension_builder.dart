@@ -9,13 +9,15 @@ import 'package:kernel/ast.dart';
 import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
 import '../scope.dart';
 import '../problems.dart';
-import 'builder.dart';
+
 import 'declaration.dart';
-import 'declaration_builder.dart';
 import 'library_builder.dart';
+import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
+import 'declaration_builder.dart';
 
 abstract class ExtensionBuilder implements DeclarationBuilder {
   List<TypeVariableBuilder> get typeParameters;

@@ -16,6 +16,8 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
 
+import "package:front_end/src/fasta/builder/class_builder.dart";
+
 import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 
 import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
@@ -23,7 +25,7 @@ import "package:front_end/src/fasta/dill/dill_loader.dart" show DillLoader;
 import "package:front_end/src/fasta/dill/dill_target.dart" show DillTarget;
 
 import "package:front_end/src/fasta/kernel/kernel_builder.dart"
-    show ClassHierarchyBuilder, ClassBuilder;
+    show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
 import 'package:kernel/type_environment.dart';

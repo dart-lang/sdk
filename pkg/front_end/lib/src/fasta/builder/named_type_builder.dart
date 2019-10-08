@@ -19,36 +19,26 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
 
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import '../problems.dart' show unhandled;
 
+import '../scope.dart';
+
 import '../severity.dart' show Severity;
 
-import 'builder.dart'
-    show
-        Builder,
-        Identifier,
-        LibraryBuilder,
-        NullabilityBuilder,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
-
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        InvalidTypeDeclarationBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
+import 'class_builder.dart';
+import 'declaration.dart';
+import 'invalid_type_declaration_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
+import 'type_declaration_builder.dart';
+import 'type_variable_builder.dart';
 
 class NamedTypeBuilder extends TypeBuilder {
   final Object name;

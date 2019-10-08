@@ -9,11 +9,27 @@ import 'dart:core' hide MapEntry;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../builder/class_builder.dart';
 import '../builder/declaration.dart';
-
 import '../builder/declaration_builder.dart';
-
+import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/modifier_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
+import '../builder/void_type_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -22,6 +38,14 @@ import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
+
+import '../identifiers.dart'
+    show
+        Identifier,
+        InitializedIdentifier,
+        QualifiedName,
+        deprecated_extractToken,
+        flattenName;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -59,7 +83,7 @@ import '../scanner.dart' show Token;
 import '../scanner/token.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 
-import '../scope.dart' show ProblemBuilder;
+import '../scope.dart';
 
 import '../severity.dart' show Severity;
 

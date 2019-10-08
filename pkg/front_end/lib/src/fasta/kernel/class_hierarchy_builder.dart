@@ -28,6 +28,18 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
+import '../builder/class_builder.dart';
+import '../builder/declaration.dart';
+import '../builder/field_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../loader.dart' show Loader;
@@ -75,20 +87,7 @@ import '../type_inference/type_schema_environment.dart' show TypeConstraint;
 
 import 'forwarding_node.dart' show ForwardingNode;
 
-import 'kernel_builder.dart'
-    show
-        Builder,
-        FormalParameterBuilder,
-        ImplicitFieldType,
-        ClassBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        TypeVariableBuilder;
+import 'kernel_builder.dart' show ImplicitFieldType;
 
 import 'types.dart' show Types;
 

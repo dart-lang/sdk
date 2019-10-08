@@ -3,9 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import '../fasta/builder/builder.dart';
+
+import '../fasta/builder/class_builder.dart';
+import '../fasta/builder/library_builder.dart';
+import '../fasta/builder/member_builder.dart';
+import '../fasta/builder/named_type_builder.dart';
+import '../fasta/builder/type_builder.dart';
+import '../fasta/builder/type_variable_builder.dart';
 import '../fasta/builder/extension_builder.dart';
-import '../fasta/kernel/kernel_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';

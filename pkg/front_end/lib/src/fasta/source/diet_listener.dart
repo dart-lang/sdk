@@ -22,9 +22,18 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/builder.dart';
-
+import '../builder/class_builder.dart';
+import '../builder/declaration.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/modifier_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
+
+import '../identifiers.dart' show QualifiedName;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -42,14 +51,17 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart'
-    show FormalParameterBuilder, TypeAliasBuilder, TypeBuilder;
-
 import '../parser.dart'
     show Assert, DeclarationKind, MemberKind, Parser, optional;
 
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
+
+import '../quote.dart' show unescapeString;
+
+import '../scope.dart';
+
+import '../source/value_kinds.dart';
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -59,10 +71,6 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery, StackListener;
-
-import '../source/value_kinds.dart';
-
-import '../quote.dart' show unescapeString;
 
 class DietListener extends StackListener {
   final SourceLibraryBuilder libraryBuilder;

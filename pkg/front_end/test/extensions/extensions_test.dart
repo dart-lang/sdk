@@ -5,9 +5,16 @@
 import 'dart:io' show Directory, Platform;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
-import 'package:front_end/src/fasta/builder/builder.dart';
+
+import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/builder/formal_parameter_builder.dart';
+import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/builder/member_builder.dart';
+import 'package:front_end/src/fasta/builder/procedure_builder.dart';
+import 'package:front_end/src/fasta/builder/type_builder.dart';
+import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
+
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:front_end/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing.dart'

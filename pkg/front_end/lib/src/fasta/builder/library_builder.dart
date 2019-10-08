@@ -25,23 +25,17 @@ import '../messages.dart'
 
 import '../severity.dart' show Severity;
 
-import 'builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        FieldBuilder,
-        MemberBuilder,
-        ModifierBuilder,
-        NameIterator,
-        NullabilityBuilder,
-        PrefixBuilder,
-        Scope,
-        ScopeBuilder,
-        TypeBuilder;
+import '../scope.dart';
 
+import 'class_builder.dart';
 import 'declaration.dart';
-
+import 'field_builder.dart';
+import 'member_builder.dart';
 import 'modifier_builder.dart';
+import 'name_iterator.dart';
+import 'nullability_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
 
 abstract class LibraryBuilder implements ModifierBuilder {
   Scope get scope;

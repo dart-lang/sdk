@@ -3,18 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart';
+
 import '../../base/common.dart';
+
+import '../builder/class_builder.dart';
 import '../builder/declaration.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../scope.dart';
-import '../kernel/kernel_builder.dart';
-import '../problems.dart';
+
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
@@ -23,6 +26,11 @@ import '../fasta_codes.dart'
         templateConflictsWithMember,
         templateConflictsWithSetter,
         templateExtensionMemberConflictsWithObjectMember;
+
+import '../problems.dart';
+
+import '../scope.dart';
+
 import 'source_library_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl {

@@ -8,11 +8,14 @@ import 'package:kernel/ast.dart'
     show Class, DartType, Member, Supertype, TypeParameter;
 
 import '../builder/class_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+
+import '../scope.dart';
 
 import '../problems.dart' show unimplemented;
-
-import '../kernel/kernel_builder.dart'
-    show TypeBuilder, LibraryBuilder, MemberBuilder, Scope, TypeVariableBuilder;
 
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 

@@ -13,20 +13,7 @@ import 'package:kernel/type_algebra.dart';
 
 import '../../base/common.dart';
 
-import 'builder.dart'
-    show
-        Builder,
-        FormalParameterBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        Scope,
-        TypeBuilder,
-        TypeVariableBuilder;
-
-import 'member_builder.dart';
-
-import 'extension_builder.dart';
-import 'type_variable_builder.dart';
+import '../scope.dart';
 
 import '../../scanner/token.dart' show Token;
 
@@ -38,16 +25,7 @@ import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        Builder,
-        FormalParameterBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        TypeBuilder,
-        TypeVariableBuilder,
-        isRedirectingGenerativeConstructorImplementation;
+    show isRedirectingGenerativeConstructorImplementation;
 
 import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
@@ -74,6 +52,17 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
+
+import 'class_builder.dart';
+import 'constructor_reference_builder.dart';
+import 'declaration.dart';
+import 'extension_builder.dart';
+import 'formal_parameter_builder.dart';
+import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 /// Common base class for constructor and procedure builders.
 abstract class FunctionBuilder extends MemberBuilderImpl {

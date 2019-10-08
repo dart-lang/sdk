@@ -4,7 +4,7 @@
 
 import '../builder/declaration.dart';
 
-import 'kernel_builder.dart' show Builder, Scope;
+import '../scope.dart';
 
 /// Scope that returns an [UnlinkedDeclaration] if a name can't be resolved.
 /// This is intended to be used as the `enclosingScope` in `BodyBuilder` to

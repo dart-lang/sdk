@@ -58,31 +58,32 @@ import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/builder.dart'
-    show
-        Builder,
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        EnumConstantInfo,
-        FormalParameterBuilder,
-        FunctionTypeBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        NameIterator,
-        PrefixBuilder,
-        FunctionBuilder,
-        NullabilityBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        UnresolvedType,
-        flattenName;
-
+import '../builder/builtin_type_builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
-
+import '../builder/field_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/mixin_application_builder.dart';
+import '../builder/name_iterator.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
+import '../builder/void_type_builder.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -151,43 +152,14 @@ import '../fasta_codes.dart'
         templatePatchInjectionFailed,
         templateTypeVariableDuplicatedNameCause;
 
+import '../identifiers.dart' show QualifiedName, flattenName;
+
 import '../import.dart' show Import;
 
 import '../kernel/kernel_builder.dart'
     show
-        AccessErrorBuilder,
-        BuiltinTypeBuilder,
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        Builder,
-        DynamicTypeBuilder,
-        EnumConstantInfo,
-        FormalParameterBuilder,
-        FunctionTypeBuilder,
         ImplicitFieldType,
-        InvalidTypeDeclarationBuilder,
-        ConstructorBuilder,
-        EnumBuilder,
-        FunctionBuilder,
-        TypeAliasBuilder,
-        FieldBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        RedirectingFactoryBuilder,
-        LibraryBuilder,
         LoadLibraryBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        NameIterator,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        UnresolvedType,
-        VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
@@ -218,6 +190,8 @@ import '../modifier.dart'
 import '../names.dart' show indexSetName;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../scope.dart';
 
 import '../severity.dart' show Severity;
 

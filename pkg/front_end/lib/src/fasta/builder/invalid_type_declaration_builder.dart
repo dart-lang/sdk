@@ -8,10 +8,9 @@ import 'package:kernel/ast.dart' show DartType, InvalidType, Nullability;
 
 import '../fasta_codes.dart' show LocatedMessage;
 
-import 'builder.dart' show NullabilityBuilder;
-
-import '../kernel/kernel_builder.dart' show TypeBuilder, LibraryBuilder;
-
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
 class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {

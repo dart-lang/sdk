@@ -6,7 +6,18 @@ library fasta.outline_builder;
 
 import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
 
-import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/enum_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/mixin_application_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
 import '../builder/fixed_type_builder.dart';
 
 import '../combinator.dart' show Combinator;
@@ -36,15 +47,9 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
 
-import '../ignored_parser_errors.dart' show isIgnoredParserError;
+import '../identifiers.dart' show QualifiedName, flattenName;
 
-// TODO(ahe): The outline isn't supposed to import kernel-specific builders.
-import '../kernel/kernel_builder.dart'
-    show
-        MetadataBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
-        TypeBuilder;
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/type_algorithms.dart';
 

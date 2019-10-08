@@ -4,8 +4,6 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart' show LibraryBuilder, NullabilityBuilder, TypeBuilder;
-
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
 
@@ -15,15 +13,16 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
-import '../kernel/kernel_builder.dart'
-    show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
-
 import '../problems.dart' show unsupported;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'class_builder.dart';
 import 'declaration.dart';
-
+import 'library_builder.dart';
+import 'named_type_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
 class TypeVariableBuilder extends TypeDeclarationBuilderImpl {

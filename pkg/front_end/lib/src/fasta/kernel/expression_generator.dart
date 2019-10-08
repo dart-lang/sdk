@@ -11,13 +11,19 @@ import 'package:kernel/ast.dart';
 
 import '../../scanner/token.dart' show Token;
 
-import '../constant_context.dart' show ConstantContext;
-
-import '../builder/builder.dart'
-    show NullabilityBuilder, PrefixBuilder, TypeDeclarationBuilder;
+import '../builder/declaration.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/unresolved_type.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/member_builder.dart';
+
+import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart';
 
@@ -69,16 +75,7 @@ import 'kernel_ast_api.dart'
         Procedure,
         VariableDeclaration;
 
-import 'kernel_builder.dart'
-    show
-        AccessErrorBuilder,
-        Builder,
-        InvalidTypeDeclarationBuilder,
-        LoadLibraryBuilder,
-        NamedTypeBuilder,
-        TypeBuilder,
-        UnlinkedDeclaration,
-        UnresolvedType;
+import 'kernel_builder.dart' show LoadLibraryBuilder, UnlinkedDeclaration;
 
 import 'kernel_shadow_ast.dart';
 

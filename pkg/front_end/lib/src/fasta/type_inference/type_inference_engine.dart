@@ -24,8 +24,10 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
+import '../builder/library_builder.dart';
+
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ImplicitFieldType, LibraryBuilder;
+    show ClassHierarchyBuilder, ImplicitFieldType;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 

@@ -4,9 +4,6 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart'
-    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
-
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -19,12 +16,11 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
-import '../kernel/kernel_builder.dart'
-    show
-        FormalParameterBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeVariableBuilder;
+import 'formal_parameter_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;

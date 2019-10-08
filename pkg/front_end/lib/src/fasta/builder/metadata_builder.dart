@@ -8,13 +8,14 @@ import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart' show ClassBuilder, MemberBuilder;
-
 import '../scanner.dart' show Token;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../scope.dart' show Scope;
+
+import 'class_builder.dart';
+import 'member_builder.dart';
 
 class MetadataBuilder {
   final Token beginToken;

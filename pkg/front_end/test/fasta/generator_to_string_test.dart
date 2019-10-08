@@ -26,17 +26,16 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
+import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
+import 'package:front_end/src/fasta/builder/prefix_builder.dart';
+import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show
-        TypeVariableBuilder,
-        LoadLibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
+    show LoadLibraryBuilder, UnlinkedDeclaration;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;

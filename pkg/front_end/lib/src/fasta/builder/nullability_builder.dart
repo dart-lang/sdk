@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart';
+
 import '../kernel/body_builder.dart';
-import '../builder/builder.dart';
 import '../problems.dart';
+
+import 'library_builder.dart';
 
 /// Represents the nullability modifiers encountered while parsing the types.
 ///

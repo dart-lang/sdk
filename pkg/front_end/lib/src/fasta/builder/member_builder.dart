@@ -10,11 +10,11 @@ import 'package:kernel/ast.dart';
 
 import '../problems.dart' show unsupported;
 
-import 'builder.dart' show ClassBuilder, Builder, LibraryBuilder;
-
+import 'class_builder.dart';
 import 'declaration.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
+import 'library_builder.dart';
 import 'modifier_builder.dart';
 
 import '../kernel/class_hierarchy_builder.dart';

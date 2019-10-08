@@ -6,13 +6,11 @@ library fasta.dill_typedef_builder;
 
 import 'package:kernel/ast.dart' show DartType, Typedef;
 
-import '../kernel/kernel_builder.dart'
-    show
-        TypeAliasBuilder,
-        FunctionTypeBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder;
+import '../builder/function_type_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
 
 import '../problems.dart' show unimplemented;
 

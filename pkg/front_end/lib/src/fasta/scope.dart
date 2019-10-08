@@ -4,11 +4,10 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart' show NameIterator, TypeVariableBuilder;
-
 import 'builder/declaration.dart';
-
 import 'builder/extension_builder.dart';
+import 'builder/name_iterator.dart';
+import 'builder/type_variable_builder.dart';
 
 import 'fasta_codes.dart'
     show

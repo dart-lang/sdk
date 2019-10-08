@@ -6,15 +6,12 @@ library fasta.type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builder.dart'
-    show
-        Builder,
-        LibraryBuilder,
-        MetadataBuilder,
-        NullabilityBuilder,
-        TypeBuilder;
-
+import 'declaration.dart';
+import 'library_builder.dart';
+import 'metadata_builder.dart';
 import 'modifier_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 
 abstract class TypeDeclarationBuilder implements ModifierBuilder {
   void set parent(Builder value);

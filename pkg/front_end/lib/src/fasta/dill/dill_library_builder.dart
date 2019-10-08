@@ -24,6 +24,14 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         Typedef;
 
+import '../builder/class_builder.dart';
+import '../builder/declaration.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/type_alias_builder.dart';
+
 import '../fasta_codes.dart'
     show
         Message,
@@ -32,20 +40,11 @@ import '../fasta_codes.dart'
         templateTypeNotFound,
         templateUnspecified;
 
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
-import '../builder/class_builder.dart';
-
-import '../builder/library_builder.dart';
-
-import '../builder/member_builder.dart';
-
-import '../builder/type_alias_builder.dart';
-
-import '../kernel/kernel_builder.dart'
-    show Builder, DynamicTypeBuilder, InvalidTypeDeclarationBuilder, Scope;
-
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../scope.dart';
 
 import 'dill_class_builder.dart' show DillClassBuilder;
 

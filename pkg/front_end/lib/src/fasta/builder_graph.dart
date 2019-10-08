@@ -8,7 +8,7 @@ import 'package:kernel/kernel.dart' show LibraryDependency, LibraryPart;
 
 import 'package:kernel/util/graph.dart' show Graph;
 
-import 'builder/builder.dart' show LibraryBuilder;
+import 'builder/library_builder.dart';
 
 import 'export.dart' show Export;
 

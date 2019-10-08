@@ -49,7 +49,9 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
+import 'builder/class_builder.dart';
+import 'builder/declaration.dart';
+import 'builder/library_builder.dart';
 
 import 'builder_graph.dart' show BuilderGraph;
 

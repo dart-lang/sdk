@@ -17,14 +17,13 @@ import 'package:front_end/src/api_prototype/diagnostic_message.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/fasta/builder/procedure_builder.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show ProcedureBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;

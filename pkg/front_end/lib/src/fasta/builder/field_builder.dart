@@ -4,12 +4,6 @@
 
 library fasta.field_builder;
 
-import 'package:kernel/ast.dart' show DartType, Expression;
-
-import 'builder.dart' show LibraryBuilder;
-
-import 'member_builder.dart';
-
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -30,14 +24,7 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        ImplicitFieldType,
-        TypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder;
+import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 
 import '../problems.dart' show internalProblem;
 
@@ -57,7 +44,13 @@ import '../type_inference/type_inferrer.dart'
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'class_builder.dart';
+import 'declaration.dart';
 import 'extension_builder.dart';
+import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
+import 'type_builder.dart';
 
 class FieldBuilder extends MemberBuilderImpl {
   final String name;

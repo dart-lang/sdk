@@ -8,6 +8,17 @@ import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
 import '../builder/class_builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration.dart';
+import '../builder/field_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -22,25 +33,13 @@ import '../fasta_codes.dart'
         templateConflictsWithSetter,
         templateSupertypeIsIllegal;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ConstructorReferenceBuilder,
-        Builder,
-        FieldBuilder,
-        FunctionBuilder,
-        InvalidTypeDeclarationBuilder,
-        NamedTypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        NullabilityBuilder,
-        Scope,
-        TypeBuilder,
-        TypeVariableBuilder,
-        compareProcedures;
+import '../kernel/kernel_builder.dart' show compareProcedures;
 
 import '../kernel/type_algorithms.dart' show Variance, computeVariance;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../scope.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 

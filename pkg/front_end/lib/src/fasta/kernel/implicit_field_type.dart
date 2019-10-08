@@ -9,9 +9,9 @@ import 'package:kernel/ast.dart'
 
 import '../../scanner/token.dart' show Token;
 
-import '../problems.dart' show unsupported;
+import '../builder/member_builder.dart';
 
-import 'kernel_builder.dart' show MemberBuilder;
+import '../problems.dart' show unsupported;
 
 class ImplicitFieldType extends DartType {
   final MemberBuilder member;

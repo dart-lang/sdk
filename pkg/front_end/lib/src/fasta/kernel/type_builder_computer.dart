@@ -21,18 +21,16 @@ import 'package:kernel/ast.dart'
         TypedefType,
         VoidType;
 
-import '../kernel/kernel_builder.dart'
-    show
-        DynamicTypeBuilder,
-        FunctionTypeBuilder,
-        ClassBuilder,
-        FormalParameterBuilder,
-        NamedTypeBuilder,
-        TypeVariableBuilder,
-        LibraryBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        VoidTypeBuilder;
+import '../builder/class_builder.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/void_type_builder.dart';
 
 import '../loader.dart' show Loader;
 

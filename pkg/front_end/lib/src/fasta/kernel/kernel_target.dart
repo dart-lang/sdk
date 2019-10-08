@@ -45,6 +45,17 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
+import '../builder/class_builder.dart';
+import '../builder/declaration.dart';
+import '../builder/field_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+
 import '../compiler_context.dart' show CompilerContext;
 
 import '../crash.dart' show withCrashReporting;
@@ -85,19 +96,6 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants show transformLibraries;
-
-import 'kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        InvalidTypeDeclarationBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 

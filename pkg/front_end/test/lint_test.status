@@ -4,7 +4,6 @@
 
 src/api_unstable/bazel_worker/ImportsTwice: Fail
 src/fasta/builder/class_builder/ImportsTwice: Fail
-src/fasta/builder/field_builder/ImportsTwice: Fail
 src/fasta/incremental_compiler/ImportsTwice: Fail
 src/fasta/kernel/body_builder/ImportsTwice: Fail
 src/fasta/kernel/expression_generator_helper/ImportsTwice: Fail

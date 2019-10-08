@@ -4,8 +4,6 @@
 
 library fasta.enum_builder;
 
-import 'builder.dart' show ClassBuilder, MetadataBuilder, NullabilityBuilder;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -36,6 +34,8 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
+import '../kernel/metadata_collector.dart';
+
 import '../modifier.dart'
     show
         constMask,
@@ -44,26 +44,21 @@ import '../modifier.dart'
         initializingFormalMask,
         staticMask;
 
+import '../scope.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../kernel/kernel_builder.dart'
-    show
-        Builder,
-        FormalParameterBuilder,
-        ClassBuilder,
-        ConstructorBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        Scope;
-
-import '../kernel/metadata_collector.dart';
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'class_builder.dart';
+import 'declaration.dart';
+import 'field_builder.dart';
+import 'formal_parameter_builder.dart';
+import 'procedure_builder.dart';
+import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
+import 'named_type_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 
 class EnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo> enumConstantInfos;
