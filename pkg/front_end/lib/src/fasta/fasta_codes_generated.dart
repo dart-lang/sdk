@@ -3574,6 +3574,29 @@ Message _withArgumentsExtraneousModifier(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInExtension =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Can't have modifier '#lexeme' in an extension.""",
+        tipTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInExtension);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExtraneousModifierInExtension =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInExtension", templateExtraneousModifierInExtension,
+        index: 98);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInExtension(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInExtension,
+      message: """Can't have modifier '${lexeme}' in an extension.""",
+      tip: """Try removing '${lexeme}'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

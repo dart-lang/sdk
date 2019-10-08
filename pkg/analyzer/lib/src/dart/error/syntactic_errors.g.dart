@@ -105,6 +105,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _MIXIN_DECLARES_CONSTRUCTOR,
   _NULL_AWARE_CASCADE_OUT_OF_ORDER,
   _MULTIPLE_VARIANCE_MODIFIERS,
+  _INVALID_USE_OF_COVARIANT_IN_EXTENSION,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -397,6 +398,11 @@ const ParserErrorCode _INVALID_THIS_IN_INITIALIZER = const ParserErrorCode(
 const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',
     r"An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
+
+const ParserErrorCode _INVALID_USE_OF_COVARIANT_IN_EXTENSION =
+    const ParserErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+        r"Can't have modifier '#lexeme' in an extension.",
+        correction: "Try removing '#lexeme'.");
 
 const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode(
     'LIBRARY_DIRECTIVE_NOT_FIRST',

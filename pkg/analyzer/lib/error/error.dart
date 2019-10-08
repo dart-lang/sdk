@@ -196,6 +196,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
   CompileTimeErrorCode.INVALID_URI,
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+  // ignore: deprecated_member_use_from_same_package
   CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
   CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
@@ -522,6 +523,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
   ParserErrorCode.INVALID_SYNC,
   ParserErrorCode.INVALID_UNICODE_ESCAPE,
+  ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
   ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
   ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER,
   ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,

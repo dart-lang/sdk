@@ -1307,7 +1307,7 @@ var x;
 
 ### invalid_use_of_covariant_in_extension
 
-_The 'covariant' keyword can't be used in an extension._
+_Can't have modifier '#lexeme' in an extension._
 
 #### Description
 

@@ -5497,10 +5497,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Token keyword = parameter.covariantKeyword;
       if (keyword != null) {
         if (_enclosingExtension != null) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
-            keyword,
-          );
+          // Reported by the parser.
         } else {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,

@@ -117,6 +117,10 @@ class ModifierRecoveryContext {
         memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
       this.covariantToken = null;
+    } else if (memberKind == MemberKind.ExtensionNonStaticMethod ||
+        memberKind == MemberKind.ExtensionStaticMethod) {
+      reportExtraneousModifierInExtension(this.covariantToken);
+      this.covariantToken = null;
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
@@ -459,6 +463,13 @@ class ModifierRecoveryContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, fasta.templateExtraneousModifier);
+    }
+  }
+
+  void reportExtraneousModifierInExtension(Token modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+          modifier, fasta.templateExtraneousModifierInExtension);
     }
   }
 

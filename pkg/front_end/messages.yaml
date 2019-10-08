@@ -775,6 +775,14 @@ ExtraneousModifier:
     - "abstract typedef foo();"
     - "static typedef foo();"
 
+ExtraneousModifierInExtension:
+  index: 98
+  template: "Can't have modifier '#lexeme' in an extension."
+  tip: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  script:
+    - "extension on String { foo(covariant String child) {} }"
+
 FinalAndCovariant:
   index: 80
   template: "Members can't be declared to be both 'final' and 'covariant'."

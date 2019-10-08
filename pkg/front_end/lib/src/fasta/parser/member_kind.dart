@@ -32,6 +32,12 @@ enum MemberKind {
   /// A top-level method.
   TopLevelMethod,
 
+  /// A non-static method in an extension.
+  ExtensionNonStaticMethod,
+
+  /// A static method in an extension.
+  ExtensionStaticMethod,
+
   /// An instance field in a class.
   NonStaticField,
 
