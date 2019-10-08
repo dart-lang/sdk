@@ -71,7 +71,7 @@ Future<Map<String, String>> _getCurrentRevisions(String repository) async {
 Future<Map<String, Map>> _getHashes(Map<String, String> revisions) async {
   var hashes = <String, Map>{};
   for (var channel in supportedChannels) {
-    hashes[channel] = {'mac': {}, 'linux': {}};
+    hashes[channel] = {};
     for (var files in _files[channel]) {
       for (var file in files.values) {
         var hash = await _getHash256(channel, revisions[channel], file);
