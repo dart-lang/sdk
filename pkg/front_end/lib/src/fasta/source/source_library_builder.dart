@@ -2334,7 +2334,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
-          isExtensionTypeParameter: isExtensionTypeParameter);
+          isExtensionTypeParameter: isExtensionTypeParameter,
+          variableVariance: variable.variance);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }

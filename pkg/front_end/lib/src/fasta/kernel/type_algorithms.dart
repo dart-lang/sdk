@@ -66,8 +66,11 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
       if (declaration is ClassBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
-          for (TypeBuilder argument in type.arguments) {
-            result = Variance.meet(result, computeVariance(variable, argument));
+          for (int i = 0; i < type.arguments.length; ++i) {
+            result = Variance.meet(
+                result,
+                Variance.combine(declaration.cls.typeParameters[i].variance,
+                    computeVariance(variable, type.arguments[i])));
           }
         }
         return result;

@@ -239,8 +239,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
       int variance = computeVariance(typeVariables[i], supertype);
-      if (variance == Variance.contravariant ||
-          variance == Variance.invariant) {
+      if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
         message = templateBadTypeVariableInSupertype.withArguments(
             typeVariables[i].name, supertype.name);
         library.addProblem(message, charOffset, noLength, fileUri);

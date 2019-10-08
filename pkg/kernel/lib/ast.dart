@@ -6045,6 +6045,30 @@ class Variance {
     return a == b ? covariant : contravariant;
   }
 
+  /// Returns true if [a] is greater than (above) [b] in the partial order
+  /// induced by the variance lattice.
+  static bool greaterThan(int a, int b) {
+    return greaterThanOrEqual(a, b) && a != b;
+  }
+
+  /// Returns true if [a] is greater than (above) or equal to [b] in the
+  /// partial order induced by the variance lattice.
+  static bool greaterThanOrEqual(int a, int b) {
+    return meet(a, b) == b;
+  }
+
+  /// Returns true if [a] is less than (below) [b] in the partial order
+  /// induced by the variance lattice.
+  static bool lessThan(int a, int b) {
+    return lessThanOrEqual(a, b) && a != b;
+  }
+
+  /// Returns true if [a] is less than (below) or equal to [b] in the
+  /// partial order induced by the variance lattice.
+  static bool lessThanOrEqual(int a, int b) {
+    return meet(a, b) == a;
+  }
+
   static int fromString(String variance) {
     if (variance == "in") {
       return contravariant;
