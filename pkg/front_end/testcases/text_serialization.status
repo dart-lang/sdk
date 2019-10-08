@@ -41,6 +41,7 @@ extensions/instance_tearoff: TextSerializationFailure
 extensions/internal_resolution: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
 extensions/invalid_explicit_static_access: TextSerializationFailure
+extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure

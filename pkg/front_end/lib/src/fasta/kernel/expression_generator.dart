@@ -1654,38 +1654,55 @@ class ExtensionInstanceAccessGenerator extends Generator {
 
   factory ExtensionInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
+      Token token,
       Extension extension,
       String targetName,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
-      Builder declaration,
-      Token token,
-      Builder builderSetter) {
-    if (declaration is AccessErrorBuilder) {
-      AccessErrorBuilder error = declaration;
-      declaration = error.builder;
-      // We should only see an access error here if we've looked up a setter
-      // when not explicitly looking for a setter.
-      assert(declaration.isSetter);
-    } else if (declaration.target == null) {
-      return unhandled(
-          "${declaration.runtimeType}",
-          "InstanceExtensionAccessGenerator.fromBuilder",
-          offsetForToken(token),
-          helper.uri);
-    }
+      Builder getterBuilder,
+      Builder setterBuilder) {
     Procedure readTarget;
     Procedure invokeTarget;
-    if (declaration.isGetter) {
-      readTarget = declaration.target;
-    } else if (declaration.isRegularMethod) {
-      MemberBuilder procedureBuilder = declaration;
-      readTarget = procedureBuilder.extensionTearOff;
-      invokeTarget = procedureBuilder.procedure;
+    if (getterBuilder != null) {
+      if (getterBuilder is AccessErrorBuilder) {
+        AccessErrorBuilder error = getterBuilder;
+        getterBuilder = error.builder;
+        // We should only see an access error here if we've looked up a setter
+        // when not explicitly looking for a setter.
+        assert(getterBuilder.isSetter);
+      } else if (getterBuilder.target == null) {
+        return unhandled(
+            "${getterBuilder.runtimeType}",
+            "ExtensionInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
+      if (getterBuilder.isGetter) {
+        assert(!getterBuilder.isStatic);
+        readTarget = getterBuilder.target;
+      } else if (getterBuilder.isRegularMethod) {
+        assert(!getterBuilder.isStatic);
+        MemberBuilder procedureBuilder = getterBuilder;
+        readTarget = procedureBuilder.extensionTearOff;
+        invokeTarget = procedureBuilder.procedure;
+      }
     }
     Procedure writeTarget;
-    if (builderSetter != null && builderSetter.isSetter) {
-      writeTarget = builderSetter.target;
+    if (setterBuilder != null) {
+      if (setterBuilder is AccessErrorBuilder) {
+        targetName ??= setterBuilder.name;
+      } else if (setterBuilder.isSetter) {
+        assert(!setterBuilder.isStatic);
+        MemberBuilder memberBuilder = setterBuilder;
+        writeTarget = memberBuilder.member;
+        targetName ??= memberBuilder.name;
+      } else {
+        return unhandled(
+            "${setterBuilder.runtimeType}",
+            "ExtensionInstanceAccessGenerator.fromBuilder",
+            offsetForToken(token),
+            helper.uri);
+      }
     }
     return new ExtensionInstanceAccessGenerator(
         helper,
@@ -1965,10 +1982,12 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         // when not explicitly looking for a setter.
         assert(getterBuilder.isSetter);
       } else if (getterBuilder.isGetter) {
+        assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
         readTarget = memberBuilder.member;
         targetName = memberBuilder.name;
       } else if (getterBuilder.isRegularMethod) {
+        assert(!getterBuilder.isStatic);
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
@@ -1987,6 +2006,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       if (setterBuilder is AccessErrorBuilder) {
         targetName ??= setterBuilder.name;
       } else if (setterBuilder.isSetter) {
+        assert(!setterBuilder.isStatic);
         MemberBuilder memberBuilder = setterBuilder;
         writeTarget = memberBuilder.member;
         targetName ??= memberBuilder.name;
@@ -2544,7 +2564,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   Generator _createInstanceAccess(Token token, Name name, {bool isNullAware}) {
     Builder getter = extensionBuilder.lookupLocalMemberByName(name);
-    if (getter != null && getter.isStatic) {
+    if (getter != null && (getter.isStatic || getter.isField)) {
       getter = null;
     }
     Builder setter =

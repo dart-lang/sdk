@@ -816,7 +816,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
                 onType,
                 onTypeInstantiateToBounds,
-                thisBuilder != null
+                thisBuilder != null &&
+                        !thisBuilder.isField &&
+                        !thisBuilder.isStatic
                     ? new ObjectAccessTarget.extensionMember(
                         thisBuilder.procedure,
                         thisBuilder.extensionTearOff,
