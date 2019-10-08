@@ -41,6 +41,7 @@ import 'generics.dart'
         hasFreeTypeParameters,
         hasInstantiatorTypeArguments,
         isAllDynamic,
+        isCallThroughGetter,
         isInstantiatedInterfaceCall,
         isUncheckedCall,
         isUncheckedClosureCall;
@@ -113,6 +114,9 @@ void generateBytecode(
 }
 
 class BytecodeGenerator extends RecursiveVisitor<Null> {
+  static final Name callName = new Name('call');
+  static final Name noSuchMethodName = new Name('noSuchMethod');
+
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
@@ -2759,7 +2763,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         allocateInvocationMirror, objectTable.getArgDescHandle(4), 4);
 
     final Member target = hierarchy.getDispatchTarget(
-        enclosingClass.superclass, new Name('noSuchMethod'));
+        enclosingClass.superclass, noSuchMethodName);
     assert(target != null);
     _genDirectCall(target, objectTable.getArgDescHandle(2), 2);
   }
@@ -3128,7 +3132,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final isUnchecked = invocationKind != InvocationKind.getter &&
         _isUncheckedCall(node, interfaceTarget, receiver);
 
-    if (inferredTypeMetadata != null) {
+    if (inferredTypeMetadata != null && node != null) {
       _appendInferredType(node, asm.offset);
     }
 
@@ -3152,6 +3156,58 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitInterfaceCall(callCpIndex, totalArgCount);
     }
+  }
+
+  /// Generates bytecode for o.foo(a0, ..., aN) call where o.foo is a
+  /// field or getter.
+  void _genCallThroughGetter(MethodInvocation node, int totalArgCount) {
+    final arguments = node.arguments;
+    if (arguments.types.isNotEmpty) {
+      _genTypeArguments(arguments.types);
+    }
+
+    // Keep order of evaluation: o, a0, .., aN, o.foo, o.foo.call(a0, ..., aN).
+    final receiver = node.receiver;
+    _generateNode(receiver);
+    final receiverTemp = locals.tempIndexInFrame(node, tempIndex: 0);
+    final checkForNull =
+        node.interfaceTarget.enclosingClass != coreTypes.objectClass;
+    if (checkForNull) {
+      asm.emitStoreLocal(receiverTemp);
+    }
+
+    int count = 0;
+    for (var arg in arguments.positional) {
+      _generateNode(arg);
+      asm.emitPopLocal(locals.tempIndexInFrame(node, tempIndex: count + 1));
+      ++count;
+    }
+    for (var arg in arguments.named) {
+      _generateNode(arg.value);
+      asm.emitPopLocal(locals.tempIndexInFrame(node, tempIndex: count + 1));
+      ++count;
+    }
+
+    // Check receiver for null before calling getter to report
+    // correct noSuchMethod for method call.
+    if (checkForNull) {
+      asm.emitPush(receiverTemp);
+      asm.emitCheckReceiverForNull(
+          cp.addSelectorName(node.name, InvocationKind.method));
+    }
+
+    _genInstanceCall(null, InvocationKind.getter, node.interfaceTarget,
+        node.name, receiver, 1, objectTable.getArgDescHandle(1));
+
+    for (int i = 0; i < count; ++i) {
+      asm.emitPush(locals.tempIndexInFrame(node, tempIndex: i + 1));
+    }
+
+    final argDesc =
+        objectTable.getArgDescHandleByArguments(arguments, hasReceiver: true);
+
+    _genInstanceCall(node, InvocationKind.method, null, callName, null,
+        totalArgCount, argDesc);
   }
 
   @override
@@ -3183,6 +3239,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
+    final Member interfaceTarget = node.interfaceTarget;
+    if (isCallThroughGetter(interfaceTarget)) {
+      assert(directCall == null);
+      _genCallThroughGetter(node, totalArgCount);
+      return;
+    }
+
     if (directCall != null && directCall.checkReceiverForNull) {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
@@ -3191,15 +3254,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           cp.addSelectorName(node.name, InvocationKind.method));
     } else {
       _genArguments(node.receiver, args);
-    }
-
-    Member interfaceTarget = node.interfaceTarget;
-    if (interfaceTarget is Field ||
-        interfaceTarget is Procedure && interfaceTarget.isGetter) {
-      // Call via field or getter. Treat it as a dynamic call because
-      // interface target doesn't fully represent what is being called.
-      assert(directCall == null);
-      interfaceTarget = null;
     }
 
     final argDesc =

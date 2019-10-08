@@ -1211,6 +1211,9 @@ class _Allocator extends RecursiveVisitor<Null> {
     int numTemps = 0;
     if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
       numTemps = 1;
+    } else if (isCallThroughGetter(node.interfaceTarget)) {
+      final args = node.arguments;
+      numTemps = 1 + args.positional.length + args.named.length;
     } else if (locals.directCallMetadata != null) {
       final directCall = locals.directCallMetadata[node];
       if (directCall != null && directCall.checkReceiverForNull) {
