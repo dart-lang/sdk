@@ -3360,41 +3360,45 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
 
+// On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
+// Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
+// symbol names in the objects are given by the '...AsmSymbol' definitions.
 #if defined(__APPLE__)
-#define kVmSnapshotDataSymbolName "kDartVmSnapshotData"
-#define kVmSnapshotInstructionsSymbolName "kDartVmSnapshotInstructions"
-#define kIsolateSnapshotDataSymbolName "kDartIsolateSnapshotData"
-#define kIsolateSnapshotInstructionsSymbolName                                 \
-  "kDartIsolateSnapshotInstructions"
+#define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
+#define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
 #else
-#define kVmSnapshotDataSymbolName "_kDartVmSnapshotData"
-#define kVmSnapshotInstructionsSymbolName "_kDartVmSnapshotInstructions"
-#define kIsolateSnapshotDataSymbolName "_kDartIsolateSnapshotData"
-#define kIsolateSnapshotInstructionsSymbolName                                 \
-  "_kDartIsolateSnapshotInstructions"
+#define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
+#define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
 #endif
+
+#define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
+#define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsAsmSymbol                                  \
+  "_kDartIsolateSnapshotInstructions"
 
 /**
  *  Creates a precompiled snapshot.
  *   - A root library must have been loaded.
  *   - Dart_Precompile must have been called.
  *
- *  Outputs an assembly file defining the symbols
- *   - _kDartVmSnapshotData
- *   - _kDartVmSnapshotInstructions
- *   - _kDartIsolateSnapshotData
- *   - _kDartIsolateSnapshotInstructions
+ *  Outputs an assembly file defining the symbols listed in the definitions
+ *  above.
  *
  *  The assembly should be compiled as a static or shared library and linked or
- *  loaded by the embedder.
- *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
- *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
- *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolateGroup.
+ *  loaded by the embedder. Running this snapshot requires a VM compiled with
+ *  DART_PRECOMPILED_SNAPSHOT. The kDartVmSnapshotData and
+ *  kDartVmSnapshotInstructions should be passed to Dart_Initialize. The
+ *  kDartIsolateSnapshotData and kDartIsolateSnapshotInstructions should be
+ *  passed to Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
- * \return A valid handle if no error occurs during the operation.
+ *  \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,

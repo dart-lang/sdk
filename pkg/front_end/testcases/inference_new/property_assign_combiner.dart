@@ -51,9 +51,9 @@ void test2(G g) {
 void test3(G g) {
   /*@ type=G* */ g
       . /*@target=G::target*/ /*@target=G::target*/ target /*@ target=A::+ */ ++;
-  var /*@ type=A* */ x = /*@ type=G* */ g
-          . /*@ type=A* */ /*@target=G::target*/ /*@target=G::target*/ target
-      /*@ type=C* */ /*@ target=A::+ */ ++;
+  var /*@ type=A* */ x = /*@ type=G* */ g. /*@ type=A* */ /*@target=G::target*/
+          /*@target=G::target*/ /*@ type=C* */ target
+      /*@ target=A::+ */ ++;
 }
 
 main() {}

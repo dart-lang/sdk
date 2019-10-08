@@ -39,18 +39,6 @@ List<T> _transformOrShare<T>(List<T> list, T Function(T) transform) {
 }
 
 /**
- * Type of callbacks used by [DeferredFunctionTypeImpl].
- */
-typedef FunctionTypedElement FunctionTypedElementComputer();
-
-/**
- * Computer of type arguments which is used to delay computing of type
- * arguments until they are requested, instead of at the [ParameterizedType]
- * creation time.
- */
-typedef List<DartType> TypeArgumentsComputer();
-
-/**
  * A [Type] that represents the type 'bottom'.
  */
 class BottomTypeImpl extends TypeImpl {
@@ -329,54 +317,6 @@ class CircularTypeImpl extends DynamicTypeImpl {
 }
 
 /**
- * The type of a function, method, constructor, getter, or setter that has been
- * resynthesized from a summary.  The actual underlying element won't be
- * constructed until it's needed.
- */
-class DeferredFunctionTypeImpl extends _FunctionTypeImplLazy {
-  /**
-   * Callback which should be invoked when the element associated with this
-   * function type is needed.
-   *
-   * Once the callback has been invoked, it is set to `null` to reduce GC
-   * pressure.
-   */
-  FunctionTypedElementComputer _computeElement;
-
-  /**
-   * If [_computeElement] has been called, the value it returned.  Otherwise
-   * `null`.
-   */
-  FunctionTypedElement _computedElement;
-
-  DeferredFunctionTypeImpl(this._computeElement, String name,
-      List<DartType> typeArguments, bool isInstantiated,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
-      FunctionTypedElement computedElement})
-      : _computedElement = computedElement,
-        super._(null, name, null, typeArguments, null, null, isInstantiated,
-            nullabilitySuffix: nullabilitySuffix);
-
-  @override
-  FunctionTypedElement get element {
-    if (_computeElement != null) {
-      _computedElement = _computeElement();
-      _computeElement = null;
-    }
-    return _computedElement;
-  }
-
-  @override
-  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
-    if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return DeferredFunctionTypeImpl(
-        _computeElement, name, typeArguments, isInstantiated,
-        computedElement: _computedElement,
-        nullabilitySuffix: nullabilitySuffix);
-  }
-}
-
-/**
  * The [Type] representing the type `dynamic`.
  */
 class DynamicTypeImpl extends TypeImpl {
@@ -477,82 +417,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return new _FunctionTypeImplLazy._(
         element, null, null, null, null, null, false,
         nullabilitySuffix: nullabilitySuffix);
-  }
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   *
-   * Note: this constructor mishandles generics.
-   * See https://github.com/dart-lang/sdk/issues/34657.
-   */
-  factory FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
-    return new _FunctionTypeImplLazy._(
-        element, element?.name, null, null, null, null, false,
-        nullabilitySuffix: nullabilitySuffix);
-  }
-
-  /**
-   * Initialize a newly created function type that is semantically the same as
-   * [original], but which has been syntactically renamed with fresh type
-   * parameters at its outer binding site (if any).
-   *
-   * If type formals is empty, this returns the original unless [force] is set
-   * to [true].
-   */
-  factory FunctionTypeImpl.fresh(FunctionType original,
-      {bool force = false,
-      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
-    // We build up a substitution for the type parameters,
-    // {variablesFresh/variables} then apply it.
-
-    var originalFormals = original.typeFormals;
-    var formalCount = originalFormals.length;
-    if (formalCount == 0 && !force) return original;
-
-    // Allocate fresh type variables
-    var typeVars = <TypeParameterElement>[];
-    var freshTypeVars = <DartType>[];
-    var freshVarElements = <TypeParameterElement>[];
-    for (int i = 0; i < formalCount; i++) {
-      var typeParamElement = originalFormals[i];
-
-      var freshElement =
-          new TypeParameterElementImpl.synthetic(typeParamElement.name);
-      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-
-      typeVars.add(typeParamElement);
-      freshTypeVars.add(freshTypeVar);
-      freshVarElements.add(freshElement);
-    }
-
-    // Simultaneous substitution to rename the bounds
-    for (int i = 0; i < formalCount; i++) {
-      var typeParamElement = originalFormals[i];
-      var bound = typeParamElement.bound;
-      if (bound != null) {
-        var freshElement = freshVarElements[i] as TypeParameterElementImpl;
-        freshElement.bound = Substitution.fromPairs(typeVars, freshTypeVars)
-            .substituteType(bound);
-      }
-    }
-
-    // Instantiate the original type with the fresh type variables
-    // (replacing the old type variables)
-    var newType = original.instantiate(freshTypeVars);
-
-    // Build a synthetic element for the type, binding the fresh type parameters
-    var name = original.name ?? "";
-    var element = original.element;
-    var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = element?.enclosingElement;
-    function.isSynthetic = true;
-    function.returnType = newType.returnType;
-    function.typeParameters = freshVarElements;
-    function.shareParameters(newType.parameters);
-    return function.type =
-        new FunctionTypeImpl(function, nullabilitySuffix: nullabilitySuffix);
   }
 
   /// Creates a function type that's not associated with any element in the
@@ -1245,12 +1109,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<DartType> _typeArguments = const <DartType>[];
 
   /**
-   * If not `null` and [_typeArguments] is `null`, the actual type arguments
-   * should be computed (once) using this function.
-   */
-  TypeArgumentsComputer _typeArgumentsComputer;
-
-  /**
    * The set of typedefs which should not be expanded when exploring this type,
    * to avoid creating infinite types in response to self-referential typedefs.
    */
@@ -1283,32 +1141,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       {this.prunedTypedefs, this.nullabilitySuffix = NullabilitySuffix.star})
       : super(element, element.displayName);
 
-  /**
-   * Initialize a newly created type to be declared by the given [element],
-   * with the given [name] and [typeArguments].
-   */
-  InterfaceTypeImpl.elementWithNameAndArgs(
-      ClassElement element, String name, this._typeArgumentsComputer,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : prunedTypedefs = null,
-        super(element, name) {
-    _typeArguments = null;
-  }
-
   InterfaceTypeImpl.explicit(ClassElement element, List<DartType> typeArguments,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : prunedTypedefs = null,
         _typeArguments = typeArguments,
         super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to have the given [name]. This constructor
-   * should only be used in cases where there is no declaration of the type.
-   */
-  InterfaceTypeImpl.named(String name,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : prunedTypedefs = null,
-        super(null, name);
 
   /**
    * Private constructor.
@@ -1320,7 +1157,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl._withNullability(InterfaceTypeImpl original,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : _typeArguments = original._typeArguments,
-        _typeArgumentsComputer = original._typeArgumentsComputer,
         prunedTypedefs = original.prunedTypedefs,
         super(original.element, original.name);
 
@@ -1571,10 +1407,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<DartType> get typeArguments {
-    if (_typeArguments == null) {
-      _typeArguments = _typeArgumentsComputer();
-      _typeArgumentsComputer = null;
-    }
     return _typeArguments;
   }
 
@@ -1583,7 +1415,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   void set typeArguments(List<DartType> typeArguments) {
     _typeArguments = typeArguments;
-    _typeArgumentsComputer = null;
   }
 
   @override

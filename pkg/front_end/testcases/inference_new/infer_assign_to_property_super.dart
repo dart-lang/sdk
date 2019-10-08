@@ -68,10 +68,9 @@ class Test extends Base {
         /*@target=Base::member*/ /*@target=Base::member*/ member;
 
     var /*@ type=B* */ v7 = super
-            .
-            /*@ type=B* */ /*@target=Base::member*/ /*@target=Base::member*/
-            member
-        /*@ type=B* */ /*@ target=B::- */ --;
+        .
+        /*@ type=B* */ /*@target=Base::member*/ /*@target=Base::member*/
+        /*@ type=B* */ member /*@ target=B::- */ --;
   }
 }
 

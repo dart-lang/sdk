@@ -345,7 +345,10 @@ class DartFuzzTest {
     fp = samePrecision(mode1, mode2);
     // Occasionally test FFI.
     ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
-    flatTp = !nestedTypesAllowed(mode1, mode2) || (rand.nextInt(5) == 0);
+    // TODO (https://github.com/dart-lang/sdk/issues/38710):
+    // re-enable non-flat types once hash issue is fixed.
+    // flatTp = !nestedTypesAllowed(mode1, mode2) || (rand.nextInt(5) == 0);
+    flatTp = true;
     runner1 =
         TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
     runner2 =

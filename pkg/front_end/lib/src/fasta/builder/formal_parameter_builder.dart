@@ -12,8 +12,9 @@ import '../parser/formal_parameter_kind.dart'
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
-import 'builder.dart'
-    show LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
+import 'builder.dart' show LibraryBuilder, MetadataBuilder, TypeBuilder;
+
+import 'modifier_builder.dart';
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
@@ -45,7 +46,7 @@ import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends ModifierBuilder {
+class FormalParameterBuilder extends ModifierBuilderImpl {
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder> metadata;
 

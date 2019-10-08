@@ -215,6 +215,7 @@ class BytecodeReaderHelper : public ValueObject {
   RawString* ReadString(bool is_canonical = true);
   RawScript* ReadSourceFile(const String& uri, intptr_t offset);
   RawTypeArguments* ReadTypeArguments();
+  void ReadAttributes(const Object& key);
   RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
   void ParseForwarderFunction(ParsedFunction* parsed_function,
                               const Function& function,
@@ -357,6 +358,9 @@ class BytecodeReader : public AllStatic {
   // Read members of the given class.
   static void FinishClassLoading(const Class& cls);
 
+  // Value of attribute [name] of Function/Field [key].
+  static RawObject* GetBytecodeAttribute(const Object& key, const String& name);
+
 #if !defined(PRODUCT)
   // Compute local variable descriptors for [function] with [bytecode].
   static RawLocalVarDescriptors* ComputeLocalVarDescriptors(
@@ -364,6 +368,26 @@ class BytecodeReader : public AllStatic {
       const Function& function,
       const Bytecode& bytecode);
 #endif
+};
+
+class InferredTypeBytecodeAttribute : public AllStatic {
+ public:
+  // Number of array elements per entry in InferredType bytecode
+  // attribute (PC, type, flags).
+  static constexpr intptr_t kNumElements = 3;
+
+  // Field type is the first entry with PC = -1.
+  static constexpr intptr_t kFieldTypePC = -1;
+
+  // Returns PC at given index.
+  static intptr_t GetPCAt(const Array& attr, intptr_t index) {
+    return Smi::Value(Smi::RawCast(attr.At(index)));
+  }
+
+  // Returns InferredType metadata at given index.
+  static InferredTypeMetadata GetInferredTypeAt(Zone* zone,
+                                                const Array& attr,
+                                                intptr_t index);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
@@ -530,6 +554,22 @@ class BytecodeLocalVariablesIterator : ValueObject {
   TokenPosition cur_declaration_token_pos_ = TokenPosition::kNoSource;
   TokenPosition cur_end_token_pos_ = TokenPosition::kNoSource;
 };
+
+class BytecodeAttributesMapTraits {
+ public:
+  static const char* Name() { return "BytecodeAttributesMapTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Object& key) {
+    return String::HashRawSymbol(key.IsFunction() ? Function::Cast(key).name()
+                                                  : Field::Cast(key).name());
+  }
+};
+typedef UnorderedHashMap<BytecodeAttributesMapTraits> BytecodeAttributesMap;
 
 bool IsStaticFieldGetterGeneratedAsInitializer(const Function& function,
                                                Zone* zone);

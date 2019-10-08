@@ -1728,6 +1728,18 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   return InferredTypeMetadata(cid, flags);
 }
 
+void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
+  const int kDynamicUsesBit = 1 << 0;
+  const int kNonThisUsesBit = 1 << 1;
+  const int kTearOffUsesBit = 1 << 2;
+  const int kThisUsesBit = 1 << 3;
+
+  has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
+  has_this_uses = (flags & kThisUsesBit) != 0;
+  has_non_this_uses = (flags & kNonThisUsesBit) != 0;
+  has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
+}
+
 ProcedureAttributesMetadataHelper::ProcedureAttributesMetadataHelper(
     KernelReaderHelper* helper)
     : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
@@ -1743,16 +1755,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  const int kDynamicUsesBit = 1 << 0;
-  const int kNonThisUsesBit = 1 << 1;
-  const int kTearOffUsesBit = 1 << 2;
-  const int kThisUsesBit = 1 << 3;
-
   const uint8_t flags = helper_->ReadByte();
-  metadata->has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
-  metadata->has_this_uses = (flags & kThisUsesBit) != 0;
-  metadata->has_non_this_uses = (flags & kNonThisUsesBit) != 0;
-  metadata->has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
+  metadata->InitializeFromFlags(flags);
   return true;
 }
 

@@ -77,16 +77,18 @@ group("runtime_precompiled") {
   ]
 }
 
-group("create_sdk") {
-  public_deps = [
-    "sdk:create_sdk",
-  ]
-}
-
-group("create_sdk_nnbd") {
-  public_deps = [
-    "sdk_nnbd:create_sdk_nnbd",
-  ]
+if (use_nnbd) {
+  group("create_sdk") {
+    public_deps = [
+      "sdk_nnbd:create_sdk",
+    ]
+  }
+} else {
+  group("create_sdk") {
+    public_deps = [
+      "sdk:create_sdk",
+    ]
+  }
 }
 
 group("dart2js") {

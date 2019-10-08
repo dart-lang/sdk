@@ -4,7 +4,7 @@
 
 library fasta.type_promotion_look_ahead_listener;
 
-import '../builder/builder.dart' show Builder;
+import '../builder/declaration.dart';
 
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
@@ -98,7 +98,7 @@ abstract class TypePromotionState {
   void checkEmpty(Token token) {}
 }
 
-class UnspecifiedDeclaration extends Builder {
+class UnspecifiedDeclaration extends BuilderImpl {
   final String name;
 
   @override
@@ -119,7 +119,7 @@ class UnspecifiedDeclaration extends Builder {
   String toString() => "UnspecifiedDeclaration($name)";
 }
 
-class NoArguments extends Builder {
+class NoArguments extends BuilderImpl {
   NoArguments();
 
   @override

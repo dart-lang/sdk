@@ -1013,7 +1013,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
-                              kWordSize);
+                              compiler::target::kWordSize);
 
   FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
                      /*stack_delta=*/0);
@@ -1027,7 +1027,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
   __ mov(TMP, compiler::Operand(PC));
-  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
+  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp *
+                                           compiler::target::kWordSize));
 
   // For historical reasons, the PC on ARM points 8 bytes past the current
   // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
@@ -1063,7 +1064,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
+    __ ldr(PP, compiler::Address(
+                   THR, compiler::target::Thread::global_object_pool_offset()));
   }
 
   // Leave dummy exit frame.
@@ -1101,7 +1103,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PopNativeCalleeSavedRegisters();
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1164,7 +1166,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushImmediate(0);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif

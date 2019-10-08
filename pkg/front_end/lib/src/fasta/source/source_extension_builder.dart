@@ -27,7 +27,7 @@ import '../fasta_codes.dart'
         templateExtensionMemberConflictsWithObjectMember;
 import 'source_library_builder.dart';
 
-class SourceExtensionBuilder extends ExtensionBuilder {
+class SourceExtensionBuilder extends ExtensionBuilderImpl {
   final Extension _extension;
 
   SourceExtensionBuilder _origin;

@@ -642,9 +642,248 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    assert(getOrSet == null ||
+        optional('get', getOrSet) ||
+        optional('set', getOrSet));
+    debugEvent("ClassConstructor");
+
+    var bodyObject = pop();
+    List<ConstructorInitializer> initializers = pop() ?? const [];
+    Token separator = pop();
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    var name = pop();
+    TypeAnnotation returnType = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null || optional('get', getOrSet));
+
+    ConstructorName redirectedConstructor;
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
+
+    SimpleIdentifier prefixOrName;
+    Token period;
+    SimpleIdentifier nameOrNull;
+    if (name is SimpleIdentifier) {
+      prefixOrName = name;
+    } else if (name is PrefixedIdentifier) {
+      prefixOrName = name.prefix;
+      period = name.period;
+      nameOrNull = name.identifier;
+    } else {
+      throw new UnimplementedError(
+          'name is an instance of ${name.runtimeType} in endClassConstructor');
+    }
+
+    if (typeParameters != null) {
+      // Outline builder also reports this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
+    if (modifiers?.constKeyword != null &&
+        body != null &&
+        (body.length > 1 || body.beginToken?.lexeme != ';')) {
+      // This error is also reported in BodyBuilder.finishFunction
+      Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+      handleRecoverableError(
+          messageConstConstructorWithBody, bodyToken, bodyToken);
+    }
+    if (returnType != null) {
+      // This error is also reported in OutlineBuilder.endMethod
+      handleRecoverableError(messageConstructorWithReturnType,
+          returnType.beginToken, returnType.beginToken);
+    }
+    ConstructorDeclaration constructor = ast.constructorDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.finalConstOrVarKeyword,
+        null,
+        // TODO(paulberry): factoryKeyword
+        ast.simpleIdentifier(prefixOrName.token),
+        period,
+        nameOrNull,
+        parameters,
+        separator,
+        initializers,
+        redirectedConstructor,
+        body);
+    currentDeclarationMembers.add(constructor);
+    if (mixinDeclaration != null) {
+      // TODO (danrubel): Report an error if this is a mixin declaration.
+    }
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     classDeclaration = null;
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    assert(optional('factory', factoryKeyword));
+    assert(optional(';', endToken) || optional('}', endToken));
+    debugEvent("ClassFactoryMethod");
+
+    FunctionBody body;
+    Token separator;
+    ConstructorName redirectedConstructor;
+    Object bodyObject = pop();
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
+
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    Object constructorName = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null);
+
+    if (typeParameters != null) {
+      // TODO(danrubel): Update OutlineBuilder to report this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
+
+    // Decompose the preliminary ConstructorName into the type name and
+    // the actual constructor name.
+    SimpleIdentifier returnType;
+    Token period;
+    SimpleIdentifier name;
+    Identifier typeName = constructorName;
+    if (typeName is SimpleIdentifier) {
+      returnType = typeName;
+    } else if (typeName is PrefixedIdentifier) {
+      returnType = typeName.prefix;
+      period = typeName.period;
+      name =
+          ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
+    }
+
+    currentDeclarationMembers.add(ast.constructorDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.finalConstOrVarKeyword,
+        factoryKeyword,
+        ast.simpleIdentifier(returnType.token),
+        period,
+        name,
+        parameters,
+        separator,
+        null,
+        redirectedConstructor,
+        body));
+  }
+
+  @override
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
+    assert(optional(';', semicolon));
+    debugEvent("Fields");
+
+    List<VariableDeclaration> variables = popTypedList(count);
+    TypeAnnotation type = pop();
+    var variableList = ast.variableDeclarationList2(
+      lateKeyword: lateToken,
+      keyword: varFinalOrConst,
+      type: type,
+      variables: variables,
+    );
+    Token covariantKeyword = covariantToken;
+    List<Annotation> metadata = pop();
+    Comment comment = _findComment(metadata, beginToken);
+    currentDeclarationMembers.add(ast.fieldDeclaration2(
+        comment: comment,
+        metadata: metadata,
+        covariantKeyword: covariantKeyword,
+        staticKeyword: staticToken,
+        fieldList: variableList,
+        semicolon: semicolon));
+  }
+
+  @override
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    assert(getOrSet == null ||
+        optional('get', getOrSet) ||
+        optional('set', getOrSet));
+    debugEvent("ClassMethod");
+
+    var bodyObject = pop();
+    pop(); // initializers
+    pop(); // separator
+    FormalParameterList parameters = pop();
+    TypeParameterList typeParameters = pop();
+    var name = pop();
+    TypeAnnotation returnType = pop();
+    _Modifiers modifiers = pop();
+    List<Annotation> metadata = pop();
+    Comment comment = _findComment(metadata, beginToken);
+
+    assert(parameters != null || optional('get', getOrSet));
+
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
+
+    Token operatorKeyword;
+    SimpleIdentifier nameId;
+    if (name is SimpleIdentifier) {
+      nameId = name;
+    } else if (name is _OperatorName) {
+      operatorKeyword = name.operatorKeyword;
+      nameId = name.name;
+    } else {
+      throw new UnimplementedError(
+          'name is an instance of ${name.runtimeType} in endClassMethod');
+    }
+
+    checkFieldFormalParameters(parameters);
+    currentDeclarationMembers.add(ast.methodDeclaration(
+        comment,
+        metadata,
+        modifiers?.externalKeyword,
+        modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        returnType,
+        getOrSet,
+        operatorKeyword,
+        nameId,
+        typeParameters,
+        parameters,
+        body));
   }
 
   @override
@@ -823,6 +1062,25 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endExtensionConstructor(Token getOrSet, Token beginToken,
+      Token beginParam, Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionConstructor");
+    // TODO(danrubel) Decide how to handle constructor declarations within
+    // extensions. They are invalid and the parser has already reported an
+    // error at this point. In the future, we should include them in order
+    // to get navigation, search, etc.
+    pop(); // body
+    pop(); // initializers
+    pop(); // separator
+    pop(); // parameters
+    pop(); // typeParameters
+    pop(); // name
+    pop(); // returnType
+    pop(); // modifiers
+    pop(); // metadata
+  }
+
+  @override
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token token) {
     TypeAnnotation type = pop();
@@ -830,81 +1088,6 @@ class AstBuilder extends StackListener {
       ..extendedType = type
       ..onKeyword = onKeyword;
     extensionDeclaration = null;
-  }
-
-  @override
-  void endClassFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    assert(optional('factory', factoryKeyword));
-    assert(optional(';', endToken) || optional('}', endToken));
-    debugEvent("ClassFactoryMethod");
-
-    FunctionBody body;
-    Token separator;
-    ConstructorName redirectedConstructor;
-    Object bodyObject = pop();
-    if (bodyObject is FunctionBody) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(endToken);
-    } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
-    }
-
-    FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
-    Object constructorName = pop();
-    _Modifiers modifiers = pop();
-    List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, beginToken);
-
-    assert(parameters != null);
-
-    if (typeParameters != null) {
-      // TODO(danrubel): Update OutlineBuilder to report this error message.
-      handleRecoverableError(messageConstructorWithTypeParameters,
-          typeParameters.beginToken, typeParameters.endToken);
-    }
-
-    // Decompose the preliminary ConstructorName into the type name and
-    // the actual constructor name.
-    SimpleIdentifier returnType;
-    Token period;
-    SimpleIdentifier name;
-    Identifier typeName = constructorName;
-    if (typeName is SimpleIdentifier) {
-      returnType = typeName;
-    } else if (typeName is PrefixedIdentifier) {
-      returnType = typeName.prefix;
-      period = typeName.period;
-      name =
-          ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
-    }
-
-    currentDeclarationMembers.add(ast.constructorDeclaration(
-        comment,
-        metadata,
-        modifiers?.externalKeyword,
-        modifiers?.finalConstOrVarKeyword,
-        factoryKeyword,
-        ast.simpleIdentifier(returnType.token),
-        period,
-        name,
-        parameters,
-        separator,
-        null,
-        redirectedConstructor,
-        body));
-  }
-
-  @override
-  void endMixinFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("MixinFactoryMethod");
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   @override
@@ -965,48 +1148,6 @@ class AstBuilder extends StackListener {
         body));
   }
 
-  void endFieldInitializer(Token assignment, Token token) {
-    assert(optional('=', assignment));
-    debugEvent("FieldInitializer");
-
-    Expression initializer = pop();
-    SimpleIdentifier name = pop();
-    push(_makeVariableDeclaration(name, assignment, initializer));
-  }
-
-  @override
-  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token semicolon) {
-    assert(optional(';', semicolon));
-    debugEvent("Fields");
-
-    List<VariableDeclaration> variables = popTypedList(count);
-    TypeAnnotation type = pop();
-    var variableList = ast.variableDeclarationList2(
-      lateKeyword: lateToken,
-      keyword: varFinalOrConst,
-      type: type,
-      variables: variables,
-    );
-    Token covariantKeyword = covariantToken;
-    List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, beginToken);
-    currentDeclarationMembers.add(ast.fieldDeclaration2(
-        comment: comment,
-        metadata: metadata,
-        covariantKeyword: covariantKeyword,
-        staticKeyword: staticToken,
-        fieldList: variableList,
-        semicolon: semicolon));
-  }
-
-  @override
-  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
-    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
-        count, beginToken, endToken);
-  }
-
   @override
   void endExtensionFields(
       Token staticToken,
@@ -1024,6 +1165,23 @@ class AstBuilder extends StackListener {
     }
     endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
         count, beginToken, endToken);
+  }
+
+  @override
+  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("ExtensionMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  void endFieldInitializer(Token assignment, Token token) {
+    assert(optional('=', assignment));
+    debugEvent("FieldInitializer");
+
+    Expression initializer = pop();
+    SimpleIdentifier name = pop();
+    push(_makeVariableDeclaration(name, assignment, initializer));
   }
 
   @override
@@ -1569,165 +1727,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    assert(getOrSet == null ||
-        optional('get', getOrSet) ||
-        optional('set', getOrSet));
-    debugEvent("ClassMethod");
-
-    var bodyObject = pop();
-    pop(); // initializers
-    pop(); // separator
-    FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
-    var name = pop();
-    TypeAnnotation returnType = pop();
-    _Modifiers modifiers = pop();
-    List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, beginToken);
-
-    assert(parameters != null || optional('get', getOrSet));
-
-    FunctionBody body;
-    if (bodyObject is FunctionBody) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      body = ast.emptyFunctionBody(endToken);
-    } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
-    }
-
-    Token operatorKeyword;
-    SimpleIdentifier nameId;
-    if (name is SimpleIdentifier) {
-      nameId = name;
-    } else if (name is _OperatorName) {
-      operatorKeyword = name.operatorKeyword;
-      nameId = name.name;
-    } else {
-      throw new UnimplementedError();
-    }
-
-    checkFieldFormalParameters(parameters);
-    currentDeclarationMembers.add(ast.methodDeclaration(
-        comment,
-        metadata,
-        modifiers?.externalKeyword,
-        modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
-        returnType,
-        getOrSet,
-        operatorKeyword,
-        nameId,
-        typeParameters,
-        parameters,
-        body));
-  }
-
-  @override
-  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    debugEvent("MixinMethod");
-    endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
-  }
-
-  @override
-  void endExtensionMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    debugEvent("ExtensionMethod");
-    endClassMethod(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
-  }
-
-  @override
-  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    assert(getOrSet == null ||
-        optional('get', getOrSet) ||
-        optional('set', getOrSet));
-    debugEvent("ClassConstructor");
-
-    var bodyObject = pop();
-    List<ConstructorInitializer> initializers = pop() ?? const [];
-    Token separator = pop();
-    FormalParameterList parameters = pop();
-    TypeParameterList typeParameters = pop();
-    var name = pop();
-    TypeAnnotation returnType = pop();
-    _Modifiers modifiers = pop();
-    List<Annotation> metadata = pop();
-    Comment comment = _findComment(metadata, beginToken);
-
-    assert(parameters != null || optional('get', getOrSet));
-
-    ConstructorName redirectedConstructor;
-    FunctionBody body;
-    if (bodyObject is FunctionBody) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(endToken);
-    } else {
-      unhandled("${bodyObject.runtimeType}", "bodyObject",
-          beginToken.charOffset, uri);
-    }
-
-    SimpleIdentifier prefixOrName;
-    Token period;
-    SimpleIdentifier nameOrNull;
-    if (name is SimpleIdentifier) {
-      prefixOrName = name;
-    } else if (name is PrefixedIdentifier) {
-      prefixOrName = name.prefix;
-      period = name.period;
-      nameOrNull = name.identifier;
-    } else {
-      throw new UnimplementedError();
-    }
-
-    if (typeParameters != null) {
-      // Outline builder also reports this error message.
-      handleRecoverableError(messageConstructorWithTypeParameters,
-          typeParameters.beginToken, typeParameters.endToken);
-    }
-    if (modifiers?.constKeyword != null &&
-        body != null &&
-        (body.length > 1 || body.beginToken?.lexeme != ';')) {
-      // This error is also reported in BodyBuilder.finishFunction
-      Token bodyToken = body.beginToken ?? modifiers.constKeyword;
-      handleRecoverableError(
-          messageConstConstructorWithBody, bodyToken, bodyToken);
-    }
-    if (returnType != null) {
-      // This error is also reported in OutlineBuilder.endMethod
-      handleRecoverableError(messageConstructorWithReturnType,
-          returnType.beginToken, returnType.beginToken);
-    }
-    ConstructorDeclaration constructor = ast.constructorDeclaration(
-        comment,
-        metadata,
-        modifiers?.externalKeyword,
-        modifiers?.finalConstOrVarKeyword,
-        null,
-        // TODO(paulberry): factoryKeyword
-        ast.simpleIdentifier(prefixOrName.token),
-        period,
-        nameOrNull,
-        parameters,
-        separator,
-        initializers,
-        redirectedConstructor,
-        body);
-    currentDeclarationMembers.add(constructor);
-    if (mixinDeclaration != null) {
-      // TODO (danrubel): Report an error if this is a mixin declaration.
-    }
-  }
-
-  @override
   void endMixinConstructor(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("MixinConstructor");
@@ -1740,28 +1739,31 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionConstructor(Token getOrSet, Token beginToken,
-      Token beginParam, Token beginInitializers, Token endToken) {
-    debugEvent("ExtensionConstructor");
-    // TODO(danrubel) Decide how to handle constructor declarations within
-    // extensions. They are invalid and the parser has already reported an
-    // error at this point. In the future, we should include them in order
-    // to get navigation, search, etc.
-    pop(); // body
-    pop(); // initializers
-    pop(); // separator
-    pop(); // parameters
-    pop(); // typeParameters
-    pop(); // name
-    pop(); // returnType
-    pop(); // modifiers
-    pop(); // metadata
-  }
-
-  @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
     debugEvent("MixinDeclaration");
     mixinDeclaration = null;
+  }
+
+  @override
+  void endMixinFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    debugEvent("MixinFactoryMethod");
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endMixinFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    endClassFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
+  }
+
+  @override
+  void endMixinMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    debugEvent("MixinMethod");
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -2752,7 +2754,8 @@ class AstBuilder extends StackListener {
     if (node is ConstructorName) {
       push(new _ConstructorNameWithInvalidTypeArgs(node, invalidTypeArgs));
     } else {
-      throw new UnimplementedError();
+      throw new UnimplementedError(
+          'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments');
     }
   }
 

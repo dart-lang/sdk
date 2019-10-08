@@ -939,6 +939,8 @@ struct ProcedureAttributesMetadata {
   bool has_this_uses = true;
   bool has_non_this_uses = true;
   bool has_tearoff_uses = true;
+
+  void InitializeFromFlags(uint8_t flags);
 };
 
 // Helper class which provides access to direct call metadata.

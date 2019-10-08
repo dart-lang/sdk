@@ -159,7 +159,7 @@ abstract class Generator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     return buildCompoundAssignment(
-        binaryOperator, _forest.createIntLiteral(1, null)..fileOffset = offset,
+        binaryOperator, _forest.createIntLiteral(offset, 1),
         offset: offset,
         // TODO(johnniwinther): We are missing some void contexts here. For
         // instance `++a?.b;` is not providing a void context making it default
@@ -386,7 +386,7 @@ class VariableUseGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -394,8 +394,8 @@ class VariableUseGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration read = _helper.forest
-        .createVariableDeclarationForValue(fileOffset, _createRead());
+    VariableDeclaration read =
+        _helper.forest.createVariableDeclarationForValue(_createRead());
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -403,8 +403,7 @@ class VariableUseGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset, _createWrite(offset, binary));
+        .createVariableDeclarationForValue(_createWrite(offset, binary));
     return new LocalPostIncDec(read, write)..fileOffset = offset;
   }
 
@@ -502,8 +501,8 @@ class PropertyAccessGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext = false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     PropertyGet read = new PropertyGet(
         _helper.createVariableGet(variable, receiver.fileOffset), name)
       ..fileOffset = fileOffset;
@@ -521,8 +520,8 @@ class PropertyAccessGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         new PropertyGet(
@@ -542,7 +541,7 @@ class PropertyAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -550,10 +549,9 @@ class PropertyAccessGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        fileOffset,
         new PropertyGet(
             _helper.createVariableGet(variable, receiver.fileOffset), name)
           ..fileOffset = fileOffset);
@@ -564,14 +562,12 @@ class PropertyAccessGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset,
-            _helper.forest.createPropertySet(
-                fileOffset,
-                _helper.createVariableGet(variable, receiver.fileOffset),
-                name,
-                binary,
-                forEffect: true));
+        .createVariableDeclarationForValue(_helper.forest.createPropertySet(
+            fileOffset,
+            _helper.createVariableGet(variable, receiver.fileOffset),
+            name,
+            binary,
+            forEffect: true));
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 
@@ -716,7 +712,7 @@ class ThisPropertyAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -725,7 +721,6 @@ class ThisPropertyAccessGenerator extends Generator {
           isPostIncDec: true);
     }
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        fileOffset,
         new PropertyGet(_forest.createThisExpression(fileOffset), name)
           ..fileOffset = fileOffset);
     MethodInvocation binary = _helper.forest.createMethodInvocation(
@@ -736,7 +731,7 @@ class ThisPropertyAccessGenerator extends Generator {
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
-            offset, _createWrite(fileOffset, binary, forEffect: true));
+            _createWrite(fileOffset, binary, forEffect: true));
     return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
   }
 
@@ -805,9 +800,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(
-            receiverExpression.fileOffset, receiverExpression);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiverExpression);
     PropertyGet read = new PropertyGet(
         _helper.createVariableGet(variable, receiverExpression.fileOffset),
         name)
@@ -818,9 +812,8 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(
-            receiverExpression.fileOffset, receiverExpression);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiverExpression);
     PropertySet read = _helper.forest.createPropertySet(
         fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset),
@@ -862,7 +855,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
       bool voidContext: false,
       Procedure interfaceTarget}) {
     return buildCompoundAssignment(
-        binaryOperator, _forest.createIntLiteral(1, null)..fileOffset = offset,
+        binaryOperator, _forest.createIntLiteral(offset, 1),
         offset: offset,
         voidContext: voidContext,
         interfaceTarget: interfaceTarget,
@@ -962,7 +955,7 @@ class SuperPropertyAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -970,8 +963,8 @@ class SuperPropertyAccessGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration read = _helper.forest
-        .createVariableDeclarationForValue(fileOffset, _createRead());
+    VariableDeclaration read =
+        _helper.forest.createVariableDeclarationForValue(_createRead());
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -979,8 +972,7 @@ class SuperPropertyAccessGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset, _createWrite(fileOffset, binary));
+        .createVariableDeclarationForValue(_createWrite(fileOffset, binary));
     return new StaticPostIncDec(read, write)..fileOffset = offset;
   }
 
@@ -1104,7 +1096,7 @@ class IndexedAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -1115,7 +1107,7 @@ class IndexedAccessGenerator extends Generator {
   @override
   Expression doInvocation(int offset, Arguments arguments) {
     return _helper.buildMethodInvocation(
-        buildSimpleRead(), callName, arguments, _forest.readOffset(arguments),
+        buildSimpleRead(), callName, arguments, arguments.fileOffset,
         isImplicitCall: true);
   }
 
@@ -1235,7 +1227,7 @@ class ThisIndexedAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -1343,7 +1335,7 @@ class SuperIndexedAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -1527,7 +1519,7 @@ class StaticAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -1535,8 +1527,8 @@ class StaticAccessGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration read = _helper.forest
-        .createVariableDeclarationForValue(fileOffset, _createRead());
+    VariableDeclaration read =
+        _helper.forest.createVariableDeclarationForValue(_createRead());
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -1544,8 +1536,7 @@ class StaticAccessGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset, _createWrite(offset, binary));
+        .createVariableDeclarationForValue(_createWrite(offset, binary));
     return new StaticPostIncDec(read, write)..fileOffset = offset;
   }
 
@@ -1805,7 +1796,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -1813,8 +1804,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration read = _helper.forest
-        .createVariableDeclarationForValue(fileOffset, _createRead());
+    VariableDeclaration read =
+        _helper.forest.createVariableDeclarationForValue(_createRead());
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -1823,7 +1814,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
         .createVariableDeclarationForValue(
-            offset, _createWrite(fileOffset, binary, forEffect: true));
+            _createWrite(fileOffset, binary, forEffect: true));
     return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
   }
 
@@ -2041,8 +2032,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression buildSimpleRead() {
     if (isNullAware) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       return new NullAwareExtension(variable,
           _createRead(_helper.createVariableGet(variable, variable.fileOffset)))
         ..fileOffset = fileOffset;
@@ -2070,8 +2061,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
     if (isNullAware) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       return new NullAwareExtension(
           variable,
           _createWrite(fileOffset,
@@ -2102,8 +2093,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
     if (isNullAware) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       Expression read =
           _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
       Expression write = _createWrite(fileOffset,
@@ -2115,8 +2106,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
             ..fileOffset = offset)
         ..fileOffset = fileOffset;
     } else {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       Expression read =
           _createRead(_helper.createVariableGet(variable, receiver.fileOffset));
       Expression write = _createWrite(fileOffset,
@@ -2136,8 +2127,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
     if (isNullAware) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       MethodInvocation binary = _helper.forest.createMethodInvocation(
           offset,
           _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
@@ -2149,8 +2140,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           forEffect: voidContext, readOnlyReceiver: true);
       return new NullAwareExtension(variable, write)..fileOffset = offset;
     } else {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       MethodInvocation binary = _helper.forest.createMethodInvocation(
           offset,
           _createRead(_helper.createVariableGet(variable, receiver.fileOffset)),
@@ -2169,7 +2160,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -2177,13 +2168,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     } else if (isNullAware) {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       VariableDeclaration read = _helper.forest
-          .createVariableDeclarationForValue(
-              fileOffset,
-              _createRead(
-                  _helper.createVariableGet(variable, receiver.fileOffset)));
+          .createVariableDeclarationForValue(_createRead(
+              _helper.createVariableGet(variable, receiver.fileOffset)));
       MethodInvocation binary = _helper.forest.createMethodInvocation(
           offset,
           _helper.createVariableGet(read, fileOffset),
@@ -2191,26 +2180,19 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createArguments(offset, <Expression>[value]),
           interfaceTarget: interfaceTarget);
       VariableDeclaration write = _helper.forest
-          .createVariableDeclarationForValue(
-              offset,
-              _createWrite(
-                  fileOffset,
-                  _helper.createVariableGet(variable, receiver.fileOffset),
-                  binary,
-                  forEffect: voidContext,
-                  readOnlyReceiver: true)
-                ..fileOffset = fileOffset);
+          .createVariableDeclarationForValue(_createWrite(fileOffset,
+              _helper.createVariableGet(variable, receiver.fileOffset), binary,
+              forEffect: voidContext, readOnlyReceiver: true)
+            ..fileOffset = fileOffset);
       return new NullAwareExtension(
           variable, new LocalPostIncDec(read, write)..fileOffset = offset)
         ..fileOffset = fileOffset;
     } else {
-      VariableDeclaration variable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      VariableDeclaration variable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       VariableDeclaration read = _helper.forest
-          .createVariableDeclarationForValue(
-              fileOffset,
-              _createRead(
-                  _helper.createVariableGet(variable, receiver.fileOffset)));
+          .createVariableDeclarationForValue(_createRead(
+              _helper.createVariableGet(variable, receiver.fileOffset)));
       MethodInvocation binary = _helper.forest.createMethodInvocation(
           offset,
           _helper.createVariableGet(read, fileOffset),
@@ -2218,15 +2200,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           _helper.forest.createArguments(offset, <Expression>[value]),
           interfaceTarget: interfaceTarget);
       VariableDeclaration write = _helper.forest
-          .createVariableDeclarationForValue(
-              offset,
-              _createWrite(
-                  fileOffset,
-                  _helper.createVariableGet(variable, receiver.fileOffset),
-                  binary,
-                  forEffect: voidContext,
-                  readOnlyReceiver: true)
-                ..fileOffset = fileOffset);
+          .createVariableDeclarationForValue(_createWrite(fileOffset,
+              _helper.createVariableGet(variable, receiver.fileOffset), binary,
+              forEffect: voidContext, readOnlyReceiver: true)
+            ..fileOffset = fileOffset);
       return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
     }
   }
@@ -2236,8 +2213,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     VariableDeclaration receiverVariable;
     Expression receiverExpression = receiver;
     if (isNullAware) {
-      receiverVariable = _helper.forest
-          .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+      receiverVariable =
+          _helper.forest.createVariableDeclarationForValue(receiver);
       receiverExpression = _helper.createVariableGet(
           receiverVariable, receiverVariable.fileOffset);
     }
@@ -2455,7 +2432,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -2710,7 +2687,7 @@ class LoadLibraryGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -3002,14 +2979,14 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
             declaration.message.messageObject, fileOffset, token.length);
       } else {
         super.expression = _forest.createTypeLiteral(
+            offsetForToken(token),
             _helper.buildDartType(
                 new UnresolvedType(
                     buildTypeWithResolvedArguments(
                         _helper.libraryBuilder.nonNullableBuilder, null),
                     fileOffset,
                     _uri),
-                nonInstanceAccessIsError: true),
-            token);
+                nonInstanceAccessIsError: true));
       }
     }
     return super.expression;
@@ -3190,7 +3167,7 @@ class ReadOnlyAccessGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     return buildCompoundAssignment(binaryOperator, value,
         offset: offset,
         voidContext: voidContext,
@@ -3281,9 +3258,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
     return buildError(
-        _forest.createArguments(fileOffset, <Expression>[
-          _forest.createIntLiteral(1, null)..fileOffset = offset
-        ]),
+        _forest.createArguments(
+            fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
         isGetter: true)
       ..fileOffset = offset;
   }
@@ -3292,9 +3268,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
     return buildError(
-        _forest.createArguments(fileOffset, <Expression>[
-          _forest.createIntLiteral(1, null)..fileOffset = offset
-        ]),
+        _forest.createArguments(
+            fileOffset, <Expression>[_forest.createIntLiteral(offset, 1)]),
         isGetter: true)
       ..fileOffset = offset;
   }
@@ -3374,12 +3349,8 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       {bool isGetter: false, bool isSetter: false, int offset}) {
     offset ??= fileOffset;
     return _helper.throwNoSuchMethodError(
-        _forest.createNullLiteral(null)..fileOffset = offset,
-        _plainNameForRead,
-        arguments,
-        offset,
-        isGetter: isGetter,
-        isSetter: isSetter);
+        _forest.createNullLiteral(offset), _plainNameForRead, arguments, offset,
+        isGetter: isGetter, isSetter: isSetter);
   }
 
   @override
@@ -3467,8 +3438,8 @@ class UnlinkedGenerator extends Generator {
   @override
   Expression buildIfNullAssignment(Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     PropertyGet read = new PropertyGet(
         _helper.createVariableGet(variable, receiver.fileOffset), name)
       ..fileOffset = fileOffset;
@@ -3486,8 +3457,8 @@ class UnlinkedGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         new PropertyGet(
@@ -3507,7 +3478,7 @@ class UnlinkedGenerator extends Generator {
       {int offset = TreeNode.noOffset,
       bool voidContext = false,
       Procedure interfaceTarget}) {
-    Expression value = _forest.createIntLiteral(1, null)..fileOffset = offset;
+    Expression value = _forest.createIntLiteral(offset, 1);
     if (voidContext) {
       return buildCompoundAssignment(binaryOperator, value,
           offset: offset,
@@ -3515,10 +3486,9 @@ class UnlinkedGenerator extends Generator {
           interfaceTarget: interfaceTarget,
           isPostIncDec: true);
     }
-    VariableDeclaration variable = _helper.forest
-        .createVariableDeclarationForValue(receiver.fileOffset, receiver);
+    VariableDeclaration variable =
+        _helper.forest.createVariableDeclarationForValue(receiver);
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        fileOffset,
         new PropertyGet(
             _helper.createVariableGet(variable, receiver.fileOffset), name)
           ..fileOffset = fileOffset);
@@ -3529,14 +3499,12 @@ class UnlinkedGenerator extends Generator {
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
     VariableDeclaration write = _helper.forest
-        .createVariableDeclarationForValue(
-            offset,
-            _helper.forest.createPropertySet(
-                fileOffset,
-                _helper.createVariableGet(variable, receiver.fileOffset),
-                name,
-                binary,
-                forEffect: true));
+        .createVariableDeclarationForValue(_helper.forest.createPropertySet(
+            fileOffset,
+            _helper.createVariableGet(variable, receiver.fileOffset),
+            name,
+            binary,
+            forEffect: true));
     return new PropertyPostIncDec(variable, read, write)..fileOffset = offset;
   }
 
@@ -3923,11 +3891,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
-    return _helper.throwNoSuchMethodError(
-        _forest.createNullLiteral(null)..fileOffset = offset,
-        _plainNameForRead,
-        arguments,
-        fileOffset);
+    return _helper.throwNoSuchMethodError(_forest.createNullLiteral(offset),
+        _plainNameForRead, arguments, fileOffset);
   }
 
   @override
@@ -4239,7 +4204,7 @@ class ThisAccessGenerator extends Generator {
     if (message != null) {
       return _helper.buildInvalidInitializer(
           _helper.throwNoSuchMethodError(
-              _forest.createNullLiteral(null)..fileOffset = offset,
+              _forest.createNullLiteral(offset),
               _helper.constructorNameForDiagnostics(name.name,
                   isSuper: isSuper),
               arguments,
@@ -4556,8 +4521,8 @@ Expression makeBinary(Expression left, Name operator, Procedure interfaceTarget,
 
 Expression buildIsNull(
     Expression value, int offset, ExpressionGeneratorHelper helper) {
-  return makeBinary(value, equalsName, null,
-      helper.forest.createNullLiteral(null)..fileOffset = offset, helper,
+  return makeBinary(
+      value, equalsName, null, helper.forest.createNullLiteral(offset), helper,
       offset: offset);
 }
 

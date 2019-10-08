@@ -4,6 +4,58 @@
 
 ### Language
 
+*   [Static extension members][]: A new language feature allowing
+    specially declared static functions to be invoked
+    like instance members on expressions of appropriate static types.
+    Static extension members are declared using a new `extension`
+    declaration. Example:
+    ```dart
+    extension MyFancyList<T> on List<T> {
+      /// Whether this list has an even length.
+      bool get isLengthEven => this.length.isEven;
+
+      /// Whether this list has an odd length.
+      bool get isLengthOdd => !isLengthEven;
+
+      /// List of values computed for each pairs of adjacent elements.
+      ///
+      /// The result always has one element less than this list,
+      /// if this list has any elements.
+      List<R> combinePairs<R>(R Function(T, T) combine) =>
+          [for (int i = 1; i < this.length; i++)
+              combine(this[i - 1], this[i])];
+    }
+    ```
+    Extension declarations cannot declare instance fields or
+    constructors.
+    Extension members can be invoked explicitly,
+    `MyFancyList(intList).isLengthEven)`,
+    or implicitly, `intList.isLengthEven`,
+    where the latter is recognized by `intList` matching the `List<T>`
+    "on" type of the declaration.
+    An extension member cannot be called implicitly on an expression
+    whose static type has a member with the same base-name.
+    In that case, the interface member takes precedence.
+    If multiple extension members apply to the same implicit
+    invocation, the most specific one is used, if there is one such.
+
+    Extensions can be declared on any type, not just interface types.
+    ```dart
+    extension IntCounter on int {
+      /// The numbers from this number to, but not including, [end].
+      Iterable<int> to(int end) sync* {
+        int step = end < this ? -1 : 1;
+        for (int i = this; i != end; i += step) yield i;
+      }
+    }
+
+    extension CurryFunction<R, S, T> on R Function(S, T) {
+      /// Curry a binary function with its first argument.
+      R Function(T) curry(S first) => (T second) => this(first, second);
+    }
+    ```
+    [Static extension members]: https://github.com/dart-lang/language/blob/master/accepted/2.6/static-extension-members/feature-specification.md
+
 *   **Breaking change** [#37985](https://github.com/dart-lang/sdk/issues/37985):
     Inference is changed when using `Null` values in a `FutureOr` context.
     Namely, constraints of the forms similar to `Null` <: `FutureOr<T>` now
@@ -23,7 +75,19 @@ main() { foo(() {}); }
 * Default values of parameters of abstract methods are no longer available
   via `dart:mirrors`.
 
+#### `dart:developer`
+
+* Added optional `parent` paremeter to `TimelineTask` constructors to allow for
+  linking of asynchronous timeline events in the DevTools timeline view.
+
 ### Dart VM
+
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Kernel DDC will no longer accept non-dill files as summary inputs.
+* Removed support for the deprecated web extension.
 
 ### Tools
 
@@ -31,13 +95,10 @@ main() { foo(() {}); }
 
 #### Linter
 
-The Linter was updated to `0.1.99`, which includes:
+The Linter was updated to `0.1.100`, which includes:
 
-* fixed unsafe casts in `overridden_fields`
-* (internal) migration to the mock SDK in `package:analyzer` for testing
-* fixed empty argument list access in `use_full_hex_values_for_flutter_color_fix`
-* new lint: `prefer_relative_imports`
-* improved messages for `await_only_futures`
+* (internal) stop accessing `staticType` in favor of getting type of `FormalParameter`s from the declared element
+* (internal) remove stale analyzer work-around for collecting `TypeParameterElement`s in `prefer_const_constructors`
 
 ## 2.5.1 - 2019-09-27
 

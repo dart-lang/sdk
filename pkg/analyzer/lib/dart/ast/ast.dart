@@ -1234,7 +1234,7 @@ abstract class CompilationUnit implements AstNode {
   /// directive in a comment at the top of the file.
   ///
   /// Might be `null` if, for example, this [CompilationUnit] has been
-  /// resynthesized from a summary,
+  /// resynthesized from a summary.
   FeatureSet get featureSet;
 
   /// Return the line information for this compilation unit.

@@ -6353,11 +6353,27 @@ class GenericTypeAliasElementImpl extends ElementImpl
       function?.parameters ?? const <ParameterElement>[];
 
   @override
-  DartType get returnType => function?.returnType;
+  DartType get returnType {
+    if (function == null) {
+      // TODO(scheglov) The context is null in unit tests.
+      return context?.typeProvider?.dynamicType;
+    }
+    return function?.returnType;
+  }
 
   @override
   FunctionType get type {
-    _type ??= new FunctionTypeImpl.forTypedef(this);
+    _type ??= FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      parameters,
+      element: this,
+      typeArguments: typeParameters.map((e) {
+        return e.instantiate(
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
+      }).toList(),
+    );
     return _type;
   }
 
@@ -6435,11 +6451,14 @@ class GenericTypeAliasElementImpl extends ElementImpl
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    // TODO(scheglov) Replace with strict function type.
-    return FunctionTypeImpl.forTypedef(
-      this,
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      parameters,
+      element: this,
+      typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
-    ).instantiate(typeArguments);
+    );
   }
 
   @override

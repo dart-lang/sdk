@@ -46,6 +46,7 @@ import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
@@ -172,6 +173,7 @@ main() {
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
     convert_to_package_import.main();
+    convert_to_relative_import.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
     create_class.main();

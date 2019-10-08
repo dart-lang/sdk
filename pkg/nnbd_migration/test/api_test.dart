@@ -981,6 +981,82 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @failingTest
+  test_downcast_not_widest_type_type_parameters() async {
+    // Fails because a hard assignment from List<int/*1*/> to List<int/*2*/>
+    // doesn't create a hard edge from 1 to 2. Perhaps this is correct. In this
+    // example it seems incorrect.
+    var content = '''
+void f(dynamic a) {
+  List<int> hardToNonNullNonNull = a;
+  List<int> hardToNullNonNull = a;
+  List<int> hardToNonNullNull = a;
+  List<int/*!*/>/*!*/ nonNullNonNull;
+  List<int/*?*/>/*!*/ nullNonNull;
+  List<int/*!*/>/*?*/ nonNullNull;
+  nonNullNonNull = hardToNonNullNonNull
+  nonNullNull = hardToNonNullNull
+  nullNonNull = hardToNullNonNull
+}
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+void f(dynamic a) {
+  List<int> hardToNonNullNonNull = a;
+  List<int?> hardToNullNonNull = a;
+  List<int>? hardToNonNullNull = a;
+  List<int/*!*/>/*!*/ nonNullNonNull;
+  List<int/*?*/>/*!*/ nullNonNull;
+  List<int/*!*/>/*?*/ nonNullNull;
+  nonNullNonNull = hardToNonNullNonNull
+  nonNullNull = hardToNonNullNull
+  nullNonNull = hardToNullNonNull
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_downcast_widest_type_from_related_type_parameters() async {
+    var content = '''
+List<int> f(Iterable<int/*?*/> a) => a;
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+List<int?> f(Iterable<int/*?*/> a) => a;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_downcast_widest_type_from_top_type_parameters() async {
+    var content = '''
+List<int> f1(dynamic a) => a;
+List<int> f2(Object b) => b;
+''';
+    var expected = '''
+List<int?>? f1(dynamic a) => a;
+List<int?> f2(Object b) => b;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_downcast_widest_type_from_unrelated_type_parameters() async {
+    var content = '''
+abstract class C<A, B> implements List<A> {}
+C<int, num> f(List<int> a) => a;
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+abstract class C<A, B> implements List<A> {}
+C<int, num?> f(List<int> a) => a;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_dynamic_method_call() async {
     var content = '''
 class C {

@@ -74,6 +74,7 @@ const int kNotifyIsolateShutdownTag = 6;
 bool allowDartInternalImport = false;
 
 abstract class Compiler {
+  final int isolateId;
   final FileSystem fileSystem;
   final Uri platformKernelPath;
   final bool suppressWarnings;
@@ -91,7 +92,7 @@ abstract class Compiler {
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, this.platformKernelPath,
+  Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
       this.enableAsserts: false,
       this.experimentalFlags: null,
@@ -161,6 +162,12 @@ abstract class Compiler {
     return runWithPrintToStderr(() async {
       CompilerResult compilerResult = await compileInternal(script);
       Component component = compilerResult.component;
+
+      if (errors.isEmpty) {
+        // Record dependencies only if compilation was error free, and before
+        // createFreshComponentWithBytecode drops the uriToSource table.
+        _recordDependencies(isolateId, component, options.packagesFileUri);
+      }
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
@@ -250,13 +257,14 @@ class FileSink implements Sink<List<int>> {
 class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
-  IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+  IncrementalCompilerWrapper(
+      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
-      : super(fileSystem, platformKernelPath,
+      : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
@@ -281,7 +289,7 @@ class IncrementalCompilerWrapper extends Compiler {
 
   Future<IncrementalCompilerWrapper> clone(int isolateId) async {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
-        fileSystem, platformKernelPath,
+        isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
@@ -309,14 +317,15 @@ class IncrementalCompilerWrapper extends Compiler {
 class SingleShotCompilerWrapper extends Compiler {
   final bool requireMain;
 
-  SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+  SingleShotCompilerWrapper(
+      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
-      : super(fileSystem, platformKernelPath,
+      : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
@@ -373,7 +382,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // destroyed when corresponding isolate is shut down. To achieve that kernel
       // isolate needs to receive a message indicating that particular
       // isolate was shut down. Message should be handled here in this script.
-      compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
+      compiler = new IncrementalCompilerWrapper(
+          isolateId, fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
           enableAsserts: enableAsserts,
           experimentalFlags: experimentalFlags,
@@ -476,7 +486,7 @@ Future _processExpressionCompilationRequest(request) async {
 }
 
 void _recordDependencies(
-    int isolateId, Component component, String packageConfig) {
+    int isolateId, Component component, Uri packageConfig) {
   final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
 
   if (component != null) {
@@ -497,7 +507,7 @@ void _recordDependencies(
   }
 
   if (packageConfig != null) {
-    dependencies.add(Uri.parse(packageConfig));
+    dependencies.add(packageConfig);
   }
 }
 
@@ -653,7 +663,8 @@ Future _processLoadRequest(request) async {
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
+    compiler = new SingleShotCompilerWrapper(
+        isolateId, fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
@@ -678,8 +689,6 @@ Future _processLoadRequest(request) async {
         result = new CompilationResult.errors(compiler.errors, null);
       }
     } else {
-      // Record dependencies only if compilation was error free.
-      _recordDependencies(isolateId, component, packageConfig);
       // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to

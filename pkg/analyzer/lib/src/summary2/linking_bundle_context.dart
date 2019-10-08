@@ -51,6 +51,7 @@ class LinkingBundleContext {
 
   int indexOfElement(Element element) {
     if (element == null) return 0;
+    if (element is MultiplyDefinedElement) return 0;
     assert(element is! Member);
 
     if (identical(element, DynamicElementImpl.instance)) {

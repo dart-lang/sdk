@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -111,6 +112,20 @@ class C<T> {}
 C<Function()> x;
 ''');
     assertNoTestErrors();
+  }
+
+  test_missingGenericFunction() async {
+    await assertErrorsInCode(r'''
+typedef F<T> = ;
+
+void f() {
+  F.a;
+}
+''', [
+      error(ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE, 13, 1),
+      error(ParserErrorCode.EXPECTED_TYPE_NAME, 15, 1),
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 33, 1),
+    ]);
   }
 
   test_type_element() async {

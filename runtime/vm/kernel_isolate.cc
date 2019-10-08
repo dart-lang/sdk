@@ -626,8 +626,8 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject bytecode;
     bytecode.type = Dart_CObject_kBool;
-    // Interpreter is supported only on x64 and arm64.
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+    // Interpreter is not supported with DBC.
+#if !defined(TARGET_ARCH_DBC)
     bytecode.value.as_bool =
         FLAG_enable_interpreter || FLAG_use_bytecode_compiler;
 #else

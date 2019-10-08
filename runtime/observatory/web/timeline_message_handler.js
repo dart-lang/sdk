@@ -21,11 +21,11 @@ function onMessage(event) {
   console.log('method: ' + method)
   switch (method) {
     case 'refresh':
+      traceObject = params;
       if (typeof populateTimeline != 'undefined') {
-        populateTimeline(params);
+        populateTimeline();
       } else {
         console.log('populateTimeline is not yet defined');
-        traceObject = params;
       }
     break;
     case 'clear':

@@ -332,6 +332,7 @@ class FieldDeclaration {
   static const hasPragmaFlag = 1 << 11;
   static const hasCustomScriptFlag = 1 << 12;
   static const hasInitializerCodeFlag = 1 << 13;
+  static const hasAttributesFlag = 1 << 14;
 
   final int flags;
   final ObjectHandle name;
@@ -344,6 +345,7 @@ class FieldDeclaration {
   final ObjectHandle setterName;
   final Code initializerCode;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FieldDeclaration(
       this.flags,
@@ -356,7 +358,8 @@ class FieldDeclaration {
       this.getterName,
       this.setterName,
       this.initializerCode,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -385,6 +388,9 @@ class FieldDeclaration {
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
     }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
+    }
   }
 
   factory FieldDeclaration.read(BufferedReader reader) {
@@ -411,8 +417,21 @@ class FieldDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
-    return new FieldDeclaration(flags, name, type, value, script, position,
-        endPosition, getterName, setterName, initializerCode, annotations);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new FieldDeclaration(
+        flags,
+        name,
+        type,
+        value,
+        script,
+        position,
+        endPosition,
+        getterName,
+        setterName,
+        initializerCode,
+        annotations,
+        attributes);
   }
 
   @override
@@ -456,6 +475,9 @@ class FieldDeclaration {
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
     }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
+    }
     return sb.toString();
   }
 }
@@ -484,6 +506,7 @@ class FunctionDeclaration {
   static const hasAnnotationsFlag = 1 << 20;
   static const hasPragmaFlag = 1 << 21;
   static const hasCustomScriptFlag = 1 << 22;
+  static const hasAttributesFlag = 1 << 23;
 
   final int flags;
   final ObjectHandle name;
@@ -497,6 +520,7 @@ class FunctionDeclaration {
   final ObjectHandle nativeName;
   final Code code;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FunctionDeclaration(
       this.flags,
@@ -510,7 +534,8 @@ class FunctionDeclaration {
       this.returnType,
       this.nativeName,
       this.code,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -542,6 +567,9 @@ class FunctionDeclaration {
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
     }
   }
 
@@ -578,6 +606,8 @@ class FunctionDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
     return new FunctionDeclaration(
         flags,
         name,
@@ -590,7 +620,8 @@ class FunctionDeclaration {
         returnType,
         nativeName,
         code,
-        annotations);
+        annotations,
+        attributes);
   }
 
   @override
@@ -668,6 +699,9 @@ class FunctionDeclaration {
     sb.write('    return-type $returnType\n');
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
     }
     if ((flags & isAbstractFlag) == 0 && (flags & isExternalFlag) == 0) {
       sb.write('\n$code\n');

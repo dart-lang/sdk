@@ -124,6 +124,7 @@ class ObjectPointerVisitor;
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
   RW(Class, async_star_stream_controller)                                      \
+  RW(Array, bytecode_attributes)                                               \
   RW(GrowableObjectArray, llvm_constant_pool)                                  \
   RW(GrowableObjectArray, llvm_function_pool)                                  \
   RW(Array, llvm_constant_hash_table)                                          \

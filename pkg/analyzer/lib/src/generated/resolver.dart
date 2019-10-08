@@ -585,12 +585,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Given some [Element], look at the associated metadata and report the use
-  /// of the member if it is declared as deprecated.
-  ///
-  /// @param element some element to check for deprecated use of
-  /// @param node the node use for the location of the error
-  /// See [HintCode.DEPRECATED_MEMBER_USE].
+  /// Given some [element], look at the associated metadata and report the use
+  /// of the member if it is declared as deprecated. If a diagnostic is reported
+  /// it should be reported at the given [node].
   void _checkForDeprecatedMemberUse(Element element, AstNode node) {
     bool isDeprecated(Element element) {
       if (element is PropertyAccessorElement && element.isSynthetic) {
@@ -650,10 +647,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
-      HintCode hintCode = _isLibraryInWorkspacePackage(library)
-          ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-          : HintCode.DEPRECATED_MEMBER_USE;
-      _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
+      String message = _deprecatedMessage(element);
+      if (message == null || message.isEmpty) {
+        HintCode hintCode = _isLibraryInWorkspacePackage(library)
+            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
+            : HintCode.DEPRECATED_MEMBER_USE;
+        _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
+      } else {
+        HintCode hintCode = _isLibraryInWorkspacePackage(library)
+            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
+            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE;
+        _errorReporter
+            .reportErrorForNode(hintCode, node, [displayName, message]);
+      }
     }
   }
 
@@ -1232,6 +1238,22 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return _workspacePackage.contains(library.source);
+  }
+
+  /// Return the message in the deprecated annotation on the given [element], or
+  /// `null` if the element doesn't have a deprecated annotation or if the
+  /// annotation does not have a message.
+  static String _deprecatedMessage(Element element) {
+    ElementAnnotationImpl annotation = element.metadata.firstWhere(
+      (e) => e.isDeprecated,
+      orElse: () => null,
+    );
+    if (annotation == null || annotation.element is PropertyAccessorElement) {
+      return null;
+    }
+    DartObject constantValue = annotation.computeConstantValue();
+    return constantValue?.getField('message')?.toStringValue() ??
+        constantValue?.getField('expires')?.toStringValue();
   }
 
   /// Check for the passed class declaration for the

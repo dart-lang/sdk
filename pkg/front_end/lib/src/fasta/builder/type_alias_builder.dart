@@ -40,12 +40,13 @@ import 'builder.dart'
         MetadataBuilder,
         NullabilityBuilder,
         TypeBuilder,
-        TypeDeclarationBuilder,
         TypeVariableBuilder;
 
 import 'declaration.dart';
 
-class TypeAliasBuilder extends TypeDeclarationBuilder {
+import 'type_declaration_builder.dart';
+
+class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   final TypeBuilder type;
 
   final List<TypeVariableBuilder> typeVariables;

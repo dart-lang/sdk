@@ -6,7 +6,9 @@ library fasta.field_builder;
 
 import 'package:kernel/ast.dart' show DartType, Expression;
 
-import 'builder.dart' show LibraryBuilder, MemberBuilder;
+import 'builder.dart' show LibraryBuilder;
+
+import 'member_builder.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -57,7 +59,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'extension_builder.dart';
 
-class FieldBuilder extends MemberBuilder {
+class FieldBuilder extends MemberBuilderImpl {
   final String name;
 
   final int modifiers;

@@ -29,6 +29,8 @@ import 'package:kernel/transformations/flags.dart' show TransformerFlag;
 
 import "package:kernel/type_algebra.dart" show Substitution;
 
+import "../builder/class_builder.dart";
+
 import "../problems.dart" show unhandled;
 
 import "../type_inference/type_inference_engine.dart"
@@ -36,26 +38,25 @@ import "../type_inference/type_inference_engine.dart"
 
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
-import "kernel_builder.dart"
-    show ClassHierarchyBuilder, Builder, DelayedMember, ClassBuilder;
+import 'class_hierarchy_builder.dart';
 
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
   final ClassBuilder parent;
 
-  final Builder combinedMemberSignatureResult;
+  final ClassMember combinedMemberSignatureResult;
 
   final ProcedureKind kind;
 
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
-  final List<Builder> _candidates;
+  final List<ClassMember> _candidates;
 
   ForwardingNode(this.hierarchy, this.parent,
       this.combinedMemberSignatureResult, this._candidates, this.kind);
 
-  Name get name => combinedMemberSignatureResult.target.name;
+  Name get name => combinedMemberSignatureResult.member.name;
 
   Class get enclosingClass => parent.cls;
 
@@ -74,7 +75,7 @@ class ForwardingNode {
   /// they would not be checked in an inherited implementation, a forwarding
   /// stub is introduced as a place to put the checks.
   Member _computeCovarianceFixes() {
-    Member interfaceMember = combinedMemberSignatureResult.target;
+    Member interfaceMember = combinedMemberSignatureResult.member;
     Substitution substitution =
         _substitutionFor(interfaceMember, enclosingClass);
     // We always create a forwarding stub when we've inherited a member from an
@@ -355,9 +356,9 @@ class ForwardingNode {
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
   Member getCandidateAt(int i) {
-    Builder candidate = _candidates[i];
+    ClassMember candidate = _candidates[i];
     assert(candidate is! DelayedMember);
-    return candidate.target;
+    return candidate.member;
   }
 
   static Member _getForwardingStubSuperTarget(Procedure forwardingStub) {

@@ -785,9 +785,12 @@ class Dart2TypeSystem extends TypeSystem {
     }
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
-    if (from is TypeParameterType) {
+    if (from is TypeParameterTypeImpl) {
       if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
-        return new TypeParameterMember(from.element, null, to).type;
+        var newElement = TypeParameterMember(from.element, null, to);
+        return newElement.instantiate(
+          nullabilitySuffix: from.nullabilitySuffix,
+        );
       }
     }
 
@@ -2493,33 +2496,35 @@ abstract class TypeSystem implements public.TypeSystem {
     return type.withNullability(NullabilitySuffix.question);
   }
 
-  /// Attempts to find the appropriate substitution for [typeParameters] that can
-  /// be applied to [src] to make it equal to [dest].  If no such substitution can
-  /// be found, `null` is returned.
-  InterfaceType matchSupertypeConstraints(
-      ClassElement mixinElement, List<DartType> srcs, List<DartType> dests) {
+  /// Attempts to find the appropriate substitution for the [mixinElement]
+  /// type parameters that can be applied to [srcTypes] to make it equal to
+  /// [destTypes].  If no such substitution can be found, `null` is returned.
+  List<DartType> matchSupertypeConstraints(
+    ClassElement mixinElement,
+    List<DartType> srcTypes,
+    List<DartType> destTypes,
+  ) {
     var typeParameters = mixinElement.typeParameters;
     var inferrer = new GenericInferrer(typeProvider, this, typeParameters);
-    for (int i = 0; i < srcs.length; i++) {
-      inferrer.constrainReturnType(srcs[i], dests[i]);
-      inferrer.constrainReturnType(dests[i], srcs[i]);
+    for (int i = 0; i < srcTypes.length; i++) {
+      inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
+      inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
     }
 
     var inferredTypes = inferrer.infer(
       typeParameters,
       considerExtendsClause: false,
     );
-    var result = mixinElement.type.instantiate(inferredTypes);
+    var substitution = Substitution.fromPairs(typeParameters, inferredTypes);
 
-    for (int i = 0; i < srcs.length; i++) {
-      if (srcs[i].substitute2(
-              result.typeArguments, mixinElement.type.typeArguments) !=
-          dests[i]) {
+    for (int i = 0; i < srcTypes.length; i++) {
+      if (substitution.substituteType(srcTypes[i]) != destTypes[i]) {
         // Failed to find an appropriate substitution
         return null;
       }
     }
-    return result;
+
+    return inferredTypes;
   }
 
   /**

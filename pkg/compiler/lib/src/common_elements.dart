@@ -499,6 +499,7 @@ abstract class CommonElements {
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
   FieldEntity get rtiRestField;
+  FieldEntity get rtiPrecomputed1Field;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
@@ -1913,6 +1914,11 @@ class CommonElementsImpl
   FieldEntity _rtiRestField;
   @override
   FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
+
+  FieldEntity _rtiPrecomputed1Field;
+  @override
+  FieldEntity get rtiPrecomputed1Field =>
+      _rtiPrecomputed1Field ??= _findRtiClassField('_precomputed1');
 
   FunctionEntity _rtiEvalMethod;
   @override

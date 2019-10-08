@@ -1161,6 +1161,16 @@ class _TypeArgumentsHandle extends ObjectHandle {
   ObjectKind get kind => ObjectKind.kTypeArguments;
 
   @override
+  bool get isCacheable {
+    for (var arg in args) {
+      if (!arg.isCacheable) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
   void writeContents(BufferedWriter writer) {
     writer.writePackedList(args);
   }

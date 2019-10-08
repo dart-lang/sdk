@@ -94,27 +94,23 @@ extension MyExt on A {
     // Prefixed globals are ambiguous
     {
       bool t0 = this.fieldInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t0);
       bool t1 = this.getterInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t1);
       this.setterInGlobalScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
       bool t2 = this.methodInGlobalScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t2);
     }
 
@@ -142,27 +138,23 @@ extension MyExt on A {
     // Prefixed globals are ambiguous
     {
       bool t0 = self.fieldInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t0);
       bool t1 = self.getterInGlobalScope;
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t1);
       self.setterInGlobalScope = extensionValue;
-      //   ^^^
-      // [cfe] unspecified
       //   ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
       bool t2 = self.methodInGlobalScope();
-      //             ^^^
-      // [cfe] unspecified
       //             ^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+      // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
       checkExtensionValue(t2);
     }
 
@@ -230,27 +222,23 @@ void main() {
   // Global names come from both extensions and hence are ambiguous.
   {
     bool t0 = a.fieldInGlobalScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The getter 'fieldInGlobalScope' isn't defined for the class 'A'.
     checkExtensionValue(t0);
     bool t1 = a.getterInGlobalScope;
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The getter 'getterInGlobalScope' isn't defined for the class 'A'.
     checkExtensionValue(t1);
     a.setterInGlobalScope = extensionValue;
     //^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-    // ^^^
-    // [cfe] unspecified
+    // [cfe] The setter 'setterInGlobalScope' isn't defined for the class 'A'.
     bool t2 = a.methodInGlobalScope();
-    //          ^^^
-    // [cfe] unspecified
     //          ^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
+    // [cfe] The method 'methodInGlobalScope' isn't defined for the class 'A'.
     checkExtensionValue(t2);
   }
 

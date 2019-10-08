@@ -8,13 +8,23 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE = 14;
+const int LINE_A = 15; // LINE_A - 4
+const int LINE_B = 23; // LINE_A - 3
 
 class Bar {
-  static const String field = "field"; // LINE
+  static const String field = "field"; // LINE_A
 }
 
-void testFunction() {
+Future<String> fooAsync(int x) async {
+  if (x == 42) {
+    return '*' * x;
+  }
+  return List.generate(x, (_) => 'xyzzy').join(' ');
+} // LINE_B
+
+void testFunction() async {
+  await new Future.delayed(Duration(milliseconds: 500));
+  fooAsync(42).then((_) {});
   debugger();
 }
 
@@ -26,7 +36,8 @@ var tests = <IsolateTest>[
     // Make sure we are in the right place.
     expect(stack.type, 'Stack');
     expect(stack['frames'].length, greaterThanOrEqualTo(1));
-    expect(stack['frames'][0].function.name, 'testFunction');
+    // Async closure of testFunction
+    expect(stack['frames'][0].function.name, 'async_op');
 
     var root = isolate.rootLibrary;
     await root.load();
@@ -49,12 +60,11 @@ var tests = <IsolateTest>[
           throw FormatException('token ${i} was missing source location');
         }
         // Check LINE.
-        if (line == LINE) {
-          match = (match | 1);
-        } else if (line == LINE - 3) {
-          // static const field LINE is defined at LINE - 3.
-          match = (match | 2);
+        if (line == LINE_A || line == LINE_A - 3 || line == LINE_A - 4) {
+          match = match + 1;
         }
+        // _clearAsyncThreadStackTrace should have an invalid token position.
+        expect(line, isNot(LINE_B));
       }
     }
     // Neither LINE nor Bar.field should be added into coverage.

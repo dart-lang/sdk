@@ -24,6 +24,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// Base class for common processor functionality.
 abstract class BaseProcessor {
@@ -98,71 +99,112 @@ abstract class BaseProcessor {
       return null;
     }
 
-    var constructorInvocation;
-    if (type.isDartCoreBool) {
-      constructorInvocation = 'DiagnosticsProperty<bool>';
-    } else if (type.isDartCoreInt) {
-      constructorInvocation = 'IntProperty';
+    var constructorName;
+    var typeArgs;
+
+    if (type.isDartCoreInt) {
+      constructorName = 'IntProperty';
     } else if (type.isDartCoreDouble) {
-      constructorInvocation = 'DoubleProperty';
+      constructorName = 'DoubleProperty';
     } else if (type.isDartCoreString) {
-      constructorInvocation = 'StringProperty';
+      constructorName = 'StringProperty';
     } else if (isEnum(type)) {
-      constructorInvocation = 'EnumProperty';
+      constructorName = 'EnumProperty';
+    } else if (isIterable(type)) {
+      constructorName = 'IterableProperty';
+      typeArgs = (type as InterfaceType).typeArguments;
+    } else if (flutter.isColor(type)) {
+      constructorName = 'ColorProperty';
+    } else if (flutter.isMatrix4(type)) {
+      constructorName = 'TransformProperty';
+    } else {
+      constructorName = 'DiagnosticsProperty';
+      if (!type.isDynamic) {
+        typeArgs = [type];
+      }
     }
 
-    // todo (pq): migrate type string generation to within change and use DartEditBuilder.writeType
-
-    if (constructorInvocation == null) {
-      return null;
+    void writePropertyReference(
+      DartEditBuilder builder, {
+      @required String prefix,
+      @required String builderName,
+    }) {
+      builder.write("$prefix$builderName.add($constructorName");
+      if (typeArgs != null) {
+        builder.write('<');
+        builder.writeTypes(typeArgs);
+        builder.write('>');
+      }
+      builder.writeln("('${name.name}', ${name.name}));");
     }
 
-    ClassDeclaration classDeclaration =
-        parent.thisOrAncestorOfType<ClassDeclaration>();
+    final classDeclaration = parent.thisOrAncestorOfType<ClassDeclaration>();
     final debugFillProperties =
         classDeclaration.getMethod('debugFillProperties');
-    if (debugFillProperties != null) {
-      final body = debugFillProperties.body;
-      if (body is BlockFunctionBody) {
-        BlockFunctionBody functionBody = body;
+    if (debugFillProperties == null) {
+      final insertOffset =
+          utils.prepareNewMethodLocation(classDeclaration).offset;
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(utils.getLineNext(insertOffset),
+            (DartEditBuilder builder) {
+          final declPrefix =
+              utils.getLinePrefix(classDeclaration.offset) + utils.getIndent(1);
+          final bodyPrefix = declPrefix + utils.getIndent(1);
 
-        var offset;
-        var prefix;
-        if (functionBody.block.statements.isEmpty) {
-          offset = functionBody.block.leftBracket.offset;
-          prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
-        } else {
-          offset = functionBody.block.statements.last.endToken.offset;
-          prefix = utils.getLinePrefix(offset);
-        }
+          builder.writeln('$declPrefix@override');
+          builder.writeln(
+              '${declPrefix}void debugFillProperties(DiagnosticPropertiesBuilder properties) {');
+          builder
+              .writeln('${bodyPrefix}super.debugFillProperties(properties);');
+          writePropertyReference(builder,
+              prefix: bodyPrefix, builderName: 'properties');
+          builder.writeln('$declPrefix}');
+        });
+      });
+      return changeBuilder;
+    }
 
-        var parameters = debugFillProperties.parameters.parameters;
-        var propertiesBuilderName;
-        for (var parameter in parameters) {
-          if (parameter is SimpleFormalParameter) {
-            final type = parameter.type;
-            if (type is TypeName) {
-              if (type.name.name == 'DiagnosticPropertiesBuilder') {
-                propertiesBuilderName = parameter.identifier.name;
-                break;
-              }
+    final body = debugFillProperties.body;
+    if (body is BlockFunctionBody) {
+      BlockFunctionBody functionBody = body;
+
+      var offset;
+      var prefix;
+      if (functionBody.block.statements.isEmpty) {
+        offset = functionBody.block.leftBracket.offset;
+        prefix = utils.getLinePrefix(offset) + utils.getIndent(1);
+      } else {
+        offset = functionBody.block.statements.last.endToken.offset;
+        prefix = utils.getLinePrefix(offset);
+      }
+
+      var parameters = debugFillProperties.parameters.parameters;
+      var propertiesBuilderName;
+      for (var parameter in parameters) {
+        if (parameter is SimpleFormalParameter) {
+          final type = parameter.type;
+          if (type is TypeName) {
+            if (type.name.name == 'DiagnosticPropertiesBuilder') {
+              propertiesBuilderName = parameter.identifier.name;
+              break;
             }
           }
         }
-        if (propertiesBuilderName == null) {
-          return null;
-        }
-
-        final changeBuilder = _newDartChangeBuilder();
-        await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-          builder.addInsertion(utils.getLineNext(offset),
-              (DartEditBuilder builder) {
-            builder.write(
-                "$prefix$propertiesBuilderName.add($constructorInvocation('${name.name}', ${name.name}));$eol");
-          });
-        });
-        return changeBuilder;
       }
+      if (propertiesBuilderName == null) {
+        return null;
+      }
+
+      final changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
+        builder.addInsertion(utils.getLineNext(offset),
+            (DartEditBuilder builder) {
+          writePropertyReference(builder,
+              prefix: prefix, builderName: propertiesBuilderName);
+        });
+      });
+      return changeBuilder;
     }
 
     return null;
@@ -922,6 +964,65 @@ abstract class BaseProcessor {
     return null;
   }
 
+  Future<ChangeBuilder> createBuilder_convertToRelativeImport() async {
+    var node = this.node;
+    if (node is StringLiteral) {
+      node = node.parent;
+    }
+    if (node is! ImportDirective) {
+      return null;
+    }
+
+    ImportDirective importDirective = node;
+
+    // Ignore if invalid URI.
+    if (importDirective.uriSource == null) {
+      return null;
+    }
+
+    // Ignore if the uri is not a package: uri.
+    Uri sourceUri = resolvedResult.uri;
+    if (sourceUri.scheme != 'package') {
+      return null;
+    }
+
+    Uri importUri;
+    try {
+      importUri = Uri.parse(importDirective.uriContent);
+    } on FormatException {
+      return null;
+    }
+
+    // Ignore if import uri is not a package: uri.
+    if (importUri.scheme != 'package') {
+      return null;
+    }
+
+    // Verify that the source's uri and the import uri have the same package
+    // name.
+    List<String> sourceSegments = sourceUri.pathSegments;
+    List<String> importSegments = importUri.pathSegments;
+    if (sourceSegments.isEmpty ||
+        importSegments.isEmpty ||
+        sourceSegments.first != importSegments.first) {
+      return null;
+    }
+
+    final String relativePath = path.relative(
+      importUri.path,
+      from: path.dirname(sourceUri.path),
+    );
+
+    DartChangeBuilder changeBuilder = _newDartChangeBuilder();
+    await changeBuilder.addFileEdit(file, (builder) {
+      builder.addSimpleReplacement(
+        range.node(importDirective.uri).getExpanded(-1),
+        relativePath,
+      );
+    });
+    return changeBuilder;
+  }
+
   Future<ChangeBuilder> createBuilder_inlineAdd() async {
     AstNode node = this.node;
     if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
@@ -1211,6 +1312,28 @@ abstract class BaseProcessor {
   bool isEnum(DartType type) {
     final element = type.element;
     return element is ClassElement && element.isEnum;
+  }
+
+  bool isIterable(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    ClassElement element = type.element;
+
+    bool isExactIterable(ClassElement element) {
+      return element?.name == 'Iterable' && element.library.isDartCore;
+    }
+
+    if (isExactIterable(element)) {
+      return true;
+    }
+    for (InterfaceType type in element.allSupertypes) {
+      if (isExactIterable(type.element)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @protected

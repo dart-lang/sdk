@@ -558,7 +558,7 @@ function hideLoadingOverlay() {
   loadingOverlay = undefined;
 }
 
-function populateTimeline(traceObject) {
+function populateTimeline() {
   updateTimeline(traceObject);
   hideLoadingOverlay();
 }

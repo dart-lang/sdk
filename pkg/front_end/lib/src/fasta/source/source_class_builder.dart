@@ -7,6 +7,8 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
+import '../builder/class_builder.dart';
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
@@ -24,7 +26,6 @@ import '../fasta_codes.dart'
 
 import '../kernel/kernel_builder.dart'
     show
-        ClassBuilder,
         ConstructorReferenceBuilder,
         Builder,
         FieldBuilder,
@@ -71,7 +72,7 @@ Class initializeClass(
   return cls;
 }
 
-class SourceClassBuilder extends ClassBuilder
+class SourceClassBuilder extends ClassBuilderImpl
     implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;

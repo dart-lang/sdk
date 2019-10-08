@@ -91,26 +91,39 @@ Generates an executable or an AOT snapshot from <main-dart-file>.
 }
 
 Future<void> main(List<String> args) async {
-  final ArgParser parser = ArgParser()
+  // If we're outputting to a terminal, wrap usage text to that width.
+  int outputLineWidth = null;
+  try {
+    outputLineWidth = stdout.terminalColumns;
+  } catch (_) {/* Ignore. */}
+
+  final ArgParser parser = ArgParser(usageLineLength: outputLineWidth)
     ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
-Set values of environment variables.
-To specify multiple variables, use multiple flags or use commas to separate pairs.
-Example:
-dart2native -Da=1,b=2 -Dc=3 --define=d=4 main.dart''')
+Set values of environment variables. To specify multiple variables, use multiple options or use commas to separate key-value pairs.
+E.g.: dart2native -Da=1,b=2 main.dart''')
     ..addFlag('enable-asserts',
         negatable: false, help: 'Enable assert statements.')
     ..addFlag('help',
-        abbr: 'h', negatable: false, help: 'Displays this help message.')
-    ..addOption('output',
-        abbr: 'o', valueHelp: 'path', help: 'Put the output in file <path>.')
-    ..addOption('output-kind',
-        abbr: 'k',
-        allowed: ['exe', 'aot'],
-        defaultsTo: 'exe',
-        valueHelp: 'exe|aot',
-        help: 'Generate a standalone executable or an AOT snapshot.')
-    ..addOption('packages',
-        abbr: 'p', valueHelp: 'path', help: 'Use the .packages file at <path>.')
+        abbr: 'h', negatable: false, help: 'Display this help message.')
+    ..addOption('output', abbr: 'o', valueHelp: 'path', help: '''
+Set the output filename. <path> can be relative or absolute.
+E.g.: dart2native main.dart -o ../bin/my_app.exe
+''')
+    ..addOption(
+      'output-kind',
+      abbr: 'k',
+      allowed: ['aot', 'exe'],
+      allowedHelp: {
+        'aot': 'Generate an AOT snapshot.',
+        'exe': 'Generate a standalone executable.',
+      },
+      defaultsTo: 'exe',
+      valueHelp: 'aot|exe',
+    )
+    ..addOption('packages', abbr: 'p', valueHelp: 'path', help: '''
+Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
+E.g.: dart2native --packages=/tmp/pkgs main.dart
+''')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
 

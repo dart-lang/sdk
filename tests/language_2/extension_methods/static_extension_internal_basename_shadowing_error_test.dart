@@ -24,44 +24,38 @@ extension E1 on A1 {
   void test() {
     // The instance getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
 
     // The instance getter shadows the global field setter
     topLevelField = topLevelField + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
 
     // The instance getter shadows the global method
     topLevelMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+//                ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -78,36 +72,36 @@ extension E2 on A2 {
     topLevelGetter = topLevelGetter + 1;
 //                   ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter = 3;
 
     // The instance setter shadows the global field getter
     topLevelField = topLevelField + 1;
 //                  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
     topLevelField++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
     topLevelField;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
 
     // The instance setter shadows the global method
     topLevelMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelMethod'.
   }
 }
 
@@ -122,44 +116,38 @@ extension E3 on A3 {
   void test() {
     // The static getter shadows the global setter
     topLevelSetter = topLevelSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
     topLevelSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelSetter'.
 
     // The static getter shadows the global field setter
     topLevelField = topLevelField + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
     topLevelField++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
     topLevelField = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'topLevelField'.
 
     // The static getter shadows the global method
     topLevelMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+//                   ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -176,35 +164,35 @@ extension E4 on A4 {
     topLevelGetter = topLevelGetter + 1;
 //                   ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
     topLevelGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelGetter'.
 
     // The static setter shadows the global field getter
     topLevelField = topLevelField + 1;
 //                  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
     topLevelField++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
     topLevelField;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelField'.
 
     // The static setter shadows the global method
     topLevelMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'topLevelMethod'.
   }
 }
 
@@ -224,27 +212,24 @@ extension E6 on A6 {
   void test() {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
 
     // The instance getter shadows the other extensions method
     extensionMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+//                 ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -258,27 +243,23 @@ class A7 extends A6 {
   void test() {
     // The instance getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
     extensionSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] The setter 'extensionSetter' isn't defined for the class 'A7'.
 
     // The instance getter shadows the other extensions method
     extensionMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+// [cfe] 'extensionMethod' isn't a function or method and can't be invoked.
   }
 }
 
@@ -298,21 +279,21 @@ extension E8 on A8 {
     extensionGetter = extensionGetter + 1;
 //                    ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
 
     // The instance setter shadows the other extension's method.
     extensionMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionMethod'.
   }
 }
 
@@ -328,21 +309,21 @@ class A9 extends A8 {
     extensionGetter = extensionGetter + 1;
 //                    ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
     extensionGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
     extensionGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] The getter 'extensionGetter' isn't defined for the class 'A9'.
 
     // The instance setter shadows the other extension's method.
     extensionMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] The method 'extensionMethod' isn't defined for the class 'A9'.
   }
 }
 
@@ -362,41 +343,38 @@ extension E10 on A10 {
   void test() {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter
     extensionFieldSetter = extensionFieldSetter + 1;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter = 0;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
 
     // The static getter shadows the other extensions method
     extensionMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+//                     ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -411,41 +389,38 @@ class A11 extends A10 {
   void test() {
     // The static getter shadows the other extension's setter
     extensionSetter = extensionSetter + 1;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter++;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
     extensionSetter = 0;
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_FINAL_NO_SETTER
+// [cfe] Setter not found: 'extensionSetter'.
 
     // The static field shadows the other extension's setter
     extensionFieldSetter = extensionFieldSetter + 1;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
     extensionFieldSetter = 0;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Setter not found: 'extensionFieldSetter'.
 
     // The static getter shadows the other extensions method
     extensionMethod(4);
-//  ^^
-// [cfe] unspecified
 //  ^^^^^^^^^^^^^^^
 // [analyzer] STATIC_TYPE_WARNING.INVOCATION_OF_NON_FUNCTION
+//                 ^
+// [cfe] The method 'call' isn't defined for the class 'int'.
   }
 }
 
@@ -465,21 +440,21 @@ extension E12 on A12 {
     extensionGetter = extensionGetter + 1;
 //                    ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
 
     // The static setter shadows the other extension's method.
     extensionMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionMethod'.
   }
 }
 
@@ -495,21 +470,21 @@ class A13 extends A12 {
     extensionGetter = extensionGetter + 1;
 //                    ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter++;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
     extensionGetter;
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionGetter'.
 
     // The static setter shadows the other extension's method.
     extensionMethod(4);
 //  ^^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Getter not found: 'extensionMethod'.
   }
 }
 

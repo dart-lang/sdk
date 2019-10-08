@@ -32,7 +32,7 @@ class Test1 {
     var /*@ type=int* */ v11 =
         /*@ type=Test1* */ t
             . /*@ type=int* */ /*@target=Test1::prop*/ /*@target=Test1::prop*/
-            prop /*@ type=int* */ /*@ target=num::+ */ ++;
+            /*@ type=int* */ prop /*@ target=num::+ */ ++;
   }
 }
 
@@ -66,7 +66,7 @@ class Test2 {
     var /*@ type=num* */ v11 =
         /*@ type=Test2* */ t
             . /*@ type=num* */ /*@target=Test2::prop*/ /*@target=Test2::prop*/
-            prop /*@ type=num* */ /*@ target=num::+ */ ++;
+            /*@ type=num* */ prop /*@ target=num::+ */ ++;
   }
 }
 
@@ -96,7 +96,7 @@ class Test3 {
     var /*@ type=double* */ v11 =
         /*@ type=Test3* */ t
             . /*@ type=double* */ /*@target=Test3::prop*/ /*@target=Test3::prop*/
-            prop /*@ type=double* */ /*@ target=double::+ */ ++;
+            /*@ type=double* */ prop /*@ target=double::+ */ ++;
   }
 }
 

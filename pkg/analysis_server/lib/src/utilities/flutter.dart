@@ -362,6 +362,36 @@ class Flutter {
   bool isChildrenArgument(Expression argument) =>
       argument is NamedExpression && argument.name.label.name == 'children';
 
+  /**
+   * Return `true` if the given [type] is the dart.ui class `Color`, or its
+   * subtype.
+   */
+  bool isColor(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    bool isColorElement(ClassElement element) {
+      if (element == null) {
+        return false;
+      }
+
+      bool isExactColor(ClassElement element) =>
+          element?.name == 'Color' && element.library.name == 'dart.ui';
+      if (isExactColor(element)) {
+        return true;
+      }
+      for (var type in element.allSupertypes) {
+        if (isExactColor(type.element)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return isColorElement(type.element);
+  }
+
   /// Return `true` if the [element] is the Flutter class `Alignment`.
   bool isExactAlignment(ClassElement element) {
     return _isExactWidget(element, 'Alignment', _uriAlignment);
@@ -478,6 +508,37 @@ class Flutter {
         type.element.name == 'List' &&
         type.typeArguments.length == 1 &&
         isWidgetType(type.typeArguments[0]);
+  }
+
+  /**
+   * Return `true` if the given [type] is the dart.ui class `Color`, or its
+   * subtype.
+   */
+  bool isMatrix4(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    bool isMatrix4Element(ClassElement element) {
+      if (element == null) {
+        return false;
+      }
+
+      bool isExactMatrix4(ClassElement element) =>
+          element?.name == 'Matrix4' &&
+          element.library.name == 'vector_math_64';
+      if (isExactMatrix4(element)) {
+        return true;
+      }
+      for (var type in element.allSupertypes) {
+        if (isExactMatrix4(type.element)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return isMatrix4Element(type.element);
   }
 
   /// Return `true` if the given [element] has the Flutter class `State` as

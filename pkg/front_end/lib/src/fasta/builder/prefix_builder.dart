@@ -4,15 +4,15 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show Builder, LibraryBuilder, Scope;
+import 'builder.dart' show LibraryBuilder, Scope;
+
+import 'declaration.dart';
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import '../builder/builder.dart' show LibraryBuilder;
-
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 
-class PrefixBuilder extends Builder {
+class PrefixBuilder extends BuilderImpl {
   final String name;
 
   final Scope exportScope = new Scope.top();

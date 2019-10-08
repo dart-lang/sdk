@@ -34,6 +34,11 @@ class MockPackages {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  Folder addVectorMath(MemoryResourceProvider provider) {
+    var packageFolder = _addFiles(provider, 'vector_math');
+    return packageFolder.getChildAssumingFolder('lib');
+  }
+
   /// Add files of the given [packageName] to the [provider].
   Folder _addFiles(MemoryResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/packages');

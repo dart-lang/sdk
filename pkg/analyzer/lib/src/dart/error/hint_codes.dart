@@ -133,6 +133,34 @@ class HintCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * Parameters:
+   * 0: the name of the member
+   * 1: message details
+   */
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE =
+      const HintCodeWithUniqueName(
+          'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+          'HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE',
+          "'{0}' is deprecated and shouldn't be used. {1}.",
+          correction: "Try replacing the use of the deprecated member with the "
+              "replacement.",
+          hasPublishedDocs: true);
+
+  /**
+   * Parameters:
+   * 0: the name of the member
+   * 1: message details
+   */
+  static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE =
+      const HintCodeWithUniqueName(
+          'DEPRECATED_MEMBER_USE',
+          'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
+          "'{0}' is deprecated and shouldn't be used. {1}.",
+          correction: "Try replacing the use of the deprecated member with the "
+              "replacement.",
+          hasPublishedDocs: true);
+
+  /**
    * `Function` should not be mixed in anymore.
    */
   static const HintCode DEPRECATED_MIXIN_FUNCTION = const HintCode(
@@ -785,7 +813,7 @@ class HintCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // If you don't need to support older versions of the SDK, then you can
-  // ncrease the SDK constraint to allow the expression to be used:
+  // increase the SDK constraint to allow the expression to be used:
   //
   // ```yaml
   // environment:
@@ -1583,4 +1611,14 @@ class HintCode extends AnalyzerErrorCode {
 
   @override
   ErrorType get type => ErrorType.HINT;
+}
+
+class HintCodeWithUniqueName extends HintCode {
+  @override
+  final String uniqueName;
+
+  const HintCodeWithUniqueName(String name, this.uniqueName, String message,
+      {String correction, bool hasPublishedDocs})
+      : super(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 }

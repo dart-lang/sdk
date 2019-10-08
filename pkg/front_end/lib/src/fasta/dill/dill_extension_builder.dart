@@ -16,7 +16,7 @@ import '../scope.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
 
-class DillExtensionBuilder extends ExtensionBuilder {
+class DillExtensionBuilder extends ExtensionBuilderImpl {
   final Extension extension;
   List<TypeVariableBuilder> _typeParameters;
   TypeBuilder _onType;

@@ -462,9 +462,11 @@ class ObjectPointerVisitor;
   V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_inferred_type_metadata, "vm.inferred-type.metadata")                    \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
-  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")
+  V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
+  V(vm_procedure_attributes_metadata, "vm.procedure-attributes.metadata")
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

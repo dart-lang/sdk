@@ -4,7 +4,9 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart' show Builder, NameIterator, TypeVariableBuilder;
+import 'builder/builder.dart' show NameIterator, TypeVariableBuilder;
+
+import 'builder/declaration.dart';
 
 import 'builder/extension_builder.dart';
 
@@ -410,7 +412,7 @@ class ScopeBuilder {
   Builder operator [](String name) => scope.local[name];
 }
 
-abstract class ProblemBuilder extends Builder {
+abstract class ProblemBuilder extends BuilderImpl {
   final String name;
 
   final Builder builder;

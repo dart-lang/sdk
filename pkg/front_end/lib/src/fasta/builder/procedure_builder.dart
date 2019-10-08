@@ -18,11 +18,12 @@ import 'builder.dart'
         Builder,
         FormalParameterBuilder,
         LibraryBuilder,
-        MemberBuilder,
         MetadataBuilder,
         Scope,
         TypeBuilder,
         TypeVariableBuilder;
+
+import 'member_builder.dart';
 
 import 'extension_builder.dart';
 import 'type_variable_builder.dart';
@@ -75,7 +76,7 @@ import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
 /// Common base class for constructor and procedure builders.
-abstract class FunctionBuilder extends MemberBuilder {
+abstract class FunctionBuilder extends MemberBuilderImpl {
   final List<MetadataBuilder> metadata;
 
   final int modifiers;

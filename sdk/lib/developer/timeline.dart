@@ -180,11 +180,23 @@ class Timeline {
 /// [TimelineTask] in the other isolate.
 class TimelineTask {
   /// Create a task. The task ID will be set by the system.
-  TimelineTask() : _taskId = _getNextAsyncId() {}
+  ///
+  /// If [parent] is provided, the parent's task ID is provided as argument
+  /// 'parentId' when [start] is called. In DevTools, this argument will result
+  /// in this [TimelineTask] being linked to the [parent] [TimelineTask].
+  TimelineTask({TimelineTask parent})
+      : _parent = parent,
+        _taskId = _getNextAsyncId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
-  TimelineTask.withTaskId(int taskId) : _taskId = taskId {
+  ///
+  /// If [parent] is provided, the parent's task ID is provided as argument
+  /// 'parentId' when [start] is called. In DevTools, this argument will result
+  /// in this [TimelineTask] being linked to the [parent] [TimelineTask].
+  TimelineTask.withTaskId(int taskId, {TimelineTask parent})
+      : _parent = parent,
+        _taskId = taskId {
     ArgumentError.checkNotNull(taskId, 'taskId');
   }
 
@@ -195,7 +207,10 @@ class TimelineTask {
     ArgumentError.checkNotNull(name, 'name');
     var block = new _AsyncBlock._(name, _taskId);
     _stack.add(block);
-    block._start(arguments);
+    block._start({
+      if (arguments != null) ...arguments,
+      if (_parent != null) 'parentId': _parent._taskId.toRadixString(16),
+    });
   }
 
   /// Emit an instant event for this task.
@@ -237,6 +252,7 @@ class TimelineTask {
     return r;
   }
 
+  final TimelineTask _parent;
   final int _taskId;
   final List<_AsyncBlock> _stack = [];
 }

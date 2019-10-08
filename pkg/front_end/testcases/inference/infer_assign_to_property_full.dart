@@ -62,7 +62,7 @@ class Test {
         . /*@target=Test::member*/ /*@target=Test::member*/ member;
     var /*@ type=B* */ v7 = /*@ type=Test* */ t
         . /*@ type=B* */ /*@target=Test::member*/ /*@target=Test::member*/
-        member /*@ type=B* */ /*@ target=B::- */ --;
+        /*@ type=B* */ member /*@ target=B::- */ --;
   }
 }
 

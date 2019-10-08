@@ -6,6 +6,7 @@
 
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "vm/dart.h"
 #include "vm/heap/become.h"
 #include "vm/heap/compactor.h"
 #include "vm/heap/marker.h"
@@ -72,8 +73,6 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
 }
 
 void HeapPage::Deallocate() {
-  ASSERT(forwarding_page_ == NULL);
-
   if (card_table_ != NULL) {
     free(card_table_);
     card_table_ = NULL;
@@ -328,6 +327,10 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   }
 
   page->set_object_end(page->memory_->end());
+  if ((type != HeapPage::kExecutable) && (heap_ != nullptr) &&
+      (heap_->isolate() != Dart::vm_isolate())) {
+    page->AllocateForwardingPage();
+  }
   return page;
 }
 

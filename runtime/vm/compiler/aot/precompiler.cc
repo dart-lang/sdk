@@ -389,6 +389,7 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      I->object_store()->set_bytecode_attributes(Array::null_array());
       DropMetadata();
       DropLibraryEntries();
     }

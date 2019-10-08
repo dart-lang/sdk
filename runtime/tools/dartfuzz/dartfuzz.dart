@@ -14,11 +14,12 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.57';
+const String version = '1.59';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
 const int exprDepth = 2;
+const int nestDepth = 1;
 const int numStatements = 2;
 const int numGlobalVars = 4;
 const int numLocalVars = 4;
@@ -484,7 +485,6 @@ class DartFuzz {
     indent -= 2;
     emitLn('} on OutOfMemoryError {');
     indent += 2;
-    emitLn("print(\'oom\');");
     emitLn("exit(${oomExitCode});");
     indent -= 2;
     emitLn('} catch (e, st) {');
@@ -622,18 +622,24 @@ class DartFuzz {
   bool emitAssign() {
     // Select a type at random.
     final tp = oneOfSet(dartType.allTypes);
-    // Select one of the assign operations for the given type.
-    final assignOp = oneOfSet(dartType.assignOps(tp));
-    if (assignOp == null) {
-      throw 'No assign operation for ${tp.name}';
+    String assignOp;
+    if (DartType.isGrowableType(tp)) {
+      // Assignments like *= and += on growable types (String, List, ...)
+      // may lead to OOM, especially within loops.
+      // TODO: Implement a more specific heuristic that selectively allows
+      // modifying assignment operators (like += *=) for growable types.
+      assignOp = '=';
+    } else {
+      // Select one of the assign operations for the given type.
+      assignOp = oneOfSet(dartType.assignOps(tp));
+      if (assignOp == null) {
+        throw 'No assign operation for ${tp.name}';
+      }
     }
     emitLn('', newline: false);
     // Emit a variable of the lhs type.
     final emittedVar = emitVar(0, tp, isLhs: true);
     RhsFilter rhsFilter = RhsFilter.fromDartType(tp, emittedVar);
-    if ({'*=', '+='}.contains(assignOp)) {
-      rhsFilter?.consume();
-    }
     emit(" $assignOp ");
     // Select one of the possible rhs types for the given lhs type and assign
     // operation.
@@ -642,13 +648,7 @@ class DartFuzz {
       throw 'No rhs type for assign ${tp.name} $assignOp';
     }
 
-    // We need to avoid cases of "abcde" *= large number in loops.
-    if (assignOp == "*=" && tp == DartType.STRING && rhsType == DartType.INT) {
-      emitSmallPositiveInt();
-    } else {
-      // Emit an expression for the right hand side.
-      emitExpr(0, rhsType, rhsFilter: rhsFilter);
-    }
+    emitExpr(0, rhsType, rhsFilter: rhsFilter);
     emit(';', newline: true);
     return true;
   }
@@ -714,6 +714,10 @@ class DartFuzz {
 
   // Emit a simple increasing for-loop.
   bool emitFor(int depth) {
+    // Make deep nesting of loops increasingly unlikely.
+    if (rand.nextInt(nest + 1) > nestDepth) {
+      return emitAssign();
+    }
     final int i = localVars.length;
     emitLn('for (int $localName$i = 0; $localName$i < ', newline: false);
     emitSmallPositiveInt();
@@ -733,6 +737,10 @@ class DartFuzz {
 
   // Emit a simple membership for-in-loop.
   bool emitForIn(int depth) {
+    // Make deep nesting of loops increasingly unlikely.
+    if (rand.nextInt(nest + 1) > nestDepth) {
+      return emitAssign();
+    }
     final int i = localVars.length;
     // Select one iterable type to be used in 'for in' statement.
     final iterType = oneOfSet(dartType.iterableTypes1);
@@ -759,6 +767,10 @@ class DartFuzz {
 
   // Emit a simple membership forEach loop.
   bool emitForEach(int depth) {
+    // Make deep nesting of loops increasingly unlikely.
+    if (rand.nextInt(nest + 1) > nestDepth) {
+      return emitAssign();
+    }
     final int i = localVars.length;
     final int j = i + 1;
     emitLn("", newline: false);
@@ -786,6 +798,10 @@ class DartFuzz {
 
   // Emit a while-loop.
   bool emitWhile(int depth) {
+    // Make deep nesting of loops increasingly unlikely.
+    if (rand.nextInt(nest + 1) > nestDepth) {
+      return emitAssign();
+    }
     final int i = localVars.length;
     emitLn('{ int $localName$i = ', newline: false);
     emitSmallPositiveInt();
@@ -809,6 +825,10 @@ class DartFuzz {
 
   // Emit a do-while-loop.
   bool emitDoWhile(int depth) {
+    // Make deep nesting of loops increasingly unlikely.
+    if (rand.nextInt(nest + 1) > nestDepth) {
+      return emitAssign();
+    }
     final int i = localVars.length;
     emitLn('{ int $localName$i = 0;');
     indent += 2;
@@ -983,7 +1003,7 @@ class DartFuzz {
     emit(rand.nextInt(2) == 0 ? 'true' : 'false');
   }
 
-  void emitSmallPositiveInt({int limit = 100}) {
+  void emitSmallPositiveInt({int limit = 50}) {
     emit('${rand.nextInt(limit)}');
   }
 
@@ -1064,13 +1084,7 @@ class DartFuzz {
     if (DartType.isMapType(tp)) {
       // Emit construct for the map key type.
       final indexType = dartType.indexType(tp);
-      // This check determines whether we are emitting a global variable.
-      // I.e. whenever we are not currently emitting part of a class.
-      if (currentMethod != null) {
-        emitExpr(depth, indexType, rhsFilter: rhsFilter);
-      } else {
-        emitLiteral(depth, indexType, rhsFilter: rhsFilter);
-      }
+      emitElementExpr(depth, indexType, rhsFilter: rhsFilter);
       emit(' : ');
       // Emit construct for the map value type.
       emitElementExpr(depth, elementType, rhsFilter: rhsFilter);

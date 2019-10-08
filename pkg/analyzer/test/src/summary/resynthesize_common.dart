@@ -10867,12 +10867,48 @@ class C {
 
   test_unresolved_annotation_simpleIdentifier() async {
     var library = await checkLibrary('@foo class C {}', allowErrors: true);
-    checkElementText(library, r'''
-@
-        foo/*location: null*/
+    checkElementText(
+        library,
+        r'''
 class C {
 }
+  metadata
+    Annotation
+      element: <null>
+      name: SimpleIdentifier
+        staticElement: <null>
+        staticType: dynamic
+        token: foo
+''',
+        withFullyResolvedAst: true);
+  }
+
+  test_unresolved_annotation_simpleIdentifier_multiplyDefined() async {
+    addLibrarySource('/a.dart', 'const v = 0;');
+    addLibrarySource('/b.dart', 'const v = 0;');
+    var library = await checkLibrary('''
+import 'a.dart';
+import 'b.dart';
+
+@v
+class C {}
 ''');
+    checkElementText(
+        library,
+        r'''
+import 'a.dart';
+import 'b.dart';
+class C {
+}
+  metadata
+    Annotation
+      element: <null>
+      name: SimpleIdentifier
+        staticElement: <null>
+        staticType: dynamic
+        token: v
+''',
+        withFullyResolvedAst: true);
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {

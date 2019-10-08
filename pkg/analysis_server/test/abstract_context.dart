@@ -116,6 +116,11 @@ class AbstractContextTest with ResourceProviderMixin {
     createAnalysisContexts();
   }
 
+  void addVectorMathPackage() {
+    Folder libFolder = MockPackages.instance.addVectorMath(resourceProvider);
+    addTestPackageDependency('vector_math', libFolder.parent.path);
+  }
+
   /// Create all analysis contexts in `/home`.
   void createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(

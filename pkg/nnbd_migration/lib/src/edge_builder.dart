@@ -563,7 +563,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       _handleAssignment(defaultValue,
           destinationType: getOrComputeElementType(node.declaredElement),
-          canInsertChecks: false);
+          fromDefaultValue: true);
     }
     return null;
   }
@@ -1591,7 +1591,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       Expression destinationExpression,
       AssignmentExpression compoundOperatorInfo,
       Expression questionAssignNode,
-      bool canInsertChecks = true}) {
+      bool fromDefaultValue = false}) {
     assert(
         (destinationExpression == null) != (destinationType == null),
         'Either destinationExpression or destinationType should be supplied, '
@@ -1610,6 +1610,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         destinationType = destinationExpression.accept(this);
       }
     }
+
     if (questionAssignNode != null) {
       _guards.add(destinationType.node);
     }
@@ -1620,12 +1621,18 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         throw StateError('No type computed for ${expression.runtimeType} '
             '(${expression.toSource()}) offset=${expression.offset}');
       }
-      ExpressionChecksOrigin expressionChecksOrigin;
-      if (canInsertChecks && !sourceType.type.isDynamic) {
-        expressionChecksOrigin = ExpressionChecksOrigin(
-            source, expression, ExpressionChecks(expression.end));
-        _variables.recordExpressionChecks(
-            source, expression, expressionChecksOrigin);
+      EdgeOrigin edgeOrigin;
+      if (!sourceType.type.isDynamic) {
+        if (fromDefaultValue) {
+          edgeOrigin = DefaultValueOrigin(source, expression);
+        } else {
+          ExpressionChecksOrigin expressionChecksOrigin =
+              ExpressionChecksOrigin(
+                  source, expression, ExpressionChecks(expression.end));
+          _variables.recordExpressionChecks(
+              source, expression, expressionChecksOrigin);
+          edgeOrigin = expressionChecksOrigin;
+        }
       }
       if (compoundOperatorInfo != null) {
         var compoundOperatorMethod = compoundOperatorInfo.staticElement;
@@ -1639,7 +1646,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           DecoratedType compoundOperatorType =
               getOrComputeElementType(compoundOperatorMethod);
           assert(compoundOperatorType.positionalParameters.length > 0);
-          _checkAssignment(expressionChecksOrigin,
+          _checkAssignment(edgeOrigin,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
               hard: _postDominatedLocals.isReferenceInScope(expression));
@@ -1654,10 +1661,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           sourceType = _dynamicType;
         }
       } else {
-        _checkAssignment(expressionChecksOrigin,
+        _checkAssignment(edgeOrigin,
             source: sourceType,
             destination: destinationType,
-            hard: _postDominatedLocals.isReferenceInScope(expression));
+            hard: questionAssignNode == null &&
+                _postDominatedLocals.isReferenceInScope(expression));
       }
       if (questionAssignNode != null) {
         // a ??= b is only nullable if both a and b are nullable.
@@ -2153,6 +2161,21 @@ mixin _AssignmentChecker {
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard}) {
+    var sourceType = source.type;
+    var destinationType = destination.type;
+    if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
+      // Not a proper upcast assignment.
+      if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
+        // But rather a downcast.
+        _checkDowncast(origin,
+            source: source, destination: destination, hard: hard);
+        return;
+      }
+      // Neither a proper upcast assignment nor an implicit downcast (some
+      // illegal code, or we did something wrong to get here).
+      assert(false, 'side cast not supported: $sourceType to $destinationType');
+      return;
+    }
     _connect(source.node, destination.node, origin, hard: hard);
     _checkAssignment_recursion(origin,
         source: source, destination: destination);
@@ -2165,35 +2188,7 @@ mixin _AssignmentChecker {
       {@required DecoratedType source, @required DecoratedType destination}) {
     var sourceType = source.type;
     var destinationType = destination.type;
-    if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
-      // Not a proper upcast assignment.  It is either an implicit downcast or
-      // some illegal code.  It's handled on a "best effort" basis.
-      if (destinationType is TypeParameterType &&
-          sourceType is! TypeParameterType) {
-        // Assume an assignment to the type parameter's bound.
-        _checkAssignment(origin,
-            source: source,
-            destination:
-                _getTypeParameterTypeBound(destination).withNode(_graph.always),
-            hard: false);
-        return;
-      }
-      if (sourceType is InterfaceType && destinationType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
-          var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
-              destination, sourceType.element);
-          assert(rewrittenDestination.typeArguments.length ==
-              source.typeArguments.length);
-          for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
-            _checkAssignment(origin,
-                source: source.typeArguments[i],
-                destination: rewrittenDestination.typeArguments[i],
-                hard: false);
-          }
-        }
-      }
-      return;
-    }
+    assert(_typeSystem.isSubtypeOf(sourceType, destinationType));
     if (destinationType.isDartAsyncFutureOr) {
       var s1 = destination.typeArguments[0];
       if (sourceType.isDartAsyncFutureOr) {
@@ -2324,6 +2319,63 @@ mixin _AssignmentChecker {
       // code.  In either case we don't need to create any additional edges.
     } else {
       throw '$destination <= $source'; // TODO(paulberry)
+    }
+  }
+
+  void _checkDowncast(EdgeOrigin origin,
+      {@required DecoratedType source,
+      @required DecoratedType destination,
+      @required bool hard}) {
+    assert(_typeSystem.isSubtypeOf(destination.type, source.type));
+    // Nullability should narrow to maintain subtype relationship.
+    _connect(source.node, destination.node, origin, hard: hard);
+    if (source.type.isDynamic) {
+      assert(destination.typeFormals?.isEmpty ?? true,
+          'downcast to something with type parameters not yet supported.');
+      assert(destination is! FunctionType,
+          'downcast to function type not yet supported.');
+      if (destination.type is ParameterizedType) {
+        for (final param
+            in (destination.type as ParameterizedType).typeParameters) {
+          assert(param.type.bound.isDynamic,
+              'downcast to type parameters with bounds not supported');
+        }
+      }
+
+      for (final arg in destination.typeArguments) {
+        // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
+        _checkDowncast(origin, source: source, destination: arg, hard: false);
+      }
+    } else if (destination.type is TypeParameterType &&
+        source.type is! TypeParameterType) {
+      // Assume an assignment to the type parameter's bound.
+      _checkAssignment(origin,
+          source: source,
+          destination:
+              _getTypeParameterTypeBound(destination).withNode(_graph.always),
+          hard: false);
+    } else if (destination.type is InterfaceTypeImpl) {
+      assert(source.typeArguments.isEmpty,
+          'downcast from interface type with type args not supported.');
+      if (destination.type is ParameterizedType) {
+        for (final param
+            in (destination.type as ParameterizedType).typeParameters) {
+          assert(param.type.bound.isDynamic,
+              'downcast to type parameters with bounds not supported');
+        }
+      }
+      for (final arg in destination.typeArguments) {
+        // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
+        _checkDowncast(origin,
+            source: DecoratedType(_typeProvider.dynamicType, _graph.always),
+            destination: arg,
+            hard: false);
+      }
+    } else {
+      assert(
+          false,
+          'downcasting from ${source.type.runtimeType} to '
+          '${destination.type.runtimeType} not supported.');
     }
   }
 
