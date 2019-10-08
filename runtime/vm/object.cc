@@ -6623,6 +6623,15 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::CanBeInlined() const {
+  // Our force-optimized functions cannot deoptimize to an unoptimized frame.
+  // If the instructions of the force-optimized function body get moved via
+  // code motion, we might attempt do deoptimize a frame where the force-
+  // optimized function has only partially finished. Since force-optimized
+  // functions cannot deoptimize to unoptimized frames we prevent them from
+  // being inlined (for now).
+  if (ForceOptimize()) {
+    return false;
+  }
 #if defined(PRODUCT)
   return is_inlinable() && !is_external() && !is_generated_body();
 #else

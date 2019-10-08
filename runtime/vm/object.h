@@ -5292,9 +5292,6 @@ class Code : public Object {
     return ForceOptimizedBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_force_optimized(bool value) const;
-  static bool IsForceOptimized(RawCode* code) {
-    return Code::ForceOptimizedBit::decode(code->ptr()->state_bits_);
-  }
 
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
