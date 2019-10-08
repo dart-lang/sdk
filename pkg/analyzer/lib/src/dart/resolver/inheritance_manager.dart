@@ -439,8 +439,6 @@ class InheritanceManager {
     }
     executable.returnType = dynamicType;
     executable.parameters = parameters;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(executable);
-    executable.type = methodType;
     return executable;
   }
 

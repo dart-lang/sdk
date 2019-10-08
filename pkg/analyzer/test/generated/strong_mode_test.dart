@@ -4304,16 +4304,21 @@ main() {
   C<String> cOfString;
 }
 ''');
-    expectFunctionType('f<T>', 'List<T> Function<T>(E)',
-        elementTypeParams: '[T]',
-        typeParams: '[E]',
-        typeArgs: '[E]',
-        typeFormals: '[T]');
-    SimpleIdentifier c = findNode.simple('cOfString');
-    FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), 'List<T> Function<T>(String)');
-    ft = ft.instantiate([typeProvider.intType]);
-    expect(ft.toString(), 'List<int> Function(String)');
+    assertElementTypeString(
+      findElement.method('f').type,
+      'List<T> Function<T>(E)',
+    );
+
+    var cOfString = findElement.localVar('cOfString');
+    var ft = (cOfString.type as InterfaceType).getMethod('f').type;
+    assertElementTypeString(
+      ft,
+      'List<T> Function<T>(String)',
+    );
+    assertElementTypeString(
+      ft.instantiate([typeProvider.intType]),
+      'List<int> Function(String)',
+    );
   }
 
   test_genericMethod_explicitTypeParams() async {
@@ -4509,17 +4514,21 @@ main() {
   C<String> cOfString;
 }
 ''');
-    expectFunctionType('f<T>', 'List<T> Function<T>(T Function(E))',
-        elementTypeParams: '[T]',
-        typeParams: '[E]',
-        typeArgs: '[E]',
-        typeFormals: '[T]');
+    assertElementTypeString(
+      findElement.method('f').type,
+      'List<T> Function<T>(T Function(E))',
+    );
 
-    SimpleIdentifier c = findNode.simple('cOfString');
-    FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), 'List<T> Function<T>(T Function(String))');
-    ft = ft.instantiate([typeProvider.intType]);
-    expect(ft.toString(), 'List<int> Function(int Function(String))');
+    var cOfString = findElement.localVar('cOfString');
+    var ft = (cOfString.type as InterfaceType).getMethod('f').type;
+    assertElementTypeString(
+      ft,
+      'List<T> Function<T>(T Function(String))',
+    );
+    assertElementTypeString(
+      ft.instantiate([typeProvider.intType]),
+      'List<int> Function(int Function(String))',
+    );
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {

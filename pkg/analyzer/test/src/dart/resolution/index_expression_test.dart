@@ -44,7 +44,7 @@ main(A a) {
   test_read_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
-  T operator[](int index) => null;
+  T operator[](int index) => throw 42;
 }
 
 main(A<double> a) {
@@ -101,7 +101,7 @@ main(A a) {
   test_readWrite_generic() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
-  T operator[](int index) => null;
+  T operator[](int index) => throw 42;
   void operator[]=(int index, T value) {}
 }
 

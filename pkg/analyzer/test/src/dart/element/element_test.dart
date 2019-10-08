@@ -1165,9 +1165,9 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter('b'),
+      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
       ElementFactory.namedParameter2('c', typeProvider.stringType),
-      ElementFactory.namedParameter('d')
+      ElementFactory.namedParameter2('d', typeProvider.dynamicType)
     ]);
     FunctionTypeImpl type = element.type;
     Map<String, DartType> types = type.namedParameterTypes;
@@ -1181,7 +1181,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter('b'),
+      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
       ElementFactory.positionalParameter2('c', typeProvider.stringType)
     ]);
     FunctionTypeImpl type = element.type;
@@ -1200,7 +1200,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.positionalParameter2('c', typeProvider.stringType),
-      ElementFactory.positionalParameter('d')
+      ElementFactory.positionalParameter2('d', typeProvider.dynamicType)
     ]);
     FunctionTypeImpl type = element.type;
     List<DartType> types = type.normalParameterTypes;
@@ -1218,7 +1218,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter('b'),
+      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
       ElementFactory.positionalParameter2('c', typeProvider.stringType)
     ]);
     FunctionTypeImpl type = element.type;
@@ -1233,9 +1233,9 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter('b'),
+      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
       ElementFactory.namedParameter2('c', typeProvider.stringType),
-      ElementFactory.namedParameter('d')
+      ElementFactory.namedParameter2('d', typeProvider.dynamicType)
     ]);
     FunctionTypeImpl type = element.type;
     List<DartType> types = type.optionalParameterTypes;
@@ -1253,9 +1253,9 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     FunctionElement element = ElementFactory.functionElementWithParameters(
         'f', VoidTypeImpl.instance, [
       ElementFactory.requiredParameter2('a', typeProvider.intType),
-      ElementFactory.requiredParameter('b'),
+      ElementFactory.requiredParameter2('b', typeProvider.dynamicType),
       ElementFactory.positionalParameter2('c', typeProvider.stringType),
-      ElementFactory.positionalParameter('d')
+      ElementFactory.positionalParameter2('d', typeProvider.dynamicType)
     ]);
     FunctionTypeImpl type = element.type;
     List<DartType> types = type.optionalParameterTypes;
@@ -1701,7 +1701,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     // user (and hence can't participate in circularities).
     FunctionElementImpl f = ElementFactory.functionElement('f');
     FunctionTypeImpl type = f.type;
-    expect(type.newPrune, isNull);
+    expect(type.newPrune, []);
   }
 
   void test_resolveToBound() {
@@ -1800,7 +1800,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     );
     expect(
       functionTypeAliasType(f).toString(),
-      'C<dynamic Function()> Function()',
+      'dynamic Function()',
     );
   }
 

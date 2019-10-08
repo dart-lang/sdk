@@ -7176,7 +7176,6 @@ class TypeResolverVisitor extends ScopedVisitor {
           new CaughtException(new AnalysisException(), null));
     }
     element.declaredReturnType = _computeReturnType(node.returnType);
-    element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
   }
 
@@ -7247,7 +7246,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     }
 
     element.declaredReturnType = _computeReturnType(node.returnType);
-    element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
     _inferOperatorReturnType(element);
     if (element is PropertyAccessorElement) {

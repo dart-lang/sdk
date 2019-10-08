@@ -345,7 +345,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (body.isGenerator) {
       element.generator = true;
     }
-    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     (node as FunctionExpressionImpl).declaredElement = element;
@@ -1278,7 +1277,6 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (enclosingBlock != null) {
       element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
     }
-    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     (node as FunctionExpressionImpl).declaredElement = element;
@@ -1384,7 +1382,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       initializer.encloseElements(holder.localVariables);
       initializer.parameters = holder.parameters;
       initializer.isSynthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
       holder.validate();
@@ -1407,7 +1404,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       initializerElement.encloseElements(holder.labels);
       initializerElement.encloseElements(holder.localVariables);
       initializerElement.isSynthetic = true;
-      initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;
       holder.validate();
     }
