@@ -16,19 +16,40 @@ mustache.Template _template = mustache.Template(r'''
     <title>Non-nullable fix instrumentation report</title>
 <!--    <script src="{{ highlightJsPath }}"></script>-->
     <script>
-    function highlightTarget() {
-      var url = document.URL;
-      var index = url.lastIndexOf("#");
+    function getHash(location) {
+      var index = location.lastIndexOf("#");
       if (index >= 0) {
-        var name = url.substring(index + 1);
-        var anchor = document.getElementById(name);
+        return location.substring(index + 1);
+      } else {
+        return null;
+      }
+    }
+
+    function highlightTarget(event) {
+      if (event !== undefined && event.oldURL !== undefined) {
+        // Remove the "target" CSS class from the previous anchor.
+        var oldHash = getHash(event.oldURL);
+        if (oldHash != null) {
+          var anchor = document.getElementById(oldHash);
+          if (anchor != null) {
+            anchor.classList.remove("target");
+          }
+        }
+      }
+      var url = document.URL;
+      var hash = getHash(url);
+      if (hash != null) {
+        var anchor = document.getElementById(hash);
         if (anchor != null) {
-          anchor.className = "target";
+          anchor.classList.add("target");
         }
       }
     }
+
+    document.addEventListener("DOMContentLoaded", highlightTarget);
+    window.addEventListener("hashchange", highlightTarget);
     </script>
-    <link rel="stylesheet" href="{{ highlightStylePath }}">
+    <!-- <link rel="stylesheet" href="{{ highlightStylePath }}"> -->
     <style>
 a:link {
   color: #000000;
@@ -110,7 +131,7 @@ h2 {
 }
     </style>
   </head>
-  <body onload="highlightTarget()">
+  <body>
     <h1>Non-nullable fix instrumentation report</h1>
     <p><em>Well-written introduction to this report.</em></p>
     <div class="navigation">
