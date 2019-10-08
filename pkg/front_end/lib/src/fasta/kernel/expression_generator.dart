@@ -2543,12 +2543,12 @@ class ExplicitExtensionAccessGenerator extends Generator {
   }
 
   Generator _createInstanceAccess(Token token, Name name, {bool isNullAware}) {
-    Builder getter = extensionBuilder.lookupLocalMember(name.name);
+    Builder getter = extensionBuilder.lookupLocalMemberByName(name);
     if (getter != null && getter.isStatic) {
       getter = null;
     }
     Builder setter =
-        extensionBuilder.lookupLocalMember(name.name, setter: true);
+        extensionBuilder.lookupLocalMemberByName(name, setter: true);
     if (setter != null && setter.isStatic) {
       setter = null;
     }
@@ -2603,8 +2603,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Generator buildIndexedAccess(Expression index, Token token) {
-    Builder getter = extensionBuilder.lookupLocalMember(indexGetName.name);
-    Builder setter = extensionBuilder.lookupLocalMember(indexSetName.name);
+    Builder getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
+    Builder setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
       return new UnresolvedNameGenerator(_helper, token, indexGetName);
     }

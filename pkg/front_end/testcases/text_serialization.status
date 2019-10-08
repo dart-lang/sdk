@@ -41,6 +41,7 @@ extensions/instance_tearoff: TextSerializationFailure
 extensions/internal_resolution: TextSerializationFailure
 extensions/invalid_explicit_access: TextSerializationFailure
 extensions/invalid_explicit_static_access: TextSerializationFailure
+extensions/issue38750: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
 extensions/on_function_type: TextSerializationFailure
@@ -48,6 +49,7 @@ extensions/on_type_inference: TextSerializationFailure
 extensions/on_type_variable_inference: TextSerializationFailure
 extensions/operators: TextSerializationFailure
 extensions/other_kinds: TextSerializationFailure
+extensions/private_members: TextSerializationFailure
 extensions/static_access: TextSerializationFailure
 extensions/static_access_of_instance: TextSerializationFailure
 extensions/tear_offs: TextSerializationFailure

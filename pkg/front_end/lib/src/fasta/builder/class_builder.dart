@@ -188,10 +188,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void forEach(void f(String name, Builder builder));
 
-  @override
-  Builder lookupLocalMember(String name,
-      {bool setter: false, bool required: false});
-
   /// Find the first member of this class with [name]. This method isn't
   /// suitable for scope lookups as it will throw an error if the name isn't
   /// declared. The [scope] should be used for that. This method is used to

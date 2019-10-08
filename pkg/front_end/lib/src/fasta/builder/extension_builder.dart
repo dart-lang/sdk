@@ -30,6 +30,14 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   UnrelatedTarget get target;
 
   void buildOutlineExpressions(LibraryBuilder library);
+
+  /// Looks up extension member by [name] taking privacy into account.
+  ///
+  /// If [setter] is `true` the sought member is a setter or assignable field.
+  /// If [required] is `true` and no member is found an internal problem is
+  /// reported.
+  Builder lookupLocalMemberByName(Name name,
+      {bool setter: false, bool required: false});
 }
 
 abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
@@ -105,6 +113,17 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
               name, fullNameForErrors),
           -1,
           null);
+    }
+    return builder;
+  }
+
+  @override
+  Builder lookupLocalMemberByName(Name name,
+      {bool setter: false, bool required: false}) {
+    Builder builder =
+        lookupLocalMember(name.name, setter: setter, required: required);
+    if (builder != null && name.isPrivate && library.library != name.library) {
+      builder = null;
     }
     return builder;
   }

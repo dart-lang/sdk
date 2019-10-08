@@ -770,9 +770,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
       library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
         MemberBuilder thisBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: setter);
+            extensionBuilder.lookupLocalMemberByName(name, setter: setter);
         MemberBuilder otherBuilder = extensionBuilder
-            .lookupLocalMember(otherName.name, setter: otherIsSetter);
+            .lookupLocalMemberByName(otherName, setter: otherIsSetter);
         if ((thisBuilder != null && !thisBuilder.isStatic) ||
             (otherBuilder != null && !otherBuilder.isStatic)) {
           DartType onType;
