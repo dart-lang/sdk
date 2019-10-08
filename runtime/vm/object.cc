@@ -2333,7 +2333,8 @@ RawClass* Class::Mixin() const {
 
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
-  return raw_ptr()->library_->ptr()->is_in_fullsnapshot_;
+  return RawLibrary::InFullSnapshotBit::decode(
+      raw_ptr()->library_->ptr()->flags_);
 }
 
 RawAbstractType* Class::RareType() const {
@@ -5477,7 +5478,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   TypeArguments& result = TypeArguments::Handle();
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, NULL, Heap::kOld);
-  // Instantiation did not result in bound error. Canonicalize type arguments.
+  // Canonicalize type arguments.
   result = result.Canonicalize();
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
@@ -11092,7 +11093,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
+  result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
+  result.set_is_nnbd(false);
   if (dart_private_scheme) {
     // Never debug dart:_ libraries.
     result.set_debuggable(false);
@@ -11126,6 +11129,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
 
 RawLibrary* Library::New(const String& url) {
   return NewLibraryHelper(url, false);
+}
+
+void Library::set_flags(uint8_t flags) const {
+  StoreNonPointer(&raw_ptr()->flags_, flags);
 }
 
 void Library::InitCoreLibrary(Isolate* isolate) {
@@ -16650,7 +16657,6 @@ bool Instance::IsInstanceOf(
       return true;
     }
     AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
-    // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
@@ -16693,7 +16699,6 @@ bool Instance::IsInstanceOf(
   Class& other_class = Class::Handle(zone);
   TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
-  // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
@@ -17382,7 +17387,6 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     if (!bound.IsFinalized()) {
       return false;  // TODO(regis): Return "maybe after instantiation".
     }
-    // The current bound_trail cannot be used, because operands are swapped.
     if (bound.IsSubtypeOf(other, space)) {
       return true;
     }

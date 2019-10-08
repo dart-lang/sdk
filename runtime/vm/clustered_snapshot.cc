@@ -1180,8 +1180,7 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<int32_t>(lib->ptr()->index_);
       s->Write<uint16_t>(lib->ptr()->num_imports_);
       s->Write<int8_t>(lib->ptr()->load_state_);
-      s->Write<bool>(lib->ptr()->is_dart_scheme_);
-      s->Write<bool>(lib->ptr()->debuggable_);
+      s->Write<uint8_t>(lib->ptr()->flags_);
       if (s->kind() != Snapshot::kFullAOT) {
         s->Write<uint32_t>(lib->ptr()->binary_declaration_);
       }
@@ -1218,9 +1217,8 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->index_ = d->Read<int32_t>();
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
-      lib->ptr()->is_dart_scheme_ = d->Read<bool>();
-      lib->ptr()->debuggable_ = d->Read<bool>();
-      lib->ptr()->is_in_fullsnapshot_ = true;
+      lib->ptr()->flags_ =
+          RawLibrary::InFullSnapshotBit::update(true, d->Read<uint8_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
         lib->ptr()->binary_declaration_ = d->Read<uint32_t>();

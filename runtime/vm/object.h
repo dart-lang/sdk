@@ -1059,7 +1059,8 @@ class Class : public Object {
 
   static bool IsInFullSnapshot(RawClass* cls) {
     NoSafepointScope no_safepoint;
-    return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
+    return RawLibrary::InFullSnapshotBit::decode(
+        cls->ptr()->library_->ptr()->flags_);
   }
 
   // Returns true if the type specified by cls and type_arguments is a
@@ -4210,9 +4211,18 @@ class Library : public Object {
                     native_symbol_resolver);
   }
 
-  bool is_in_fullsnapshot() const { return raw_ptr()->is_in_fullsnapshot_; }
+  bool is_in_fullsnapshot() const {
+    return RawLibrary::InFullSnapshotBit::decode(raw_ptr()->flags_);
+  }
   void set_is_in_fullsnapshot(bool value) const {
-    StoreNonPointer(&raw_ptr()->is_in_fullsnapshot_, value);
+    set_flags(RawLibrary::InFullSnapshotBit::update(value, raw_ptr()->flags_));
+  }
+
+  bool is_nnbd() const {
+    return RawLibrary::NnbdBit::decode(raw_ptr()->flags_);
+  }
+  void set_is_nnbd(bool value) const {
+    set_flags(RawLibrary::NnbdBit::update(value, raw_ptr()->flags_));
   }
 
   RawString* PrivateName(const String& name) const;
@@ -4226,14 +4236,18 @@ class Library : public Object {
   static void RegisterLibraries(Thread* thread,
                                 const GrowableObjectArray& libs);
 
-  bool IsDebuggable() const { return raw_ptr()->debuggable_; }
+  bool IsDebuggable() const {
+    return RawLibrary::DebuggableBit::decode(raw_ptr()->flags_);
+  }
   void set_debuggable(bool value) const {
-    StoreNonPointer(&raw_ptr()->debuggable_, value);
+    set_flags(RawLibrary::DebuggableBit::update(value, raw_ptr()->flags_));
   }
 
-  bool is_dart_scheme() const { return raw_ptr()->is_dart_scheme_; }
+  bool is_dart_scheme() const {
+    return RawLibrary::DartSchemeBit::decode(raw_ptr()->flags_);
+  }
   void set_is_dart_scheme(bool value) const {
-    StoreNonPointer(&raw_ptr()->is_dart_scheme_, value);
+    set_flags(RawLibrary::DartSchemeBit::update(value, raw_ptr()->flags_));
   }
 
   // Includes 'dart:async', 'dart:typed_data', etc.
@@ -4396,6 +4410,7 @@ class Library : public Object {
   void set_url(const String& url) const;
 
   void set_num_imports(intptr_t value) const;
+  void set_flags(uint8_t flags) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }

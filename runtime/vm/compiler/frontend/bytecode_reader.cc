@@ -2531,6 +2531,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   const int kUsesDartMirrorsFlag = 1 << 0;
   const int kUsesDartFfiFlag = 1 << 1;
   const int kHasExtensionsFlag = 1 << 2;
+  const int kIsNonNullableByDefaultFlag = 1 << 3;
 
   ASSERT(library.is_declared_in_bytecode());
   ASSERT(!library.Loaded());
@@ -2573,6 +2574,10 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
       library.AddImport(import_namespace);
     }
     H.AddPotentialExtensionLibrary(library);
+  }
+
+  if ((flags & kIsNonNullableByDefaultFlag) != 0) {
+    library.set_is_nnbd(true);
   }
 
   // The bootstrapper will take care of creating the native wrapper classes,

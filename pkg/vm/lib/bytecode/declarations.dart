@@ -19,6 +19,7 @@ class LibraryDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
+  static const isNonNullableByDefaultFlag = 1 << 3;
 
   ObjectHandle importUri;
   final int flags;
@@ -76,6 +77,9 @@ class LibraryDeclaration {
     }
     if ((flags & hasExtensionsFlag) != 0) {
       sb.writeln('    extensions: $extensionUris');
+    }
+    if ((flags & isNonNullableByDefaultFlag) != 0) {
+      sb.writeln('    is nnbd');
     }
     sb.writeln();
     for (var cls in classes) {

@@ -290,6 +290,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (extensionUris.isNotEmpty) {
       flags |= LibraryDeclaration.hasExtensionsFlag;
     }
+    if (library.isNonNullableByDefault) {
+      flags |= LibraryDeclaration.isNonNullableByDefaultFlag;
+    }
     return new LibraryDeclaration(
         importUri, flags, name, script, extensionUris, classes);
   }

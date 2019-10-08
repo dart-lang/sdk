@@ -719,7 +719,8 @@ static void UpdateTypeTestCache(
 }
 
 // Check that the given instance is an instance of the given type.
-// Tested instance may not be null, because the null test is inlined.
+// Tested instance may be null, because a null test cannot always be inlined,
+// e.g 'null is T' yields true if T = Null, but false if T = bool.
 // Arg0: instance being checked.
 // Arg1: type.
 // Arg2: type arguments of the instantiator of the type.
@@ -751,6 +752,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
+// Tested instance may not be null, because a null test is always inlined.
 // Arg0: instance being assigned.
 // Arg1: type being assigned to.
 // Arg2: type arguments of the instantiator of the type being assigned to.
