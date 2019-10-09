@@ -9,7 +9,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:yaml/yaml.dart';
 
-const _desc = r'Avoid using web-only libraries outside Flutter web projects';
+const _desc = r'Avoid using web-only libraries outside Flutter web projects.';
 
 const _details = r'''Avoid using web libraries, `dart:html`, `dart:js` and 
 `dart:js_util` in non-web Flutter projects.  These libraries are not supported
