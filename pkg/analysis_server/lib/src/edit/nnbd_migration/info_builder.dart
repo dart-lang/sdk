@@ -175,6 +175,26 @@ class InfoBuilder {
     return description;
   }
 
+  /// Return a description of the given [origin] associated with the [edge].
+  RegionDetail _buildDetailForOrigin(EdgeOriginInfo origin, EdgeInfo edge) {
+    AstNode node = origin.node;
+    if (origin.kind == EdgeOriginKind.inheritance) {
+      // The node is the method declaration in the subclass and we want to link
+      // to the corresponding parameter in the declaration in the superclass.
+      TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
+      if (type != null) {
+        CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
+        NavigationTarget target =
+            _targetForNode(unit.declaredElement.source.fullName, type);
+        return RegionDetail(
+            "The corresponding parameter in the overridden method is nullable",
+            target);
+      }
+    }
+    NavigationTarget target = _targetForNode(origin.source.fullName, node);
+    return RegionDetail(_buildDescriptionForOrigin(node), target);
+  }
+
   /// Compute the details for the fix with the given [fixInfo].
   List<RegionDetail> _computeDetails(FixInfo fixInfo) {
     List<RegionDetail> details = [];
@@ -184,12 +204,7 @@ class InfoBuilder {
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
-              // TODO(brianwilkerson) If the origin is an InheritanceOrigin then
-              //  the node is the method declaration in the subclass and we want
-              //  to link to the corresponding parameter in the declaration in
-              //  the superclass.
-              details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
-                  _targetForNode(origin.source.fullName, origin.node)));
+              details.add(_buildDetailForOrigin(origin, edge));
             } else {
               details.add(
                   RegionDetail('upstream edge with no origin ($edge)', null));

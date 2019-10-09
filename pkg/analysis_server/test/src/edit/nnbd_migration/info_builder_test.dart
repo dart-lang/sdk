@@ -311,7 +311,45 @@ void g(p) {
         details: ["A nullable value is explicitly passed as an argument"]);
   }
 
-  test_parameter_fromOverriden() async {
+  test_parameter_fromOverriden_explicit() async {
+    addTestFile('''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(Object p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, '''
+class A {
+  void m(int? p) {}
+}
+class B extends A {
+  void m(Object? p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 22,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 67, details: [
+      "The corresponding parameter in the overridden method is nullable"
+    ]);
+  }
+
+  test_parameter_fromOverriden_implicit() async {
     addTestFile('''
 class A {
   void m(p) {}
