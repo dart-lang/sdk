@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -211,5 +212,30 @@ void main() {
     expect(result[1].key, equals('baz'));
     expect(result[2].key, equals('qu\'ux'));
     expect(result, hasLength(3));
+  });
+
+  test('testNamedArgument', () {
+    expect(testNamedArgument([]), equals(false));
+    expect(testNamedArgument(null), equals(false));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(CompletionSuggestionKind.NAMED_ARGUMENT, 1,
+              'title: ,', 8, 0, false, false)
+        ]),
+        equals(true));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(
+              CompletionSuggestionKind.IDENTIFIER, 1, 'foo', 3, 0, false, false)
+        ]),
+        equals(false));
+    expect(
+        testNamedArgument([
+          CompletionSuggestion(CompletionSuggestionKind.NAMED_ARGUMENT, 1,
+              'title: ,', 8, 0, false, false),
+          CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER, 1, 'foo', 3,
+              0, false, false),
+        ]),
+        equals(true));
   });
 }

@@ -144,6 +144,16 @@ bool testFollowingDot(DartCompletionRequest request) {
   return isTokenDot(token) || isTokenDot(token.previous);
 }
 
+/// Tests whether all completion suggestions are for named arguments.
+bool testNamedArgument(List<CompletionSuggestion> suggestions) {
+  if (suggestions == null) {
+    return false;
+  }
+
+  return suggestions.any((CompletionSuggestion suggestion) =>
+      suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT);
+}
+
 /// Finds the previous n tokens occurring before the cursor.
 List<String> constructQuery(DartCompletionRequest request, int n) {
   var token = getCursorToken(request);
