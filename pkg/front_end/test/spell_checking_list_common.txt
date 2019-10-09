@@ -1959,6 +1959,7 @@ pattern
 peek
 pending
 percent
+percolate
 perform
 performance
 performed
@@ -2856,6 +2857,7 @@ uncertain
 unchanged
 unclaimed
 unclear
+undeclared
 undefined
 under
 underlying

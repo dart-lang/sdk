@@ -104,7 +104,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   void addProblem(AstNode node, Problem problem);
 
   /// Initializes flow analysis for a function node.
-  void createFlowAnalysis(Declaration node, FunctionBody functionBody) {
+  void createFlowAnalysis(Declaration node, FormalParameterList parameters,
+      FunctionBody functionBody) {
     assert(_flowAnalysis == null);
     assert(_assignedVariables == null);
     _flowAnalysis =
@@ -112,7 +113,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
             const AnalyzerNodeOperations(),
             TypeSystemTypeOperations(_typeSystem),
             AnalyzerFunctionBodyAccess(functionBody));
-    _assignedVariables = FlowAnalysisHelper.computeAssignedVariables(node);
+    _assignedVariables =
+        FlowAnalysisHelper.computeAssignedVariables(node, parameters);
   }
 
   @override

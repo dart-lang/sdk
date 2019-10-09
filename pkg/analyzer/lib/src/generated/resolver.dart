@@ -3662,7 +3662,8 @@ class ResolverVisitor extends ScopedVisitor {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
-      _flowAnalysis?.topLevelDeclaration_enter(node, node.body);
+      _flowAnalysis?.topLevelDeclaration_enter(
+          node, node.parameters, node.body);
       _flowAnalysis?.executableDeclaration_enter(node.parameters);
       _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
@@ -4021,8 +4022,8 @@ class ResolverVisitor extends ScopedVisitor {
         if (isFunctionDeclarationStatement) {
           _flowAnalysis.flow.functionExpression_begin();
         } else {
-          _flowAnalysis.topLevelDeclaration_enter(
-              node, node.functionExpression.body);
+          _flowAnalysis.topLevelDeclaration_enter(node,
+              node.functionExpression.parameters, node.functionExpression.body);
         }
         _flowAnalysis
             .executableDeclaration_enter(node.functionExpression.parameters);
@@ -4247,7 +4248,8 @@ class ResolverVisitor extends ScopedVisitor {
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
-      _flowAnalysis?.topLevelDeclaration_enter(node, node.body);
+      _flowAnalysis?.topLevelDeclaration_enter(
+          node, node.parameters, node.body);
       _flowAnalysis?.executableDeclaration_enter(node.parameters);
       _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
@@ -4600,7 +4602,7 @@ class ResolverVisitor extends ScopedVisitor {
         grandParent is TopLevelVariableDeclaration;
     InferenceContext.setTypeFromNode(node.initializer, node);
     if (isTopLevel) {
-      _flowAnalysis?.topLevelDeclaration_enter(node, null);
+      _flowAnalysis?.topLevelDeclaration_enter(node, null, null);
     }
     super.visitVariableDeclaration(node);
     if (isTopLevel) {

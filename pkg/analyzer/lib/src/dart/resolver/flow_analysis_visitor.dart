@@ -212,9 +212,10 @@ class FlowAnalysisHelper {
     return false;
   }
 
-  void topLevelDeclaration_enter(Declaration node, FunctionBody body) {
+  void topLevelDeclaration_enter(
+      Declaration node, FormalParameterList parameters, FunctionBody body) {
     assert(flow == null);
-    assignedVariables = computeAssignedVariables(node);
+    assignedVariables = computeAssignedVariables(node, parameters);
     flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
       _nodeOperations,
       _typeOperations,
@@ -247,9 +248,12 @@ class FlowAnalysisHelper {
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      Declaration node) {
+      Declaration node, FormalParameterList parameters) {
     var assignedVariables = AssignedVariables<AstNode, PromotableElement>();
-    node.visitChildren(_AssignedVariablesVisitor(assignedVariables));
+    var assignedVariablesVisitor = _AssignedVariablesVisitor(assignedVariables);
+    assignedVariablesVisitor._declareParameters(parameters);
+    node.visitChildren(assignedVariablesVisitor);
+    assignedVariables.finish();
     return assignedVariables;
   }
 
@@ -352,6 +356,20 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCatchClause(CatchClause node) {
+    for (var identifier in [
+      node.exceptionParameter,
+      node.stackTraceParameter
+    ]) {
+      if (identifier != null) {
+        assignedVariables
+            .declare(identifier.staticElement as PromotableElement);
+      }
+    }
+    super.visitCatchClause(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     throw StateError('Should not visit top level declarations');
   }
@@ -378,7 +396,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     if (node.parent is CompilationUnit) {
       throw StateError('Should not visit top level declarations');
     }
-    assignedVariables.beginNode(isClosure: true);
+    assignedVariables.beginNode();
+    _declareParameters(node.functionExpression.parameters);
     // Note: we bypass this.visitFunctionExpression so that the function
     // expression isn't mistaken for a closure.
     super.visitFunctionExpression(node.functionExpression);
@@ -387,7 +406,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    assignedVariables.beginNode(isClosure: true);
+    assignedVariables.beginNode();
+    _declareParameters(node.parameters);
     super.visitFunctionExpression(node);
     assignedVariables.endNode(node, isClosure: true);
   }
@@ -426,10 +446,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitVariableDeclaration(VariableDeclaration node) {
+    var grandParent = node.parent.parent;
+    if (grandParent is TopLevelVariableDeclaration ||
+        grandParent is FieldDeclaration) {
+      throw StateError('Should not visit top level declarations');
+    }
+    assignedVariables.declare(node.declaredElement);
+    super.visitVariableDeclaration(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
     assignedVariables.beginNode();
     super.visitWhileStatement(node);
     assignedVariables.endNode(node);
+  }
+
+  void _declareParameters(FormalParameterList parameters) {
+    if (parameters == null) return;
+    for (var parameter in parameters.parameters) {
+      assignedVariables.declare(parameter.declaredElement);
+    }
   }
 
   void _handleFor(AstNode node, ForLoopParts forLoopParts, AstNode body) {
@@ -459,7 +497,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
-        assignedVariables.write(forLoopParts.loopVariable.declaredElement);
+        var variable = forLoopParts.loopVariable.declaredElement;
+        assignedVariables.declare(variable);
+        assignedVariables.write(variable);
       } else {
         throw new StateError('Unrecognized for loop parts');
       }
