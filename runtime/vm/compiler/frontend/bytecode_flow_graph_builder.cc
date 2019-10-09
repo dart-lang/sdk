@@ -845,41 +845,48 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   const intptr_t argc = DecodeOperandF().value();
 
   const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
-    BuildFfiAsFunction();
-    return;
-  } else if (FLAG_precompiled_mode &&
-             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
-    BuildFfiNativeCallbackFunction();
-    return;
-  }
-
-  // Recognize identical() call.
-  // Note: similar optimization is performed in AST flow graph builder - see
-  // StreamingFlowGraphBuilder::BuildStaticInvocation, special_case_identical.
-  // TODO(alexmarkov): find a better place for this optimization.
-  if (target.name() == Symbols::Identical().raw()) {
-    const auto& owner = Class::Handle(Z, target.Owner());
-    if (owner.IsTopLevel() && (owner.library() == Library::CoreLibrary())) {
+  switch (recognized_kind) {
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      BuildFfiAsFunction();
+      return;
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+      if (FLAG_precompiled_mode) {
+        BuildFfiNativeCallbackFunction();
+        return;
+      }
+      break;
+    case MethodRecognizer::kObjectIdentical:
+      // Note: similar optimization is performed in AST flow graph builder -
+      // see StreamingFlowGraphBuilder::BuildStaticInvocation,
+      // special_case_identical.
+      // TODO(alexmarkov): find a better place for this optimization.
       ASSERT(argc == 2);
       code_ += B->StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
       return;
-    }
-  }
-
-  if (!FLAG_causal_async_stacks &&
-      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper) {
-    ASSERT(argc == 1);
-    // Drop the ignored parameter to _asyncStackTraceHelper(:async_op).
-    code_ += B->Drop();
-    code_ += B->NullConstant();
-    return;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseInterpolate) {
-    ASSERT(argc == 1);
-    code_ += B->StringInterpolate(position_);
-    return;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+    case MethodRecognizer::kSetAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 1);
+        // Drop the ignored parameter to _asyncStackTraceHelper(:async_op) or
+        // _setAsyncThreadStackTrace(stackTrace).
+        code_ += B->Drop();
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kClearAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 0);
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kStringBaseInterpolate:
+      ASSERT(argc == 1);
+      code_ += B->StringInterpolate(position_);
+      return;
+    default:
+      break;
   }
 
   const Array& arg_desc_array =
