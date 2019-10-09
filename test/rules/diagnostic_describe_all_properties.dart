@@ -25,9 +25,9 @@ class StringProperty extends DiagnosticsProperty<String> {
 }
 
 abstract class Diagnosticable {
-  void debugFillProperties(DiagnosticPropertiesBuilder properties);
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) { }
 
-  List<DiagnosticsNode> debugDescribeChildren();
+  List<DiagnosticsNode> debugDescribeChildren() => <DiagnosticsNode>[];
 }
 
 class DiagnosticsNode {}
@@ -66,4 +66,8 @@ class MyWidget extends Diagnosticable {
     print(p5);
     return null;
   }
+}
+
+class MyWidget2 extends Diagnosticable {
+  bool property; //LINT
 }

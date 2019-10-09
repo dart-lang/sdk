@@ -71,7 +71,7 @@ class DiagnosticsDescribeAllProperties extends LintRule
           name: 'diagnostic_describe_all_properties',
           description: _desc,
           details: _details,
-          maturity: Maturity.experimental,
+          maturity: Maturity.stable,
           group: Group.errors,
         );
 
@@ -79,118 +79,15 @@ class DiagnosticsDescribeAllProperties extends LintRule
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addClassDeclaration(this, visitor);
   }
 }
-
-// for experiments and book-keeping
-//int fileCount = 0;
-//int debugPropertyCount = 0;
-//int classesWithPropertiesButNoDebugFill = 0;
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   final LinterContext context;
 
   _Visitor(this.rule, this.context);
-
-  // todo (pq): for experiments and book-keeping; remove before landing
-  LineInfo lineInfo;
-
-  @override
-  visitCompilationUnit(CompilationUnit node) {
-    lineInfo = node.lineInfo;
-  }
-
-//  static int noMethods = 0;
-//  static int totalClasses = 0;
-
-  bool _isOverridingMember(Element member) {
-    if (member == null) {
-      return false;
-    }
-
-    ClassElement classElement =
-        member.getAncestor((element) => element is ClassElement);
-    if (classElement == null) {
-      return false;
-    }
-    Uri libraryUri = classElement.library.source.uri;
-    return context.inheritanceManager.getInherited(
-            classElement.thisType, Name(libraryUri, member.name)) !=
-        null;
-  }
-
-  @override
-  visitClassDeclaration(ClassDeclaration node) {
-//    ++totalClasses;
-
-    // We only care about Diagnosticables.
-    var type = node.declaredElement.thisType;
-    if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
-      return;
-    }
-
-    var properties = <SimpleIdentifier>[];
-    for (var member in node.members) {
-      if (member is MethodDeclaration && member.isGetter) {
-        if (!member.isStatic &&
-            !skipForDiagnostic(
-              element: member.declaredElement,
-              name: member.name,
-              type: member.returnType?.type,
-            )) {
-          properties.add(member.name);
-        }
-      } else if (member is FieldDeclaration) {
-        for (var v in member.fields.variables) {
-          if (!v.declaredElement.isStatic &&
-              !skipForDiagnostic(
-                element: v.declaredElement,
-                name: v.name,
-                type: v.declaredElement.type,
-              )) {
-            properties.add(v.name);
-          }
-        }
-      }
-    }
-
-    if (properties.isEmpty) {
-      return;
-    }
-
-    // todo (pq): move up to top when we're not counting anymore.
-    var debugFillProperties = node.getMethod('debugFillProperties');
-//    if (debugFillProperties == null) {
-//      ++classesWithPropertiesButNoDebugFill;
-//    }
-
-    var debugDescribeChildren = node.getMethod('debugDescribeChildren');
-    if (debugFillProperties == null && debugDescribeChildren == null) {
-      return;
-    }
-
-    // Remove any defined in debugFillProperties.
-    removeReferences(debugFillProperties, properties);
-
-    // Remove any defined in debugDescribeChildren.
-    removeReferences(debugDescribeChildren, properties);
-
-    // Flag the rest.
-    properties.forEach(rule.reportLint);
-
-// uncomment for data gathering
-//    for (var prop in properties) {
-//      var line = lineInfo.getLocation(prop.offset).lineNumber;
-//      var prefix =
-//          'https://github.com/flutter/flutter/blob/master/packages/flutter/';
-//      var path = node.element.source.fullName.split('packages/flutter/')[1];
-//      print('| [$path:$line]($prefix$path#L$line) | ${node.name}.$prop |');
-//      ++debugPropertyCount;
-//    }
-  }
 
   void removeReferences(
       MethodDeclaration method, List<SimpleIdentifier> properties) {
@@ -221,4 +118,70 @@ class _Visitor extends SimpleAstVisitor {
   bool skipForDiagnostic(
           {Element element, DartType type, SimpleIdentifier name}) =>
       isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    // We only care about Diagnosticables.
+    final type = node.declaredElement.thisType;
+    if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
+      return;
+    }
+
+    final properties = <SimpleIdentifier>[];
+    for (var member in node.members) {
+      if (member is MethodDeclaration && member.isGetter) {
+        if (!member.isStatic &&
+            !skipForDiagnostic(
+              element: member.declaredElement,
+              name: member.name,
+              type: member.returnType?.type,
+            )) {
+          properties.add(member.name);
+        }
+      } else if (member is FieldDeclaration) {
+        for (var v in member.fields.variables) {
+          if (!v.declaredElement.isStatic &&
+              !skipForDiagnostic(
+                element: v.declaredElement,
+                name: v.name,
+                type: v.declaredElement.type,
+              )) {
+            properties.add(v.name);
+          }
+        }
+      }
+    }
+
+    if (properties.isEmpty) {
+      return;
+    }
+
+    final debugFillProperties = node.getMethod('debugFillProperties');
+    final debugDescribeChildren = node.getMethod('debugDescribeChildren');
+
+    // Remove any defined in debugFillProperties.
+    removeReferences(debugFillProperties, properties);
+
+    // Remove any defined in debugDescribeChildren.
+    removeReferences(debugDescribeChildren, properties);
+
+    // Flag the rest.
+    properties.forEach(rule.reportLint);
+  }
+
+  bool _isOverridingMember(Element member) {
+    if (member == null) {
+      return false;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return false;
+    }
+    Uri libraryUri = classElement.library.source.uri;
+    return context.inheritanceManager.getInherited(
+            classElement.thisType, Name(libraryUri, member.name)) !=
+        null;
+  }
 }
