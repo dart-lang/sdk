@@ -73,11 +73,11 @@ void generateHeader(StringBuffer buffer) {
 void generatePublicExtension(
     StringBuffer buffer, String nativeType, String dartType) {
   final storeTrunctateInt = """
-  /// Note that ints which do not fit in [$nativeType] are truncated.
+  /// Note that ints which do not fit in `$nativeType` are truncated.
 """;
 
   final storeTrunctateDouble = """
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  /// Note that doubles stored into Pointer<`Float`> lose precision.
 """;
 
   final storeTruncate =
@@ -89,6 +89,8 @@ void generatePublicExtension(
 
   final loadSignExtend = isInt(nativeType) ? loadSignExtendInt : "";
 
+  // TODO(dartdoc-bug): Use [] instead of ``, once issue
+  // https://github.com/dart-lang/dartdoc/issues/2039 is fixed.
   buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
 extension ${nativeType}Pointer on Pointer<$nativeType> {
@@ -96,28 +98,28 @@ extension ${nativeType}Pointer on Pointer<$nativeType> {
   ///
   /// The value is automatically unmarshalled from its native representation.
 $loadSignExtend  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
+  /// Note that `address` needs to be aligned to the size of `$nativeType`.
   external $dartType get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
+  /// The `value` is automatically marshalled into its native representation.
 $storeTruncate  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
+  /// Note that `address` needs to be aligned to the size of `$nativeType`.
   external void set value($dartType value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
 $loadSignExtend  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
+  /// Note that `address` needs to be aligned to the size of `$nativeType`.
   external $dartType operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
+  /// The `value` is automatically marshalled into its native representation.
 $storeTruncate  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
+  /// Note that `address` needs to be aligned to the size of `$nativeType`.
   external void operator []=(int index, $dartType value);
 }
 

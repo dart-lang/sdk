@@ -164,31 +164,31 @@ extension Int8Pointer on Pointer<Int8> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int8].
+  /// Note that `address` needs to be aligned to the size of `Int8`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int8] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int8` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int8].
+  /// Note that `address` needs to be aligned to the size of `Int8`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int8].
+  /// Note that `address` needs to be aligned to the size of `Int8`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int8] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int8` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int8].
+  /// Note that `address` needs to be aligned to the size of `Int8`.
   external void operator []=(int index, int value);
 }
 
@@ -199,31 +199,31 @@ extension Int16Pointer on Pointer<Int16> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int16].
+  /// Note that `address` needs to be aligned to the size of `Int16`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int16] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int16` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int16].
+  /// Note that `address` needs to be aligned to the size of `Int16`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int16].
+  /// Note that `address` needs to be aligned to the size of `Int16`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int16] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int16` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int16].
+  /// Note that `address` needs to be aligned to the size of `Int16`.
   external void operator []=(int index, int value);
 }
 
@@ -234,31 +234,31 @@ extension Int32Pointer on Pointer<Int32> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int32].
+  /// Note that `address` needs to be aligned to the size of `Int32`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int32] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int32` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int32].
+  /// Note that `address` needs to be aligned to the size of `Int32`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int32].
+  /// Note that `address` needs to be aligned to the size of `Int32`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int32] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int32` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int32].
+  /// Note that `address` needs to be aligned to the size of `Int32`.
   external void operator []=(int index, int value);
 }
 
@@ -269,31 +269,31 @@ extension Int64Pointer on Pointer<Int64> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int64].
+  /// Note that `address` needs to be aligned to the size of `Int64`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int64] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int64` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int64].
+  /// Note that `address` needs to be aligned to the size of `Int64`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int64].
+  /// Note that `address` needs to be aligned to the size of `Int64`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Int64] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Int64` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Int64].
+  /// Note that `address` needs to be aligned to the size of `Int64`.
   external void operator []=(int index, int value);
 }
 
@@ -304,31 +304,31 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint8].
+  /// Note that `address` needs to be aligned to the size of `Uint8`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint8] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint8` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint8].
+  /// Note that `address` needs to be aligned to the size of `Uint8`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint8].
+  /// Note that `address` needs to be aligned to the size of `Uint8`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint8] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint8` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint8].
+  /// Note that `address` needs to be aligned to the size of `Uint8`.
   external void operator []=(int index, int value);
 }
 
@@ -339,31 +339,31 @@ extension Uint16Pointer on Pointer<Uint16> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint16].
+  /// Note that `address` needs to be aligned to the size of `Uint16`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint16] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint16` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint16].
+  /// Note that `address` needs to be aligned to the size of `Uint16`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint16].
+  /// Note that `address` needs to be aligned to the size of `Uint16`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint16] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint16` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint16].
+  /// Note that `address` needs to be aligned to the size of `Uint16`.
   external void operator []=(int index, int value);
 }
 
@@ -374,31 +374,31 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint32].
+  /// Note that `address` needs to be aligned to the size of `Uint32`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint32] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint32` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint32].
+  /// Note that `address` needs to be aligned to the size of `Uint32`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint32].
+  /// Note that `address` needs to be aligned to the size of `Uint32`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint32] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint32` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint32].
+  /// Note that `address` needs to be aligned to the size of `Uint32`.
   external void operator []=(int index, int value);
 }
 
@@ -409,31 +409,31 @@ extension Uint64Pointer on Pointer<Uint64> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint64].
+  /// Note that `address` needs to be aligned to the size of `Uint64`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint64] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint64` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint64].
+  /// Note that `address` needs to be aligned to the size of `Uint64`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint64].
+  /// Note that `address` needs to be aligned to the size of `Uint64`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [Uint64] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `Uint64` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [Uint64].
+  /// Note that `address` needs to be aligned to the size of `Uint64`.
   external void operator []=(int index, int value);
 }
 
@@ -444,31 +444,31 @@ extension IntPtrPointer on Pointer<IntPtr> {
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [IntPtr].
+  /// Note that `address` needs to be aligned to the size of `IntPtr`.
   external int get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [IntPtr] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `IntPtr` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [IntPtr].
+  /// Note that `address` needs to be aligned to the size of `IntPtr`.
   external void set value(int value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   /// Note that ints are signextended.
   ///
-  /// Note that [address] needs to be aligned to the size of [IntPtr].
+  /// Note that `address` needs to be aligned to the size of `IntPtr`.
   external int operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [IntPtr] are truncated.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that ints which do not fit in `IntPtr` are truncated.
   ///
-  /// Note that [address] needs to be aligned to the size of [IntPtr].
+  /// Note that `address` needs to be aligned to the size of `IntPtr`.
   external void operator []=(int index, int value);
 }
 
@@ -478,30 +478,30 @@ extension FloatPointer on Pointer<Float> {
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Float].
+  /// Note that `address` needs to be aligned to the size of `Float`.
   external double get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that doubles stored into Pointer<`Float`> lose precision.
   ///
-  /// Note that [address] needs to be aligned to the size of [Float].
+  /// Note that `address` needs to be aligned to the size of `Float`.
   external void set value(double value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Float].
+  /// Note that `address` needs to be aligned to the size of `Float`.
   external double operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that doubles stored into Pointer<`Float`> lose precision.
   ///
-  /// Note that [address] needs to be aligned to the size of [Float].
+  /// Note that `address` needs to be aligned to the size of `Float`.
   external void operator []=(int index, double value);
 }
 
@@ -511,30 +511,30 @@ extension DoublePointer on Pointer<Double> {
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Double].
+  /// Note that `address` needs to be aligned to the size of `Double`.
   external double get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that doubles stored into Pointer<`Float`> lose precision.
   ///
-  /// Note that [address] needs to be aligned to the size of [Double].
+  /// Note that `address` needs to be aligned to the size of `Double`.
   external void set value(double value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Double].
+  /// Note that `address` needs to be aligned to the size of `Double`.
   external double operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  /// The `value` is automatically marshalled into its native representation.
+  /// Note that doubles stored into Pointer<`Float`> lose precision.
   ///
-  /// Note that [address] needs to be aligned to the size of [Double].
+  /// Note that `address` needs to be aligned to the size of `Double`.
   external void operator []=(int index, double value);
 }
 
@@ -547,39 +547,39 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Pointer].
+  /// Note that `address` needs to be aligned to the size of `Pointer`.
   external Pointer<T> get value;
 
   /// Store a Dart value into this location.
   ///
-  /// The [value] is automatically marshalled into its native representation.
+  /// The `value` is automatically marshalled into its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Pointer].
+  /// Note that `address` needs to be aligned to the size of `Pointer`.
   external void set value(Pointer<T> value);
 
-  /// Load a Dart value from this location offset by [index].
+  /// Load a Dart value from this location offset by `index`.
   ///
   /// The value is automatically unmarshalled from its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Pointer].
+  /// Note that `address` needs to be aligned to the size of `Pointer`.
   external Pointer<T> operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
+  /// Store a Dart value into this location offset by `index`.
   ///
-  /// The [value] is automatically marshalled into its native representation.
+  /// The `value` is automatically marshalled into its native representation.
   ///
-  /// Note that [address] needs to be aligned to the size of [Pointer].
+  /// Note that `address` needs to be aligned to the size of `Pointer`.
   external void operator []=(int index, Pointer<T> value);
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   /// Create a reference backed by native memory (the same pointer as it's loaded from).
   ///
-  /// Note that [address] needs to be aligned to the size of [T].
+  /// Note that `address` needs to be aligned to the size of `T`.
   external T get ref;
 
-  /// Create a reference backed by native memory offset by [index].
+  /// Create a reference backed by native memory offset by `index`.
   ///
-  /// Note that [address] needs to be aligned to the size of [T].
+  /// Note that `address` needs to be aligned to the size of `T`.
   external T operator [](int index);
 }
