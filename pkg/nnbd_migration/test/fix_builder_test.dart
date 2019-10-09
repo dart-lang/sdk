@@ -672,7 +672,7 @@ bool _f(dynamic d, bool b) => d && b;
         decoratedClassHierarchy, typeProvider, typeSystem, variables);
     var body = node.thisOrAncestorOfType<FunctionBody>();
     var declaration = body.thisOrAncestorOfType<Declaration>();
-    fixBuilder.createFlowAnalysis(declaration, null, body);
+    fixBuilder.createFlowAnalysis(declaration, null);
     return fixBuilder;
   }
 }

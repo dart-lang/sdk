@@ -12,23 +12,6 @@ import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
 
-class AnalyzerFunctionBodyAccess
-    implements FunctionBodyAccess<PromotableElement> {
-  final FunctionBody node;
-
-  AnalyzerFunctionBodyAccess(this.node);
-
-  @override
-  bool isPotentiallyMutatedInClosure(PromotableElement variable) {
-    return node.isPotentiallyMutatedInClosure(variable);
-  }
-
-  @override
-  bool isPotentiallyMutatedInScope(PromotableElement variable) {
-    return node.isPotentiallyMutatedInScope(variable);
-  }
-}
-
 class AnalyzerNodeOperations implements NodeOperations<Expression> {
   const AnalyzerNodeOperations();
 
@@ -143,15 +126,23 @@ class FlowAnalysisHelper {
     flow.handleContinue(target);
   }
 
-  void executableDeclaration_enter(FormalParameterList parameters) {
+  void executableDeclaration_enter(
+      Declaration node, FormalParameterList parameters, bool isClosure) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow.write(parameter.declaredElement);
+        flow.initialize(parameter.declaredElement);
       }
+    }
+
+    if (isClosure) {
+      flow.functionExpression_begin(assignedVariables.writtenInNode(node));
     }
   }
 
-  void executableDeclaration_exit(FunctionBody body) {
+  void executableDeclaration_exit(FunctionBody body, bool isClosure) {
+    if (isClosure) {
+      flow.functionExpression_end();
+    }
     if (!flow.isReachable) {
       result?.functionBodiesThatDontComplete?.add(body);
     }
@@ -162,8 +153,8 @@ class FlowAnalysisHelper {
   }
 
   void for_conditionBegin(AstNode node, Expression condition) {
-    var assigned = assignedVariables.writtenInNode(node);
-    flow.for_conditionBegin(assigned);
+    flow.for_conditionBegin(assignedVariables.writtenInNode(node),
+        assignedVariables.capturedInNode(node));
   }
 
   void isExpression(IsExpression node) {
@@ -214,13 +205,14 @@ class FlowAnalysisHelper {
 
   void topLevelDeclaration_enter(
       Declaration node, FormalParameterList parameters, FunctionBody body) {
+    assert(node != null);
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters);
     flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
-      _nodeOperations,
-      _typeOperations,
-      AnalyzerFunctionBodyAccess(body),
-    );
+        _nodeOperations,
+        _typeOperations,
+        assignedVariables.writtenAnywhere,
+        assignedVariables.capturedAnywhere);
   }
 
   void topLevelDeclaration_exit() {
@@ -240,7 +232,7 @@ class FlowAnalysisHelper {
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
         if (variable.initializer != null) {
-          flow.write(variable.declaredElement);
+          flow.initialize(variable.declaredElement);
         }
       }
     }
