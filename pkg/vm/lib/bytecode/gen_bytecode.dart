@@ -1424,18 +1424,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return negated;
   }
 
-  void _genJumpIfFalse(bool negated, Label dest) {
-    if (negated) {
-      asm.emitJumpIfTrue(dest);
-    } else {
-      asm.emitJumpIfFalse(dest);
-    }
-  }
-
-  void _genJumpIfTrue(bool negated, Label dest) {
-    _genJumpIfFalse(!negated, dest);
-  }
-
   /// Returns value of the given expression if it is a bool constant.
   /// Otherwise, returns `null`.
   bool _constantConditionValue(Expression condition) {
@@ -1491,11 +1479,33 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
       return;
     }
-    bool negated = _genCondition(condition);
-    if (value) {
-      _genJumpIfTrue(negated, dest);
+    if (condition is Not) {
+      _genConditionAndJumpIf(condition.operand, !value, dest);
+    } else if (condition is LogicalExpression) {
+      assert(condition.operator == '||' || condition.operator == '&&');
+      final isOR = (condition.operator == '||');
+
+      Label shortCircuit, done;
+      if (isOR == value) {
+        shortCircuit = dest;
+      } else {
+        shortCircuit = done = new Label();
+      }
+      _genConditionAndJumpIf(condition.left, isOR, shortCircuit);
+      _genConditionAndJumpIf(condition.right, value, dest);
+      if (done != null) {
+        asm.bind(done);
+      }
     } else {
-      _genJumpIfFalse(negated, dest);
+      bool negated = _genCondition(condition);
+      if (negated) {
+        value = !value;
+      }
+      if (value) {
+        asm.emitJumpIfTrue(dest);
+      } else {
+        asm.emitJumpIfFalse(dest);
+      }
     }
   }
 
@@ -3836,7 +3846,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         cp.addInterfaceCall(InvocationKind.method, iteratorMoveNext,
             objectTable.getArgDescHandle(1)),
         1);
-    _genJumpIfFalse(/* negated = */ false, done);
+    asm.emitJumpIfFalse(done);
 
     _enterScope(node);
     _recordSourcePosition(node.bodyOffset);
@@ -4016,7 +4026,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
               cp.addInterfaceCall(
                   InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
               2);
-          _genJumpIfTrue(/* negated = */ false, caseLabel);
+          asm.emitJumpIfTrue(caseLabel);
         }
         asm.currentSourcePosition = savedSourcePosition;
       }
@@ -4192,7 +4202,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _genInstanceOf(catchClause.guard);
 
         skipCatch = new Label();
-        _genJumpIfFalse(/* negated = */ false, skipCatch);
+        asm.emitJumpIfFalse(skipCatch);
       }
 
       _enterScope(catchClause);

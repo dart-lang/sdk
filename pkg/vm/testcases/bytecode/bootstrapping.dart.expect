@@ -133,30 +133,17 @@ Bytecode {
   PushConstant         CP#4
   InterfaceCall        CP#2, 2
   AssertBoolean        0
-  PopLocal             r1
-  Jump                 L2
-L1:
-  PushTrue
-  PopLocal             r1
-L2:
-  Push                 r1
-  JumpIfTrue           L3
+  JumpIfTrue           L1
   LoadStatic           CP#0
   PushConstant         CP#5
   InterfaceCall        CP#2, 2
   AssertBoolean        0
-  PopLocal             r0
-  Jump                 L4
-L3:
-  PushTrue
-  PopLocal             r0
-L4:
-  Push                 r0
-  JumpIfFalse          L5
+  JumpIfFalse          L2
+L1:
   LoadStatic           CP#0
   DirectCall           CP#6, 1
   ReturnTOS
-L5:
+L2:
   DirectCall           CP#8, 0
   PushNull
   LoadStatic           CP#0
@@ -583,20 +570,11 @@ Bytecode {
   LoadStatic           CP#0
   JumpIfNotNull        L1
   LoadStatic           CP#1
-  EqualsNull
-  BooleanNegateTOS
-  PopLocal             r0
-  Jump                 L2
-L1:
-  PushFalse
-  PopLocal             r0
-L2:
-  Push                 r0
-  JumpIfFalse          L3
+  JumpIfNull           L1
   LoadStatic           CP#1
   DynamicCall          CP#2, 1
   StoreStaticTOS       CP#0
-L3:
+L1:
   LoadStatic           CP#0
   ReturnTOS
 }
