@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 dependencies:
-  main: [def, expect]
+  def2: [def]
+  main: [def2, expect]
 flags: 
   - extension-methods

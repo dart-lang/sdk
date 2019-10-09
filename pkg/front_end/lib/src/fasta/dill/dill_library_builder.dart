@@ -297,6 +297,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       } else if (node is Typedef) {
         libraryUri = node.enclosingLibrary.importUri;
         name = node.name;
+      } else if (node is Extension) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
       } else {
         unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
       }
