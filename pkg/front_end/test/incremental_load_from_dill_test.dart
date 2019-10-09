@@ -31,9 +31,16 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
+import 'package:front_end/src/fasta/incremental_serializer.dart'
+    show IncrementalSerializer;
+
+import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+
 import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
+
+import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/kernel.dart'
     show
@@ -129,12 +136,19 @@ class RunCompilations extends Step<TestData, TestData, Context> {
         );
         break;
       case "newworld":
-        keys.removeAll(["worlds", "modules", "omitPlatform", "target"]);
+        keys.removeAll([
+          "worlds",
+          "modules",
+          "omitPlatform",
+          "target",
+          "incrementalSerialization"
+        ]);
         await newWorldTest(
           map["worlds"],
           map["modules"],
           map["omitPlatform"],
           map["target"],
+          map["incrementalSerialization"],
         );
         break;
       default:
@@ -272,8 +286,8 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
-Future<Null> newWorldTest(
-    List worlds, Map modules, bool omitPlatform, String targetName) async {
+Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform,
+    String targetName, bool incrementalSerialization) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
@@ -288,6 +302,7 @@ Future<Null> newWorldTest(
   Map<String, String> sourceFiles;
   CompilerOptions options;
   TestIncrementalCompiler compiler;
+  IncrementalSerializer incrementalSerializer;
 
   Map<String, List<int>> moduleData;
   Map<String, Component> moduleComponents;
@@ -427,15 +442,19 @@ Future<Null> newWorldTest(
     bool outlineOnly = world["outlineOnly"] == true;
     bool skipOutlineBodyCheck = world["skipOutlineBodyCheck"] == true;
     if (brandNewWorld) {
+      if (incrementalSerialization == true) {
+        incrementalSerializer = new IncrementalSerializer();
+      }
       if (world["fromComponent"] == true) {
         compiler = new TestIncrementalCompiler.fromComponent(
             options,
             entries.first,
             (modulesToUse != null) ? sdk : newestWholeComponent,
-            outlineOnly);
+            outlineOnly,
+            incrementalSerializer);
       } else {
-        compiler = new TestIncrementalCompiler(
-            options, entries.first, initializeFrom, outlineOnly);
+        compiler = new TestIncrementalCompiler(options, entries.first,
+            initializeFrom, outlineOnly, incrementalSerializer);
 
         if (modulesToUse != null) {
           throw "You probably shouldn't do this! "
@@ -569,6 +588,12 @@ Future<Null> newWorldTest(
           "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
     }
 
+    if (incrementalSerialization == true && compiler.initializedFromDill) {
+      Expect.isTrue(compiler.initializedIncrementalSerializer);
+    } else {
+      Expect.isFalse(compiler.initializedIncrementalSerializer);
+    }
+
     if (world["checkInvalidatedFiles"] != false) {
       Set<Uri> filteredInvalidated =
           compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
@@ -585,6 +610,8 @@ Future<Null> newWorldTest(
         Expect.isNull(world["expectedInvalidatedUri"]);
       }
     }
+    List<int> incrementalSerializationBytes = checkIncrementalSerialization(
+        incrementalSerialization, component, incrementalSerializer, world);
 
     Set<String> prevFormattedErrors = formattedErrors.toSet();
     Set<String> prevFormattedWarnings = formattedWarnings.toSet();
@@ -610,12 +637,91 @@ Future<Null> newWorldTest(
       checkIsEqual(newestWholeComponentData, thisWholeComponent);
       checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
           prevFormattedWarnings, formattedWarnings);
+
+      List<int> incrementalSerializationBytes2 = checkIncrementalSerialization(
+          incrementalSerialization, component2, incrementalSerializer, world);
+
+      if ((incrementalSerializationBytes == null &&
+              incrementalSerializationBytes2 != null) ||
+          (incrementalSerializationBytes != null &&
+              incrementalSerializationBytes2 == null)) {
+        throw "Incremental serialization gave results in one instance, "
+            "but not another.";
+      }
+
+      if (incrementalSerializationBytes != null) {
+        checkIsEqual(
+            incrementalSerializationBytes, incrementalSerializationBytes2);
+      }
     }
 
     if (world["expressionCompilation"] != null) {
       Uri uri = base.resolve(world["expressionCompilation"]["uri"]);
       String expression = world["expressionCompilation"]["expression"];
       await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+    }
+
+    if (!noFullComponent && incrementalSerialization == true) {
+      // Do compile from scratch and compare.
+      clearPrevErrorsEtc();
+      TestIncrementalCompiler compilerFromScratch;
+
+      IncrementalSerializer incrementalSerializer2;
+      if (incrementalSerialization == true) {
+        incrementalSerializer2 = new IncrementalSerializer();
+      }
+
+      if (world["fromComponent"] == true || modulesToUse != null) {
+        compilerFromScratch = new TestIncrementalCompiler.fromComponent(
+            options, entries.first, sdk, outlineOnly, incrementalSerializer2);
+      } else {
+        compilerFromScratch = new TestIncrementalCompiler(
+            options, entries.first, null, outlineOnly, incrementalSerializer2);
+      }
+
+      if (modulesToUse != null) {
+        compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
+        compilerFromScratch.invalidateAllSources();
+        compilerFromScratch.trackNeededDillLibraries = true;
+      }
+
+      Stopwatch stopwatch = new Stopwatch()..start();
+      Component component3 = await compilerFromScratch.computeDelta(
+          entryPoints: entries,
+          simulateTransformer: world["simulateTransformer"]);
+      performErrorAndWarningCheck(
+          world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      util.throwOnEmptyMixinBodies(component3);
+      util.throwOnInsufficientUriToSource(component3);
+      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+      util.postProcess(component3);
+      print("*****\n\ncomponent3:\n"
+          "${componentToStringSdkFiltered(component3)}\n\n\n");
+      checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
+          prevFormattedWarnings, formattedWarnings);
+
+      List<int> incrementalSerializationBytes3 = checkIncrementalSerialization(
+          incrementalSerialization, component3, incrementalSerializer2, world);
+
+      if ((incrementalSerializationBytes == null &&
+              incrementalSerializationBytes3 != null) ||
+          (incrementalSerializationBytes != null &&
+              incrementalSerializationBytes3 == null)) {
+        throw "Incremental serialization gave results in one instance, "
+            "but not another.";
+      }
+
+      if (incrementalSerializationBytes != null) {
+        if (world["brandNewIncrementalSerializationAllowDifferent"] == true) {
+          // Don't check for equality when we allow it to be different
+          // (e.g. when the old one contains more, and the new one doesn't).
+        } else {
+          checkIsEqual(
+              incrementalSerializationBytes, incrementalSerializationBytes3);
+        }
+        newestWholeComponentData = incrementalSerializationBytes;
+      }
     }
   }
 }
@@ -646,6 +752,99 @@ void checkErrorsAndWarnings(
       .isNotEmpty) {
     Expect.fail("Previously got error messages $prevFormattedWarnings, "
         "now had ${formattedWarnings}.");
+  }
+}
+
+List<int> checkIncrementalSerialization(
+    bool incrementalSerialization,
+    Component component,
+    IncrementalSerializer incrementalSerializer,
+    YamlMap world) {
+  if (incrementalSerialization == true) {
+    Component c = new Component(nameRoot: component.root);
+    c.libraries.addAll(component.libraries);
+    c.uriToSource.addAll(component.uriToSource);
+    Map<String, Set<String>> originalContent = buildMapOfContent(c);
+    ByteSink sink = new ByteSink();
+    int librariesBefore = c.libraries.length;
+    incrementalSerializer.writePackagesToSinkAndTrimComponent(c, sink);
+    int librariesAfter = c.libraries.length;
+    if (librariesAfter > librariesBefore) {
+      throw "Incremental serialization added libraries!";
+    }
+    if (librariesBefore == librariesAfter &&
+        world["incrementalSerializationDoesWork"] == true) {
+      throw "Incremental serialization didn't remove any libraries!";
+    }
+    if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
+      throw "Incremental serialization din't output any bytes, "
+          "but did remove libraries";
+    } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
+      throw "Incremental serialization did output bytes, "
+          "but didn't remove libraries";
+    }
+    if (librariesAfter < librariesBefore) {
+      // If we actually did incremenally serialize anything, check the output!
+      // If we actually did incremenally serialize anything, check the output!
+      BinaryPrinter printer = new BinaryPrinter(sink);
+      printer.writeComponentFile(c);
+      List<int> bytes = sink.builder.takeBytes();
+
+      // Load the bytes back in.
+      Component loadedComponent = new Component();
+      new BinaryBuilder(bytes, filename: null).readComponent(loadedComponent);
+
+      // Check that it doesn't contain anything we said it shouldn't.
+      if (world["serializationShouldNotInclude"] is List) {
+        List serializationShouldNotInclude =
+            world["serializationShouldNotInclude"];
+        Set<Uri> includedImportUris =
+            loadedComponent.libraries.map((l) => l.importUri).toSet();
+        for (String uriString in serializationShouldNotInclude) {
+          Uri uri = Uri.parse(uriString);
+          if (includedImportUris.contains(uri)) {
+            throw "Incremental serialization shouldn't include "
+                "$uriString but did.";
+          }
+        }
+      }
+
+      // Check that it contains at least what we want.
+      Map<String, Set<String>> afterContent =
+          buildMapOfContent(loadedComponent);
+      // Remove any keys in afterContent not in the original as the written
+      // one is allowed to contain *more*.
+      Set<String> newKeys = afterContent.keys.toSet()
+        ..removeAll(originalContent.keys);
+      for (String key in newKeys) {
+        afterContent.remove(key);
+      }
+      checkExpectedContentData(afterContent, originalContent);
+
+      // Check that the result is self-contained.
+      checkSelfContained(loadedComponent);
+
+      return bytes;
+    }
+  }
+  return null;
+}
+
+void checkSelfContained(Component component) {
+  Set<Library> got = new Set<Library>.from(component.libraries);
+  for (Library lib in component.libraries) {
+    for (LibraryDependency dependency in lib.dependencies) {
+      if (dependency.importedLibraryReference.node == null ||
+          !got.contains(dependency.targetLibrary)) {
+        if (dependency.importedLibraryReference.canonicalName
+            .toString()
+            .startsWith("root::dart:")) {
+          continue;
+        }
+        throw "Component didn't contain ${dependency.importedLibraryReference} "
+            "and it should have.";
+      }
+    }
   }
 }
 
@@ -999,20 +1198,25 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   }
 
   TestIncrementalCompiler(CompilerOptions options, this.entryPoint,
-      [Uri initializeFrom, bool outlineOnly])
+      [Uri initializeFrom,
+      bool outlineOnly,
+      IncrementalSerializer incrementalSerializer])
       : super(
             new CompilerContext(
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
             initializeFrom,
-            outlineOnly);
+            outlineOnly,
+            incrementalSerializer);
 
   TestIncrementalCompiler.fromComponent(CompilerOptions options,
-      this.entryPoint, Component componentToInitializeFrom, [bool outlineOnly])
+      this.entryPoint, Component componentToInitializeFrom,
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer])
       : super.fromComponent(
             new CompilerContext(
                 new ProcessedOptions(options: options, inputs: [entryPoint])),
             componentToInitializeFrom,
-            outlineOnly);
+            outlineOnly,
+            incrementalSerializer);
 
   @override
   void recordInvalidatedImportUrisForTesting(List<Uri> uris) {

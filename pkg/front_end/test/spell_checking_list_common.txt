@@ -256,6 +256,7 @@ between
 beyond
 big
 bigint
+bilateral
 binaries
 binary
 bind
@@ -480,6 +481,7 @@ complain
 complete
 completed
 completely
+completeness
 completer
 completion
 complex
@@ -570,6 +572,7 @@ continue
 continued
 continues
 continuing
+continuously
 contraposition
 contrast
 contravariance
@@ -1064,6 +1067,7 @@ finally
 find
 finding
 finds
+fine
 finish
 finished
 finishes
@@ -1430,6 +1434,8 @@ invalid
 invalidate
 invalidated
 invalidates
+invalidating
+invalidation
 invariant
 invariantly
 invert
@@ -1671,6 +1677,7 @@ merging
 message
 messages
 messaging
+met
 metadata
 method
 methods
@@ -1907,6 +1914,7 @@ own
 owned
 owner
 package
+packaged
 packages
 pad
 padded
@@ -1962,6 +1970,7 @@ periods
 permissible
 permitted
 persistent
+pertaining
 phase
 phased
 phases
@@ -2215,6 +2224,7 @@ regions
 register
 registered
 registers
+registration
 registry
 regress
 regression
@@ -2497,6 +2507,7 @@ slow
 slower
 slows
 small
+smaller
 smallest
 snapshot
 snapshots
@@ -2733,6 +2744,7 @@ these
 they
 they're
 thin
+thing
 things
 think
 third
@@ -2741,6 +2753,7 @@ those
 though
 three
 threshold
+threw
 throttle
 through
 throughout
@@ -2961,6 +2974,7 @@ very
 via
 view
 viewed
+views
 violate
 violates
 violation
@@ -2984,6 +2998,7 @@ warnings
 was
 wasn't
 way
+ways
 we
 we'd
 we'll

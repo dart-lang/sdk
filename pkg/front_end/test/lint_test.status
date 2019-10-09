@@ -20,6 +20,7 @@ src/fasta/type_inference/type_inferrer/ImportsTwice: Fail
 src/api_prototype/compiler_options/Exports: Fail
 src/api_prototype/constant_evaluator/Exports: Fail
 src/api_prototype/front_end/Exports: Fail
+src/api_prototype/incremental_kernel_generator/Exports: Fail
 src/fasta/builder/builder/Exports: Fail
 src/fasta/kernel/constant_evaluator/ExplicitType: Pass
 src/fasta/kernel/kernel_api/Exports: Fail

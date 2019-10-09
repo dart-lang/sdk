@@ -14,7 +14,8 @@ import 'package:kernel/binary/ast_from_binary.dart'
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
-        InvalidKernelVersionError;
+        InvalidKernelVersionError,
+        SubComponentView;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
@@ -63,6 +64,8 @@ import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'incremental_serializer.dart' show IncrementalSerializer;
+
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
 import 'fasta_codes.dart'
@@ -108,6 +111,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Uri initializeFromDillUri;
   final Component componentToInitializeFrom;
   bool initializedFromDill = false;
+  bool initializedIncrementalSerializer = false;
   Uri previousPackagesUri;
   Map<String, Uri> previousPackagesMap;
   Map<String, Uri> currentPackagesMap;
@@ -115,6 +119,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
+  IncrementalSerializer incrementalSerializer;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -123,16 +128,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   IncrementalCompiler.fromComponent(
       this.context, Component this.componentToInitializeFrom,
-      [bool outlineOnly])
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer])
       : ticker = context.options.ticker,
         initializeFromDillUri = null,
-        this.outlineOnly = outlineOnly ?? false;
+        this.outlineOnly = outlineOnly ?? false,
+        this.incrementalSerializer = incrementalSerializer;
 
   IncrementalCompiler(this.context,
-      [this.initializeFromDillUri, bool outlineOnly])
+      [this.initializeFromDillUri,
+      bool outlineOnly,
+      IncrementalSerializer incrementalSerializer])
       : ticker = context.options.ticker,
         componentToInitializeFrom = null,
-        this.outlineOnly = outlineOnly ?? false;
+        this.outlineOnly = outlineOnly ?? false,
+        this.incrementalSerializer = incrementalSerializer;
 
   @override
   Future<Component> computeDelta(
@@ -240,7 +249,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       bool removedDillBuilders = false;
       for (LibraryBuilder builder in notReusedLibraries) {
+        // TODO(jensj): What about parts in uriToSource?
         CompilerContext.current.uriToSource.remove(builder.fileUri);
+        incrementalSerializer?.invalidate(builder.fileUri);
 
         LibraryBuilder dillBuilder =
             dillLoadedData.loader.builders.remove(builder.uri);
@@ -703,6 +714,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         uriToSource.remove(uri);
         userBuilders?.remove(uri);
         removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+
+        // Technically this isn't necessary as the uri is not a package-uri.
+        incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
     hierarchy?.applyTreeChanges(removedLibraries, const []);
@@ -755,9 +769,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
-        new BinaryBuilderWithMetadata(initializationBytes,
+        List<SubComponentView> views = new BinaryBuilderWithMetadata(
+                initializationBytes,
                 disableLazyReading: true)
-            .readComponent(data.component, checkCanonicalNames: true);
+            .readComponent(data.component,
+                checkCanonicalNames: true, createView: true);
+        initializedIncrementalSerializer =
+            incrementalSerializer?.initialize(initializationBytes, views) ??
+                false;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).
