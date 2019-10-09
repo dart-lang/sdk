@@ -221,71 +221,60 @@ class InstrumentationRenderer {
   String _computeNavigationContent(UnitInfo unitInfo) {
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
-    List<NavigationRegion> regions = []
-      ..addAll(unitInfo.sources ?? <NavigationSource>[])
-      ..addAll(unitInfo.targets);
-    regions.sort((first, second) {
-      int offsetComparison = first.offset.compareTo(second.offset);
-      if (offsetComparison == 0) {
-        return first is NavigationSource ? -1 : 1;
-      }
-      return offsetComparison;
-    });
+    Map<int, String> openInsertions = {};
+    Map<int, String> closeInsertions = {};
+    //
+    // Compute insertions for navigation targets.
+    //
+    for (NavigationTarget region in unitInfo.targets) {
+      int openOffset = mapper.map(region.offset);
+      String openInsertion = openInsertions[openOffset] ?? '';
+      openInsertion = '<a id="o${region.offset}">$openInsertion';
+      openInsertions[openOffset] = openInsertion;
 
-    StringBuffer navContent = StringBuffer();
-    int previousOffset = 0;
-    for (int i = 0; i < regions.length; i++) {
-      NavigationRegion region = regions[i];
-      int offset = mapper.map(region.offset);
-      int length = region.length;
-      if (offset > previousOffset) {
-        // Write a non-target region.
-        navContent.write(content.substring(previousOffset, offset));
-        if (region is NavigationSource) {
-          if (i + 1 < regions.length &&
-              regions[i + 1].offset == region.offset) {
-            NavigationTarget target = region.target;
-            if (target == regions[i + 1]) {
-              // Add a target region. We skip the source because it links to
-              // itself, which is pointless.
-              navContent.write('<a id="o${region.offset}">');
-              navContent.write(content.substring(offset, offset + length));
-              navContent.write('</a>');
-            } else {
-              // Add a source and target region.
-              // TODO(brianwilkerson) Map the target's file path to the path of
-              //  the corresponding html file. I'd like to do this by adding a
-              //  `FilePathMapper` object so that it can't become inconsistent
-              //  with the code used to decide where to write the html.
-              String htmlPath = pathMapper.map(target.filePath);
-              navContent.write('<a id="o${region.offset}" ');
-              navContent.write('href="$htmlPath#o${target.offset}">');
-              navContent.write(content.substring(offset, offset + length));
-              navContent.write('</a>');
-            }
-            i++;
-          } else {
-            // Add a source region.
-            NavigationTarget target = region.target;
-            String htmlPath = pathMapper.map(target.filePath);
-            navContent.write('<a href="$htmlPath#o${target.offset}">');
-            navContent.write(content.substring(offset, offset + length));
-            navContent.write('</a>');
-          }
-        } else {
-          // Add a target region.
-          navContent.write('<a id="o${region.offset}">');
-          navContent.write(content.substring(offset, offset + length));
-          navContent.write('</a>');
-        }
-        previousOffset = offset + length;
+      int closeOffset = openOffset + region.length;
+      String closeInsertion = closeInsertions[closeOffset] ?? '';
+      closeInsertion = '$closeInsertion</a>';
+      closeInsertions[closeOffset] = closeInsertion;
+    }
+    //
+    // Compute insertions for navigation sources, but skip the sources that
+    // point at themselves.
+    //
+    for (NavigationSource region in unitInfo.sources ?? <NavigationSource>[]) {
+      int openOffset = mapper.map(region.offset);
+      NavigationTarget target = region.target;
+      if (target.filePath != unitInfo.path || region.offset != target.offset) {
+        String openInsertion = openInsertions[openOffset] ?? '';
+        String htmlPath = pathMapper.map(target.filePath);
+        openInsertion = '<a href="$htmlPath#o${target.offset}">$openInsertion';
+        openInsertions[openOffset] = openInsertion;
+
+        int closeOffset = openOffset + region.length;
+        String closeInsertion = closeInsertions[closeOffset] ?? '';
+        closeInsertion = '$closeInsertion</a>';
+        closeInsertions[closeOffset] = closeInsertion;
       }
     }
-    if (previousOffset < content.length) {
-      // Last non-target region.
-      navContent.write(content.substring(previousOffset));
+    //
+    // Apply the insertions that have been computed.
+    //
+    List<int> offsets = []
+      ..addAll(openInsertions.keys)
+      ..addAll(closeInsertions.keys);
+    offsets.sort();
+    StringBuffer navContent2 = StringBuffer();
+    int previousOffset2 = 0;
+    for (int offset in offsets) {
+      navContent2.write(content.substring(previousOffset2, offset));
+      navContent2.write(closeInsertions[offset] ?? '');
+      navContent2.write(openInsertions[offset] ?? '');
+      previousOffset2 = offset;
     }
-    return navContent.toString();
+    if (previousOffset2 < content.length) {
+      navContent2.write(content.substring(previousOffset2));
+    }
+    return navContent2.toString();
   }
 
   /// Return a list of Mustache context, based on the [unitInfo] for both
