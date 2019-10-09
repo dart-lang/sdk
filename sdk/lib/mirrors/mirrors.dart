@@ -1071,6 +1071,11 @@ abstract class MethodMirror implements DeclarationMirror {
   bool get isFactoryConstructor;
 
   /**
+   * Is the reflectee an extension method?
+   */
+  bool get isExtensionMember;
+
+  /**
    * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
@@ -1110,6 +1115,11 @@ abstract class VariableMirror implements DeclarationMirror {
    * Otherwise returns [:false:].
    */
   bool get isConst;
+
+  /**
+   * Is the reflectee an extension member?
+   */
+  bool get isExtensionMember;
 
   /**
    * Whether this mirror is equal to [other].
