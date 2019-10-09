@@ -16,14 +16,25 @@ main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests(dataDir,
       args: args,
-      supportedMarkers: sharedMarkers,
+      supportedMarkers: sharedMarkersWithNnbd,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const StaticTypeDataComputer(), [defaultCfeConfig]));
+      runTest: runTestFor(const StaticTypeDataComputer(),
+          [defaultCfeConfig, cfeNonNullableConfig]));
 }
 
 class StaticTypeDataComputer extends DataComputer<String> {
   const StaticTypeDataComputer();
+
+  /// Function that computes a data mapping for [library].
+  ///
+  /// Fills [actualMap] with the data.
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<String>> actualMap,
+      {bool verbose}) {
+    new StaticTypeDataExtractor(compilerResult, actualMap)
+        .computeForLibrary(library);
+  }
 
   @override
   void computeMemberData(InternalCompilerResult compilerResult, Member member,
@@ -45,6 +56,11 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
             new CoreTypes(compilerResult.component),
             new ClassHierarchy(compilerResult.component)),
         super(compilerResult, actualMap);
+
+  @override
+  String computeLibraryValue(Id id, Library node) {
+    return 'nnbd=${node.isNonNullableByDefault}';
+  }
 
   @override
   String computeNodeValue(Id id, TreeNode node) {

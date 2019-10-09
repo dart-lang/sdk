@@ -203,6 +203,10 @@ import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
 
+// TODO(johnniwinther,jensj): Replace this with the correct scheme.
+const int enableNonNullableDefaultMajorVersion = 2;
+const int enableNonNullableDefaultMinorVersion = 6;
+
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
@@ -356,6 +360,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
+  // TODO(38287): Compute the predicate using the library version instead.
+  @override
+  bool get isNonNullableByDefault =>
+      loader.target.enableNonNullable &&
+      library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
+      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion;
+
   @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length: noLength, bool explicit: false}) {
@@ -368,7 +379,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     }
 
-    // If trying to set a langauge version that is higher than the current sdk
+    // If trying to set a language version that is higher than the current sdk
     // version it's an error.
     if (major > loader.target.currentSdkVersionMajor ||
         (major == loader.target.currentSdkVersionMajor &&
@@ -779,6 +790,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isStatic: true,
           isConst: true));
     }
+
+    library.isNonNullableByDefault = isNonNullableByDefault;
 
     return library;
   }

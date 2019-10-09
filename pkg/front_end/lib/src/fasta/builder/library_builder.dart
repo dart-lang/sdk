@@ -57,7 +57,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   @override
   UnrelatedTarget get target;
 
-  /// Set the langauge version to a specific non-null major and minor version.
+  /// Set the language version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
@@ -225,7 +225,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       charOffset,
       fileUri);
 
-  /// Set the langauge version to a specific non-null major and minor version.
+  /// Set the language version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
@@ -408,10 +408,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
-
-  // TODO(38287): Compute the predicate using the library version instead.
-  @override
-  bool get isNonNullableByDefault => loader.target.enableNonNullable;
 
   @override
   Nullability get nullable {

@@ -322,7 +322,7 @@ class Library extends NamedNode
       _languageVersionMinor ?? defaultLanguageVersionMinor;
   void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
     if (languageVersionMajor == null || languageVersionMinor == null) {
-      throw new StateError("Trying to set langauge version 'null'");
+      throw new StateError("Trying to set language version 'null'");
     }
     _languageVersionMajor = languageVersionMajor;
     _languageVersionMinor = languageVersionMinor;

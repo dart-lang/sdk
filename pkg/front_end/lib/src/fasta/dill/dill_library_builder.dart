@@ -140,6 +140,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get isSynthetic => library.isSynthetic;
 
   @override
+  bool get isNonNullableByDefault => library.isNonNullableByDefault;
+
+  @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length, bool explicit}) {}
 

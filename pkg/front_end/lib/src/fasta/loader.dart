@@ -151,10 +151,10 @@ abstract class Loader {
             }
 
             hasPackageSpecifiedLanguageVersion = true;
-            String langaugeVersionString = property.substring(5);
+            String languageVersionString = property.substring(5);
 
             // Verify that the version is x.y[whatever]
-            List<String> dotSeparatedParts = langaugeVersionString.split(".");
+            List<String> dotSeparatedParts = languageVersionString.split(".");
             if (dotSeparatedParts.length >= 2) {
               packageSpecifiedLanguageVersionMajor =
                   int.tryParse(dotSeparatedParts[0]);

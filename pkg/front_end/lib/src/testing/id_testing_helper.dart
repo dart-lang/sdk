@@ -24,6 +24,7 @@ import 'id_testing.dart'
         RunTestFunction,
         TestData,
         cfeMarker,
+        cfeWithNnbdMarker,
         checkCode;
 import 'id_testing_utils.dart';
 
@@ -34,10 +35,10 @@ export '../fasta/messages.dart' show FormattedMessage;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
-/// Test configuration used for testing CFE with extension methods.
-const TestConfig cfeExtensionMethodsConfig = const TestConfig(
-    cfeMarker, 'cfe with extension methods',
-    experimentalFlags: const {ExperimentalFlag.extensionMethods: true});
+/// Test configuration used for testing CFE with nnbd.
+const TestConfig cfeNonNullableConfig = const TestConfig(
+    cfeWithNnbdMarker, 'cfe with nnbd',
+    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 class TestConfig {
   final String marker;
