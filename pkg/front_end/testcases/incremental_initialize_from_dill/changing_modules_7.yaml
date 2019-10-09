@@ -79,6 +79,8 @@ worlds:
       package:module/lib4.dart:
         - Class Class4
   - entry: compileme.dart
+    fromComponent: true
+    expectInitializeFromDill: false
     outlineOnly: true
     skipOutlineBodyCheck: true
     sources:

@@ -8,11 +8,6 @@ import 'dart:io' show Directory, File;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:front_end/src/base/processed_options.dart'
-    show ProcessedOptions;
-
-import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
@@ -22,8 +17,16 @@ import 'package:front_end/src/api_prototype/diagnostic_message.dart'
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/fasta_codes.dart'
+    show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -58,9 +61,6 @@ import "package:yaml/yaml.dart" show YamlList, YamlMap, loadYamlNode;
 import 'binary_md_dill_reader.dart' show DillComparer;
 
 import "incremental_utils.dart" as util;
-
-import 'package:front_end/src/fasta/fasta_codes.dart'
-    show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'utils/io_utils.dart' show computeRepoDir;
 
@@ -335,6 +335,7 @@ Future<Null> newWorldTest(
         }
       }
     }
+
     bool brandNewWorld = true;
     if (world["worldType"] == "updated") {
       brandNewWorld = false;
@@ -428,10 +429,18 @@ Future<Null> newWorldTest(
     if (brandNewWorld) {
       if (world["fromComponent"] == true) {
         compiler = new TestIncrementalCompiler.fromComponent(
-            options, entries.first, newestWholeComponent, outlineOnly);
+            options,
+            entries.first,
+            (modulesToUse != null) ? sdk : newestWholeComponent,
+            outlineOnly);
       } else {
         compiler = new TestIncrementalCompiler(
             options, entries.first, initializeFrom, outlineOnly);
+
+        if (modulesToUse != null) {
+          throw "You probably shouldn't do this! "
+              "Any modules will have another sdk loaded!";
+        }
       }
     }
 
@@ -559,6 +568,7 @@ Future<Null> newWorldTest(
       throw "Expected that initializedFromDill would be "
           "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
     }
+
     if (world["checkInvalidatedFiles"] != false) {
       Set<Uri> filteredInvalidated =
           compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
@@ -576,13 +586,18 @@ Future<Null> newWorldTest(
       }
     }
 
-    if (!noFullComponent) {
-      Set<String> prevFormattedErrors = formattedErrors.toSet();
-      Set<String> prevFormattedWarnings = formattedWarnings.toSet();
+    Set<String> prevFormattedErrors = formattedErrors.toSet();
+    Set<String> prevFormattedWarnings = formattedWarnings.toSet();
+
+    clearPrevErrorsEtc() {
       gotError = false;
       formattedErrors.clear();
       gotWarning = false;
       formattedWarnings.clear();
+    }
+
+    if (!noFullComponent) {
+      clearPrevErrorsEtc();
       Component component2 = await compiler.computeDelta(
           entryPoints: entries,
           fullComponent: true,
@@ -593,29 +608,8 @@ Future<Null> newWorldTest(
       print("*****\n\ncomponent2:\n"
           "${componentToStringSdkFiltered(component2)}\n\n\n");
       checkIsEqual(newestWholeComponentData, thisWholeComponent);
-      if (prevFormattedErrors.length != formattedErrors.length) {
-        Expect.fail("Previously had ${prevFormattedErrors.length} errors, "
-            "now had ${formattedErrors.length}.\n\n"
-            "Before:\n"
-            "${prevFormattedErrors.join("\n")}"
-            "\n\n"
-            "Now:\n"
-            "${formattedErrors.join("\n")}");
-      }
-      if ((prevFormattedErrors.toSet()..removeAll(formattedErrors))
-          .isNotEmpty) {
-        Expect.fail("Previously got error messages $prevFormattedErrors, "
-            "now had ${formattedErrors}.");
-      }
-      if (prevFormattedWarnings.length != formattedWarnings.length) {
-        Expect.fail("Previously had ${prevFormattedWarnings.length} errors, "
-            "now had ${formattedWarnings.length}.");
-      }
-      if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
-          .isNotEmpty) {
-        Expect.fail("Previously got error messages $prevFormattedWarnings, "
-            "now had ${formattedWarnings}.");
-      }
+      checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
+          prevFormattedWarnings, formattedWarnings);
     }
 
     if (world["expressionCompilation"] != null) {
@@ -623,6 +617,35 @@ Future<Null> newWorldTest(
       String expression = world["expressionCompilation"]["expression"];
       await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
     }
+  }
+}
+
+void checkErrorsAndWarnings(
+    Set<String> prevFormattedErrors,
+    Set<String> formattedErrors,
+    Set<String> prevFormattedWarnings,
+    Set<String> formattedWarnings) {
+  if (prevFormattedErrors.length != formattedErrors.length) {
+    Expect.fail("Previously had ${prevFormattedErrors.length} errors, "
+        "now had ${formattedErrors.length}.\n\n"
+        "Before:\n"
+        "${prevFormattedErrors.join("\n")}"
+        "\n\n"
+        "Now:\n"
+        "${formattedErrors.join("\n")}");
+  }
+  if ((prevFormattedErrors.toSet()..removeAll(formattedErrors)).isNotEmpty) {
+    Expect.fail("Previously got error messages $prevFormattedErrors, "
+        "now had ${formattedErrors}.");
+  }
+  if (prevFormattedWarnings.length != formattedWarnings.length) {
+    Expect.fail("Previously had ${prevFormattedWarnings.length} errors, "
+        "now had ${formattedWarnings.length}.");
+  }
+  if ((prevFormattedWarnings.toSet()..removeAll(formattedWarnings))
+      .isNotEmpty) {
+    Expect.fail("Previously got error messages $prevFormattedWarnings, "
+        "now had ${formattedWarnings}.");
   }
 }
 
@@ -635,6 +658,7 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
   while (workList.isNotEmpty) {
     Library library = workList.removeLast();
     for (LibraryDependency dependency in library.dependencies) {
+      if (dependency.targetLibrary.importUri.scheme == "dart") continue;
       if (libraries.add(dependency.targetLibrary)) {
         workList.add(dependency.targetLibrary);
         allLibraries.add(dependency.targetLibrary);
@@ -645,41 +669,49 @@ void computeAllReachableLibrariesFor(Library lib, Set<Library> allLibraries) {
 
 void checkExpectedContent(YamlMap world, Component component) {
   if (world["expectedContent"] != null) {
-    Map<String, Set<String>> actualContent = new Map<String, Set<String>>();
-    for (Library lib in component.libraries) {
-      Set<String> libContent =
-          actualContent[lib.importUri.toString()] = new Set<String>();
-      for (Class c in lib.classes) {
-        libContent.add("Class ${c.name}");
-      }
-      for (Procedure p in lib.procedures) {
-        libContent.add("Procedure ${p.name}");
-      }
-      for (Field f in lib.fields) {
-        libContent.add("Field ${f.name}");
-      }
-    }
-
+    Map<String, Set<String>> actualContent = buildMapOfContent(component);
     Map expectedContent = world["expectedContent"];
+    checkExpectedContentData(actualContent, expectedContent);
+  }
+}
 
-    doThrow() {
-      throw "Expected and actual content not the same.\n"
-          "Expected $expectedContent.\n"
-          "Got $actualContent";
+void checkExpectedContentData(
+    Map<String, Set<String>> actualContent, Map expectedContent) {
+  doThrow() {
+    throw "Expected and actual content not the same.\n"
+        "Expected $expectedContent.\n"
+        "Got $actualContent";
+  }
+
+  if (actualContent.length != expectedContent.length) doThrow();
+  Set<String> missingKeys = actualContent.keys.toSet()
+    ..removeAll(expectedContent.keys);
+  if (missingKeys.isNotEmpty) doThrow();
+  for (String key in expectedContent.keys) {
+    Set<String> expected = new Set<String>.from(expectedContent[key]);
+    Set<String> actual = actualContent[key].toSet();
+    if (expected.length != actual.length) doThrow();
+    actual.removeAll(expected);
+    if (actual.isNotEmpty) doThrow();
+  }
+}
+
+Map<String, Set<String>> buildMapOfContent(Component component) {
+  Map<String, Set<String>> actualContent = new Map<String, Set<String>>();
+  for (Library lib in component.libraries) {
+    Set<String> libContent =
+        actualContent[lib.importUri.toString()] = new Set<String>();
+    for (Class c in lib.classes) {
+      libContent.add("Class ${c.name}");
     }
-
-    if (actualContent.length != expectedContent.length) doThrow();
-    Set<String> missingKeys = actualContent.keys.toSet()
-      ..removeAll(expectedContent.keys);
-    if (missingKeys.isNotEmpty) doThrow();
-    for (String key in expectedContent.keys) {
-      Set<String> expected = new Set<String>.from(expectedContent[key]);
-      Set<String> actual = actualContent[key].toSet();
-      if (expected.length != actual.length) doThrow();
-      actual.removeAll(expected);
-      if (actual.isNotEmpty) doThrow();
+    for (Procedure p in lib.procedures) {
+      libContent.add("Procedure ${p.name}");
+    }
+    for (Field f in lib.fields) {
+      libContent.add("Field ${f.name}");
     }
   }
+  return actualContent;
 }
 
 void checkNeededDillLibraries(
