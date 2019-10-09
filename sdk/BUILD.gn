@@ -51,11 +51,16 @@ declare_args() {
 # ........gen_kernel.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
-#.........resources/
-#...........dartdoc/
-#..............packages
-#.............resources/
-#.............templates/
+# ......resources/
+# ........dartdoc/
+# ...........packages
+# ..........resources/
+# ..........templates/
+# ......model/
+# ........lexeme/
+# ..........idx2word.json
+# ..........model.tflite
+# ..........word2idx.json
 # ....include/
 # ......dart_api.h
 # ......dart_native_api.h
@@ -63,13 +68,13 @@ declare_args() {
 # ....lib/
 # ......libraries.json
 # ......_internal/
-#.........strong.sum
-#.........dart2js_platform.dill
-#.........dart2js_server_platform.dill
-#.........dart2js_platform_strong.dill
-#.........dart2js_server_platform_strong.dill
-#.........vm_platform_strong.dill
-#.........dev_compiler/
+# ........strong.sum
+# ........dart2js_platform.dill
+# ........dart2js_server_platform.dill
+# ........dart2js_platform_strong.dill
+# ........dart2js_server_platform_strong.dill
+# ........vm_platform_strong.dill
+# ........dev_compiler/
 # ......async/
 # ......collection/
 # ......convert/
@@ -86,11 +91,6 @@ declare_args() {
 # ......typed_data/
 # ......wasm/
 # ......api_readme.md
-# ....model/
-# ......lexeme/
-# ........idx2word.json
-# ........model.tflite
-# ........word2idx.json
 
 # Scripts that go under bin/
 _platform_sdk_scripts = [
@@ -311,7 +311,7 @@ if (target_cpu == "x64") {
         ":copy_libraries",
       ]
       source = "../pkg/analysis_server/language_model"
-      dest = "$root_out_dir/dart-sdk/model"
+      dest = "$root_out_dir/dart-sdk/bin/model"
       ignore_patterns = "{}"
     },
     {

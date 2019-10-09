@@ -355,13 +355,13 @@ class Driver implements ServerStarter {
       // The user has enabled ML code completion without explicitly setting
       // a model for us to choose, so use the default one. We need to walk over
       // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
-      // $SDK/model/lexeme.
+      // $SDK/bin/model/lexeme.
       analysisServerOptions.completionModelFolder = path.join(
-          File.fromUri(Platform.script).parent.path,
-          '..',
-          '..',
-          'model',
-          'lexeme');
+        File.fromUri(Platform.script).parent.path,
+        '..',
+        'model',
+        'lexeme',
+      );
     }
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
