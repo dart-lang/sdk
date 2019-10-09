@@ -24,12 +24,6 @@ Web library access is allowed in:
 otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are flagged.
 ''';
 
-const _webLibs = [
-  'dart:html',
-  'dart:js',
-  'dart:js_util',
-];
-
 /// todo (pq): consider making a utility and sharing w/ `prefer_relative_imports`
 YamlMap _parseYaml(String content) {
   try {
@@ -111,7 +105,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (hasWebUri(node.uri.stringValue) && shouldValidateUri) {
+    if (isWebUri(node.uri.stringValue) && shouldValidateUri) {
       rule.reportLint(node);
     }
   }
