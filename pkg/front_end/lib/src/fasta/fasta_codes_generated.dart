@@ -1054,7 +1054,7 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
     "ConstConstructorWithNonConstSuper",
     analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER"],
     message:
-        r"""Constant constructor can't call non-constant super constructors.""");
+        r"""A constant constructor can't call a non-constant super constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalCircularity = messageConstEvalCircularity;

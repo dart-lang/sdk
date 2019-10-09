@@ -5029,15 +5029,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = charOffset;
   }
 
-  Initializer buildInvalidSuperInitializer(
-      Constructor target, ArgumentsImpl arguments, Expression expression,
-      [int charOffset = -1]) {
-    needsImplicitSuperInitializer = false;
-    return new InvalidSuperInitializerJudgment(
-        target, arguments, new VariableDeclaration.forValue(expression))
-      ..fileOffset = charOffset;
-  }
-
   Initializer buildDuplicatedInitializer(Field field, Expression value,
       String name, int offset, int previousInitializerOffset) {
     return new ShadowInvalidFieldInitializer(
@@ -5139,12 +5130,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       bool isSynthetic, Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
     if (member.isConst && !constructor.isConst) {
-      return buildInvalidSuperInitializer(
-          constructor,
-          arguments,
-          buildProblem(fasta.messageConstConstructorWithNonConstSuper,
-              charOffset, constructor.name.name.length),
-          charOffset);
+      addProblem(fasta.messageConstConstructorWithNonConstSuper, charOffset,
+          constructor.name.name.length);
     }
     needsImplicitSuperInitializer = false;
     return new SuperInitializer(constructor, arguments)

@@ -893,18 +893,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
     final Constructor constructor = node.target;
+    checkConstructorConst(node, constructor);
+
     final Class klass = constructor.enclosingClass;
-    bool isSymbol = klass == coreTypes.internalSymbolClass;
-    if (!constructor.isConst) {
-      return reportInvalid(node, 'Non-const constructor invocation.');
-    }
-    if (constructor.function.body != null &&
-        constructor.function.body is! EmptyStatement) {
-      return reportInvalid(
-          node,
-          'Constructor "$node" has non-trivial body '
-          '"${constructor.function.body.runtimeType}".');
-    }
     if (klass.isAbstract) {
       return reportInvalid(
           node, 'Constructor "$node" belongs to abstract class "${klass}".');
@@ -914,6 +905,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         evaluatePositionalArguments(node.arguments);
     final Map<String, Constant> named = evaluateNamedArguments(node.arguments);
 
+    bool isSymbol = klass == coreTypes.internalSymbolClass;
     if (isSymbol && shouldBeUnevaluated) {
       return unevaluated(
           node,
@@ -962,6 +954,19 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         return canonicalize(instanceBuilder.buildInstance());
       });
     });
+  }
+
+  void checkConstructorConst(TreeNode node, Constructor constructor) {
+    if (!constructor.isConst) {
+      reportInvalid(node, 'Non-const constructor invocation.');
+    }
+    if (constructor.function.body != null &&
+        constructor.function.body is! EmptyStatement) {
+      reportInvalid(
+          node,
+          'Constructor "$node" has non-trivial body '
+          '"${constructor.function.body.runtimeType}".');
+    }
   }
 
   @override
@@ -1159,6 +1164,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             env.addVariableValue(
                 variable, _evaluateSubexpression(variable.initializer));
           } else if (init is SuperInitializer) {
+            checkConstructorConst(init, constructor);
             handleConstructorInvocation(
                 init.target,
                 evaluateSuperTypeArguments(
@@ -1168,6 +1174,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
           } else if (init is RedirectingInitializer) {
             // Since a redirecting constructor targets a constructor of the same
             // class, we pass the same [typeArguments].
+            checkConstructorConst(init, constructor);
             handleConstructorInvocation(
                 init.target,
                 typeArguments,

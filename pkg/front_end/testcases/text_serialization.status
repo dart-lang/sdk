@@ -120,6 +120,7 @@ general/closure: TextSerializationFailure # Was: Pass
 general/co19_language_metadata_syntax_t04: TextSerializationFailure # Was: Pass
 general/complex_class_hierarchy: TextSerializationFailure
 general/compound_binary_implicit_as: TextSerializationFailure
+general/const_redirect_to_nonconst: TextSerializationFailure
 general/constructor_const_inference: TextSerializationFailure # Was: Pass
 general/constructor_cycle: TextSerializationFailure # Was: Pass
 general/constructor_function_types: TextSerializationFailure # Was: Pass

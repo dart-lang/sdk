@@ -738,10 +738,6 @@ SuperInitializerNotLast:
   script:
     - "class C { int x; C.bad() : super(), x = 5; }"
 
-ConstConstructorWithNonConstSuper:
-  template: "Constant constructor can't call non-constant super constructors."
-  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
-
 ExtraneousModifier:
   index: 77
   template: "Can't have modifier '#lexeme' here."
@@ -2701,6 +2697,18 @@ ConstConstructorRedirectionToNonConst:
       class A {
         const A.foo() : this.bar();
         A.bar() {}
+      }
+
+ConstConstructorWithNonConstSuper:
+  template: "A constant constructor can't call a non-constant super constructor."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
+  script:
+    - >-
+      class A {
+        A.bar() {}
+      }
+      class B extends A {
+        const B.foo() : super.bar();
       }
 
 AccessError:
