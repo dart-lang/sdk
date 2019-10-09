@@ -42,6 +42,7 @@ import 'package:linter/src/rules/avoid_types_as_parameter_names.dart';
 import 'package:linter/src/rules/avoid_types_on_closure_parameters.dart';
 import 'package:linter/src/rules/avoid_unused_constructor_parameters.dart';
 import 'package:linter/src/rules/avoid_void_async.dart';
+import 'package:linter/src/rules/avoid_web_libraries_in_flutter.dart';
 import 'package:linter/src/rules/await_only_futures.dart';
 import 'package:linter/src/rules/camel_case_extensions.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
@@ -198,6 +199,7 @@ void registerLintRules() {
     ..register(AvoidTypesOnClosureParameters())
     ..register(AvoidUnusedConstructorParameters())
     ..register(AvoidVoidAsync())
+    ..register(AvoidWebLibrariesInFlutter())
     ..register(AwaitOnlyFutures())
     ..register(CamelCaseExtensions())
     ..register(CamelCaseTypes())
