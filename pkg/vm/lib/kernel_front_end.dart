@@ -250,8 +250,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       mainUri,
       compilerOptions,
       results.component,
-      results.coreTypes,
-      results.classHierarchy,
       outputFileName,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
@@ -266,12 +264,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 /// collection of compiled sources.
 class KernelCompilationResults {
   final Component component;
-  final ClassHierarchy classHierarchy;
-  final CoreTypes coreTypes;
   final Iterable<Uri> compiledSources;
 
-  KernelCompilationResults(this.component, this.classHierarchy, this.coreTypes,
-      this.compiledSources);
+  KernelCompilationResults(this.component, this.compiledSources);
 }
 
 /// Generates a kernel representation of the program whose main library is in
@@ -295,7 +290,6 @@ Future<KernelCompilationResults> compileToKernel(
 
   setVMEnvironmentDefines(environmentDefines, options);
   CompilerResult compilerResult = await kernelForProgram(source, options);
-
   Component component = compilerResult?.component;
   final compiledSources = component?.uriToSource?.keys;
 
@@ -313,10 +307,7 @@ Future<KernelCompilationResults> compileToKernel(
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
-      generateBytecode(component,
-          hierarchy: compilerResult.classHierarchy,
-          coreTypes: compilerResult.coreTypes,
-          options: bytecodeOptions);
+      generateBytecode(component, options: bytecodeOptions);
     });
 
     if (dropAST) {
@@ -327,8 +318,7 @@ Future<KernelCompilationResults> compileToKernel(
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return new KernelCompilationResults(component, compilerResult.classHierarchy,
-      compilerResult.coreTypes, compiledSources);
+  return new KernelCompilationResults(component, compiledSources);
 }
 
 void setVMEnvironmentDefines(
@@ -600,8 +590,6 @@ Future writeOutputSplitByPackages(
   Uri source,
   CompilerOptions compilerOptions,
   Component component,
-  CoreTypes coreTypes,
-  ClassHierarchy hierarchy,
   String outputFileName, {
   bool genBytecode: false,
   BytecodeOptions bytecodeOptions,
@@ -609,6 +597,14 @@ Future writeOutputSplitByPackages(
 }) async {
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
+  }
+
+  ClassHierarchy hierarchy;
+  if (genBytecode) {
+    // Calculating class hierarchy is an expensive operation.
+    // Calculate it once and reuse while generating bytecode for each package.
+    hierarchy =
+        new ClassHierarchy(component, onAmbiguousSupertypes: (cls, a, b) {});
   }
 
   final packages = new List<String>();
@@ -625,8 +621,7 @@ Future writeOutputSplitByPackages(
         generateBytecode(partComponent,
             options: bytecodeOptions,
             libraries: libraries,
-            hierarchy: hierarchy,
-            coreTypes: coreTypes);
+            hierarchy: hierarchy);
 
         if (dropAST) {
           partComponent = createFreshComponentWithBytecode(partComponent);

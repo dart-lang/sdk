@@ -34,7 +34,6 @@ import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart'
     show
-        KernelCompilationResults,
         asFileUri,
         compileToKernel,
         convertFileOrUriArgumentToUri,
@@ -379,7 +378,8 @@ class FrontendCompiler implements CompilerInterface {
     _compilerOptions = compilerOptions;
     _bytecodeOptions = bytecodeOptions;
 
-    KernelCompilationResults results;
+    Component component;
+    Iterable<Uri> compiledSources;
     if (options['incremental']) {
       setVMEnvironmentDefines(environmentDefines, _compilerOptions);
 
@@ -387,13 +387,8 @@ class FrontendCompiler implements CompilerInterface {
       _generator =
           generator ?? _createGenerator(new Uri.file(_initializeFromDill));
       await invalidateIfInitializingFromDill();
-      Component component =
-          await _runWithPrintRedirection(() => _generator.compile());
-      results = new KernelCompilationResults(
-          component,
-          _generator.getClassHierarchy(),
-          _generator.getCoreTypes(),
-          component.uriToSource.keys);
+      component = await _runWithPrintRedirection(() => _generator.compile());
+      compiledSources = component.uriToSource.keys;
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -403,28 +398,30 @@ class FrontendCompiler implements CompilerInterface {
         ];
       }
       // No bytecode at this step. Bytecode is generated later in _writePackage.
-      results = await _runWithPrintRedirection(() => compileToKernel(
+      final results = await _runWithPrintRedirection(() => compileToKernel(
           _mainSource, compilerOptions,
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
+      component = results.component;
+      compiledSources = results.compiledSources;
     }
-    if (results.component != null) {
+    if (component != null) {
       if (transformer != null) {
-        transformer.transform(results.component);
+        transformer.transform(component);
       }
 
-      await writeDillFile(results, _kernelBinaryFilename,
+      await writeDillFile(component, _kernelBinaryFilename,
           filterExternal: importDill != null);
 
       _outputStream.writeln(boundaryKey);
-      await _outputDependenciesDelta(results.compiledSources);
+      await _outputDependenciesDelta(compiledSources);
       _outputStream
           .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
       final String depfile = options['depfile'];
       if (depfile != null) {
-        await writeDepfile(compilerOptions.fileSystem, results.compiledSources,
+        await writeDepfile(compilerOptions.fileSystem, compiledSources,
             _kernelBinaryFilename, depfile);
       }
 
@@ -480,9 +477,8 @@ class FrontendCompiler implements CompilerInterface {
     previouslyReportedDependencies = uris;
   }
 
-  writeDillFile(KernelCompilationResults results, String filename,
+  writeDillFile(Component component, String filename,
       {bool filterExternal: false}) async {
-    final Component component = results.component;
     // Remove the cache that came either from this function or from
     // initializing from a kernel file.
     component.metadata.remove(BinaryCacheMetadataRepository.repositoryTag);
@@ -496,10 +492,10 @@ class FrontendCompiler implements CompilerInterface {
           if (_options['incremental']) {
             await forEachPackage(component,
                 (String package, List<Library> libraries) async {
-              _writePackage(results, package, libraries, sink);
+              _writePackage(component, package, libraries, sink);
             });
           } else {
-            _writePackage(results, 'main', component.libraries, sink);
+            _writePackage(component, 'main', component.libraries, sink);
           }
         });
         await sink.close();
@@ -606,7 +602,7 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  void _writePackage(KernelCompilationResults result, String package,
+  void _writePackage(Component component, String package,
       List<Library> libraries, IOSink sink) {
     final canCache = libraries.isNotEmpty &&
         _compilerOptions.bytecode &&
@@ -621,7 +617,7 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
-    Component partComponent = result.component;
+    Component partComponent = component;
     if (_compilerOptions.bytecode && errors.isEmpty) {
       generateBytecode(partComponent,
           options: _bytecodeOptions,
@@ -655,22 +651,17 @@ class FrontendCompiler implements CompilerInterface {
       _mainSource = _getFileOrUri(entryPoint);
     }
     errors.clear();
-
     Component deltaProgram = await _generator.compile(entryPoint: _mainSource);
+
     if (deltaProgram != null && transformer != null) {
       transformer.transform(deltaProgram);
     }
+    final compiledSources = deltaProgram.uriToSource.keys;
 
-    KernelCompilationResults results = new KernelCompilationResults(
-        deltaProgram,
-        _generator.getClassHierarchy(),
-        _generator.getCoreTypes(),
-        deltaProgram.uriToSource.keys);
-
-    await writeDillFile(results, _kernelBinaryFilename);
+    await writeDillFile(deltaProgram, _kernelBinaryFilename);
 
     _outputStream.writeln(boundaryKey);
-    await _outputDependenciesDelta(results.compiledSources);
+    await _outputDependenciesDelta(compiledSources);
     _outputStream
         .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
     _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
