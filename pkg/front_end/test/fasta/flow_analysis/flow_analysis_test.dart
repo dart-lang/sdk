@@ -1825,7 +1825,7 @@ class _Harness
     ifTrue();
     _flow.ifStatement_elseBegin();
     ifFalse();
-    _flow.ifStatement_end(false);
+    _flow.ifStatement_end(true);
   }
 
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
