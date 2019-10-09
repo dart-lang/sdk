@@ -1113,8 +1113,7 @@ int64_t TimelineEventRecorder::GetNextAsyncId() {
 #if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
   return trace_generate_nonce();
 #else
-  uint32_t next =
-      static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
+  uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));
   return static_cast<int64_t>(next);
 #endif
 }

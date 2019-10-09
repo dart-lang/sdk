@@ -149,9 +149,10 @@ void ClassTable::Register(const Class& cls) {
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
-    cpp_vtable old_cls_vtable = AtomicOperations::CompareAndSwapWord(
-        &(Object::builtin_vtables_[index]), 0, cls_vtable);
-    if (old_cls_vtable != 0) {
+    cpp_vtable old_cls_vtable = 0;
+    if (!Object::builtin_vtables_[index].compare_exchange_strong(old_cls_vtable,
+                                                                 cls_vtable)) {
+      // Lost the race, but the other thread installed the same value.
       ASSERT(old_cls_vtable == cls_vtable);
     }
   } else {

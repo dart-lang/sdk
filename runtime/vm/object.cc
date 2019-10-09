@@ -104,7 +104,7 @@ RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
 RawArray* SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::handle_vtable_ = 0;
-cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {0};
+RelaxedAtomic<cpp_vtable> Object::builtin_vtables_[kNumPredefinedCids] = {};
 cpp_vtable Smi::handle_vtable_ = 0;
 
 // These are initialized to a value that will force a illegal memory access if
@@ -1279,9 +1279,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
-                                                      old_tags, new_tags);
-      } while (tags != old_tags);
+      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
@@ -1310,9 +1308,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
-                                                      old_tags, new_tags);
-      } while (tags != old_tags);
+      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
     }
   }
 }
@@ -20833,7 +20829,7 @@ void Array::Truncate(intptr_t new_len) const {
   Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
 
   // Update the size in the header field and length of the array object.
-  uword tags = array.raw_ptr()->tags_;
+  uint32_t tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
   uint32_t old_tags;
   do {

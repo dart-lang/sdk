@@ -267,8 +267,7 @@ class RawObject {
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotMarkedBit::update(false, tags);
+    ptr()->tags_ = OldAndNotMarkedBit::update(false, ptr()->tags_);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
@@ -318,8 +317,7 @@ class RawObject {
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = CardRememberedBit::update(true, tags);
+    ptr()->tags_ = CardRememberedBit::update(true, ptr()->tags_);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -360,10 +358,7 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
+  intptr_t GetClassId() const { return ClassIdTag::decode(ptr()->tags_); }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -381,7 +376,7 @@ class RawObject {
       // recomputing size from tags.
       const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
-          (ptr()->tags_ != tags)) {
+          (ptr()->tags_) != tags) {
         result = SizeTag::decode(ptr()->tags_);
       }
       ASSERT(result == size_from_class);
@@ -492,7 +487,7 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  uint32_t tags_;  // Various object tags (bits).
+  RelaxedAtomic<uint32_t> tags_;  // Various object tags (bits).
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
@@ -515,31 +510,28 @@ class RawObject {
   intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = ClassIdTag::update(new_cid, tags);
+    ptr()->tags_ = ClassIdTag::update(new_cid, ptr()->tags_);
   }
 
   template <class TagBitField>
   void UpdateTagBit(bool value) {
     if (value) {
-      AtomicOperations::FetchOrRelaxedUint32(&ptr()->tags_,
-                                             TagBitField::encode(true));
+      ptr()->tags_.fetch_or(TagBitField::encode(true));
     } else {
-      AtomicOperations::FetchAndRelaxedUint32(&ptr()->tags_,
-                                              ~TagBitField::encode(true));
+      ptr()->tags_.fetch_and(~TagBitField::encode(true));
     }
   }
 
   template <class TagBitField>
   bool TryAcquireTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchOrRelaxedUint32(
-        &ptr()->tags_, TagBitField::encode(true));
+    uint32_t mask = TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_or(mask);
     return !TagBitField::decode(old_tags);
   }
   template <class TagBitField>
   bool TryClearTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchAndRelaxedUint32(
-        &ptr()->tags_, ~TagBitField::encode(true));
+    uint32_t mask = ~TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_and(mask);
     return TagBitField::decode(old_tags);
   }
 

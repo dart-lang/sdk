@@ -86,9 +86,9 @@ class ClassHeapStatsTestHelper {
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {
-    OS::PrintErr("%" Pd " ", stats->recent.new_count);
-    OS::PrintErr("%" Pd " ", stats->post_gc.new_count);
-    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count);
+    OS::PrintErr("%" Pd " ", stats->recent.new_count.load());
+    OS::PrintErr("%" Pd " ", stats->post_gc.new_count.load());
+    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count.load());
     OS::PrintErr("\n");
   }
 };

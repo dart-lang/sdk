@@ -7,6 +7,7 @@
 
 #include "include/dart_tools_api.h"
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
@@ -740,7 +741,7 @@ class TimelineEventRecorder {
   int64_t TimeExtentMicros() const;
 
   Mutex lock_;
-  uintptr_t async_id_;
+  RelaxedAtomic<uintptr_t> async_id_;
   int64_t time_low_micros_;
   int64_t time_high_micros_;
 

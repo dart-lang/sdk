@@ -6,6 +6,7 @@
 #define RUNTIME_VM_OS_THREAD_H_
 
 #include "platform/address_sanitizer.h"
+#include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
 #include "vm/allocation.h"
@@ -295,7 +296,7 @@ class OSThread : public BaseThread {
   // All |Thread|s are registered in the thread list.
   OSThread* thread_list_next_;
 
-  uintptr_t thread_interrupt_disabled_;
+  RelaxedAtomic<uintptr_t> thread_interrupt_disabled_;
   Log* log_;
   uword stack_base_;
   uword stack_limit_;

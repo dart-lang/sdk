@@ -10,8 +10,11 @@
 #endif
 
 #include <tuple>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
 #include "vm/code_entry_kind.h"
@@ -270,8 +273,8 @@ class Object {
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
   uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
-    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
-                                                  old_tags, new_tags);
+    raw()->ptr()->tags_.compare_exchange_strong(old_tags, new_tags);
+    return old_tags;
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -707,7 +710,7 @@ class Object {
   }
 
   static cpp_vtable handle_vtable_;
-  static cpp_vtable builtin_vtables_[kNumPredefinedCids];
+  static RelaxedAtomic<cpp_vtable> builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -9940,7 +9943,8 @@ RawClass* Object::clazz() const {
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 
-DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
+DART_FORCE_INLINE
+void Object::SetRaw(RawObject* value) {
   NoSafepointScope no_safepoint_scope;
   raw_ = value;
   if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {

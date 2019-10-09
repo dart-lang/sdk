@@ -4,6 +4,7 @@
 
 #include "vm/heap/compactor.h"
 
+#include "platform/atomic.h"
 #include "vm/globals.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
@@ -126,7 +127,7 @@ class CompactorTask : public ThreadPool::Task {
   CompactorTask(Isolate* isolate,
                 GCCompactor* compactor,
                 ThreadBarrier* barrier,
-                intptr_t* next_forwarding_task,
+                RelaxedAtomic<intptr_t>* next_forwarding_task,
                 HeapPage* head,
                 HeapPage** tail,
                 FreeList* freelist)
@@ -152,7 +153,7 @@ class CompactorTask : public ThreadPool::Task {
   Isolate* isolate_;
   GCCompactor* compactor_;
   ThreadBarrier* barrier_;
-  intptr_t* next_forwarding_task_;
+  RelaxedAtomic<intptr_t>* next_forwarding_task_;
   HeapPage* head_;
   HeapPage** tail_;
   FreeList* freelist_;
@@ -243,7 +244,7 @@ void GCCompactor::Compact(HeapPage* pages,
   {
     ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
                           heap_->barrier_done());
-    intptr_t next_forwarding_task = 0;
+    RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
       Dart::thread_pool()->Run<CompactorTask>(
@@ -370,8 +371,7 @@ void CompactorTask::Run() {
 
     bool more_forwarding_tasks = true;
     while (more_forwarding_tasks) {
-      intptr_t forwarding_task =
-          AtomicOperations::FetchAndIncrement(next_forwarding_task_);
+      intptr_t forwarding_task = next_forwarding_task_->fetch_add(1u);
       switch (forwarding_task) {
         case 0: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
