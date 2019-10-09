@@ -25,24 +25,11 @@ worlds:
   - entry: main.dart
     worldType: updated
     invalidate:
-      - main.dart
+      - b.dart
     expectInitializeFromDill: false
     sources:
-      main.dart: |
-        main() {}
-    expectedLibraryCount: 1
+      b.dart: |
+        b() {}
+    expectedLibraryCount: 2
     uriToSourcesDoesntInclude:
-      - b.dart
-      - c.dart
-  - entry: main.dart
-    worldType: updated
-    invalidate:
-      - main.dart
-    expectInitializeFromDill: false
-    sources:
-      main.dart: |
-        main() {}
-    expectedLibraryCount: 1
-    uriToSourcesDoesntInclude:
-      - b.dart
       - c.dart
