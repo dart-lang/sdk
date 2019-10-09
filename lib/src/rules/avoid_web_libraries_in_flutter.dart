@@ -66,12 +66,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   File pubspecFile;
 
   final rule;
+  bool _shouldValidateUri;
+
   _Visitor(this.rule);
 
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    pubspecFile = locatePubspecFile(node);
-  }
+  bool get shouldValidateUri => _shouldValidateUri ??= checkForValidation();
 
   bool checkForValidation() {
     if (pubspecFile == null) {
@@ -98,13 +97,21 @@ class _Visitor extends SimpleAstVisitor<void> {
             null;
   }
 
-  bool _shouldValidateUri;
+  bool isWebUri(String uri) {
+    final uriLength = uri.length;
+    return (uriLength == 9 && uri == 'dart:html') ||
+        (uriLength == 7 && uri == 'dart:js') ||
+        (uriLength == 12 && uri == 'dart:js_util');
+  }
 
-  bool get shouldValidateUri => _shouldValidateUri ??= checkForValidation();
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    pubspecFile = locatePubspecFile(node);
+  }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (_webLibs.contains(node.uri.stringValue) && shouldValidateUri) {
+    if (hasWebUri(node.uri.stringValue) && shouldValidateUri) {
       rule.reportLint(node);
     }
   }
