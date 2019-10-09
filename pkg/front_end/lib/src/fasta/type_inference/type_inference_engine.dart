@@ -26,6 +26,8 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../builder/library_builder.dart';
 
+import '../kernel/forest.dart';
+
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, ImplicitFieldType;
 
@@ -117,6 +119,9 @@ abstract class TypeInferenceEngine {
   ClassHierarchyBuilder hierarchyBuilder;
 
   CoreTypes coreTypes;
+
+  // TODO(johnniwinther): Shared this with the BodyBuilder.
+  final Forest forest = const Forest();
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;

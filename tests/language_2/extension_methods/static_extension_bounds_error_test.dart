@@ -39,13 +39,13 @@ void main() {
   E1(s).e1;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//      ^
+//^
 // [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
   E1<String>(s).e1;
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-//              ^
-// [cfe] Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
+//^
+// [cfe] Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'E1|get#e1'.
 
   // Inferred types of int and double are ok
   i.e1;
@@ -63,13 +63,13 @@ void main() {
   E2(s).e2;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//      ^
+//^
 // [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
   E2<String, num>(s).e2;
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-//                   ^
-// [cfe] Inferred type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
+//^
+// [cfe] Type argument 'String' doesn't conform to the bound 'S' of the type variable 'T' on 'E2|get#e2'.
 
   // Inferred types of int and double are ok
   i.e2;
@@ -84,7 +84,7 @@ void main() {
   s.f3(3);
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3(s).f3(3);
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
@@ -104,7 +104,7 @@ void main() {
   d.f3(3);
 //  ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-// [cfe] Type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
+// [cfe] Inferred type argument 'int' doesn't conform to the bound 'T' of the type variable 'S' on 'E3|f3'.
   E3(d).f3(3);
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
@@ -130,11 +130,11 @@ void main() {
   E4(superRec).e4;
 //^^
 // [analyzer] COMPILE_TIME_ERROR.COULD_NOT_INFER
-//             ^
+//^
 // [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
   E4<Rec<dynamic>>(superRec).e4;
 //   ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-//                           ^
-// [cfe] Inferred type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
+//^
+// [cfe] Type argument 'Rec<dynamic>' doesn't conform to the bound 'Rec<T>' of the type variable 'T' on 'E4|get#e4'.
 }

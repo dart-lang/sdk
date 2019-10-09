@@ -6,6 +6,7 @@ library fasta.source_library_builder;
 
 import 'dart:convert' show jsonEncode;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -2540,13 +2541,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void reportTypeArgumentIssues(
       List<TypeArgumentIssue> issues, Uri fileUri, int offset,
-      {bool inferred, DartType targetReceiver, String targetName}) {
+      {bool inferred,
+      TypeArgumentsInfo typeArgumentsInfo,
+      DartType targetReceiver,
+      String targetName}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ?? inferredTypes.contains(argument);
+      bool issueInferred = inferred ??
+          typeArgumentsInfo?.isInferred(issue.index) ??
+          inferredTypes.contains(argument);
+      offset =
+          typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (argument is FunctionType && argument.typeParameters.length > 0) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
@@ -2762,8 +2770,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkBoundsInStaticInvocation(
-      StaticInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
+      StaticInvocation node,
+      TypeEnvironment typeEnvironment,
+      Uri fileUri,
+      TypeArgumentsInfo typeArgumentsInfo) {
     // TODO(johnniwinther): Handle partially inferred type arguments in
     // extension method calls. Currently all are considered inferred in the
     // error messages.
@@ -2782,7 +2792,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
-          inferred: inferred,
+          typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName);
     }
@@ -2797,8 +2807,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Member interfaceTarget,
       Arguments arguments,
       Uri fileUri,
-      int offset,
-      {bool inferred = false}) {
+      int offset) {
     if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> receiverTypeArguments;
@@ -2842,7 +2851,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         instantiatedMethodParameters, arguments.types, typeEnvironment);
     if (issues != null) {
       reportTypeArgumentIssues(issues, fileUri, offset,
-          inferred: inferred,
+          typeArgumentsInfo: getTypeArgumentsInfo(arguments),
           targetReceiver: receiverType,
           targetName: name.name);
     }

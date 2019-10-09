@@ -1896,6 +1896,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
 ///   }
 ///
 class ExplicitExtensionInstanceAccessGenerator extends Generator {
+  /// The file offset used for the explicit extension application type
+  /// arguments.
+  final int extensionTypeArgumentOffset;
+
   final Extension extension;
 
   /// The name of the original target;
@@ -1941,6 +1945,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   ExplicitExtensionInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.extensionTypeArgumentOffset,
       this.extension,
       this.targetName,
       this.readTarget,
@@ -1959,6 +1964,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   factory ExplicitExtensionInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       Token token,
+      int extensionTypeArgumentOffset,
       Extension extension,
       Builder getterBuilder,
       Builder setterBuilder,
@@ -2018,6 +2024,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     return new ExplicitExtensionInstanceAccessGenerator(
         helper,
         token,
+        extensionTypeArgumentOffset,
         extension,
         targetName,
         readTarget,
@@ -2069,7 +2076,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
           readTarget,
           _helper.forest.createArgumentsForExtensionMethod(
               fileOffset, extensionTypeParameterCount, 0, receiver,
-              extensionTypeArguments: _createExtensionTypeArguments()),
+              extensionTypeArguments: _createExtensionTypeArguments(),
+              extensionTypeArgumentOffset: extensionTypeArgumentOffset),
           isTearOff: isReadTearOff);
     }
     return read;
@@ -2247,6 +2255,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
                   extensionTypeParameterCount,
               receiverExpression,
               extensionTypeArguments: _createExtensionTypeArguments(),
+              extensionTypeArgumentOffset: extensionTypeArgumentOffset,
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
               namedArguments: arguments.named),
@@ -2287,6 +2296,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
 }
 
 class ExplicitExtensionIndexedAccessGenerator extends Generator {
+  /// The file offset used for the explicit extension application type
+  /// arguments.
+  final int extensionTypeArgumentOffset;
+
   final Extension extension;
 
   /// The static [Member] generated for the [] operation.
@@ -2316,6 +2329,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   ExplicitExtensionIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
+      this.extensionTypeArgumentOffset,
       this.extension,
       this.readTarget,
       this.writeTarget,
@@ -2330,6 +2344,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   factory ExplicitExtensionIndexedAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       Token token,
+      int extensionTypeArgumentOffset,
       Extension extension,
       Builder getterBuilder,
       Builder setterBuilder,
@@ -2364,6 +2379,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     return new ExplicitExtensionIndexedAccessGenerator(
         helper,
         token,
+        extensionTypeArgumentOffset,
         extension,
         readTarget,
         writeTarget,
@@ -2392,6 +2408,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
         _forest.createArgumentsForExtensionMethod(
             fileOffset, extensionTypeParameterCount, 0, receiver,
             extensionTypeArguments: _createExtensionTypeArguments(),
+            extensionTypeArgumentOffset: extensionTypeArgumentOffset,
             positionalArguments: <Expression>[index]),
         isTearOff: false);
   }
@@ -2408,6 +2425,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
           _forest.createArgumentsForExtensionMethod(
               fileOffset, extensionTypeParameterCount, 0, receiver,
               extensionTypeArguments: _createExtensionTypeArguments(),
+              extensionTypeArgumentOffset: extensionTypeArgumentOffset,
               positionalArguments: <Expression>[index, value]),
           isTearOff: false);
     } else {
@@ -2575,6 +2593,10 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return new ExplicitExtensionInstanceAccessGenerator.fromBuilder(
         _helper,
         token,
+        // TODO(johnniwinther): Improve this. This is the name of the extension
+        // and not the type arguments (or arguments if type arguments are
+        // omitted).
+        fileOffset,
         extensionBuilder.extension,
         getter,
         setter,
@@ -2629,6 +2651,10 @@ class ExplicitExtensionAccessGenerator extends Generator {
     return new ExplicitExtensionIndexedAccessGenerator.fromBuilder(
         _helper,
         token,
+        // TODO(johnniwinther): Improve this. This is the name of the extension
+        // and not the type arguments (or arguments if type arguments are
+        // omitted).
+        fileOffset,
         extensionBuilder.extension,
         getter,
         setter,

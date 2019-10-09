@@ -3548,12 +3548,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         return node;
       } else {
         assert(constness == Constness.implicit);
-        StaticInvocation node =
-            new StaticInvocation(target, arguments, isConst: false)
-              ..fileOffset = charOffset;
-        libraryBuilder.checkBoundsInStaticInvocation(
-            node, typeEnvironment, uri);
-        return node;
+        return new StaticInvocation(target, arguments, isConst: false)
+          ..fileOffset = charOffset;
       }
     }
   }

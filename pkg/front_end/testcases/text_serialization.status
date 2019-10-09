@@ -46,6 +46,7 @@ extensions/issue38712: TextSerializationFailure
 extensions/issue38713: TextSerializationFailure
 extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
+extensions/issue38755: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
 extensions/on_function_type: TextSerializationFailure

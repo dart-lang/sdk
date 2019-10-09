@@ -125,7 +125,7 @@ int getExtensionTypeParameterCount(Arguments arguments) {
 
 int getExtensionTypeArgumentCount(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
-    return arguments._extensionTypeArgumentCount;
+    return arguments._explicitExtensionTypeArgumentCount;
   } else {
     // TODO(johnniwinther): Remove this path or assert why it is accepted.
     return 0;
@@ -134,16 +134,84 @@ int getExtensionTypeArgumentCount(Arguments arguments) {
 
 List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
   if (arguments is ArgumentsImpl) {
-    if (arguments._extensionTypeArgumentCount == 0) {
+    if (arguments._explicitExtensionTypeArgumentCount == 0) {
       return null;
     } else {
       return arguments.types
-          .take(arguments._extensionTypeArgumentCount)
+          .take(arguments._explicitExtensionTypeArgumentCount)
           .toList();
     }
   } else {
     // TODO(johnniwinther): Remove this path or assert why it is accepted.
     return null;
+  }
+}
+
+/// Information about explicit/implicit type arguments used for error
+/// reporting.
+abstract class TypeArgumentsInfo {
+  const TypeArgumentsInfo();
+
+  /// Returns `true` if the [index]th type argument was inferred.
+  bool isInferred(int index);
+
+  /// Returns the offset to use when reporting an error on the [index]th type
+  /// arguments, using [offset] as the default offset.
+  int getOffsetForIndex(int index, int offset) => offset;
+}
+
+class AllInferredTypeArgumentsInfo extends TypeArgumentsInfo {
+  const AllInferredTypeArgumentsInfo();
+
+  bool isInferred(int index) => true;
+}
+
+class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
+  const NoneInferredTypeArgumentsInfo();
+
+  bool isInferred(int index) => false;
+}
+
+class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
+  final ArgumentsImpl arguments;
+
+  ExtensionMethodTypeArgumentsInfo(this.arguments);
+
+  bool isInferred(int index) {
+    if (index < arguments._extensionTypeParameterCount) {
+      // The index refers to a type argument for a type parameter declared on
+      // the extension. Check whether we have enough explicit extension type
+      // arguments.
+      return index >= arguments._explicitExtensionTypeArgumentCount;
+    }
+    // The index refers to a type argument for a type parameter declared on
+    // the method. Check whether we have enough explicit regular type arguments.
+    return index - arguments._extensionTypeParameterCount >=
+        arguments._explicitTypeArgumentCount;
+  }
+
+  int getOffsetForIndex(int index, int offset) {
+    if (index < arguments._extensionTypeParameterCount) {
+      return arguments._extensionTypeArgumentOffset ?? offset;
+    }
+    return offset;
+  }
+}
+
+TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
+  if (arguments is ArgumentsImpl) {
+    if (arguments._extensionTypeParameterCount == 0) {
+      return arguments._explicitTypeArgumentCount == 0
+          ? const AllInferredTypeArgumentsInfo()
+          : const NoneInferredTypeArgumentsInfo();
+    } else {
+      return new ExtensionMethodTypeArgumentsInfo(arguments);
+    }
+  } else {
+    // This code path should only be taken in situations where there are no
+    // type arguments at all, e.g. calling a user-definable operator.
+    assert(arguments.types.isEmpty);
+    return const NoneInferredTypeArgumentsInfo();
   }
 }
 
@@ -245,7 +313,9 @@ class ArgumentsImpl extends Arguments {
   // TODO(johnniwinther): Move this to the static invocation instead.
   final int _extensionTypeParameterCount;
 
-  final int _extensionTypeArgumentCount;
+  final int _explicitExtensionTypeArgumentCount;
+
+  final int _extensionTypeArgumentOffset;
 
   int _explicitTypeArgumentCount;
 
@@ -253,18 +323,22 @@ class ArgumentsImpl extends Arguments {
       {List<DartType> types, List<NamedExpression> named})
       : _explicitTypeArgumentCount = types?.length ?? 0,
         _extensionTypeParameterCount = 0,
-        _extensionTypeArgumentCount = 0,
+        _explicitExtensionTypeArgumentCount = 0,
+        // The offset is unused in this case.
+        _extensionTypeArgumentOffset = null,
         super(positional, types: types, named: named);
 
   ArgumentsImpl.forExtensionMethod(int extensionTypeParameterCount,
       int typeParameterCount, Expression receiver,
       {List<DartType> extensionTypeArguments = const <DartType>[],
+      int extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[]})
       : _extensionTypeParameterCount = extensionTypeParameterCount,
-        _extensionTypeArgumentCount = extensionTypeArguments.length,
+        _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
         _explicitTypeArgumentCount = typeArguments.length,
+        _extensionTypeArgumentOffset = extensionTypeArgumentOffset,
         assert(
             extensionTypeArguments.isEmpty ||
                 extensionTypeArguments.length == extensionTypeParameterCount,
