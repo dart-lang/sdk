@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc = r'Avoid `print` calls in production code.';
@@ -41,6 +42,17 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
+  _validateArgument(Expression expression) {
+    if (expression is SimpleIdentifier) {
+      final Element element = expression.staticElement;
+      if (element is FunctionElement &&
+          element.name == 'print' &&
+          element.library.isDartCore) {
+        rule.reportLint(expression);
+      }
+    }
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     bool isDartCore(MethodInvocation node) =>
@@ -49,5 +61,7 @@ class _Visitor extends SimpleAstVisitor {
     if (node.methodName.name == 'print' && isDartCore(node)) {
       rule.reportLint(node.methodName);
     }
+
+    node.argumentList.arguments.forEach(_validateArgument);
   }
 }
