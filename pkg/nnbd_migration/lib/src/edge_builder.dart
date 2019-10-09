@@ -595,20 +595,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitFieldDeclaration(FieldDeclaration node) {
-    node.metadata.accept(this);
-    _createFlowAnalysis(node, null);
-    try {
-      node.fields.accept(this);
-    } finally {
-      _flowAnalysis.finish();
-      _flowAnalysis = null;
-      _assignedVariables = null;
-    }
-    return null;
-  }
-
-  @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
@@ -1272,21 +1258,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitTopLevelVariableDeclaration(
-      TopLevelVariableDeclaration node) {
-    node.metadata.accept(this);
-    _createFlowAnalysis(node, null);
-    try {
-      node.variables.accept(this);
-    } finally {
-      _flowAnalysis.finish();
-      _flowAnalysis = null;
-      _assignedVariables = null;
-    }
-    return null;
-  }
-
-  @override
   DecoratedType visitTryStatement(TryStatement node) {
     var finallyBlock = node.finallyBlock;
     if (finallyBlock != null) {
@@ -1354,27 +1325,45 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitVariableDeclarationList(VariableDeclarationList node) {
+    var parent = node.parent;
+    bool isTopLevel =
+        parent is FieldDeclaration || parent is TopLevelVariableDeclaration;
     node.metadata.accept(this);
     var typeAnnotation = node.type;
     for (var variable in node.variables) {
       variable.metadata.accept(this);
       var initializer = variable.initializer;
       var declaredElement = variable.declaredElement;
-      if (declaredElement is PromotableElement && initializer != null) {
-        _flowAnalysis.write(declaredElement);
+      if (isTopLevel) {
+        assert(_flowAnalysis == null);
+        _createFlowAnalysis(variable, null);
+      } else {
+        assert(_flowAnalysis != null);
       }
-      if (initializer != null) {
-        var destinationType = getOrComputeElementType(declaredElement);
-        if (typeAnnotation == null) {
-          var initializerType = initializer.accept(this);
-          if (initializerType == null) {
-            throw StateError('No type computed for ${initializer.runtimeType} '
-                '(${initializer.toSource()}) offset=${initializer.offset}');
+      try {
+        if (declaredElement is PromotableElement && initializer != null) {
+          _flowAnalysis.write(declaredElement);
+        }
+        if (initializer != null) {
+          var destinationType = getOrComputeElementType(declaredElement);
+          if (typeAnnotation == null) {
+            var initializerType = initializer.accept(this);
+            if (initializerType == null) {
+              throw StateError(
+                  'No type computed for ${initializer.runtimeType} '
+                  '(${initializer.toSource()}) offset=${initializer.offset}');
+            }
+            _unionDecoratedTypes(initializerType, destinationType,
+                InitializerInferenceOrigin(source, variable));
+          } else {
+            _handleAssignment(initializer, destinationType: destinationType);
           }
-          _unionDecoratedTypes(initializerType, destinationType,
-              InitializerInferenceOrigin(source, variable));
-        } else {
-          _handleAssignment(initializer, destinationType: destinationType);
+        }
+      } finally {
+        if (isTopLevel) {
+          _flowAnalysis.finish();
+          _flowAnalysis = null;
+          _assignedVariables = null;
         }
       }
     }
