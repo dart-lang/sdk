@@ -732,12 +732,17 @@ typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
 // Traits for comparing two [Code] objects for equality.
 //
-// It considers two [Code] objects to be equal if
+// The instruction deduplication naturally causes us to have a one-to-many
+// relationship between Instructions and Code objects.
 //
-//   * their [RawInstruction]s are bit-wise equal
-//   * their [RawPcDescriptor]s are the same
-//   * their [RawStackMaps]s are the same
-//   * their static call targets are the same
+// In AOT bare instructions mode frames only have PCs. However, the runtime
+// needs e.g. stack maps from the [Code] to scan such a frame. So we ensure that
+// instructions of code objects are only deduplicated if the metadata in the
+// code is the same. The runtime can then pick any code object corresponding to
+// the PC in the frame and use the metadata.
+//
+// In AOT non-bare instructions mode frames are expanded, like in JIT, and
+// contain the unique code object.
 #if defined(DART_PRECOMPILER)
 class CodeKeyValueTrait {
  public:
@@ -760,13 +765,16 @@ class CodeKeyValueTrait {
     if (pair->static_calls_target_table() != key->static_calls_target_table()) {
       return false;
     }
-    if (pair->pc_descriptors() == key->pc_descriptors()) {
+    if (pair->pc_descriptors() != key->pc_descriptors()) {
       return false;
     }
-    if (pair->stackmaps() == key->stackmaps()) {
+    if (pair->stackmaps() != key->stackmaps()) {
       return false;
     }
-    if (pair->catch_entry_moves_maps() == key->catch_entry_moves_maps()) {
+    if (pair->catch_entry_moves_maps() != key->catch_entry_moves_maps()) {
+      return false;
+    }
+    if (pair->exception_handlers() != key->exception_handlers()) {
       return false;
     }
     return Instructions::Equals(pair->instructions(), key->instructions());
@@ -841,7 +849,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
         : zone_(zone),
           canonical_set_(),
           code_(Code::Handle(zone)),
-          owner_(Object::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
     void VisitObject(RawObject* obj) {
@@ -855,19 +862,25 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
         return;
       }
       code_ = function.CurrentCode();
-      instructions_ = DedupOneInstructions(code_);
+      instructions_ = DedupOneInstructions(function, code_);
       code_.SetActiveInstructions(instructions_);
       code_.set_instructions(instructions_);
       function.SetInstructions(code_);  // Update cached entry point.
     }
 
-    RawInstructions* DedupOneInstructions(const Code& code) {
+    RawInstructions* DedupOneInstructions(const Function& function,
+                                          const Code& code) {
+      // Switchable calls rely on a unique PC -> Code mapping atm, so we do not
+      // dedup any instructions for instance methods.
+      if (function.IsDynamicFunction()) {
+        return code.instructions();
+      }
+
       const Code* canonical = canonical_set_.LookupValue(&code);
-      if (canonical == NULL) {
+      if (canonical == nullptr) {
         canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
         return code.instructions();
       } else {
-        owner_ = code.owner();
         return canonical->instructions();
       }
     }
@@ -876,7 +889,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
     Zone* zone_;
     CodeSet canonical_set_;
     Code& code_;
-    Object& owner_;
     Instructions& instructions_;
   };
 

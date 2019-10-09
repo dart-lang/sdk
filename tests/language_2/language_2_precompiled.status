@@ -34,9 +34,11 @@ mixin_mixin_bound2_test: Skip
 mixin_mixin_type_arguments_test: Skip
 mixin_super_2_test: Skip
 no_such_method_dispatcher_test: Skip # Uses new Symbol()
-stacktrace_rethrow_error_test: Skip
-stacktrace_rethrow_nonerror_test: Skip
 vm/no_such_args_error_message_vm_test: Skip
 vm/no_such_method_error_message_callable_vm_test: Skip
 vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test: Skip
+
+[ $runtime == dart_precompiled && ($mode == product || $minified) ]
+stacktrace_rethrow_error_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)
+stacktrace_rethrow_nonerror_test: SkipByDesign # obfuscation/minification and instruction deduplication cause names of frames to be mangled (expected)

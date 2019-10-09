@@ -1487,10 +1487,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
     RawArray* code_order = nullptr;
     const intptr_t code_order_length = d->code_order_length();
     if (build_code_order) {
-      code_order = static_cast<RawArray*>(
-          AllocateUninitialized(old_space, Array::InstanceSize(count)));
+      code_order = static_cast<RawArray*>(AllocateUninitialized(
+          old_space, Array::InstanceSize(code_order_length)));
       Deserializer::InitializeHeader(code_order, kArrayCid,
-                                     Array::InstanceSize(count),
+                                     Array::InstanceSize(code_order_length),
                                      /*is_canonical=*/false);
       code_order->ptr()->type_arguments_ = TypeArguments::null();
       code_order->ptr()->length_ = Smi::New(code_order_length);
