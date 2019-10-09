@@ -3999,7 +3999,7 @@ class ResolverVisitor extends ScopedVisitor {
           _flowAnalysis.assignedVariables.capturedInNode(node),
           identifierElement is VariableElement
               ? identifierElement
-              : loopVariable.declaredElement);
+              : loopVariable?.declaredElement);
 
       Statement body = node.body;
       if (body != null) {

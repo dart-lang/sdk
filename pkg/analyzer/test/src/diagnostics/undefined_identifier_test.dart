@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UndefinedIdentifierTest);
+    defineReflectiveTests(UndefinedIdentifierWithNnbdTest);
   });
 }
 
@@ -145,5 +148,20 @@ class B extends A {
 }''', [
       error(StaticWarningCode.UNDEFINED_IDENTIFIER, 54, 4),
     ]);
+  }
+}
+
+@reflectiveTest
+class UndefinedIdentifierWithNnbdTest extends UndefinedIdentifierTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @failingTest
+  @override
+  test_forElement_inList_insideElement() async {
+    // todo: fails w/ StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
+    await super.test_forElement_inList_insideElement();
   }
 }
