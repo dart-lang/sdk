@@ -645,9 +645,7 @@ bool _f(dynamic d, bool b) => d && b;
       Expression node, String expectedReadType, String expectedWriteType,
       {Set<Expression> nullChecked = const <Expression>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    var fixBuilder = _FixBuilder(
-        decoratedClassHierarchy, typeProvider, typeSystem, variables);
-    fixBuilder.createFlowAnalysis(node.thisOrAncestorOfType<FunctionBody>());
+    _FixBuilder fixBuilder = _createFixBuilder(node);
     var targetInfo = fixBuilder.visitAssignmentTarget(node);
     expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
         expectedReadType);
@@ -662,13 +660,20 @@ bool _f(dynamic d, bool b) => d && b;
       Set<Expression> nullChecked = const <Expression>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     contextType ??= dynamicType;
-    var fixBuilder = _FixBuilder(
-        decoratedClassHierarchy, typeProvider, typeSystem, variables);
-    fixBuilder.createFlowAnalysis(node.thisOrAncestorOfType<FunctionBody>());
+    _FixBuilder fixBuilder = _createFixBuilder(node);
     var type = fixBuilder.visitSubexpression(node, contextType);
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
     expect(fixBuilder.nullCheckedExpressions, nullChecked);
     expect(fixBuilder.problems, problems);
+  }
+
+  _FixBuilder _createFixBuilder(Expression node) {
+    var fixBuilder = _FixBuilder(
+        decoratedClassHierarchy, typeProvider, typeSystem, variables);
+    var body = node.thisOrAncestorOfType<FunctionBody>();
+    var declaration = body.thisOrAncestorOfType<Declaration>();
+    fixBuilder.createFlowAnalysis(declaration, body);
+    return fixBuilder;
   }
 }
 

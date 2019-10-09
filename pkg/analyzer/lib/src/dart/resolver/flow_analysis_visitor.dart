@@ -51,7 +51,7 @@ class FlowAnalysisHelper {
   final TypeSystemTypeOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
-  final AssignedVariables<AstNode, PromotableElement> assignedVariables;
+  AssignedVariables<AstNode, PromotableElement> assignedVariables;
 
   /// The result for post-resolution stages of analysis.
   final FlowAnalysisResult result;
@@ -59,17 +59,14 @@ class FlowAnalysisHelper {
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<Statement, Expression, PromotableElement, DartType> flow;
 
-  factory FlowAnalysisHelper(
-      TypeSystem typeSystem, AstNode node, bool retainDataForTesting) {
+  factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
     return FlowAnalysisHelper._(
         const AnalyzerNodeOperations(),
         TypeSystemTypeOperations(typeSystem),
-        computeAssignedVariables(node),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
 
-  FlowAnalysisHelper._(this._nodeOperations, this._typeOperations,
-      this.assignedVariables, this.result);
+  FlowAnalysisHelper._(this._nodeOperations, this._typeOperations, this.result);
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -215,8 +212,9 @@ class FlowAnalysisHelper {
     return false;
   }
 
-  void topLevelDeclaration_enter(FunctionBody body) {
+  void topLevelDeclaration_enter(Declaration node, FunctionBody body) {
     assert(flow == null);
+    assignedVariables = computeAssignedVariables(node);
     flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
       _nodeOperations,
       _typeOperations,
@@ -230,6 +228,7 @@ class FlowAnalysisHelper {
     // cascading failures.
     var flow = this.flow;
     this.flow = null;
+    assignedVariables = null;
 
     flow.finish();
   }
@@ -248,9 +247,9 @@ class FlowAnalysisHelper {
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      AstNode node) {
+      Declaration node) {
     var assignedVariables = AssignedVariables<AstNode, PromotableElement>();
-    node.accept(_AssignedVariablesVisitor(assignedVariables));
+    node.visitChildren(_AssignedVariablesVisitor(assignedVariables));
     return assignedVariables;
   }
 
@@ -354,9 +353,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    assignedVariables.beginNode();
-    super.visitConstructorDeclaration(node);
-    assignedVariables.endNode(node);
+    throw StateError('Should not visit top level declarations');
   }
 
   @override
@@ -378,12 +375,14 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    bool isClosure = node.parent is! CompilationUnit;
-    assignedVariables.beginNode(isClosure: isClosure);
+    if (node.parent is CompilationUnit) {
+      throw StateError('Should not visit top level declarations');
+    }
+    assignedVariables.beginNode(isClosure: true);
     // Note: we bypass this.visitFunctionExpression so that the function
     // expression isn't mistaken for a closure.
     super.visitFunctionExpression(node.functionExpression);
-    assignedVariables.endNode(node, isClosure: isClosure);
+    assignedVariables.endNode(node, isClosure: true);
   }
 
   @override
@@ -395,9 +394,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    assignedVariables.beginNode();
-    super.visitMethodDeclaration(node);
-    assignedVariables.endNode(node);
+    throw StateError('Should not visit top level declarations');
   }
 
   @override

@@ -672,7 +672,7 @@ class LibraryAnalyzer {
     FlowAnalysisHelper flowAnalysisHelper;
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
       flowAnalysisHelper =
-          FlowAnalysisHelper(_context.typeSystem, unit, _testingData != null);
+          FlowAnalysisHelper(_context.typeSystem, _testingData != null);
       _testingData?.recordFlowAnalysisResult(
           file.uri, flowAnalysisHelper.result);
     }
