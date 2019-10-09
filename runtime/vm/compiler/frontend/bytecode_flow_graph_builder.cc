@@ -1296,7 +1296,8 @@ void BytecodeFlowGraphBuilder::BuildLoadTypeArgumentsField() {
 
   LoadStackSlots(1);
   const intptr_t offset =
-      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() * kWordSize;
+      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() *
+      compiler::target::kWordSize;
 
   code_ += B->LoadNativeField(Slot::GetTypeArgumentsSlotAt(thread(), offset));
 }
