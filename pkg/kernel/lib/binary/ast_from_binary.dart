@@ -956,6 +956,7 @@ class BinaryBuilder {
   void _readAdditionalExports(Library library) {
     int numExportedReference = readUInt();
     if (numExportedReference != 0) {
+      library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
         CanonicalName exportedName = readCanonicalNameReference();
         Reference reference = exportedName.getReference();
@@ -1012,7 +1013,9 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
     readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
+    node.positionalParameters.clear();
     node.positionalParameters.addAll(readAndPushVariableDeclarationList());
+    node.namedParameters.clear();
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
