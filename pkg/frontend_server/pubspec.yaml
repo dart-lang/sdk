@@ -8,6 +8,8 @@ dependencies:
     path: ../build_integration
   vm:
     path: ../vm
+  dev_compiler:
+    path: ../dev_compiler
   front_end: ^0.1.6
   kernel: ^0.3.6
   args: ^1.4.4

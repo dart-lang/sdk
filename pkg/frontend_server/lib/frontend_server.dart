@@ -9,6 +9,8 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
+import 'package:dev_compiler/dev_compiler.dart' show DevCompilerTarget;
+
 // front_end/src imports below that require lint `ignore_for_file`
 // are a temporary state of things until frontend team builds better api
 // that would replace api used below. This api was made private in
@@ -22,6 +24,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/binary/limited_ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
     show Component, loadComponentSourceFromBytes;
+import 'package:kernel/target/targets.dart' show targets, TargetFlags;
 import 'package:path/path.dart' as path;
 import 'package:usage/uuid/uuid.dart';
 
@@ -47,6 +50,10 @@ import 'package:vm/kernel_front_end.dart'
         setVMEnvironmentDefines,
         sortComponent,
         writeDepfile;
+import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
+import 'package:vm/target/flutter.dart' show FlutterTarget;
+import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
+import 'package:vm/target/vm.dart' show VmTarget;
 
 ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -89,7 +96,13 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: '.packages file to use for compilation', defaultsTo: null)
   ..addOption('target',
       help: 'Target model that determines what core libraries are available',
-      allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
+      allowed: <String>[
+        'vm',
+        'flutter',
+        'flutter_runner',
+        'dart_runner',
+        'dartdevc'
+      ],
       defaultsTo: 'vm')
   ..addMultiOption('filesystem-root',
       help: 'File path that is used as a root in virtual filesystem used in'
@@ -252,6 +265,13 @@ class FrontendCompiler implements CompilerInterface {
       this.unsafePackageSerialization}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
+    // Initialize supported kernel targets.
+    targets['dart_runner'] = (TargetFlags flags) => DartRunnerTarget(flags);
+    targets['flutter'] = (TargetFlags flags) => FlutterTarget(flags);
+    targets['flutter_runner'] =
+        (TargetFlags flags) => FlutterRunnerTarget(flags);
+    targets['vm'] = (TargetFlags flags) => VmTarget(flags);
+    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
   }
 
   StringSink _outputStream;
