@@ -300,6 +300,11 @@
         "builder-tag": "tsan",
         "timeout": 240
     }},
+    "dartk-ubsan-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
+      "options": {
+        "builder-tag": "ubsan",
+        "timeout": 240
+    }},
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
         "use-sdk": true
@@ -794,23 +799,30 @@
         "vm-kernel-asan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with address sanitizing (asan). We have to run gn.py with the DART_USE_ASAN options, which we do by running generate_buildfiles."
+        "description": "This configuration is used by the vm builders with AddressSanitizer (asan)."
       },
       "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--asan"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime"],
           "environment": {
-            "DART_USE_ASAN": 1,
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         },
         {
           "name": "vm tests",
-          "arguments": [
-            "-ndartk-asan-linux-release-${arch}"],
+          "arguments": ["-ndartk-asan-linux-release-${arch}"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -824,23 +836,30 @@
         "vm-kernel-lsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with leak sanitizing (lsan). We have to run gn.py with the DART_USE_LSAN options, which we do by running generate_buildfiles."
+        "description": "This configuration is used by the vm builders with LeakSanitizer (lsan)."
       },
       "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--lsan"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime"],
           "environment": {
-            "DART_USE_LSAN": 1,
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         },
         {
           "name": "vm tests",
-          "arguments": [
-            "-ndartk-lsan-linux-release-${arch}"],
+          "arguments": ["-ndartk-lsan-linux-release-${arch}"],
           "environment": {
             "ASAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "ASAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
@@ -854,15 +873,23 @@
         "vm-kernel-msan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with memory sanitizing (msan). We have to run gn.py with the DART_USE_MSAN options, which we do by running generate_buildfiles."
+        "description": "This configuration is used by the vm builders with MemorySanitizer (msan)."
       },
       "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--msan"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime"],
           "environment": {
-            "DART_USE_MSAN": 1,
             "MSAN_OPTIONS": "handle_segv=0:detect_leaks=1:detect_stack_use_after_return=0:disable_coredump=0:abort_on_error=1",
             "MSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
@@ -883,26 +910,68 @@
         "vm-kernel-tsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm builders with thread sanitizing (tsan). We have to run gn.py with the DART_USE_TSAN options, which we do by running generate_buildfiles."
+        "description": "This configuration is used by the vm builders with ThreadSanitizer (tsan)."
       },
       "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--tsan"
+          ]
+        },
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["runtime"],
           "environment": {
-            "DART_USE_TSAN": 1,
             "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
             "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
           }
         },
         {
           "name": "vm tests",
-          "arguments": [
-            "-ndartk-tsan-linux-release-${arch}"],
+          "arguments": ["-ndartk-tsan-linux-release-${arch}"],
           "environment": {
             "TSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1",
             "TSAN_SYMBOLIZER_PATH": "buildtools/linux-x64/clang/bin/llvm-symbolizer"
+          }
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-ubsan-linux-release-ia32",
+        "vm-kernel-ubsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with UndefinedBehaviorSanitizer (ubsan)."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--ubsan"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"],
+          "environment": {
+            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
+          }
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["-ndartk-ubsan-linux-release-${arch}"],
+          "environment": {
+            "UBSAN_OPTIONS": "handle_segv=0:disable_coredump=0:abort_on_error=1"
           }
         }
       ]

@@ -19,7 +19,7 @@
 extern "C" void __asan_unpoison_memory_region(void*, size_t);
 extern "C" void __lsan_register_root_region(const void* p, size_t size);
 extern "C" void __lsan_unregister_root_region(const void* p, size_t size);
-#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
+#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
 #define ASAN_UNPOISON(ptr, len) __asan_unpoison_memory_region(ptr, len)
 #define LSAN_REGISTER_ROOT_REGION(ptr, len)                                    \
   __lsan_register_root_region(ptr, len)

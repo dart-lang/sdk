@@ -140,7 +140,7 @@ void NativeEntry::NoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeFunction func) {
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
+  // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   Thread* thread = arguments->thread();
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -177,7 +177,7 @@ void NativeEntry::AutoScopeNativeCallWrapperNoStackCheck(
     Dart_NativeFunction func) {
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
+  // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   Thread* thread = arguments->thread();
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -238,7 +238,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   CHECK_STACK_ALIGNMENT;
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
+  // Tell MemorySanitizer 'arguments' is initialized by generated code.
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   TRACE_NATIVE_CALL("%s", "LinkNative");
 

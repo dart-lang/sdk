@@ -3069,6 +3069,12 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   ASSERT(Function::HasBytecode(function));
   ASSERT(interpreter != NULL);
 #endif
+  // Tell MemorySanitizer 'argv' is initialized by generated code.
+  if (argc < 0) {
+    MSAN_UNPOISON(argv - argc, -argc * sizeof(RawObject*));
+  } else {
+    MSAN_UNPOISON(argv, argc * sizeof(RawObject*));
+  }
   RawObject* result = interpreter->Call(function, argdesc, argc, argv, thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {
