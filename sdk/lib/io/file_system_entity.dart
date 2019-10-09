@@ -486,7 +486,9 @@ abstract class FileSystemEntity {
    *
    *   * The [Stream] is canceled, e.g. by calling `cancel` on the
    *      [StreamSubscription].
-   *   * The [FileSystemEntity] being watches, is deleted.
+   *   * The [FileSystemEntity] being watched, is deleted.
+   *   * System Watcher exits unexpectedly. e.g. On `Windows` this happens when
+   *     buffer that receive events from `ReadDirectoryChangesW` overflows.
    *
    * Use `events` to specify what events to listen for. The constants in
    * [FileSystemEvent] can be or'ed together to mix events. Default is

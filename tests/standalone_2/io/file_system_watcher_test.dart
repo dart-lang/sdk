@@ -352,9 +352,14 @@ testWatchConsistentModifiedFile() async {
   });
 
   Completer<bool> workerExitedCompleter = Completer();
-  RawReceivePort exitReceivePort = RawReceivePort((object) { workerExitedCompleter.complete(true); });
-  RawReceivePort errorReceivePort = RawReceivePort((object) { print('worker errored: $object'); });
-  await Isolate.spawn(modifyFiles, receivePort.sendPort, onExit: exitReceivePort.sendPort, onError: errorReceivePort.sendPort);
+  RawReceivePort exitReceivePort = RawReceivePort((object) {
+    workerExitedCompleter.complete(true);
+  });
+  RawReceivePort errorReceivePort = RawReceivePort((object) {
+    print('worker errored: $object');
+  });
+  Isolate isolate = await Isolate.spawn(modifyFiles, receivePort.sendPort,
+      onExit: exitReceivePort.sendPort, onError: errorReceivePort.sendPort);
 
   await modificationEventReceived.future;
   workerSendPort.send('end');
@@ -363,6 +368,8 @@ testWatchConsistentModifiedFile() async {
   await workerExitedCompleter.future;
   exitReceivePort.close();
   errorReceivePort.close();
+  // Stop modifier isolate
+  isolate.kill();
   asyncEnd();
 }
 
@@ -384,7 +391,7 @@ void modifyFiles(SendPort sendPort) async {
   });
   sendPort.send([receivePort.sendPort, dir.path]);
   bool notificationSent = false;
-  while(!done) {
+  while (!done) {
     // Start modifying the file continuously before watcher start watching.
     for (int i = 0; i < 100; i++) {
       file.writeAsStringSync('a');
@@ -398,6 +405,57 @@ void modifyFiles(SendPort sendPort) async {
   // Clean up the directory and files
   dir.deleteSync(recursive: true);
   sendPort.send('end');
+}
+
+testWatchOverflow() async {
+  // When underlying buffer for ReadDirectoryChangesW overflows(on Windows),
+  // it will send an exception to Stream which has been listened.
+  // Bug: https://github.com/dart-lang/sdk/issues/37233
+  asyncStart();
+  ReceivePort receivePort = ReceivePort();
+  Completer<bool> exiting = Completer<bool>();
+
+  Directory dir =
+      Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  var file = new File(join(dir.path, 'file'));
+  file.createSync();
+
+  Isolate isolate =
+      await Isolate.spawn(watcher, receivePort.sendPort, paused: true);
+
+  var subscription;
+  subscription = receivePort.listen((object) async {
+    if (object == 'end') {
+      exiting.complete(true);
+      subscription.cancel();
+      // Clean up the directory and files
+      dir.deleteSync(recursive: true);
+      asyncEnd();
+    } else if (object == 'start') {
+      isolate.pause(isolate.pauseCapability);
+      // Populate the buffer to overflows and check for exception
+      for (int i = 0; i < 2000; i++) {
+        file.writeAsStringSync('a');
+      }
+      isolate.resume(isolate.pauseCapability);
+    }
+  });
+  // Resume paused isolate to create watcher
+  isolate.resume(isolate.pauseCapability);
+
+  await exiting.future;
+  isolate.kill();
+}
+
+void watcher(SendPort sendPort) async {
+  runZoned(() {
+    var watcher = Directory.systemTemp.watch(recursive: true);
+    watcher.listen((data) async {});
+    sendPort.send('start');
+  }, onError: (error) {
+    print(error);
+    sendPort.send('end');
+  });
 }
 
 void main() {
@@ -414,4 +472,5 @@ void main() {
   testWatchNonExisting();
   testWatchMoveSelf();
   testWatchConsistentModifiedFile();
+  if (Platform.isWindows) testWatchOverflow();
 }
