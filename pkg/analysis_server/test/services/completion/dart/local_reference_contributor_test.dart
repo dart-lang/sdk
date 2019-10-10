@@ -5018,4 +5018,14 @@ A T;''');
     // Suggested by LibraryPrefixContributor
     assertNotSuggested('x');
   }
+
+  test_extensionDeclaration_unnamed() async {
+    addTestSource('''
+extension on String {
+  void something() => this.^
+}
+''');
+    await computeSuggestions();
+    assertNoSuggestions();
+  }
 }

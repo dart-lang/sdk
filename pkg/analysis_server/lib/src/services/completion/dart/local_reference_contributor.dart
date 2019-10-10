@@ -163,7 +163,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredExtension(ExtensionDeclaration declaration) {
-    if (optype.includeReturnValueSuggestions) {
+    if (optype.includeReturnValueSuggestions && declaration.name != null) {
       _addLocalSuggestion_includeReturnValueSuggestions(
           declaration.documentationComment,
           declaration.name,
