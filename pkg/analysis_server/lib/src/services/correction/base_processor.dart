@@ -1027,7 +1027,8 @@ abstract class BaseProcessor {
       return null;
     }
 
-    final String relativePath = path.relative(
+    // We only write posix style paths in import directives.
+    final String relativePath = path.posix.relative(
       importUri.path,
       from: path.dirname(sourceUri.path),
     );
