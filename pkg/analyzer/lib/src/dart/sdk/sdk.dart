@@ -896,7 +896,7 @@ class SdkLibrariesReader {
     Parser parser = new Parser(source, errorListener, featureSet: featureSet);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
     SdkLibrariesReader_LibraryBuilder libraryBuilder =
-        new SdkLibrariesReader_LibraryBuilder(true);
+        new SdkLibrariesReader_LibraryBuilder();
     // If any syntactic errors were found then don't try to visit the AST
     // structure.
     if (!errorListener.errorReported) {

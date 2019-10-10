@@ -482,7 +482,7 @@ List<SdkLibrary> _getSdkLibraries(String contents) {
   // TODO(jmesserly): fix SdkLibrariesReader_LibraryBuilder in Analyzer.
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
-  var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
+  var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
   parseString(content: contents).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }
