@@ -437,7 +437,7 @@ m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''', [
-      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 40, 5),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 38, 7),
     ]);
   }
 

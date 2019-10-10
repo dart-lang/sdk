@@ -408,29 +408,10 @@ class BuildMode with HasContextMixin {
       return bundle;
     }
 
-    int numInputs = options.buildSummaryInputs.length +
-        options.buildSummaryUnlinkedInputs.length;
+    int numInputs = options.buildSummaryInputs.length;
     logger.run('Add $numInputs input summaries', () {
       for (var path in options.buildSummaryInputs) {
-        var bundle = addBundle(path);
-        if (bundle.linkedLibraryUris.isEmpty &&
-            bundle.unlinkedUnitUris.isNotEmpty) {
-          throw new ArgumentError(
-              'Got an unlinked summary for --build-summary-input at `$path`. '
-              'Unlinked summaries should be provided with the '
-              '--build-summary-unlinked-input argument.');
-        }
-      }
-
-      for (var path in options.buildSummaryUnlinkedInputs) {
-        var bundle = addBundle(path);
-        unlinkedBundles.add(bundle);
-        if (bundle.linkedLibraryUris.isNotEmpty) {
-          throw new ArgumentError(
-              'Got a linked summary for --build-summary-input-unlinked at `$path`'
-              '. Linked bundles should be provided with the '
-              '--build-summary-input argument.');
-        }
+        addBundle(path);
       }
     });
 
@@ -538,10 +519,6 @@ class BuildMode with HasContextMixin {
    * If the unit is in the input [summaryDataStore], do nothing.
    */
   Future<void> _prepareUnit(String absoluteUri) async {
-    // Maybe an input package contains the source.
-    if (summaryDataStore.unlinkedMap[absoluteUri] != null) {
-      return;
-    }
     // Parse the source and serialize its AST.
     Uri uri = Uri.parse(absoluteUri);
     Source source = sourceFactory.forUri2(uri);

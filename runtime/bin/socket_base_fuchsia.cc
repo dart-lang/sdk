@@ -73,8 +73,9 @@ bool SocketBase::Initialize() {
     auto directory = sys::ServiceDirectory::CreateFromNamespace();
     status = directory->Connect(netstack.NewRequest());
     if (status != ZX_OK) {
-      LOG_ERR("Initialize: connecting to fuchsia.netstack failed: %s\n",
-              zx_status_get_string(status));
+      Syslog::PrintErr(
+          "Initialize: connecting to fuchsia.netstack failed: %s\n",
+          zx_status_get_string(status));
     }
   });
   return status == ZX_OK;

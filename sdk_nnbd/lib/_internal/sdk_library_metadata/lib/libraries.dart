@@ -47,8 +47,6 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "Client,Server",
       maturity: Maturity.STABLE,
       dart2jsPatchPath: "_internal/js_runtime/lib/async_patch.dart"),
-  "_chrome": const LibraryInfo("_chrome/dart2js/chrome_dart2js.dart",
-      categories: "Client", documented: false),
   "collection": const LibraryInfo("collection/collection.dart",
       categories: "Client,Server,Embedded",
       maturity: Maturity.STABLE,

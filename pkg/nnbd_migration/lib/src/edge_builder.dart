@@ -1643,8 +1643,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               destination: _notNullType,
               hard: _postDominatedLocals
                   .isReferenceInScope(destinationExpression));
-          DecoratedType compoundOperatorType =
-              getOrComputeElementType(compoundOperatorMethod);
+          DecoratedType compoundOperatorType = getOrComputeElementType(
+              compoundOperatorMethod,
+              targetType: destinationType);
           assert(compoundOperatorType.positionalParameters.length > 0);
           _checkAssignment(edgeOrigin,
               source: sourceType,

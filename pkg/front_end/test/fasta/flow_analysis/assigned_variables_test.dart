@@ -6,19 +6,6 @@ import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
 main() {
-  test('capturedAnywhere records assignments in closures', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
-    var v1 = _Variable('v1');
-    var v2 = _Variable('v2');
-    var v3 = _Variable('v3');
-    assignedVariables.write(v1);
-    assignedVariables.beginNode(isClosure: true);
-    assignedVariables.write(v2);
-    assignedVariables.endNode(_Node(), isClosure: true);
-    assignedVariables.write(v3);
-    expect(assignedVariables.capturedAnywhere, {v2});
-  });
-
   test('writtenInNode ignores assignments outside the node', () {
     var assignedVariables = AssignedVariables<_Node, _Variable>();
     var v1 = _Variable('v1');

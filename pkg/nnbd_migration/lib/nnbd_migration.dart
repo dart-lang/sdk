@@ -12,14 +12,20 @@ import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
-  /// An if-test or conditional expression needs to have its "then" branch
-  /// discarded.
+  /// An if-test or conditional expression needs to have its condition and
+  /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional then branch',
   );
 
-  /// An if-test or conditional expression needs to have its "else" branch
+  /// An if-test or conditional expression needs to have its condition
   /// discarded.
+  static const discardCondition = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded a condition which is always true',
+  );
+
+  /// An if-test or conditional expression needs to have its condition and
+  /// "else" branch discarded.
   static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
   );

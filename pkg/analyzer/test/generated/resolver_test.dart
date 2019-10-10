@@ -1015,7 +1015,9 @@ import 'a.dart' as helper;
 main() {
   helper.toString();
 }''');
-    assertTypeDynamic(findNode.methodInvocation('helper.toString()'));
+    assertTypeDynamic(
+      findNode.functionExpressionInvocation('helper.toString()'),
+    );
   }
 
   test_objectMethodInference_disabled_for_local_function() async {

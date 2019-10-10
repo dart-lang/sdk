@@ -177,12 +177,12 @@ main(A a) {
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in m()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // main()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
   }
 
   Future<void> test_field_implicit() async {
@@ -266,12 +266,12 @@ main() {
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in m()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // main()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
     assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in main()');
-    assertHasResult(SearchResultKind.INVOCATION, 'fff(); // in main()');
+    assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
   }
 
   test_field_ofExtension_implicit_instance() async {
@@ -489,7 +489,7 @@ main() {
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
+    assertHasResult(SearchResultKind.READ, 'vvv();');
   }
 
   Future<void> test_method() async {
@@ -605,7 +605,7 @@ main(ppp) {
     assertHasResult(SearchResultKind.READ, 'ppp);');
     assertHasResult(SearchResultKind.READ_WRITE, 'ppp += 3');
     assertHasResult(SearchResultKind.WRITE, 'ppp = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'ppp();');
+    assertHasResult(SearchResultKind.READ, 'ppp();');
   }
 
   @failingTest
@@ -789,7 +789,7 @@ main() {
     assertHasResult(SearchResultKind.READ, 'vvv);');
     assertHasResult(SearchResultKind.WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
-    assertHasResult(SearchResultKind.INVOCATION, 'vvv();');
+    assertHasResult(SearchResultKind.READ, 'vvv();');
   }
 
   Future<void> test_topLevelVariable_implicit() async {

@@ -33,10 +33,6 @@ class AssignedVariables<Node, Variable> {
   /// write is captured by a local function or closure inside that node.
   final Map<Node, Set<Variable>> _capturedInNode = {};
 
-  /// Set of local variables for which a potential write is captured by a local
-  /// function or closure anywhere in the code being analyzed.
-  final Set<Variable> _capturedAnywhere = {};
-
   /// Stack of sets accumulating variables that are potentially written to.
   ///
   /// A set is pushed onto the stack when a node is entered, and popped when
@@ -61,10 +57,6 @@ class AssignedVariables<Node, Variable> {
   final List<int> _closureIndexStack = [];
 
   AssignedVariables();
-
-  /// Queries the set of variables for which a potential write is captured by a
-  /// local function or closure anywhere in the code being analyzed.
-  Set<Variable> get capturedAnywhere => _capturedAnywhere;
 
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
@@ -114,7 +106,6 @@ class AssignedVariables<Node, Variable> {
       _writtenStack[i].add(variable);
     }
     if (_closureIndexStack.isNotEmpty) {
-      _capturedAnywhere.add(variable);
       int closureIndex = _closureIndexStack.last;
       for (int i = 0; i < closureIndex; ++i) {
         _capturedStack[i].add(variable);

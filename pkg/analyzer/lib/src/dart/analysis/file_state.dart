@@ -116,7 +116,6 @@ class FileState {
   Set<String> _referencedNames;
   String _unlinkedKey;
   AnalysisDriverUnlinkedUnit _driverUnlinkedUnit;
-  UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
   UnlinkedUnit2 _unlinked2;
@@ -232,10 +231,7 @@ class FileState {
         _fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
       return _fsState.externalSummaries.isPartUnit(uriStr);
     }
-    if (_unlinked2 != null) {
-      return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
-    }
-    return _unlinked.libraryNameOffset == 0 && _unlinked.isPartOf;
+    return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;
   }
 
   /**
@@ -333,11 +329,6 @@ class FileState {
   String get transitiveSignatureLinked {
     return _transitiveSignatureLinked ??= '$transitiveSignature.linked';
   }
-
-  /**
-   * The [UnlinkedUnit] of the file.
-   */
-  UnlinkedUnit get unlinked => _unlinked;
 
   /**
    * The [UnlinkedUnit2] of the file.

@@ -48,7 +48,9 @@ class ConditionalModification extends PotentialModification {
   @override
   NullabilityFixDescription get description => discard.keepFalse
       ? NullabilityFixDescription.discardThen
-      : NullabilityFixDescription.discardElse;
+      : (elseStatement == null
+          ? NullabilityFixDescription.discardCondition
+          : NullabilityFixDescription.discardElse);
 
   @override
   bool get isEmpty => discard.keepTrue && discard.keepFalse;

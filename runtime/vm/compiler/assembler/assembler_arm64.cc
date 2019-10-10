@@ -281,8 +281,8 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
 
   int lead_zero = CountLeadingZeros(value, width);
   int lead_one = CountLeadingZeros(~value, width);
-  int trail_zero = Utils::CountTrailingZeros(value);
-  int trail_one = Utils::CountTrailingZeros(~value);
+  int trail_zero = Utils::CountTrailingZerosWord(value);
+  int trail_one = Utils::CountTrailingZerosWord(~value);
   int set_bits = CountOneBits(value, width);
 
   // The fixed bits in the immediate s field.

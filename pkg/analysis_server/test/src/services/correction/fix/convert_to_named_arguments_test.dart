@@ -32,6 +32,44 @@ main() {
     await assertNoFix();
   }
 
+  test_functionExpressionInvocation_getter() async {
+    await resolveTestUnit('''
+class A {
+  void Function({int aaa}) get g => null;
+}
+
+main(A a) {
+  a.g(0);
+}
+''');
+    await assertHasFix('''
+class A {
+  void Function({int aaa}) get g => null;
+}
+
+main(A a) {
+  a.g(aaa: 0);
+}
+''');
+  }
+
+  test_functionExpressionInvocation_variable() async {
+    await resolveTestUnit('''
+typedef F = void Function({int aaa});
+
+main(F f) {
+  f(0);
+}
+''');
+    await assertHasFix('''
+typedef F = void Function({int aaa});
+
+main(F f) {
+  f(aaa: 0);
+}
+''');
+  }
+
   test_instanceCreation() async {
     await resolveTestUnit('''
 class A {
@@ -91,44 +129,6 @@ class C {
 
 main(C c) {
   c.foo(a: 1);
-}
-''');
-  }
-
-  test_methodInvocation_functionTypedGetter() async {
-    await resolveTestUnit('''
-class A {
-  void Function({int aaa}) get g => null;
-}
-
-main(A a) {
-  a.g(0);
-}
-''');
-    await assertHasFix('''
-class A {
-  void Function({int aaa}) get g => null;
-}
-
-main(A a) {
-  a.g(aaa: 0);
-}
-''');
-  }
-
-  test_methodInvocation_functionTypedVariable() async {
-    await resolveTestUnit('''
-typedef F = void Function({int aaa});
-
-main(F f) {
-  f(0);
-}
-''');
-    await assertHasFix('''
-typedef F = void Function({int aaa});
-
-main(F f) {
-  f(aaa: 0);
 }
 ''');
   }

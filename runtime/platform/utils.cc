@@ -21,6 +21,32 @@ uintptr_t Utils::RoundUpToPowerOfTwo(uintptr_t x) {
   return x + 1;
 }
 
+int Utils::CountOneBits64(uint64_t x) {
+  // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+  return __builtin_popcountll(x);
+#else
+  return CountOneBits32(static_cast<uint32_t>(x)) +
+         CountOneBits32(static_cast<uint32_t>(x >> 32));
+#endif
+}
+
+int Utils::CountOneBits32(uint32_t x) {
+  // Apparently there are x64 chips without popcount.
+#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
+  return __builtin_popcount(x);
+#else
+  // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+  // figure 5-2, page 66, where the function is called pop.
+  x = x - ((x >> 1) & 0x55555555);
+  x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+  x = (x + (x >> 4)) & 0x0F0F0F0F;
+  x = x + (x >> 8);
+  x = x + (x >> 16);
+  return static_cast<int>(x & 0x0000003F);
+#endif
+}
+
 // TODO(koda): Compare to flsll call/intrinsic.
 int Utils::HighestBit(int64_t v) {
   uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
@@ -48,6 +74,58 @@ int Utils::HighestBit(int64_t v) {
   }
   if (x > 1) r += 1;
   return r;
+}
+
+int Utils::CountLeadingZeros64(uint64_t x) {
+#if defined(ARCH_IS_32_BIT)
+  const uint32_t x_hi = static_cast<uint32_t>(x >> 32);
+  if (x_hi != 0) {
+    return CountLeadingZeros32(x_hi);
+  }
+  return 32 + CountLeadingZeros32(static_cast<uint32_t>(x));
+#elif defined(HOST_OS_WINDOWS)
+  unsigned long position;  // NOLINT
+  return (_BitScanReverse64(&position, x) == 0)
+             ? 64
+             : 63 - static_cast<int>(position);
+#else
+  return x == 0 ? 64 : __builtin_clzll(x);
+#endif
+}
+
+int Utils::CountLeadingZeros32(uint32_t x) {
+#if defined(HOST_OS_WINDOWS)
+  unsigned long position;  // NOLINT
+  return (_BitScanReverse(&position, x) == 0) ? 32
+                                              : 31 - static_cast<int>(position);
+#else
+  return x == 0 ? 32 : __builtin_clz(x);
+#endif
+}
+
+int Utils::CountTrailingZeros64(uint64_t x) {
+#if defined(ARCH_IS_32_BIT)
+  const uint32_t x_lo = static_cast<uint32_t>(x);
+  if (x_lo != 0) {
+    return CountTrailingZeros32(x_lo);
+  }
+  return 32 + CountTrailingZeros32(static_cast<uint32_t>(x >> 32));
+#elif defined(HOST_OS_WINDOWS)
+  unsigned long position;  // NOLINT
+  return (_BitScanForward64(&position, x) == 0) ? 64
+                                                : static_cast<int>(position);
+#else
+  return x == 0 ? 64 : __builtin_ctzll(x);
+#endif
+}
+
+int Utils::CountTrailingZeros32(uint32_t x) {
+#if defined(HOST_OS_WINDOWS)
+  unsigned long position;  // NOLINT
+  return (_BitScanForward(&position, x) == 0) ? 32 : static_cast<int>(position);
+#else
+  return x == 0 ? 32 : __builtin_ctz(x);
+#endif
 }
 
 uint64_t Utils::ReverseBits64(uint64_t x) {

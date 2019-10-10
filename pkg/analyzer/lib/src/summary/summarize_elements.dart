@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -28,39 +27,13 @@ class PackageBundleAssembler {
    */
   static const int currentMinorVersion = 1;
 
-  final List<String> _linkedLibraryUris = <String>[];
-  final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
-  final List<String> _unlinkedUnitUris = <String>[];
-  final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
-  final Map<String, UnlinkedUnitBuilder> _unlinkedUnitMap =
-      <String, UnlinkedUnitBuilder>{};
-
   LinkedNodeBundleBuilder _bundle2;
-
-  void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
-    _linkedLibraries.add(library);
-    _linkedLibraryUris.add(uri);
-  }
-
-  void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
-    addUnlinkedUnitViaUri(source.uri.toString(), unit);
-  }
-
-  void addUnlinkedUnitViaUri(String uri, UnlinkedUnitBuilder unit) {
-    _unlinkedUnitUris.add(uri);
-    _unlinkedUnits.add(unit);
-    _unlinkedUnitMap[uri] = unit;
-  }
 
   /**
    * Assemble a new [PackageBundleBuilder] using the gathered information.
    */
   PackageBundleBuilder assemble() {
     return new PackageBundleBuilder(
-        linkedLibraryUris: _linkedLibraryUris,
-        linkedLibraries: _linkedLibraries,
-        unlinkedUnitUris: _unlinkedUnitUris,
-        unlinkedUnits: _unlinkedUnits,
         majorVersion: currentMajorVersion,
         minorVersion: currentMinorVersion,
         bundle2: _bundle2);

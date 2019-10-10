@@ -71,10 +71,8 @@ class CompilerAnalysisDriver {
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
 
     // Read the summaries.
-    summaryData ??= SummaryDataStore(summaryPaths,
-        resourceProvider: resourceProvider,
-        // TODO(vsm): Reset this to true once we cleanup internal build rules.
-        disallowOverlappingSummaries: false);
+    summaryData ??=
+        SummaryDataStore(summaryPaths, resourceProvider: resourceProvider);
 
     return CompilerAnalysisDriver._(dartSdk, summaryPaths, summaryData,
         analysisOptions, resourceProvider, options.dartSdkSummaryPath);

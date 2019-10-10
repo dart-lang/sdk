@@ -20,6 +20,7 @@ GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
 DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
+DART_USE_LSAN = "DART_USE_LSAN"  # Use instead of --lsan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
@@ -33,6 +34,10 @@ DART_GN_ARGS = "DART_GN_ARGS"
 
 def UseASAN():
     return DART_USE_ASAN in os.environ
+
+
+def UseLSAN():
+    return DART_USE_LSAN in os.environ
 
 
 def UseMSAN():
@@ -89,7 +94,9 @@ def HostCpuForArch(arch):
             'simarmv5te', 'simdbc', 'armsimdbc', 'simarm_x64'
     ]:
         return 'x86'
-    if arch in ['x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64']:
+    if arch in [
+            'x64', 'arm64', 'simarm64', 'simdbc64', 'armsimdbc64', 'arm_x64'
+    ]:
         return 'x64'
 
 
@@ -103,6 +110,8 @@ def TargetCpuForArch(arch, target_os):
         return 'arm' if target_os == 'android' else 'x86'
     if arch in ['simdbc64']:
         return 'arm64' if target_os == 'android' else 'x64'
+    if arch == 'arm_x64':
+        return 'arm'
     if arch == 'armsimdbc':
         return 'arm'
     if arch == 'armsimdbc64':
@@ -116,7 +125,7 @@ def DartTargetCpuForArch(arch):
         return 'ia32'
     if arch in ['x64']:
         return 'x64'
-    if arch in ['arm', 'simarm', 'simarm_x64']:
+    if arch in ['arm', 'simarm', 'simarm_x64', 'arm_x64']:
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
@@ -148,7 +157,7 @@ def ParseStringMap(key, string_map):
 
 
 def UseSanitizer(args):
-    return args.asan or args.msan or args.tsan
+    return args.asan or args.lsan or args.msan or args.tsan
 
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
@@ -245,6 +254,7 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
     gn_args['is_asan'] = args.asan and gn_args['is_clang']
+    gn_args['is_lsan'] = args.lsan and gn_args['is_clang']
     gn_args['is_msan'] = args.msan and gn_args['is_clang']
     gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
 
@@ -313,7 +323,7 @@ def ProcessOptions(args):
             return False
     for arch in args.arch:
         archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
+            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
             'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
             'armsimdbc64', 'simarm_x64'
         ]
@@ -334,7 +344,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
                     'simdbc64'
             ]:
                 print(
@@ -373,7 +383,7 @@ def parse_args(args):
         '-a',
         type=str,
         help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
+        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,simarmv5te,armv5te,'
         'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
         default='x64')
     common_group.add_argument(
@@ -456,6 +466,13 @@ def parse_args(args):
         default=False,
         dest='exclude_kernel_service',
         action='store_true')
+    other_group.add_argument(
+        '--lsan',
+        help='Build with LSAN',
+        default=UseLSAN(),
+        action='store_true')
+    other_group.add_argument(
+        '--no-lsan', help='Disable LSAN', dest='lsan', action='store_false')
     other_group.add_argument(
         '--msan',
         help='Build with MSAN',

@@ -107,7 +107,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 57, 5),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 59, 1),
     ]);
   }
 
@@ -130,7 +130,7 @@ class A {
 var a = new A();
 var b = a.g();
 ''', [
-      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 56, 5),
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 58, 1),
     ]);
   }
 

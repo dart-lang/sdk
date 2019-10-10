@@ -1,7 +1,13 @@
-## 0.38.5-dev
+## 0.38.5
 * Added the interface `PromotableElement`, which representing
   variables that can be type promoted (local variables and parameters,
   but not fields).
+* Deprecated the boolean `AnalysisDriver.useSummary2`.  Summary1 support has
+  been removed, so clients should assume Summary2 is in use now.
+* Deprecated the constructor argument `useDart2jsPaths` for SdkLibrariesReader.
+  We now always use Dart2js paths.
+* Bug fixes: #37608, #37708, #37867, #38498, #38565, #38572, #38589, #38641,
+  #38653, #38667, #38695, #38706.
 
 ## 0.38.4
 * Bug fixes: #33300, #38484, #38505.

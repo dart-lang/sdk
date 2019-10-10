@@ -6,6 +6,12 @@ import("build/config/gclient_args.gni")
 
 targetting_fuchsia = target_os == "fuchsia"
 
+declare_args() {
+  # Whether to use the NNBD fork of the SDK core libraries.
+  # TODO(rnystrom): Remove this when the fork has been merged back in.
+  use_nnbd = false
+}
+
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
   if (targetting_fuchsia) {

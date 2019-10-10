@@ -263,7 +263,7 @@ class Interpreter {
   }
 
 #ifndef PRODUCT
-  bool is_debugging_;
+  bool is_debugging_ = false;
 #endif  // !PRODUCT
 
   bool supports_unboxed_doubles_;

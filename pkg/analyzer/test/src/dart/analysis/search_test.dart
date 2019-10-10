@@ -418,8 +418,8 @@ class A {
       _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -474,8 +474,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -703,7 +703,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -725,7 +725,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -749,7 +749,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -813,7 +813,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
     ];
     await _verifyReferences(element, expected);
@@ -842,7 +842,7 @@ main() {
       _expectId(constructorA, SearchResultKind.WRITE, 'p = 2;'),
       _expectId(constructorA, SearchResultKind.READ_WRITE, 'p += 3;'),
       _expectId(constructorA, SearchResultKind.READ, 'p);'),
-      _expectId(constructorA, SearchResultKind.INVOCATION, 'p();')
+      _expectId(constructorA, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -866,7 +866,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(main, SearchResultKind.READ, 'p);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'p();')
+      _expectId(main, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -891,7 +891,7 @@ main(C c) {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -914,7 +914,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -938,7 +938,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
@@ -1134,8 +1134,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ggg); // ref-nq'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'ggg(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'ggg(); // inv-q'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ggg(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg(); // inv-q'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1185,10 +1185,10 @@ main() {
       _expectIdQ(testUnitElement, SearchResultKind.REFERENCE, 'V; // imp'),
       _expectIdQ(main, SearchResultKind.WRITE, 'V = 1; // q'),
       _expectIdQ(main, SearchResultKind.READ, 'V); // q'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'V(); // q'),
+      _expectIdQ(main, SearchResultKind.READ, 'V(); // q'),
       _expectId(main, SearchResultKind.WRITE, 'V = 1; // nq'),
       _expectId(main, SearchResultKind.READ, 'V); // nq'),
-      _expectId(main, SearchResultKind.INVOCATION, 'V(); // nq'),
+      _expectId(main, SearchResultKind.READ, 'V(); // nq'),
     ];
     await _verifyReferences(variable, expected);
   }

@@ -308,8 +308,7 @@ class TypeArgumentsVerifier {
     var genericType = node.function.staticType;
     var instantiatedType = node.staticInvokeType;
     if (genericType is FunctionType && instantiatedType is FunctionType) {
-      var fnTypeParams =
-          TypeParameterTypeImpl.getTypes(genericType.typeFormals);
+      var fnTypeParams = genericType.typeFormals;
       var typeArgs = typeArgumentList.map((t) => t.type).toList();
 
       // If the amount mismatches, clean up the lists to be substitutable. The
@@ -338,8 +337,13 @@ class TypeArgumentsVerifier {
           continue;
         }
 
-        DartType bound =
-            fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
+        var rawBound = fnTypeParams[i].bound;
+        if (rawBound == null) {
+          continue;
+        }
+
+        var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
+        var bound = substitution.substituteType(rawBound);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {
           _errorReporter.reportTypeErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,

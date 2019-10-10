@@ -13,9 +13,7 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 
 import 'resynthesize_common.dart';
 
@@ -82,41 +80,4 @@ class ResynthesizeTestStrategyTwoPhase extends AbstractResynthesizeTest
       <String, UnlinkedUnitBuilder>{};
 
   PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
-}
-
-/// [SerializedMockSdk] is a singleton class representing the result of
-/// serializing the mock SDK to summaries.  It is computed once and then shared
-/// among test invocations so that we don't bog down the tests.
-///
-/// Note: should an exception occur during computation of [instance], it will
-/// silently be set to null to allow other tests to complete quickly.
-class SerializedMockSdk {
-  static final SerializedMockSdk instance = _serializeMockSdk();
-
-  final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
-
-  final Map<String, LinkedLibrary> uriToLinkedLibrary;
-
-  SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
-
-  static SerializedMockSdk _serializeMockSdk() {
-    try {
-      Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
-      Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
-      var resourceProvider = new MemoryResourceProvider();
-      PackageBundle bundle =
-          new MockSdk(resourceProvider: resourceProvider).getLinkedBundle();
-      for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-        String uri = bundle.unlinkedUnitUris[i];
-        uriToUnlinkedUnit[uri] = bundle.unlinkedUnits[i];
-      }
-      for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-        String uri = bundle.linkedLibraryUris[i];
-        uriToLinkedLibrary[uri] = bundle.linkedLibraries[i];
-      }
-      return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
-    } catch (_) {
-      return null;
-    }
-  }
 }

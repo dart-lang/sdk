@@ -375,6 +375,8 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 #ifdef DEBUG
     result->reserved_->Protect(VirtualMemory::kReadWrite);
 #endif
+    // Initialized by generated code.
+    MSAN_UNPOISON(result->reserved_->address(), size_in_words << kWordSizeLog2);
     return result;
   }
 
@@ -392,18 +394,21 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size_in_bytes);
 #endif  // defined(DEBUG)
+    // Initialized by generated code.
+    MSAN_UNPOISON(memory->address(), size_in_bytes);
     return new SemiSpace(memory);
   }
 }
 
 void SemiSpace::Delete() {
-#ifdef DEBUG
   if (reserved_ != nullptr) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
+#ifdef DEBUG
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
     reserved_->Protect(VirtualMemory::kNoAccess);
-  }
 #endif
+    MSAN_POISON(reserved_->address(), size_in_bytes);
+  }
   SemiSpace* old_cache = nullptr;
   {
     MutexLocker locker(mutex_);

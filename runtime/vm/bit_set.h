@@ -41,12 +41,13 @@ class BitSet {
     intptr_t w = i >> kBitsPerWordLog2;
     uword mask = ~static_cast<uword>(0) << (i & (kBitsPerWord - 1));
     if ((data_[w] & mask) != 0) {
-      uword tz = Utils::CountTrailingZeros(data_[w] & mask);
+      uword tz = Utils::CountTrailingZerosWord(data_[w] & mask);
       return (w << kBitsPerWordLog2) + tz;
     }
     while (++w < kLengthInWords) {
       if (data_[w] != 0) {
-        return (w << kBitsPerWordLog2) + Utils::CountTrailingZeros(data_[w]);
+        return (w << kBitsPerWordLog2) +
+               Utils::CountTrailingZerosWord(data_[w]);
       }
     }
     return -1;
@@ -56,7 +57,8 @@ class BitSet {
     for (int w = kLengthInWords - 1; w >= 0; --w) {
       uword d = data_[w];
       if (d != 0) {
-        return ((w + 1) << kBitsPerWordLog2) - Utils::CountLeadingZeros(d) - 1;
+        return ((w + 1) << kBitsPerWordLog2) - Utils::CountLeadingZerosWord(d) -
+               1;
       }
     }
     return -1;
@@ -79,7 +81,8 @@ class BitSet {
       return -1;
     } else {
       // Bitlength incl. w, minus leading zeroes of w, minus 1 to 0-based index.
-      return ((w + 1) << kBitsPerWordLog2) - Utils::CountLeadingZeros(bits) - 1;
+      return ((w + 1) << kBitsPerWordLog2) -
+             Utils::CountLeadingZerosWord(bits) - 1;
     }
   }
 

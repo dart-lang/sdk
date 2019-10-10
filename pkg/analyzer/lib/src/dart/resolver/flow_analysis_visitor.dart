@@ -377,6 +377,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    assignedVariables.beginNode();
+    super.visitConstructorDeclaration(node);
+    assignedVariables.endNode(node);
+  }
+
+  @override
   void visitDoStatement(DoStatement node) {
     assignedVariables.beginNode();
     super.visitDoStatement(node);
@@ -391,6 +398,30 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitForStatement(ForStatement node) {
     _handleFor(node, node.forLoopParts, node.body);
+  }
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    bool isClosure = node.parent is! CompilationUnit;
+    assignedVariables.beginNode(isClosure: isClosure);
+    // Note: we bypass this.visitFunctionExpression so that the function
+    // expression isn't mistaken for a closure.
+    super.visitFunctionExpression(node.functionExpression);
+    assignedVariables.endNode(node, isClosure: isClosure);
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    assignedVariables.beginNode(isClosure: true);
+    super.visitFunctionExpression(node);
+    assignedVariables.endNode(node, isClosure: true);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    assignedVariables.beginNode();
+    super.visitMethodDeclaration(node);
+    assignedVariables.endNode(node);
   }
 
   @override

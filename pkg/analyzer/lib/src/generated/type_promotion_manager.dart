@@ -42,7 +42,11 @@ class TypePromotionManager {
   }
 
   void exitFunctionBody() {
-    _currentFunctionBody = _functionBodyStack.removeLast();
+    if (_functionBodyStack.isEmpty) {
+      assert(false, 'exitFunctionBody without a matching enterFunctionBody');
+    } else {
+      _currentFunctionBody = _functionBodyStack.removeLast();
+    }
   }
 
   void visitBinaryExpression_and_rhs(

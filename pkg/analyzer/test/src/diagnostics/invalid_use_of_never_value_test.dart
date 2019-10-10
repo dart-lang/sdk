@@ -105,7 +105,7 @@ void main() {
   c.x();
 }
 ''', [
-      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 71, 1),
+      error(StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, 69, 3),
     ]);
   }
 

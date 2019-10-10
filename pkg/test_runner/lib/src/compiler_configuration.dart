@@ -588,6 +588,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isSimArm => _configuration.architecture == Architecture.simarm;
 
+  bool get _isArmX64 => _configuration.architecture == Architecture.arm_x64;
+
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
   bool get _isX64 => _configuration.architecture == Architecture.x64;
@@ -674,7 +676,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_isAndroid) {
         if (_isArm || _isIA32) {
           exec = "$buildDir/clang_x86/gen_snapshot";
-        } else if (_isArm64 || _isX64) {
+        } else if (_isArm64 || _isX64 || _isArmX64) {
           exec = "$buildDir/clang_x64/gen_snapshot";
         } else {
           // Guaranteed by package:test_runner/src/configuration.dart's
@@ -710,7 +712,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   }
 
   static const String ndkPath = "third_party/android_tools/ndk";
-  String get abiTriple => _isArm
+  String get abiTriple => _isArm || _isArmX64
       ? "arm-linux-androideabi"
       : _isArm64 ? "aarch64-linux-android" : null;
   String get host =>
@@ -748,6 +750,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       case Architecture.ia32:
       case Architecture.simarm:
       case Architecture.arm:
+      case Architecture.arm_x64:
       case Architecture.arm64:
         ccFlags = null;
         break;

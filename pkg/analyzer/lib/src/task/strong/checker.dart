@@ -1875,12 +1875,19 @@ class _TopLevelInitializerValidator extends RecursiveAstVisitor<void> {
 
   @override
   visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    if (node.typeArguments != null) {
+      return;
+    }
+
+    var function = node.function;
+    if (function is PropertyAccess) {
+      var propertyName = function.propertyName;
+      validateIdentifierElement(propertyName, propertyName.staticElement);
+    }
+
     var functionType = node.function.staticType;
-    if (node.typeArguments == null &&
-        functionType is FunctionType &&
-        functionType.typeFormals.isNotEmpty) {
-      // Type inference might depend on the parameters
-      super.visitFunctionExpressionInvocation(node);
+    if (functionType is FunctionType && functionType.typeFormals.isNotEmpty) {
+      node.argumentList.accept(this);
     }
   }
 

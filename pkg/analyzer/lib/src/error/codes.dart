@@ -410,6 +410,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS =
       ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS;
 
+  static const CompileTimeErrorCode ASSERT_IN_REDIRECTING_CONSTRUCTOR =
+      const CompileTimeErrorCode('ASSERT_IN_REDIRECTING_CONSTRUCTOR',
+          "A redirecting constructor can't have an 'assert' initializer.");
+
   /**
    * 17.6.3 Asynchronous For-in: It is a compile-time error if an asynchronous
    * for-in statement appears inside a synchronous function.
@@ -6435,7 +6439,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
    */
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
       const StaticWarningCode('NEW_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be created with a 'new' expression.",
+          "Abstract classes can't be instantiated.",
           correction: "Try creating an instance of a subtype.");
 
   /**

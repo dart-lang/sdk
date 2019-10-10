@@ -17,7 +17,7 @@ HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 AVAILABLE_ARCHS = [
-    'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
+    'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
     'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
     'armsimdbc64', 'simarm_x64'
 ]
@@ -117,7 +117,7 @@ def ProcessOptions(options, args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
                     'simdbc64'
             ]:
                 print(
