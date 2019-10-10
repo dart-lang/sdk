@@ -31,6 +31,7 @@ import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
@@ -307,6 +308,11 @@ class LibraryAnalyzer {
           errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
       unit.accept(verifier);
     }
+
+    // Verify constraints on FFI uses. The CFE enforces these constraints as
+    // compile-time errors. However, since the FFI constraints are not
+    // technically part of the Dart language, we surface them as hints.
+    unit.accept(FfiVerifier(_inheritance, errorReporter));
   }
 
   void _computeLints(FileState file, LinterContextUnit currentUnit,
