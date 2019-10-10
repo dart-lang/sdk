@@ -293,7 +293,7 @@ class H extends self::G implements self::C, self::A {}
 
   Class addClass(Class c) {
     if (_hierarchy != null) {
-      fail('The classs hierarchy has already been created.');
+      fail('The class hierarchy has already been created.');
     }
     library.addClass(c);
     return c;
