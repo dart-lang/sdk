@@ -324,24 +324,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitBinaryExpression(BinaryExpression node) {
     var operatorType = node.operator.type;
+    var leftOperand = node.leftOperand;
+    var rightOperand = node.rightOperand;
     if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
-      assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
-      var leftType = node.leftOperand.accept(this);
-      node.rightOperand.accept(this);
-      if (node.rightOperand is NullLiteral) {
+      assert(leftOperand is! NullLiteral); // TODO(paulberry)
+      var leftType = leftOperand.accept(this);
+      _flowAnalysis.equalityOp_rightBegin(leftOperand);
+      rightOperand.accept(this);
+      bool notEqual = operatorType == TokenType.BANG_EQ;
+      _flowAnalysis.equalityOp_end(node, rightOperand, notEqual: notEqual);
+      if (rightOperand is NullLiteral) {
         // TODO(paulberry): only set falseChecksNonNull in unconditional
         // control flow
-        bool notEqual = operatorType == TokenType.BANG_EQ;
-        bool isPure = false;
-        var leftOperand = node.leftOperand;
-        if (leftOperand is SimpleIdentifier) {
-          // TODO(paulberry): figure out what the rules for isPure should be.
-          isPure = true;
-          var element = leftOperand.staticElement;
-          if (element is PromotableElement) {
-            _flowAnalysis.conditionEqNull(node, element, notEqual: notEqual);
-          }
-        }
+        // TODO(paulberry): figure out what the rules for isPure should be.
+        bool isPure = leftOperand is SimpleIdentifier;
         var conditionInfo = _ConditionInfo(node,
             isPure: isPure,
             postDominatingIntent:
@@ -354,21 +350,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
       bool isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
-      _checkExpressionNotNull(node.leftOperand);
+      _checkExpressionNotNull(leftOperand);
       _flowAnalysis.logicalBinaryOp_rightBegin(node.leftOperand, isAnd: isAnd);
       _postDominatedLocals.doScoped(
-          action: () => _checkExpressionNotNull(node.rightOperand));
-      _flowAnalysis.logicalBinaryOp_end(node, node.rightOperand, isAnd: isAnd);
+          action: () => _checkExpressionNotNull(rightOperand));
+      _flowAnalysis.logicalBinaryOp_end(node, rightOperand, isAnd: isAnd);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
-      var leftType = node.leftOperand.accept(this);
+      var leftType = leftOperand.accept(this);
       _flowAnalysis.ifNullExpression_rightBegin();
       try {
         _guards.add(leftType.node);
         DecoratedType rightType;
         _postDominatedLocals.doScoped(action: () {
-          rightType = node.rightOperand.accept(this);
+          rightType = rightOperand.accept(this);
         });
         var ifNullNode = NullabilityNode.forIfNotNull();
         expressionType = DecoratedType(node.staticType, ifNullNode);
@@ -381,23 +377,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables.recordDecoratedExpressionType(node, expressionType);
       return expressionType;
     } else if (operatorType.isUserDefinableOperator) {
-      var targetType = _checkExpressionNotNull(node.leftOperand);
+      var targetType = _checkExpressionNotNull(leftOperand);
       var callee = node.staticElement;
       if (callee == null) {
-        node.rightOperand.accept(this);
+        rightOperand.accept(this);
         return _dynamicType;
       } else {
         var calleeType =
             getOrComputeElementType(callee, targetType: targetType);
         assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
-        _handleAssignment(node.rightOperand,
+        _handleAssignment(rightOperand,
             destinationType: calleeType.positionalParameters[0]);
         return _fixNumericTypes(calleeType.returnType, node.staticType);
       }
     } else {
       // TODO(paulberry)
-      node.leftOperand.accept(this);
-      node.rightOperand.accept(this);
+      leftOperand.accept(this);
+      rightOperand.accept(this);
       _unimplemented(
           node, 'Binary expression with operator ${node.operator.lexeme}');
     }
@@ -964,6 +960,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitNullLiteral(NullLiteral node) {
+    _flowAnalysis.nullLiteral(node);
     return _nullType;
   }
 
@@ -1153,7 +1150,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var staticElement = node.staticElement;
     if (staticElement is PromotableElement) {
       if (!node.inDeclarationContext()) {
-        var promotedType = _flowAnalysis.promotedType(staticElement);
+        var promotedType = _flowAnalysis.variableRead(node, staticElement);
         if (promotedType != null) return promotedType;
       }
       return getOrComputeElementType(staticElement);

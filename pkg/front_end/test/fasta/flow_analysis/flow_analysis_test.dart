@@ -105,13 +105,18 @@ main() {
       });
     });
 
-    test('conditionEqNull(notEqual: true) promotes true branch', () {
+    test('equalityOp(x != null) promotes true branch', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        var varExpr = _Expression();
+        flow.variableRead(varExpr, x);
+        flow.equalityOp_rightBegin(varExpr);
+        var nullExpr = _Expression();
+        flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        flow.conditionEqNull(expr, x, notEqual: true);
+        flow.equalityOp_end(expr, nullExpr, notEqual: true);
         flow.ifStatement_thenBegin(expr);
         expect(flow.promotedType(x).type, 'int');
         flow.ifStatement_elseBegin();
@@ -120,13 +125,58 @@ main() {
       });
     });
 
-    test('conditionEqNull(notEqual: false) promotes false branch', () {
+    test('equalityOp(x == null) promotes false branch', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        var varExpr = _Expression();
+        flow.variableRead(varExpr, x);
+        flow.equalityOp_rightBegin(varExpr);
+        var nullExpr = _Expression();
+        flow.nullLiteral(nullExpr);
         var expr = _Expression();
-        flow.conditionEqNull(expr, x, notEqual: false);
+        flow.equalityOp_end(expr, nullExpr, notEqual: false);
+        flow.ifStatement_thenBegin(expr);
+        expect(flow.promotedType(x), isNull);
+        flow.ifStatement_elseBegin();
+        expect(flow.promotedType(x).type, 'int');
+        flow.ifStatement_end(true);
+      });
+    });
+
+    test('equalityOp(null != x) promotes true branch', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        var nullExpr = _Expression();
+        flow.nullLiteral(nullExpr);
+        flow.equalityOp_rightBegin(nullExpr);
+        var varExpr = _Expression();
+        flow.variableRead(varExpr, x);
+        var expr = _Expression();
+        flow.equalityOp_end(expr, varExpr, notEqual: true);
+        flow.ifStatement_thenBegin(expr);
+        expect(flow.promotedType(x).type, 'int');
+        flow.ifStatement_elseBegin();
+        expect(flow.promotedType(x), isNull);
+        flow.ifStatement_end(true);
+      });
+    });
+
+    test('equalityOp(null == x) promotes false branch', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        var nullExpr = _Expression();
+        flow.nullLiteral(nullExpr);
+        flow.equalityOp_rightBegin(nullExpr);
+        var varExpr = _Expression();
+        flow.variableRead(varExpr, x);
+        var expr = _Expression();
+        flow.equalityOp_end(expr, varExpr, notEqual: false);
         flow.ifStatement_thenBegin(expr);
         expect(flow.promotedType(x), isNull);
         flow.ifStatement_elseBegin();
@@ -1799,8 +1849,13 @@ class _Harness
   /// [variable].
   LazyExpression eqNull(_Var variable) {
     return () {
+      var varExpr = _Expression();
+      _flow.variableRead(varExpr, variable);
+      _flow.equalityOp_rightBegin(varExpr);
+      var nullExpr = _Expression();
+      _flow.nullLiteral(nullExpr);
       var expr = _Expression();
-      _flow.conditionEqNull(expr, variable, notEqual: false);
+      _flow.equalityOp_end(expr, nullExpr, notEqual: false);
       return expr;
     };
   }
@@ -1877,8 +1932,13 @@ class _Harness
   /// [variable].
   LazyExpression notNull(_Var variable) {
     return () {
+      var varExpr = _Expression();
+      _flow.variableRead(varExpr, variable);
+      _flow.equalityOp_rightBegin(varExpr);
+      var nullExpr = _Expression();
+      _flow.nullLiteral(nullExpr);
       var expr = _Expression();
-      _flow.conditionEqNull(expr, variable, notEqual: true);
+      _flow.equalityOp_end(expr, nullExpr, notEqual: true);
       return expr;
     };
   }

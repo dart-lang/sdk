@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
-import 'package:meta/meta.dart';
 
 class AnalyzerNodeOperations implements NodeOperations<Expression> {
   const AnalyzerNodeOperations();
@@ -75,28 +74,6 @@ class FlowAnalysisHelper {
     if (localElement == null) return;
 
     flow.write(localElement);
-  }
-
-  void binaryExpression_equal(
-      BinaryExpression node, Expression left, Expression right,
-      {@required bool notEqual}) {
-    if (flow == null) return;
-
-    if (right is NullLiteral) {
-      if (left is SimpleIdentifier) {
-        var element = left.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element, notEqual: notEqual);
-        }
-      }
-    } else if (left is NullLiteral) {
-      if (right is SimpleIdentifier) {
-        var element = right.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element, notEqual: notEqual);
-        }
-      }
-    }
   }
 
   void breakStatement(BreakStatement node) {
@@ -513,7 +490,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   DartType getType(SimpleIdentifier node) {
     var variable = node.staticElement as VariableElement;
     if (variable is PromotableElement) {
-      var promotedType = _manager.flow?.promotedType(variable);
+      var promotedType = _manager.flow?.variableRead(node, variable);
       if (promotedType != null) return promotedType;
     }
     return variable.type;

@@ -889,6 +889,7 @@ encodes
 encoding
 encounter
 encountered
+encountering
 encounters
 end
 ended
