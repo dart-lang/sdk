@@ -95,10 +95,14 @@ main() { foo(() {}); }
 
 #### Linter
 
-The Linter was updated to `0.1.100`, which includes:
+The Linter was updated to `0.1.101`, which includes:
 
-* (internal) stop accessing `staticType` in favor of getting type of `FormalParameter`s from the declared element
-* (internal) remove stale analyzer work-around for collecting `TypeParameterElement`s in `prefer_const_constructors`
+* fixed `diagnostic_describe_all_properties` to flag properties in `Diagnosticable`s with no debug methods defined
+* fixed `noSuchMethod` exception in `camel_case_extensions` when analyzing unnamed extensions
+* fixed `avoid_print` to catch tear-off usage
+* new lint: `avoid_web_libraries_in_flutter` (experimental)
+* (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
+
 
 ## 2.5.1 - 2019-09-27
 
