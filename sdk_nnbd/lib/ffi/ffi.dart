@@ -100,11 +100,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Pointer arithmetic (takes element size into account).
   external Pointer<T> elementAt(int index);
 
-  /// Pointer arithmetic (byte offset).
-  // TODO(dacoharkes): remove this?
-  // https://github.com/dart-lang/sdk/issues/35883
-  external Pointer<T> offsetBy(int offsetInBytes);
-
   /// Cast Pointer<T> to a Pointer<V>.
   external Pointer<U> cast<U extends NativeType>();
 

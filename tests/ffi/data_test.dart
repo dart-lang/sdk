@@ -11,6 +11,8 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+import 'ffi_test_helpers.dart';
+
 void main() {
   testPointerBasic();
   testPointerFromPointer();
@@ -114,7 +116,7 @@ void testPointerAllocateZero() {
 
 void testPointerCast() {
   Pointer<Int64> p = allocate();
-  Pointer<Int32> p2 = p.cast(); // gets the correct type args back
+  p.cast<Int32>(); // gets the correct type args back
   free(p);
 }
 

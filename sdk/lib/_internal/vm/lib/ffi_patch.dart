@@ -115,7 +115,7 @@ class Pointer<T extends NativeType> {
       Pointer.fromAddress(address + sizeOf<T>() * index);
 
   @patch
-  Pointer<T> offsetBy(int offsetInBytes) =>
+  Pointer<T> _offsetBy(int offsetInBytes) =>
       Pointer.fromAddress(address + offsetInBytes);
 
   @patch

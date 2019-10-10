@@ -8,6 +8,8 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
+import 'ffi_test_helpers.dart';
+
 // void* mmap(void* addr, size_t length,
 //            int prot, int flags,
 //            int fd, off_t offset)

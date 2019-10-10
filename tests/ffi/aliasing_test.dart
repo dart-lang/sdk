@@ -15,7 +15,7 @@ import 'dart:ffi';
 import "package:ffi/ffi.dart";
 import "package:expect/expect.dart";
 
-import 'dylib_utils.dart';
+import 'ffi_test_helpers.dart';
 
 void main() {
   for (int i = 0; i < 100; ++i) {
@@ -169,8 +169,6 @@ void testAliasFromAddressViaMemory2() {
 
 typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
 typedef QuadOp = int Function(int, int, int, int);
-
-DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 QuadOp intComputation = ffiTestFunctions
     .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");

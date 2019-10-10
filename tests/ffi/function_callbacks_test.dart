@@ -251,6 +251,8 @@ double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
   Pointer.fromFunction<Double Function()>(testExceptionalReturn);  //# 63: compile-time error
+
+  return 0.0;  // not used
 }
 
 void main() async {

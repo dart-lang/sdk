@@ -18,7 +18,6 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi' as ffi;
-import 'dylib_utils.dart';
 import "package:expect/expect.dart";
 import 'ffi_test_helpers.dart';
 

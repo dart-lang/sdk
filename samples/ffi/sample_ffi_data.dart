@@ -47,21 +47,6 @@ main(List<String> arguments) {
   }
 
   {
-    // pointer arithmetic can be done with element offsets or bytes
-    Pointer<Int64> p1 = allocate<Int64>(count: 2);
-    print('p1 address: ${p1.address}');
-
-    Pointer<Int64> p2 = p1.elementAt(1);
-    print('p1.elementAt(1) address: ${p2.address}');
-    p2.value = 100;
-
-    Pointer<Int64> p3 = p1.offsetBy(8);
-    print('p1.offsetBy(8) address: ${p3.address}');
-    print('p1.offsetBy(8) value: ${p3.value}');
-    free(p1);
-  }
-
-  {
     // allocating too much throws an exception
     try {
       int maxMint = 9223372036854775807; // 2^63 - 1

@@ -4,17 +4,17 @@
 //
 // Helpers for tests which trigger GC in delicate places.
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
-typedef NativeNullaryOp = ffi.Void Function();
+typedef NativeNullaryOp = Void Function();
 typedef NullaryOpVoid = void Function();
 
-typedef NativeUnaryOp = ffi.Void Function(ffi.IntPtr);
+typedef NativeUnaryOp = Void Function(IntPtr);
 typedef UnaryOpVoid = void Function(int);
 
-final ffi.DynamicLibrary ffiTestFunctions =
+final DynamicLibrary ffiTestFunctions =
     dlopenPlatformSpecific("ffi_test_functions");
 
 final triggerGc = ffiTestFunctions
@@ -22,3 +22,7 @@ final triggerGc = ffiTestFunctions
 
 final collectOnNthAllocation = ffiTestFunctions
     .lookupFunction<NativeUnaryOp, UnaryOpVoid>("CollectOnNthAllocation");
+
+extension PointerOffsetBy<T extends NativeType> on Pointer<T> {
+  Pointer<T> offsetBy(int bytes) => Pointer.fromAddress(address + bytes);
+}
