@@ -4084,7 +4084,16 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // (As opposed to here where we don't check for the return value of
   // [Intrinsify]).
   const Function& function = compiler->parsed_function().function();
-  if (function.IsDynamicFunction()) {
+
+  // For functions which need an args descriptor the switchable call sites will
+  // transition directly to calling via a stub (and therefore never call the
+  // monomorphic entry).
+  //
+  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
+  const bool needs_args_descriptor =
+      function.HasOptionalParameters() || function.IsGeneric();
+
+  if (function.IsDynamicFunction() && !needs_args_descriptor) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
     if (!FLAG_precompiled_mode) {
       __ MonomorphicCheckedEntryJIT();

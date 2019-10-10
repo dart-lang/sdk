@@ -1567,6 +1567,14 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   }
 
+  // If the target function has optional parameters or is generic, it's
+  // prologue requires ARGS_DESC_REG to be populated. Yet the switchable calls
+  // do not populate that on the call site, which is why we don't transition
+  // those call sites to monomorphic, but rather directly to call via stub
+  // (which will populate the ARGS_DESC_REG from the ICData).
+  //
+  // Because of this we also don't generate monomorphic checks for those
+  // functions.
   if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
       !target_function.IsGeneric()) {
     // Patch to monomorphic call.
