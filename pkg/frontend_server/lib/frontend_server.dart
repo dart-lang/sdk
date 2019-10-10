@@ -130,12 +130,20 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
           ' application, produces better stack traces on exceptions.',
       defaultsTo: true)
   ..addFlag('unsafe-package-serialization',
-      help: 'Potentially unsafe: Does not allow for invalidating packages, '
+      help: '*Deprecated* '
+          'Potentially unsafe: Does not allow for invalidating packages, '
           'additionally the output dill file might include more libraries than '
           'needed. The use case is test-runs, where invalidation is not really '
           'used, and where dill filesize does not matter, and the gain is '
           'improved speed.',
       defaultsTo: false,
+      hide: true)
+  ..addFlag('incremental-serialization',
+      help: 'Re-use previously serialized data when serializing. '
+          'The output dill file might include more libraries than strictly '
+          'needed, but the serialization phase will generally be much faster.',
+      defaultsTo: false,
+      negatable: true,
       hide: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
@@ -262,7 +270,8 @@ class FrontendCompiler implements CompilerInterface {
   FrontendCompiler(this._outputStream,
       {this.printerFactory,
       this.transformer,
-      this.unsafePackageSerialization}) {
+      this.unsafePackageSerialization,
+      this.incrementalSerialization}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
     // Initialize supported kernel targets.
@@ -277,6 +286,7 @@ class FrontendCompiler implements CompilerInterface {
   StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
   bool unsafePackageSerialization;
+  bool incrementalSerialization;
 
   CompilerOptions _compilerOptions;
   BytecodeOptions _bytecodeOptions;
@@ -400,6 +410,7 @@ class FrontendCompiler implements CompilerInterface {
     _bytecodeOptions = bytecodeOptions;
 
     KernelCompilationResults results;
+    IncrementalSerializer incrementalSerializer;
     if (options['incremental']) {
       setVMEnvironmentDefines(environmentDefines, _compilerOptions);
 
@@ -414,6 +425,8 @@ class FrontendCompiler implements CompilerInterface {
           _generator.getClassHierarchy(),
           _generator.getCoreTypes(),
           component.uriToSource.keys);
+
+      incrementalSerializer = _generator.incrementalSerializer;
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -436,7 +449,8 @@ class FrontendCompiler implements CompilerInterface {
       }
 
       await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null);
+          filterExternal: importDill != null,
+          incrementalSerializer: incrementalSerializer);
 
       _outputStream.writeln(boundaryKey);
       await _outputDependenciesDelta(results.compiledSources);
@@ -501,7 +515,8 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
-      {bool filterExternal: false}) async {
+      {bool filterExternal: false,
+      IncrementalSerializer incrementalSerializer}) async {
     final Component component = results.component;
     // Remove the cache that came either from this function or from
     // initializing from a kernel file.
@@ -560,7 +575,10 @@ class FrontendCompiler implements CompilerInterface {
 
       sortComponent(component);
 
-      if (unsafePackageSerialization == true) {
+      if (incrementalSerializer != null) {
+        incrementalSerializer.writePackagesToSinkAndTrimComponent(
+            component, sink);
+      } else if (unsafePackageSerialization == true) {
         writePackagesToSinkAndTrimComponent(component, sink);
       }
 
@@ -687,7 +705,8 @@ class FrontendCompiler implements CompilerInterface {
         _generator.getCoreTypes(),
         deltaProgram.uriToSource.keys);
 
-    await writeDillFile(results, _kernelBinaryFilename);
+    await writeDillFile(results, _kernelBinaryFilename,
+        incrementalSerializer: _generator.incrementalSerializer);
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources);
@@ -852,7 +871,8 @@ class FrontendCompiler implements CompilerInterface {
 
   IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
     return new IncrementalCompiler(_compilerOptions, _mainSource,
-        initializeFromDillUri: initializeFromDillUri);
+        initializeFromDillUri: initializeFromDillUri,
+        incrementalSerialization: incrementalSerialization);
   }
 
   Uri _ensureFolderPath(String path) {
@@ -1072,7 +1092,8 @@ Future<int> starter(
 
   compiler ??= new FrontendCompiler(output,
       printerFactory: binaryPrinterFactory,
-      unsafePackageSerialization: options["unsafe-package-serialization"]);
+      unsafePackageSerialization: options["unsafe-package-serialization"],
+      incrementalSerialization: options["incremental-serialization"]);
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,

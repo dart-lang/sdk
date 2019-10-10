@@ -44,7 +44,7 @@ abstract class IncrementalKernelGenerator {
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component,
-      [bool outlineOnly]) {
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
