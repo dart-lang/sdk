@@ -30,8 +30,8 @@ import '../scope.dart';
 
 import '../severity.dart' show Severity;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'invalid_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';

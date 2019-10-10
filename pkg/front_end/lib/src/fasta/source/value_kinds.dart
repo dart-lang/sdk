@@ -4,15 +4,15 @@
 
 import 'package:kernel/ast.dart' as type;
 
+import '../builder/builder.dart' as type;
 import '../builder/builtin_type_builder.dart' as type;
 import '../builder/class_builder.dart' as type;
 import '../builder/constructor_reference_builder.dart' as type;
-import '../builder/declaration.dart' as type;
 import '../builder/dynamic_type_builder.dart' as type;
 import '../builder/enum_builder.dart' as type;
 import '../builder/field_builder.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
-import '../builder/procedure_builder.dart' as type;
+import '../builder/function_builder.dart' as type;
 import '../builder/function_type_builder.dart' as type;
 import '../builder/invalid_type_declaration_builder.dart' as type;
 import '../builder/library_builder.dart' as type;

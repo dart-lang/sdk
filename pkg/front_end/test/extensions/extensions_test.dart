@@ -9,9 +9,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
 import 'package:front_end/src/fasta/builder/formal_parameter_builder.dart';
+import 'package:front_end/src/fasta/builder/function_builder.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/builder/procedure_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
 

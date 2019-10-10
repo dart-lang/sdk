@@ -12,8 +12,8 @@ import 'package:kernel/ast.dart' show Class, DartType, Library;
 
 import 'scope.dart';
 
+import 'builder/builder.dart';
 import 'builder/class_builder.dart';
-import 'builder/declaration.dart';
 import 'builder/declaration_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/modifier_builder.dart';

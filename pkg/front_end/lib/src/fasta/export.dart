@@ -4,7 +4,7 @@
 
 library fasta.export;
 
-import 'builder/declaration.dart';
+import 'builder/builder.dart';
 import 'builder/library_builder.dart';
 
 import 'combinator.dart' show Combinator;

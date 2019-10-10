@@ -7,11 +7,11 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/declaration.dart';
 import '../builder/field_builder.dart';
-import '../builder/procedure_builder.dart';
+import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';

@@ -37,12 +37,12 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/declaration.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/procedure_builder.dart';
+import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';

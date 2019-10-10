@@ -53,9 +53,9 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
+import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_reference_builder.dart';
-import 'declaration.dart';
 import 'extension_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'library_builder.dart';

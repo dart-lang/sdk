@@ -4,7 +4,7 @@
 
 library fasta.type_promotion_look_ahead_listener;
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
 
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 

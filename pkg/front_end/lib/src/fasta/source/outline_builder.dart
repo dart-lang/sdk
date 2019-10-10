@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
 import '../builder/enum_builder.dart';
+import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -18,7 +19,6 @@ import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
-import '../builder/fixed_type_builder.dart';
 
 import '../combinator.dart' show Combinator;
 

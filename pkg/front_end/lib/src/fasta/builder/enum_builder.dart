@@ -48,11 +48,11 @@ import '../scope.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
-import 'procedure_builder.dart';
+import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';

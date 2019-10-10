@@ -27,8 +27,8 @@ import '../severity.dart' show Severity;
 
 import '../scope.dart';
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'field_builder.dart';
 import 'member_builder.dart';
 import 'modifier_builder.dart';

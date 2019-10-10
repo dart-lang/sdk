@@ -10,8 +10,8 @@ import 'package:kernel/ast.dart';
 
 import '../problems.dart' show unsupported;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
 import 'library_builder.dart';

@@ -17,7 +17,7 @@ import 'package:front_end/src/api_prototype/diagnostic_message.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/fasta/builder/procedure_builder.dart';
+import 'package:front_end/src/fasta/builder/function_builder.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

@@ -11,7 +11,9 @@ import 'package:kernel/ast.dart';
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
+import '../builder/declaration_builder.dart';
+import '../builder/extension_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -20,8 +22,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/unresolved_type.dart';
-import '../builder/declaration_builder.dart';
-import '../builder/extension_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
 

@@ -4,7 +4,7 @@
 
 library fasta.scope;
 
-import 'builder/declaration.dart';
+import 'builder/builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';

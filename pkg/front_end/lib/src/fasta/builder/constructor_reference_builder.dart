@@ -10,8 +10,8 @@ import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../scope.dart';
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
 import 'type_builder.dart';

@@ -6,7 +6,7 @@ library fasta.expression_generator_helper;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_declaration_builder.dart';

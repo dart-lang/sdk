@@ -17,8 +17,8 @@ import '../problems.dart' show unsupported;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';

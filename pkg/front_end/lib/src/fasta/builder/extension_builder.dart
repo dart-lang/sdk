@@ -10,7 +10,7 @@ import '../fasta_codes.dart' show templateInternalProblemNotFoundIn;
 import '../scope.dart';
 import '../problems.dart';
 
-import 'declaration.dart';
+import 'builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';

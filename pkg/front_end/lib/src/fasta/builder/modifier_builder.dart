@@ -19,7 +19,7 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
-import 'declaration.dart';
+import 'builder.dart';
 
 abstract class ModifierBuilder implements Builder {
   int get modifiers;

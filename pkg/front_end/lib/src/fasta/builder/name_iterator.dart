@@ -4,7 +4,7 @@
 
 library fasta.name_iterator;
 
-import 'declaration.dart';
+import 'builder.dart';
 
 abstract class NameIterator implements Iterator<Builder> {
   String get name;

@@ -30,10 +30,10 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'field_builder.dart';
-import 'procedure_builder.dart';
+import 'function_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';

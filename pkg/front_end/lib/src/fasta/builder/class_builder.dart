@@ -113,12 +113,12 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'builder.dart';
 import 'constructor_reference_builder.dart';
-import 'declaration.dart';
 import 'declaration_builder.dart';
+import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
-import 'procedure_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';

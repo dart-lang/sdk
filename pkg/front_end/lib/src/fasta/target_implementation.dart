@@ -10,8 +10,8 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
+import 'builder/builder.dart';
 import 'builder/class_builder.dart';
-import 'builder/declaration.dart';
 import 'builder/library_builder.dart';
 
 import 'compiler_context.dart' show CompilerContext;

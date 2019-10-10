@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
 
 import '../problems.dart';
 

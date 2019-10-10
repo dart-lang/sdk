@@ -6,7 +6,7 @@ library fasta.type_declaration_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'declaration.dart';
+import 'builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';

@@ -25,7 +25,7 @@ import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'declaration.dart';
+import 'builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_type_builder.dart';
 import 'library_builder.dart';

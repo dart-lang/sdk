@@ -10,7 +10,7 @@ import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 
 import '../scope.dart';
 
-import 'declaration.dart';
+import 'builder.dart';
 import 'library_builder.dart';
 
 class PrefixBuilder extends BuilderImpl {

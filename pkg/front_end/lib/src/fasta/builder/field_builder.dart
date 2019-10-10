@@ -44,8 +44,8 @@ import '../type_inference/type_inferrer.dart'
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'builder.dart';
 import 'class_builder.dart';
-import 'declaration.dart';
 import 'extension_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
