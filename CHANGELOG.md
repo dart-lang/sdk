@@ -1,3 +1,11 @@
+# 0.1.101
+
+* fixed `diagnostic_describe_all_properties` to flag properties in `Diagnosticable`s with no debug methods defined
+* fixed `noSuchMethod` exception in `camel_case_extensions` when analyzing unnamed extensions
+* fixed `avoid_print` to catch tear-off usage
+* new lint: `avoid_web_libraries_in_flutter` (experimental)
+* (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
+
 # 0.1.100
 
 * (internal) stop accessing `staticType` in favor of getting type of `FormalParameter`s from the declared element
