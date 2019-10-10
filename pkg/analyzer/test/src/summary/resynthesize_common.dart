@@ -4308,8 +4308,9 @@ class B extends A {
         argumentList: ArgumentList
           arguments
             ListLiteral
+              constKeyword: const
               staticType: List<String>
-        staticElement: self::A::•
+        staticElement: self::@class::A::@constructor::•
 }
 ''',
         withFullyResolvedAst: true);
@@ -4413,8 +4414,9 @@ class A {
         argumentList: ArgumentList
           arguments
             ListLiteral
+              constKeyword: const
               staticType: List<String>
-        staticElement: self::A::•
+        staticElement: self::@class::A::@constructor::•
 }
 ''',
         withFullyResolvedAst: true);
@@ -6115,6 +6117,7 @@ class C1 {
   final List<int> f1;
     constantInitializer
       ListLiteral
+        constKeyword: const
         staticType: List<int>
   const C1();
 }
@@ -8128,17 +8131,17 @@ class C {
   void bar() {}
     metadata
       Annotation
-        element: self::C::foo
+        element: self::@class::C::@getter::foo
         name: SimpleIdentifier
-          staticElement: self::C::foo
+          staticElement: self::@class::C::@getter::foo
           staticType: int
           token: foo
 }
   metadata
     Annotation
-      element: self::foo
+      element: self::@getter::foo
       name: SimpleIdentifier
-        staticElement: self::foo
+        staticElement: self::@getter::foo
         staticType: int
         token: foo
   typeParameters
@@ -8147,9 +8150,9 @@ class C {
       defaultType: dynamic
       metadata
         Annotation
-          element: self::foo
+          element: self::@getter::foo
           name: SimpleIdentifier
-            staticElement: self::foo
+            staticElement: self::@getter::foo
             staticType: int
             token: foo
 const int foo;
@@ -8366,17 +8369,17 @@ extension E on int {
   void bar() {}
     metadata
       Annotation
-        element: self::E::foo
+        element: self::@extension::E::@getter::foo
         name: SimpleIdentifier
-          staticElement: self::E::foo
+          staticElement: self::@extension::E::@getter::foo
           staticType: int
           token: foo
 }
   metadata
     Annotation
-      element: self::foo
+      element: self::@getter::foo
       name: SimpleIdentifier
-        staticElement: self::foo
+        staticElement: self::@getter::foo
         staticType: int
         token: foo
   typeParameters
@@ -8385,9 +8388,9 @@ extension E on int {
       defaultType: null
       metadata
         Annotation
-          element: self::foo
+          element: self::@getter::foo
           name: SimpleIdentifier
-            staticElement: self::foo
+            staticElement: self::@getter::foo
             staticType: int
             token: foo
 const int foo;
@@ -8676,17 +8679,17 @@ mixin M on Object {
   void bar() {}
     metadata
       Annotation
-        element: self::M::foo
+        element: self::@mixin::M::@getter::foo
         name: SimpleIdentifier
-          staticElement: self::M::foo
+          staticElement: self::@mixin::M::@getter::foo
           staticType: int
           token: foo
 }
   metadata
     Annotation
-      element: self::foo
+      element: self::@getter::foo
       name: SimpleIdentifier
-        staticElement: self::foo
+        staticElement: self::@getter::foo
         staticType: int
         token: foo
   typeParameters
@@ -8695,9 +8698,9 @@ mixin M on Object {
       defaultType: dynamic
       metadata
         Annotation
-          element: self::foo
+          element: self::@getter::foo
           name: SimpleIdentifier
-            staticElement: self::foo
+            staticElement: self::@getter::foo
             staticType: int
             token: foo
 const int foo;
@@ -11250,12 +11253,12 @@ const A<int> a;
       constructorName: ConstructorName
         type: TypeName
           name: SimpleIdentifier
-            staticElement: self::A
+            staticElement: self::@class::A
             staticType: A<dynamic>
             token: A
           type: A<int>
       staticElement: ConstructorMember
-        base: self::A::•
+        base: self::@class::A::@constructor::•
         substitution: {T: int}
       staticType: A<int>
 ''',
