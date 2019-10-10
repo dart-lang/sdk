@@ -7992,8 +7992,10 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
            from == kUnboxedInt32 || from == kUntagged);
     ASSERT(to == kUnboxedInt64 || to == kUnboxedUint32 || to == kUnboxedInt32 ||
            to == kUntagged);
-    ASSERT(from != kUntagged || to == kUnboxedIntPtr);
-    ASSERT(to != kUntagged || from == kUnboxedIntPtr);
+    ASSERT(from != kUntagged ||
+           (to == kUnboxedIntPtr || to == kUnboxedFfiIntPtr));
+    ASSERT(to != kUntagged ||
+           (from == kUnboxedIntPtr || from == kUnboxedFfiIntPtr));
     SetInputAt(0, value);
   }
 

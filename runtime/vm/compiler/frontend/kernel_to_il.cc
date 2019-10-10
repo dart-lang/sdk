@@ -1077,7 +1077,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
-      body += UnboxTruncate(kUnboxedIntPtr);  // Truncating, so signed is ok.
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += ConvertIntptrToUntagged();      // Requires signed intptr.
       body += IntConstant(0);                 // Index.
       body += LoadIndexedTypedData(typed_data_cid);
@@ -1196,7 +1196,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
-      body += UnboxTruncate(kUnboxedIntPtr);  // Truncating, so signed is ok.
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += ConvertIntptrToUntagged();      // Requires signed intptr.
       body += IntConstant(0);                 // Index.
       body += LoadLocal(arg_value);           // Value.
@@ -1231,6 +1231,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
+      // Truncate to 32 bits on 32 bit architecture.
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::Pointer_c_memory_address());
     } break;

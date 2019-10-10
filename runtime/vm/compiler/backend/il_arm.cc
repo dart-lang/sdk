@@ -6864,8 +6864,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged && to() == kUnboxedInt32) ||
+           (from() == kUntagged && to() == kUnboxedUint32) ||
+           (from() == kUnboxedInt32 && to() == kUntagged) ||
+           (from() == kUnboxedUint32 && to() == kUntagged));
     ASSERT(!CanDeoptimize());
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());

@@ -52,6 +52,7 @@ void main() {
   testSizeOfNativeFunction();
   testSizeOfNativeType();
   testDynamicInvocation();
+  testMemoryAddressTruncation();
 }
 
 void testPointerBasic() {
@@ -505,4 +506,18 @@ void testDynamicInvocation() {
   final int addr = p.address;
   final Pointer<Int16> p2 = p.cast<Int16>();
   free(p);
+}
+
+void testMemoryAddressTruncation() {
+  const int kIgnoreBytesPositive = 0x1122334400000000;
+  const int kIgnoreBytesNegative = 0xffddccbb00000000;
+  if (sizeOf<IntPtr>() == 4) {
+    final p1 = Pointer<Int8>.fromAddress(123);
+    final p2 = Pointer<Int8>.fromAddress(123 + kIgnoreBytesPositive);
+    final p3 = Pointer<Int8>.fromAddress(123 + kIgnoreBytesNegative);
+    Expect.equals(p1.address, p2.address);
+    Expect.equals(p1, p2);
+    Expect.equals(p1.address, p3.address);
+    Expect.equals(p1, p3);
+  }
 }

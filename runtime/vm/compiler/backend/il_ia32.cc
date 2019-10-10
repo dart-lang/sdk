@@ -198,7 +198,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(EBX);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1037,7 +1037,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(EAX);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -6123,8 +6123,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged && to() == kUnboxedInt32) ||
+           (from() == kUntagged && to() == kUnboxedUint32) ||
+           (from() == kUnboxedInt32 && to() == kUntagged) ||
+           (from() == kUnboxedUint32 && to() == kUntagged));
     ASSERT(!CanDeoptimize());
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());
@@ -6153,8 +6155,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
 
 void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const bool is_nop_conversion =
-      (from() == kUntagged && to() == kUnboxedIntPtr) ||
-      (from() == kUnboxedIntPtr && to() == kUntagged);
+      (from() == kUntagged && to() == kUnboxedInt32) ||
+      (from() == kUntagged && to() == kUnboxedUint32) ||
+      (from() == kUnboxedInt32 && to() == kUntagged) ||
+      (from() == kUnboxedUint32 && to() == kUntagged);
   if (is_nop_conversion) {
     ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
     return;
