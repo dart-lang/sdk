@@ -749,6 +749,8 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
       new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = NULL;
+
+  bool loading_kernel_failed = false;
   if (isolate_snapshot_data == NULL) {
     // We need to capture the vmservice library in the core snapshot, so load it
     // in the main isolate as well.
@@ -756,6 +758,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     isolate = Dart_CreateIsolateGroupFromKernel(
         NULL, NULL, kernel_buffer, kernel_buffer_size, &isolate_flags,
         isolate_group_data.get(), /*isolate_data=*/nullptr, &error);
+    loading_kernel_failed = (isolate == nullptr);
   } else {
     isolate = Dart_CreateIsolateGroup(NULL, NULL, isolate_snapshot_data,
                                       isolate_snapshot_instructions, NULL, NULL,
@@ -766,7 +769,17 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     Syslog::PrintErr("%s\n", error);
     free(error);
     free(kernel_buffer);
-    return kErrorExitCode;
+    // The only real reason when `gen_snapshot` fails to create an isolate from
+    // a valid kernel file is if loading the kernel results in a "compile-time"
+    // error.
+    //
+    // There are other possible reasons, like memory allocation failures, but
+    // those are very uncommon.
+    //
+    // The Dart API doesn't allow us to distinguish the different error cases,
+    // so we'll use [kCompilationErrorExitCode] for failed kernel loading, since
+    // a compile-time error is the most probable cause.
+    return loading_kernel_failed ? kCompilationErrorExitCode : kErrorExitCode;
   }
 
   Dart_EnterScope();
