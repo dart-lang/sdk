@@ -37,6 +37,7 @@ dartfix:pkg/dartfix/lib
 dev_compiler:pkg/dev_compiler/lib
 diagnostic:pkg/diagnostic/lib
 expect:pkg/expect/lib
+ffi:third_party/pkg/ffi/lib
 fixnum:third_party/pkg/fixnum/lib
 frontend_server:pkg/frontend_server/lib
 front_end:pkg/front_end/lib

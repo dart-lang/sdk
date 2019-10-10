@@ -63,36 +63,36 @@
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 // ===== a.value = b ======
 // The tests follow table cells left to right, top to bottom.
 void store1() {
-  final Pointer<Pointer<Int8>> a = Pointer<Pointer<Int8>>.allocate();
-  final Pointer<Int8> b = Pointer<Int8>.allocate();
+  final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
+  final Pointer<Int8> b = allocate<Int8>();
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store2() {
-  final Pointer<Pointer<Int8>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
   final Pointer<NativeType> b =
-      Pointer<Int8>.allocate(); // Reified Pointer<Int8> at runtime.
+      allocate<Int8>(); // Reified Pointer<Int8> at runtime.
 
   // Successful implicit downcast of argument at runtime.
   // Should succeed now, should statically be rejected when NNBD lands.
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store3() {
-  final Pointer<Pointer<Int8>> a = Pointer<Pointer<Int8>>.allocate();
-  final Pointer<NativeType> b =
-      Pointer<Int8>.allocate().cast<Pointer<NativeType>>();
+  final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
+  final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   // Failing implicit downcast of argument at runtime.
   // Should fail now at runtime, should statically be rejected when NNBD lands.
@@ -100,130 +100,124 @@ void store3() {
     a.value = b;
   });
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store4() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
-  final Pointer<Pointer<NativeType>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
 
-  final Pointer<Int8> b = Pointer<Int8>.allocate();
+  final Pointer<Int8> b = allocate<Int8>();
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store5() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
-  final Pointer<Pointer<NativeType>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
 
   final Pointer<NativeType> b =
-      Pointer<Int8>.allocate(); // Reified as Pointer<Int8> at runtime.
+      allocate<Int8>(); // Reified as Pointer<Int8> at runtime.
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store6() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
-  final Pointer<Pointer<NativeType>> a = Pointer<Pointer<Int8>>.allocate();
-  final Pointer<NativeType> b =
-      Pointer<Int8>.allocate().cast<Pointer<NativeType>>();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
+  final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   // Fails on type check of argument.
   Expect.throws(() {
     a.value = b;
   });
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store7() {
-  final Pointer<Pointer<NativeType>> a =
-      Pointer<Pointer<NativeType>>.allocate();
-  final Pointer<Int8> b = Pointer<Int8>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
+  final Pointer<Int8> b = allocate<Int8>();
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store8() {
-  final Pointer<Pointer<NativeType>> a =
-      Pointer<Pointer<NativeType>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
 
   // Reified as Pointer<Int8> at runtime.
-  final Pointer<NativeType> b = Pointer<Int8>.allocate();
+  final Pointer<NativeType> b = allocate<Int8>();
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 void store9() {
-  final Pointer<Pointer<NativeType>> a =
-      Pointer<Pointer<NativeType>>.allocate();
-  final Pointer<NativeType> b =
-      Pointer<Int8>.allocate().cast<Pointer<NativeType>>();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
+  final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   a.value = b;
 
-  a.free();
-  b.free();
+  free(a);
+  free(b);
 }
 
 // ====== b = a.value ======
 // The tests follow table cells left to right, top to bottom.
 void load1() {
-  final Pointer<Pointer<Int8>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
 
   Pointer<Int8> b = a.value;
   Expect.type<Pointer<Int8>>(b);
 
-  a.free();
+  free(a);
 }
 
 void load2() {
-  final Pointer<Pointer<Int8>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
 
   Pointer<NativeType> b = a.value;
   Expect.type<Pointer<Int8>>(b);
 
-  a.free();
+  free(a);
 }
 
 void load3() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
-  final Pointer<Pointer<NativeType>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
 
   Pointer<Int8> b = a.value;
   Expect.type<Pointer<Int8>>(b);
 
-  a.free();
+  free(a);
 }
 
 void load4() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
-  final Pointer<Pointer<NativeType>> a = Pointer<Pointer<Int8>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
 
   // Return value runtime type is Pointer<Int8>.
   Pointer<NativeType> b = a.value;
   Expect.type<Pointer<Int8>>(b);
 
-  a.free();
+  free(a);
 }
 
 void load5() {
-  final Pointer<Pointer<NativeType>> a =
-      Pointer<Pointer<NativeType>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
 
   // Failing implicit downcast of return value at runtime.
   // Should fail now at runtime, should statically be rejected when NNBD lands.
@@ -231,17 +225,16 @@ void load5() {
     Pointer<Int8> b = a.value;
   });
 
-  a.free();
+  free(a);
 }
 
 void load6() {
-  final Pointer<Pointer<NativeType>> a =
-      Pointer<Pointer<NativeType>>.allocate();
+  final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
 
   Pointer<NativeType> b = a.value;
   Expect.type<Pointer<NativeType>>(b);
 
-  a.free();
+  free(a);
 }
 
 void main() {

@@ -19,6 +19,7 @@ import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
+import "package:ffi/ffi.dart";
 import "package:expect/expect.dart";
 
 void main() {
@@ -54,11 +55,11 @@ typedef BinaryOp = int Function(int, int);
 typedef GenericBinaryOp<T> = int Function(int, T);
 
 void testNativeFunctionFromCast() {
-  Pointer<IntPtr> p1 = Pointer.allocate();
+  Pointer<IntPtr> p1 = allocate();
   Pointer<NativeFunction<NativeBinaryOp>> p2 = p1.cast();
   p2.asFunction<BinaryOp>();
   p2.asFunction<GenericBinaryOp<int>>();
-  p1.free();
+  free(p1);
 }
 
 typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
@@ -324,14 +325,14 @@ Int64PointerUnOp assign1337Index1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("Assign1337Index1");
 
 void testNativeFunctionPointer() {
-  Pointer<Int64> p2 = Pointer.allocate(count: 2);
+  Pointer<Int64> p2 = allocate(count: 2);
   p2.value = 42;
   p2[1] = 1000;
   Pointer<Int64> result = assign1337Index1(p2);
   Expect.equals(1337, result.value);
   Expect.equals(1337, p2[1]);
   Expect.equals(p2.elementAt(1).address, result.address);
-  p2.free();
+  free(p2);
 }
 
 void testNullInt() {
@@ -357,10 +358,10 @@ void testNullPointers() {
   Pointer<Int64> result = nullableInt64ElemAt1(nullptr.cast());
   Expect.equals(result, nullptr);
 
-  Pointer<Int64> p2 = Pointer.allocate(count: 2);
+  Pointer<Int64> p2 = allocate(count: 2);
   result = nullableInt64ElemAt1(p2);
   Expect.notEquals(result, nullptr);
-  p2.free();
+  free(p2);
 }
 
 typedef NativeFloatPointerToBool = Uint8 Function(Pointer<Float>);
@@ -370,13 +371,13 @@ FloatPointerToBool isRoughly1337 = ffiTestFunctions.lookupFunction<
     NativeFloatPointerToBool, FloatPointerToBool>("IsRoughly1337");
 
 void testFloatRounding() {
-  Pointer<Float> p2 = Pointer.allocate();
+  Pointer<Float> p2 = allocate();
   p2.value = 1337.0;
 
   int result = isRoughly1337(p2);
   Expect.equals(1, result);
 
-  p2.free();
+  free(p2);
 }
 
 typedef NativeFloatToVoid = Void Function(Float);

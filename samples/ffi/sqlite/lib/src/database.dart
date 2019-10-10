@@ -5,6 +5,8 @@
 import "dart:collection";
 import "dart:ffi";
 
+import "package:ffi/ffi.dart";
+
 import "bindings/bindings.dart";
 
 import "bindings/types.dart" as types;
@@ -12,7 +14,6 @@ import "bindings/types.dart" hide Database;
 
 import "bindings/constants.dart";
 import "collections/closable_iterator.dart";
-import "ffi/utf8.dart";
 
 /// [Database] represents an open connection to a SQLite database.
 ///
@@ -26,13 +27,13 @@ class Database {
   /// Open a database located at the file [path].
   Database(String path,
       [int flags = Flags.SQLITE_OPEN_READWRITE | Flags.SQLITE_OPEN_CREATE]) {
-    Pointer<Pointer<types.Database>> dbOut = Pointer.allocate();
-    final pathC = Utf8.allocate(path);
+    Pointer<Pointer<types.Database>> dbOut = allocate();
+    final pathC = Utf8.toUtf8(path);
     final int resultCode =
         bindings.sqlite3_open_v2(pathC, dbOut, flags, Pointer.fromAddress(0));
     _database = dbOut.value;
-    dbOut.free();
-    pathC.free();
+    free(dbOut);
+    free(pathC);
 
     if (resultCode == Errors.SQLITE_OK) {
       _open = true;
@@ -62,13 +63,13 @@ class Database {
 
   /// Execute a query, discarding any returned rows.
   void execute(String query) {
-    Pointer<Pointer<Statement>> statementOut = Pointer.allocate();
-    Pointer<Utf8> queryC = Utf8.allocate(query);
+    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, Pointer.fromAddress(0));
     Pointer<Statement> statement = statementOut.value;
-    statementOut.free();
-    queryC.free();
+    free(statementOut);
+    free(queryC);
 
     while (resultCode == Errors.SQLITE_ROW || resultCode == Errors.SQLITE_OK) {
       resultCode = bindings.sqlite3_step(statement);
@@ -81,13 +82,13 @@ class Database {
 
   /// Evaluate a query and return the resulting rows as an iterable.
   Result query(String query) {
-    Pointer<Pointer<Statement>> statementOut = Pointer.allocate();
-    Pointer<Utf8> queryC = Utf8.allocate(query);
+    Pointer<Pointer<Statement>> statementOut = allocate();
+    Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
         _database, queryC, -1, statementOut, Pointer.fromAddress(0));
     Pointer<Statement> statement = statementOut.value;
-    statementOut.free();
-    queryC.free();
+    free(statementOut);
+    free(queryC);
 
     if (resultCode != Errors.SQLITE_OK) {
       bindings.sqlite3_finalize(statement);

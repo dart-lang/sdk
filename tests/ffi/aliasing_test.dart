@@ -12,6 +12,7 @@ library FfiTest;
 
 import 'dart:ffi';
 
+import "package:ffi/ffi.dart";
 import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
@@ -36,28 +37,28 @@ void main() {
 }
 
 void testNonAlias() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   source.value = 42;
   final int a = source.value;
   source.value = 1984;
   // alias.value should be re-executed, as we wrote to alias.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasCast() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias = source.cast<Int8>().cast<Int64>();
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasCast2() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias = source.cast<Int16>().cast<Int64>();
   final alias2 = source.cast<Int8>().cast<Int64>();
   alias.value = 42;
@@ -65,22 +66,22 @@ void testAliasCast2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  source.free();
+  free(source);
 }
 
 void testAliasOffsetBy() {
-  final source = Pointer<Int64>.allocate(count: 2);
+  final source = allocate<Int64>(count: 2);
   final alias = source.offsetBy(8).offsetBy(-8);
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasOffsetBy2() {
-  final source = Pointer<Int64>.allocate(count: 3);
+  final source = allocate<Int64>(count: 3);
   final alias = source.offsetBy(16).offsetBy(-16);
   final alias2 = source.offsetBy(8).offsetBy(-8);
   alias.value = 42;
@@ -88,22 +89,22 @@ void testAliasOffsetBy2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  source.free();
+  free(source);
 }
 
 void testAliasElementAt() {
-  final source = Pointer<Int64>.allocate(count: 2);
+  final source = allocate<Int64>(count: 2);
   final alias = source.elementAt(1).elementAt(-1);
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasElementAt2() {
-  final source = Pointer<Int64>.allocate(count: 3);
+  final source = allocate<Int64>(count: 3);
   final alias = source.elementAt(2).elementAt(-2);
   final alias2 = source.elementAt(1).elementAt(-1);
   alias.value = 42;
@@ -111,22 +112,22 @@ void testAliasElementAt2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  source.free();
+  free(source);
 }
 
 void testAliasFromAddress() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias = Pointer<Int64>.fromAddress(source.address);
   source.value = 42;
   final int a = source.value;
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasFromAddress2() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias = Pointer<Int64>.fromAddress(source.address);
   final alias2 = Pointer<Int64>.fromAddress(source.address);
   alias.value = 42;
@@ -134,12 +135,12 @@ void testAliasFromAddress2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  source.free();
+  free(source);
 }
 
 void testAliasFromAddressViaMemory() {
-  final helper = Pointer<IntPtr>.allocate();
-  final source = Pointer<Int64>.allocate();
+  final helper = allocate<IntPtr>();
+  final source = allocate<Int64>();
   helper.value = source.address;
   final alias = Pointer<Int64>.fromAddress(helper.value);
   source.value = 42;
@@ -147,13 +148,13 @@ void testAliasFromAddressViaMemory() {
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  helper.free();
-  source.free();
+  free(helper);
+  free(source);
 }
 
 void testAliasFromAddressViaMemory2() {
-  final helper = Pointer<IntPtr>.allocate();
-  final source = Pointer<Int64>.allocate();
+  final helper = allocate<IntPtr>();
+  final source = allocate<Int64>();
   helper.value = source.address;
   final alias = Pointer<Int64>.fromAddress(helper.value);
   final alias2 = Pointer<Int64>.fromAddress(helper.value);
@@ -162,8 +163,8 @@ void testAliasFromAddressViaMemory2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  helper.free();
-  source.free();
+  free(helper);
+  free(source);
 }
 
 typedef NativeQuadOpSigned = Int64 Function(Int8, Int16, Int32, Int64);
@@ -175,7 +176,7 @@ QuadOp intComputation = ffiTestFunctions
     .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");
 
 void testAliasFromAddressViaNativeFunction() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias =
       Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   source.value = 42;
@@ -183,11 +184,11 @@ void testAliasFromAddressViaNativeFunction() {
   alias.value = 1984;
   // source.value should be re-executed, we wrote alias which aliases source.
   Expect.notEquals(a, source.value);
-  source.free();
+  free(source);
 }
 
 void testAliasFromAddressViaNativeFunction2() {
-  final source = Pointer<Int64>.allocate();
+  final source = allocate<Int64>();
   final alias =
       Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   final alias2 =
@@ -197,7 +198,7 @@ void testAliasFromAddressViaNativeFunction2() {
   alias2.value = 1984;
   // alias.value should be re-executed, we wrote alias2 which aliases alias.
   Expect.notEquals(a, alias.value);
-  source.free();
+  free(source);
 }
 
 @pragma('vm:never-inline')
@@ -205,11 +206,11 @@ Pointer<Int8> makeDerived(Pointer<Int64> source) =>
     source.offsetBy(7).cast<Int8>();
 
 testPartialOverlap() {
-  final source = Pointer<Int64>.allocate(count: 2);
+  final source = allocate<Int64>(count: 2);
   final derived = makeDerived(source);
   source.value = 0x1122334455667788;
   final int value = source.value;
   derived.value = 0xaa;
   Expect.notEquals(value, source.value);
-  source.free();
+  free(source);
 }

@@ -85,6 +85,7 @@ vars = {
   "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.28.7",
+  "ffi_tag": "f46c1f42c6f7f1938f2ff27c573da72d57c47ded",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -277,6 +278,8 @@ deps = {
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+  Var("dart_root") + "/third_party/pkg/ffi":
+      Var("dart_git") + "ffi.git" + "@" + Var("ffi_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":

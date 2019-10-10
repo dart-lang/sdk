@@ -312,7 +312,6 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   return Integer::New(SizeOf(type_arg));
 }
 
-
 // Static invocations to this method are translated directly in streaming FGB
 // and bytecode FGB. However, we can still reach this entrypoint in the bytecode
 // interpreter.

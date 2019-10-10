@@ -5,6 +5,7 @@
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 main(List<String> arguments) {
   for (int i = 0; i < 100; i++) {
@@ -16,37 +17,37 @@ main(List<String> arguments) {
 }
 
 testStoreLoad() {
-  final p = Pointer<Int8>.allocate(count: 2);
+  final p = allocate<Int8>(count: 2);
   p.value = 10;
   Expect.equals(10, p.value);
   p[1] = 20;
   Expect.equals(20, p[1]);
 
-  final p1 = Pointer<Double>.allocate(count: 2);
+  final p1 = allocate<Double>(count: 2);
   p1.value = 10.0;
   Expect.approxEquals(10.0, p1.value);
   p1[1] = 20.0;
   Expect.approxEquals(20.0, p1[1]);
-  p1.free();
+  free(p1);
 
-  final p2 = Pointer<Pointer<Int8>>.allocate(count: 2);
+  final p2 = allocate<Pointer<Int8>>(count: 2);
   p2.value = p;
   Expect.equals(p, p2.value);
   p2[1] = p;
   Expect.equals(p, p2[1]);
-  p2.free();
-  p.free();
+  free(p2);
+  free(p);
 
-  final p3 = Pointer<Foo>.allocate();
+  final p3 = allocate<Foo>();
   Foo foo = p3.ref;
   foo.a = 1;
   Expect.equals(1, foo.a);
-  p3.free();
+  free(p3);
 }
 
 /// With extension methods, the receiver position can be null.
 testNullReceivers() {
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
 
   Pointer<Int8> p4 = null;
   Expect.throws(() => Expect.equals(10, p4.value));
@@ -59,20 +60,20 @@ testNullReceivers() {
   Pointer<Foo> p6 = null;
   Expect.throws(() => Expect.equals(10, p6.ref));
 
-  p.free();
+  free(p);
 }
 
 testNullArguments() {
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   Expect.throws(() => p.value = null);
-  p.free();
+  free(p);
 }
 
 testReifiedGeneric() {
-  final p = Pointer<Pointer<Int8>>.allocate();
+  final p = allocate<Pointer<Int8>>();
   Pointer<Pointer<NativeType>> p2 = p;
   Expect.isTrue(p2.value is Pointer<Int8>);
-  p.free();
+  free(p);
 }
 
 class Foo extends Struct<Foo> {

@@ -4,12 +4,11 @@
 
 // VMOptions=--optimization-counter-threshold=5
 
-import 'dart:ffi';
-
+import "dart:ffi";
+import "package:ffi/ffi.dart";
 import "package:test/test.dart";
 
 import '../lib/sqlite.dart';
-import '../lib/src/ffi/utf8.dart';
 
 void main() {
   test("sqlite integration test", () {
@@ -168,8 +167,8 @@ void main() {
   });
   test("Utf8 unit test", () {
     final String test = 'Hasta Mañana';
-    final medium = Utf8.allocate(test);
+    final medium = Utf8.toUtf8(test);
     expect(test, medium.ref.toString());
-    medium.free();
+    free(medium);
   });
 }

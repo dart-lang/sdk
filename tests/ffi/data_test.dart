@@ -9,6 +9,7 @@ library FfiTest;
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 void main() {
   testPointerBasic();
@@ -54,42 +55,42 @@ void main() {
 }
 
 void testPointerBasic() {
-  Pointer<Int64> p = Pointer.allocate();
+  Pointer<Int64> p = allocate();
   p.value = 42;
   Expect.equals(42, p.value);
-  p.free();
+  free(p);
 }
 
 void testPointerFromPointer() {
-  Pointer<Int64> p = Pointer.allocate();
+  Pointer<Int64> p = allocate();
   p.value = 1337;
   int ptr = p.address;
   Pointer<Int64> p2 = Pointer.fromAddress(ptr);
   Expect.equals(1337, p2.value);
-  p.free();
+  free(p);
 }
 
 void testPointerPointerArithmetic() {
-  Pointer<Int64> p = Pointer.allocate(count: 2);
+  Pointer<Int64> p = allocate(count: 2);
   Pointer<Int64> p2 = p.elementAt(1);
   p2.value = 100;
   Pointer<Int64> p3 = p.offsetBy(8);
   Expect.equals(100, p3.value);
-  p.free();
+  free(p);
 }
 
 void testPointerPointerArithmeticSizes() {
-  Pointer<Int64> p = Pointer.allocate(count: 2);
+  Pointer<Int64> p = allocate(count: 2);
   Pointer<Int64> p2 = p.elementAt(1);
   int addr = p.address;
   Expect.equals(addr + 8, p2.address);
-  p.free();
+  free(p);
 
-  Pointer<Int32> p3 = Pointer.allocate(count: 2);
+  Pointer<Int32> p3 = allocate(count: 2);
   Pointer<Int32> p4 = p3.elementAt(1);
   addr = p3.address;
   Expect.equals(addr + 4, p4.address);
-  p3.free();
+  free(p3);
 }
 
 void testPointerAllocateZero() {
@@ -101,19 +102,19 @@ void testPointerAllocateZero() {
   bool returnedNullPointer = false;
   Pointer<Int8> p;
   try {
-    p = Pointer<Int8>.allocate(count: 0);
+    p = allocate<Int8>(count: 0);
   } on Exception {
     returnedNullPointer = true;
   }
   if (!returnedNullPointer) {
-    p.free();
+    free(p);
   }
 }
 
 void testPointerCast() {
-  Pointer<Int64> p = Pointer.allocate();
+  Pointer<Int64> p = allocate();
   Pointer<Int32> p2 = p.cast(); // gets the correct type args back
-  p.free();
+  free(p);
 }
 
 void testCastGeneric() {
@@ -121,9 +122,9 @@ void testCastGeneric() {
     return p.cast();
   }
 
-  Pointer<Int16> p = Pointer.allocate();
+  Pointer<Int16> p = allocate();
   Pointer<Int64> p2 = generic(p);
-  p.free();
+  free(p);
 }
 
 void testCastGeneric2() {
@@ -131,41 +132,41 @@ void testCastGeneric2() {
     return p.cast();
   }
 
-  Pointer<Int16> p = Pointer.allocate();
+  Pointer<Int16> p = allocate();
   Pointer<Int64> p2 = generic(p);
-  p.free();
+  free(p);
 }
 
 void testCastNativeType() {
-  Pointer<Int64> p = Pointer.allocate();
+  Pointer<Int64> p = allocate();
   p.cast<Pointer>();
-  p.free();
+  free(p);
 }
 
 void testCondensedNumbersInt8() {
-  Pointer<Int8> p = Pointer.allocate(count: 8);
+  Pointer<Int8> p = allocate(count: 8);
   for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
     p[i] = i * 3;
   }
   for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
     Expect.equals(i * 3, p[i]);
   }
-  p.free();
+  free(p);
 }
 
 void testCondensedNumbersFloat() {
-  Pointer<Float> p = Pointer.allocate(count: 8);
+  Pointer<Float> p = allocate(count: 8);
   for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
     p[i] = 1.511366173271439e-13;
   }
   for (var i in [0, 1, 2, 3, 4, 5, 6, 7]) {
     Expect.equals(1.511366173271439e-13, p[i]);
   }
-  p.free();
+  free(p);
 }
 
 void testRangeInt8() {
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   p.value = 127;
   Expect.equals(127, p.value);
   p.value = -128;
@@ -180,11 +181,11 @@ void testRangeInt8() {
   Expect.equals(0x000000000000007F, 127);
   p.value = -129;
   Expect.equals(127, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeUint8() {
-  Pointer<Uint8> p = Pointer.allocate();
+  Pointer<Uint8> p = allocate();
   p.value = 255;
   Expect.equals(255, p.value);
   p.value = 0;
@@ -199,11 +200,11 @@ void testRangeUint8() {
   Expect.equals(0x00000000000000FF, 255);
   p.value = -1;
   Expect.equals(255, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeInt16() {
-  Pointer<Int16> p = Pointer.allocate();
+  Pointer<Int16> p = allocate();
   p.value = 0x7FFF;
   Expect.equals(0x7FFF, p.value);
   p.value = -0x8000;
@@ -212,11 +213,11 @@ void testRangeInt16() {
   Expect.equals(0xFFFFFFFFFFFF8000, p.value); // truncated and sign extended
   p.value = -0x8001;
   Expect.equals(0x7FFF, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeUint16() {
-  Pointer<Uint16> p = Pointer.allocate();
+  Pointer<Uint16> p = allocate();
   p.value = 0xFFFF;
   Expect.equals(0xFFFF, p.value);
   p.value = 0;
@@ -225,11 +226,11 @@ void testRangeUint16() {
   Expect.equals(0, p.value); // truncated
   p.value = -1;
   Expect.equals(0xFFFF, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeInt32() {
-  Pointer<Int32> p = Pointer.allocate();
+  Pointer<Int32> p = allocate();
   p.value = 0x7FFFFFFF;
   Expect.equals(0x7FFFFFFF, p.value);
   p.value = -0x80000000;
@@ -238,11 +239,11 @@ void testRangeInt32() {
   Expect.equals(0xFFFFFFFF80000000, p.value); // truncated and sign extended
   p.value = -0x80000001;
   Expect.equals(0x7FFFFFFF, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeUint32() {
-  Pointer<Uint32> p = Pointer.allocate();
+  Pointer<Uint32> p = allocate();
   p.value = 0xFFFFFFFF;
   Expect.equals(0xFFFFFFFF, p.value);
   p.value = 0;
@@ -251,20 +252,20 @@ void testRangeUint32() {
   Expect.equals(0, p.value); // truncated
   p.value = -1;
   Expect.equals(0xFFFFFFFF, p.value); // truncated
-  p.free();
+  free(p);
 }
 
 void testRangeInt64() {
-  Pointer<Int64> p = Pointer.allocate();
+  Pointer<Int64> p = allocate();
   p.value = 0x7FFFFFFFFFFFFFFF; // 2 ^ 63 - 1
   Expect.equals(0x7FFFFFFFFFFFFFFF, p.value);
   p.value = -0x8000000000000000; // -2 ^ 63
   Expect.equals(-0x8000000000000000, p.value);
-  p.free();
+  free(p);
 }
 
 void testRangeUint64() {
-  Pointer<Uint64> p = Pointer.allocate();
+  Pointer<Uint64> p = allocate();
   p.value = 0x7FFFFFFFFFFFFFFF; // 2 ^ 63 - 1
   Expect.equals(0x7FFFFFFFFFFFFFFF, p.value);
   p.value = -0x8000000000000000; // -2 ^ 63 interpreted as 2 ^ 63
@@ -275,84 +276,84 @@ void testRangeUint64() {
   p.value = -1; // -1 interpreted as 2 ^ 64 - 1
   Expect.equals(-1, p.value);
   Expect.equals(0xFFFFFFFFFFFFFFFF, p.value);
-  p.free();
+  free(p);
 }
 
 void testRangeIntPtr() {
-  Pointer<IntPtr> p = Pointer.allocate();
+  Pointer<IntPtr> p = allocate();
   int pAddr = p.address;
   p.value = pAddr; // its own address should fit
   p.value = 0x7FFFFFFF; // and 32 bit addresses should fit
   Expect.equals(0x7FFFFFFF, p.value);
   p.value = -0x80000000;
   Expect.equals(-0x80000000, p.value);
-  p.free();
+  free(p);
 }
 
 void testFloat() {
-  Pointer<Float> p = Pointer.allocate();
+  Pointer<Float> p = allocate();
   p.value = 1.511366173271439e-13;
   Expect.equals(1.511366173271439e-13, p.value);
   p.value = 1.4260258159703532e-105; // float does not have enough precision
   Expect.notEquals(1.4260258159703532e-105, p.value);
-  p.free();
+  free(p);
 }
 
 void testDouble() {
-  Pointer<Double> p = Pointer.allocate();
+  Pointer<Double> p = allocate();
   p.value = 1.4260258159703532e-105;
   Expect.equals(1.4260258159703532e-105, p.value);
-  p.free();
+  free(p);
 }
 
 void testVoid() {
-  Pointer<IntPtr> p1 = Pointer.allocate();
+  Pointer<IntPtr> p1 = allocate();
   Pointer<Void> p2 = p1.cast(); // make this dart pointer opaque
   p2.address; // we can print the address
-  p2.free();
+  free(p2);
 }
 
 void testPointerPointer() {
-  Pointer<Int16> p = Pointer.allocate();
+  Pointer<Int16> p = allocate();
   p.value = 17;
-  Pointer<Pointer<Int16>> p2 = Pointer.allocate();
+  Pointer<Pointer<Int16>> p2 = allocate();
   p2.value = p;
   Expect.equals(17, p2.value.value);
-  p2.free();
-  p.free();
+  free(p2);
+  free(p);
 }
 
 void testPointerPointerNull() {
-  Pointer<Pointer<Int8>> pointerToPointer = Pointer.allocate();
+  Pointer<Pointer<Int8>> pointerToPointer = allocate();
   Pointer<Int8> value = nullptr.cast();
   pointerToPointer.value = value;
   value = pointerToPointer.value;
   Expect.equals(value, nullptr);
-  value = Pointer.allocate();
+  value = allocate();
   pointerToPointer.value = value;
   value = pointerToPointer.value;
   Expect.isNotNull(value);
-  value.free();
+  free(value);
   value = nullptr.cast();
   pointerToPointer.value = value;
   value = pointerToPointer.value;
   Expect.equals(value, nullptr);
-  pointerToPointer.free();
+  free(pointerToPointer);
 }
 
 void testPointerStoreNull() {
   int i = null;
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   Expect.throws(() => p.value = i);
-  p.free();
+  free(p);
   double d = null;
-  Pointer<Float> p2 = Pointer.allocate();
+  Pointer<Float> p2 = allocate();
   Expect.throws(() => p2.value = d);
-  p2.free();
+  free(p2);
   Pointer<Void> x = null;
-  Pointer<Pointer<Void>> p3 = Pointer.allocate();
+  Pointer<Pointer<Void>> p3 = allocate();
   Expect.throws(() => p3.value = x);
-  p3.free();
+  free(p3);
 }
 
 void testSizeOf() {
@@ -376,7 +377,7 @@ void testPointerChain(int length) {
       head.value = value;
       return;
     }
-    Pointer<IntPtr> next = Pointer.allocate();
+    Pointer<IntPtr> next = allocate();
     head.value = next.address;
     createChain(next, length - 1, value);
   }
@@ -391,14 +392,14 @@ void testPointerChain(int length) {
 
   void freeChain(Pointer<IntPtr> head, int length) {
     Pointer<IntPtr> next = Pointer.fromAddress(head.value);
-    head.free();
+    free(head);
     if (length == 0) {
       return;
     }
     freeChain(next, length - 1);
   }
 
-  Pointer<IntPtr> head = Pointer.allocate();
+  Pointer<IntPtr> head = allocate();
   createChain(head, length, 512);
   int tailValue = getChainValue(head, length);
   Expect.equals(512, tailValue);
@@ -406,16 +407,16 @@ void testPointerChain(int length) {
 }
 
 void testTypeTest() {
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   Expect.isTrue(p is Pointer);
-  p.free();
+  free(p);
 }
 
 void testToString() {
-  Pointer<Int16> p = Pointer.allocate();
+  Pointer<Int16> p = allocate();
   Expect.stringEquals(
       "Pointer<Int16>: address=0x", p.toString().substring(0, 26));
-  p.free();
+  free(p);
   Pointer<Int64> p2 = Pointer.fromAddress(0x123abc);
   Expect.stringEquals("Pointer<Int64>: address=0x123abc", p2.toString());
 }
@@ -439,29 +440,29 @@ typedef Int8UnOp = Int8 Function(Int8);
 void testAllocateGeneric() {
   Pointer<T> generic<T extends NativeType>() {
     Pointer<T> pointer;
-    pointer = Pointer.allocate();
+    pointer = allocate();
     return pointer;
   }
 
   Pointer p = generic<Int64>();
-  p.free();
+  free(p);
 }
 
 void testAllocateVoid() {
   Expect.throws(() {
-    Pointer<Void> p = Pointer.allocate();
+    Pointer<Void> p = allocate();
   });
 }
 
 void testAllocateNativeFunction() {
   Expect.throws(() {
-    Pointer<NativeFunction<Int8UnOp>> p = Pointer.allocate();
+    Pointer<NativeFunction<Int8UnOp>> p = allocate();
   });
 }
 
 void testAllocateNativeType() {
   Expect.throws(() {
-    Pointer.allocate();
+    allocate();
   });
 }
 
@@ -495,7 +496,7 @@ void testSizeOfNativeType() {
 }
 
 void testDynamicInvocation() {
-  dynamic p = Pointer<Int8>.allocate();
+  dynamic p = allocate<Int8>();
   Expect.throws(() {
     final int i = p.value;
   });
@@ -503,5 +504,5 @@ void testDynamicInvocation() {
   p.elementAt(5); // Works, but is slow.
   final int addr = p.address;
   final Pointer<Int16> p2 = p.cast<Int16>();
-  p.free();
+  free(p);
 }

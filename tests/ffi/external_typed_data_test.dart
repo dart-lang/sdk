@@ -7,6 +7,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
+import "package:ffi/ffi.dart";
 
 main() {
   testInt8Load();
@@ -41,174 +42,174 @@ main() {
 
 void testInt8Load() {
   // Load
-  Pointer<Int8> ptr = Pointer.allocate();
+  Pointer<Int8> ptr = allocate();
   ptr.value = 0xff;
   Int8List list = ptr.asExternalTypedData();
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt8Store() {
   // Store
-  Pointer<Int8> ptr = Pointer.allocate();
+  Pointer<Int8> ptr = allocate();
   Int8List list = ptr.asExternalTypedData();
   list[0] = 0xff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint8Load() {
   // Load
-  Pointer<Uint8> ptr = Pointer.allocate();
+  Pointer<Uint8> ptr = allocate();
   ptr.value = 0xff;
   Uint8List list = ptr.asExternalTypedData();
   Expect.equals(list[0], 0xff);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint8Store() {
   // Store
-  Pointer<Uint8> ptr = Pointer.allocate();
+  Pointer<Uint8> ptr = allocate();
   Uint8List list = ptr.asExternalTypedData();
   list[0] = 0xff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xff);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt16Load() {
   // Load
-  Pointer<Int16> ptr = Pointer.allocate();
+  Pointer<Int16> ptr = allocate();
   ptr.value = 0xffff;
   Int16List list = ptr.asExternalTypedData();
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt16Store() {
   // Store
-  Pointer<Int16> ptr = Pointer.allocate();
+  Pointer<Int16> ptr = allocate();
   Int16List list = ptr.asExternalTypedData();
   list[0] = 0xffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint16Load() {
   // Load
-  Pointer<Uint16> ptr = Pointer.allocate();
+  Pointer<Uint16> ptr = allocate();
   ptr.value = 0xffff;
   Uint16List list = ptr.asExternalTypedData();
   Expect.equals(list[0], 0xffff);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint16Store() {
   // Store
-  Pointer<Uint16> ptr = Pointer.allocate();
+  Pointer<Uint16> ptr = allocate();
   Uint16List list = ptr.asExternalTypedData();
   list[0] = 0xffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffff);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt32Load() {
   // Load
-  Pointer<Int32> ptr = Pointer.allocate();
+  Pointer<Int32> ptr = allocate();
   ptr.value = 0xffffffff;
   Int32List list = ptr.asExternalTypedData();
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt32Store() {
   // Store
-  Pointer<Int32> ptr = Pointer.allocate();
+  Pointer<Int32> ptr = allocate();
   Int32List list = ptr.asExternalTypedData();
   list[0] = 0xffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint32Load() {
   // Load
-  Pointer<Uint32> ptr = Pointer.allocate();
+  Pointer<Uint32> ptr = allocate();
   ptr.value = 0xffffffff;
   Uint32List list = ptr.asExternalTypedData();
   Expect.equals(list[0], 0xffffffff);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint32Store() {
   // Store
-  Pointer<Uint32> ptr = Pointer.allocate();
+  Pointer<Uint32> ptr = allocate();
   Uint32List list = ptr.asExternalTypedData();
   list[0] = 0xffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffffffff);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt64Load() {
   // Load
-  Pointer<Int64> ptr = Pointer.allocate();
+  Pointer<Int64> ptr = allocate();
   ptr.value = 0xffffffffffffffff;
   Int64List list = ptr.asExternalTypedData();
   Expect.equals(list[0], -1);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testInt64Store() {
   // Store
-  Pointer<Int64> ptr = Pointer.allocate();
+  Pointer<Int64> ptr = allocate();
   Int64List list = ptr.asExternalTypedData();
   list[0] = 0xffffffffffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, -1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint64Load() {
   // Load
-  Pointer<Uint64> ptr = Pointer.allocate();
+  Pointer<Uint64> ptr = allocate();
   ptr.value = 0xffffffffffffffff;
   Uint64List list = ptr.asExternalTypedData();
   Expect.equals(list[0], 0xffffffffffffffff);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testUint64Store() {
   // Store
-  Pointer<Uint64> ptr = Pointer.allocate();
+  Pointer<Uint64> ptr = allocate();
   Uint64List list = ptr.asExternalTypedData();
   list[0] = 0xffffffffffffffff;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, 0xffffffffffffffff);
-  ptr.free();
+  free(ptr);
 }
 
 void testIntPtr() {
   bool is32Bit = sizeOf<IntPtr>() == 4;
-  Pointer<IntPtr> ptr = Pointer.allocate();
+  Pointer<IntPtr> ptr = allocate();
   final array = ptr.asExternalTypedData();
   if (is32Bit) {
     Expect.type<Int32List>(array);
   } else {
     Expect.type<Int64List>(array);
   }
-  ptr.free();
+  free(ptr);
 }
 
 double maxFloat = (2 - pow(2, -23)) * pow(2, 127);
@@ -216,47 +217,47 @@ double maxDouble = (2 - pow(2, -52)) * pow(2, pow(2, 10) - 1);
 
 void testFloatLoad() {
   // Load
-  Pointer<Float> ptr = Pointer.allocate();
+  Pointer<Float> ptr = allocate();
   ptr.value = maxFloat;
   Float32List list = ptr.asExternalTypedData();
   Expect.equals(list[0], maxFloat);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testFloatStore() {
   // Store
-  Pointer<Float> ptr = Pointer.allocate();
+  Pointer<Float> ptr = allocate();
   Float32List list = ptr.asExternalTypedData();
   list[0] = maxFloat;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, maxFloat);
-  ptr.free();
+  free(ptr);
 }
 
 void testDoubleLoad() {
   // Load
-  Pointer<Double> ptr = Pointer.allocate();
+  Pointer<Double> ptr = allocate();
   ptr.value = maxDouble;
   Float64List list = ptr.asExternalTypedData();
   Expect.equals(list[0], maxDouble);
   Expect.equals(list.length, 1);
-  ptr.free();
+  free(ptr);
 }
 
 void testDoubleStore() {
   // Store
-  Pointer<Double> ptr = Pointer.allocate();
+  Pointer<Double> ptr = allocate();
   Float64List list = ptr.asExternalTypedData();
   list[0] = maxDouble;
   Expect.equals(list.length, 1);
   Expect.equals(ptr.value, maxDouble);
-  ptr.free();
+  free(ptr);
 }
 
 void testArrayLoad() {
   const int count = 0x100;
-  Pointer<Int32> ptr = Pointer.allocate(count: count);
+  Pointer<Int32> ptr = allocate(count: count);
   for (int i = 0; i < count; ++i) {
     ptr[i] = i;
   }
@@ -264,12 +265,12 @@ void testArrayLoad() {
   for (int i = 0; i < count; ++i) {
     Expect.equals(array[i], i);
   }
-  ptr.free();
+  free(ptr);
 }
 
 void testArrayStore() {
   const int count = 0x100;
-  Pointer<Int32> ptr = Pointer.allocate(count: count);
+  Pointer<Int32> ptr = allocate(count: count);
   Int32List array = ptr.asExternalTypedData(count: count);
   for (int i = 0; i < count; ++i) {
     array[i] = i;
@@ -277,7 +278,7 @@ void testArrayStore() {
   for (int i = 0; i < count; ++i) {
     Expect.equals(ptr[i], i);
   }
-  ptr.free();
+  free(ptr);
 }
 
 void testNegativeArray() {

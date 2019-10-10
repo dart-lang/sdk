@@ -11,6 +11,7 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 //
@@ -211,8 +212,8 @@ class PointerInt8 extends BenchmarkBase {
   Pointer<Int8> pointer;
   PointerInt8() : super("FfiMemory.PointerInt8");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt8(pointer, N);
@@ -227,8 +228,8 @@ class PointerUint8 extends BenchmarkBase {
   Pointer<Uint8> pointer;
   PointerUint8() : super("FfiMemory.PointerUint8");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint8(pointer, N);
@@ -243,8 +244,8 @@ class PointerInt16 extends BenchmarkBase {
   Pointer<Int16> pointer;
   PointerInt16() : super("FfiMemory.PointerInt16");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt16(pointer, N);
@@ -259,8 +260,8 @@ class PointerUint16 extends BenchmarkBase {
   Pointer<Uint16> pointer;
   PointerUint16() : super("FfiMemory.PointerUint16");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint16(pointer, N);
@@ -275,8 +276,8 @@ class PointerInt32 extends BenchmarkBase {
   Pointer<Int32> pointer;
   PointerInt32() : super("FfiMemory.PointerInt32");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt32(pointer, N);
@@ -291,8 +292,8 @@ class PointerUint32 extends BenchmarkBase {
   Pointer<Uint32> pointer;
   PointerUint32() : super("FfiMemory.PointerUint32");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint32(pointer, N);
@@ -307,8 +308,8 @@ class PointerInt64 extends BenchmarkBase {
   Pointer<Int64> pointer;
   PointerInt64() : super("FfiMemory.PointerInt64");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt64(pointer, N);
@@ -323,8 +324,8 @@ class PointerUint64 extends BenchmarkBase {
   Pointer<Uint64> pointer;
   PointerUint64() : super("FfiMemory.PointerUint64");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint64(pointer, N);
@@ -339,8 +340,8 @@ class PointerFloat extends BenchmarkBase {
   Pointer<Float> pointer;
   PointerFloat() : super("FfiMemory.PointerFloat");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreFloat(pointer, N);
@@ -355,8 +356,8 @@ class PointerDouble extends BenchmarkBase {
   Pointer<Double> pointer;
   PointerDouble() : super("FfiMemory.PointerDouble");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreDouble(pointer, N);
@@ -373,13 +374,13 @@ class PointerPointer extends BenchmarkBase {
   PointerPointer() : super("FfiMemory.PointerPointer");
 
   void setup() {
-    pointer = Pointer.allocate(count: N);
-    data = Pointer.allocate();
+    pointer = allocate(count: N);
+    data = allocate();
   }
 
   void teardown() {
-    pointer.free();
-    data.free();
+    free(pointer);
+    free(data);
   }
 
   void run() {
@@ -395,8 +396,8 @@ class PointerInt64Mint extends BenchmarkBase {
   Pointer<Int64> pointer;
   PointerInt64Mint() : super("FfiMemory.PointerInt64Mint");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt64Mint(pointer, N);

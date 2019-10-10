@@ -4,8 +4,6 @@
 
 import "dart:ffi";
 
-import "../ffi/utf8.dart";
-
 /// Database Connection Handle
 ///
 /// Each open SQLite database is represented by a pointer to an instance of

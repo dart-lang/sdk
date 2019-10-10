@@ -11,10 +11,10 @@ library FfiTest;
 import 'dart:ffi';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 import 'coordinate_bare.dart' as bare;
 import 'coordinate.dart';
-import 'utf8.dart';
 
 void main() {
   for (int i = 0; i < 100; i++) {
@@ -44,14 +44,14 @@ void testStructAllocate() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  c1.free();
-  c2.free();
-  c3.free();
+  free(c1);
+  free(c2);
+  free(c3);
 }
 
 /// allocates coordinates consecutively in c memory
 void testStructFromAddress() {
-  Pointer<Coordinate> c1 = Pointer.allocate(count: 3);
+  Pointer<Coordinate> c1 = allocate(count: 3);
   Pointer<Coordinate> c2 = c1.elementAt(1);
   Pointer<Coordinate> c3 = c1.elementAt(2);
   c1.ref
@@ -76,7 +76,7 @@ void testStructFromAddress() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  c1.free();
+  free(c1);
 }
 
 void testStructWithNulls() {
@@ -87,14 +87,13 @@ void testStructWithNulls() {
   Expect.notEquals(coordinate.ref.next, nullptr);
   coordinate.ref.next = nullptr.cast();
   Expect.equals(coordinate.ref.next, nullptr);
-  coordinate.free();
+  free(coordinate);
 }
 
 void testBareStruct() {
   int structSize = sizeOf<Double>() * 2 + sizeOf<IntPtr>();
-  bare.Coordinate c1 = Pointer<Uint8>.allocate(count: structSize * 3)
-      .cast<bare.Coordinate>()
-      .ref;
+  bare.Coordinate c1 =
+      allocate<Uint8>(count: structSize * 3).cast<bare.Coordinate>().ref;
   bare.Coordinate c2 =
       c1.addressOf.offsetBy(structSize).cast<bare.Coordinate>().ref;
   bare.Coordinate c3 =
@@ -118,19 +117,19 @@ void testBareStruct() {
   currentCoordinate = currentCoordinate.next.ref;
   Expect.equals(10.0, currentCoordinate.x);
 
-  c1.addressOf.free();
+  free(c1.addressOf);
 }
 
 void testTypeTest() {
   Coordinate c = Coordinate.allocate(10, 10, nullptr.cast<Coordinate>());
   Expect.isTrue(c is Struct);
   Expect.isTrue(c is Struct<Coordinate>);
-  c.addressOf.free();
+  free(c.addressOf);
 }
 
 void testUtf8() {
   final String test = 'Hasta Mañana';
   final Pointer<Utf8> medium = Utf8.toUtf8(test);
   Expect.equals(test, Utf8.fromUtf8(medium));
-  medium.free();
+  free(medium);
 }

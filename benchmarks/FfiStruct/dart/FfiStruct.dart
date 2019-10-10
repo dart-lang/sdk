@@ -9,6 +9,7 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 //
@@ -48,8 +49,8 @@ class FieldLoadStore extends BenchmarkBase {
   Pointer<VeryLargeStruct> pointer;
   FieldLoadStore() : super("FfiStruct.FieldLoadStore");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt32(pointer, N);

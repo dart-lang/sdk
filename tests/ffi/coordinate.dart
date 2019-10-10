@@ -5,6 +5,7 @@
 library FfiTest;
 
 import 'dart:ffi';
+import "package:ffi/ffi.dart";
 
 /// Sample struct for dart:ffi library.
 class Coordinate extends Struct<Coordinate> {
@@ -17,7 +18,7 @@ class Coordinate extends Struct<Coordinate> {
   Pointer<Coordinate> next;
 
   factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {
-    return Pointer<Coordinate>.allocate().ref
+    return allocate<Coordinate>().ref
       ..x = x
       ..y = y
       ..next = next;

@@ -14,6 +14,7 @@ import 'dart:ffi';
 import 'dylib_utils.dart';
 
 import "package:expect/expect.dart";
+import "package:ffi/ffi.dart";
 
 import 'coordinate.dart';
 import 'very_large_struct.dart';
@@ -47,8 +48,8 @@ void testFunctionWithStruct() {
   Expect.approxEquals(42.0, result.x);
   Expect.approxEquals(84.0, result.y);
 
-  c1.free();
-  c2.free();
+  free(c1);
+  free(c2);
 }
 
 /// pass an array of structs to a c funtion
@@ -57,7 +58,7 @@ void testFunctionWithStructArray() {
       ffiTestFunctions.lookup("CoordinateElemAt1");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Coordinate c1 = Pointer<Coordinate>.allocate(count: 3).ref;
+  Coordinate c1 = allocate<Coordinate>(count: 3).ref;
   Coordinate c2 = c1.addressOf[1];
   Coordinate c3 = c1.addressOf[2];
   c1.x = 10.0;
@@ -74,7 +75,7 @@ void testFunctionWithStructArray() {
   Expect.approxEquals(20.0, result.x);
   Expect.approxEquals(20.0, result.y);
 
-  c1.addressOf.free();
+  free(c1.addressOf);
 }
 
 typedef VeryLargeStructSum = int Function(Pointer<VeryLargeStruct>);
@@ -85,7 +86,7 @@ void testFunctionWithVeryLargeStruct() {
       ffiTestFunctions.lookup("SumVeryLargeStruct");
   VeryLargeStructSum f = p1.asFunction();
 
-  VeryLargeStruct vls1 = Pointer<VeryLargeStruct>.allocate(count: 2).ref;
+  VeryLargeStruct vls1 = allocate<VeryLargeStruct>(count: 2).ref;
   VeryLargeStruct vls2 = vls1.addressOf[1];
   List<VeryLargeStruct> structs = [vls1, vls2];
   for (VeryLargeStruct struct in structs) {
@@ -116,5 +117,5 @@ void testFunctionWithVeryLargeStruct() {
   result = f(vls2.addressOf);
   Expect.equals(2048, result);
 
-  vls1.addressOf.free();
+  free(vls1.addressOf);
 }

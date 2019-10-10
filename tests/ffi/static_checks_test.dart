@@ -10,6 +10,8 @@ library FfiTest;
 
 import 'dart:ffi';
 
+import "package:ffi/ffi.dart";
+
 import 'dylib_utils.dart';
 
 void main() {
@@ -56,20 +58,20 @@ void testGetGeneric() {
     return result;
   }
 
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  p.free();
+  free(p);
 }
 
 void testGetGeneric2() {
   T generic<T extends Object>() {
-    Pointer<Int8> p = Pointer.allocate();
+    Pointer<Int8> p = allocate();
     p.value = 123;
     T result;
     result = p.value; //# 21: compile-time error
-    p.free();
+    free(p);
     return result;
   }
 
@@ -77,12 +79,12 @@ void testGetGeneric2() {
 }
 
 void testGetVoid() {
-  Pointer<IntPtr> p1 = Pointer.allocate();
+  Pointer<IntPtr> p1 = allocate();
   Pointer<Void> p2 = p1.cast();
 
   p2.value; //# 22: compile-time error
 
-  p1.free();
+  free(p1);
 }
 
 void testGetNativeFunction() {
@@ -95,14 +97,14 @@ void testGetNativeType() {
 }
 
 void testGetTypeMismatch() {
-  Pointer<Pointer<Int16>> p = Pointer.allocate();
+  Pointer<Pointer<Int16>> p = allocate();
   Pointer<Int16> typedNull = nullptr.cast();
   p.value = typedNull;
 
   // this fails to compile due to type mismatch
   Pointer<Int8> p2 = p.value; //# 25: compile-time error
 
-  p.free();
+  free(p);
 }
 
 void testSetGeneric() {
@@ -110,30 +112,30 @@ void testSetGeneric() {
     p.value = 123; //# 26: compile-time error
   }
 
-  Pointer<Int8> p = Pointer.allocate();
+  Pointer<Int8> p = allocate();
   p.value = 123;
   Pointer loseType = p;
   generic(loseType);
-  p.free();
+  free(p);
 }
 
 void testSetGeneric2() {
   void generic<T extends Object>(T arg) {
-    Pointer<Int8> p = Pointer.allocate();
+    Pointer<Int8> p = allocate();
     p.value = arg; //# 27: compile-time error
-    p.free();
+    free(p);
   }
 
   generic<int>(123);
 }
 
 void testSetVoid() {
-  Pointer<IntPtr> p1 = Pointer.allocate();
+  Pointer<IntPtr> p1 = allocate();
   Pointer<Void> p2 = p1.cast();
 
   p2.value = 1234; //# 28: compile-time error
 
-  p1.free();
+  free(p1);
 }
 
 void testSetNativeFunction() {
@@ -148,16 +150,16 @@ void testSetNativeType() {
 
 void testSetTypeMismatch() {
   // the pointer to pointer types must match up
-  Pointer<Int8> pHelper = Pointer.allocate();
+  Pointer<Int8> pHelper = allocate();
   pHelper.value = 123;
 
-  Pointer<Pointer<Int16>> p = Pointer.allocate();
+  Pointer<Pointer<Int16>> p = allocate();
 
   // this fails to compile due to type mismatch
   p.value = pHelper; //# 40: compile-time error
 
-  pHelper.free();
-  p.free();
+  free(pHelper);
+  free(p);
 }
 
 void testAsFunctionGeneric() {
