@@ -675,7 +675,8 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-firefox",
     category="dart2js|firefox|w",
-    dimensions=windows())
+    dimensions=windows(),
+    enabled=False)
 dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
     category="dart2js|safari|m",
