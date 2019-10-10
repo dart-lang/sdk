@@ -361,7 +361,12 @@
         "minified": true,
         "use-sdk": true
     }},
-    "dartkp-android-(debug|product|release)-(arm|arm64|arm_x64)": {
+    "dartkp-android-(debug|product|release)-arm_x64": {
+      "options": {
+        "builder-tag": "crossword",
+        "use-elf": true
+    }},
+    "dartkp-android-(debug|product|release)-(arm|arm64)": {
       "options": {
         "use-elf": true
     }},
@@ -370,11 +375,11 @@
       "options": {
         "use-blobs": true
     }},
-    "dartkp-linux-(debug|product|release)-(simarm|simarm64)-crossword": {
+    "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword"
     }},
-    "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
+    "dartkp-(win|mac)-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword",
         "use-blobs": true
