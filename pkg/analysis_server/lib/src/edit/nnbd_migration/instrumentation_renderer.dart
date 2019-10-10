@@ -120,6 +120,10 @@ h2 {
   z-index: 1;
 }
 
+.region .tooltip > * {
+  margin: 1em;
+}
+
 .region:hover .tooltip {
   visibility: visible;
 }
@@ -161,13 +165,20 @@ h2 {
     '{{! of the content, to provide tooltips for modified regions. }}'
     '{{# regions }}'
     '{{^ modified }}{{ content }}{{/ modified }}'
-    '{{# modified }}<span class="region">{{ content }}'
-    '<span class="tooltip">{{ explanation }}<ul>'
-    '{{# details }}'
-    '<li>'
-    '<a href="{{ target }}">{{ description }}</a>'
-    '</li>'
-    '{{/ details }}</ul></span></span>{{/ modified }}'
+    '{{# modified }}'
+    '<span class="region">{{ content }}'
+    '<span class="tooltip"><p>{{ explanation }}</p>'
+    '  <ul>'
+    '    {{# details }}'
+    '    <li>'
+    '      {{# isLink }}<a href="{{ target }}">{{ description }}</a>{{/ isLink }}'
+    '      {{^ isLink }}{{ description }}{{/ isLink }}'
+    '    </li>'
+    '    {{/ details }}'
+    '  </ul>'
+    '</span>'
+    '</span>'
+    '{{/ modified }}'
     '{{/ regions }}'
     '</div></div>'
     r'''
@@ -305,6 +316,7 @@ class InstrumentationRenderer {
         details.add({
           'description': detail.description,
           'target': _uriForTarget(detail.target),
+          'isLink': detail.target != null,
         });
       }
       regions.add({

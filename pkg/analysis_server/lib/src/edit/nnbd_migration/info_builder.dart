@@ -184,8 +184,14 @@ class InfoBuilder {
       TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
       if (type != null) {
         CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
-        NavigationTarget target =
-            _targetForNode(unit.declaredElement.source.fullName, type);
+        NavigationTarget target;
+        // Some nodes don't need a target; default formal parameters
+        // without explicit default values, for example.
+        if (node is DefaultFormalParameter && node.defaultValue == null) {
+          target = null;
+        } else {
+          target = _targetForNode(unit.declaredElement.source.fullName, type);
+        }
         return RegionDetail(
             "The corresponding parameter in the overridden method is nullable",
             target);
@@ -339,7 +345,14 @@ class InfoBuilder {
   /// with the given [filePath].
   NavigationTarget _targetForNode(String filePath, AstNode node) {
     AstNode parent = node.parent;
-    if (node is MethodDeclaration) {
+    if (node is ConstructorDeclaration) {
+      if (node.name != null) {
+        return _targetFor(filePath, node.name.offset, node.name.length);
+      } else {
+        return _targetFor(
+            filePath, node.returnType.offset, node.returnType.length);
+      }
+    } else if (node is MethodDeclaration) {
       // Rather than create a NavigationTarget for an entire method declaration
       // (starting at its doc comment, ending at `}`, return a target pointing
       // to the method's name.
