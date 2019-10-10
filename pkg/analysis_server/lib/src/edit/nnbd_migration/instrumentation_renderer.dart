@@ -14,7 +14,7 @@ mustache.Template _template = mustache.Template(r'''
 <html>
   <head>
     <title>Non-nullable fix instrumentation report</title>
-<!--    <script src="{{ highlightJsPath }}"></script>-->
+    <script src="{{ highlightJsPath }}"></script>
     <script>
     function getHash(location) {
       var index = location.lastIndexOf("#");
@@ -49,16 +49,20 @@ mustache.Template _template = mustache.Template(r'''
     document.addEventListener("DOMContentLoaded", highlightTarget);
     window.addEventListener("hashchange", highlightTarget);
     </script>
-    <!-- <link rel="stylesheet" href="{{ highlightStylePath }}"> -->
+    <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
 a:link {
-  color: #000000;
+  color: inherit;
   text-decoration-line: none;
 }
 
 a:visited {
-  color: #000000;
+  color: inherit;
   text-decoration-line: none;
+}
+
+a:hover {
+  text-decoration-line: underline;
 }
 
 body {
@@ -84,6 +88,7 @@ h2 {
 }
 
 .regions {
+  padding: 0.5em;
   position: absolute;
   left: 0.5em;
   top: 0.5em;
@@ -148,14 +153,7 @@ h2 {
     {{# units }}'''
     '<h2>{{{ path }}}</h2>'
     '<div class="content">'
-//    '<div class="highlighting">'
-//    '{{! These regions are written out, unmodified, as they need to be found }}'
-//    '{{! in one simple text string for highlight.js to hightlight them. }}'
-//    '{{# regions }}'
-//    '{{ content }}'
-//    '{{/ regions }}'
-//    '</div>'
-    '<div class ="code">'
+    '<div class="code">'
     '{{! Write the file content, modified to include navigation information, }}'
     '{{! both anchors and links. }}'
     '{{{ navContent }}}'
@@ -185,7 +183,7 @@ h2 {
     {{/ units }}
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", (event) => {
-  document.querySelectorAll(".highlighting").forEach((block) => {
+  document.querySelectorAll(".code").forEach((block) => {
     hljs.highlightBlock(block);
   });
 });
@@ -369,14 +367,14 @@ class MigrationInfo {
   MigrationInfo(this.units, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.js script, relative to [unitInfo].
-  String highlightJsPath(UnitInfo unitInfo) =>
-      pathContext.relative(pathContext.join(includedRoot, 'highlight.pack.js'),
-          from: pathContext.dirname(unitInfo.path));
+  String highlightJsPath(UnitInfo unitInfo) => pathContext.relative(
+      pathContext.join(includedRoot, '..', 'highlight.pack.js'),
+      from: pathContext.dirname(unitInfo.path));
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
-  String highlightStylePath(UnitInfo unitInfo) =>
-      pathContext.relative(pathContext.join(includedRoot, 'androidstudio.css'),
-          from: pathContext.dirname(unitInfo.path));
+  String highlightStylePath(UnitInfo unitInfo) => pathContext.relative(
+      pathContext.join(includedRoot, '..', 'androidstudio.css'),
+      from: pathContext.dirname(unitInfo.path));
 
   /// Generate mustache context for unit links, for navigation in the
   /// instrumentation document for [thisUnit].
