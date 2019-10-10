@@ -479,6 +479,8 @@ class Place : public ValueObject {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
       const ElementSize size = ElementSizeFor(class_id);
       const bool is_typed_data = (size != kNoSize);
+      const bool can_be_view_or_external =
+          is_typed_data && instance_->IsLoadUntagged();
 
       // If we are writing into the typed data scale the index to
       // get byte offset. Otherwise ignore the scale.
@@ -490,9 +492,11 @@ class Place : public ValueObject {
       if ((0 <= index_value) && (index_value < (kMaxInt32 / scale))) {
         const intptr_t scaled_index = index_value * scale;
 
-        // Guard against unaligned byte offsets.
+        // Guard against unaligned byte offsets and access through raw
+        // memory pointer (which can be pointing into another typed data).
         if (!is_typed_data ||
-            Utils::IsAligned(scaled_index, ElementSizeMultiplier(size))) {
+            (!can_be_view_or_external &&
+             Utils::IsAligned(scaled_index, ElementSizeMultiplier(size)))) {
           set_kind(kConstantIndexed);
           set_element_size(size);
           index_constant_ = scaled_index;
