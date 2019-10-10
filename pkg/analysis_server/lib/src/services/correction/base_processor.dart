@@ -110,6 +110,7 @@ abstract class BaseProcessor {
       constructorName = 'StringProperty';
     } else if (isEnum(type)) {
       constructorName = 'EnumProperty';
+      typeArgs = [type];
     } else if (isIterable(type)) {
       constructorName = 'IterableProperty';
       typeArgs = (type as InterfaceType).typeArguments;
@@ -134,6 +135,24 @@ abstract class BaseProcessor {
         builder.write('<');
         builder.writeTypes(typeArgs);
         builder.write('>');
+      } else if (type.isDynamic) {
+        TypeAnnotation declType;
+        final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
+        if (decl != null) {
+          declType = decl.type;
+          // getter
+        } else if (parent is MethodDeclaration) {
+          declType = parent.returnType;
+        }
+
+        if (declType != null) {
+          final typeText = utils.getNodeText(declType);
+          if (typeText != 'dynamic') {
+            builder.write('<');
+            builder.write(utils.getNodeText(declType));
+            builder.write('>');
+          }
+        }
       }
       builder.writeln("('${name.name}', ${name.name}));");
     }

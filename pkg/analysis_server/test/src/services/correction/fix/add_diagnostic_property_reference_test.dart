@@ -186,9 +186,9 @@ class A extends Widget {
 
   test_enumField_debugFillProperties() async {
     await resolveTestUnit('''
-enum foo {bar}
+enum Foo {bar}
 class A extends Widget {
-  foo /*LINT*/field;
+  Foo /*LINT*/field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -196,13 +196,13 @@ class A extends Widget {
 }
 ''');
     await assertHasFix('''
-enum foo {bar}
+enum Foo {bar}
 class A extends Widget {
-  foo /*LINT*/field;
+  Foo /*LINT*/field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(EnumProperty('field', field));
+    properties.add(EnumProperty<Foo>('field', field));
   }
 }
 ''');
@@ -361,6 +361,75 @@ class A extends Widget {
 ''');
   }
 
+  test_typeOutOfScopeField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  ClassNotInScope<bool> /*LINT*/onChanged;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  ClassNotInScope<bool> /*LINT*/onChanged;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<ClassNotInScope<bool>>('onChanged', onChanged));
+  }
+}
+''');
+  }
+
+  test_typeOutOfScopeGetter_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  ClassNotInScope<bool> get /*LINT*/onChanged => null;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  ClassNotInScope<bool> get /*LINT*/onChanged => null;
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<ClassNotInScope<bool>>('onChanged', onChanged));
+  }
+}
+''');
+  }
+
+  test_varField_debugFillProperties() async {
+    await resolveTestUnit('''
+class A extends Widget {
+  var /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+class A extends Widget {
+  var /*LINT*/field;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty('field', field));
+  }
+}
+''');
+  }
+
   // todo (pq): consider a test for a body w/ no CR
-  // todo (pq): support for DiagnosticsProperty for any T that doesn't match one of the other cases
 }
