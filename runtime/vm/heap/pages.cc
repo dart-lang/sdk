@@ -286,11 +286,8 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     IncreaseCapacityInWordsLocked(kPageSizeInWords);
   }
   const bool is_exec = (type == HeapPage::kExecutable);
-  const intptr_t kVmNameSize = 128;
-  char vm_name[kVmNameSize];
-  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
-                   kVmNameSize);
-  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, vm_name);
+  const char* name = Heap::RegionName(is_exec ? Heap::kCode : Heap::kOld);
+  HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type, name);
   if (page == NULL) {
     RELEASE_ASSERT(!FLAG_abort_on_oom);
     IncreaseCapacityInWords(-kPageSizeInWords);
@@ -344,11 +341,8 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
     IncreaseCapacityInWordsLocked(page_size_in_words);
   }
   const bool is_exec = (type == HeapPage::kExecutable);
-  const intptr_t kVmNameSize = 128;
-  char vm_name[kVmNameSize];
-  Heap::RegionName(heap_, is_exec ? Heap::kCode : Heap::kOld, vm_name,
-                   kVmNameSize);
-  HeapPage* page = HeapPage::Allocate(page_size_in_words, type, vm_name);
+  const char* name = Heap::RegionName(is_exec ? Heap::kCode : Heap::kOld);
+  HeapPage* page = HeapPage::Allocate(page_size_in_words, type, name);
   {
     MutexLocker ml(&pages_lock_);
     if (page == nullptr) {
