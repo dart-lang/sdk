@@ -791,7 +791,16 @@ class FlowGraphCompiler : public ValueObject {
   void ClobberDeadTempRegisters(LocationSummary* locs);
 #endif
 
-  Environment* SlowPathEnvironmentFor(Instruction* instruction,
+  // Returns a new environment based on [env] which accounts for the new
+  // locations of values in the slow path call.
+  Environment* SlowPathEnvironmentFor(Instruction* inst,
+                                      intptr_t num_slow_path_args) {
+    return SlowPathEnvironmentFor(inst->env(), inst->locs(),
+                                  num_slow_path_args);
+  }
+
+  Environment* SlowPathEnvironmentFor(Environment* env,
+                                      LocationSummary* locs,
                                       intptr_t num_slow_path_args);
 
   intptr_t CurrentTryIndex() const {

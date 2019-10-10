@@ -947,30 +947,29 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 //     MaterializeObjectInstr::RemapRegisters
 //
 Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
-    Instruction* instruction,
+    Environment* env,
+    LocationSummary* locs,
     intptr_t num_slow_path_args) {
-  const bool using_shared_stub =
-      instruction->locs()->call_on_shared_slow_path();
+  const bool using_shared_stub = locs->call_on_shared_slow_path();
   const bool shared_stub_save_fpu_registers =
-      using_shared_stub &&
-      instruction->locs()->live_registers()->FpuRegisterCount() > 0;
+      using_shared_stub && locs->live_registers()->FpuRegisterCount() > 0;
   // TODO(sjindel): Modify logic below to account for slow-path args with shared
   // stubs.
   ASSERT(!using_shared_stub || num_slow_path_args == 0);
-  if (instruction->env() == NULL) {
+  if (env == nullptr) {
     ASSERT(!is_optimizing());
-    return NULL;
+    return nullptr;
   }
 
-  Environment* env = instruction->env()->DeepCopy(zone());
+  Environment* slow_path_env = env->DeepCopy(zone());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
-  intptr_t next_slot = StackSize() + env->CountArgsPushed();
+  intptr_t next_slot = StackSize() + slow_path_env->CountArgsPushed();
   if (using_shared_stub) {
     // The PC from the call to the shared stub is pushed here.
     next_slot++;
   }
-  RegisterSet* regs = instruction->locs()->live_registers();
+  RegisterSet* regs = locs->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
   const intptr_t kFpuRegisterSpillFactor =
@@ -1005,14 +1004,14 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
 
   // 2. Iterate the environment and replace register locations with the
   //    corresponding spill slot locations.
-  for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+  for (Environment::DeepIterator it(slow_path_env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
     Value* value = it.CurrentValue();
     it.SetCurrentLocation(LocationRemapForSlowPath(
         loc, value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
 
-  return env;
+  return slow_path_env;
 }
 
 compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
