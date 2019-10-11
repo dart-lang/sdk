@@ -251,6 +251,7 @@ general/platform: TextSerializationFailure
 general/prefer_baseclass: TextSerializationFailure # Was: Pass
 general/private_method_tearoff: TextSerializationFailure # Was: Pass
 general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
+general/promoted_access: TextSerializationFailure
 general/public_method_tearoff: TextSerializationFailure # Was: Pass
 general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general/qualified: TextSerializationFailure # Was: Pass

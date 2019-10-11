@@ -2597,7 +2597,9 @@ abstract class Expression extends TreeNode {
     }
     var type = getStaticType(types);
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).parameter.bound;
+      TypeParameterType typeParameterType = type;
+      type =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     if (type == types.nullType) {
       return superclass.bottomType;
