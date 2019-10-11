@@ -68,8 +68,9 @@ import 'dart:_interceptors'
         getNativeInterceptor,
         setDispatchProperty;
 
-export 'dart:math' show Rectangle, Point;
 export 'dart:_internal' show HttpStatus;
+export 'dart:html_common' show promiseToFuture;
+export 'dart:math' show Rectangle, Point;
 
 /**
  * Top-level container for a web page, which is usually a browser tab or window.
