@@ -82,6 +82,9 @@ main() { foo(() {}); }
 
 ### Dart VM
 
+* Added a new tool for AOT compiling Dart programs to native, self-contained
+executables. See https://dart.dev/tools/dart2native for additional details.
+
 ### Dart for the Web
 
 #### Dart Dev Compiler (DDC)
