@@ -9,7 +9,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _descPrefix = r'Avoid unsafe HTML APIs';
-const _desc = r'$_descPrefix.';
+const _desc = '$_descPrefix.';
 
 const _details = r'''
 
