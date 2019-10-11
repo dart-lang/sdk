@@ -11,6 +11,7 @@ main(List<String> arguments) {
   for (int i = 0; i < 100; i++) {
     testStoreLoad();
     testNullReceivers();
+    testNullIndices();
     testNullArguments();
     testReifiedGeneric();
   }
@@ -22,6 +23,15 @@ testStoreLoad() {
   Expect.equals(10, p.value);
   p[1] = 20;
   Expect.equals(20, p[1]);
+  if (sizeOf<IntPtr>() == 4) {
+    // Test round tripping.
+    Expect.equals(20, p.elementAt(0x100000001).value);
+    Expect.equals(20, p[0x100000001]);
+  }
+
+  // Test negative index.
+  final pUseNegative = p.elementAt(1);
+  Expect.equals(10, pUseNegative[-1]);
 
   final p1 = allocate<Double>(count: 2);
   p1.value = 10.0;
@@ -59,6 +69,22 @@ testNullReceivers() {
 
   Pointer<Foo> p6 = null;
   Expect.throws(() => Expect.equals(10, p6.ref));
+
+  free(p);
+}
+
+testNullIndices() {
+  Pointer<Int8> p = allocate();
+
+  Expect.throws(() => Expect.equals(10, p[null]));
+  Expect.throws(() => p[null] = 10);
+
+  Pointer<Pointer<Int8>> p5 = p.cast();
+  Expect.throws(() => Expect.equals(10, p5[null]));
+  Expect.throws(() => p5[null] = p);
+
+  Pointer<Foo> p6 = p.cast();
+  Expect.throws(() => Expect.equals(10, p6[null]));
 
   free(p);
 }

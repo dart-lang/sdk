@@ -9,6 +9,8 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
+
 //
 // Configuration.
 //
@@ -32,10 +34,11 @@ const Map<String, String> nativeToDartType = {
 //
 
 main(List<String> arguments) {
-  final parsedArgs = parseArguments(arguments);
+  final args = argParser().parse(arguments);
+  Uri path = Uri.parse(args['path']);
 
-  generate(parsedArgs.path, "ffi.g.dart", generatePublicExtension);
-  generate(parsedArgs.path, "ffi_patch.g.dart", generatePatchExtension);
+  generate(path, "ffi.g.dart", generatePublicExtension);
+  generate(path, "ffi_patch.g.dart", generatePatchExtension);
 }
 
 void generate(Uri path, String fileName,
@@ -48,7 +51,7 @@ void generate(Uri path, String fileName,
   generateFooter(buffer);
 
   final fullPath = path.resolve(fileName).path;
-  new File(fullPath).writeAsStringSync(buffer.toString());
+  File(fullPath).writeAsStringSync(buffer.toString());
   final fmtResult = Process.runSync(dartfmtPath().path, ["-w", fullPath]);
   if (fmtResult.exitCode != 0) {
     throw Exception(
@@ -81,13 +84,13 @@ void generatePublicExtension(
 """;
 
   final storeTruncate =
-      isInt(nativeType) ? storeTrunctateInt : storeTrunctateDouble;
+      _isInt(nativeType) ? storeTrunctateInt : storeTrunctateDouble;
 
   final loadSignExtendInt = """
   /// Note that ints are signextended.
 """;
 
-  final loadSignExtend = isInt(nativeType) ? loadSignExtendInt : "";
+  final loadSignExtend = _isInt(nativeType) ? loadSignExtendInt : "";
 
   // TODO(dartdoc-bug): Use [] instead of ``, once issue
   // https://github.com/dart-lang/dartdoc/issues/2039 is fixed.
@@ -130,17 +133,17 @@ void generatePatchExtension(
     StringBuffer buffer, String nativeType, String dartType) {
   buffer.write("""
 extension ${nativeType}Pointer on Pointer<$nativeType> {
-  @patch
-  $dartType get value => _load$nativeType(this);
+ @patch
+  $dartType get value => _load$nativeType(this, 0);
 
   @patch
-  void set value($dartType value) => _store$nativeType(this, value);
+  set value($dartType value) => _store$nativeType(this, 0, value);
 
   @patch
-  $dartType operator [](int index) => this.elementAt(index).value;
+  $dartType operator [](int index) => _load$nativeType(this, index);
 
   @patch
-  void operator []=(int index, $dartType value) => this.elementAt(index).value = value;
+  operator []=(int index, $dartType value) => _store$nativeType(this, index, value);
 }
 
 """);
@@ -160,34 +163,21 @@ void generateFooter(StringBuffer buffer) {
 // Helper functions.
 //
 
-bool isInt(String type) => type.startsWith("Int") || type.startsWith("Uint");
+bool _isInt(String type) => type.startsWith("Int") || type.startsWith("Uint");
 
-class Arguments {
-  final Uri path;
-  Arguments(this.path);
-}
+final Uri _containingFolder = File.fromUri(Platform.script).parent.uri;
 
-Arguments parseArguments(List<String> arguments) {
-  final parsedArgs = Map<String, dynamic>();
-  String flag = null;
-  for (final String arg in arguments) {
-    if (flag == "path") {
-      parsedArgs[flag] = Uri.parse(arg);
-      flag = null;
-    } else if (arg == "-p" || arg == "--path") {
-      flag = "path";
-    } else {
-      throw Exception("Unknown argument: $arg");
-    }
-  }
-
-  Uri path = parsedArgs["path"];
-  if (path == null) {
-    path = Platform.script;
-    print("No path provided, generating files next to generator.");
-  }
-
-  return Arguments(path);
+ArgParser argParser() {
+  final parser = ArgParser(allowTrailingOptions: false);
+  parser.addOption('path',
+      abbr: 'p',
+      help: 'Path to generate the files at.',
+      defaultsTo: _containingFolder.toString());
+  parser.addFlag('help', abbr: 'h', help: 'Display usage information.',
+      callback: (help) {
+    if (help) print(parser.usage);
+  });
+  return parser;
 }
 
 Uri dartfmtPath() {

@@ -1072,14 +1072,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const auto& type_arg = AbstractType::Handle(type_args.TypeAt(0));
       ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
 
-      ASSERT(function.NumParameters() == 1);
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += ConvertIntptrToUntagged();      // Requires signed intptr.
-      body += IntConstant(0);                 // Index.
+      // We do Pointer.address + index * sizeOf<T> manually because LoadIndexed
+      // does not support Mint index arguments.
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));  // Index.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      // TODO(38831): Implement Shift for Uint32, and use that instead.
+      body +=
+          BinaryIntegerOp(Token::kMUL, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body +=
+          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body += ConvertIntptrToUntagged();
+      body += IntConstant(0);
       body += LoadIndexedTypedData(typed_data_cid);
       if (kind == MethodRecognizer::kFfiLoadFloat ||
           kind == MethodRecognizer::kFfiLoadDouble) {
@@ -1151,7 +1164,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
 
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
-      LocalVariable* arg_value = parsed_function_->RawParameterVariable(1);
+      LocalVariable* arg_index = parsed_function_->RawParameterVariable(1);
+      LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
 
       if (kind == MethodRecognizer::kFfiStorePointer) {
         // Do type check before anything untagged is on the stack.
@@ -1191,15 +1205,28 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         body += Drop();
       }
 
-      ASSERT(function.NumParameters() == 2);
+      ASSERT(function.NumParameters() == 3);
       body += LoadLocal(arg_pointer);  // Pointer.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += LoadNativeField(Slot::Pointer_c_memory_address());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += ConvertIntptrToUntagged();      // Requires signed intptr.
-      body += IntConstant(0);                 // Index.
-      body += LoadLocal(arg_value);           // Value.
+      // We do Pointer.address + index * sizeOf<T> manually because LoadIndexed
+      // does not support Mint index arguments.
+      body += LoadLocal(arg_index);  // Index.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      // TODO(38831): Implement Shift for Uint32, and use that instead.
+      body +=
+          BinaryIntegerOp(Token::kMUL, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body +=
+          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body += ConvertIntptrToUntagged();
+      body += IntConstant(0);
+      body += LoadLocal(arg_value);  // Value.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       if (kind == MethodRecognizer::kFfiStorePointer) {
@@ -1231,8 +1258,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
+#if defined(TARGET_ARCH_IS_32_BIT)
       // Truncate to 32 bits on 32 bit architecture.
       body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += Box(kUnboxedFfiIntPtr);
+#endif  // defined(TARGET_ARCH_IS_32_BIT)
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::Pointer_c_memory_address());
     } break;

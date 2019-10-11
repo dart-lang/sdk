@@ -336,7 +336,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         ];
         return StaticInvocation(
             optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod,
-            Arguments([node.receiver], types: typeArguments));
+            Arguments([node.receiver, ConstantExpression(IntConstant(0))],
+                types: typeArguments));
       } else if (target == storeMethod) {
         final Expression storeValue = node.arguments.positional.single;
         final DartType dartType = storeValue.getStaticType(env);
@@ -357,8 +358,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         final typeArguments = [
           if (nt == NativeType.kPointer) _pointerTypeGetTypeArg(nativeType)
         ];
-        return StaticInvocation(storeMethods[nt],
-            Arguments([node.receiver, storeValue], types: typeArguments));
+        return StaticInvocation(
+            storeMethods[nt],
+            Arguments(
+                [node.receiver, ConstantExpression(IntConstant(0)), storeValue],
+                types: typeArguments));
       } else if (target == elementAtMethod) {
         // TODO(37773): When moving to extension methods we can get rid of
         // this rewiring.

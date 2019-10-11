@@ -84,6 +84,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
+  "args_tag" : "1.5.2",
   "dartdoc_tag" : "v0.28.7",
   "ffi_tag": "f46c1f42c6f7f1938f2ff27c573da72d57c47ded",
   "fixnum_tag": "0.10.9",
@@ -276,6 +277,8 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
+  Var("dart_root") + "/third_party/pkg/args":
+      Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/ffi":

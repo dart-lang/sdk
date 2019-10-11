@@ -762,6 +762,34 @@ Fragment BaseFlowGraphBuilder::SmiBinaryOp(Token::Kind kind,
   return Fragment(instr);
 }
 
+Fragment BaseFlowGraphBuilder::BinaryIntegerOp(Token::Kind kind,
+                                               Representation representation,
+                                               bool is_truncating) {
+  ASSERT(representation == kUnboxedInt32 || representation == kUnboxedUint32 ||
+         representation == kUnboxedInt64);
+  Value* right = Pop();
+  Value* left = Pop();
+  BinaryIntegerOpInstr* instr;
+  switch (representation) {
+    case kUnboxedInt32:
+      instr = new (Z) BinaryInt32OpInstr(kind, left, right, GetNextDeoptId());
+      break;
+    case kUnboxedUint32:
+      instr = new (Z) BinaryUint32OpInstr(kind, left, right, GetNextDeoptId());
+      break;
+    case kUnboxedInt64:
+      instr = new (Z) BinaryInt64OpInstr(kind, left, right, GetNextDeoptId());
+      break;
+    default:
+      UNREACHABLE();
+  }
+  if (is_truncating) {
+    instr->mark_truncating();
+  }
+  Push(instr);
+  return Fragment(instr);
+}
+
 Fragment BaseFlowGraphBuilder::LoadFpRelativeSlot(intptr_t offset,
                                                   CompileType result_type) {
   LoadIndexedUnsafeInstr* instr =

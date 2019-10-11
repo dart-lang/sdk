@@ -149,58 +149,69 @@ int _abi()
 // getting rid of these allocations by inlining these functions.
 //
 // TODO(37773): Change _loadInt8 etc to take an index.
-int _loadInt8(Pointer<Int8> pointer) native "Ffi_loadInt8";
+int _loadInt8(Pointer<Int8> pointer, int index) native "Ffi_loadInt8";
 
-int _loadInt16(Pointer<Int16> pointer) native "Ffi_loadInt16";
+int _loadInt16(Pointer<Int16> pointer, int index) native "Ffi_loadInt16";
 
-int _loadInt32(Pointer<Int32> pointer) native "Ffi_loadInt32";
+int _loadInt32(Pointer<Int32> pointer, int index) native "Ffi_loadInt32";
 
-int _loadInt64(Pointer<Int64> pointer) native "Ffi_loadInt64";
+int _loadInt64(Pointer<Int64> pointer, int index) native "Ffi_loadInt64";
 
-int _loadUint8(Pointer<Uint8> pointer) native "Ffi_loadUint8";
+int _loadUint8(Pointer<Uint8> pointer, int index) native "Ffi_loadUint8";
 
-int _loadUint16(Pointer<Uint16> pointer) native "Ffi_loadUint16";
+int _loadUint16(Pointer<Uint16> pointer, int index) native "Ffi_loadUint16";
 
-int _loadUint32(Pointer<Uint32> pointer) native "Ffi_loadUint32";
+int _loadUint32(Pointer<Uint32> pointer, int index) native "Ffi_loadUint32";
 
-int _loadUint64(Pointer<Uint64> pointer) native "Ffi_loadUint64";
+int _loadUint64(Pointer<Uint64> pointer, int index) native "Ffi_loadUint64";
 
-int _loadIntPtr(Pointer<IntPtr> pointer) native "Ffi_loadIntPtr";
+int _loadIntPtr(Pointer<IntPtr> pointer, int index) native "Ffi_loadIntPtr";
 
-double _loadFloat(Pointer<Float> pointer) native "Ffi_loadFloat";
+double _loadFloat(Pointer<Float> pointer, int index) native "Ffi_loadFloat";
 
-double _loadDouble(Pointer<Double> pointer) native "Ffi_loadDouble";
+double _loadDouble(Pointer<Double> pointer, int index) native "Ffi_loadDouble";
 
-Pointer<S> _loadPointer<S extends NativeType>(Pointer<Pointer<S>> pointer)
-    native "Ffi_loadPointer";
+Pointer<S> _loadPointer<S extends NativeType>(
+    Pointer<Pointer<S>> pointer, int index) native "Ffi_loadPointer";
 
-S _loadStruct<S extends Struct>(Pointer<S> pointer) native "Ffi_loadStruct";
+S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
+    native "Ffi_loadStruct";
 
-void _storeInt8(Pointer<Int8> pointer, int value) native "Ffi_storeInt8";
+void _storeInt8(Pointer<Int8> pointer, int index, int value)
+    native "Ffi_storeInt8";
 
-void _storeInt16(Pointer<Int16> pointer, int value) native "Ffi_storeInt16";
+void _storeInt16(Pointer<Int16> pointer, int index, int value)
+    native "Ffi_storeInt16";
 
-void _storeInt32(Pointer<Int32> pointer, int value) native "Ffi_storeInt32";
+void _storeInt32(Pointer<Int32> pointer, int index, int value)
+    native "Ffi_storeInt32";
 
-void _storeInt64(Pointer<Int64> pointer, int value) native "Ffi_storeInt64";
+void _storeInt64(Pointer<Int64> pointer, int index, int value)
+    native "Ffi_storeInt64";
 
-void _storeUint8(Pointer<Uint8> pointer, int value) native "Ffi_storeUint8";
+void _storeUint8(Pointer<Uint8> pointer, int index, int value)
+    native "Ffi_storeUint8";
 
-void _storeUint16(Pointer<Uint16> pointer, int value) native "Ffi_storeUint16";
+void _storeUint16(Pointer<Uint16> pointer, int index, int value)
+    native "Ffi_storeUint16";
 
-void _storeUint32(Pointer<Uint32> pointer, int value) native "Ffi_storeUint32";
+void _storeUint32(Pointer<Uint32> pointer, int index, int value)
+    native "Ffi_storeUint32";
 
-void _storeUint64(Pointer<Uint64> pointer, int value) native "Ffi_storeUint64";
+void _storeUint64(Pointer<Uint64> pointer, int index, int value)
+    native "Ffi_storeUint64";
 
-void _storeIntPtr(Pointer<IntPtr> pointer, int value) native "Ffi_storeIntPtr";
+void _storeIntPtr(Pointer<IntPtr> pointer, int index, int value)
+    native "Ffi_storeIntPtr";
 
-void _storeFloat(Pointer<Float> pointer, double value) native "Ffi_storeFloat";
+void _storeFloat(Pointer<Float> pointer, int index, double value)
+    native "Ffi_storeFloat";
 
-void _storeDouble(Pointer<Double> pointer, double value)
+void _storeDouble(Pointer<Double> pointer, int index, double value)
     native "Ffi_storeDouble";
 
-void _storePointer<S extends NativeType>(
-    Pointer<Pointer<S>> pointer, Pointer<S> value) native "Ffi_storePointer";
+void _storePointer<S extends NativeType>(Pointer<Pointer<S>> pointer, int index,
+    Pointer<S> value) native "Ffi_storePointer";
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);
@@ -247,167 +258,156 @@ Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
 
 extension Int8Pointer on Pointer<Int8> {
   @patch
-  int get value => _loadInt8(this);
+  int get value => _loadInt8(this, 0);
 
   @patch
-  void set value(int value) => _storeInt8(this, value);
+  set value(int value) => _storeInt8(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadInt8(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeInt8(this, index, value);
 }
 
 extension Int16Pointer on Pointer<Int16> {
   @patch
-  int get value => _loadInt16(this);
+  int get value => _loadInt16(this, 0);
 
   @patch
-  void set value(int value) => _storeInt16(this, value);
+  set value(int value) => _storeInt16(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadInt16(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeInt16(this, index, value);
 }
 
 extension Int32Pointer on Pointer<Int32> {
   @patch
-  int get value => _loadInt32(this);
+  int get value => _loadInt32(this, 0);
 
   @patch
-  void set value(int value) => _storeInt32(this, value);
+  set value(int value) => _storeInt32(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadInt32(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeInt32(this, index, value);
 }
 
 extension Int64Pointer on Pointer<Int64> {
   @patch
-  int get value => _loadInt64(this);
+  int get value => _loadInt64(this, 0);
 
   @patch
-  void set value(int value) => _storeInt64(this, value);
+  set value(int value) => _storeInt64(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadInt64(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeInt64(this, index, value);
 }
 
 extension Uint8Pointer on Pointer<Uint8> {
   @patch
-  int get value => _loadUint8(this);
+  int get value => _loadUint8(this, 0);
 
   @patch
-  void set value(int value) => _storeUint8(this, value);
+  set value(int value) => _storeUint8(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadUint8(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeUint8(this, index, value);
 }
 
 extension Uint16Pointer on Pointer<Uint16> {
   @patch
-  int get value => _loadUint16(this);
+  int get value => _loadUint16(this, 0);
 
   @patch
-  void set value(int value) => _storeUint16(this, value);
+  set value(int value) => _storeUint16(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadUint16(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeUint16(this, index, value);
 }
 
 extension Uint32Pointer on Pointer<Uint32> {
   @patch
-  int get value => _loadUint32(this);
+  int get value => _loadUint32(this, 0);
 
   @patch
-  void set value(int value) => _storeUint32(this, value);
+  set value(int value) => _storeUint32(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadUint32(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeUint32(this, index, value);
 }
 
 extension Uint64Pointer on Pointer<Uint64> {
   @patch
-  int get value => _loadUint64(this);
+  int get value => _loadUint64(this, 0);
 
   @patch
-  void set value(int value) => _storeUint64(this, value);
+  set value(int value) => _storeUint64(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadUint64(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeUint64(this, index, value);
 }
 
 extension IntPtrPointer on Pointer<IntPtr> {
   @patch
-  int get value => _loadIntPtr(this);
+  int get value => _loadIntPtr(this, 0);
 
   @patch
-  void set value(int value) => _storeIntPtr(this, value);
+  set value(int value) => _storeIntPtr(this, 0, value);
 
   @patch
-  int operator [](int index) => this.elementAt(index).value;
+  int operator [](int index) => _loadIntPtr(this, index);
 
   @patch
-  void operator []=(int index, int value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, int value) => _storeIntPtr(this, index, value);
 }
 
 extension FloatPointer on Pointer<Float> {
   @patch
-  double get value => _loadFloat(this);
+  double get value => _loadFloat(this, 0);
 
   @patch
-  void set value(double value) => _storeFloat(this, value);
+  set value(double value) => _storeFloat(this, 0, value);
 
   @patch
-  double operator [](int index) => this.elementAt(index).value;
+  double operator [](int index) => _loadFloat(this, index);
 
   @patch
-  void operator []=(int index, double value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, double value) => _storeFloat(this, index, value);
 }
 
 extension DoublePointer on Pointer<Double> {
   @patch
-  double get value => _loadDouble(this);
+  double get value => _loadDouble(this, 0);
 
   @patch
-  void set value(double value) => _storeDouble(this, value);
+  set value(double value) => _storeDouble(this, 0, value);
 
   @patch
-  double operator [](int index) => this.elementAt(index).value;
+  double operator [](int index) => _loadDouble(this, index);
 
   @patch
-  void operator []=(int index, double value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, double value) => _storeDouble(this, index, value);
 }
 
 //
@@ -416,26 +416,23 @@ extension DoublePointer on Pointer<Double> {
 
 extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   @patch
-  Pointer<T> get value => _loadPointer(this);
+  Pointer<T> get value => _loadPointer(this, 0);
 
   @patch
-  void set value(Pointer<T> value) => _storePointer(this, value);
+  set value(Pointer<T> value) => _storePointer(this, 0, value);
 
   @patch
-  Pointer<T> operator [](int index) => this.elementAt(index).value;
+  Pointer<T> operator [](int index) => _loadPointer(this, index);
 
   @patch
-  void operator []=(int index, Pointer<T> value) =>
-      this.elementAt(index).value = value;
+  operator []=(int index, Pointer<T> value) =>
+      _storePointer(this, index, value);
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
-  T get ref => _loadStruct(this);
+  T get ref => _loadStruct(this, 0);
 
   @patch
-  T operator [](int index) {
-    Pointer<T> offsetPointer = this.elementAt(index);
-    return offsetPointer.ref;
-  }
+  T operator [](int index) => _loadStruct(this, index);
 }

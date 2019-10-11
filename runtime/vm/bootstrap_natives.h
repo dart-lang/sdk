@@ -372,31 +372,31 @@ namespace dart {
   V(VMService_spawnUriNotify, 2)                                               \
   V(Ffi_allocate, 1)                                                           \
   V(Ffi_free, 1)                                                               \
-  V(Ffi_loadInt8, 1)                                                           \
-  V(Ffi_loadInt16, 1)                                                          \
-  V(Ffi_loadInt32, 1)                                                          \
-  V(Ffi_loadInt64, 1)                                                          \
-  V(Ffi_loadUint8, 1)                                                          \
-  V(Ffi_loadUint16, 1)                                                         \
-  V(Ffi_loadUint32, 1)                                                         \
-  V(Ffi_loadUint64, 1)                                                         \
-  V(Ffi_loadIntPtr, 1)                                                         \
-  V(Ffi_loadFloat, 1)                                                          \
-  V(Ffi_loadDouble, 1)                                                         \
-  V(Ffi_loadPointer, 1)                                                        \
-  V(Ffi_loadStruct, 1)                                                         \
-  V(Ffi_storeInt8, 2)                                                          \
-  V(Ffi_storeInt16, 2)                                                         \
-  V(Ffi_storeInt32, 2)                                                         \
-  V(Ffi_storeInt64, 2)                                                         \
-  V(Ffi_storeUint8, 2)                                                         \
-  V(Ffi_storeUint16, 2)                                                        \
-  V(Ffi_storeUint32, 2)                                                        \
-  V(Ffi_storeUint64, 2)                                                        \
-  V(Ffi_storeIntPtr, 2)                                                        \
-  V(Ffi_storeFloat, 2)                                                         \
-  V(Ffi_storeDouble, 2)                                                        \
-  V(Ffi_storePointer, 2)                                                       \
+  V(Ffi_loadInt8, 2)                                                           \
+  V(Ffi_loadInt16, 2)                                                          \
+  V(Ffi_loadInt32, 2)                                                          \
+  V(Ffi_loadInt64, 2)                                                          \
+  V(Ffi_loadUint8, 2)                                                          \
+  V(Ffi_loadUint16, 2)                                                         \
+  V(Ffi_loadUint32, 2)                                                         \
+  V(Ffi_loadUint64, 2)                                                         \
+  V(Ffi_loadIntPtr, 2)                                                         \
+  V(Ffi_loadFloat, 2)                                                          \
+  V(Ffi_loadDouble, 2)                                                         \
+  V(Ffi_loadPointer, 2)                                                        \
+  V(Ffi_loadStruct, 2)                                                         \
+  V(Ffi_storeInt8, 3)                                                          \
+  V(Ffi_storeInt16, 3)                                                         \
+  V(Ffi_storeInt32, 3)                                                         \
+  V(Ffi_storeInt64, 3)                                                         \
+  V(Ffi_storeUint8, 3)                                                         \
+  V(Ffi_storeUint16, 3)                                                        \
+  V(Ffi_storeUint32, 3)                                                        \
+  V(Ffi_storeUint64, 3)                                                        \
+  V(Ffi_storeIntPtr, 3)                                                        \
+  V(Ffi_storeFloat, 3)                                                         \
+  V(Ffi_storeDouble, 3)                                                        \
+  V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
   V(Ffi_sizeOf, 0)                                                             \
