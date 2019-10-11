@@ -142,7 +142,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       help: 'Re-use previously serialized data when serializing. '
           'The output dill file might include more libraries than strictly '
           'needed, but the serialization phase will generally be much faster.',
-      defaultsTo: false,
+      defaultsTo: true,
       negatable: true,
       hide: true)
   ..addFlag('track-widget-creation',
@@ -271,7 +271,7 @@ class FrontendCompiler implements CompilerInterface {
       {this.printerFactory,
       this.transformer,
       this.unsafePackageSerialization,
-      this.incrementalSerialization}) {
+      this.incrementalSerialization: true}) {
     _outputStream ??= stdout;
     printerFactory ??= new BinaryPrinterFactory();
     // Initialize supported kernel targets.

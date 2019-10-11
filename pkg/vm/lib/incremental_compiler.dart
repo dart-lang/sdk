@@ -35,8 +35,8 @@ class IncrementalCompiler {
   Uri get entryPoint => _entryPoint;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
-      {this.initializeFromDillUri, bool incrementalSerialization}) {
-    if (incrementalSerialization == true) {
+      {this.initializeFromDillUri, bool incrementalSerialization: true}) {
+    if (incrementalSerialization) {
       incrementalSerializer = new IncrementalSerializer();
     }
     _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
