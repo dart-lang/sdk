@@ -94,6 +94,17 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the type of the field
+   */
+  static const FfiCode MISSING_FIELD_TYPE_IN_STRUCT = const FfiCode(
+      name: 'MISSING_FIELD_TYPE_IN_STRUCT',
+      message:
+          "Fields in struct classes must have an explicitly declared type of "
+          "'int', 'double' or 'Pointer'.",
+      correction: "Try using 'int', 'double' or 'Pointer'.");
+
+  /**
+   * Parameters:
    * 0: the name of the subclass
    */
   static const FfiCode MISSING_TYPE_ARGUMENT_FOR_STRUCT = const FfiCode(

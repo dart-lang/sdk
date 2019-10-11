@@ -242,18 +242,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
     TypeAnnotation fieldType = fields.type;
-    DartType declaredType = fieldType?.type;
-    if (declaredType == null) {
-      _validateAnnotations(fieldType, annotations, _RequiredTypes.any);
-    } else if (declaredType.isDartCoreInt) {
-      _validateAnnotations(fieldType, annotations, _RequiredTypes.int);
-    } else if (declaredType.isDartCoreDouble) {
-      _validateAnnotations(fieldType, annotations, _RequiredTypes.double);
-    } else if (_isPointer(declaredType.element)) {
-      _validateNoAnnotations(annotations);
+    if (fieldType == null) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.MISSING_FIELD_TYPE_IN_STRUCT, fields.variables[0].name);
     } else {
-      _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
-          fieldType, [fieldType.toSource()]);
+      DartType declaredType = fieldType.type;
+      if (declaredType.isDartCoreInt) {
+        _validateAnnotations(fieldType, annotations, _RequiredTypes.int);
+      } else if (declaredType.isDartCoreDouble) {
+        _validateAnnotations(fieldType, annotations, _RequiredTypes.double);
+      } else if (_isPointer(declaredType.element)) {
+        _validateNoAnnotations(annotations);
+      } else {
+        _errorReporter.reportErrorForNode(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
+            fieldType, [fieldType.toSource()]);
+      }
     }
     for (VariableDeclaration field in fields.variables) {
       if (field.initializer != null) {
