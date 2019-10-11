@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ class SubtypeOfFfiClassInExtendsTest extends DriverResolutionTest {
 import 'dart:ffi';
 class C extends Double {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
 
@@ -32,7 +32,7 @@ class C extends Double {}
 import 'dart:ffi';
 class C extends Float {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
 
@@ -41,7 +41,7 @@ class C extends Float {}
 import 'dart:ffi';
 class C extends Int16 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
 
@@ -50,7 +50,7 @@ class C extends Int16 {}
 import 'dart:ffi';
 class C extends Int32 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
 
@@ -59,7 +59,7 @@ class C extends Int32 {}
 import 'dart:ffi';
 class C extends Int64 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
 
@@ -68,7 +68,7 @@ class C extends Int64 {}
 import 'dart:ffi';
 class C extends Int8 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
     ]);
   }
 
@@ -77,7 +77,7 @@ class C extends Int8 {}
 import 'dart:ffi';
 class C extends Pointer {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 7),
     ]);
   }
 
@@ -93,7 +93,7 @@ class C extends Struct<C> {}
 import 'dart:ffi';
 class C extends Uint16 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
 
@@ -102,7 +102,7 @@ class C extends Uint16 {}
 import 'dart:ffi';
 class C extends Uint32 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
 
@@ -111,7 +111,7 @@ class C extends Uint32 {}
 import 'dart:ffi';
 class C extends Uint64 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 6),
     ]);
   }
 
@@ -120,7 +120,7 @@ class C extends Uint64 {}
 import 'dart:ffi';
 class C extends Uint8 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 5),
     ]);
   }
 
@@ -129,7 +129,7 @@ class C extends Uint8 {}
 import 'dart:ffi';
 class C extends Void {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 4),
     ]);
   }
 }
@@ -141,7 +141,7 @@ class SubtypeOfFfiClassInImplementsTest extends DriverResolutionTest {
 import 'dart:ffi';
 class C implements Double {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
 
@@ -150,7 +150,7 @@ class C implements Double {}
 import 'dart:ffi';
 class C implements Float {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
 
@@ -159,7 +159,7 @@ class C implements Float {}
 import 'dart:ffi';
 class C implements Int16 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
 
@@ -168,7 +168,7 @@ class C implements Int16 {}
 import 'dart:ffi';
 class C implements Int32 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
 
@@ -177,7 +177,7 @@ class C implements Int32 {}
 import 'dart:ffi';
 class C implements Int64 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
 
@@ -186,7 +186,7 @@ class C implements Int64 {}
 import 'dart:ffi';
 class C implements Int8 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
     ]);
   }
 
@@ -195,7 +195,7 @@ class C implements Int8 {}
 import 'dart:ffi';
 class C implements Pointer {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 7),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 7),
     ]);
   }
 
@@ -204,7 +204,7 @@ class C implements Pointer {}
 import 'dart:ffi';
 class C implements Struct<C> {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 9),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 9),
     ]);
   }
 
@@ -213,7 +213,7 @@ class C implements Struct<C> {}
 import 'dart:ffi';
 class C implements Uint16 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
 
@@ -222,7 +222,7 @@ class C implements Uint16 {}
 import 'dart:ffi';
 class C implements Uint32 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
 
@@ -231,7 +231,7 @@ class C implements Uint32 {}
 import 'dart:ffi';
 class C implements Uint64 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
 
@@ -240,7 +240,7 @@ class C implements Uint64 {}
 import 'dart:ffi';
 class C implements Uint8 {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 5),
     ]);
   }
 
@@ -249,7 +249,7 @@ class C implements Uint8 {}
 import 'dart:ffi';
 class C implements Void {}
 ''', [
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 4),
     ]);
   }
 }
@@ -263,7 +263,7 @@ class C with Double {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
     ]);
   }
 
@@ -274,7 +274,7 @@ class C with Float {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);
   }
 
@@ -285,7 +285,7 @@ class C with Int16 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);
   }
 
@@ -296,7 +296,7 @@ class C with Int32 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);
   }
 
@@ -307,7 +307,7 @@ class C with Int64 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);
   }
 
@@ -318,7 +318,7 @@ class C with Int8 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 4),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 4),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 4),
     ]);
   }
 
@@ -328,7 +328,7 @@ import 'dart:ffi';
 class C with Pointer {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 7),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 7),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 7),
     ]);
   }
 
@@ -338,7 +338,7 @@ import 'dart:ffi';
 class C with Struct<C> {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 9),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 9),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 9),
     ]);
   }
 
@@ -349,7 +349,7 @@ class C with Uint16 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
     ]);
   }
 
@@ -360,7 +360,7 @@ class C with Uint32 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
     ]);
   }
 
@@ -371,7 +371,7 @@ class C with Uint64 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 6),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
     ]);
   }
 
@@ -382,7 +382,7 @@ class C with Uint8 {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 32, 5),
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 5),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 5),
     ]);
   }
 
@@ -392,7 +392,7 @@ import 'dart:ffi';
 class C with Void {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 4),
-      error(HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 4),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 4),
     ]);
   }
 }

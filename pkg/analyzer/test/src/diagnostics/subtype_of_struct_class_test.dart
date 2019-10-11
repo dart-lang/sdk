@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +24,7 @@ import 'dart:ffi';
 class S extends Struct<S> {}
 class C extends S {}
 ''', [
-      error(HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 64, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 64, 1),
     ]);
   }
 }
@@ -37,7 +37,7 @@ import 'dart:ffi';
 class S extends Struct<S> {}
 class C implements S {}
 ''', [
-      error(HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 67, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 67, 1),
     ]);
   }
 }
@@ -51,7 +51,7 @@ class S extends Struct<S> {}
 class C with S {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 61, 1),
-      error(HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 61, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 61, 1),
     ]);
   }
 }

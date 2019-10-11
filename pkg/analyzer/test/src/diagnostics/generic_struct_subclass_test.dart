@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -20,7 +20,7 @@ class GenericStructSubclassTest extends DriverResolutionTest {
 import 'dart:ffi';
 class S<T> extends Struct<S> {}
 ''', [
-      error(HintCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
+      error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
     ]);
   }
 

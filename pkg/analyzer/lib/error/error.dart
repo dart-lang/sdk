@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/error/ffi_code.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -26,11 +27,12 @@ const List<ErrorCode> errorCodeValues = const [
   // following command from the root of the analyzer package:
   //
   // > cat
-  //       lib/src/analysis_options/error/option_codes.dart';
-  //       lib/src/dart/error/hint_codes.dart';
-  //       lib/src/dart/error/lint_codes.dart';
-  //       lib/src/dart/error/todo_codes.dart';
-  //       lib/src/html/error/html_codes.dart';
+  //       lib/src/analysis_options/error/option_codes.dart
+  //       lib/src/dart/error/ffi_code.dart
+  //       lib/src/dart/error/hint_codes.dart
+  //       lib/src/dart/error/lint_codes.dart
+  //       lib/src/dart/error/todo_codes.dart
+  //       lib/src/html/error/html_codes.dart
   //       lib/src/dart/error/syntactic_errors.dart
   //       lib/src/error/codes.dart
   //       ../front_end/lib/src/scanner/errors.dart |
@@ -319,7 +321,22 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
-  HintCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.ANNOTATION_ON_POINTER_FIELD,
+  FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
+  FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
+  FfiCode.FIELD_INITIALIZER_IN_STRUCT,
+  FfiCode.GENERIC_STRUCT_SUBCLASS,
+  FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
+  FfiCode.INVALID_TYPE_ARGUMENT_FOR_STRUCT,
+  FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD,
+  FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
+  FfiCode.MISSING_TYPE_ARGUMENT_FOR_STRUCT,
+  FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
+  FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
+  FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
+  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
+  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS,
+  FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
   HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
   HintCode.DEAD_CODE,
   HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -335,12 +352,8 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.DUPLICATE_IMPORT,
   HintCode.DUPLICATE_HIDDEN_NAME,
   HintCode.DUPLICATE_SHOWN_NAME,
-  HintCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
-  HintCode.FIELD_IN_STRUCT_WITH_INITIALIZER,
-  HintCode.FIELD_INITIALIZER_IN_STRUCT,
   HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
   HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-  HintCode.GENERIC_STRUCT_SUBCLASS,
   HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
   HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
   HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
@@ -350,7 +363,6 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_FACTORY_ANNOTATION,
   HintCode.INVALID_FACTORY_METHOD_DECL,
   HintCode.INVALID_FACTORY_METHOD_IMPL,
-  HintCode.INVALID_FIELD_TYPE_IN_STRUCT,
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
   HintCode.INVALID_LITERAL_ANNOTATION,
   HintCode.INVALID_REQUIRED_NAMED_PARAM,
@@ -359,7 +371,6 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_REQUIRED_PARAM,
   HintCode.INVALID_REQUIRED_POSITIONAL_PARAM,
   HintCode.INVALID_SEALED_ANNOTATION,
-  HintCode.INVALID_TYPE_ARGUMENT_FOR_STRUCT,
   HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
   HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
@@ -368,13 +379,10 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.IS_INT,
   HintCode.IS_NOT_DOUBLE,
   HintCode.IS_NOT_INT,
-  HintCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD,
-  HintCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
   HintCode.MISSING_JS_LIB_ANNOTATION,
   HintCode.MISSING_REQUIRED_PARAM,
   HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
   HintCode.MISSING_RETURN,
-  HintCode.MISSING_TYPE_ARGUMENT_FOR_STRUCT,
   HintCode.MIXIN_ON_SEALED_CLASS,
   HintCode.MUST_BE_IMMUTABLE,
   HintCode.MUST_CALL_SUPER,
@@ -401,13 +409,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.SDK_VERSION_UI_AS_CODE,
   HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   HintCode.STRICT_RAW_TYPE,
-  HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,
-  HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS,
-  HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH,
   HintCode.SUBTYPE_OF_SEALED_CLASS,
-  HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
-  HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS,
-  HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
   HintCode.TYPE_CHECK_IS_NOT_NULL,
   HintCode.TYPE_CHECK_IS_NULL,
   HintCode.UNDEFINED_HIDDEN_NAME,

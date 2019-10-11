@@ -11,15 +11,6 @@ import 'package:analyzer/src/error/analyzer_error_code.dart';
  */
 class HintCode extends AnalyzerErrorCode {
   /**
-   * No parameters.
-   */
-  static const HintCode ANNOTATION_ON_POINTER_FIELD = const HintCode(
-      'ANNOTATION_ON_POINTER_FIELD',
-      "Fields in a struct class whose type is 'Pointer' should not have any "
-          "annotations.",
-      correction: "Try removing the annotation.");
-
-  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */
@@ -208,31 +199,6 @@ class HintCode extends AnalyzerErrorCode {
               "members.");
 
   /**
-   * No parameters.
-   */
-  static const HintCode EXTRA_ANNOTATION_ON_STRUCT_FIELD = const HintCode(
-      'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
-      "Fields in a struct class must have exactly one annotation indicating "
-          "the native type.",
-      correction: "Try removing the extra annotation.");
-
-  /**
-   * No parameters.
-   */
-  static const HintCode FIELD_IN_STRUCT_WITH_INITIALIZER = const HintCode(
-      'FIELD_IN_STRUCT_WITH_INITIALIZER',
-      "Fields in subclasses of 'Struct' can't have initializers.",
-      correction: "Try removing the initializer.");
-
-  /**
-   * No parameters.
-   */
-  static const HintCode FIELD_INITIALIZER_IN_STRUCT = const HintCode(
-      'FIELD_INITIALIZER_IN_STRUCT',
-      "Constructors in subclasses of 'Struct' can't have field initializers.",
-      correction: "Try removing the field initializer.");
-
-  /**
    * It is a bad practice for a source file in a package "lib" directory
    * hierarchy to traverse outside that directory hierarchy. For example, a
    * source file in the "lib" directory should not contain a directive such as
@@ -260,15 +226,6 @@ class HintCode extends AnalyzerErrorCode {
           "A file outside the 'lib' directory shouldn't reference a file "
               "inside the 'lib' directory using a relative path.",
           correction: "Try using a package: URI instead.");
-
-  /**
-   * Parameters:
-   * 0: the name of the struct class
-   */
-  static const HintCode GENERIC_STRUCT_SUBCLASS = const HintCode(
-      'GENERIC_STRUCT_SUBCLASS',
-      "The class '{0}' can't extend 'Struct' because it is generic.",
-      correction: "Try removing the type parameters from '{0}'.");
 
   /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
@@ -359,16 +316,6 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_FACTORY_METHOD_IMPL = const HintCode(
       'INVALID_FACTORY_METHOD_IMPL',
       "Factory method '{0}' doesn't return a newly allocated object.");
-
-  /**
-   * Parameters:
-   * 0: the type of the field
-   */
-  static const HintCode INVALID_FIELD_TYPE_IN_STRUCT = const HintCode(
-      'INVALID_FIELD_TYPE_IN_STRUCT',
-      "Fields in struct classes can't have the type '{0}'. They can only be "
-          "declared as 'int', 'double' or 'Pointer'.",
-      correction: "Try using 'int', 'double' or 'Pointer'.");
 
   /**
    * This hint is generated anywhere an @immutable annotation is associated with
@@ -482,15 +429,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Remove @sealed.");
 
   /**
-   * Parameters:
-   * 0: the name of the subclass
-   */
-  static const HintCode INVALID_TYPE_ARGUMENT_FOR_STRUCT = const HintCode(
-      'INVALID_TYPE_ARGUMENT_FOR_STRUCT',
-      "The type argument to 'Struct' must be the subclass ('{0}').",
-      correction: "Try using '{0}' for the type argument.");
-
-  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside an instance member of a subclass.
    *
@@ -577,24 +515,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try testing for 'num' instead.");
 
   /**
-   * No parameters.
-   */
-  static const HintCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = const HintCode(
-      'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
-      "The annotation does not match the declared type of the field.",
-      correction: "Try using a different annotation or changing the declared "
-          "type to match.");
-
-  /**
-   * No parameters.
-   */
-  static const HintCode MISSING_ANNOTATION_ON_STRUCT_FIELD = const HintCode(
-      'MISSING_ANNOTATION_ON_STRUCT_FIELD',
-      "Fields in a struct class must either have the type 'Pointer' or an "
-          "annotation indicating the native type.",
-      correction: "Try adding an annotation.");
-
-  /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
    * library declaration is not similarly annotated.
    */
@@ -659,16 +579,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try adding a return statement, "
           "or changing the return type to 'void'.",
       hasPublishedDocs: true);
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   */
-  static const HintCode MISSING_TYPE_ARGUMENT_FOR_STRUCT = const HintCode(
-      'MISSING_TYPE_ARGUMENT_FOR_STRUCT',
-      "The type 'Struct' must have a type argument matching the subclass "
-          "('{0}').",
-      correction: "Try adding a type argument of '{0}'.");
 
   /**
    * This hint is generated anywhere where a `@sealed` class is used as a
@@ -1459,42 +1369,6 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Use explicit type arguments for '{0}'.");
 
   /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_FFI_CLASS_IN_EXTENDS =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_FFI_CLASS',
-          'HintCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS',
-          "The class '{0}' can't extend '{1}'.",
-          correction: "Try extending 'Struct'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_FFI_CLASS',
-          'HintCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
-          "The class '{0}' can't implement '{1}'.",
-          correction: "Try extending 'Struct'.");
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_FFI_CLASS_IN_WITH =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_FFI_CLASS',
-          'HintCode.SUBTYPE_OF_FFI_CLASS_IN_WITH',
-          "The class '{0}' can't mix in '{1}'.",
-          correction: "Try extending 'Struct'.");
-
-  /**
    * This hint is generated anywhere where a `@sealed` class or mixin is used as
    * a super-type of a class.
    */
@@ -1505,45 +1379,6 @@ class HintCode extends AnalyzerErrorCode {
       correction:
           "Try composing instead of inheriting, or refer to its documentation "
           "for more information.");
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_STRUCT_CLASS',
-          'HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
-          "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
-              "'Struct'.",
-          correction: "Try extending 'Struct' directly.");
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_STRUCT_CLASS',
-          'HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
-          "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
-              "'Struct'.",
-          correction: "Try extending 'Struct' directly.");
-
-  /**
-   * Parameters:
-   * 0: the name of the subclass
-   * 1: the name of the class being extended, implemented, or mixed in
-   */
-  static const HintCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH =
-      const HintCodeWithUniqueName(
-          'SUBTYPE_OF_STRUCT_CLASS',
-          'HintCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
-          "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
-              "'Struct'.",
-          correction: "Try extending 'Struct' directly.");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
