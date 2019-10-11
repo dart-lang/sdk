@@ -119,12 +119,12 @@ FlowGraphCompiler::FlowGraphCompiler(
       parsed_function_(parsed_function),
       flow_graph_(*flow_graph),
       block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
-      current_block_(NULL),
-      exception_handlers_list_(NULL),
-      pc_descriptors_list_(NULL),
-      stackmap_table_builder_(NULL),
-      code_source_map_builder_(NULL),
-      catch_entry_moves_maps_builder_(NULL),
+      current_block_(nullptr),
+      exception_handlers_list_(nullptr),
+      pc_descriptors_list_(nullptr),
+      compressed_stackmaps_builder_(nullptr),
+      code_source_map_builder_(nullptr),
+      catch_entry_moves_maps_builder_(nullptr),
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
@@ -932,11 +932,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       bitmap->Set(bitmap->Length(), true);
     }
 
-    // The slow path area Outside the spill area contains are live registers
-    // and pushed arguments for calls inside the slow path.
-    intptr_t slow_path_bit_count = bitmap->Length() - spill_area_size;
-    stackmap_table_builder()->AddEntry(assembler()->CodeSize(), bitmap,
-                                       slow_path_bit_count);
+    compressed_stackmaps_builder()->AddEntry(assembler()->CodeSize(), bitmap,
+                                             spill_area_size);
   }
 }
 
@@ -1106,12 +1103,14 @@ RawArray* FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 }
 
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
-  if (stackmap_table_builder_ == NULL) {
-    code.set_stackmaps(Object::null_array());
+  if (compressed_stackmaps_builder_ == NULL) {
+    code.set_compressed_stackmaps(
+        CompressedStackMaps::Handle(CompressedStackMaps::null()));
   } else {
-    // Finalize the stack map array and add it to the code object.
-    code.set_stackmaps(
-        Array::Handle(stackmap_table_builder_->FinalizeStackMaps(code)));
+    // Finalize the compressed stack maps and add it to the code object.
+    const auto& maps =
+        CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
+    code.set_compressed_stackmaps(maps);
   }
 }
 

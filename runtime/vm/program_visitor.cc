@@ -201,42 +201,39 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
   }
 }
 
-class StackMapKeyValueTrait {
+class CompressedStackMapsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const StackMap* Key;
-  typedef const StackMap* Value;
-  typedef const StackMap* Pair;
+  typedef const CompressedStackMaps* Key;
+  typedef const CompressedStackMaps* Value;
+  typedef const CompressedStackMaps* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    intptr_t hash = key->SlowPathBitCount();
-    hash = CombineHashes(hash, key->Length());
-    return FinalizeHash(hash, kBitsPerWord - 1);
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
   }
 };
 
-typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
+typedef DirectChainedHashMap<CompressedStackMapsKeyValueTrait>
+    CompressedStackMapsSet;
 
-void ProgramVisitor::DedupStackMaps() {
-  class DedupStackMapsVisitor : public FunctionVisitor {
+void ProgramVisitor::DedupCompressedStackMaps() {
+  class DedupCompressedStackMapsVisitor : public FunctionVisitor {
    public:
-    explicit DedupStackMapsVisitor(Zone* zone)
+    explicit DedupCompressedStackMapsVisitor(Zone* zone)
         : zone_(zone),
-          canonical_stackmaps_(),
+          canonical_compressed_stackmaps_set_(),
           code_(Code::Handle(zone)),
-          stackmaps_(Array::Handle(zone)),
-          stackmap_(StackMap::Handle(zone)) {}
+          compressed_stackmaps_(CompressedStackMaps::Handle(zone)) {}
 
-    void AddStackMap(const StackMap& stackmap) {
-      canonical_stackmaps_.Insert(&StackMap::ZoneHandle(zone_, stackmap.raw()));
+    void AddCompressedStackMaps(const CompressedStackMaps& maps) {
+      canonical_compressed_stackmaps_set_.Insert(
+          &CompressedStackMaps::ZoneHandle(zone_, maps.raw()));
     }
 
     void Visit(const Function& function) {
@@ -244,43 +241,40 @@ void ProgramVisitor::DedupStackMaps() {
         return;
       }
       code_ = function.CurrentCode();
-      stackmaps_ = code_.stackmaps();
-      if (stackmaps_.IsNull()) return;
-      for (intptr_t i = 1; i < stackmaps_.Length(); i += 2) {
-        stackmap_ ^= stackmaps_.At(i);
-        stackmap_ = DedupStackMap(stackmap_);
-        stackmaps_.SetAt(i, stackmap_);
-      }
+      compressed_stackmaps_ = code_.compressed_stackmaps();
+      if (compressed_stackmaps_.IsNull()) return;
+      compressed_stackmaps_ = DedupCompressedStackMaps(compressed_stackmaps_);
+      code_.set_compressed_stackmaps(compressed_stackmaps_);
     }
 
-    RawStackMap* DedupStackMap(const StackMap& stackmap) {
-      const StackMap* canonical_stackmap =
-          canonical_stackmaps_.LookupValue(&stackmap);
-      if (canonical_stackmap == NULL) {
-        AddStackMap(stackmap);
-        return stackmap.raw();
+    RawCompressedStackMaps* DedupCompressedStackMaps(
+        const CompressedStackMaps& maps) {
+      auto const canonical_maps =
+          canonical_compressed_stackmaps_set_.LookupValue(&maps);
+      if (canonical_maps == nullptr) {
+        AddCompressedStackMaps(maps);
+        return maps.raw();
       } else {
-        return canonical_stackmap->raw();
+        return canonical_maps->raw();
       }
     }
 
    private:
     Zone* zone_;
-    StackMapSet canonical_stackmaps_;
+    CompressedStackMapsSet canonical_compressed_stackmaps_set_;
     Code& code_;
-    Array& stackmaps_;
-    StackMap& stackmap_;
+    CompressedStackMaps& compressed_stackmaps_;
   };
 
-  DedupStackMapsVisitor visitor(Thread::Current()->zone());
+  DedupCompressedStackMapsVisitor visitor(Thread::Current()->zone());
   if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
     // Prefer existing objects in the VM isolate.
     const Array& object_table = Object::vm_isolate_snapshot_object_table();
     Object& object = Object::Handle();
     for (intptr_t i = 0; i < object_table.Length(); i++) {
       object = object_table.At(i);
-      if (object.IsStackMap()) {
-        visitor.AddStackMap(StackMap::Cast(object));
+      if (object.IsCompressedStackMaps()) {
+        visitor.AddCompressedStackMaps(CompressedStackMaps::Cast(object));
       }
     }
   }
@@ -620,11 +614,6 @@ void ProgramVisitor::DedupLists() {
     void Visit(const Function& function) {
       code_ = function.CurrentCode();
       if (!code_.IsNull()) {
-        list_ = code_.stackmaps();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_stackmaps(list_);
-        }
         list_ = code_.inlined_id_to_function();
         if (!list_.IsNull()) {
           list_ = DedupList(list_);
@@ -768,7 +757,7 @@ class CodeKeyValueTrait {
     if (pair->pc_descriptors() != key->pc_descriptors()) {
       return false;
     }
-    if (pair->stackmaps() != key->stackmaps()) {
+    if (pair->compressed_stackmaps() != key->compressed_stackmaps()) {
       return false;
     }
     if (pair->catch_entry_moves_maps() != key->catch_entry_moves_maps()) {
@@ -906,7 +895,7 @@ void ProgramVisitor::Dedup() {
 
   BindStaticCalls();
   ShareMegamorphicBuckets();
-  DedupStackMaps();
+  DedupCompressedStackMaps();
   DedupPcDescriptors();
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
 #if defined(DART_PRECOMPILER)
