@@ -2081,8 +2081,9 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
                                              fallback_call);
     AppendInstruction(AppendInstruction(cursor, fallback_call),
                       fallback_return);
+    fallback_call->RepairPushArgsInEnvironment();
     exit_collector_->AddExit(fallback_return);
-    cursor = NULL;
+    cursor = nullptr;
   } else {
     // Remove push arguments of the call.
     for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {

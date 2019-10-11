@@ -1401,10 +1401,23 @@ void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
   }
 }
 
+// TODO(@sstrickl): find a better way, store stack index?
+static intptr_t CountArgs(Environment* env) {
+  if (env != nullptr) {
+    intptr_t arg_count = CountArgs(env->outer());
+    for (intptr_t i = 0, n = env->Length(); i < n; ++i) {
+      if (env->ValueAt(i)->definition()->IsPushArgument()) {
+        arg_count++;
+      }
+    }
+    return arg_count;
+  }
+  return 0;
+}
+
 SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
   auto sexp = new (s->zone()) SExpList(s->zone());
-  intptr_t arg_count = 0;
-
+  intptr_t arg_count = CountArgs(outer_);
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (values_[i]->definition()->IsPushArgument()) {
       s->AddSymbol(sexp, OS::SCreate(s->zone(), "a%" Pd "", arg_count++));

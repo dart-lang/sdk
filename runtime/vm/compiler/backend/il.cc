@@ -1454,6 +1454,15 @@ void Instruction::UnuseAllInputs() {
   }
 }
 
+void Instruction::RepairPushArgsInEnvironment() const {
+  const intptr_t arg_count = ArgumentCount();
+  ASSERT(arg_count <= env()->Length());
+  const intptr_t env_base = env()->Length() - arg_count;
+  for (intptr_t i = 0; i < arg_count; ++i) {
+    env()->ValueAt(env_base + i)->BindToEnvironment(PushArgumentAt(i));
+  }
+}
+
 void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {

@@ -805,6 +805,9 @@ class Instruction : public ZoneAllocated {
   }
   inline Definition* ArgumentAt(intptr_t index) const;
 
+  // Repairs trailing PushArgs in environment.
+  void RepairPushArgsInEnvironment() const;
+
   // Returns true, if this instruction can deoptimize with its current inputs.
   // This property can change if we add or remove redefinitions that constrain
   // the type or the range of input operands during compilation.
