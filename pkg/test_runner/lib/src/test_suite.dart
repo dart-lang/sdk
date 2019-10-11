@@ -879,7 +879,7 @@ class StandardTestSuite extends TestSuite {
     var htmlPathSubtest = _createUrlPathFromFile(Path(htmlPath));
     var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
-    commands.add(Command.browserTest(fullHtmlPath, configuration,
+    commands.add(BrowserTestCommand(fullHtmlPath, configuration,
         retry: !isNegative(testFile)));
 
     var fullName = testName;
@@ -970,7 +970,7 @@ class PackageTestSuite extends StandardTestSuite {
       super._enqueueBrowserTest(testFile, expectations, onTest);
     } else {
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-      var command = Command.browserTest(fullPath, configuration,
+      var command = BrowserTestCommand(fullPath, configuration,
           retry: !isNegative(testFile));
       _addTestCase(testFile, testFile.name, [command],
           expectations[testFile.name], onTest);

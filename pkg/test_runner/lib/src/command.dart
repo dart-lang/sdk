@@ -14,11 +14,6 @@ import 'utils.dart';
 
 /// A command executed as a step in a test case.
 abstract class Command {
-  static Command browserTest(String url, TestConfiguration configuration,
-      {bool retry}) {
-    return BrowserTestCommand._(url, configuration, retry);
-  }
-
   /// A descriptive name for this command.
   final String displayName;
 
@@ -395,12 +390,11 @@ class BrowserTestCommand extends Command {
   final TestConfiguration configuration;
   final bool retry;
 
-  BrowserTestCommand._(this.url, this.configuration, this.retry,
-      {int index = 0})
+  BrowserTestCommand(this.url, this.configuration, {this.retry, int index = 0})
       : super._(configuration.runtime.name, index: index);
 
   BrowserTestCommand indexedCopy(int index) =>
-      BrowserTestCommand._(url, configuration, retry, index: index);
+      BrowserTestCommand(url, configuration, retry: retry, index: index);
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);

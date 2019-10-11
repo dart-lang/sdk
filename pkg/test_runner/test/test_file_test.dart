@@ -24,6 +24,7 @@ void main() {
   testParseOtherOptions();
   testParseEnvironment();
   testParsePackages();
+  testParseExperiments();
   testParseMultitest();
   testParseMultiHtmltest();
   testParseErrorFlags();
@@ -198,6 +199,38 @@ void testParsePackages() {
   expectParseThrows("""
   /\/ Packages=first
   /\/ Packages=second
+  """);
+}
+
+void testParseExperiments() {
+  // No option.
+  var file = parseTestFile("");
+  Expect.isTrue(file.experiments.isEmpty);
+
+  // Single non-experiment option.
+  file = parseTestFile("""
+  /\/ SharedOptions=not-experiment
+  """);
+  Expect.isTrue(file.experiments.isEmpty);
+  Expect.listEquals(["not-experiment"], file.sharedOptions);
+
+  // Experiments.
+  file = parseTestFile("""
+  /\/ SharedOptions=--enable-experiment=flubber,gloop
+  """);
+  Expect.listEquals(["flubber", "gloop"], file.experiments);
+  Expect.isTrue(file.sharedOptions.isEmpty);
+
+  // Experiment option mixed with other options.
+  file = parseTestFile("""
+  /\/ SharedOptions=-a --enable-experiment=flubber --other
+  """);
+  Expect.listEquals(["flubber"], file.experiments);
+  Expect.listEquals(["-a", "--other"], file.sharedOptions);
+
+  // Poorly-formatted experiment option.
+  expectParseThrows("""
+  /\/ SharedOptions=stuff--enable-experiment=flubber,gloop
   """);
 }
 
