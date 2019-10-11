@@ -298,6 +298,31 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
   }
+
+  void test_parse_member_called_late() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { void late() { new C().late(); } }',
+        featureSet: nonNullable);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, 'late');
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+
+    BlockFunctionBody body = method.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.operator.lexeme, '.');
+    expect(invocation.toSource(), 'new C().late()');
+  }
 }
 
 /**
@@ -1613,6 +1638,25 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
               sdkVersion: '2.3.0',
               additionalFeatures: [Feature.extension_methods],
             ));
+  }
+
+  void test_parse_toplevel_member_called_late_calling_self() {
+    CompilationUnitImpl unit = parseCompilationUnit('void late() { late(); }',
+        featureSet: nonNullable);
+    FunctionDeclaration method = unit.declarations[0];
+
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, 'late');
+    expect(method.functionExpression, isNotNull);
+
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.operator, isNull);
+    expect(invocation.toSource(), 'late()');
   }
 
   void test_complex_extends() {

@@ -95,6 +95,7 @@ class Foo {
       Keyword.IMPLEMENTS,
       Keyword.IMPORT,
       Keyword.INTERFACE,
+      Keyword.LATE,
       Keyword.LIBRARY,
       Keyword.MIXIN,
       Keyword.OPERATOR,

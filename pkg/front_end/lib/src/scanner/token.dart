@@ -217,7 +217,8 @@ class Keyword extends TokenType {
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
-  static const Keyword LATE = const Keyword("late", "LATE", isModifier: true);
+  static const Keyword LATE =
+      const Keyword("late", "LATE", isModifier: true, isBuiltIn: true);
 
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);

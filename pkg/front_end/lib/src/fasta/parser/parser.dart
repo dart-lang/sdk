@@ -3947,13 +3947,6 @@ class Parser {
             varOrFinal, token, null, varOrFinal, null, false);
       }
       return parseExpressionStatementOrDeclaration(token);
-    } else if (identical(value, 'late')) {
-      Token lateToken = token.next;
-      if (!isModifier(lateToken.next)) {
-        return parseExpressionStatementOrDeclarationAfterModifiers(
-            lateToken, token, lateToken, null, null, false);
-      }
-      return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next.next)) {
