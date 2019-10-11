@@ -210,6 +210,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
+  Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
   TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
@@ -589,6 +590,14 @@ char* Dart::Cleanup() {
   Object::Cleanup();
   SemiSpace::Cleanup();
   StubCode::Cleanup();
+#if defined(SUPPORT_TIMELINE)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
+                 UptimeMillis());
+  }
+  Timeline::Cleanup();
+#endif
+  Zone::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -605,13 +614,6 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   NOT_IN_PRODUCT(CodeObservers::Cleanup());
-#if defined(SUPPORT_TIMELINE)
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
-                 UptimeMillis());
-  }
-  Timeline::Cleanup();
-#endif
   OS::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());

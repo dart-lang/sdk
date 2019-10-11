@@ -85,6 +85,9 @@ class Zone {
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kDoubleSize;
 
+  static void Init();
+  static void Cleanup();
+
  private:
   Zone();
   ~Zone();  // Delete all memory associated with the zone.
