@@ -16,10 +16,27 @@ import 'package:front_end/src/scanner/token.dart';
 
 class ParserTestListener implements Listener {
   int indent = 0;
-  StringBuffer sb = new StringBuffer();
+  final StringBuffer sb = new StringBuffer();
+  final bool trace;
+
+  ParserTestListener(this.trace);
+
+  String createTrace() {
+    List<String> traceLines = StackTrace.current.toString().split("\n");
+    for (int i = 0; i < traceLines.length; i++) {
+      // Find first one that's not any of the blacklisted ones.
+      String line = traceLines[i];
+      if (line.contains("parser_test_listener.dart:") ||
+          line.contains("parser_test.dart:")) continue;
+      return line.substring(line.indexOf("(") + 1, line.lastIndexOf(")"));
+    }
+    return "N/A";
+  }
 
   void doPrint(String s) {
-    sb.writeln(("  " * indent) + s);
+    String traceString = "";
+    if (trace) traceString = " (${createTrace()})";
+    sb.writeln(("  " * indent) + s + traceString);
   }
 
   Uri get uri => null;
