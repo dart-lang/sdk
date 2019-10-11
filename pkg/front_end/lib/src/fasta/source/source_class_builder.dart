@@ -89,7 +89,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       List<TypeBuilder> interfaces,
       List<TypeBuilder> onTypes,
       Scope scope,
-      Scope constructors,
+      ConstructorScope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,

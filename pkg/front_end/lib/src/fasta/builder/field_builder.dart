@@ -26,6 +26,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/kernel_builder.dart' show ImplicitFieldType;
 
+import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
+
 import '../problems.dart' show internalProblem;
 
 import '../scanner.dart' show Token;
@@ -52,19 +54,54 @@ import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'type_builder.dart';
 
-class FieldBuilder extends MemberBuilderImpl {
+abstract class FieldBuilder implements MemberBuilder {
+  Field get field;
+
+  List<MetadataBuilder> get metadata;
+
+  TypeBuilder get type;
+
+  Token get constInitializerToken;
+
+  bool hadTypesInferred;
+
+  bool get isCovariant;
+
+  bool get isLate;
+
+  bool get hasInitializer;
+
+  void set initializer(Expression value);
+
+  bool get isEligibleForInference;
+
+  Field build(SourceLibraryBuilder libraryBuilder);
+
+  DartType get builtType;
+}
+
+class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
+  @override
   final String name;
 
+  @override
   final int modifiers;
 
+  @override
   final Field field;
+
+  @override
   final List<MetadataBuilder> metadata;
+
+  @override
   final TypeBuilder type;
+
+  @override
   Token constInitializerToken;
 
   bool hadTypesInferred = false;
 
-  FieldBuilder(this.metadata, this.type, this.name, this.modifiers,
+  FieldBuilderImpl(this.metadata, this.type, this.name, this.modifiers,
       Builder compilationUnit, int charOffset, int charEndOffset)
       : field = new Field(null, fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
@@ -76,6 +113,15 @@ class FieldBuilder extends MemberBuilderImpl {
   String get debugName => "FieldBuilder";
 
   bool get isField => true;
+
+  @override
+  bool get isLate => (modifiers & lateMask) != 0;
+
+  @override
+  bool get isCovariant => (modifiers & covariantMask) != 0;
+
+  @override
+  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
@@ -183,9 +229,9 @@ class FieldBuilder extends MemberBuilderImpl {
       return;
     }
     ImplicitFieldType type = field.type;
-    if (type.member != this) {
+    if (type.memberBuilder != this) {
       // The implicit type was inherited.
-      FieldBuilder other = type.member;
+      FieldBuilder other = type.memberBuilder;
       other.inferCopiedType(field);
       return;
     }

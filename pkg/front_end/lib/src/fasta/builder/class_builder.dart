@@ -102,6 +102,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/types.dart' show Types;
 
+import '../modifier.dart';
+
 import '../names.dart' show noSuchMethodName;
 
 import '../problems.dart'
@@ -122,6 +124,7 @@ import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'procedure_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -141,15 +144,25 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder> onTypes;
 
-  Scope get constructors;
+  ConstructorScope get constructors;
 
-  ScopeBuilder get constructorScopeBuilder;
+  ConstructorScopeBuilder get constructorScopeBuilder;
 
   Map<String, ConstructorRedirection> redirectingConstructors;
 
   ClassBuilder actualOrigin;
 
   ClassBuilder patchForTesting;
+
+  bool get isAbstract;
+
+  bool get hasConstConstructor;
+
+  bool get isMixin;
+
+  bool get isMixinApplication;
+
+  bool get isAnonymousMixinApplication;
 
   TypeBuilder get mixedInType;
 
@@ -163,7 +176,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// this redirection gives rise to a cycle that has not been reported before.
   bool checkConstructorCyclic(String source, String target);
 
-  Builder findConstructorOrFactory(
+  MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void forEach(void f(String name, Builder builder));
@@ -348,10 +361,10 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<TypeBuilder> onTypes;
 
   @override
-  final Scope constructors;
+  final ConstructorScope constructors;
 
   @override
-  final ScopeBuilder constructorScopeBuilder;
+  final ConstructorScopeBuilder constructorScopeBuilder;
 
   @override
   Map<String, ConstructorRedirection> redirectingConstructors;
@@ -374,19 +387,31 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       this.constructors,
       LibraryBuilder parent,
       int charOffset)
-      : constructorScopeBuilder = new ScopeBuilder(constructors),
+      : constructorScopeBuilder = new ConstructorScopeBuilder(constructors),
         super(metadata, modifiers, name, parent, charOffset, scope);
 
   @override
   String get debugName => "ClassBuilder";
 
   @override
+  bool get isAbstract => (modifiers & abstractMask) != 0;
+
+  bool get isMixin => (modifiers & mixinDeclarationMask) != 0;
+
+  @override
   bool get isMixinApplication => mixedInType != null;
 
   @override
   bool get isNamedMixinApplication {
-    return isMixinApplication && super.isNamedMixinApplication;
+    return isMixinApplication && (modifiers & namedMixinApplicationMask) != 0;
   }
+
+  @override
+  bool get isAnonymousMixinApplication {
+    return isMixinApplication && !isNamedMixinApplication;
+  }
+
+  bool get hasConstConstructor => (modifiers & hasConstConstructorMask) != 0;
 
   @override
   List<ConstructorReferenceBuilder> get constructorReferences => null;
@@ -527,12 +552,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  Builder findConstructorOrFactory(
+  MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
       return null;
     }
-    Builder declaration = constructors.lookup(name, charOffset, uri);
+    MemberBuilder declaration = constructors.lookup(name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);

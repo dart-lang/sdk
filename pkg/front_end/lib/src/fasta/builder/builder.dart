@@ -195,12 +195,6 @@ abstract class Builder {
 
   bool get isTypeVariable;
 
-  bool get isMixinApplication;
-
-  bool get isNamedMixinApplication;
-
-  bool get isAnonymousMixinApplication;
-
   /// Applies [patch] to this declaration.
   void applyPatch(Builder patch);
 
@@ -295,17 +289,6 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isTypeVariable => false;
-
-  @override
-  bool get isMixinApplication => false;
-
-  @override
-  bool get isNamedMixinApplication => false;
-
-  @override
-  bool get isAnonymousMixinApplication {
-    return isMixinApplication && !isNamedMixinApplication;
-  }
 
   @override
   void applyPatch(Builder patch) {

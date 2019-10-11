@@ -42,10 +42,10 @@ import '../builder/class_builder.dart';
 import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 
@@ -332,8 +332,8 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilder(null, 0, null, "debugExpr",
-        null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new ProcedureBuilderImpl(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,

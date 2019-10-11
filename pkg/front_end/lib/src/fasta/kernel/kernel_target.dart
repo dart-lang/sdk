@@ -48,11 +48,11 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 
@@ -463,7 +463,7 @@ class KernelTarget extends TargetImplementation {
       unhandled("${type.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
-    if (supertype.isMixinApplication && supertype is SourceClassBuilder) {
+    if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
     if (supertype is ClassBuilder) {

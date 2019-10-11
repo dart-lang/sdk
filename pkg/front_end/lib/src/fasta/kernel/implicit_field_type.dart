@@ -14,28 +14,32 @@ import '../builder/member_builder.dart';
 import '../problems.dart' show unsupported;
 
 class ImplicitFieldType extends DartType {
-  final MemberBuilder member;
+  final MemberBuilder memberBuilder;
   Token initializerToken;
   bool isStarted = false;
 
-  ImplicitFieldType(this.member, this.initializerToken);
+  ImplicitFieldType(this.memberBuilder, this.initializerToken);
 
-  Nullability get nullability =>
-      unsupported("nullability", member.charOffset, member.fileUri);
+  Nullability get nullability => unsupported(
+      "nullability", memberBuilder.charOffset, memberBuilder.fileUri);
 
   R accept<R>(DartTypeVisitor<R> v) {
-    throw unsupported("accept", member.charOffset, member.fileUri);
+    throw unsupported(
+        "accept", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 
   R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) {
-    throw unsupported("accept1", member.charOffset, member.fileUri);
+    throw unsupported(
+        "accept1", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 
   visitChildren(Visitor<Object> v) {
-    unsupported("visitChildren", member.charOffset, member.fileUri);
+    unsupported(
+        "visitChildren", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 
   ImplicitFieldType withNullability(Nullability nullability) {
-    return unsupported("withNullability", member.charOffset, member.fileUri);
+    return unsupported(
+        "withNullability", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 }

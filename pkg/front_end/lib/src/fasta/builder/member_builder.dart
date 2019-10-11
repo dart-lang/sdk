@@ -20,8 +20,6 @@ import 'modifier_builder.dart';
 import '../kernel/class_hierarchy_builder.dart';
 
 abstract class MemberBuilder implements ModifierBuilder, ClassMember {
-  bool get isRedirectingGenerativeConstructor;
-
   void set parent(Builder value);
 
   LibraryBuilder get library;
@@ -85,7 +83,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isNative => false;
 
-  @override
   bool get isRedirectingGenerativeConstructor => false;
 
   @override

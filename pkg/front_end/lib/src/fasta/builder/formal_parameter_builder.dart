@@ -16,7 +16,7 @@ import '../parser/formal_parameter_kind.dart'
 
 import '../constant_context.dart' show ConstantContext;
 
-import '../modifier.dart' show finalMask, initializingFormalMask, requiredMask;
+import '../modifier.dart';
 
 import '../scanner.dart' show Token;
 
@@ -32,8 +32,8 @@ import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
 import 'builder.dart';
 import 'class_builder.dart';
+import 'constructor_builder.dart';
 import 'field_builder.dart';
-import 'function_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -75,6 +75,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
   // named parameters.
   bool get isRequired => isMandatoryFormalParameterKind(kind);
 
+  // TODO(johnniwinther): Rename to `isRequired`.
   bool get isNamedRequired => (modifiers & requiredMask) != 0;
 
   bool get isPositional {
@@ -87,6 +88,10 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
   bool get isOptional => !isRequired;
 
   bool get isLocal => true;
+
+  bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
+
+  bool get isCovariant => (modifiers & covariantMask) != 0;
 
   @override
   String get fullNameForErrors => name;

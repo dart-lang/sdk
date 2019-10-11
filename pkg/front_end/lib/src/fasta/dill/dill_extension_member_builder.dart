@@ -25,7 +25,6 @@ class DillExtensionMemberBuilder extends DillMemberBuilder {
   @override
   bool get isStatic => _descriptor.isStatic;
 
-  @override
   bool get isExternal => member.isExternal;
 
   @override

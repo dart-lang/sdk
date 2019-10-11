@@ -32,12 +32,13 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
@@ -1185,7 +1186,7 @@ class ClassHierarchyNodeBuilder {
 
     Scope scope = classBuilder.scope;
     if (classBuilder.isMixinApplication) {
-      Builder mixin = classBuilder.mixedInType.declaration;
+      TypeDeclarationBuilder mixin = classBuilder.mixedInType.declaration;
       inferMixinApplication();
       // recordSupertype(cls.mixedInType);
       while (mixin.isNamedMixinApplication) {

@@ -50,14 +50,15 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
 import 'class_builder.dart';
+import 'constructor_builder.dart';
 import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
-import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
+import 'procedure_builder.dart';
 import 'type_builder.dart';
 
 class EnumBuilder extends SourceClassBuilder {
@@ -75,7 +76,7 @@ class EnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder> metadata,
       String name,
       Scope scope,
-      Scope constructors,
+      ConstructorScope constructors,
       Class cls,
       this.enumConstantInfos,
       this.intType,
@@ -127,11 +128,11 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
 
-    members["index"] = new FieldBuilder(null, intType, "index",
+    members["index"] = new FieldBuilderImpl(null, intType, "index",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    members["_name"] = new FieldBuilder(null, stringType, "_name",
+    members["_name"] = new FieldBuilderImpl(null, stringType, "_name",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    ConstructorBuilder constructorBuilder = new ConstructorBuilder(
+    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         null,
         constMask,
         null,
@@ -149,7 +150,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    FieldBuilder valuesBuilder = new FieldBuilder(
+    FieldBuilder valuesBuilder = new FieldBuilderImpl(
         null,
         listType,
         "values",
@@ -158,7 +159,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset);
     members["values"] = valuesBuilder;
-    ProcedureBuilder toStringBuilder = new ProcedureBuilder(
+    ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
         null,
         0,
         stringType,
@@ -208,7 +209,7 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        FieldBuilder fieldBuilder = new FieldBuilder(
+        FieldBuilder fieldBuilder = new FieldBuilderImpl(
             metadata,
             selfType,
             name,
@@ -231,7 +232,7 @@ class EnumBuilder extends SourceClassBuilder {
             parent: parent.scope,
             debugName: "enum $name",
             isModifiable: false),
-        new Scope(local: constructors, debugName: name, isModifiable: false),
+        new ConstructorScope(name, constructors),
         cls,
         enumConstantInfos,
         intType,
@@ -347,7 +348,7 @@ class EnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  Builder findConstructorOrFactory(
+  MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }

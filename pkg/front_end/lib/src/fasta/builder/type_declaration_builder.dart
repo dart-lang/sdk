@@ -14,6 +14,8 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 abstract class TypeDeclarationBuilder implements ModifierBuilder {
+  bool get isNamedMixinApplication;
+
   void set parent(Builder value);
 
   List<MetadataBuilder> get metadata;
@@ -44,6 +46,9 @@ abstract class TypeDeclarationBuilderImpl extends ModifierBuilderImpl
       [Uri fileUri])
       : assert(modifiers != null),
         super(parent, charOffset, fileUri);
+
+  @override
+  bool get isNamedMixinApplication => false;
 
   @override
   bool get isTypeDeclaration => true;

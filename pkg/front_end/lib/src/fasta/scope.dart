@@ -4,8 +4,13 @@
 
 library fasta.scope;
 
+import 'package:kernel/ast.dart' hide MapEntry;
+
 import 'builder/builder.dart';
+import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 
@@ -391,6 +396,32 @@ class Scope extends MutableScope {
   }
 }
 
+class ConstructorScope {
+  /// Constructors declared in this scope.
+  final Map<String, MemberBuilder> local;
+
+  final String className;
+
+  ConstructorScope(this.className, this.local);
+
+  void forEach(f(String name, MemberBuilder member)) {
+    local.forEach(f);
+  }
+
+  Builder lookup(String name, int charOffset, Uri fileUri) {
+    Builder builder = local[name];
+    if (builder == null) return null;
+    if (builder.next != null) {
+      return new AmbiguousMemberBuilder(
+          name.isEmpty ? className : name, builder, charOffset, fileUri);
+    } else {
+      return builder;
+    }
+  }
+
+  String toString() => "ConstructorScope($className, ${local.keys})";
+}
+
 class ScopeBuilder {
   final Scope scope;
 
@@ -409,6 +440,18 @@ class ScopeBuilder {
   }
 
   Builder operator [](String name) => scope.local[name];
+}
+
+class ConstructorScopeBuilder {
+  final ConstructorScope scope;
+
+  ConstructorScopeBuilder(this.scope);
+
+  void addMember(String name, Builder builder) {
+    scope.local[name] = builder;
+  }
+
+  MemberBuilder operator [](String name) => scope.local[name];
 }
 
 abstract class ProblemBuilder extends BuilderImpl {
@@ -499,6 +542,50 @@ class AmbiguousBuilder extends ProblemBuilder {
       declaration = declaration.next;
     }
     return declaration;
+  }
+}
+
+class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
+  AmbiguousMemberBuilder(
+      String name, Builder builder, int charOffset, Uri fileUri)
+      : super(name, builder, charOffset, fileUri);
+
+  Member get target => null;
+
+  Member get member => null;
+
+  bool get isNative => false;
+
+  ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+
+  void set parent(Builder value) {
+    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+  }
+
+  LibraryBuilder get library {
+    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+  }
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Member get extensionTearOff => null;
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Procedure get procedure => null;
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  ProcedureKind get kind => null;
+
+  void buildOutlineExpressions(LibraryBuilder library) {
+    throw new UnsupportedError(
+        'AmbiguousMemberBuilder.buildOutlineExpressions');
+  }
+
+  void inferType() {
+    throw new UnsupportedError('AmbiguousMemberBuilder.inferType');
+  }
+
+  void inferCopiedType(covariant Object other) {
+    throw new UnsupportedError('AmbiguousMemberBuilder.inferCopiedType');
   }
 }
 

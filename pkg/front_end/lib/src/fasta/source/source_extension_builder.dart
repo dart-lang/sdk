@@ -12,9 +12,9 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 

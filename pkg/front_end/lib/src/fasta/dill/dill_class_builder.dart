@@ -42,10 +42,7 @@ class DillClassBuilder extends ClassBuilderImpl {
                 parent: parent.scope,
                 debugName: "class ${cls.name}",
                 isModifiable: false),
-            new Scope(
-                local: <String, MemberBuilder>{},
-                debugName: cls.name,
-                isModifiable: false),
+            new ConstructorScope(cls.name, <String, MemberBuilder>{}),
             parent,
             cls.fileOffset);
 
