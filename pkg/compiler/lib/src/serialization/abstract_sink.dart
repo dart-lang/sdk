@@ -616,8 +616,15 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   @override
   void writeJsNode(js.Node value) {
     assert(_codegenWriter != null,
-        "Can not serialize a JS ndoe without a registered codegen writer.");
+        "Can not serialize a JS node without a registered codegen writer.");
     _codegenWriter.writeJsNode(this, value);
+  }
+
+  @override
+  void writeTypeRecipe(TypeRecipe value) {
+    assert(_codegenWriter != null,
+        "Can not serialize a TypeRecipe without a registered codegen writer.");
+    _codegenWriter.writeTypeRecipe(this, value);
   }
 
   /// Actual serialization of a section begin tag, implemented by subclasses.

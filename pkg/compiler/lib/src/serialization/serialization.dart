@@ -22,6 +22,7 @@ import '../ir/static_type_base.dart';
 import '../js/js.dart' as js;
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
+import '../js_model/type_recipe.dart' show TypeRecipe;
 
 part 'abstract_sink.dart';
 part 'abstract_source.dart';
@@ -432,6 +433,11 @@ abstract class DataSink {
   /// This feature is only available a [CodegenWriter] has been registered.
   void writeJsNodeOrNull(js.Node value);
 
+  /// Writes TypeRecipe [value] to this data sink.
+  ///
+  /// This feature is only available a [CodegenWriter] has been registered.
+  void writeTypeRecipe(TypeRecipe value);
+
   /// Register an [EntityWriter] with this data sink for non-default encoding
   /// of entity references.
   void registerEntityWriter(EntityWriter writer);
@@ -836,6 +842,11 @@ abstract class DataSource {
   ///
   /// This feature is only available a [CodegenReader] has been registered.
   js.Node readJsNodeOrNull();
+
+  /// Reads a [TypeRecipe] value from this data source.
+  ///
+  /// This feature is only available a [CodegenReader] has been registered.
+  TypeRecipe readTypeRecipe();
 }
 
 /// Interface used for looking up entities by index during deserialization.
@@ -921,6 +932,7 @@ abstract class CodegenReader {
   AbstractValue readAbstractValue(DataSource source);
   OutputUnit readOutputUnitReference(DataSource source);
   js.Node readJsNode(DataSource source);
+  TypeRecipe readTypeRecipe(DataSource source);
 }
 
 /// Interface used for writing codegen only data during serialization.
@@ -928,4 +940,5 @@ abstract class CodegenWriter {
   void writeAbstractValue(DataSink sink, AbstractValue value);
   void writeOutputUnitReference(DataSink sink, OutputUnit value);
   void writeJsNode(DataSink sink, js.Node node);
+  void writeTypeRecipe(DataSink sink, TypeRecipe recipe);
 }

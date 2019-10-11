@@ -29,6 +29,7 @@ import '../js_backend/runtime_types.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
+import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/type_recipe.dart';
@@ -3401,14 +3402,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitLoadType(HLoadType node) {
-    FunctionEntity helperElement = _commonElements.findType;
-    _registry.registerStaticUse(
-        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    js.Expression recipe =
-        _rtiRecipeEncoder.encodeGroundRecipe(_emitter, node.typeExpression);
-    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-    push(js.js(r'#(#)', [helper, recipe]).withSourceInformation(
-        node.sourceInformation));
+    // 'findType' will be called somewhere to initialize the type reference.
+    _registry.registerStaticUse(StaticUse.staticInvoke(
+        _commonElements.findType, CallStructure.ONE_ARG));
+    push(TypeReference(node.typeExpression));
   }
 
   @override

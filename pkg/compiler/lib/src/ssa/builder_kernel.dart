@@ -4693,9 +4693,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       stack.add(graph.addConstantNull(closedWorld));
       return;
     }
-    // TODO(sra): Introduce 'any' type.
+    // TODO(sra): This should be JSArray<any>, created via
+    // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
     InterfaceType interopType =
-        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
+        InterfaceType(_commonElements.jsArrayClass, [const DynamicType()]);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction rti =

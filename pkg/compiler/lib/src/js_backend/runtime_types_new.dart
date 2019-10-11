@@ -39,7 +39,7 @@ abstract class RecipeEncoder {
   /// Return the recipe with type variables replaced with <any>. This is a hack
   /// until DartType contains <any> and the parameter stub emitter is replaced
   /// with an SSA path.
-  // TODO(33422): Remove need for this.
+  // TODO(37715): Remove this.
   jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
       ModularEmitter emitter, DartType dartType);
 
