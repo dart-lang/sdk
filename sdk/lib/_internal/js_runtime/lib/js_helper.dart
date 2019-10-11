@@ -2280,7 +2280,8 @@ abstract class Closure implements Function {
     if (JS('bool', 'typeof # == "string"', functionType)) {
       // A recipe to evaluate against the instance type.
       if (isStatic) {
-        throw 'TODO: Recipe for static tearoff.';
+        // TODO(sra): Recipe for static tearoff.
+        throw 'Cannot compute signature for static tearoff.';
       }
       var typeEvalMethod = isIntercepted
           ? RAW_DART_FUNCTION_REF(BoundClosure.evalRecipeIntercepted)
