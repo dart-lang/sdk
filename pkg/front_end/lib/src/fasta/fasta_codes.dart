@@ -64,6 +64,10 @@ class Message {
   LocatedMessage withoutLocation() {
     return new LocatedMessage(null, -1, noLength, this);
   }
+
+  String toString() {
+    return "Message[$code, $message, $tip, $arguments]";
+  }
 }
 
 class MessageCode extends Code<Null> implements Message {
