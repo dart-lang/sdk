@@ -8,27 +8,73 @@
 
 class Covariant<out T> {}
 
+class Upper {}
+class Middle extends Upper {}
+class Lower {}
+
 class A {
-  Covariant<num> method1() {
-    return Covariant<num>();
+  Covariant<Middle> method1() {
+    return Covariant<Middle>();
   }
 
-  void method2(Covariant<num> x) {}
+  void method2(Covariant<Middle> x) {}
 }
 
 class B extends A {
   @override
-  Covariant<Object> method1() {
-  //                ^^^^^^^
+  Covariant<Upper> method1() {
+  //               ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
-  // [cfe] The return type of the method 'B.method1' is 'Covariant<Object>', which does not match the return type, 'Covariant<num>', of the overridden method, 'A.method1'.
-    return new Covariant<Object>();
+  // [cfe] The return type of the method 'B.method1' is 'Covariant<Upper>', which does not match the return type, 'Covariant<Middle>', of the overridden method, 'A.method1'.
+    return new Covariant<Upper>();
   }
 
   @override
-  void method2(Covariant<int> x) {}
+  void method2(Covariant<Lower> x) {}
   //   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_OVERRIDE
+  //                            ^
+  // [cfe] The parameter 'x' of the method 'B.method2' has type 'Covariant<Lower>', which does not match the corresponding type, 'Covariant<Middle>', in the overridden method, 'A.method2'.
+}
+
+class C<out T extends Covariant<Middle>> {}
+
+class D {
+  C<Covariant<Upper>> method1() {
+  //^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  //                         ^
+  // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C' in the return type.
+    return C<Covariant<Upper>>();
+    //     ^
+    // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
+    //       ^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  }
+}
+
+void testCall(Iterable<Covariant<Lower>> x) {}
+
+main() {
+  C<Covariant<Upper>> c = new C<Covariant<Upper>>();
+  //^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+  //                  ^
+  // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
   //                          ^
-  // [cfe] The parameter 'x' of the method 'B.method2' has type 'Covariant<int>', which does not match the corresponding type, 'Covariant<num>', in the overridden method, 'A.method2'.
+  // [cfe] Type argument 'Covariant<Upper>' doesn't conform to the bound 'Covariant<Middle>' of the type variable 'T' on 'C'.
+  //                            ^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
+  Iterable<Covariant<Lower>> iterableLower = [new Covariant<Lower>()];
+  List<Covariant<Middle>> listMiddle = [new Covariant<Middle>()];
+  iterableLower = listMiddle;
+  //              ^^^^^^^^^^
+  // [analyzer] STATIC_TYPE_WARNING.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'List<Covariant<Middle>>' can't be assigned to a variable of type 'Iterable<Covariant<Lower>>'.
+
+  testCall(listMiddle);
+  //       ^^^^^^^^^^
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
+  // [cfe] The argument type 'List<Covariant<Middle>>' can't be assigned to the parameter type 'Iterable<Covariant<Lower>>'.
 }

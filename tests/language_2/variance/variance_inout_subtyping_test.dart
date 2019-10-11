@@ -8,28 +8,52 @@
 
 class Invariant<inout T> {}
 
+class Upper {}
+class Middle extends Upper {}
+class Lower extends Middle {}
+
 class A {
-  Invariant<num> method1() {
-    return new Invariant<num>();
+  Invariant<Middle> method1() {
+    return new Invariant<Middle>();
   }
 
-  void method2(Invariant<num> x) {}
+  void method2(Invariant<Middle> x) {}
 }
 
 class B extends A {
   @override
-  Invariant<num> method1() {
-    return new Invariant<num>();
+  Invariant<Middle> method1() {
+    return new Invariant<Middle>();
   }
 
   @override
-  void method2(Invariant<num> x) {}
+  void method2(Invariant<Middle> x) {}
 }
+
+class C<out X extends Invariant<Middle>> {}
+
+class D {
+  C<Invariant<Middle>> method1() {
+    return C<Invariant<Middle>>();
+  }
+}
+
+void testCall(Iterable<Invariant<Middle>> x) {}
 
 main() {
   A a = new A();
-  a.method2(new Invariant<num>());
+  a.method2(new Invariant<Middle>());
 
   B b = new B();
-  b.method2(new Invariant<num>());
+  b.method2(new Invariant<Middle>());
+
+  C<Invariant<Middle>> c = new C<Invariant<Middle>>();
+
+  D d = new D();
+
+  Iterable<Invariant<Middle>> iterableMiddle = [new Invariant<Middle>()];
+  List<Invariant<Middle>> listMiddle = [new Invariant<Middle>()];
+  iterableMiddle = listMiddle;
+
+  testCall(listMiddle);
 }

@@ -8,44 +8,77 @@
 
 class Contravariant<in T> {}
 
+class Upper {}
+class Middle extends Upper {}
+class Lower extends Middle {}
+
 class A {
-  Contravariant<num> method1() {
-    return Contravariant<num>();
+  Contravariant<Middle> method1() {
+    return Contravariant<Middle>();
   }
 
-  void method2(Contravariant<num> x) {}
+  void method2(Contravariant<Middle> x) {}
 }
 
 class B extends A {
   @override
-  Contravariant<Object> method1() {
-    return new Contravariant<Object>();
+  Contravariant<Upper> method1() {
+    return new Contravariant<Upper>();
   }
 
   @override
-  void method2(Contravariant<int> x) {}
+  void method2(Contravariant<Lower> x) {}
 }
 
 class C extends A {
   @override
-  Contravariant<num> method1() {
-    return new Contravariant<num>();
+  Contravariant<Middle> method1() {
+    return new Contravariant<Middle>();
   }
 
   @override
-  void method2(Contravariant<num> x) {}
+  void method2(Contravariant<Middle> x) {}
 }
+
+class D<out T extends Contravariant<Middle>> {}
+
+class E {
+  D<Contravariant<Upper>> method1() {
+    return D<Contravariant<Upper>>();
+  }
+}
+
+class F {
+  D<Contravariant<Middle>> method1() {
+    return D<Contravariant<Middle>>();
+  }
+}
+
+void testCall(Iterable<Contravariant<Lower>> x) {}
 
 main() {
   A a = new A();
-  a.method2(new Contravariant<num>());
-  a.method2(new Contravariant<Object>());
+  a.method2(new Contravariant<Middle>());
+  a.method2(new Contravariant<Upper>());
 
   B b = new B();
-  b.method2(new Contravariant<int>());
-  b.method2(new Contravariant<num>());
+  b.method2(new Contravariant<Lower>());
+  b.method2(new Contravariant<Middle>());
 
   C c = new C();
-  c.method2(new Contravariant<num>());
-  c.method2(new Contravariant<Object>());
+  c.method2(new Contravariant<Middle>());
+  c.method2(new Contravariant<Upper>());
+
+  D<Contravariant<Upper>> dUpper = new D<Contravariant<Upper>>();
+  D<Contravariant<Middle>> dMiddle = new D<Contravariant<Middle>>();
+
+  E e = new E();
+
+  F f = new F();
+
+  Iterable<Contravariant<Lower>> iterableLower = [new Contravariant<Lower>()];
+  List<Contravariant<Middle>> listMiddle = [new Contravariant<Middle>()];
+  iterableLower = listMiddle;
+
+  testCall(listMiddle);
 }
