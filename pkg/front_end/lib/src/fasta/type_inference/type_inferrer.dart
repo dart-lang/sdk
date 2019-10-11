@@ -1907,6 +1907,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           actualTypes,
           typeContext,
           inferredTypes);
+      assert(inferredTypes.every((type) => isKnown(type)),
+          "Unknown type(s) in inferred types: $inferredTypes.");
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
       instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
