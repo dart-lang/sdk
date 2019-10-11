@@ -4033,8 +4033,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         final savedSourcePosition = asm.currentSourcePosition;
         for (int i = 0; i < switchCase.expressions.length; ++i) {
           _recordSourcePosition(switchCase.expressionOffsets[i]);
-          asm.emitPush(temp);
           _genPushConstExpr(switchCase.expressions[i]);
+          asm.emitPush(temp);
           asm.emitInterfaceCall(
               cp.addInterfaceCall(
                   InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
