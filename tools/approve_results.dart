@@ -489,6 +489,9 @@ ${parser.usage}""");
         exitCode = 1;
         return;
       }
+      if (object["builds"] == null) {
+        break;
+      }
       builds.addAll(object["builds"]);
       cursor = object["next_cursor"];
     } while (cursor != null);
