@@ -4855,6 +4855,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound?.builder;
     if (variance != null) {
+      if (!libraryBuilder.loader.target.enableVariance) {
+        reportVarianceModifierNotEnabled(variance);
+      }
       variable.variance = Variance.fromString(variance.lexeme);
     }
   }
@@ -4882,13 +4885,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeVariableBuilder.finishNullabilities(
         libraryBuilder, libraryBuilder.pendingNullabilities);
     libraryBuilder.pendingNullabilities.clear();
-  }
-
-  @override
-  void handleVarianceModifier(Token variance) {
-    if (!libraryBuilder.loader.target.enableVariance) {
-      reportVarianceModifierNotEnabled(variance);
-    }
   }
 
   @override

@@ -1057,10 +1057,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       TypeInfo typeInfo = superTypeInfos.head;
       Token variance = variances.head;
 
-      if (variance != null) {
-        listener.handleVarianceModifier(variance);
-      }
-
       Token extendsOrSuper = null;
       Token next2 = token2.next;
       if (typeInfo != null) {

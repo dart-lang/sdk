@@ -1592,6 +1592,9 @@ class OutlineBuilder extends StackListener {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
+        if (!library.loader.target.enableVariance) {
+          reportVarianceModifierNotEnabled(variance);
+        }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);
       }
     }
@@ -1659,13 +1662,6 @@ class OutlineBuilder extends StackListener {
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
       inConstructorName = false;
-    }
-  }
-
-  @override
-  void handleVarianceModifier(Token variance) {
-    if (!library.loader.target.enableVariance) {
-      reportVarianceModifierNotEnabled(variance);
     }
   }
 

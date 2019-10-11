@@ -2107,6 +2107,16 @@ class AstBuilder extends StackListener {
     assert(extendsOrSuper == null ||
         optional('extends', extendsOrSuper) ||
         optional('super', extendsOrSuper));
+
+    // TODO (kallentu): Implement variance behaviour for the analyzer.
+    assert(variance == null ||
+        optional('in', variance) ||
+        optional('out', variance) ||
+        optional('inout', variance));
+    if (!enableVariance) {
+      reportVarianceModifierNotEnabled(variance);
+    }
+
     TypeAnnotation bound = pop();
 
     // Peek to leave type parameters on top of stack.
@@ -3352,14 +3362,6 @@ class AstBuilder extends StackListener {
 
     Expression value = pop();
     push(new _ParameterDefaultValue(equals, value));
-  }
-
-  @override
-  void handleVarianceModifier(Token variance) {
-    debugEvent('VarianceModifier');
-    if (!enableVariance) {
-      reportVarianceModifierNotEnabled(variance);
-    }
   }
 
   @override

@@ -1328,11 +1328,6 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void handleVarianceModifier(Token variance) {
-    debugEvent("VarianceModifier", variance);
-  }
-
-  @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables", token);
   }

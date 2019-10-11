@@ -1241,10 +1241,6 @@ class ParserTestListener implements Listener {
     doPrint('endTypeVariables(' '$beginToken, ' '$endToken)');
   }
 
-  void handleVarianceModifier(Token variance) {
-    doPrint('handleVarianceModifier(' '$variance)');
-  }
-
   void reportVarianceModifierNotEnabled(Token variance) {
     doPrint('reportVarianceModifierNotEnabled(' '$variance)');
   }
