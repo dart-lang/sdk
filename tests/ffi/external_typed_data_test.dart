@@ -282,7 +282,7 @@ void testArrayStore() {
 }
 
 void testNegativeArray() {
-  Pointer<Int32> ptr = nullptr.cast();
+  Pointer<Int32> ptr = nullptr;
   Expect.throws<ArgumentError>(() => ptr.asExternalTypedData(count: -1));
 }
 

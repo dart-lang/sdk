@@ -49,7 +49,7 @@ String hash(Pointer<Data> data, int length, Pointer<EVP_MD> hashAlgorithm) {
   EVP_DigestUpdate(context, data, length);
   final int resultSize = EVP_MD_CTX_size(context);
   final Pointer<Bytes> result = allocate<Uint8>(count: resultSize).cast();
-  EVP_DigestFinal(context, result, nullptr.cast());
+  EVP_DigestFinal(context, result, nullptr);
   EVP_MD_CTX_free(context);
   final String hash = base64Encode(toUint8List(result.ref, resultSize));
   free(result);

@@ -355,7 +355,7 @@ Int64PointerUnOp nullableInt64ElemAt1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("NullableInt64ElemAt1");
 
 void testNullPointers() {
-  Pointer<Int64> result = nullableInt64ElemAt1(nullptr.cast());
+  Pointer<Int64> result = nullableInt64ElemAt1(nullptr);
   Expect.equals(result, nullptr);
 
   Pointer<Int64> p2 = allocate(count: 2);

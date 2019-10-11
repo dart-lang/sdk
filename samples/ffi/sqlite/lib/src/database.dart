@@ -30,7 +30,7 @@ class Database {
     Pointer<Pointer<types.Database>> dbOut = allocate();
     final pathC = Utf8.toUtf8(path);
     final int resultCode =
-        bindings.sqlite3_open_v2(pathC, dbOut, flags, Pointer.fromAddress(0));
+        bindings.sqlite3_open_v2(pathC, dbOut, flags, nullptr);
     _database = dbOut.value;
     free(dbOut);
     free(pathC);
@@ -66,7 +66,7 @@ class Database {
     Pointer<Pointer<Statement>> statementOut = allocate();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
-        _database, queryC, -1, statementOut, Pointer.fromAddress(0));
+        _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
     free(statementOut);
     free(queryC);
@@ -85,7 +85,7 @@ class Database {
     Pointer<Pointer<Statement>> statementOut = allocate();
     Pointer<Utf8> queryC = Utf8.toUtf8(query);
     int resultCode = bindings.sqlite3_prepare_v2(
-        _database, queryC, -1, statementOut, Pointer.fromAddress(0));
+        _database, queryC, -1, statementOut, nullptr);
     Pointer<Statement> statement = statementOut.value;
     free(statementOut);
     free(queryC);

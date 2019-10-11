@@ -35,8 +35,7 @@ void testFunctionWithStruct() {
       ffiTestFunctions.lookup("TransposeCoordinate");
   NativeCoordinateOp f1 = p1.asFunction();
 
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(10.0, 20.0, nullptr.cast<Coordinate>()).addressOf;
+  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 20.0, nullptr).addressOf;
   Pointer<Coordinate> c2 = Coordinate.allocate(42.0, 84.0, c1).addressOf;
   c1.ref.next = c2;
 
@@ -107,9 +106,9 @@ void testFunctionWithVeryLargeStruct() {
   vls1.numChildren = 2;
   vls1.children = vls1.addressOf;
   vls2.parent = vls2.addressOf;
-  vls2.parent = nullptr.cast();
+  vls2.parent = nullptr;
   vls2.numChildren = 0;
-  vls2.children = nullptr.cast();
+  vls2.children = nullptr;
 
   int result = f(vls1.addressOf);
   Expect.equals(2051, result);

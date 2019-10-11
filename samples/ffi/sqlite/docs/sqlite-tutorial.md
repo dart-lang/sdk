@@ -106,7 +106,7 @@ Now we have all ingredients to call `sqlite3_prepare_v2`.
 Pointer<StatementPointer> statementOut = allocate();
 CString queryC = CString.allocate(query);
 int resultCode = sqlite3_prepare_v2(
-    _database, queryC, -1, statementOut, fromAddress(0));
+    _database, queryC, -1, statementOut, nullptr);
 ```
 
 With `dart:ffi` we are responsible for freeing C memory that we allocate.

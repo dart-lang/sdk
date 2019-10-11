@@ -30,8 +30,7 @@ void main() {
 
 /// allocates each coordinate separately in c memory
 void testStructAllocate() {
-  Pointer<Coordinate> c1 =
-      Coordinate.allocate(10.0, 10.0, nullptr.cast()).addressOf;
+  Pointer<Coordinate> c1 = Coordinate.allocate(10.0, 10.0, nullptr).addressOf;
   Pointer<Coordinate> c2 = Coordinate.allocate(20.0, 20.0, c1).addressOf;
   Pointer<Coordinate> c3 = Coordinate.allocate(30.0, 30.0, c2).addressOf;
   c1.ref.next = c3;
@@ -82,11 +81,11 @@ void testStructFromAddress() {
 
 void testStructWithNulls() {
   Pointer<Coordinate> coordinate =
-      Coordinate.allocate(10.0, 10.0, nullptr.cast<Coordinate>()).addressOf;
+      Coordinate.allocate(10.0, 10.0, nullptr).addressOf;
   Expect.equals(coordinate.ref.next, nullptr);
   coordinate.ref.next = coordinate;
   Expect.notEquals(coordinate.ref.next, nullptr);
-  coordinate.ref.next = nullptr.cast();
+  coordinate.ref.next = nullptr;
   Expect.equals(coordinate.ref.next, nullptr);
   free(coordinate);
 }
@@ -122,7 +121,7 @@ void testBareStruct() {
 }
 
 void testTypeTest() {
-  Coordinate c = Coordinate.allocate(10, 10, nullptr.cast<Coordinate>());
+  Coordinate c = Coordinate.allocate(10, 10, nullptr);
   Expect.isTrue(c is Struct);
   Expect.isTrue(c is Struct<Coordinate>);
   free(c.addressOf);

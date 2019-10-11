@@ -98,7 +98,7 @@ void testGetNativeType() {
 
 void testGetTypeMismatch() {
   Pointer<Pointer<Int16>> p = allocate();
-  Pointer<Int16> typedNull = nullptr.cast();
+  Pointer<Int16> typedNull = nullptr;
   p.value = typedNull;
 
   // this fails to compile due to type mismatch
