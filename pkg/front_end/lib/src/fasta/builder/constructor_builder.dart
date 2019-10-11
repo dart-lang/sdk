@@ -326,8 +326,8 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     // again.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    if (constructor.isConst) {
-      constructor.initializers.length = 0;
+    if (_constructor.isConst) {
+      _constructor.initializers.length = 0;
       redirectingInitializer = null;
       superInitializer = null;
       hasMovedSuperInitializer = false;
