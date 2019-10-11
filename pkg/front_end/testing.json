@@ -390,6 +390,7 @@
     },
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
+      "test/analyser_ignored/",
       "test/extensions/data/",
       "test/id_testing/data/",
       "test/language_versioning/data/",

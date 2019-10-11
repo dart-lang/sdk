@@ -1185,17 +1185,20 @@ class BinaryBuilder {
     }
 
     int length = readUInt();
+    if (shouldWriteData) {
+      node.members.length = length;
+    }
     for (int i = 0; i < length; i++) {
       Name name = readName();
       int kind = readByte();
       int flags = readByte();
       CanonicalName canonicalName = readCanonicalNameReference();
       if (shouldWriteData) {
-        node.members.add(new ExtensionMemberDescriptor(
+        node.members[i] = new ExtensionMemberDescriptor(
             name: name,
             kind: ExtensionMemberKind.values[kind],
             member: canonicalName.getReference())
-          ..flags = flags);
+          ..flags = flags;
       }
     }
     return node;

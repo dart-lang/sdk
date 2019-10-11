@@ -10,3 +10,11 @@ typedef myTypedefWithNamed(@Foo int a, {@Foo int b});
 typedef myTypedefWithOptionalPositional(@Foo int a, [@Foo int b]);
 
 const Foo = 42;
+
+class Bar {}
+
+extension BarX on Bar {
+  void hello() {
+    print("Hello!");
+  }
+}
