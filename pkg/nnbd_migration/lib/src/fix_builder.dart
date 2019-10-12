@@ -335,6 +335,49 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
+  DartType visitPostfixExpression(PostfixExpression node) {
+    if (node.operator.type == TokenType.BANG) {
+      throw UnimplementedError(
+          'TODO(paulberry): re-migration of already migrated code not '
+          'supported yet');
+    } else {
+      var targetInfo = visitAssignmentTarget(node.operand);
+      _handleIncrementOrDecrement(node.staticElement, targetInfo, node);
+      return targetInfo.readType;
+    }
+  }
+
+  @override
+  DartType visitPrefixExpression(PrefixExpression node) {
+    var operand = node.operand;
+    switch (node.operator.type) {
+      case TokenType.BANG:
+        visitSubexpression(operand, _typeProvider.boolType);
+        _flowAnalysis.logicalNot_end(node, operand);
+        return _typeProvider.boolType;
+      case TokenType.MINUS:
+      case TokenType.TILDE:
+        var targetType = visitSubexpression(operand, _typeProvider.objectType);
+        var staticElement = node.staticElement;
+        if (staticElement == null) {
+          return _typeProvider.dynamicType;
+        } else {
+          var methodType =
+              _computeMigratedType(staticElement, targetType: targetType)
+                  as FunctionType;
+          return methodType.returnType;
+        }
+        break;
+      case TokenType.PLUS_PLUS:
+      case TokenType.MINUS_MINUS:
+        return _handleIncrementOrDecrement(
+            node.staticElement, visitAssignmentTarget(operand), node);
+      default:
+        throw StateError('Unexpected prefix operator: ${node.operator}');
+    }
+  }
+
+  @override
   DartType visitSimpleIdentifier(SimpleIdentifier node) {
     assert(!node.inSetterContext(),
         'Should use visitAssignmentTarget in setter contexts');
@@ -494,6 +537,26 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     } else {
       return type;
     }
+  }
+
+  DartType _handleIncrementOrDecrement(MethodElement combiner,
+      AssignmentTargetInfo targetInfo, Expression node) {
+    DartType combinedType;
+    if (combiner == null) {
+      combinedType = _typeProvider.dynamicType;
+    } else {
+      if (_typeSystem.isNullable(targetInfo.readType)) {
+        addProblem(node, const CompoundAssignmentReadNullable());
+      }
+      var combinerType = _computeMigratedType(combiner) as FunctionType;
+      combinedType = _fixNumericTypes(combinerType.returnType, node.staticType);
+    }
+    if (_doesAssignmentNeedCheck(
+        from: combinedType, to: targetInfo.writeType)) {
+      addProblem(node, const CompoundAssignmentCombinedNullable());
+      combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
+    }
+    return combinedType;
   }
 
   /// Visits all the type arguments in a [TypeArgumentList] and returns the

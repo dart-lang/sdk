@@ -698,6 +698,260 @@ _f(bool/*?*/ x) => ((x) != (null)) && x;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
+  test_postfixExpression_combined_nullable_noProblem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*?*/ value);
+  f() => x++;
+}
+''');
+    visitSubexpression(findNode.postfix('++'), '_C');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38833')
+  test_postfixExpression_combined_nullable_noProblem_dynamic() async {
+    await analyze('''
+abstract class _E {
+  dynamic get x;
+  void set x(Object/*!*/ value);
+  f() => x++;
+}
+''');
+    visitSubexpression(findNode.postfix('++'), 'dynamic');
+  }
+
+  test_postfixExpression_combined_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*!*/ value);
+  f() => x++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    visitSubexpression(postfix, '_C', problems: {
+      postfix: {const CompoundAssignmentCombinedNullable()}
+    });
+  }
+
+  test_postfixExpression_dynamic() async {
+    await analyze('''
+_f(dynamic x) => x++;
+''');
+    visitSubexpression(findNode.postfix('++'), 'dynamic');
+  }
+
+  test_postfixExpression_lhs_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*?*/ get x;
+  void set x(_C/*?*/ value);
+  f() => x++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    visitSubexpression(postfix, '_C?', problems: {
+      postfix: {const CompoundAssignmentReadNullable()}
+    });
+  }
+
+  test_postfixExpression_rhs_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+_f(_C/*!*/ x) => x++;
+''');
+    visitSubexpression(findNode.postfix('++'), '_C');
+  }
+
+  test_prefixExpression_bang_flow() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  if (!(x == null)) {
+    x + 1;
+  }
+}
+''');
+    // No null check should be needed on `x + 1` because `!(x == null)` promotes
+    // x's type to `int`.
+    visitStatement(findNode.statement('if'));
+  }
+
+  test_prefixExpression_bang_nonNullable() async {
+    await analyze('''
+_f(bool/*!*/ x) => !x;
+''');
+    visitSubexpression(findNode.prefix('!x'), 'bool');
+  }
+
+  test_prefixExpression_bang_nullable() async {
+    await analyze('''
+_f(bool/*?*/ x) => !x;
+''');
+    visitSubexpression(findNode.prefix('!x'), 'bool',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_combined_nullable_noProblem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*?*/ value);
+  f() => ++x;
+}
+''');
+    visitSubexpression(findNode.prefix('++'), '_D?');
+  }
+
+  test_prefixExpression_combined_nullable_noProblem_dynamic() async {
+    await analyze('''
+abstract class _E {
+  dynamic get x;
+  void set x(Object/*!*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, 'dynamic');
+  }
+
+  test_prefixExpression_combined_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*!*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, '_D', problems: {
+      prefix: {const CompoundAssignmentCombinedNullable()}
+    });
+  }
+
+  test_prefixExpression_intRules() async {
+    await analyze('''
+_f(int x) => ++x;
+''');
+    visitSubexpression(findNode.prefix('++'), 'int');
+  }
+
+  test_prefixExpression_lhs_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*?*/ get x;
+  void set x(_C/*?*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, '_D', problems: {
+      prefix: {const CompoundAssignmentReadNullable()}
+    });
+  }
+
+  test_prefixExpression_minus_dynamic() async {
+    await analyze('''
+_f(dynamic x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'dynamic');
+  }
+
+  test_prefixExpression_minus_nonNullable() async {
+    await analyze('''
+_f(int/*!*/ x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'int');
+  }
+
+  test_prefixExpression_minus_nullable() async {
+    await analyze('''
+_f(int/*?*/ x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'int',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_minus_substitution() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> operator-();
+}
+_f(_C<int> x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'List<int>');
+  }
+
+  test_prefixExpression_rhs_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+_f(_C/*!*/ x) => ++x;
+''');
+    visitSubexpression(findNode.prefix('++'), '_D');
+  }
+
+  test_prefixExpression_tilde_dynamic() async {
+    await analyze('''
+_f(dynamic x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'dynamic');
+  }
+
+  test_prefixExpression_tilde_nonNullable() async {
+    await analyze('''
+_f(int/*!*/ x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'int');
+  }
+
+  test_prefixExpression_tilde_nullable() async {
+    await analyze('''
+_f(int/*?*/ x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'int',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_tilde_substitution() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> operator~();
+}
+_f(_C<int> x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'List<int>');
+  }
+
   test_simpleIdentifier_className() async {
     await analyze('''
 _f() => int;
