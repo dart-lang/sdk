@@ -239,6 +239,37 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
+  DartType visitListLiteral(ListLiteral node) {
+    DartType contextType;
+    var typeArguments = node.typeArguments;
+    if (typeArguments != null) {
+      var typeArgumentTypes = _visitTypeArgumentList(typeArguments);
+      if (typeArgumentTypes.isNotEmpty) {
+        contextType = typeArgumentTypes[0];
+      } else {
+        contextType = UnknownInferredType.instance;
+      }
+    } else {
+      throw UnimplementedError(
+          'TODO(paulberry): extract from surrounding context');
+    }
+    for (var listElement in node.elements) {
+      if (listElement is Expression) {
+        visitSubexpression(listElement, contextType);
+      } else {
+        throw UnimplementedError(
+            'TODO(paulberry): handle spread and control flow');
+      }
+    }
+    if (typeArguments != null) {
+      return _typeProvider.listType2(contextType);
+    } else {
+      throw UnimplementedError(
+          'TODO(paulberry): infer list type based on contents');
+    }
+  }
+
+  @override
   DartType visitLiteral(Literal node) {
     if (node is AdjacentStrings) {
       // TODO(paulberry): need to visit interpolations
@@ -424,6 +455,11 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       return type;
     }
   }
+
+  /// Visits all the type arguments in a [TypeArgumentList] and returns the
+  /// types they ger migrated to.
+  List<DartType> _visitTypeArgumentList(TypeArgumentList arguments) =>
+      [for (var argument in arguments.arguments) argument.accept(this)];
 }
 
 /// Common supertype for problems reported by [FixBuilder.addProblem].

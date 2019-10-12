@@ -540,6 +540,21 @@ f() => 1;
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
+  test_listLiteral_typed() async {
+    await analyze('''
+_f() => <int>[];
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>');
+  }
+
+  test_listLiteral_typed_visit_contents() async {
+    await analyze('''
+_f(int/*?*/ x) => <int/*!*/>[x];
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>',
+        nullChecked: {findNode.simple('x]')});
+  }
+
   test_nullAssertion_promotes() async {
     await analyze('''
 _f(bool/*?*/ x) => x && x;
