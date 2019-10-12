@@ -420,6 +420,17 @@ _f(int/*?*/ x, double/*?*/ y) {
     visitSubexpression(findNode.binary('??'), 'num?');
   }
 
+  test_binaryExpression_question_question_flow() async {
+    await analyze('''
+_f(int/*?*/ x, int/*?*/ y) =>
+    <dynamic>[x ?? (y != null ? 1 : throw 'foo'), y + 1];
+''');
+    // The null check on the RHS of the `??` doesn't promote, because it is not
+    // guaranteed to execute.
+    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>',
+        nullChecked: {findNode.simple('y +')});
+  }
+
   test_binaryExpression_question_question_nullChecked() async {
     await analyze('''
 Object/*!*/ _f(int/*?*/ x, double/*?*/ y) {

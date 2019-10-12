@@ -205,11 +205,11 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       case TokenType.QUESTION_QUESTION:
         // If `a ?? b` is used in a non-nullable context, we don't want to
         // migrate it to `(a ?? b)!`.  We want to migrate it to `a ?? b!`.
-        // TODO(paulberry): once flow analysis supports `??`, integrate it here.
-        // See https://github.com/dart-lang/sdk/issues/38680
         var leftType = visitSubexpression(node.leftOperand,
             _typeSystem.makeNullable(_contextType as TypeImpl));
+        _flowAnalysis.ifNullExpression_rightBegin();
         var rightType = visitSubexpression(node.rightOperand, _contextType);
+        _flowAnalysis.ifNullExpression_end();
         return _typeSystem.leastUpperBound(
             _typeSystem.promoteToNonNull(leftType as TypeImpl), rightType);
       default:
