@@ -241,6 +241,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
+  DartType visitConditionalExpression(ConditionalExpression node) {
+    visitSubexpression(node.condition, _typeProvider.boolType);
+    _flowAnalysis.conditional_thenBegin(node.condition);
+    var thenType = visitSubexpression(node.thenExpression, _contextType);
+    _flowAnalysis.conditional_elseBegin(node.thenExpression);
+    var elseType = visitSubexpression(node.elseExpression, _contextType);
+    _flowAnalysis.conditional_end(node, node.elseExpression);
+    return _typeSystem.leastUpperBound(thenType, elseType);
+  }
+
+  @override
   DartType visitExpressionStatement(ExpressionStatement node) {
     visitSubexpression(node.expression, UnknownInferredType.instance);
     return null;
@@ -352,6 +363,13 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     } finally {
       _contextType = oldContextType;
     }
+  }
+
+  @override
+  DartType visitThrowExpression(ThrowExpression node) {
+    visitSubexpression(node.expression, _typeProvider.objectType);
+    _flowAnalysis.handleExit();
+    return _typeProvider.neverType;
   }
 
   @override
