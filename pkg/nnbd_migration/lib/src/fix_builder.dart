@@ -179,6 +179,34 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
           ? writeType
           : _computeMigratedType(auxiliaryElements.staticElement);
       return AssignmentTargetInfo(isCompound ? readType : null, writeType);
+    } else if (node is IndexExpression) {
+      var targetType =
+          visitSubexpression(node.target, _typeProvider.objectType);
+      var writeElement = node.staticElement;
+      DartType indexContext;
+      DartType writeType;
+      DartType readType;
+      if (writeElement == null) {
+        indexContext = UnknownInferredType.instance;
+        writeType = _typeProvider.dynamicType;
+        readType = isCompound ? _typeProvider.dynamicType : null;
+      } else {
+        var writerType =
+            _computeMigratedType(writeElement, targetType: targetType)
+                as FunctionType;
+        writeType = writerType.parameters[1].type;
+        if (isCompound) {
+          var readerType = _computeMigratedType(
+              node.auxiliaryElements.staticElement,
+              targetType: targetType) as FunctionType;
+          readType = readerType.returnType;
+          indexContext = readerType.parameters[0].type;
+        } else {
+          indexContext = writerType.parameters[0].type;
+        }
+      }
+      visitSubexpression(node.index, indexContext);
+      return AssignmentTargetInfo(readType, writeType);
     } else {
       throw UnimplementedError('TODO(paulberry)');
     }
@@ -274,6 +302,28 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     }
     _flowAnalysis.ifStatement_end(hasElse);
     return null;
+  }
+
+  @override
+  DartType visitIndexExpression(IndexExpression node) {
+    var target = node.target;
+    var staticElement = node.staticElement;
+    var index = node.index;
+    var targetType = visitSubexpression(target, _typeProvider.objectType);
+    DartType contextType;
+    DartType returnType;
+    if (staticElement == null) {
+      contextType = _typeProvider.dynamicType;
+      returnType = _typeProvider.dynamicType;
+    } else {
+      var methodType =
+          _computeMigratedType(staticElement, targetType: targetType)
+              as FunctionType;
+      contextType = methodType.parameters[0].type;
+      returnType = methodType.returnType;
+    }
+    visitSubexpression(index, contextType);
+    return returnType;
   }
 
   @override
