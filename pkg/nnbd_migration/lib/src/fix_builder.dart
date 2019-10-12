@@ -126,10 +126,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   @override
   DartType visitAssignmentExpression(AssignmentExpression node) {
-    var targetInfo = visitAssignmentTarget(node.leftHandSide);
-    if (node.operator.type == TokenType.EQ) {
+    var operatorType = node.operator.type;
+    var targetInfo =
+        visitAssignmentTarget(node.leftHandSide, operatorType != TokenType.EQ);
+    if (operatorType == TokenType.EQ) {
       return visitSubexpression(node.rightHandSide, targetInfo.writeType);
-    } else if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+    } else if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
       // TODO(paulberry): if targetInfo.readType is non-nullable, then the
       // assignment is dead code.
       // See https://github.com/dart-lang/sdk/issues/38678
@@ -166,14 +168,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   /// Recursively visits an assignment target, returning information about the
   /// target's read and write types.
-  AssignmentTargetInfo visitAssignmentTarget(Expression node) {
+  ///
+  /// If [isCompound] is true, the target is being both read from and written
+  /// to.  If it is false, then only the write type is needed.
+  AssignmentTargetInfo visitAssignmentTarget(Expression node, bool isCompound) {
     if (node is SimpleIdentifier) {
       var writeType = _computeMigratedType(node.staticElement);
       var auxiliaryElements = node.auxiliaryElements;
       var readType = auxiliaryElements == null
           ? writeType
           : _computeMigratedType(auxiliaryElements.staticElement);
-      return AssignmentTargetInfo(readType, writeType);
+      return AssignmentTargetInfo(isCompound ? readType : null, writeType);
     } else {
       throw UnimplementedError('TODO(paulberry)');
     }
@@ -341,7 +346,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
           'TODO(paulberry): re-migration of already migrated code not '
           'supported yet');
     } else {
-      var targetInfo = visitAssignmentTarget(node.operand);
+      var targetInfo = visitAssignmentTarget(node.operand, true);
       _handleIncrementOrDecrement(node.staticElement, targetInfo, node);
       return targetInfo.readType;
     }
@@ -371,7 +376,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
         return _handleIncrementOrDecrement(
-            node.staticElement, visitAssignmentTarget(operand), node);
+            node.staticElement, visitAssignmentTarget(operand, true), node);
       default:
         throw StateError('Unexpected prefix operator: ${node.operator}');
     }

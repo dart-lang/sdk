@@ -338,7 +338,7 @@ class _C {
   _f() => x = 0;
 }
 ''');
-    visitAssignmentTarget(findNode.simple('x '), 'int?', 'int?');
+    visitAssignmentTarget(findNode.simple('x '), null, 'int?');
   }
 
   test_binaryExpression_ampersand_ampersand() async {
@@ -1203,9 +1203,14 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Set<Expression> nullChecked = const <Expression>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     _FixBuilder fixBuilder = _createFixBuilder(node);
-    var targetInfo = fixBuilder.visitAssignmentTarget(node);
-    expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
-        expectedReadType);
+    var targetInfo =
+        fixBuilder.visitAssignmentTarget(node, expectedReadType != null);
+    if (expectedReadType == null) {
+      expect(targetInfo.readType, null);
+    } else {
+      expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
+          expectedReadType);
+    }
     expect((targetInfo.writeType as TypeImpl).toString(withNullability: true),
         expectedWriteType);
     expect(fixBuilder.nullCheckedExpressions, nullChecked);
