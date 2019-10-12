@@ -277,6 +277,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       var type = subexpression.accept(this);
       if (_doesAssignmentNeedCheck(from: type, to: contextType)) {
         addNullCheck(subexpression);
+        _flowAnalysis.nonNullAssert_end(subexpression);
         return _typeSystem.promoteToNonNull(type as TypeImpl);
       } else {
         return type;

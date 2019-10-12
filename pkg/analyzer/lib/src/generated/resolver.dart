@@ -4349,6 +4349,15 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitPostfixExpression(PostfixExpression node) {
+    super.visitPostfixExpression(node);
+
+    if (node.operator.type == TokenType.BANG) {
+      _flowAnalysis?.flow?.nonNullAssert_end(node.operand);
+    }
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     //
     // We visit the prefix, but do not visit the identifier because it needs to

@@ -543,6 +543,16 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
             conditionInfo._ifTrue));
   }
 
+  /// Call this method just after visiting a non-null assertion (`x!`)
+  /// expression.
+  void nonNullAssert_end(Expression operand) {
+    _ExpressionInfo<Variable, Type> operandInfo = _getExpressionInfo(operand);
+    if (operandInfo is _VariableReadInfo<Variable, Type>) {
+      _current =
+          _current.markNonNullable(typeOperations, operandInfo._variable);
+    }
+  }
+
   /// Call this method when encountering an expression that is a `null` literal.
   void nullLiteral(Expression expression) {
     _storeExpressionInfo(expression, new _NullInfo(_current));
@@ -730,7 +740,9 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// returned.
   _ExpressionInfo<Variable, Type> _getExpressionInfo(Expression expression) {
     if (identical(expression, _expressionWithInfo)) {
-      return _expressionInfo;
+      _ExpressionInfo<Variable, Type> expressionInfo = _expressionInfo;
+      _expressionInfo = null;
+      return expressionInfo;
     } else {
       return null;
     }

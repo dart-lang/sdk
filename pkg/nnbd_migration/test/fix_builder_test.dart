@@ -529,6 +529,16 @@ f() => 1;
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
+  test_nullAssertion_promotes() async {
+    await analyze('''
+_f(bool/*?*/ x) => x && x;
+''');
+    // Only the first `x` is null-checked because thereafter, the type of `x` is
+    // promoted to `bool`.
+    visitSubexpression(findNode.binary('&&'), 'bool',
+        nullChecked: {findNode.simple('x &&')});
+  }
+
   test_nullLiteral() async {
     await analyze('''
 f() => null;

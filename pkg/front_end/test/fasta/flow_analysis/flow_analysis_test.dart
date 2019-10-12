@@ -768,6 +768,18 @@ main() {
       });
     });
 
+    test('nonNullAssert_end(x) promotes', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        var varExpr = _Expression();
+        flow.variableRead(varExpr, x);
+        flow.nonNullAssert_end(varExpr);
+        expect(flow.promotedType(x).type, 'int');
+      });
+    });
+
     test('parenthesizedExpression preserves promotion behaviors', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');
