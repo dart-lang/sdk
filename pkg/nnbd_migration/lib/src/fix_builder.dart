@@ -233,8 +233,30 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
+  DartType visitBlock(Block node) {
+    for (var statement in node.statements) {
+      statement.accept(this);
+    }
+    return null;
+  }
+
+  @override
   DartType visitExpressionStatement(ExpressionStatement node) {
     visitSubexpression(node.expression, UnknownInferredType.instance);
+    return null;
+  }
+
+  @override
+  DartType visitIfStatement(IfStatement node) {
+    visitSubexpression(node.condition, _typeProvider.boolType);
+    _flowAnalysis.ifStatement_thenBegin(node.condition);
+    node.thenStatement.accept(this);
+    bool hasElse = node.elseStatement != null;
+    if (hasElse) {
+      _flowAnalysis.ifStatement_elseBegin();
+      node.elseStatement.accept(this);
+    }
+    _flowAnalysis.ifStatement_end(hasElse);
     return null;
   }
 
