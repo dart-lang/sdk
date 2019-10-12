@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -91,10 +92,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   /// inference.  This is used to determine when `!` needs to be inserted.
   DartType _contextType;
 
-  FixBuilder(this._decoratedClassHierarchy, TypeProvider typeProvider,
-      this._typeSystem, this._variables)
+  /// The file being analyzed.
+  final Source source;
+
+  FixBuilder(this.source, this._decoratedClassHierarchy,
+      TypeProvider typeProvider, this._typeSystem, this._variables)
       : _typeProvider = (typeProvider as TypeProviderImpl)
             .withNullability(NullabilitySuffix.none);
+
+  /// Called whenever a type annotation is found for which a `?` needs to be
+  /// inserted.
+  void addNullable(TypeAnnotation node);
 
   /// Called whenever an expression is found for which a `!` needs to be
   /// inserted.
@@ -225,9 +233,9 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
-  DartType visitExpression(Expression node) {
-    // Every expression type needs its own visit method.
-    throw UnimplementedError('No visit method for ${node.runtimeType}');
+  DartType visitExpressionStatement(ExpressionStatement node) {
+    visitSubexpression(node.expression, UnknownInferredType.instance);
+    return null;
   }
 
   @override
@@ -241,6 +249,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     }
     return (node.staticType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
+  }
+
+  @override
+  DartType visitNode(AstNode node) {
+    // Every node type needs its own visit method.
+    throw UnimplementedError('No visit method for ${node.runtimeType}');
   }
 
   @override
@@ -285,6 +299,57 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     } finally {
       _contextType = oldContextType;
     }
+  }
+
+  @override
+  DartType visitTypeName(TypeName node) {
+    var decoratedType = _variables.decoratedTypeAnnotation(source, node);
+    assert(decoratedType != null);
+    List<DartType> arguments = [];
+    if (node.typeArguments != null) {
+      for (var argument in node.typeArguments.arguments) {
+        arguments.add(argument.accept(this));
+      }
+    }
+    if (decoratedType.type.isDynamic || decoratedType.type.isVoid) {
+      // Already nullable.  Nothing to do.
+      return decoratedType.type;
+    } else {
+      var element = decoratedType.type.element as ClassElement;
+      bool isNullable = decoratedType.node.isNullable;
+      if (isNullable) {
+        addNullable(node);
+      }
+      return InterfaceTypeImpl.explicit(element, arguments,
+          nullabilitySuffix:
+              isNullable ? NullabilitySuffix.question : NullabilitySuffix.none);
+    }
+  }
+
+  @override
+  DartType visitVariableDeclarationList(VariableDeclarationList node) {
+    node.metadata.accept(this);
+    DartType contextType;
+    var typeAnnotation = node.type;
+    if (typeAnnotation != null) {
+      contextType = typeAnnotation.accept(this);
+      assert(contextType != null);
+    } else {
+      contextType = UnknownInferredType.instance;
+    }
+    for (var variable in node.variables) {
+      if (variable.initializer != null) {
+        visitSubexpression(variable.initializer, contextType);
+      }
+    }
+    return null;
+  }
+
+  @override
+  DartType visitVariableDeclarationStatement(
+      VariableDeclarationStatement node) {
+    node.variables.accept(this);
+    return null;
   }
 
   /// Computes the type that [element] will have after migration.
