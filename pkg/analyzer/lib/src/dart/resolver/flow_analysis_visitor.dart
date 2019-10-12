@@ -11,24 +11,12 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 
-class AnalyzerNodeOperations implements NodeOperations<Expression> {
-  const AnalyzerNodeOperations();
-
-  @override
-  Expression unwrapParenthesized(Expression node) {
-    return node.unParenthesized;
-  }
-}
-
 /// The helper for performing flow analysis during resolution.
 ///
 /// It contains related precomputed data, result, and non-trivial pieces of
 /// code that are independent from visiting AST during resolution, so can
 /// be extracted.
 class FlowAnalysisHelper {
-  /// The reused instance for creating new [FlowAnalysis] instances.
-  final NodeOperations<Expression> _nodeOperations;
-
   /// The reused instance for creating new [FlowAnalysis] instances.
   final TypeSystemTypeOperations _typeOperations;
 
@@ -42,13 +30,11 @@ class FlowAnalysisHelper {
   FlowAnalysis<Statement, Expression, PromotableElement, DartType> flow;
 
   factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
-    return FlowAnalysisHelper._(
-        const AnalyzerNodeOperations(),
-        TypeSystemTypeOperations(typeSystem),
+    return FlowAnalysisHelper._(TypeSystemTypeOperations(typeSystem),
         retainDataForTesting ? FlowAnalysisResult() : null);
   }
 
-  FlowAnalysisHelper._(this._nodeOperations, this._typeOperations, this.result);
+  FlowAnalysisHelper._(this._typeOperations, this.result);
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -186,7 +172,6 @@ class FlowAnalysisHelper {
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters);
     flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
-        _nodeOperations,
         _typeOperations,
         assignedVariables.writtenAnywhere,
         assignedVariables.capturedAnywhere);

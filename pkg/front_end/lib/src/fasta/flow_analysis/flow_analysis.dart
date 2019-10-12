@@ -168,9 +168,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   final List<Variable> _variablesCapturedAnywhere;
 
-  /// The [NodeOperations], used to manipulate expressions.
-  final NodeOperations<Expression> nodeOperations;
-
   /// The [TypeOperations], used to access types, and check subtyping.
   final TypeOperations<Variable, Type> typeOperations;
 
@@ -198,16 +195,15 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   int _functionNestingLevel = 0;
 
   factory FlowAnalysis(
-      NodeOperations<Expression> nodeOperations,
       TypeOperations<Variable, Type> typeOperations,
       Iterable<Variable> variablesWrittenAnywhere,
       Iterable<Variable> variablesCapturedAnywhere) {
-    return new FlowAnalysis._(nodeOperations, typeOperations,
-        variablesWrittenAnywhere.toList(), variablesCapturedAnywhere.toList());
+    return new FlowAnalysis._(typeOperations, variablesWrittenAnywhere.toList(),
+        variablesCapturedAnywhere.toList());
   }
 
-  FlowAnalysis._(this.nodeOperations, this.typeOperations,
-      this._variablesWrittenAnywhere, this._variablesCapturedAnywhere) {
+  FlowAnalysis._(this.typeOperations, this._variablesWrittenAnywhere,
+      this._variablesCapturedAnywhere) {
     _current = new FlowModel<Variable, Type>(true);
   }
 
@@ -552,6 +548,17 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _storeExpressionInfo(expression, new _NullInfo(_current));
   }
 
+  /// Call this method just after visiting a parenthesized expression.
+  ///
+  /// This is only necessary if the implementation uses a different [Expression]
+  /// object to represent a parenthesized expression and its contents.
+  void parenthesizedExpression(
+      Expression outerExpression, Expression innerExpression) {
+    if (identical(_expressionWithInfo, innerExpression)) {
+      _expressionWithInfo = outerExpression;
+    }
+  }
+
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
   ///
@@ -722,7 +729,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// [_ExpressionInfo] associated with the [expression], then `null` is
   /// returned.
   _ExpressionInfo<Variable, Type> _getExpressionInfo(Expression expression) {
-    expression = nodeOperations.unwrapParenthesized(expression);
     if (identical(expression, _expressionWithInfo)) {
       return _expressionInfo;
     } else {
@@ -1085,12 +1091,6 @@ class FlowModel<Variable, Type> {
     }
     return true;
   }
-}
-
-/// Operations on nodes, abstracted from concrete node interfaces.
-abstract class NodeOperations<Expression> {
-  /// If the [node] is a parenthesized expression, recursively unwrap it.
-  Expression unwrapParenthesized(Expression node);
 }
 
 /// Operations on types, abstracted from concrete type interfaces.

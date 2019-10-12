@@ -768,6 +768,18 @@ main() {
       });
     });
 
+    test('parenthesizedExpression preserves promotion behaviors', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.if_(
+            h.parenthesized(h.notEqual(h.parenthesized(h.variableRead(x)),
+                h.parenthesized(h.nullLiteral))), () {
+          expect(flow.promotedType(x).type, 'int');
+        });
+      });
+    });
+
     test('promotedType handles not-yet-seen variables', () {
       // Note: this is needed for error recovery in the analyzer.
       var h = _Harness();
@@ -1785,8 +1797,7 @@ typedef _Expression LazyExpression();
 
 class _Expression {}
 
-class _Harness
-    implements NodeOperations<_Expression>, TypeOperations<_Var, _Type> {
+class _Harness implements TypeOperations<_Var, _Type> {
   FlowAnalysis<_Statement, _Expression, _Var, _Type> _flow;
 
   final List<_Var> _variablesWrittenAnywhere = [];
@@ -1796,6 +1807,12 @@ class _Harness
   /// Returns a [LazyExpression] representing an expression with now special
   /// flow analysis semantics.
   LazyExpression get expr => () => _Expression();
+
+  LazyExpression get nullLiteral => () {
+        var expr = _Expression();
+        _flow.nullLiteral(expr);
+        return expr;
+      };
 
   _Var addVar(String name, String type,
       {bool hasWrites: false, bool isCaptured: false}) {
@@ -1837,7 +1854,7 @@ class _Harness
 
   FlowAnalysis<_Statement, _Expression, _Var, _Type> createFlow() =>
       FlowAnalysis<_Statement, _Expression, _Var, _Type>(
-          this, this, _variablesWrittenAnywhere, _variablesCapturedAnywhere);
+          this, _variablesWrittenAnywhere, _variablesCapturedAnywhere);
 
   void declare(_Var v, {@required bool initialized}) {
     if (initialized) {
@@ -1856,6 +1873,17 @@ class _Harness
       _flow.nullLiteral(nullExpr);
       var expr = _Expression();
       _flow.equalityOp_end(expr, nullExpr, notEqual: false);
+      return expr;
+    };
+  }
+
+  /// Creates a [LazyExpression] representing an equality check between two
+  /// other expressions.
+  LazyExpression notEqual(LazyExpression lhs, LazyExpression rhs) {
+    return () {
+      var expr = _Expression();
+      _flow.equalityOp_rightBegin(lhs());
+      _flow.equalityOp_end(expr, rhs(), notEqual: true);
       return expr;
     };
   }
@@ -1954,6 +1982,15 @@ class _Harness
     };
   }
 
+  /// Creates a [LazyExpression] representing a parenthesized subexpression.
+  LazyExpression parenthesized(LazyExpression inner) {
+    return () {
+      var expr = _Expression();
+      _flow.parenthesizedExpression(expr, inner());
+      return expr;
+    };
+  }
+
   /// Causes [variable] to be promoted to [type].
   void promote(_Var variable, String type) {
     if_(isNotType(variable, type), _flow.handleExit);
@@ -1976,10 +2013,12 @@ class _Harness
     _flow.finish();
   }
 
-  @override
-  _Expression unwrapParenthesized(_Expression node) {
-    // TODO(paulberry): test cases where this matters
-    return node;
+  LazyExpression variableRead(_Var variable) {
+    return () {
+      var expr = _Expression();
+      _flow.variableRead(expr, variable);
+      return expr;
+    };
   }
 
   @override

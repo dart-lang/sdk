@@ -966,7 +966,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
-    return node.expression.accept(this);
+    var result = node.expression.accept(this);
+    _flowAnalysis.parenthesizedExpression(node, node.expression);
+    return result;
   }
 
   @override
@@ -1454,7 +1456,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         FlowAnalysisHelper.computeAssignedVariables(node, parameters);
     _flowAnalysis =
         FlowAnalysis<Statement, Expression, PromotableElement, DecoratedType>(
-            const AnalyzerNodeOperations(),
             DecoratedTypeOperations(_typeSystem, _variables, _graph),
             _assignedVariables.writtenAnywhere,
             _assignedVariables.capturedAnywhere);

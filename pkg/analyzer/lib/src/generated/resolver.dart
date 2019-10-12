@@ -4345,6 +4345,7 @@ class ResolverVisitor extends ScopedVisitor {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
     super.visitParenthesizedExpression(node);
+    _flowAnalysis?.flow?.parenthesizedExpression(node, node.expression);
   }
 
   @override

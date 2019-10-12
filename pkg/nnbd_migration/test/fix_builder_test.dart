@@ -543,6 +543,13 @@ f() => (1);
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
+  test_parenthesizedExpression_flow() async {
+    await analyze('''
+_f(bool/*?*/ x) => ((x) != (null)) && x;
+''');
+    visitSubexpression(findNode.binary('&&'), 'bool');
+  }
+
   test_simpleIdentifier_className() async {
     await analyze('''
 _f() => int;
