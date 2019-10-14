@@ -15,19 +15,19 @@ import 'package:args/args.dart';
 // Configuration.
 //
 
-const Map<String, String> nativeToDartType = {
-  "Int8": "int",
-  "Int16": "int",
-  "Int32": "int",
-  "Int64": "int",
-  "Uint8": "int",
-  "Uint16": "int",
-  "Uint32": "int",
-  "Uint64": "int",
-  "IntPtr": "int",
-  "Float": "double",
-  "Double": "double",
-};
+const configuration = [
+  Config("Int8", "int", "Int8List", 1),
+  Config("Int16", "int", "Int16List", 2),
+  Config("Int32", "int", "Int32List", 4),
+  Config("Int64", "int", "Int64List", 8),
+  Config("Uint8", "int", "Uint8List", 1),
+  Config("Uint16", "int", "Uint16List", 2),
+  Config("Uint32", "int", "Uint32List", 4),
+  Config("Uint64", "int", "Uint64List", 8),
+  Config("IntPtr", "int", kDoNotEmit, kIntPtrElementSize),
+  Config("Float", "double", "Float32List", 4),
+  Config("Double", "double", "Float64List", 8),
+];
 
 //
 // Generator.
@@ -41,13 +41,11 @@ main(List<String> arguments) {
   generate(path, "ffi_patch.g.dart", generatePatchExtension);
 }
 
-void generate(Uri path, String fileName,
-    Function(StringBuffer, String, String) generator) {
+void generate(
+    Uri path, String fileName, Function(StringBuffer, Config) generator) {
   final buffer = StringBuffer();
   generateHeader(buffer);
-  nativeToDartType.forEach((String nativeType, String dartType) {
-    generator(buffer, nativeType, dartType);
-  });
+  configuration.forEach((Config c) => generator(buffer, c));
   generateFooter(buffer);
 
   final fullPath = path.resolve(fileName).path;
@@ -73,8 +71,12 @@ void generateHeader(StringBuffer buffer) {
   buffer.write(header);
 }
 
-void generatePublicExtension(
-    StringBuffer buffer, String nativeType, String dartType) {
+void generatePublicExtension(StringBuffer buffer, Config config) {
+  final nativeType = config.nativeType;
+  final dartType = config.dartType;
+  final typedListType = config.typedListType;
+  final elementSize = config.elementSize;
+
   final storeTrunctateInt = """
   /// Note that ints which do not fit in `$nativeType` are truncated.
 """;
@@ -91,6 +93,19 @@ void generatePublicExtension(
 """;
 
   final loadSignExtend = _isInt(nativeType) ? loadSignExtendInt : "";
+
+  final asTypedList = typedListType == kDoNotEmit
+      ? ""
+      : """
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + ${elementSize > 1 ? '$elementSize * ' : ''}length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external $typedListType asTypedList(int length);
+""";
 
   // TODO(dartdoc-bug): Use [] instead of ``, once issue
   // https://github.com/dart-lang/dartdoc/issues/2039 is fixed.
@@ -124,13 +139,25 @@ $loadSignExtend  ///
 $storeTruncate  ///
   /// Note that `address` needs to be aligned to the size of `$nativeType`.
   external void operator []=(int index, $dartType value);
+
+$asTypedList
 }
 
 """);
 }
 
-void generatePatchExtension(
-    StringBuffer buffer, String nativeType, String dartType) {
+void generatePatchExtension(StringBuffer buffer, Config config) {
+  final nativeType = config.nativeType;
+  final dartType = config.dartType;
+  final typedListType = config.typedListType;
+
+  final asTypedList = typedListType == kDoNotEmit
+      ? ""
+      : """
+  @patch
+  $typedListType asTypedList(int elements) => _asExternalTypedData(this, elements);
+""";
+
   buffer.write("""
 extension ${nativeType}Pointer on Pointer<$nativeType> {
  @patch
@@ -144,6 +171,8 @@ extension ${nativeType}Pointer on Pointer<$nativeType> {
 
   @patch
   operator []=(int index, $dartType value) => _store$nativeType(this, index, value);
+
+$asTypedList
 }
 
 """);
@@ -185,3 +214,15 @@ Uri dartfmtPath() {
   // pinned fully supports extension methods.
   return Uri.parse("dartfmt");
 }
+
+class Config {
+  final String nativeType;
+  final String dartType;
+  final String typedListType;
+  final int elementSize;
+  const Config(
+      this.nativeType, this.dartType, this.typedListType, this.elementSize);
+}
+
+const String kDoNotEmit = "donotemit";
+const int kIntPtrElementSize = -1;

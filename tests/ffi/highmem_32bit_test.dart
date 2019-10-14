@@ -51,23 +51,23 @@ void testLoadsAndStores(int indexOffset, Pointer<Uint8> memory) {
     memory[indexOffset + i] = 10 + i;
   }
   Expect.listEquals(<int>[10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
-      memory.offsetBy(indexOffset).asExternalTypedData(count: 10) as Uint8List);
+      memory.offsetBy(indexOffset).asTypedList(10));
 
   for (int i = 0; i < 9; ++i) {
     swapBytes(memory, indexOffset + 0, i, i + 1);
   }
   Expect.listEquals(<int>[11, 12, 13, 14, 15, 16, 17, 18, 19, 10],
-      memory.offsetBy(indexOffset).asExternalTypedData(count: 10) as Uint8List);
+      memory.offsetBy(indexOffset).asTypedList(10));
   for (int i = 0; i < 9; ++i) {
     swapBytes(memory, indexOffset + kIgnoreBytesPositive, i, i + 1);
   }
   Expect.listEquals(<int>[12, 13, 14, 15, 16, 17, 18, 19, 10, 11],
-      memory.offsetBy(indexOffset).asExternalTypedData(count: 10) as Uint8List);
+      memory.offsetBy(indexOffset).asTypedList(10));
   for (int i = 0; i < 9; ++i) {
     swapBytes(memory, indexOffset + kIgnoreBytesNegative, i, i + 1);
   }
   Expect.listEquals(<int>[13, 14, 15, 16, 17, 18, 19, 10, 11, 12],
-      memory.offsetBy(indexOffset).asExternalTypedData(count: 10) as Uint8List);
+      memory.offsetBy(indexOffset).asTypedList(10));
 }
 
 void testOnHighOrLowMemory(Pointer<Uint8> memory, int indexOffset) {

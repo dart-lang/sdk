@@ -16,7 +16,7 @@
  */
 library dart.ffi;
 
-import 'dart:typed_data' show TypedData;
+import 'dart:typed_data';
 
 part "native_type.dart";
 part "annotations.dart";
@@ -43,7 +43,7 @@ class Pointer<T extends NativeType> extends NativeType {
   /// On Windows, this memory may only be freed via [Pointer.free].
   ///
   /// This method is deprecated. Please resolve allocation methods via
-  /// [DynamicLibrary] instead.
+  /// [DynamicLibrary] instead, or use "package:ffi".
   @deprecated
   external factory Pointer.allocate({int count: 1});
 
@@ -78,7 +78,8 @@ class Pointer<T extends NativeType> extends NativeType {
   ///
   /// Note that `this.address` needs to be aligned to the size of `T`.
   ///
-  /// Deprecated, use `pointer[...] =` and `pointer.value =` instead.
+  /// Deprecated, use `pointer[...] =` and `pointer.value =` instead, or use
+  /// "package:ffi".
   @deprecated
   external void store(@DartRepresentationOf("T") Object value);
 
@@ -144,10 +145,9 @@ class Pointer<T extends NativeType> extends NativeType {
   /// data from a [Pointer] to any other native type is not supported.
   ///
   /// The pointer must be aligned to a multiple of the native type's size.
-  //
-  // TODO(37773): Use extension methods to articulate more precise return types.
-  // We should still keep this member though as a generic way to access a
-  // Pointer of unknown type.
+  ///
+  /// Deprecated, replace with `asTypedList()`.
+  @deprecated
   external TypedData asExternalTypedData({int count: 1});
 
   /// Equality for Pointers only depends on their address.
@@ -201,6 +201,15 @@ extension Int8Pointer on Pointer<Int8> {
   ///
   /// Note that `address` needs to be aligned to the size of `Int8`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Int8List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int16].
@@ -236,6 +245,15 @@ extension Int16Pointer on Pointer<Int16> {
   ///
   /// Note that `address` needs to be aligned to the size of `Int16`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 2 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Int16List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int32].
@@ -271,6 +289,15 @@ extension Int32Pointer on Pointer<Int32> {
   ///
   /// Note that `address` needs to be aligned to the size of `Int32`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 4 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Int32List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Int64].
@@ -306,6 +333,15 @@ extension Int64Pointer on Pointer<Int64> {
   ///
   /// Note that `address` needs to be aligned to the size of `Int64`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 8 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Int64List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint8].
@@ -341,6 +377,15 @@ extension Uint8Pointer on Pointer<Uint8> {
   ///
   /// Note that `address` needs to be aligned to the size of `Uint8`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Uint8List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint16].
@@ -376,6 +421,15 @@ extension Uint16Pointer on Pointer<Uint16> {
   ///
   /// Note that `address` needs to be aligned to the size of `Uint16`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 2 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Uint16List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint32].
@@ -411,6 +465,15 @@ extension Uint32Pointer on Pointer<Uint32> {
   ///
   /// Note that `address` needs to be aligned to the size of `Uint32`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 4 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Uint32List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Uint64].
@@ -446,6 +509,15 @@ extension Uint64Pointer on Pointer<Uint64> {
   ///
   /// Note that `address` needs to be aligned to the size of `Uint64`.
   external void operator []=(int index, int value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 8 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Uint64List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [IntPtr].
@@ -514,6 +586,15 @@ extension FloatPointer on Pointer<Float> {
   ///
   /// Note that `address` needs to be aligned to the size of `Float`.
   external void operator []=(int index, double value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 4 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Float32List asTypedList(int length);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Double].
@@ -547,6 +628,15 @@ extension DoublePointer on Pointer<Double> {
   ///
   /// Note that `address` needs to be aligned to the size of `Double`.
   external void operator []=(int index, double value);
+
+  /// Creates a typed list view backed by memory in the address space.
+  ///
+  /// The returned view will allow access to the memory range from `address`
+  /// to `address + 8 * length`.
+  ///
+  /// The user has to ensure the memory range is accessible while using the
+  /// returned list.
+  external Float64List asTypedList(int length);
 }
 
 //

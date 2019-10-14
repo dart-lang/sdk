@@ -5,7 +5,7 @@
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
-import 'dart:typed_data' show TypedData;
+import 'dart:typed_data';
 
 const Map<Type, int> _knownSizes = {
   Int8: 1,
@@ -268,6 +268,9 @@ extension Int8Pointer on Pointer<Int8> {
 
   @patch
   operator []=(int index, int value) => _storeInt8(this, index, value);
+
+  @patch
+  Int8List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Int16Pointer on Pointer<Int16> {
@@ -282,6 +285,9 @@ extension Int16Pointer on Pointer<Int16> {
 
   @patch
   operator []=(int index, int value) => _storeInt16(this, index, value);
+
+  @patch
+  Int16List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Int32Pointer on Pointer<Int32> {
@@ -296,6 +302,9 @@ extension Int32Pointer on Pointer<Int32> {
 
   @patch
   operator []=(int index, int value) => _storeInt32(this, index, value);
+
+  @patch
+  Int32List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Int64Pointer on Pointer<Int64> {
@@ -310,6 +319,9 @@ extension Int64Pointer on Pointer<Int64> {
 
   @patch
   operator []=(int index, int value) => _storeInt64(this, index, value);
+
+  @patch
+  Int64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Uint8Pointer on Pointer<Uint8> {
@@ -324,6 +336,9 @@ extension Uint8Pointer on Pointer<Uint8> {
 
   @patch
   operator []=(int index, int value) => _storeUint8(this, index, value);
+
+  @patch
+  Uint8List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Uint16Pointer on Pointer<Uint16> {
@@ -338,6 +353,9 @@ extension Uint16Pointer on Pointer<Uint16> {
 
   @patch
   operator []=(int index, int value) => _storeUint16(this, index, value);
+
+  @patch
+  Uint16List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Uint32Pointer on Pointer<Uint32> {
@@ -352,6 +370,9 @@ extension Uint32Pointer on Pointer<Uint32> {
 
   @patch
   operator []=(int index, int value) => _storeUint32(this, index, value);
+
+  @patch
+  Uint32List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension Uint64Pointer on Pointer<Uint64> {
@@ -366,6 +387,9 @@ extension Uint64Pointer on Pointer<Uint64> {
 
   @patch
   operator []=(int index, int value) => _storeUint64(this, index, value);
+
+  @patch
+  Uint64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension IntPtrPointer on Pointer<IntPtr> {
@@ -394,6 +418,9 @@ extension FloatPointer on Pointer<Float> {
 
   @patch
   operator []=(int index, double value) => _storeFloat(this, index, value);
+
+  @patch
+  Float32List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 extension DoublePointer on Pointer<Double> {
@@ -408,6 +435,9 @@ extension DoublePointer on Pointer<Double> {
 
   @patch
   operator []=(int index, double value) => _storeDouble(this, index, value);
+
+  @patch
+  Float64List asTypedList(int elements) => _asExternalTypedData(this, elements);
 }
 
 //
