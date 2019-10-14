@@ -7838,8 +7838,9 @@ class String : public Instance {
 
   static RawString* RemovePrivateKey(const String& name);
 
-  static RawString* ScrubName(const String& name);
-  static RawString* ScrubNameRetainPrivate(const String& name);
+  static RawString* ScrubName(const String& name, bool is_extension = false);
+  static RawString* ScrubNameRetainPrivate(const String& name,
+                                           bool is_extension = false);
 
   static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2);
 

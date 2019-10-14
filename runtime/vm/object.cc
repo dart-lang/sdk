@@ -252,7 +252,15 @@ RawString* String::RemovePrivateKey(const String& name) {
 //   _MyClass@6328321. -> _MyClass
 //   _MyClass@6328321.named -> _MyClass.named
 //
-RawString* String::ScrubName(const String& name) {
+// For extension methods the following demangling is done
+//   ext|func -> ext.func (instance extension method)
+//   ext|get#prop -> ext.prop (instance extension getter)
+//   ext|set#prop -> ext.prop= (instance extension setter)
+//   ext|sfunc -> ext.sfunc (static extension method)
+//   get:ext|sprop -> ext.sprop (static extension getter)
+//   set:ext|sprop -> ext.sprop= (static extension setter)
+//
+RawString* String::ScrubName(const String& name, bool is_extension) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -266,7 +274,8 @@ RawString* String::ScrubName(const String& name) {
   const char* cname = name.ToCString();
   ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
   const intptr_t name_len = name.Length();
-  // First remove all private name mangling.
+  // First remove all private name mangling and if 'is_extension' is true
+  // substitute the first '|' character with '.'.
   intptr_t start_pos = 0;
   GrowableArray<const char*> unmangled_segments;
   intptr_t sum_segment_len = 0;
@@ -286,6 +295,15 @@ RawString* String::ScrubName(const String& name) {
       }
       start_pos = i;
       i--;  // Account for for-loop increment.
+    } else if (is_extension && cname[i] == '|') {
+      // Append the current segment to the unmangled name.
+      const intptr_t segment_len = i - start_pos;
+      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+      // Append the '.' character (replaces '|' with '.').
+      AppendSubString(zone, &unmangled_segments, ".", 0, 1);
+      start_pos = i + 1;
+      // Account for length of segments added so far.
+      sum_segment_len += (segment_len + 1);
     }
   }
 
@@ -306,12 +324,41 @@ RawString* String::ScrubName(const String& name) {
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t len = sum_segment_len;
+  unmangled_segments.Clear();
   intptr_t start = 0;
-  intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
+  intptr_t final_len = 0;
+  intptr_t len = sum_segment_len;
   bool is_setter = false;
+  if (is_extension) {
+    // First scan till we see the '.' character.
+    for (intptr_t i = 0; i < len; i++) {
+      if (unmangled_name[i] == '.') {
+        intptr_t slen = i + 1;
+        intptr_t plen = slen - start;
+        AppendSubString(zone, &unmangled_segments, unmangled_name, start, plen);
+        final_len = plen;
+        unmangled_name += slen;
+        len -= slen;
+        break;
+      } else if (unmangled_name[i] == ':') {
+        if (start != 0) {
+          // Reset and break.
+          start = 0;
+          is_setter = false;
+          break;
+        }
+        if (unmangled_name[0] == 's') {
+          is_setter = true;
+        }
+        start = i + 1;
+      }
+    }
+  }
+  intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
+  start = 0;
   for (intptr_t i = start; i < len; i++) {
-    if (unmangled_name[i] == ':') {
+    if (unmangled_name[i] == ':' ||
+        (is_extension && unmangled_name[i] == '#')) {
       if (start != 0) {
         // Reset and break.
         start = 0;
@@ -320,6 +367,7 @@ RawString* String::ScrubName(const String& name) {
       }
       ASSERT(start == 0);  // Only one : is possible in getters or setters.
       if (unmangled_name[0] == 's') {
+        ASSERT(!is_setter);
         is_setter = true;
       }
       start = i + 1;
@@ -335,7 +383,7 @@ RawString* String::ScrubName(const String& name) {
     }
   }
 
-  if ((start == 0) && (dot_pos == -1)) {
+  if (!is_extension && (start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
     return Symbols::New(thread, unmangled_name, sum_segment_len);
   }
@@ -343,9 +391,9 @@ RawString* String::ScrubName(const String& name) {
   // Drop the trailing dot if needed.
   intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
-  unmangled_segments.Clear();
-  intptr_t final_len = end - start;
-  AppendSubString(zone, &unmangled_segments, unmangled_name, start, final_len);
+  intptr_t substr_len = end - start;
+  final_len += substr_len;
+  AppendSubString(zone, &unmangled_segments, unmangled_name, start, substr_len);
   if (is_setter) {
     const char* equals = Symbols::Equals().ToCString();
     const intptr_t equals_len = strlen(equals);
@@ -359,17 +407,46 @@ RawString* String::ScrubName(const String& name) {
   return Symbols::New(thread, unmangled_name);
 }
 
-RawString* String::ScrubNameRetainPrivate(const String& name) {
+RawString* String::ScrubNameRetainPrivate(const String& name,
+                                          bool is_extension) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t len = name.Length();
   intptr_t start = 0;
   intptr_t at_pos = -1;  // Position of '@' in the name, if any.
   bool is_setter = false;
 
+  String& result = String::Handle();
+
+  // If extension strip out the leading prefix e.g" ext|func would strip out
+  // 'ext|'.
+  if (is_extension) {
+    // First scan till we see the '|' character.
+    for (intptr_t i = 0; i < len; i++) {
+      if (name.CharAt(i) == '|') {
+        result = String::SubString(name, start, (i - start));
+        result = String::Concat(result, Symbols::Dot());
+        start = i + 1;
+        break;
+      } else if (name.CharAt(i) == ':') {
+        if (start != 0) {
+          // Reset and break.
+          start = 0;
+          is_setter = false;
+          break;
+        }
+        if (name.CharAt(0) == 's') {
+          is_setter = true;
+        }
+        start = i + 1;
+      }
+    }
+  }
+
   for (intptr_t i = start; i < len; i++) {
-    if (name.CharAt(i) == ':') {
-      ASSERT(start == 0);  // Only one : is possible in getters or setters.
-      if (name.CharAt(0) == 's') {
+    if (name.CharAt(i) == ':' || (is_extension && name.CharAt(i) == '#')) {
+      // Only one : is possible in getters or setters.
+      ASSERT(is_extension || start == 0);
+      if (name.CharAt(start) == 's') {
         is_setter = true;
       }
       start = i + 1;
@@ -385,8 +462,13 @@ RawString* String::ScrubNameRetainPrivate(const String& name) {
     return name.raw();
   }
 
-  String& result =
-      String::Handle(String::SubString(name, start, (len - start)));
+  if (is_extension) {
+    const String& fname =
+        String::Handle(String::SubString(name, start, (len - start)));
+    result = String::Concat(result, fname);
+  } else {
+    result = String::SubString(name, start, (len - start));
+  }
 
   if (is_setter) {
     // Setters need to end with '='.
@@ -7889,7 +7971,7 @@ RawString* Function::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
   }
-  return String::ScrubName(String::Handle(name()));
+  return String::ScrubName(String::Handle(name()), is_extension_member());
 }
 
 RawString* Function::QualifiedName(NameVisibility name_visibility) const {
@@ -8679,7 +8761,7 @@ RawString* Field::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
   }
-  return String::ScrubName(String::Handle(name()));
+  return String::ScrubName(String::Handle(name()), is_extension_member());
 }
 
 intptr_t Field::guarded_list_length() const {

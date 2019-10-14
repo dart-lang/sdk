@@ -88,9 +88,10 @@ extension ext<T> on C<T> {
   }
 }
 
-checkExtensionKind(closure, kind) {
+checkExtensionKind(closure, kind, name) {
   var closureMirror = reflect(closure) as ClosureMirror;
   var methodMirror = closureMirror.function;
+  Expect.isTrue(methodMirror.simpleName.toString().contains(name));
   Expect.equals(kind, methodMirror.isExtensionMember, "isExtension");
 }
 
@@ -99,6 +100,7 @@ void testExtension(sym, mirror) {
     var methodMirror = mirror as MethodMirror;
     if (MirrorSystem.getName(sym).startsWith('ext', 0)) {
       Expect.equals(true, methodMirror.isExtensionMember, "isExtension");
+      Expect.isTrue(methodMirror.simpleName.toString().contains('ext.'));
     } else {
       Expect.equals(false, methodMirror.isExtensionMember, "isExtension");
     }
@@ -113,11 +115,11 @@ void testExtension(sym, mirror) {
 }
 
 main() {
-  checkExtensionKind(C.tracefunc, false);
+  checkExtensionKind(C.tracefunc, false, 'tracefunc');
 
   C c = new C();
-  checkExtensionKind(c.func, true);
-  checkExtensionKind(ext.sfunc, true);
+  checkExtensionKind(c.func, true, 'ext.func');
+  checkExtensionKind(ext.sfunc, true, 'ext.sfunc');
 
   var libraryMirror = reflectClass(C).owner as LibraryMirror;
   libraryMirror.declarations.forEach(testExtension);
