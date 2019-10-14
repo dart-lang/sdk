@@ -388,6 +388,176 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c[s] = 0;
     visitAssignmentTarget(findNode.index('c['), null, 'int');
   }
 
+  test_assignmentTarget_prefixedIdentifier_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d.x += 1;
+''');
+    visitAssignmentTarget(findNode.prefixed('d.x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_dynamic() async {
+    await analyze('''
+_f(dynamic d) => (d).x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('(d).x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_dynamic_notCompound() async {
+    await analyze('''
+_f(dynamic d) => (d).x = 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(d).x'), null, 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nonNullable_notCompound() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x = 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), null, 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'int?');
+  }
+
+  test_assignmentTarget_propertyAccess_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+  void set x(num/*?*/ value);
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'num?');
+  }
+
+  test_assignmentTarget_propertyAccess_getter_setter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+  void set x(num value);
+}
+_f(_C/*?*/ c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num',
+        nullChecked: {findNode.parenthesized('(c).x')});
+  }
+
+  test_assignmentTarget_propertyAccess_getter_setter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+  void set x(num/*!*/ value);
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_dynamic() async {
+    await analyze('''
+_f(dynamic d) => d?.x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('d?.x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'int?');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+  void set x(num/*!*/ value);
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'num');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+  void set x(num/*?*/ value);
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'num?');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  _E<T> get x;
+  void set x(_D<T> value);
+}
+class _D<T> implements Iterable<T> {
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  _D<T> operator+(int i) => this;
+}
+class _E<T> extends _D<T> {}
+_f(_C<int>/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('c?.x'), '_E<int>', '_D<int>');
+  }
+
+  test_assignmentTarget_propertyAccess_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  _E<T> get x;
+  void set x(_D<T> value);
+}
+class _D<T> implements Iterable<T> {
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  _D<T> operator+(int i) => this;
+}
+class _E<T> extends _D<T> {}
+_f(_C<int> c) => (c).x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('(c).x'), '_E<int>', '_D<int>');
+  }
+
   test_assignmentTarget_simpleIdentifier_field_generic() async {
     await analyze('''
 abstract class _C<T> {
@@ -1002,6 +1172,75 @@ _f(_C/*!*/ x) => x++;
     visitSubexpression(findNode.postfix('++'), '_C');
   }
 
+  test_prefixedIdentifier_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d.x;
+''');
+    visitSubexpression(findNode.prefixed('d.x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_prefixedIdentifier_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int');
+  }
+
+  test_prefixedIdentifier_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int?');
+  }
+
+  test_prefixedIdentifier_getter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+}
+_f(_C/*?*/ c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int',
+        nullChecked: {findNode.simple('c.x')});
+  }
+
+  test_prefixedIdentifier_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int');
+  }
+
+  test_prefixedIdentifier_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int?');
+  }
+
+  test_prefixedIdentifier_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int> c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'List<int>');
+  }
+
   test_prefixExpression_bang_flow() async {
     await analyze('''
 _f(int/*?*/ x) {
@@ -1173,6 +1412,133 @@ abstract class _C<T> {
 _f(_C<int> x) => ~x;
 ''');
     visitSubexpression(findNode.prefix('~x'), 'List<int>');
+  }
+
+  test_propertyAccess_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => (d).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_propertyAccess_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
+  }
+
+  test_propertyAccess_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
+  }
+
+  test_propertyAccess_getter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+}
+_f(_C/*?*/ c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int',
+        nullChecked: {findNode.parenthesized('(c).x')});
+  }
+
+  test_propertyAccess_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
+  }
+
+  test_propertyAccess_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('d?.x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_propertyAccess_nullAware_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int>/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'List<int>?');
+  }
+
+  test_propertyAccess_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int> c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
   }
 
   test_simpleIdentifier_className() async {

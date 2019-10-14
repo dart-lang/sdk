@@ -207,6 +207,18 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       }
       visitSubexpression(node.index, indexContext);
       return AssignmentTargetInfo(readType, writeType);
+    } else if (node is PropertyAccess) {
+      return _handleAssignmentTargetForPropertyAccess(node, node.target,
+          node.propertyName, _isNullAwareToken(node.operator.type), isCompound);
+    } else if (node is PrefixedIdentifier) {
+      if (node.prefix.staticElement is ImportElement) {
+        // TODO(paulberry)
+        throw UnimplementedError(
+            'TODO(paulberry): PrefixedIdentifier with a prefix');
+      } else {
+        return _handleAssignmentTargetForPropertyAccess(
+            node, node.prefix, node.identifier, false, isCompound);
+      }
     } else {
       throw UnimplementedError('TODO(paulberry)');
     }
@@ -403,6 +415,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   }
 
   @override
+  DartType visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.prefix.staticElement is ImportElement) {
+      // TODO(paulberry)
+      throw UnimplementedError(
+          'TODO(paulberry): PrefixedIdentifier with a prefix');
+    } else {
+      return _handlePropertyAccess(node, node.prefix, node.identifier, false);
+    }
+  }
+
+  @override
   DartType visitPrefixExpression(PrefixExpression node) {
     var operand = node.operand;
     switch (node.operator.type) {
@@ -430,6 +453,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       default:
         throw StateError('Unexpected prefix operator: ${node.operator}');
     }
+  }
+
+  @override
+  DartType visitPropertyAccess(PropertyAccess node) {
+    return _handlePropertyAccess(node, node.target, node.propertyName,
+        _isNullAwareToken(node.operator.type));
   }
 
   @override
@@ -594,6 +623,32 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     }
   }
 
+  AssignmentTargetInfo _handleAssignmentTargetForPropertyAccess(
+      Expression node,
+      Expression target,
+      SimpleIdentifier propertyName,
+      bool isNullAware,
+      bool isCompound) {
+    var targetType = visitSubexpression(target,
+        isNullAware ? _typeProvider.dynamicType : _typeProvider.objectType);
+    var writeElement = propertyName.staticElement;
+    DartType writeType;
+    DartType readType;
+    if (writeElement == null) {
+      writeType = _typeProvider.dynamicType;
+      readType = isCompound ? _typeProvider.dynamicType : null;
+    } else {
+      writeType = _computeMigratedType(writeElement, targetType: targetType);
+      if (isCompound) {
+        readType = _computeMigratedType(
+            propertyName.auxiliaryElements.staticElement,
+            targetType: targetType);
+      }
+      return AssignmentTargetInfo(readType, writeType);
+    }
+    return AssignmentTargetInfo(readType, writeType);
+  }
+
   DartType _handleIncrementOrDecrement(MethodElement combiner,
       AssignmentTargetInfo targetInfo, Expression node) {
     DartType combinedType;
@@ -612,6 +667,36 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
     }
     return combinedType;
+  }
+
+  DartType _handlePropertyAccess(Expression node, Expression target,
+      SimpleIdentifier propertyName, bool isNullAware) {
+    var staticElement = propertyName.staticElement;
+    var targetType = visitSubexpression(target,
+        isNullAware ? _typeProvider.dynamicType : _typeProvider.objectType);
+    if (staticElement == null) {
+      return _typeProvider.dynamicType;
+    } else {
+      var type = _computeMigratedType(staticElement, targetType: targetType);
+      if (isNullAware) {
+        return _typeSystem.makeNullable(type as TypeImpl);
+      } else {
+        return type;
+      }
+    }
+  }
+
+  bool _isNullAwareToken(TokenType tokenType) {
+    switch (tokenType) {
+      case TokenType.PERIOD:
+      case TokenType.PERIOD_PERIOD:
+        return false;
+      case TokenType.QUESTION_PERIOD:
+        return true;
+      default:
+        throw new UnimplementedError(
+            'TODO(paulberry): _isNullAwareToken($tokenType)');
+    }
   }
 
   /// Visits all the type arguments in a [TypeArgumentList] and returns the
