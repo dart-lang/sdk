@@ -7,7 +7,7 @@
 // All imports must be in all FFI patch files to not depend on the order
 // the patches are applied.
 import "dart:_internal" show patch;
-import 'dart:typed_data' show TypedData;
+import 'dart:typed_data';
 
 DynamicLibrary _open(String name) native "Ffi_dl_open";
 DynamicLibrary _processLibrary() native "Ffi_dl_processLibrary";
