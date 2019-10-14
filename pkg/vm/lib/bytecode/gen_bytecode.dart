@@ -59,6 +59,8 @@ import '../metadata/direct_call.dart'
     show DirectCallMetadata, DirectCallMetadataRepository;
 import '../metadata/inferred_type.dart'
     show InferredType, InferredTypeMetadataRepository;
+import '../metadata/obfuscation_prohibitions.dart'
+    show ObfuscationProhibitionsMetadataRepository;
 import '../metadata/procedure_attributes.dart'
     show ProcedureAttributesMetadata, ProcedureAttributesMetadataRepository;
 
@@ -193,6 +195,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     inferredTypeMetadata = component
         .metadata[InferredTypeMetadataRepository.repositoryTag]?.mapping;
+
+    final obfuscationProhibitionsMetadataRepository = component
+        .metadata[ObfuscationProhibitionsMetadataRepository.repositoryTag];
+    if (obfuscationProhibitionsMetadataRepository != null) {
+      bytecodeComponent.protectedNames =
+          obfuscationProhibitionsMetadataRepository
+              .mapping[component]?.protectedNames;
+    }
   }
 
   @override
@@ -249,7 +259,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         source = bytecodeComponent.uriToSource[uri];
         if (source == null) {
           final importUri =
-              objectTable.getNameHandle(null, astSource.importUri.toString());
+              objectTable.getConstStringHandle(astSource.importUri.toString());
           source = new SourceFile(importUri);
           bytecodeComponent.sourceFiles.add(source);
           bytecodeComponent.uriToSource[uri] = source;
@@ -276,7 +286,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   LibraryDeclaration getLibraryDeclaration(
       Library library, List<ClassDeclaration> classes) {
     final importUri =
-        objectTable.getNameHandle(null, library.importUri.toString());
+        objectTable.getConstStringHandle(library.importUri.toString());
     int flags = 0;
     for (var dependency in library.dependencies) {
       final targetLibrary = dependency.targetLibrary;
@@ -287,10 +297,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= LibraryDeclaration.usesDartFfiFlag;
       }
     }
-    final name = objectTable.getNameHandle(null, library.name ?? '');
+    final name = objectTable.getPublicNameHandle(library.name ?? '');
     final script = getScript(library.fileUri, true);
     final extensionUris =
-        objectTable.getPublicNameHandles(getNativeExtensionUris(library));
+        objectTable.getConstStringHandles(getNativeExtensionUris(library));
     if (extensionUris.isNotEmpty) {
       flags |= LibraryDeclaration.hasExtensionsFlag;
     }
@@ -380,7 +390,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
 
-    final nameHandle = objectTable.getNameHandle(null, topLevelClassName);
+    final nameHandle = objectTable.getPublicNameHandle(topLevelClassName);
     final script = getScript(library.fileUri, true);
 
     final classDeclaration = new ClassDeclaration(
@@ -710,7 +720,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FunctionDeclaration.isExternalFlag;
       } else {
         flags |= FunctionDeclaration.isNativeFlag;
-        nativeName = objectTable.getNameHandle(null, externalName);
+        nativeName = objectTable.getConstStringHandle(externalName);
       }
     }
     int position = TreeNode.noOffset;
@@ -1825,7 +1835,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         assert(numOptionalNamed != 0);
         for (int i = 0; i < numOptionalNamed; i++) {
           final param = locals.sortedNamedParameters[i];
-          asm.emitLoadConstant(numFixed + i, cp.addString(param.name));
+          asm.emitLoadConstant(numFixed + i, cp.addName(param.name));
           asm.emitLoadConstant(numFixed + i, _getDefaultParamConstIndex(param));
         }
       }
@@ -2030,7 +2040,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         isCaptured
             ? locals.getVarIndexInContext(variable)
             : locals.getVarIndexInFrame(variable),
-        cp.addString(variable.name),
+        cp.addName(variable.name),
         cp.addType(variable.type),
         variable.fileOffset,
         initializedPosition);
@@ -2276,7 +2286,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
     asm.emitPushConstant(cp.addType(bound));
-    asm.emitPushConstant(cp.addString(typeParam.name));
+    asm.emitPushConstant(cp.addName(typeParam.name));
     asm.emitAssertSubtype();
   }
 
@@ -2294,11 +2304,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitDrop1();
   }
 
-  void _genAssertAssignable(DartType type, {String name = ''}) {
+  void _genAssertAssignable(DartType type, {String name, String message}) {
     assert(!typeEnvironment.isTop(type));
     asm.emitPushConstant(cp.addType(type));
     _genPushInstantiatorAndFunctionTypeArguments([type]);
-    asm.emitPushConstant(cp.addString(name));
+    asm.emitPushConstant(
+        name != null ? cp.addName(name) : cp.addString(message));
     bool isIntOk = typeEnvironment.isSubtypeOf(
         typeEnvironment.coreTypes.intLegacyRawType,
         type,
@@ -2451,11 +2462,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final List<NameAndType> parameters = <NameAndType>[];
     for (var v in function.positionalParameters) {
-      parameters.add(new NameAndType(objectTable.getNameHandle(null, v.name),
+      parameters.add(new NameAndType(objectTable.getPublicNameHandle(v.name),
           objectTable.getHandle(v.type)));
     }
     for (var v in function.namedParameters) {
-      parameters.add(new NameAndType(objectTable.getNameHandle(null, v.name),
+      parameters.add(new NameAndType(objectTable.getPublicNameHandle(v.name),
           objectTable.getHandle(v.type)));
     }
     if (function.requiredParameterCount != parameters.length) {
@@ -2475,7 +2486,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return new ClosureDeclaration(
         flags,
         objectTable.getHandle(parent),
-        objectTable.getNameHandle(null, name),
+        objectTable.getPublicNameHandle(name),
         position,
         endPosition,
         typeParams,
@@ -2758,7 +2769,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushReceiver();
 
     // Argument 0 for _allocateInvocationMirror(): function name.
-    asm.emitPushConstant(cp.addString(name));
+    asm.emitPushConstant(cp.addName(name));
 
     // Argument 1 for _allocateInvocationMirror(): arguments descriptor.
     asm.emitPushConstant(argDescCpIndex);
@@ -2791,7 +2802,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    _genAssertAssignable(type, name: node.isTypeError ? '' : symbolForTypeCast);
+    _genAssertAssignable(type,
+        message: node.isTypeError ? '' : symbolForTypeCast);
   }
 
   @override

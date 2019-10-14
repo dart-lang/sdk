@@ -235,7 +235,7 @@ class BytecodeReaderHelper : public ValueObject {
   ActiveClass* const active_class_;
   Thread* const thread_;
   Zone* const zone_;
-  BytecodeComponentData* const bytecode_component_;
+  BytecodeComponentData* bytecode_component_;
   Array* closures_ = nullptr;
   const TypeArguments* function_type_type_parameters_ = nullptr;
   GrowableObjectArray* pending_recursive_types_ = nullptr;
