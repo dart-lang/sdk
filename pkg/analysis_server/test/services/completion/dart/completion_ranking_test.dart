@@ -20,7 +20,7 @@ void main() {
     final tokens =
         tokenize('if (list == null) { return; } for (final i = 0; i < list.');
     final response = await ranking.makeRequest('predict', tokens);
-    expect(response['data']['length'], greaterThan(0.95));
+    expect(response['data']['length'], greaterThan(0.85));
   });
 }
 

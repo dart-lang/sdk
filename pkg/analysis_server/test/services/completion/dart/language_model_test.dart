@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
     '..', '..', '..', 'language_model', 'lexeme');
-const expectedLookback = 100;
+const expectedLookback = 50;
 
 void main() {
   if (sizeOf<IntPtr>() == 4) {
@@ -47,7 +47,7 @@ void main() {
     final suggestions = model.predictWithScores(tokens);
     final best = suggestions.entries.first;
     expect(best.key, 'length');
-    expect(best.value, greaterThan(0.8));
+    expect(best.value, greaterThan(0.85));
     expect(suggestions, hasLength(model.completions));
   });
 

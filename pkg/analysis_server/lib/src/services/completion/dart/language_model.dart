@@ -13,6 +13,7 @@ import 'package:tflite_native/tflite.dart' as tfl;
 /// Interface to TensorFlow-based Dart language model for next-token prediction.
 class LanguageModel {
   static const _defaultCompletions = 100;
+  static final _numeric = RegExp(r'^\d+(.\d+)?$');
 
   final tfl.Interpreter _interpreter;
   final Map<String, int> _word2idx;
@@ -63,48 +64,71 @@ class LanguageModel {
   /// Predicts the next token to follow a list of precedent tokens
   ///
   /// Returns a list of tokens, sorted by most probable first.
-  List<String> predict(Iterable<String> tokens) =>
+  List<String> predict(List<String> tokens) =>
       predictWithScores(tokens).keys.toList();
 
   /// Predicts the next token with confidence scores.
   ///
   /// Returns an ordered map of tokens to scores, sorted by most probable first.
-  Map<String, double> predictWithScores(Iterable<String> tokens) {
+  Map<String, double> predictWithScores(List<String> tokens) {
     final tensorIn = _interpreter.getInputTensors().single;
     tensorIn.data = _transformInput(tokens);
     _interpreter.invoke();
     final tensorOut = _interpreter.getOutputTensors().single;
-    return _transformOutput(tensorOut.data);
+    return _transformOutput(tensorOut.data, tokens);
   }
 
   /// Transforms tokens to data bytes that can be used as interpreter input.
-  List<int> _transformInput(Iterable<String> tokens) {
+  List<int> _transformInput(List<String> tokens) {
     // Replace out of vocabulary tokens.
-    final sanitizedTokens = tokens
-        .map((token) => _word2idx.containsKey(token) ? token : '<unknown>');
-
+    final sanitizedTokens = tokens.map((token) {
+      if (_word2idx.containsKey(token)) {
+        return token;
+      }
+      if (_numeric.hasMatch(token)) {
+        return '<num>';
+      }
+      if (_isString(token)) {
+        return '<str>';
+      }
+      return '<unk>';
+    });
     // Get indexes (as floats).
     final indexes = Float32List(lookback)
       ..setAll(0, sanitizedTokens.map((token) => _word2idx[token].toDouble()));
-
     // Get bytes
     return Uint8List.view(indexes.buffer);
   }
 
   /// Transforms interpreter output data to map of tokens to scores.
-  Map<String, double> _transformOutput(List<int> databytes) {
+  Map<String, double> _transformOutput(
+      List<int> databytes, List<String> tokens) {
     // Get bytes.
     final bytes = Uint8List.fromList(databytes);
 
     // Get scores (as floats)
     final probabilities = Float32List.view(bytes.buffer);
 
-    // Get indexes with scores, sorted by scores (descending)
-    final entries = probabilities.asMap().entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final scores = Map<String, double>();
+    probabilities.asMap().forEach((k, v) {
+      // x in 0, 1, ..., |V| - 1 correspond to specific members of the vocabulary.
+      // x in |V|, |V| + 1, ..., |V| + 49 are pointers to reference positions along the
+      // network input.
+      if (k >= _idx2word.length + tokens.length) {
+        return;
+      }
+      final lexeme =
+          k < _idx2word.length ? _idx2word[k] : tokens[k - _idx2word.length];
+      final sanitized = lexeme.replaceAll('"', '\'');
+      scores[sanitized] = (scores[sanitized] ?? 0.0) + v;
+    });
 
-    // Get tokens with scores, limiting the length.
-    return Map.fromEntries(entries.sublist(0, completions))
-        .map((k, v) => MapEntry(_idx2word[k].replaceAll('"', '\''), v));
+    final entries = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return Map.fromEntries(entries.sublist(0, completions));
+  }
+
+  bool _isString(String token) {
+    return token.indexOf('"') != -1 || token.indexOf("'") != -1;
   }
 }

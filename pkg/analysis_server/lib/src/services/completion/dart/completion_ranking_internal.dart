@@ -174,6 +174,12 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
       size < n && token != null && !token.isEof;
       token = token.previous) {
     if (!token.isSynthetic && token is! ErrorToken) {
+      // Omit the optional new keyword as we remove it at training time to
+      // prevent model from suggesting it.
+      if (token.lexeme == 'new') {
+        continue;
+      }
+
       result.add(token.lexeme);
       size += 1;
     }
