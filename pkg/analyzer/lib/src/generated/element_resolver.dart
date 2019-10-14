@@ -1766,6 +1766,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
         var setter = result.setter;
         if (setter != null) {
           propertyName.staticElement = setter;
+          propertyName.auxiliaryElements =
+              AuxiliaryElements(result.getter, null);
         } else {
           var getter = result.getter;
           propertyName.staticElement = getter;
