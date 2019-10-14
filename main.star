@@ -21,11 +21,15 @@ TEST_PY_PATHS = "pkg/(async_helper|expect|smith|status_file|test_runner)/.+"
 
 STANDARD_PATHS = [
     "DEPS",  # DEPS catches most third_party changes.
+    # build files
     "build/.+",
+    "BUILD.gn",
+    "sdk_args.gni",
     # core libraries
     "sdk(_nnbd)?/.+",
     # testing
     TEST_PY_PATHS,
+    "tools/bots/test_matrix.json",
     # tests
     "tests/.+",
 ]
@@ -39,6 +43,7 @@ VM_PATHS = STANDARD_PATHS + [
 DART2JS_PATHS = STANDARD_PATHS + [
     # compiler sources
     "pkg/(compiler|dart2js_tools|front_end|kernel|js_ast)/.+",
+    "utils/compiler/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing)/.+",
 ]
@@ -46,6 +51,7 @@ DART2JS_PATHS = STANDARD_PATHS + [
 DDC_PATHS = STANDARD_PATHS + [
     # compiler sources
     "pkg/(analyzer|build_integration|dev_compiler|front_end|kernel|meta)/.+",
+    "utils/dartdevc/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing|testing)/.+",
 ]
