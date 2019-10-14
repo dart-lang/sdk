@@ -83,7 +83,7 @@ class StaticError implements Comparable<StaticError> {
   /// Determines whether all [actualErrors] match the given [expectedErrors].
   ///
   /// If they match, returns `null`. Otherwise returns a string describing the
-  /// mismatches. This for a human-friendly explanation of the difference
+  /// mismatches. This is a human-friendly explanation of the difference
   /// between the two sets of errors, while also being simple to implement.
   /// An expected error that is completely identical to an actual error is
   /// treated as a match. Everything else is a failure.
@@ -130,14 +130,20 @@ class StaticError implements Comparable<StaticError> {
             actualIndex < sortedActual.length;) {
       var expected = sortedExpected[expectedIndex];
       var actual = sortedActual[actualIndex];
+
       var differences = expected.describeDifferences(actual);
       if (differences == null) {
-        expectedIndex++;
+        // Consume this actual error.
         actualIndex++;
-        continue;
-      }
 
-      if (expected.line == actual.line) {
+        // Consume the expectation, unless it's an unspecified error that can
+        // match more actual errors.
+        if (expected.isSpecifiedFor(actual) ||
+            actualIndex == sortedActual.length ||
+            sortedActual[actualIndex].line != expected.line) {
+          expectedIndex++;
+        }
+      } else if (expected.line == actual.line) {
         buffer.writeln("Wrong static error at ${expected.location}:");
         for (var difference in differences) {
           buffer.writeln("- $difference");
@@ -264,6 +270,13 @@ class StaticError implements Comparable<StaticError> {
     return thisMessage.compareTo(otherMessage);
   }
 
+  /// Whether this error expectation is a specified error for the front end
+  /// reported by [actual].
+  bool isSpecifiedFor(StaticError actual) {
+    if (actual.isAnalyzer) return isAnalyzer && code != _unspecified;
+    return isCfe && message != _unspecified;
+  }
+
   /// Compares this error expectation to [actual].
   ///
   /// If this error correctly matches [actual], returns `null`. Otherwise
@@ -285,9 +298,7 @@ class StaticError implements Comparable<StaticError> {
 
     // If the error is unspecified on the front end being tested, the column
     // and length can be any values.
-    var requirePreciseLocation = code != _unspecified && actual.isAnalyzer ||
-        message != _unspecified && actual.isCfe;
-    if (requirePreciseLocation) {
+    if (isSpecifiedFor(actual)) {
       if (column != actual.column) {
         differences
             .add("Expected on column $column but was on ${actual.column}.");
