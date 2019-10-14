@@ -518,9 +518,23 @@ class Float extends NativeType {
 class Double extends NativeType {
   const Double();
 }
-class Pointer<T extends NativeType> extends NativeType {}
+class Pointer<T extends NativeType> extends NativeType {
+  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+      @DartRepresentationOf("T") Function f,
+      [Object exceptionalReturn]);
+  R asFunction<@DartRepresentationOf("T") R extends Function>();
+}
 class Struct<S extends NativeType> extends NativeType {}
-    ''',
+
+abstract class DynamicLibrary {
+  F lookupFunction<T extends Function, F extends Function>(String symbolName);
+}
+abstract class NativeFunction<T extends Function> extends NativeType {}
+
+class DartRepresentationOf {
+  const DartRepresentationOf(String nativeType);
+}
+''',
   )
 ]);
 

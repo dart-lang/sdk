@@ -6,16 +6,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
 class FfiVerifier extends RecursiveAstVisitor<void> {
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager3 _inheritance;
+  /// The type system used to check types.
+  final TypeSystem typeSystem;
 
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
@@ -25,7 +26,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool inStruct = false;
 
   /// Initialize a newly created verifier.
-  FfiVerifier(this._inheritance, this._errorReporter);
+  FfiVerifier(this.typeSystem, this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -123,10 +124,20 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     Element element = node.methodName.staticElement;
-    if (element is MethodElement &&
-        element.name == 'asFunction' &&
-        _isPointer(element.enclosingElement)) {
-      element.type.typeArguments;
+    if (element is MethodElement) {
+      Element enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement) {
+        if (_isPointer(enclosingElement)) {
+          if (element.name == 'asFunction') {
+            _validateAsFunction(node, element);
+          } else if (element.name == 'fromFunction') {
+            _validateFromFunction(node, element);
+          }
+        } else if (_isDynamicLibrary(enclosingElement) &&
+            element.name == 'lookupFunction') {
+          _validateLookupFunction(node);
+        }
+      }
     }
     super.visitMethodInvocation(node);
   }
@@ -142,6 +153,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     return element is ClassElement && element.library.name == 'dart.ffi';
   }
+
+  /// Return `true` if the given [element] represents the class
+  /// `DynamicLibrary`.
+  bool _isDynamicLibrary(ClassElement element) =>
+      element.name == 'DynamicLibrary' && element.library.name == 'dart.ffi';
 
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(ClassElement element) =>
@@ -236,9 +252,57 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Validate the invocation of the instance method
+  /// `Pointer<T>.asFunction<F>()`.
+  void _validateAsFunction(MethodInvocation node, MethodElement element) {
+    NodeList<TypeAnnotation> typeArguments = node.typeArguments?.arguments;
+    if (typeArguments != null && typeArguments.length == 1) {
+      if (_validateTypeArgument(typeArguments[0], 'asFunction')) {
+        return;
+      }
+    }
+    Expression target = node.realTarget;
+    DartType targetType = target.staticType;
+    if (targetType is InterfaceType &&
+        _isPointer(targetType.element) &&
+        targetType.typeArguments.length == 1) {
+      DartType T = targetType.typeArguments[0];
+      if (T is InterfaceTypeImpl) {
+        ClassElement nativeFunctionElement =
+            element.enclosingElement.library.getType('NativeFunction');
+        InterfaceType nativeFunctionType =
+            T.asInstanceOf(nativeFunctionElement);
+        if (nativeFunctionType == null) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, target);
+        } else {
+          DartType TPrime = nativeFunctionType.typeArguments[0];
+          if (TPrime is TypeParameterType) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER, target);
+          } else {
+            DartType F = node.typeArgumentTypes[0];
+            if (!typeSystem.isSubtypeOf(TPrime, F)) {
+              _errorReporter.reportTypeErrorForNode(
+                  FfiCode.MUST_BE_A_SUBTYPE,
+                  typeArguments[0],
+                  [TPrime.displayName, F.displayName, 'asFunction']);
+            }
+          }
+        }
+      } else if (T is TypeParameterType) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER, target);
+      }
+    }
+  }
+
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct class.
   void _validateFieldsInStruct(FieldDeclaration node) {
+    if (node.isStatic) {
+      return;
+    }
     VariableDeclarationList fields = node.fields;
     NodeList<Annotation> annotations = node.metadata;
     TypeAnnotation fieldType = fields.type;
@@ -266,6 +330,71 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Validate the invocation of the static method
+  /// `Pointer<T>.fromFunction(f, e)`.
+  void _validateFromFunction(MethodInvocation node, MethodElement element) {
+    int argCount = node.argumentList.arguments.length;
+    if (argCount < 1 || argCount > 2) {
+      // There are other diagnostics reported against the invocation and the
+      // diagnostics generated below might be inaccurate, so don't report them.
+      return;
+    }
+    DartType T = node.typeArgumentTypes[0];
+    if (T is FunctionType) {
+      Expression f = node.argumentList.arguments[0];
+      if (!typeSystem.isSubtypeOf(f.staticType, T)) {
+        _errorReporter.reportTypeErrorForNode(
+            FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
+      }
+      // TODO(brianwilkerson) Validate that `f` is a top-level function.
+      DartType R = T.returnType;
+      if (R.isVoid || _isPointer(R.element)) {
+        if (argCount != 1) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
+        }
+      } else if (argCount != 2) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
+      } else {
+        Expression e = node.argumentList.arguments[1];
+        // TODO(brianwilkerson) Validate that `e` is a constant expression.
+        if (!typeSystem.isSubtypeOf(e.staticType, R)) {
+          _errorReporter.reportTypeErrorForNode(
+              FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
+        }
+      }
+    } else if (T is TypeParameterType) {
+      _errorReporter.reportErrorForNode(FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
+          node.typeArguments.arguments[0], ['fromFunction']);
+    }
+  }
+
+  /// Validate the invocation of the instance method
+  /// `DynamicLibrary.lookupFunction<S, F>()`.
+  void _validateLookupFunction(MethodInvocation node) {
+    NodeList<TypeAnnotation> typeArguments = node.typeArguments?.arguments;
+    if (typeArguments != null && typeArguments.length == 2) {
+      if (_validateTypeArgument(typeArguments[0], 'lookupFunction') ||
+          _validateTypeArgument(typeArguments[1], 'lookupFunction')) {
+        return;
+      }
+    }
+    List<DartType> argTypes = node.typeArgumentTypes;
+    DartType S = argTypes[0];
+    DartType F = argTypes[1];
+    if (!typeSystem.isSubtypeOf(S, F)) {
+      AstNode errorNode;
+      if (typeArguments != null && typeArguments.length >= 2) {
+        errorNode = typeArguments[1];
+      } else {
+        errorNode = node.typeArguments;
+      }
+      _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE,
+          errorNode, [S.displayName, F.displayName, 'lookupFunction']);
+    }
+  }
+
   /// Validate that none of the [annotations] are from `dart:ffi`.
   void _validateNoAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
@@ -274,6 +403,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             FfiCode.ANNOTATION_ON_POINTER_FIELD, annotation);
       }
     }
+  }
+
+  /// Validate that the given [typeArgument] has a constant value. Return `true`
+  /// if a diagnostic was produced because it isn't constant.
+  bool _validateTypeArgument(TypeAnnotation typeArgument, String functionName) {
+    if (typeArgument.type is TypeParameterType) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.NON_CONSTANT_TYPE_ARGUMENT, typeArgument, [functionName]);
+      return true;
+    }
+    return false;
   }
 }
 

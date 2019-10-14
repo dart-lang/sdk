@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class FieldInStructWithInitializerTest extends DriverResolutionTest {
-  test_withInitializer() async {
+  test_instance_withInitializer() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct<C> {
@@ -26,11 +26,20 @@ class C extends Struct<C> {
     ]);
   }
 
-  test_withoutInitializer() async {
+  test_instance_withoutInitializer() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct<C> {
   Pointer p;
+}
+''');
+  }
+
+  test_static_withInitializer() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Struct<C> {
+  static String str = '';
 }
 ''');
   }

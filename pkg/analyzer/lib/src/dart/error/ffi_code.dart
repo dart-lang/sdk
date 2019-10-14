@@ -54,6 +54,17 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try removing the type parameters from '{0}'.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode INVALID_EXCEPTION_VALUE = const FfiCode(
+      name: 'INVALID_EXCEPTION_VALUE',
+      message:
+          "The method 'Pointer.fromFunction' must not have an exceptional return "
+          "value (the second argument) when the return type of the function is "
+          "either 'void' or 'Pointer'.",
+      correction: "Try removing the exceptional return value.");
+
+  /**
    * Parameters:
    * 0: the type of the field
    */
@@ -93,6 +104,17 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try adding an annotation.");
 
   /**
+   * No parameters.
+   */
+  static const FfiCode MISSING_EXCEPTION_VALUE = const FfiCode(
+      name: 'MISSING_EXCEPTION_VALUE',
+      message:
+          "The method 'Pointer.fromFunction' must have an exceptional return "
+          "value (the second argument) when the return type of the function is "
+          "neither 'void' or 'Pointer'.",
+      correction: "Try adding an exceptional return value.");
+
+  /**
    * Parameters:
    * 0: the type of the field
    */
@@ -113,6 +135,50 @@ class FfiCode extends AnalyzerErrorCode {
           "The type 'Struct' must have a type argument matching the subclass "
           "('{0}').",
       correction: "Try adding a type argument of '{0}'.");
+
+  /**
+   * Parameters:
+   * 0: the type that should be a subtype
+   * 1: the supertype that the subtype is compared to
+   * 2: the name of the function whose invocation depends on this relationship
+   */
+  static const FfiCode MUST_BE_A_SUBTYPE = const FfiCode(
+      name: 'MUST_BE_A_SUBTYPE',
+      message: "The type '{0}' must be a subtype of '{1}' for '{2}'.",
+      correction: "Try changing one or both of the type arguments.");
+
+  /**
+   * Parameters:
+   * 0: the name of the function, method, or constructor having type arguments 
+   */
+  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = const FfiCode(
+      name: 'NON_CONSTANT_TYPE_ARGUMENT',
+      message:
+          "The type arguments to '{0}' must be compile time constants but type "
+          "parameters are not constants.",
+      correction: "Try changing the type argument to be a constant type.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER = const FfiCode(
+      name: 'NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER',
+      message:
+          "The type argument for the pointer must be a compile time constant "
+          "but type parameters are not constants.",
+      correction: "Try changing the type argument to be a constant type.");
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER =
+      const FfiCode(
+          name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
+          message:
+              "The type argument for the pointer must be a 'NativeFunction' in "
+              "order to use 'asFunction'.",
+          correction:
+              "Try changing the type argument to be a 'NativeFunction'.");
 
   /**
    * Parameters:

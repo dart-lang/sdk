@@ -126,6 +126,7 @@ import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
 import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
@@ -182,6 +183,7 @@ import 'missing_annotation_on_struct_field_test.dart'
 import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_parameter;
 import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
+import 'missing_exception_value_test.dart' as missing_exception_value;
 import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
@@ -193,6 +195,7 @@ import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
+import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'new_with_abstract_class_test.dart' as new_with_abstract_class;
@@ -217,6 +220,11 @@ import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
+import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
+import 'non_constant_type_argument_to_pointer_test.dart'
+    as non_constant_type_argument_to_pointer;
+import 'non_native_function_type_argument_to_pointer_test.dart'
+    as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
 import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
@@ -436,6 +444,7 @@ main() {
     instance_access_to_static_member.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_exception_value.main();
     invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
@@ -473,6 +482,7 @@ main() {
     missing_annotation_on_struct_field.main();
     missing_default_value_for_parameter.main();
     missing_enum_value_in_switch.main();
+    missing_exception_value.main();
     missing_field_type_in_struct.main();
     missing_js_lib_annotation.main();
     missing_required_param.main();
@@ -482,6 +492,7 @@ main() {
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
+    must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
     new_with_abstract_class.main();
@@ -500,6 +511,9 @@ main() {
     non_constant_map_value.main();
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
+    non_constant_type_argument.main();
+    non_constant_type_argument_to_pointer.main();
+    non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
     non_void_return_for_operator.main();

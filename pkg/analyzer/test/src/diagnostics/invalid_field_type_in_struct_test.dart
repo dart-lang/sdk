@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class InvalidFieldTypeInStructTest extends DriverResolutionTest {
-  test_invalid() async {
+  test_instance_invalid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct<C> {
@@ -26,11 +26,20 @@ class C extends Struct<C> {
     ]);
   }
 
-  test_valid() async {
+  test_instance_valid() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct<C> {
   Pointer p;
+}
+''');
+  }
+
+  test_static() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Struct<C> {
+  static String str;
 }
 ''');
   }
