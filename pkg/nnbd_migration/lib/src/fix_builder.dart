@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Information about the target of an assignment expression analyzed by
@@ -66,12 +67,13 @@ class CompoundAssignmentReadNullable implements Problem {
 /// to figure out what changes need to be made to the code.  It doesn't actually
 /// make the changes; it simply reports what changes are necessary through
 /// abstract methods.
-abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
+abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
+    with ResolutionUtils {
   /// The decorated class hierarchy for this migration run.
   final DecoratedClassHierarchy _decoratedClassHierarchy;
 
   /// Type provider providing non-nullable types.
-  final TypeProvider _typeProvider;
+  final TypeProvider typeProvider;
 
   /// The type system.
   final TypeSystem _typeSystem;
@@ -97,7 +99,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   FixBuilder(this.source, this._decoratedClassHierarchy,
       TypeProvider typeProvider, this._typeSystem, this._variables)
-      : _typeProvider = (typeProvider as TypeProviderImpl)
+      : typeProvider = (typeProvider as TypeProviderImpl)
             .withNullability(NullabilitySuffix.none);
 
   /// Called whenever a type annotation is found for which a `?` needs to be
@@ -146,8 +148,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       var combiner = node.staticElement;
       DartType combinedType;
       if (combiner == null) {
-        visitSubexpression(node.rightHandSide, _typeProvider.dynamicType);
-        combinedType = _typeProvider.dynamicType;
+        visitSubexpression(node.rightHandSide, typeProvider.dynamicType);
+        combinedType = typeProvider.dynamicType;
       } else {
         if (_typeSystem.isNullable(targetInfo.readType)) {
           addProblem(node, const CompoundAssignmentReadNullable());
@@ -180,16 +182,15 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
           : _computeMigratedType(auxiliaryElements.staticElement);
       return AssignmentTargetInfo(isCompound ? readType : null, writeType);
     } else if (node is IndexExpression) {
-      var targetType =
-          visitSubexpression(node.target, _typeProvider.objectType);
+      var targetType = visitSubexpression(node.target, typeProvider.objectType);
       var writeElement = node.staticElement;
       DartType indexContext;
       DartType writeType;
       DartType readType;
       if (writeElement == null) {
         indexContext = UnknownInferredType.instance;
-        writeType = _typeProvider.dynamicType;
-        readType = isCompound ? _typeProvider.dynamicType : null;
+        writeType = typeProvider.dynamicType;
+        readType = isCompound ? typeProvider.dynamicType : null;
       } else {
         var writerType =
             _computeMigratedType(writeElement, targetType: targetType)
@@ -233,20 +234,20 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     switch (operatorType) {
       case TokenType.BANG_EQ:
       case TokenType.EQ_EQ:
-        visitSubexpression(leftOperand, _typeProvider.dynamicType);
+        visitSubexpression(leftOperand, typeProvider.dynamicType);
         _flowAnalysis.equalityOp_rightBegin(leftOperand);
-        visitSubexpression(rightOperand, _typeProvider.dynamicType);
+        visitSubexpression(rightOperand, typeProvider.dynamicType);
         _flowAnalysis.equalityOp_end(node, rightOperand,
             notEqual: operatorType == TokenType.BANG_EQ);
-        return _typeProvider.boolType;
+        return typeProvider.boolType;
       case TokenType.AMPERSAND_AMPERSAND:
       case TokenType.BAR_BAR:
         var isAnd = operatorType == TokenType.AMPERSAND_AMPERSAND;
-        visitSubexpression(leftOperand, _typeProvider.boolType);
+        visitSubexpression(leftOperand, typeProvider.boolType);
         _flowAnalysis.logicalBinaryOp_rightBegin(leftOperand, isAnd: isAnd);
-        visitSubexpression(rightOperand, _typeProvider.boolType);
+        visitSubexpression(rightOperand, typeProvider.boolType);
         _flowAnalysis.logicalBinaryOp_end(node, rightOperand, isAnd: isAnd);
-        return _typeProvider.boolType;
+        return typeProvider.boolType;
       case TokenType.QUESTION_QUESTION:
         // If `a ?? b` is used in a non-nullable context, we don't want to
         // migrate it to `(a ?? b)!`.  We want to migrate it to `a ?? b!`.
@@ -259,12 +260,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
             _typeSystem.promoteToNonNull(leftType as TypeImpl), rightType);
       default:
         var targetType =
-            visitSubexpression(leftOperand, _typeProvider.objectType);
+            visitSubexpression(leftOperand, typeProvider.objectType);
         DartType contextType;
         DartType returnType;
         if (staticElement == null) {
-          contextType = _typeProvider.dynamicType;
-          returnType = _typeProvider.dynamicType;
+          contextType = typeProvider.dynamicType;
+          returnType = typeProvider.dynamicType;
         } else {
           var methodType =
               _computeMigratedType(staticElement, targetType: targetType)
@@ -287,7 +288,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
-    visitSubexpression(node.condition, _typeProvider.boolType);
+    visitSubexpression(node.condition, typeProvider.boolType);
     _flowAnalysis.conditional_thenBegin(node.condition);
     var thenType = visitSubexpression(node.thenExpression, _contextType);
     _flowAnalysis.conditional_elseBegin(node.thenExpression);
@@ -304,7 +305,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   @override
   DartType visitIfStatement(IfStatement node) {
-    visitSubexpression(node.condition, _typeProvider.boolType);
+    visitSubexpression(node.condition, typeProvider.boolType);
     _flowAnalysis.ifStatement_thenBegin(node.condition);
     node.thenStatement.accept(this);
     bool hasElse = node.elseStatement != null;
@@ -321,12 +322,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     var target = node.target;
     var staticElement = node.staticElement;
     var index = node.index;
-    var targetType = visitSubexpression(target, _typeProvider.objectType);
+    var targetType = visitSubexpression(target, typeProvider.objectType);
     DartType contextType;
     DartType returnType;
     if (staticElement == null) {
-      contextType = _typeProvider.dynamicType;
-      returnType = _typeProvider.dynamicType;
+      contextType = typeProvider.dynamicType;
+      returnType = typeProvider.dynamicType;
     } else {
       var methodType =
           _computeMigratedType(staticElement, targetType: targetType)
@@ -362,7 +363,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       }
     }
     if (typeArguments != null) {
-      return _typeProvider.listType2(contextType);
+      return typeProvider.listType2(contextType);
     } else {
       throw UnimplementedError(
           'TODO(paulberry): infer list type based on contents');
@@ -391,7 +392,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   @override
   DartType visitNullLiteral(NullLiteral node) {
     _flowAnalysis.nullLiteral(node);
-    return _typeProvider.nullType;
+    return typeProvider.nullType;
   }
 
   @override
@@ -430,15 +431,15 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     var operand = node.operand;
     switch (node.operator.type) {
       case TokenType.BANG:
-        visitSubexpression(operand, _typeProvider.boolType);
+        visitSubexpression(operand, typeProvider.boolType);
         _flowAnalysis.logicalNot_end(node, operand);
-        return _typeProvider.boolType;
+        return typeProvider.boolType;
       case TokenType.MINUS:
       case TokenType.TILDE:
-        var targetType = visitSubexpression(operand, _typeProvider.objectType);
+        var targetType = visitSubexpression(operand, typeProvider.objectType);
         var staticElement = node.staticElement;
         if (staticElement == null) {
-          return _typeProvider.dynamicType;
+          return typeProvider.dynamicType;
         } else {
           var methodType =
               _computeMigratedType(staticElement, targetType: targetType)
@@ -466,7 +467,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     assert(!node.inSetterContext(),
         'Should use visitAssignmentTarget in setter contexts');
     var element = node.staticElement;
-    if (element == null) return _typeProvider.dynamicType;
+    if (element == null) return typeProvider.dynamicType;
     if (element is PromotableElement) {
       var promotedType = _flowAnalysis.variableRead(node, element);
       if (promotedType != null) return promotedType;
@@ -494,9 +495,9 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
 
   @override
   DartType visitThrowExpression(ThrowExpression node) {
-    visitSubexpression(node.expression, _typeProvider.objectType);
+    visitSubexpression(node.expression, typeProvider.objectType);
     _flowAnalysis.handleExit();
-    return _typeProvider.neverType;
+    return typeProvider.neverType;
   }
 
   @override
@@ -564,23 +565,23 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
     }
     DartType type;
     if (baseElement is ClassElement || baseElement is TypeParameterElement) {
-      return _typeProvider.typeType;
+      return typeProvider.typeType;
     } else if (baseElement is PropertyAccessorElement) {
       if (baseElement.isSynthetic) {
         type = _variables
             .decoratedElementType(baseElement.variable)
-            .toFinalType(_typeProvider);
+            .toFinalType(typeProvider);
       } else {
         var functionType = _variables.decoratedElementType(baseElement);
         var decoratedType = baseElement.isGetter
             ? functionType.returnType
             : functionType.positionalParameters[0];
-        type = decoratedType.toFinalType(_typeProvider);
+        type = decoratedType.toFinalType(typeProvider);
       }
     } else {
       type = _variables
           .decoratedElementType(baseElement)
-          .toFinalType(_typeProvider);
+          .toFinalType(typeProvider);
     }
     if (targetType is InterfaceType && targetType.typeArguments.isNotEmpty) {
       var superclass = baseElement.enclosingElement as ClassElement;
@@ -588,7 +589,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       if (class_ != superclass) {
         var supertype = _decoratedClassHierarchy
             .getDecoratedSupertype(class_, superclass)
-            .toFinalType(_typeProvider) as InterfaceType;
+            .toFinalType(typeProvider) as InterfaceType;
         type = Substitution.fromInterfaceType(supertype).substituteType(type);
       }
       return substitute(type, {
@@ -630,13 +631,13 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       bool isNullAware,
       bool isCompound) {
     var targetType = visitSubexpression(target,
-        isNullAware ? _typeProvider.dynamicType : _typeProvider.objectType);
+        isNullAware ? typeProvider.dynamicType : typeProvider.objectType);
     var writeElement = propertyName.staticElement;
     DartType writeType;
     DartType readType;
     if (writeElement == null) {
-      writeType = _typeProvider.dynamicType;
-      readType = isCompound ? _typeProvider.dynamicType : null;
+      writeType = typeProvider.dynamicType;
+      readType = isCompound ? typeProvider.dynamicType : null;
     } else {
       writeType = _computeMigratedType(writeElement, targetType: targetType);
       if (isCompound) {
@@ -653,7 +654,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
       AssignmentTargetInfo targetInfo, Expression node) {
     DartType combinedType;
     if (combiner == null) {
-      combinedType = _typeProvider.dynamicType;
+      combinedType = typeProvider.dynamicType;
     } else {
       if (_typeSystem.isNullable(targetInfo.readType)) {
         addProblem(node, const CompoundAssignmentReadNullable());
@@ -672,10 +673,11 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType> {
   DartType _handlePropertyAccess(Expression node, Expression target,
       SimpleIdentifier propertyName, bool isNullAware) {
     var staticElement = propertyName.staticElement;
-    var targetType = visitSubexpression(target,
-        isNullAware ? _typeProvider.dynamicType : _typeProvider.objectType);
+    var isNullOk = isNullAware || isDeclaredOnObject(propertyName.name);
+    var targetType = visitSubexpression(
+        target, isNullOk ? typeProvider.dynamicType : typeProvider.objectType);
     if (staticElement == null) {
-      return _typeProvider.dynamicType;
+      return typeProvider.dynamicType;
     } else {
       var type = _computeMigratedType(staticElement, targetType: targetType);
       if (isNullAware) {

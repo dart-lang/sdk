@@ -26,6 +26,7 @@ import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
+import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
 
 import 'decorated_type_operations.dart';
@@ -38,7 +39,7 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   final TypeSystem _typeSystem;
 
   @override
-  final TypeProvider _typeProvider;
+  final TypeProvider typeProvider;
 
   final NullabilityGraph _graph;
 
@@ -49,7 +50,7 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   @override
   final DecoratedClassHierarchy _decoratedClassHierarchy;
 
-  AssignmentCheckerForTesting(this._typeSystem, this._typeProvider, this._graph,
+  AssignmentCheckerForTesting(this._typeSystem, this.typeProvider, this._graph,
       this._decoratedClassHierarchy);
 
   void checkAssignment(EdgeOrigin origin,
@@ -85,7 +86,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     with
         _AssignmentChecker,
         PermissiveModeVisitor<DecoratedType>,
-        AnnotationTracker<DecoratedType> {
+        AnnotationTracker<DecoratedType>,
+        ResolutionUtils {
   final TypeSystem _typeSystem;
 
   final InheritanceManager3 _inheritanceManager;
@@ -100,7 +102,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   final NullabilityGraph _graph;
 
-  TypeProvider _typeProvider;
+  TypeProvider typeProvider;
 
   @override
   final Source source;
@@ -188,19 +190,17 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// nullable.
   final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
-  List<String> _objectGetNames;
-
-  EdgeBuilder(this._typeProvider, this._typeSystem, this._variables,
-      this._graph, this.source, this.listener, this._decoratedClassHierarchy,
+  EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
+      this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
       : _inheritanceManager = InheritanceManager3(_typeSystem),
-        _notNullType = DecoratedType(_typeProvider.objectType, _graph.never),
+        _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
-            DecoratedType(_typeProvider.boolType, _graph.never),
+            DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
-            DecoratedType(_typeProvider.typeType, _graph.never),
-        _nullType = DecoratedType(_typeProvider.nullType, _graph.always),
-        _dynamicType = DecoratedType(_typeProvider.dynamicType, _graph.always);
+            DecoratedType(typeProvider.typeType, _graph.never),
+        _nullType = DecoratedType(typeProvider.nullType, _graph.always),
+        _dynamicType = DecoratedType(typeProvider.dynamicType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -790,7 +790,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       if (staticType is InterfaceType) {
         typeArgumentTypes = staticType.typeArguments;
         decoratedTypeArguments = typeArgumentTypes
-            .map((t) => DecoratedType.forImplicitType(_typeProvider, t, _graph))
+            .map((t) => DecoratedType.forImplicitType(typeProvider, t, _graph))
             .toList();
         instrumentation?.implicitTypeArguments(
             source, node, decoratedTypeArguments);
@@ -870,7 +870,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var listType = node.staticType as InterfaceType;
       if (node.typeArguments == null) {
         var elementType = DecoratedType.forImplicitType(
-            _typeProvider, listType.typeArguments[0], _graph);
+            typeProvider, listType.typeArguments[0], _graph);
         instrumentation?.implicitTypeArguments(source, node, [elementType]);
         _currentLiteralElementType = elementType;
       } else {
@@ -1081,7 +1081,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 1);
           var elementType = DecoratedType.forImplicitType(
-              _typeProvider, setOrMapType.typeArguments[0], _graph);
+              typeProvider, setOrMapType.typeArguments[0], _graph);
           instrumentation?.implicitTypeArguments(source, node, [elementType]);
           _currentLiteralElementType = elementType;
         } else {
@@ -1104,10 +1104,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (typeArguments == null) {
           assert(setOrMapType.typeArguments.length == 2);
           var keyType = DecoratedType.forImplicitType(
-              _typeProvider, setOrMapType.typeArguments[0], _graph);
+              typeProvider, setOrMapType.typeArguments[0], _graph);
           _currentMapKeyType = keyType;
           var valueType = DecoratedType.forImplicitType(
-              _typeProvider, setOrMapType.typeArguments[1], _graph);
+              typeProvider, setOrMapType.typeArguments[1], _graph);
           _currentMapValueType = valueType;
           instrumentation
               ?.implicitTypeArguments(source, node, [keyType, valueType]);
@@ -1158,24 +1158,23 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitSpreadElement(SpreadElement node) {
     final spreadType = node.expression.staticType;
-    if (_typeSystem.isSubtypeOf(
-        spreadType, _typeProvider.mapObjectObjectType)) {
+    if (_typeSystem.isSubtypeOf(spreadType, typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
-      final expectedType = _typeProvider.mapType2(
+      final expectedType = typeProvider.mapType2(
           _currentMapKeyType.type, _currentMapValueType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
-          _typeProvider, expectedType, _graph,
+          typeProvider, expectedType, _graph,
           typeArguments: [_currentMapKeyType, _currentMapValueType]);
 
       _handleAssignment(node.expression,
           destinationType: expectedDecoratedType);
     } else if (_typeSystem.isSubtypeOf(
-        spreadType, _typeProvider.iterableDynamicType)) {
+        spreadType, typeProvider.iterableDynamicType)) {
       assert(_currentLiteralElementType != null);
       final expectedType =
-          _typeProvider.iterableType2(_currentLiteralElementType.type);
+          typeProvider.iterableType2(_currentLiteralElementType.type);
       final expectedDecoratedType = DecoratedType.forImplicitType(
-          _typeProvider, expectedType, _graph,
+          typeProvider, expectedType, _graph,
           typeArguments: [_currentLiteralElementType]);
 
       _handleAssignment(node.expression,
@@ -1405,21 +1404,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return _handleAssignment(expression, destinationType: _notNullType);
   }
 
-  List<String> _computeObjectGetNames() {
-    var result = <String>[];
-    var objectClass = _typeProvider.objectType.element;
-    for (var accessor in objectClass.accessors) {
-      assert(accessor.isGetter);
-      assert(!accessor.name.startsWith('_'));
-      result.add(accessor.name);
-    }
-    for (var method in objectClass.methods) {
-      assert(!method.name.startsWith('_'));
-      result.add(method.name);
-    }
-    return result;
-  }
-
   @override
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
@@ -1542,7 +1526,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _futureOf(DecoratedType type) => DecoratedType.forImplicitType(
-      _typeProvider, _typeProvider.futureType2(type.type), _graph,
+      typeProvider, typeProvider.futureType2(type.type), _graph,
       typeArguments: [type]);
 
   @override
@@ -1838,10 +1822,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         DecoratedType lhsType = _variables.decoratedElementType(lhsElement);
         var iterableTypeType = iterableType.type;
         if (_typeSystem.isSubtypeOf(
-            iterableTypeType, _typeProvider.iterableDynamicType)) {
+            iterableTypeType, typeProvider.iterableDynamicType)) {
           var elementType = _decoratedClassHierarchy
               .asInstanceOf(
-                  iterableType, _typeProvider.iterableDynamicType.element)
+                  iterableType, typeProvider.iterableDynamicType.element)
               .typeArguments[0];
           _checkAssignment(ForEachVariableOrigin(source, parts),
               source: elementType, destination: lhsType, hard: false);
@@ -1916,7 +1900,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         if (invokeType is FunctionType) {
           var argumentTypes = typeArgumentTypes
               .map((argType) =>
-                  DecoratedType.forImplicitType(_typeProvider, argType, _graph))
+                  DecoratedType.forImplicitType(typeProvider, argType, _graph))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
           calleeType = calleeType.instantiate(argumentTypes);
@@ -2013,7 +1997,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _handleTarget(Expression target, String name) {
-    if ((_objectGetNames ??= _computeObjectGetNames()).contains(name)) {
+    if (isDeclaredOnObject(name)) {
       return target.accept(this);
     } else {
       return _checkExpressionNotNull(target);
@@ -2128,9 +2112,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// upcast T to that type if possible, skipping the flatten when not
   /// necessary.
   DecoratedType _wrapFuture(DecoratedType type) {
-    if (_typeSystem.isSubtypeOf(type.type, _typeProvider.futureDynamicType)) {
+    if (_typeSystem.isSubtypeOf(type.type, typeProvider.futureDynamicType)) {
       return _decoratedClassHierarchy.asInstanceOf(
-          type, _typeProvider.futureDynamicType.element);
+          type, typeProvider.futureDynamicType.element);
     }
 
     return _futureOf(type);
@@ -2142,11 +2126,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 /// This has been moved to its own mixin to allow it to be more easily unit
 /// tested.
 mixin _AssignmentChecker {
+  TypeProvider get typeProvider;
+
   DecoratedClassHierarchy get _decoratedClassHierarchy;
 
   NullabilityGraph get _graph;
-
-  TypeProvider get _typeProvider;
 
   TypeSystem get _typeSystem;
 
@@ -2229,7 +2213,7 @@ mixin _AssignmentChecker {
       // if T1 is FutureOr<S1> then T0 <: T1 iff any of the following hold:
       // - either T0 <: Future<S1>
       if (_typeSystem.isSubtypeOf(
-          sourceType, _typeProvider.futureType2(s1.type))) {
+          sourceType, typeProvider.futureType2(s1.type))) {
         // E.g. FutureOr<int> = (... as Future<int>)
         // This is handled by the InterfaceType logic below, since we treat
         // FutureOr as a supertype of Future.
@@ -2363,7 +2347,7 @@ mixin _AssignmentChecker {
       for (final arg in destination.typeArguments) {
         // We cannot assume we're downcasting to C<T!>. Downcast to C<T?>.
         _checkDowncast(origin,
-            source: DecoratedType(_typeProvider.dynamicType, _graph.always),
+            source: DecoratedType(typeProvider.dynamicType, _graph.always),
             destination: arg,
             hard: false);
       }

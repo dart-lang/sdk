@@ -1231,6 +1231,22 @@ _f(_C c) => c.x;
     visitSubexpression(findNode.prefixed('c.x'), 'int?');
   }
 
+  test_prefixedIdentifier_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c.hashCode;
+''');
+    visitSubexpression(findNode.prefixed('c.hashCode'), 'int');
+  }
+
+  test_prefixedIdentifier_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c.toString;
+''');
+    visitSubexpression(findNode.prefixed('c.toString'), 'String Function()');
+  }
+
   test_prefixedIdentifier_substituted() async {
     await analyze('''
 abstract class _C<T> {
@@ -1521,6 +1537,23 @@ _f(_C/*?*/ c) => c?.x;
     visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
   }
 
+  test_propertyAccess_nullAware_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c?.hashCode;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c?.toString;
+''');
+    visitSubexpression(
+        findNode.propertyAccess('c?.toString'), 'String Function()?');
+  }
+
   test_propertyAccess_nullAware_substituted() async {
     await analyze('''
 abstract class _C<T> {
@@ -1529,6 +1562,23 @@ abstract class _C<T> {
 _f(_C<int>/*?*/ c) => c?.x;
 ''');
     visitSubexpression(findNode.propertyAccess('c?.x'), 'List<int>?');
+  }
+
+  test_propertyAccess_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => (c).hashCode;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).hashCode'), 'int');
+  }
+
+  test_propertyAccess_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => (c).toString;
+''');
+    visitSubexpression(
+        findNode.propertyAccess('(c).toString'), 'String Function()');
   }
 
   test_propertyAccess_substituted() async {
