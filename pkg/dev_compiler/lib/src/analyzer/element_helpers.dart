@@ -49,32 +49,22 @@ InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
 /// meaningful type, so we need to work around that.
 DartType instantiateElementTypeToBounds(
     Dart2TypeSystem rules, TypeDefiningElement element) {
-  Element e = element;
-  if (e is TypeParameterizedElement) {
-    // TODO(jmesserly): we can't use `instantiateToBounds` because typedefs do
-    // not include their type parameters, for example:
-    //
-    //     typedef void void Func<T>(T x);               // Dart 1 syntax.
-    //     typedef void GenericFunc<T> = S Func<S>(T x); // Dart 2 syntax.
-    //
-    // There is no way to get a type that has `<T>` as a type formal from the
-    // element (without constructing it ourselves).
-    //
-    // Futhermore, the second line is represented by a GenericTypeAliasElement,
-    // and its type getter does not even include its own type formals `<S>`.
-    // That has to be worked around using `.function.type`.
-    DartType type;
-    if (e is GenericTypeAliasElement) {
-      type = e.function.type;
-    } else if (e is FunctionTypedElement) {
-      type = e.type;
-    } else if (e is ClassElement) {
-      type = getLegacyRawClassType(e);
+  if (element is TypeParameterizedElement) {
+    if (element is ClassElement) {
+      var typeArguments = rules.instantiateTypeFormalsToBounds2(element);
+      return element.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+    } else if (element is GenericTypeAliasElement) {
+      var typeArguments = rules.instantiateTypeFormalsToBounds2(element);
+      return element.instantiate2(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+    } else {
+      throw StateError('${element.runtimeType}');
     }
-    var bounds = rules.instantiateTypeFormalsToBounds(e.typeParameters);
-    if (bounds == null) return type;
-    return type.substitute2(
-        bounds, TypeParameterTypeImpl.getTypes(e.typeParameters));
   }
   return getLegacyElementType(element);
 }
