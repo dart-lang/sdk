@@ -1073,9 +1073,7 @@ class _BigIntImpl implements BigInt {
   static _BigIntImpl _tryParse(String source, {int radix}) {
     if (source == "") return null;
 
-    var re = new RegExp(r'^\s*([+-]?)((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$',
-        caseSensitive: false);
-    var match = re.firstMatch(source);
+    var match = _parseRE.firstMatch(source);
     int signIndex = 1;
     int hexIndex = 3;
     int decimalIndex = 4;
@@ -1116,6 +1114,10 @@ class _BigIntImpl implements BigInt {
     return _parseRadix(
         decimalMatch ?? nonDecimalMatch ?? hexMatch, radix, isNegative);
   }
+
+  static RegExp _parseRE = RegExp(
+      r'^\s*([+-]?)((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$',
+      caseSensitive: false);
 
   /// Finds the amount significant digits in the provided [digits] array.
   static int _normalize(int used, Uint16List digits) {
