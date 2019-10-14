@@ -38,3 +38,9 @@ abstract class MyList<E> extends List<E> {
     // ignored.
   }
 }
+
+class A { }
+
+extension Foo on A {
+  foo() { } // LINT
+}

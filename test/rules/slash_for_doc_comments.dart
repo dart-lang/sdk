@@ -44,3 +44,13 @@ var D = String;
 
 /** Z */ //LINT
 class Z = B with C;
+
+/** Ext */ //LINT
+extension Ext on Object {
+  /** e */ // LINT
+  void e() { }
+}
+
+/** Unnamed */ //LINT
+extension on A { }
+

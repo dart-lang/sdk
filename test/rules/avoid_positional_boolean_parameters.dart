@@ -91,3 +91,11 @@ void closureAsArgument() {
   final array = <bool>[true, false, true, false];
   array.where((bool e) => e); // OK because is an anonymous function.
 }
+
+extension Ext on E {
+  void badBad([bool value]) {} // LINT
+}
+
+extension on E {
+  void badBadBad([bool value]) {} // LINT
+}

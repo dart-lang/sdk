@@ -39,8 +39,15 @@ abstract class C {
 
 class D implements C {
   int _y;
+  int dd;
 
   void setY(int y) { // OK because it is an implementation method.
     this._y = y;
+  }
+}
+
+extension E on D {
+  void setDD(int dd) { // LINT
+    this.dd = dd;
   }
 }

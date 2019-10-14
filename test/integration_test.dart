@@ -730,7 +730,10 @@ defineTests() {
               'a.dart 80:1 [lint] Document all public members',
               'a.dart 85:5 [lint] Document all public members',
               'a.dart 89:5 [lint] Document all public members',
-              '3 files analyzed, 16 issues found'
+              'a.dart 104:1 [lint] Document all public members',
+              'a.dart 105:11 [lint] Document all public members',
+              'a.dart 112:14 [lint] Document all public members',
+              '3 files analyzed, 19 issues found'
             ]));
         expect(exitCode, 1);
       });
