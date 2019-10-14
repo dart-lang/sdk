@@ -106,6 +106,8 @@ dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
+dart/extension_names_test: SkipByDesign # No name demangling in AOT.
+dart/extension_unnamed_names_test: SkipByDesign # No name demangling in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
