@@ -37,7 +37,6 @@ import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ChangeSetTest);
     defineReflectiveTests(EnclosedScopeTest);
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(LibraryImportScopeTest);
@@ -57,56 +56,6 @@ main() {
 /// causing the rest of the method to be flagged as dead code.
 void _fail(String message) {
   fail(message);
-}
-
-@reflectiveTest
-class ChangeSetTest {
-  void test_changedContent() {
-    TestSource source = new TestSource();
-    String content = "";
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changedContent(source, content);
-    expect(changeSet.addedSources, hasLength(0));
-    expect(changeSet.changedSources, hasLength(0));
-    Map<Source, String> map = changeSet.changedContents;
-    expect(map, hasLength(1));
-    expect(map[source], same(content));
-    expect(changeSet.changedRanges, hasLength(0));
-    expect(changeSet.removedSources, hasLength(0));
-    expect(changeSet.removedContainers, hasLength(0));
-  }
-
-  void test_changedRange() {
-    TestSource source = new TestSource();
-    String content = "";
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changedRange(source, content, 1, 2, 3);
-    expect(changeSet.addedSources, hasLength(0));
-    expect(changeSet.changedSources, hasLength(0));
-    expect(changeSet.changedContents, hasLength(0));
-    Map<Source, ChangeSet_ContentChange> map = changeSet.changedRanges;
-    expect(map, hasLength(1));
-    ChangeSet_ContentChange change = map[source];
-    expect(change, isNotNull);
-    expect(change.contents, content);
-    expect(change.offset, 1);
-    expect(change.oldLength, 2);
-    expect(change.newLength, 3);
-    expect(changeSet.removedSources, hasLength(0));
-    expect(changeSet.removedContainers, hasLength(0));
-  }
-
-  void test_toString() {
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(new TestSource());
-    changeSet.changedSource(new TestSource());
-    changeSet.changedContent(new TestSource(), "");
-    changeSet.changedRange(new TestSource(), "", 0, 0, 0);
-    changeSet.removedSource(new TestSource());
-    changeSet
-        .removedContainer(new SourceContainer_ChangeSetTest_test_toString());
-    expect(changeSet.toString(), isNotNull);
-  }
 }
 
 @reflectiveTest
