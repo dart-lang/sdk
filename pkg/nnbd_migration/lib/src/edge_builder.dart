@@ -905,7 +905,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
     var target = node.realTarget;
-    bool isConditional = _isConditionalExpression(node);
+    var operator = node.operator;
+    bool isNullAware = operator != null && isNullAwareToken(operator.type);
     var callee = node.methodName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (target != null) {
@@ -913,7 +914,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Nothing to do.
       } else if (calleeIsStatic) {
         target.accept(this);
-      } else if (isConditional) {
+      } else if (isNullAware) {
         targetType = target.accept(this);
       } else {
         targetType = _handleTarget(target, node.methodName.name);
@@ -943,7 +944,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         calleeType,
         null,
         invokeType: node.staticInvokeType);
-    if (isConditional) {
+    if (isNullAware) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(targetType.node, expressionType.node));
       _variables.recordDecoratedExpressionType(node, expressionType);
@@ -995,7 +996,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
-      return _handlePropertyAccess(node, node.prefix, node.identifier);
+      return _handlePropertyAccess(node, node.prefix, node.identifier, false);
     }
   }
 
@@ -1027,7 +1028,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.realTarget, node.propertyName);
+    return _handlePropertyAccess(node, node.realTarget, node.propertyName,
+        isNullAwareToken(node.operator.type));
   }
 
   @override
@@ -1957,17 +1959,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return calleeType.returnType;
   }
 
-  DecoratedType _handlePropertyAccess(
-      Expression node, Expression target, SimpleIdentifier propertyName) {
+  DecoratedType _handlePropertyAccess(Expression node, Expression target,
+      SimpleIdentifier propertyName, bool isNullAware) {
     DecoratedType targetType;
-    bool isConditional = _isConditionalExpression(node);
     var callee = propertyName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (_isPrefix(target)) {
       return propertyName.accept(this);
     } else if (calleeIsStatic) {
       target.accept(this);
-    } else if (isConditional) {
+    } else if (isNullAware) {
       targetType = target.accept(this);
     } else {
       targetType = _handleTarget(target, propertyName.name);
@@ -1979,7 +1980,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
     if (propertyName.inSetterContext()) {
-      if (isConditional) {
+      if (isNullAware) {
         _conditionalNodes[node] = targetType.node;
       }
       return calleeType.positionalParameters[0];
@@ -1987,7 +1988,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var expressionType = callee is PropertyAccessorElement
           ? calleeType.returnType
           : calleeType;
-      if (isConditional) {
+      if (isNullAware) {
         expressionType = expressionType.withNode(
             NullabilityNode.forLUB(targetType.node, expressionType.node));
         _variables.recordDecoratedExpressionType(node, expressionType);
@@ -2015,29 +2016,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         typeArguments: type.typeArguments
             .map((t) => DecoratedType(t, _graph.never))
             .toList());
-  }
-
-  bool _isConditionalExpression(Expression expression) {
-    Token token;
-    if (expression is MethodInvocation) {
-      token = expression.operator;
-      if (token == null) return false;
-    } else if (expression is PropertyAccess) {
-      token = expression.operator;
-    } else {
-      return false;
-    }
-    switch (token.type) {
-      case TokenType.PERIOD:
-      case TokenType.PERIOD_PERIOD:
-        return false;
-      case TokenType.QUESTION_PERIOD:
-        return true;
-      default:
-        // TODO(paulberry)
-        _unimplemented(
-            expression, 'Conditional expression with operator ${token.lexeme}');
-    }
   }
 
   bool _isPrefix(Expression e) =>
