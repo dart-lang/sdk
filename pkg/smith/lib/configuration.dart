@@ -246,7 +246,7 @@ class Configuration {
         builderTag: stringOption("builder-tag"),
         vmOptions: stringListOption("vm-options"),
         dart2jsOptions: stringListOption("dart2js-options"),
-        experiments: stringListOption("experiments"),
+        experiments: stringListOption("enable-experiment"),
         timeout: intOption("timeout"),
         enableAsserts: boolOption("enable-asserts"),
         isChecked: boolOption("checked"),
@@ -471,7 +471,7 @@ class Configuration {
     if (builderTag.isNotEmpty) fields.add("builder-tag: $builderTag");
     stringListField("vm-options", vmOptions);
     stringListField("dart2js-options", dart2jsOptions);
-    stringListField("experiments", experiments);
+    stringListField("enable-experiment", experiments);
     if (timeout > 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");

@@ -202,7 +202,7 @@ void main() {
               "builder-tag": "the tag",
               "vm-options": ["vm stuff", "more vm stuff"],
               "dart2js-options": ["dart2js stuff", "more dart2js stuff"],
-              "experiments": ["semicolons", "interrobangs"],
+              "enable-experiment": ["semicolons", "interrobangs"],
               "enable-asserts": true,
               "checked": true,
               "csp": true,

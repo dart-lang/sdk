@@ -311,7 +311,7 @@ options. Used to be able to make sane updates to the status files.''',
     _Option('dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
     _Option('shared_options', 'Extra shared options.', hide: true),
-    _Option('experiments', 'Experiment flags to enable.'),
+    _Option('enable-experiment', 'Experiment flags to enable.'),
     _Option(
         'babel',
         '''Transforms dart2js output with Babel. The value must be
@@ -637,7 +637,7 @@ compiler.''',
     var dart2jsOptions = listOption("dart2js_options");
     var vmOptions = listOption("vm_options");
     var sharedOptions = listOption("shared_options");
-    var experiments = listOption("experiments");
+    var experiments = listOption("enable-experiment");
 
     // JSON reporting implies listing and reporting.
     if (data['report_in_json'] as bool) {
