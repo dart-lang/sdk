@@ -4375,10 +4375,6 @@ Object f(dynamic d) {
   return !d;
 }
 ''');
-
-    var nullable_d = decoratedTypeAnnotation('dynamic d').node;
-    var check_d = checkExpression('d;');
-
     var return_f = decoratedTypeAnnotation('Object f').node;
     assertEdge(never, return_f, hard: false);
   }
