@@ -366,7 +366,7 @@ var v = null;
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'dynamic');
-    expect(v.initializer.type.toString(), 'dynamic Function()');
+    expect(v.initializer.type.toString(), 'Null Function()');
   }
 
   test_bottom_inClosure() async {

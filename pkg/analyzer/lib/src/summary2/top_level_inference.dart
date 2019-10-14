@@ -39,6 +39,7 @@ AstNode _getLinkedNode(Element element) {
 class ConstantInitializersResolver {
   final Linker linker;
 
+  CompilationUnitElement _unitElement;
   LibraryElement _library;
   bool _enclosingClassHasConstConstructor = false;
   Scope _scope;
@@ -49,6 +50,7 @@ class ConstantInitializersResolver {
     for (var builder in linker.builders.values) {
       _library = builder.element;
       for (var unit in _library.units) {
+        _unitElement = unit;
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins.forEach(_resolveClassFields);
         unit.types.forEach(_resolveClassFields);
@@ -94,10 +96,14 @@ class ConstantInitializersResolver {
         variable.initializer.accept(LocalElementBuilder(holder, null));
         (element as VariableElementImpl).encloseElements(holder.functions);
 
-        var astResolver = AstResolver(linker, _library, _scope);
-        astResolver.rewriteAst(variable.initializer);
-        InferenceContext.setType(variable.initializer, typeNode.type);
-        astResolver.resolve(variable.initializer);
+        var astResolver = AstResolver(linker, _unitElement, _scope);
+        astResolver.resolve(
+          variable.initializer,
+          () {
+            InferenceContext.setType(variable.initializer, typeNode.type);
+            return variable.initializer;
+          },
+        );
       }
     }
   }
@@ -292,15 +298,15 @@ class _InitializerInference {
   final Linker _linker;
   final _InferenceWalker _walker;
 
-  LibraryElement _library;
+  CompilationUnitElement _unitElement;
   Scope _scope;
 
   _InitializerInference(this._linker) : _walker = _InferenceWalker(_linker);
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
-      _library = builder.element;
-      for (var unit in _library.units) {
+      for (var unit in builder.element.units) {
+        _unitElement = unit;
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
         unit.types.forEach(_addClassConstructorFieldFormals);
@@ -357,7 +363,7 @@ class _InitializerInference {
 
     if (node.initializer != null) {
       var inferenceNode =
-          _VariableInferenceNode(_walker, _library, _scope, element, node);
+          _VariableInferenceNode(_walker, _unitElement, _scope, node);
       _walker._nodes[element] = inferenceNode;
       (element as PropertyInducingElementImpl).initializer =
           _FunctionElementForLink_Initializer(inferenceNode);
@@ -369,9 +375,8 @@ class _InitializerInference {
 
 class _VariableInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
-  final LibraryElement _library;
+  final CompilationUnitElement _unitElement;
   final Scope _scope;
-  final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
   @override
@@ -379,9 +384,8 @@ class _VariableInferenceNode extends _InferenceNode {
 
   _VariableInferenceNode(
     this._walker,
-    this._library,
+    this._unitElement,
     this._scope,
-    this._element,
     this._node,
   );
 
@@ -401,7 +405,6 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    _buildLocalElements();
     _resolveInitializer();
 
     var collector = _InferenceDependenciesCollector();
@@ -461,15 +464,8 @@ class _VariableInferenceNode extends _InferenceNode {
     isEvaluated = true;
   }
 
-  void _buildLocalElements() {
-    var holder = ElementHolder();
-    _node.initializer.accept(LocalElementBuilder(holder, null));
-    _element.encloseElements(holder.functions);
-  }
-
   void _resolveInitializer() {
-    var astResolver = AstResolver(_walker._linker, _library, _scope);
-    astResolver.rewriteAst(_node.initializer);
-    astResolver.resolve(_node.initializer);
+    var astResolver = AstResolver(_walker._linker, _unitElement, _scope);
+    astResolver.resolve(_node.initializer, () => _node.initializer);
   }
 }

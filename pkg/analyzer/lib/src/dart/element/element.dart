@@ -3884,6 +3884,14 @@ abstract class ExecutableElementImpl extends ElementImpl
       linkedContext.setReturnType(linkedNode, returnType);
     }
     _returnType = _checkElementOfType(returnType);
+    // We do this because of return type inference. At the moment when we
+    // create a local function element we don't know yet its return type,
+    // because we have not done static type analysis yet.
+    // It somewhere it between we access the type of this element, so it gets
+    // cached in the element. When we are done static type analysis, we then
+    // should clear this cached type to make it right.
+    // TODO(scheglov) Remove when type analysis is done in the single pass.
+    _type = null;
   }
 
   @override

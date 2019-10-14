@@ -4632,8 +4632,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     VariableElement element = node.declaredElement;
     if (element.initializer != null && node.initializer != null) {
-      (element.initializer as FunctionElementImpl).returnType =
-          node.initializer.staticType;
+      var initializer = element.initializer as FunctionElementImpl;
+      initializer.returnType = node.initializer.staticType;
     }
     // Note: in addition to cloning the initializers for const variables, we
     // have to clone the initializers for non-static final fields (because if
@@ -5981,6 +5981,13 @@ class TypeNameResolver {
 
   Scope nameScope;
 
+  /// If [resolveTypeName] finds out that the given [TypeName] with a
+  /// [PrefixedIdentifier] name is actually the name of a class and the name of
+  /// the constructor, it rewrites the [ConstructorName] to correctly represent
+  /// the type and the constructor name, and set this field to the rewritten
+  /// [ConstructorName]. Otherwise this field will be set `null`.
+  ConstructorName rewriteResult;
+
   TypeNameResolver(
       this.typeSystem,
       TypeProvider typeProvider,
@@ -6013,6 +6020,7 @@ class TypeNameResolver {
   ///
   /// The client must set [nameScope] before calling [resolveTypeName].
   void resolveTypeName(TypeName node) {
+    rewriteResult = null;
     Identifier typeName = node.name;
     _setElement(typeName, null); // Clear old Elements from previous run.
     TypeArgumentList argumentList = node.typeArguments;
@@ -6091,6 +6099,7 @@ class TypeNameResolver {
             name.period = prefixedIdentifier.period;
             node.name = prefix;
             typeName = prefix;
+            rewriteResult = parent;
           }
         }
       }
@@ -6201,6 +6210,7 @@ class TypeNameResolver {
             element = prefixElement;
             argumentList = null;
             elementValid = true;
+            rewriteResult = newConstructorName;
           }
         } else {
           reportErrorForNode(

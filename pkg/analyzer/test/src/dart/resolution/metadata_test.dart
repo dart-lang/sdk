@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../summary/resolved_ast_printer.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -15,6 +17,44 @@ main() {
 
 @reflectiveTest
 class MetadataResolutionTest extends DriverResolutionTest {
+  test_onFieldFormal() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  const A(_);
+}
+
+class B {
+  final int f;
+  B({@A( A(0) ) this.f});
+}
+''');
+    _assertResolvedNodeText(findNode.annotation('@A'), r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      InstanceCreationExpression
+        argumentList: ArgumentList
+          arguments
+            IntegerLiteral
+              literal: 0
+              staticType: int
+        constructorName: ConstructorName
+          type: TypeName
+            name: SimpleIdentifier
+              staticElement: self::@class::A
+              staticType: A
+              token: A
+            type: A
+        staticElement: self::@class::A::@constructor::•
+        staticType: A
+  element: self::@class::A::@constructor::•
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: Type
+    token: A
+''');
+  }
+
   test_otherLibrary_constructor_named() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
@@ -118,5 +158,22 @@ class B {}
     var value = annotation.computeConstantValue();
     assertElementTypeString(value.type, 'A<int>');
     expect(value.getField('f').toIntValue(), 42);
+  }
+
+  void _assertResolvedNodeText(AstNode node, String expected) {
+    var actual = _resolvedNodeText(node);
+    expect(actual, expected);
+  }
+
+  String _resolvedNodeText(AstNode node) {
+    var buffer = StringBuffer();
+    node.accept(
+      ResolvedAstPrinter(
+        selfUriStr: result.uri.toString(),
+        sink: buffer,
+        indent: '',
+      ),
+    );
+    return buffer.toString();
   }
 }
