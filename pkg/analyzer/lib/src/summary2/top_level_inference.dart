@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -92,10 +91,6 @@ class ConstantInitializersResolver {
     if (typeNode != null) {
       if (declarationList.isConst ||
           declarationList.isFinal && _enclosingClassHasConstConstructor) {
-        var holder = ElementHolder();
-        variable.initializer.accept(LocalElementBuilder(holder, null));
-        (element as VariableElementImpl).encloseElements(holder.functions);
-
         var astResolver = AstResolver(linker, _unitElement, _scope);
         astResolver.resolve(
           variable.initializer,
