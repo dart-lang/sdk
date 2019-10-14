@@ -105,3 +105,7 @@ class E implements C<E> {
 
   E _m() => this; // LINT
 }
+
+extension Ext on A {
+  A ext() => this; // OK
+}

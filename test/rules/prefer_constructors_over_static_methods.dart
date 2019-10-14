@@ -10,10 +10,10 @@ class A {
   A.internal();
 
   static A bad1() => // LINT
-      new A.internal();
+  new A.internal();
 
   static A get newA => // LINT
-      new A.internal();
+  new A.internal();
 
   static A bad2(){ // LINT
     final a = new A.internal();
@@ -31,4 +31,8 @@ class A {
   factory A.good3(){ // OK
     return new A.internal();
   }
+}
+
+extension E on A {
+  static A foo() => A(); // OK
 }

@@ -72,3 +72,12 @@ class A {
 
 typedef _PrivateMethod(int value); //OK
 typedef void _PrivateMethod2(value); //OK
+
+extension Ext on A {
+  set x(x) { }  // LINT
+  set _x(x); // OK
+  get x => 0; // LINT
+
+  f() {} // LINT
+  void j(j) { } // LINT
+}

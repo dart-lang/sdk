@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -44,3 +44,13 @@ var D = String;
 
 /** Z */ //LINT
 class Z = B with C;
+
+/** Ext */ //LINT
+extension Ext on Object {
+  /** e */ // LINT
+  void e() { }
+}
+
+/** Unnamed */ //LINT
+extension on A { }
+
