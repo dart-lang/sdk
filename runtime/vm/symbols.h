@@ -57,7 +57,6 @@ class ObjectPointerVisitor;
   V(CompleterFuture, "future")                                                 \
   V(CompleterGetFuture, "get:future")                                          \
   V(CompleterSyncConstructor, "Completer.sync")                                \
-  V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
@@ -246,6 +245,7 @@ class ObjectPointerVisitor;
   V(SpaceIsFromSpace, " is from ")                                             \
   V(SpaceOfSpace, " of ")                                                      \
   V(SpaceWhereNewLine, " where\n")                                             \
+  V(StackMap, "StackMap")                                                      \
   V(StackOverflowError, "StackOverflowError")                                  \
   V(StackTraceParameter, ":stack_trace")                                       \
   V(StackTraceVar, ":stack_trace_var")                                         \

@@ -185,11 +185,11 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
 }
 
 #if defined(IS_SIMARM_X64)
-static intptr_t CompressedStackMapsSizeInSnapshot(intptr_t payload_size) {
-  // We do not need to round the non-payload size up to a word boundary because
-  // currently sizeof(RawCompressedStackMaps) is 12, even on 64-bit.
+static intptr_t StackMapSizeInSnapshot(intptr_t len_in_bits) {
+  const intptr_t len_in_bytes =
+      Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
   const intptr_t unrounded_size_in_bytes =
-      compiler::target::kWordSize + sizeof(uint32_t) + payload_size;
+      2 * compiler::target::kWordSize + len_in_bytes;
   return Utils::RoundUp(unrounded_size_in_bytes,
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
@@ -232,10 +232,9 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   const classid_t cid = raw_object->GetClassId();
 
   switch (cid) {
-    case kCompressedStackMapsCid: {
-      RawCompressedStackMaps* raw_maps =
-          static_cast<RawCompressedStackMaps*>(raw_object);
-      return CompressedStackMapsSizeInSnapshot(raw_maps->ptr()->payload_size_);
+    case kStackMapCid: {
+      RawStackMap* raw_map = static_cast<RawStackMap*>(raw_object);
+      return StackMapSizeInSnapshot(raw_map->ptr()->length_);
     }
     case kOneByteStringCid:
     case kTwoByteStringCid: {
@@ -432,22 +431,23 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 #endif
 
 #if defined(IS_SIMARM_X64)
-    if (obj.IsCompressedStackMaps()) {
-      const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
+    if (obj.IsStackMap()) {
+      const StackMap& map = StackMap::Cast(obj);
 
       // Header layout is the same between 32-bit and 64-bit architecture, but
       // we need to recalcuate the size in words.
-      const intptr_t payload_size = map.payload_size();
-      const intptr_t size_in_bytes =
-          CompressedStackMapsSizeInSnapshot(payload_size);
+      const intptr_t len_in_bits = map.Length();
+      const intptr_t len_in_bytes =
+          Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
+      const intptr_t size_in_bytes = StackMapSizeInSnapshot(len_in_bits);
       marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      stream->WriteFixed<uint32_t>(payload_size);
-      // We do not need to align the stream to a word boundary on 64-bit because
-      // sizeof(RawCompressedStackMaps) is 12, even there.
-      stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
+      stream->WriteFixed<uint16_t>(map.Length());
+      stream->WriteFixed<uint16_t>(map.SlowPathBitCount());
+      stream->WriteBytes(map.raw()->ptr()->data(), len_in_bytes);
       stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
+
     } else if (obj.IsString()) {
       const String& str = String::Cast(obj);
       RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);

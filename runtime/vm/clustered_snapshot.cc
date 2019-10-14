@@ -1387,7 +1387,7 @@ class CodeSerializationCluster : public SerializationCluster {
 #else
     s->Push(code->ptr()->catch_entry_.variables_);
 #endif
-    s->Push(code->ptr()->compressed_stackmaps_);
+    s->Push(code->ptr()->stackmaps_);
     if (!FLAG_dwarf_stack_traces) {
       s->Push(code->ptr()->inlined_id_to_function_);
       s->Push(code->ptr()->code_source_map_);
@@ -1445,7 +1445,7 @@ class CodeSerializationCluster : public SerializationCluster {
 #else
       WriteField(code, catch_entry_.variables_);
 #endif
-      WriteField(code, compressed_stackmaps_);
+      WriteField(code, stackmaps_);
       if (FLAG_dwarf_stack_traces) {
         WriteFieldValue(inlined_id_to_function_, Array::null());
         WriteFieldValue(code_source_map_, CodeSourceMap::null());
@@ -1555,8 +1555,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->catch_entry_.variables_ =
           reinterpret_cast<RawSmi*>(d->ReadRef());
 #endif
-      code->ptr()->compressed_stackmaps_ =
-          reinterpret_cast<RawCompressedStackMaps*>(d->ReadRef());
+      code->ptr()->stackmaps_ = reinterpret_cast<RawArray*>(d->ReadRef());
       code->ptr()->inlined_id_to_function_ =
           reinterpret_cast<RawArray*>(d->ReadRef());
       code->ptr()->code_source_map_ =
@@ -1903,7 +1902,7 @@ class PcDescriptorsDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-// PcDescriptor, CompressedStackMaps, OneByteString, TwoByteString
+// PcDescriptor, StackMap, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
   RODataSerializationCluster(const char* name, intptr_t cid)
@@ -4448,9 +4447,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
         return new (Z) RODataSerializationCluster("(RO)PcDescriptors", cid);
       case kCodeSourceMapCid:
         return new (Z) RODataSerializationCluster("(RO)CodeSourceMap", cid);
-      case kCompressedStackMapsCid:
-        return new (Z)
-            RODataSerializationCluster("(RO)CompressedStackMaps", cid);
+      case kStackMapCid:
+        return new (Z) RODataSerializationCluster("(RO)StackMap", cid);
       case kOneByteStringCid:
         return new (Z) RODataSerializationCluster("(RO)OneByteString", cid);
       case kTwoByteStringCid:
@@ -5072,7 +5070,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
     switch (cid) {
       case kPcDescriptorsCid:
       case kCodeSourceMapCid:
-      case kCompressedStackMapsCid:
+      case kStackMapCid:
       case kOneByteStringCid:
       case kTwoByteStringCid:
         return new (Z) RODataDeserializationCluster();

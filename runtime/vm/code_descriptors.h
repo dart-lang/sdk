@@ -44,61 +44,32 @@ class DescriptorList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
-class CompressedStackMapsBuilder : public ZoneAllocated {
+class StackMapTableBuilder : public ZoneAllocated {
  public:
-  CompressedStackMapsBuilder() : encoded_bytes_() {}
+  StackMapTableBuilder()
+      : pc_offset_(Smi::ZoneHandle()),
+        stack_map_(StackMap::ZoneHandle()),
+        list_(GrowableObjectArray::ZoneHandle(
+            GrowableObjectArray::New(Heap::kOld))) {}
+  ~StackMapTableBuilder() {}
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
-                intptr_t spill_slot_bit_count);
+                intptr_t register_bit_count);
 
-  RawCompressedStackMaps* Finalize() const;
+  bool Verify();
 
- private:
-  intptr_t last_pc_offset_ = 0;
-  GrowableArray<uint8_t> encoded_bytes_;
-  DISALLOW_COPY_AND_ASSIGN(CompressedStackMapsBuilder);
-};
-
-class CompressedStackMapsIterator : public ValueObject {
- public:
-  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps)
-      : maps_(maps) {}
-
-  bool MoveNext();
-  bool Find(intptr_t pc_offset) {
-    ASSERT(pc_offset > 0);
-    do {
-      if (current_pc_offset_ == pc_offset) return true;
-    } while (MoveNext());
-    return false;
-  }
-
-  intptr_t pc_offset() const {
-    ASSERT(HasLoadedEntry());
-    return current_pc_offset_;
-  }
-  intptr_t length() const {
-    ASSERT(HasLoadedEntry());
-    return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
-  }
-  intptr_t spill_slot_bit_count() const {
-    ASSERT(HasLoadedEntry());
-    return current_spill_slot_bit_count_;
-  }
-  bool IsObject(intptr_t bit_offset) const;
+  RawArray* FinalizeStackMaps(const Code& code);
 
  private:
-  // Since PC offsets are return addresses, we're guaranteed that the PC offset
-  // for a particular stack map entry must be > 0.
-  bool HasLoadedEntry() const { return current_pc_offset_ > 0; }
+  intptr_t Length() const { return list_.Length() / 2; }
+  RawSmi* OffsetAt(intptr_t index) const;
+  RawStackMap* MapAt(intptr_t index) const;
 
-  const CompressedStackMaps& maps_;
-  intptr_t next_offset_ = 0;
-  intptr_t current_pc_offset_ = 0;
-  intptr_t current_spill_slot_bit_count_ = -1;
-  intptr_t current_non_spill_slot_bit_count_ = -1;
-  intptr_t current_bits_offset_ = -1;
+  Smi& pc_offset_;
+  StackMap& stack_map_;
+  GrowableObjectArray& list_;
+  DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);
 };
 
 class ExceptionHandlerList : public ZoneAllocated {

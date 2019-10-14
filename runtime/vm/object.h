@@ -470,9 +470,7 @@ class Object {
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
   static RawClass* code_source_map_class() { return code_source_map_class_; }
-  static RawClass* compressed_stackmaps_class() {
-    return compressed_stackmaps_class_;
-  }
+  static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
@@ -741,8 +739,7 @@ class Object {
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static RawClass*
-      compressed_stackmaps_class_;          // Class of CompressedStackMaps.
+  static RawClass* stackmap_class_;         // Class of StackMap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
@@ -5146,52 +5143,62 @@ class CodeSourceMap : public Object {
   friend class Object;
 };
 
-class CompressedStackMaps : public Object {
+class StackMap : public Object {
  public:
-  static const intptr_t kHashBits = 30;
+  bool IsObject(intptr_t index) const {
+    ASSERT(InRange(index));
+    return GetBit(index);
+  }
 
-  intptr_t payload_size() const { return raw_ptr()->payload_size_; }
+  intptr_t Length() const { return raw_ptr()->length_; }
 
-  bool Equals(const CompressedStackMaps& other) const {
-    if (payload_size() != other.payload_size()) return false;
+  intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
+  void SetSlowPathBitCount(intptr_t bit_count) const {
+    ASSERT(bit_count <= kMaxUint16);
+    StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
+  }
+
+  bool Equals(const StackMap& other) const {
+    if (Length() != other.Length()) {
+      return false;
+    }
     NoSafepointScope no_safepoint;
-    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(payload_size())) ==
-           0;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
   }
-  intptr_t Hash() const;
 
-  static intptr_t UnroundedSize(RawCompressedStackMaps* maps) {
-    return UnroundedSize(maps->ptr()->payload_size_);
+  static const intptr_t kMaxLengthInBytes = kSmiMax;
+
+  static intptr_t UnroundedSize(RawStackMap* map) {
+    return UnroundedSize(map->ptr()->length_);
   }
-  static intptr_t UnroundedSize(intptr_t length) {
-    return sizeof(RawCompressedStackMaps) + length;
+  static intptr_t UnroundedSize(intptr_t len) {
+    // The stackmap payload is in an array of bytes.
+    intptr_t payload_size = Utils::RoundUp(len, kBitsPerByte) / kBitsPerByte;
+    return sizeof(RawStackMap) + payload_size;
   }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawCompressedStackMaps) ==
-           OFFSET_OF_RETURNED_VALUE(RawCompressedStackMaps, data));
+    ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
+  static RawStackMap* New(BitmapBuilder* bmap, intptr_t slow_path_bit_count);
 
  private:
-  // The encoding logic for CompressedStackMaps entries is in
-  // CompressedStackMapsBuilder, and the decoding logic is in
-  // CompressedStackMapsIterator.
-  static RawCompressedStackMaps* New(const GrowableArray<uint8_t>& bytes);
-
-  void set_payload_size(intptr_t payload_size) const {
-    StoreNonPointer(&raw_ptr()->payload_size_, payload_size);
+  void SetLength(intptr_t length) const {
+    ASSERT(length <= kMaxUint16);
+    StoreNonPointer(&raw_ptr()->length_, length);
   }
 
-  const uint8_t* Payload() const { return raw_ptr()->data(); }
-  void SetPayload(const GrowableArray<uint8_t>& payload) const;
+  bool InRange(intptr_t index) const { return index < Length(); }
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps, Object);
+  bool GetBit(intptr_t bit_index) const;
+  void SetBit(intptr_t bit_index, bool value) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackMap, Object);
+  friend class BitmapBuilder;
   friend class Class;
-  friend class CompressedStackMapsBuilder;
-  friend class CompressedStackMapsIterator;
 };
 
 class ExceptionHandlers : public Object {
@@ -5394,11 +5401,11 @@ class Code : public Object {
   void set_catch_entry_moves_maps(const TypedData& maps) const;
 #endif
 
-  RawCompressedStackMaps* compressed_stackmaps() const {
-    return raw_ptr()->compressed_stackmaps_;
-  }
-  void set_compressed_stackmaps(const CompressedStackMaps& maps) const;
-
+  RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
+  void set_stackmaps(const Array& maps) const;
+  RawStackMap* GetStackMap(uint32_t pc_offset,
+                           Array* stackmaps,
+                           StackMap* map) const;
   enum CallKind {
     kPcRelativeCall = 1,
     kPcRelativeTailCall = 2,

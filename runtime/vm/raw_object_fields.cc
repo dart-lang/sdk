@@ -99,7 +99,7 @@ namespace dart {
   F(Code, owner_)                                                              \
   F(Code, exception_handlers_)                                                 \
   F(Code, pc_descriptors_)                                                     \
-  F(Code, compressed_stackmaps_)                                               \
+  F(Code, stackmaps_)                                                          \
   F(Code, inlined_id_to_function_)                                             \
   F(Code, code_source_map_)                                                    \
   F(Bytecode, object_pool_)                                                    \

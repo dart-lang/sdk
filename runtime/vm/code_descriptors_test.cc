@@ -84,8 +84,10 @@ TEST_CASE(StackMapGC) {
 
   // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
   // to test the traversal of stack maps when a GC happens.
+  StackMapTableBuilder* stackmap_table_builder = new StackMapTableBuilder();
+  EXPECT(stackmap_table_builder != NULL);
   BitmapBuilder* stack_bitmap = new BitmapBuilder();
-  EXPECT(stack_bitmap != nullptr);
+  EXPECT(stack_bitmap != NULL);
   stack_bitmap->Set(0, false);  // var i.
   stack_bitmap->Set(1, true);   // var s1.
   stack_bitmap->Set(2, false);  // var k.
@@ -97,17 +99,16 @@ TEST_CASE(StackMapGC) {
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
-  CompressedStackMapsBuilder compressed_maps_builder;
   while (iter.MoveNext()) {
-    compressed_maps_builder.AddEntry(iter.PcOffset(), stack_bitmap, 0);
+    stackmap_table_builder->AddEntry(iter.PcOffset(), stack_bitmap, 0);
     ++call_count;
   }
   // We can't easily check that we put the stackmap at the correct pc, but
   // we did if there was exactly one call seen.
   EXPECT(call_count == 1);
-  const auto& compressed_maps =
-      CompressedStackMaps::Handle(compressed_maps_builder.Finalize());
-  code.set_compressed_stackmaps(compressed_maps);
+  const Array& stack_maps =
+      Array::Handle(stackmap_table_builder->FinalizeStackMaps(code));
+  code.set_stackmaps(stack_maps);
 
   // Now invoke 'A.moo' and it will trigger a GC when the native function
   // is called, this should then cause the stack map of function 'A.foo'

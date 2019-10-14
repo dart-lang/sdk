@@ -153,8 +153,7 @@ RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_source_map_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::compressed_stackmaps_class_ =
-    reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
@@ -643,8 +642,8 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<CodeSourceMap>(isolate);
   code_source_map_class_ = cls.raw();
 
-  cls = Class::New<CompressedStackMaps>(isolate);
-  compressed_stackmaps_class_ = cls.raw();
+  cls = Class::New<StackMap>(isolate);
+  stackmap_class_ = cls.raw();
 
   cls = Class::New<LocalVarDescriptors>(isolate);
   var_descriptors_class_ = cls.raw();
@@ -1036,7 +1035,7 @@ void Object::Cleanup() {
   object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   code_source_map_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  compressed_stackmaps_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   var_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   exception_handlers_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1136,7 +1135,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
-  SET_CLASS_NAME(compressed_stackmaps, CompressedStackMaps);
+  SET_CLASS_NAME(stackmap, StackMap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
@@ -1223,12 +1222,12 @@ void Object::FinalizeReadOnlyObject(RawObject* object) {
     ASSERT(size <= map->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
            map->HeapSize() - size);
-  } else if (cid == kCompressedStackMapsCid) {
-    RawCompressedStackMaps* maps = CompressedStackMaps::RawCast(object);
-    intptr_t size = CompressedStackMaps::UnroundedSize(maps);
-    ASSERT(size <= maps->HeapSize());
-    memset(reinterpret_cast<void*>(RawObject::ToAddr(maps) + size), 0,
-           maps->HeapSize() - size);
+  } else if (cid == kStackMapCid) {
+    RawStackMap* map = StackMap::RawCast(object);
+    intptr_t size = StackMap::UnroundedSize(map);
+    ASSERT(size <= map->HeapSize());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
+           map->HeapSize() - size);
   } else if (cid == kPcDescriptorsCid) {
     RawPcDescriptors* desc = PcDescriptors::RawCast(object);
     intptr_t size = PcDescriptors::UnroundedSize(desc);
@@ -4006,8 +4005,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::CodeSourceMap().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
-    case kCompressedStackMapsCid:
-      return Symbols::CompressedStackMaps().raw();
+    case kStackMapCid:
+      return Symbols::StackMap().raw();
     case kLocalVarDescriptorsCid:
       return Symbols::LocalVarDescriptors().raw();
     case kExceptionHandlersCid:
@@ -12821,70 +12820,84 @@ const char* CodeSourceMap::ToCString() const {
   return "CodeSourceMap";
 }
 
-intptr_t CompressedStackMaps::Hash() const {
-  uint32_t hash = 0;
-  for (intptr_t i = 0; i < payload_size(); i++) {
-    uint8_t byte = Payload()[i];
-    hash = CombineHashes(hash, byte);
-  }
-  return FinalizeHash(hash, kHashBits);
+bool StackMap::GetBit(intptr_t bit_index) const {
+  ASSERT(InRange(bit_index));
+  int byte_index = bit_index >> kBitsPerByteLog2;
+  int bit_remainder = bit_index & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  uint8_t byte = raw_ptr()->data()[byte_index];
+  return (byte & byte_mask) != 0;
 }
 
-RawCompressedStackMaps* CompressedStackMaps::New(
-    const GrowableArray<uint8_t>& payload) {
-  ASSERT(Object::compressed_stackmaps_class() != Class::null());
-  auto& result = CompressedStackMaps::Handle();
+void StackMap::SetBit(intptr_t bit_index, bool value) const {
+  ASSERT(InRange(bit_index));
+  int byte_index = bit_index >> kBitsPerByteLog2;
+  int bit_remainder = bit_index & (kBitsPerByte - 1);
+  uint8_t byte_mask = 1U << bit_remainder;
+  NoSafepointScope no_safepoint;
+  uint8_t* byte_addr = UnsafeMutableNonPointer(&raw_ptr()->data()[byte_index]);
+  if (value) {
+    *byte_addr |= byte_mask;
+  } else {
+    *byte_addr &= ~byte_mask;
+  }
+}
 
-  const uintptr_t payload_size = payload.length();
-  if (payload_size > kMaxInt32) {
-    FATAL1(
-        "Fatal error in CompressedStackMaps::New: "
-        "invalid payload size %" Pu "\n",
-        payload_size);
+RawStackMap* StackMap::New(BitmapBuilder* bmap, intptr_t slow_path_bit_count) {
+  ASSERT(Object::stackmap_class() != Class::null());
+  ASSERT(bmap != NULL);
+  StackMap& result = StackMap::Handle();
+  // Guard against integer overflow of the instance size computation.
+  intptr_t length = bmap->Length();
+  intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
+  }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
   }
   {
-    // CompressedStackMaps data objects are associated with a code object,
-    // allocate them in old generation.
+    // StackMap data objects are associated with a code object, allocate them
+    // in old generation.
     RawObject* raw = Object::Allocate(
-        CompressedStackMaps::kClassId,
-        CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
+        StackMap::kClassId, StackMap::InstanceSize(length), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_payload_size(payload_size);
+    result.SetLength(length);
   }
-  result.SetPayload(payload);
-
+  if (payload_size > 0) {
+    // Ensure leftover bits are deterministic.
+    result.raw()->ptr()->data()[payload_size - 1] = 0;
+  }
+  for (intptr_t i = 0; i < length; ++i) {
+    result.SetBit(i, bmap->Get(i));
+  }
+  result.SetSlowPathBitCount(slow_path_bit_count);
   return result.raw();
 }
 
-void CompressedStackMaps::SetPayload(
-    const GrowableArray<uint8_t>& payload) const {
-  auto const array_length = payload.length();
-  ASSERT(array_length <= payload_size());
-
-  NoSafepointScope no_safepoint;
-  uint8_t* payload_start = UnsafeMutableNonPointer(raw_ptr()->data());
-  for (intptr_t i = 0; i < array_length; i++) {
-    payload_start[i] = payload.At(i);
+const char* StackMap::ToCString() const {
+  if (IsNull()) return "{null}";
+  // Guard against integer overflow in the computation of alloc_size.
+  //
+  // TODO(kmillikin): We could just truncate the string if someone
+  // tries to print a 2 billion plus entry stackmap.
+  if (Length() > kIntptrMax) {
+    FATAL1("Length() is unexpectedly large (%" Pd ")", Length());
   }
-}
-
-const char* CompressedStackMaps::ToCString() const {
-  ZoneTextBuffer b(Thread::Current()->zone(), 100);
-  CompressedStackMapsIterator it(*this);
-  bool first_entry = true;
-  while (it.MoveNext()) {
-    if (first_entry) {
-      first_entry = false;
-    } else {
-      b.AddString("\n");
-    }
-    b.Printf("0x%" Pp ": ", it.pc_offset());
-    for (intptr_t i = 0, n = it.length(); i < n; i++) {
-      b.AddString(it.IsObject(i) ? "1" : "0");
-    }
+  Thread* thread = Thread::Current();
+  intptr_t alloc_size = Length() + 1;
+  char* chars = thread->zone()->Alloc<char>(alloc_size);
+  for (intptr_t i = 0; i < Length(); i++) {
+    chars[i] = IsObject(i) ? '1' : '0';
   }
-  return b.buffer();
+  chars[alloc_size - 1] = '\0';
+  return chars;
 }
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -14448,9 +14461,9 @@ void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
 }
 
-void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
+void Code::set_stackmaps(const Array& maps) const {
   ASSERT(maps.IsOld());
-  StorePointer(&raw_ptr()->compressed_stackmaps_, maps.raw());
+  StorePointer(&raw_ptr()->stackmaps_, maps.raw());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
@@ -15115,6 +15128,39 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
       &raw_ptr()->monomorphic_unchecked_entry_point_,
       Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()));
 #endif
+}
+
+RawStackMap* Code::GetStackMap(uint32_t pc_offset,
+                               Array* maps,
+                               StackMap* map) const {
+  // This code is used during iterating frames during a GC and hence it
+  // should not in turn start a GC.
+  NoSafepointScope no_safepoint;
+  if (stackmaps() == Array::null()) {
+    // No stack maps are present in the code object which means this
+    // frame relies on tagged pointers.
+    return StackMap::null();
+  }
+  // A stack map is present in the code object, use the stack map to visit
+  // frame slots which are marked as having objects.
+  *maps = stackmaps();
+  *map = StackMap::null();
+  for (intptr_t i = 0; i < maps->Length(); i += 2) {
+    // The reinterpret_cast from Smi::RawCast is inlined here because in
+    // debug mode, it creates Handles due to the ASSERT.
+    const uint32_t offset =
+        ValueFromRawSmi(reinterpret_cast<RawSmi*>(maps->At(i)));
+    if (offset != pc_offset) continue;
+    *map ^= maps->At(i + 1);
+    ASSERT(!map->IsNull());
+    return map->raw();
+  }
+  // If we are missing a stack map, this must either be unoptimized code, or
+  // the entry to an osr function. (In which case all stack slots are
+  // considered to have tagged pointers.)
+  // Running with --verify-on-transition should hit this.
+  ASSERT(!is_optimized() || (pc_offset == EntryPoint() - PayloadStart()));
+  return StackMap::null();
 }
 
 void Code::GetInlinedFunctionsAtInstruction(

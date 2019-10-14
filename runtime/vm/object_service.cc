@@ -742,7 +742,7 @@ void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
-void CompressedStackMaps::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void StackMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
