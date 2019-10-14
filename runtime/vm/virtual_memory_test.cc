@@ -21,7 +21,7 @@ bool IsZero(char* begin, char* end) {
 VM_UNIT_TEST_CASE(AllocateVirtualMemory) {
   const intptr_t kVirtualMemoryBlockSize = 64 * KB;
   VirtualMemory* vm =
-      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+      VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
   EXPECT(vm != NULL);
   EXPECT(vm->address() != NULL);
   EXPECT_EQ(kVirtualMemoryBlockSize, vm->size());
@@ -57,7 +57,7 @@ VM_UNIT_TEST_CASE(AllocateAlignedVirtualMemory) {
   intptr_t kIterations = kHeapPageSize / kVirtualPageSize;
   for (intptr_t i = 0; i < kIterations; i++) {
     VirtualMemory* vm = VirtualMemory::AllocateAligned(
-        kHeapPageSize, kHeapPageSize, false, "test");
+        kHeapPageSize, kHeapPageSize, false, NULL);
     EXPECT(Utils::IsAligned(vm->start(), kHeapPageSize));
     EXPECT_EQ(kHeapPageSize, vm->size());
     delete vm;
@@ -70,19 +70,19 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   const intptr_t kIterations = 900;  // Enough to exhaust 32-bit address space.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
     delete vm;
   }
   // Check that truncation does not introduce leaks.
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, false, NULL);
     vm->Truncate(kVirtualMemoryBlockSize / 2);
     delete vm;
   }
   for (intptr_t i = 0; i < kIterations; ++i) {
     VirtualMemory* vm =
-        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, "test");
+        VirtualMemory::Allocate(kVirtualMemoryBlockSize, true, NULL);
     vm->Truncate(0);
     delete vm;
   }

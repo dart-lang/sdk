@@ -82,7 +82,7 @@ TEST_CASE(FreeList) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
   VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
 
   TestFreeList(region, free_list, false);
 
@@ -95,7 +95,7 @@ TEST_CASE(FreeListProtected) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
   VirtualMemory* region =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, "test");
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
 
   TestFreeList(region, free_list, true);
 
@@ -111,7 +111,7 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   uword* objects = new uword[kBlobSize / kObjectSize];
 
   VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
   ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
@@ -151,7 +151,7 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
   }
 
   VirtualMemory* blob =
-      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, "test");
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
   ASSERT(Utils::IsAligned(blob->start(), 4096));
   blob->Protect(VirtualMemory::kReadWrite);
 
