@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
@@ -236,10 +235,6 @@ class FindElement {
   ImportFindElement importFind(String targetUri) {
     var import = this.import(targetUri);
     return ImportFindElement(import);
-  }
-
-  InterfaceType interfaceType(String name) {
-    return class_(name).type;
   }
 
   FunctionElement localFunction(String name) {
