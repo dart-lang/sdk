@@ -77,7 +77,7 @@ main() { foo(() {}); }
 
 #### `dart:developer`
 
-* Added optional `parent` paremeter to `TimelineTask` constructors to allow for
+* Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
 
 ### Dart VM
