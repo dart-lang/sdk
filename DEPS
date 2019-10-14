@@ -85,7 +85,7 @@ vars = {
   "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
   "args_tag" : "1.5.2",
-  "dartdoc_tag" : "v0.28.7",
+  "dartdoc_tag" : "v0.28.8",
   "ffi_tag": "f46c1f42c6f7f1938f2ff27c573da72d57c47ded",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
