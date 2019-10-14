@@ -208,6 +208,9 @@ class InstrumentationRenderer {
   /// Creates an output object for the given library info.
   InstrumentationRenderer(this.unitInfo, this.migrationInfo, this.pathMapper);
 
+  /// Return the path context used to manipulate paths.
+  path.Context get pathContext => migrationInfo.pathContext;
+
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
     // TODO(brianwilkerson) Restore syntactic highlighting.
@@ -228,6 +231,7 @@ class InstrumentationRenderer {
 
   /// Return the content of the file with navigation links and anchors added.
   String _computeNavigationContent(UnitInfo unitInfo) {
+    String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
     Map<int, String> openInsertions = {};
@@ -255,7 +259,8 @@ class InstrumentationRenderer {
       NavigationTarget target = region.target;
       if (target.filePath != unitInfo.path || region.offset != target.offset) {
         String openInsertion = openInsertions[openOffset] ?? '';
-        String htmlPath = pathMapper.map(target.filePath);
+        String htmlPath = pathContext.relative(pathMapper.map(target.filePath),
+            from: unitDir);
         openInsertion = '<a href="$htmlPath#o${target.offset}">$openInsertion';
         openInsertions[openOffset] = openInsertion;
 
@@ -295,6 +300,7 @@ class InstrumentationRenderer {
   /// * 'explanation': The Mustache context for the tooltip explaining why the
   ///   content in this region was modified.
   List<Map> _computeRegions(UnitInfo unitInfo) {
+    String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
     List<Map> regions = [];
     int previousOffset = 0;
@@ -313,7 +319,7 @@ class InstrumentationRenderer {
       for (var detail in region.details) {
         details.add({
           'description': detail.description,
-          'target': _uriForTarget(detail.target),
+          'target': _uriForTarget(detail.target, unitDir),
           'isLink': detail.target != null,
         });
       }
@@ -334,17 +340,21 @@ class InstrumentationRenderer {
     return regions;
   }
 
+  /// Return the path to the directory containing the output generated from the
+  /// [unitInfo].
+  String _directoryContaining(UnitInfo unitInfo) {
+    return pathContext.dirname(pathMapper.map(unitInfo.path));
+  }
+
   /// Return the URL that will navigate to the given [target].
-  String _uriForTarget(NavigationTarget target) {
+  String _uriForTarget(NavigationTarget target, String unitDir) {
     if (target == null) {
       // TODO(brianwilkerson) This is temporary support until we can get targets
       //  for all nodes.
       return '';
     }
-    path.Context pathContext = migrationInfo.pathContext;
-    String targetPath = pathContext.setExtension(target.filePath, '.html');
-    String sourceDir = pathContext.dirname(unitInfo.path);
-    String relativePath = pathContext.relative(targetPath, from: sourceDir);
+    String relativePath =
+        pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
     return '$relativePath#o${target.offset.toString()}';
   }
 }
