@@ -311,7 +311,7 @@ void testNativeFunctionSignatureInvalidOptionalPositional() {
 }
 
 // error on missing field annotation
-class TestStruct extends Struct<TestStruct> {
+class TestStruct extends Struct {
   @Double()
   double x;
 
@@ -322,46 +322,43 @@ class TestStruct extends Struct<TestStruct> {
 class TestStruct3 extends TestStruct {} //# 52: compile-time error
 
 // error on double annotation
-class TestStruct4 extends Struct<TestStruct4> {
+class TestStruct4 extends Struct {
   @Double()
   @Double() //# 53: compile-time error
   double z;
 }
 
 // error on annotation not matching up
-class TestStruct5 extends Struct<TestStruct5> {
+class TestStruct5 extends Struct {
   @Int64() //# 54: compile-time error
   double z; //# 54: compile-time error
 }
 
 // error on annotation not matching up
-class TestStruct6 extends Struct<TestStruct6> {
+class TestStruct6 extends Struct {
   @Void() //# 55: compile-time error
   double z; //# 55: compile-time error
 }
 
 // error on annotation not matching up
-class TestStruct7 extends Struct<TestStruct7> {
+class TestStruct7 extends Struct {
   @NativeType() //# 56: compile-time error
   double z; //# 56: compile-time error
 }
 
 // error on field initializer on field
-class TestStruct8 extends Struct<TestStruct8> {
+class TestStruct8 extends Struct {
   @Double() //# 57: compile-time error
   double z = 10.0; //# 57: compile-time error
 }
 
 // error on field initializer in constructor
-class TestStruct9 extends Struct<TestStruct9> {
+class TestStruct9 extends Struct {
   @Double()
   double z;
 
   TestStruct9() : z = 0.0 {} //# 58: compile-time error
 }
-
-// A struct "C" must extend "Struct<C>", not "Struct<AnythingElse>".
-class TestStruct10 extends Struct<Int8> {} //# 59: compile-time error
 
 // Struct classes may not be generic.
 class TestStruct11<T> extends //# 60: compile-time error
@@ -369,7 +366,7 @@ class TestStruct11<T> extends //# 60: compile-time error
 
 // Structs may not appear inside structs (currently, there is no suitable
 // annotation).
-class TestStruct12 extends Struct<TestStruct12> {
+class TestStruct12 extends Struct {
   @Pointer //# 61: compile-time error
   TestStruct9 struct; //# 61: compile-time error
 }
@@ -379,7 +376,7 @@ class DummyAnnotation {
 }
 
 // Structs fields may have other annotations.
-class TestStruct13 extends Struct<TestStruct13> {
+class TestStruct13 extends Struct {
   @DummyAnnotation()
   @Double()
   double z;

@@ -4093,30 +4093,6 @@ Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateFfiWrongStructInheritance =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Struct '#name' must inherit from 'Struct<#name>'.""",
-        withArguments: _withArgumentsFfiWrongStructInheritance);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiWrongStructInheritance =
-    const Code<Message Function(String name)>(
-  "FfiWrongStructInheritance",
-  templateFfiWrongStructInheritance,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiWrongStructInheritance(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeFfiWrongStructInheritance,
-      message: """Struct '${name}' must inherit from 'Struct<${name}>'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializedOutsideDeclaringClass =
     messageFieldInitializedOutsideDeclaringClass;
 

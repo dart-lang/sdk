@@ -18,22 +18,22 @@ class AnnotationOnPointerFieldTest extends DriverResolutionTest {
   test_double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Double() Pointer<Int8> x;
 }
 ''', [
-      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 49, 9),
+      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 46, 9),
     ]);
   }
 
   test_int32() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Int32() Pointer<Float> x;
 }
 ''', [
-      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 49, 8),
+      error(FfiCode.ANNOTATION_ON_POINTER_FIELD, 46, 8),
     ]);
   }
 }

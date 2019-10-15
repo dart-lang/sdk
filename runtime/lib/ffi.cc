@@ -205,8 +205,6 @@ static RawObject* LoadValueStruct(Zone* zone,
   ASSERT(constructor.IsGenerativeConstructor());
   ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
   const Instance& new_object = Instance::Handle(Instance::New(cls));
-  new_object.SetTypeArguments(
-      TypeArguments::Handle(instance_type_arg.arguments()));
   ASSERT(cls.is_allocated() || Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
   const Array& args = Array::Handle(zone, Array::New(2));
   args.SetAt(0, new_object);

@@ -102,7 +102,7 @@ testReifiedGeneric() {
   free(p);
 }
 
-class Foo extends Struct<Foo> {
+class Foo extends Struct {
   @Int8()
   int a;
 }

@@ -267,7 +267,6 @@ FfiTypeUnsized/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
-FfiWrongStructInheritance/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail

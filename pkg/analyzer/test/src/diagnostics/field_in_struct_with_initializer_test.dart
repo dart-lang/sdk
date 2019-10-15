@@ -18,18 +18,18 @@ class FieldInStructWithInitializerTest extends DriverResolutionTest {
   test_instance_withInitializer() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   Pointer p = null;
 }
 ''', [
-      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 57, 1),
+      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
     ]);
   }
 
   test_instance_withoutInitializer() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   Pointer p;
 }
 ''');

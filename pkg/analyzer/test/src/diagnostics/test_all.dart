@@ -148,8 +148,6 @@ import 'invalid_required_optional_positional_param_test.dart'
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
-import 'invalid_type_argument_for_struct_test.dart'
-    as invalid_type_argument_for_struct;
 import 'invalid_use_of_covariant_in_extension_test.dart'
     as invalid_use_of_covariant_in_extension;
 import 'invalid_use_of_never_value_test.dart' as invalid_use_of_never_value;
@@ -188,8 +186,6 @@ import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
-import 'missing_type_argument_for_struct_test.dart'
-    as missing_type_argument_for_struct;
 import 'mixed_return_types_test.dart' as mixed_return_types;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
@@ -460,7 +456,6 @@ main() {
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
-    invalid_type_argument_for_struct.main();
     invalid_use_of_covariant_in_extension.main();
     invalid_use_of_never_value.main();
     invalid_use_of_null_value.main();
@@ -487,7 +482,6 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
-    missing_type_argument_for_struct.main();
     mixed_return_types.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();

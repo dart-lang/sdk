@@ -123,7 +123,7 @@ void testBareStruct() {
 void testTypeTest() {
   Coordinate c = Coordinate.allocate(10, 10, nullptr);
   Expect.isTrue(c is Struct);
-  Expect.isTrue(c is Struct<Coordinate>);
+  Expect.isTrue(c.addressOf is Pointer<Coordinate>);
   free(c.addressOf);
 }
 

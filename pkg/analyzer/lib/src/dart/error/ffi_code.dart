@@ -76,15 +76,6 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try using 'int', 'double' or 'Pointer'.");
 
   /**
-   * Parameters:
-   * 0: the name of the subclass
-   */
-  static const FfiCode INVALID_TYPE_ARGUMENT_FOR_STRUCT = const FfiCode(
-      name: 'INVALID_TYPE_ARGUMENT_FOR_STRUCT',
-      message: "The type argument to 'Struct' must be the subclass ('{0}').",
-      correction: "Try using '{0}' for the type argument.");
-
-  /**
    * No parameters.
    */
   static const FfiCode MISMATCHED_ANNOTATION_ON_STRUCT_FIELD = const FfiCode(
@@ -127,17 +118,6 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the subclass
-   */
-  static const FfiCode MISSING_TYPE_ARGUMENT_FOR_STRUCT = const FfiCode(
-      name: 'MISSING_TYPE_ARGUMENT_FOR_STRUCT',
-      message:
-          "The type 'Struct' must have a type argument matching the subclass "
-          "('{0}').",
-      correction: "Try adding a type argument of '{0}'.");
-
-  /**
-   * Parameters:
    * 0: the type that should be a subtype
    * 1: the supertype that the subtype is compared to
    * 2: the name of the function whose invocation depends on this relationship
@@ -149,7 +129,7 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the function, method, or constructor having type arguments 
+   * 0: the name of the function, method, or constructor having type arguments
    */
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = const FfiCode(
       name: 'NON_CONSTANT_TYPE_ARGUMENT',

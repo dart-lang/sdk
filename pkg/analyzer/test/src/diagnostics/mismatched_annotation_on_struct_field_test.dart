@@ -18,22 +18,22 @@ class MismatchedAnnotationOnStructFieldTest extends DriverResolutionTest {
   test_double_on_int() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Double() int x;
 }
 ''', [
-      error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 49, 9),
+      error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 46, 9),
     ]);
   }
 
   test_int32_on_double() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Int32() double x;
 }
 ''', [
-      error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 49, 8),
+      error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 46, 8),
     ]);
   }
 }

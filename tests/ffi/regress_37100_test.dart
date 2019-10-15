@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
 
-class EVP_MD extends Struct<EVP_MD> {}
+class EVP_MD extends Struct {}
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 

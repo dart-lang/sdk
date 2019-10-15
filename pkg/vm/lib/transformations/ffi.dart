@@ -231,9 +231,9 @@ class FfiTransformer extends Transformer {
         storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
-        addressOfField = index.getMember('dart:ffi', 'Struct', 'addressOf'),
+        addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
         structFromPointer =
-            index.getMember('dart:ffi', 'Struct', 'fromPointer'),
+            index.getMember('dart:ffi', 'Struct', '_fromPointer'),
         asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),

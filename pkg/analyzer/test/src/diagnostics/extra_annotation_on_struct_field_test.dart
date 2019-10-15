@@ -18,7 +18,7 @@ class ExtraAnnotationOnStructFieldTest extends DriverResolutionTest {
   test_one() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Int32() int x;
 }
 ''');
@@ -27,11 +27,11 @@ class C extends Struct<C> {
   test_two() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Int32() @Int16() int x;
 }
 ''', [
-      error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 58, 8),
+      error(FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD, 55, 8),
     ]);
   }
 }

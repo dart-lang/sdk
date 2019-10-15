@@ -18,7 +18,7 @@ class GenericStructSubclassTest extends DriverResolutionTest {
   test_genericStruct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S<T> extends Struct<S> {}
+class S<T> extends Struct {}
 ''', [
       error(FfiCode.GENERIC_STRUCT_SUBCLASS, 25, 1),
     ]);
@@ -27,7 +27,7 @@ class S<T> extends Struct<S> {}
   test_validStruct() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct<S> {}
+class S extends Struct {}
 ''');
   }
 }

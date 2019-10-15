@@ -38,24 +38,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (_isDartFfiClass(superclass)) {
         if (superclass.name.staticElement.name == 'Struct') {
           inStruct = true;
-          NodeList<TypeAnnotation> typeArguments =
-              superclass.typeArguments?.arguments;
-          if (typeArguments == null) {
-            _errorReporter.reportTypeErrorForNode(
-                FfiCode.MISSING_TYPE_ARGUMENT_FOR_STRUCT,
-                superclass.name,
-                [node.name.name]);
-          } else if (typeArguments.length == 1) {
-            if (typeArguments[0].type.element != node.declaredElement) {
-              // TODO(brianwilkerson) If the type argument is not a subclass of
-              //  Struct, then we'll get two diagnostics generated. We should
-              //  test for that case here and suppress the hint.
-              _errorReporter.reportTypeErrorForNode(
-                  FfiCode.INVALID_TYPE_ARGUMENT_FOR_STRUCT,
-                  typeArguments[0],
-                  [node.name.name]);
-            }
-          }
         } else {
           _errorReporter.reportTypeErrorForNode(
               FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS,

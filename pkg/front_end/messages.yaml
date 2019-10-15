@@ -3510,11 +3510,6 @@ FfiStructGeneric:
   template: "Struct '#name' should not be generic."
   external: test/ffi_test.dart
 
-FfiWrongStructInheritance:
-  # Used by dart:ffi
-  template: "Struct '#name' must inherit from 'Struct<#name>'."
-  external: test/ffi_test.dart
-
 FfiDartTypeMismatch:
   # Used by dart:ffi
   template: "Expected '#type' to be a subtype of '#type2'."

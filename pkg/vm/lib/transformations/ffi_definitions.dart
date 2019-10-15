@@ -12,8 +12,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiFieldNoAnnotation,
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
-        templateFfiStructGeneric,
-        templateFfiWrongStructInheritance;
+        templateFfiStructGeneric;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -27,7 +26,7 @@ import 'ffi.dart';
 /// Checks and elaborates the dart:ffi structs and fields.
 ///
 /// Input:
-/// class Coord extends Struct<Coord> {
+/// class Coord extends Struct {
 ///   @Double()
 ///   double x;
 ///
@@ -38,7 +37,7 @@ import 'ffi.dart';
 /// }
 ///
 /// Output:
-/// class Coord extends Struct<Coord> {
+/// class Coord extends Struct {
 ///   Coord.#fromPointer(Pointer<Coord> coord) : super._(coord);
 ///
 ///   Pointer<Double> get _xPtr => addressOf.cast();
@@ -126,16 +125,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       // Not a struct, but extends a struct. The error will be emitted by
       // _FfiUseSiteTransformer.
       return;
-    }
-
-    // A struct classes "C" must extend "Struct<C>".
-    final DartType structTypeArg = node.supertype.typeArguments[0];
-    if (structTypeArg != InterfaceType(node)) {
-      diagnosticReporter.report(
-          templateFfiWrongStructInheritance.withArguments(node.name),
-          node.fileOffset,
-          1,
-          node.location.file);
     }
   }
 

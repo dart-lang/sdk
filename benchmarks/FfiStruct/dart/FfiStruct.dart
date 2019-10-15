@@ -75,7 +75,7 @@ main() {
 //
 // Test struct.
 //
-class VeryLargeStruct extends Struct<VeryLargeStruct> {
+class VeryLargeStruct extends Struct {
   @Int8()
   int a;
 

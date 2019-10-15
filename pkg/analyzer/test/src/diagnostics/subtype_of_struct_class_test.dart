@@ -21,10 +21,10 @@ class SubtypeOfStructClassInExtendsTest extends DriverResolutionTest {
   test_extends() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct<S> {}
+class S extends Struct {}
 class C extends S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 64, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS, 61, 1),
     ]);
   }
 }
@@ -34,10 +34,10 @@ class SubtypeOfStructClassInImplementsTest extends DriverResolutionTest {
   test_implements() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct<S> {}
+class S extends Struct {}
 class C implements S {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 67, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 64, 1),
     ]);
   }
 }
@@ -47,11 +47,11 @@ class SubtypeOfStructClassInWithTest extends DriverResolutionTest {
   test_with() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class S extends Struct<S> {}
+class S extends Struct {}
 class C with S {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 61, 1),
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 61, 1),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 58, 1),
+      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH, 58, 1),
     ]);
   }
 }

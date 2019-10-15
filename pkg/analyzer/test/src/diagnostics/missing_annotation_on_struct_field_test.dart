@@ -18,18 +18,18 @@ class MissingAnnotationOnStructFieldTest extends DriverResolutionTest {
   test_missing_int() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   int x;
 }
 ''', [
-      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 49, 3),
+      error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 46, 3),
     ]);
   }
 
   test_notMissing() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   @Int32() int x;
 }
 ''');

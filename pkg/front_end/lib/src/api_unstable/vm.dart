@@ -55,7 +55,6 @@ export '../fasta/fasta_codes.dart'
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
         templateFfiTypeUnsized,
-        templateFfiWrongStructInheritance,
         templateIllegalRecursiveType;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;

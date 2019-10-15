@@ -23,8 +23,8 @@ typedef NativeCoordinateOp = Pointer<Coordinate> Function(Pointer<Coordinate>);
 
 void main() {
   testFunctionWithStruct();
-  testFunctionWithStructArray();
-  testFunctionWithVeryLargeStruct();
+  // testFunctionWithStructArray();
+  // testFunctionWithVeryLargeStruct();
 }
 
 DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");

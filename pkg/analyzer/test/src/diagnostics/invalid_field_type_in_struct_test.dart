@@ -18,18 +18,18 @@ class InvalidFieldTypeInStructTest extends DriverResolutionTest {
   test_instance_invalid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   String str;
 }
 ''', [
-      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 49, 6),
+      error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 46, 6),
     ]);
   }
 
   test_instance_valid() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   Pointer p;
 }
 ''');
