@@ -2216,7 +2216,7 @@ var s = new Set<int>();
 
 ### sdk_version_ui_as_code
 
-_The for, if, and spread elements weren't supported until version 2.2.2, but
+_The for, if, and spread elements weren't supported until version 2.3.0, but
 this code is required to be able to run on earlier versions._
 
 #### Description
