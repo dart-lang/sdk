@@ -7,11 +7,11 @@
 
 /*class: global#Iterable:checkedInstance*/
 
-/*strong.class: A:checkedTypeArgument,checks=[],typeArgument*/
+/*strong.class: A:checkedInstance,checkedTypeArgument,checks=[],typeArgument*/
 /*omit.class: A:checkedTypeArgument,checks=[],typeArgument*/
 class A {}
 
-/*strong.class: B:checks=[],typeArgument*/
+/*strong.class: B:checkedInstance,checks=[],typeArgument*/
 /*omit.class: B:checks=[],typeArgument*/
 class B {}
 
