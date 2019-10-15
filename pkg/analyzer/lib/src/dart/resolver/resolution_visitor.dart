@@ -653,6 +653,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 node.returnType?.type ?? _dynamicType,
                 element.typeParameters,
                 element.parameters,
+                nullabilitySuffix: _getNullability(node.question != null),
               );
             }
           });

@@ -382,6 +382,13 @@ class FindElement {
       }
     }
 
+    unit.accept(
+      FunctionAstVisitor(functionDeclarationStatement: (node) {
+        var functionElement = node.functionDeclaration.declaredElement;
+        findIn(functionElement.parameters);
+      }),
+    );
+
     if (result != null) {
       return result;
     }

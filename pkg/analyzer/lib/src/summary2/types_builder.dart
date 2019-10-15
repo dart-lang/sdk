@@ -55,6 +55,7 @@ class TypesBuilder {
     TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
     FormalParameterList parameterList,
+    NullabilitySuffix nullabilitySuffix,
   ) {
     var returnType = returnTypeNode?.type ?? _dynamicType;
 
@@ -80,6 +81,7 @@ class TypesBuilder {
       returnType,
       typeParameters,
       formalParameters,
+      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -149,6 +151,7 @@ class TypesBuilder {
         node.typeParameters,
         node.type,
         parameterList,
+        _nullability(node, true), // TODO(scheglov) use 'question' token
       );
       LazyAst.setType(node, type);
     } else {
@@ -166,8 +169,32 @@ class TypesBuilder {
       node.typeParameters,
       node.returnType,
       node.parameters,
+      _nullability(node, node.question != null),
     );
     LazyAst.setType(node, type);
+  }
+
+  NullabilitySuffix _noneOrStarSuffix(AstNode node) {
+    return _nonNullableEnabled(node)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
+  bool _nonNullableEnabled(AstNode node) {
+    var unit = node.thisOrAncestorOfType<CompilationUnit>();
+    return unit.featureSet.isEnabled(Feature.non_nullable);
+  }
+
+  NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
+    if (_nonNullableEnabled(node)) {
+      if (hasQuestion) {
+        return NullabilitySuffix.question;
+      } else {
+        return NullabilitySuffix.none;
+      }
+    } else {
+      return NullabilitySuffix.star;
+    }
   }
 
   static DartType _getType(FormalParameter node) {

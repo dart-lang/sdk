@@ -260,6 +260,76 @@ main() {
     assertType(findNode.postfix('x!'), 'Object');
   }
 
+  @FailingTest(
+    reason: 'The question token is not added to FieldFormalParameter yet',
+  )
+  test_parameter_functionTyped_fieldFormal() async {
+    await assertNoErrorsInCode('''
+class A {
+  var f1;
+  var f2;
+  var f3;
+  A.f1(void this.f1());
+  A.f2(void this.f2()?);
+  A.f3({void this.f3()?});
+}
+''');
+    assertElementTypeString(
+      findElement.parameter('f1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('f2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('f3').type,
+      'void Function()?',
+    );
+  }
+
+  test_parameter_functionTyped() async {
+    await assertNoErrorsInCode('''
+void f1(void p1()) {}
+void f2(void p2()?) {}
+void f3({void p3()?}) {}
+''');
+    assertElementTypeString(
+      findElement.parameter('p1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('p2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('p3').type,
+      'void Function()?',
+    );
+  }
+
+  test_parameter_functionTyped_local() async {
+    await assertNoErrorsInCode('''
+f() {
+  void f1(void p1()) {}
+  void f2(void p2()?) {}
+  void f3({void p3()?}) {}
+}
+''');
+    assertElementTypeString(
+      findElement.parameter('p1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('p2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('p3').type,
+      'void Function()?',
+    );
+  }
+
   @failingTest
   test_parameter_genericFunctionType() async {
     await resolveTestCode('''
