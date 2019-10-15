@@ -9,10 +9,12 @@ const _urlBase = 'https://storage.googleapis.com/dart-archive/channels';
 const _x64Files = {
   'mac': 'sdk/dartsdk-macos-x64-release.zip',
   'linux': 'sdk/dartsdk-linux-x64-release.zip',
+  'linux-arm': 'sdk/dartsdk-linux-arm64-release.zip',
 };
 const _ia32Files = {
   'mac': 'sdk/dartsdk-macos-ia32-release.zip',
   'linux': 'sdk/dartsdk-linux-ia32-release.zip',
+  'linux-arm': 'sdk/dartsdk-linux-arm-release.zip',
 };
 
 Future<String> _getHash256(
@@ -98,13 +100,21 @@ class Dart < Formula
       url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['mac']}"
       sha256 "${hashes['stable'][_ia32Files['mac']]}"
     end
-  elsif OS.linux?
+  elsif OS.linux? && Hardware::CPU.intel?
     if Hardware::CPU.is_64_bit?
       url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['linux']}"
       sha256 "${hashes['stable'][_x64Files['linux']]}"
     else
       url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['linux']}"
       sha256 "${hashes['stable'][_ia32Files['linux']]}"
+    end
+  elsif OS.linux? && Hardware::CPU.arm?
+    if Hardware::CPU.is_64_bit?
+      url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['linux-arm']}"
+      sha256 "${hashes['stable'][_x64Files['linux-arm']]}"
+    else
+      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['linux-arm']}"
+      sha256 "${hashes['stable'][_ia32Files['linux-arm']]}"
     end
   end
 
@@ -118,13 +128,21 @@ class Dart < Formula
         url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['mac']}"
         sha256 "${hashes['dev'][_ia32Files['mac']]}"
       end
-    elsif OS.linux?
+    elsif OS.linux? && Hardware::CPU.intel?
       if Hardware::CPU.is_64_bit?
         url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['linux']}"
         sha256 "${hashes['dev'][_x64Files['linux']]}"
       else
         url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['linux']}"
         sha256 "${hashes['dev'][_ia32Files['linux']]}"
+      end
+    elsif OS.linux? && Hardware::CPU.arm?
+      if Hardware::CPU.is_64_bit?
+        url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['linux-arm']}"
+        sha256 "${hashes['dev'][_x64Files['linux-arm']]}"
+      else
+        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['linux-arm']}"
+        sha256 "${hashes['dev'][_ia32Files['linux-arm']]}"
       end
     end
   end
