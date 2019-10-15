@@ -59,6 +59,8 @@ import 'transformations/type_flow/transformer.dart' as globalTypeFlow
 import 'transformations/obfuscation_prohibitions_annotator.dart'
     as obfuscationProhibitions;
 import 'transformations/call_site_annotator.dart' as call_site_annotator;
+import 'transformations/unreachable_code_elimination.dart'
+    as unreachable_code_elimination;
 
 /// Declare options consumed by [runCompiler].
 void declareCompilerOptions(ArgParser args) {
@@ -216,6 +218,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
+      enableAsserts: enableAsserts,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
@@ -284,6 +287,7 @@ Future<KernelCompilationResults> compileToKernel(
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
+    bool enableAsserts: true,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
@@ -307,6 +311,7 @@ Future<KernelCompilationResults> compileToKernel(
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
+        enableAsserts,
         useProtobufTreeShaker,
         errorDetector);
   }
@@ -361,6 +366,7 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
+    bool enableAsserts,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
@@ -374,6 +380,10 @@ Future _runGlobalTransformations(
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
+
+  // Unreachable code elimination transformation should be performed
+  // before type flow analysis so TFA won't take unreachable code into account.
+  unreachable_code_elimination.transformComponent(component, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(
