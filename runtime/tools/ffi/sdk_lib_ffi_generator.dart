@@ -59,7 +59,7 @@ void generate(
 }
 
 void generateHeader(StringBuffer buffer) {
-  final header = """
+  const header = """
 //
 // The following code is generated, do not edit by hand.
 //
@@ -77,66 +77,114 @@ void generatePublicExtension(StringBuffer buffer, Config config) {
   final typedListType = config.typedListType;
   final elementSize = config.elementSize;
 
-  final storeTrunctateInt = """
-  /// Note that ints which do not fit in [$nativeType] are truncated.
+  final bits = sizeOfBits(elementSize);
+  // final sizeInBytes =
+  // "${sizeOf(elementSize)} byte${elementSize != 1 ? "s" : ""}";
+
+  String property;
+  if (_isInt(nativeType)) {
+    if (_isSigned(nativeType)) {
+      property = "$bits-bit two's complement integer";
+    } else {
+      property = "$bits-bit unsigned integer";
+    }
+  } else if (nativeType == "Float") {
+    property = "float";
+  } else {
+    property = "double";
+  }
+
+  const platformIntPtr = """
+  ///
+  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
+  /// this is a 64-bit integer.
 """;
 
-  final storeTrunctateDouble = """
-  /// Note that doubles stored into Pointer<[Float]> lose precision.
+  final platform = nativeType == "IntPtr" ? platformIntPtr : "";
+
+  final intSignedTruncate = """
+  ///
+  /// A Dart integer is truncated to $bits bits (as if by `.toSigned($bits)`) before
+  /// being stored, and the $bits-bit value is sign-extended when it is loaded.
 """;
 
-  final storeTruncate =
-      _isInt(nativeType) ? storeTrunctateInt : storeTrunctateDouble;
-
-  final loadSignExtendInt = """
-  /// Note that ints are signextended.
+  const intPtrTruncate = """
+  ///
+  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
+  /// `.toSigned(32)`) before being stored, and the 32-bit value is
+  /// sign-extended when it is loaded.
 """;
 
-  final loadSignExtend = _isInt(nativeType) ? loadSignExtendInt : "";
+  final intUnsignedTruncate = """
+  ///
+  /// A Dart integer is truncated to $bits bits (as if by `.toUnsigned($bits)`) before
+  /// being stored, and the $bits-bit value is zero-extended when it is loaded.
+""";
+
+  const floatTruncate = """
+  ///
+  /// A Dart double loses precision before being stored, and the float value is
+  /// converted to a double when it is loaded.
+""";
+
+  String truncate = "";
+  if (nativeType == "IntPtr") {
+    truncate = intPtrTruncate;
+  } else if (_isInt(nativeType) && elementSize != 8) {
+    truncate = _isSigned(nativeType) ? intSignedTruncate : intUnsignedTruncate;
+  } else if (nativeType == "Float") {
+    truncate = floatTruncate;
+  }
+
+  final sizeTimes =
+      elementSize != 1 ? '${bracketOr(sizeOf(elementSize))} * ' : '';
+
+  final alignmentDefault = """
+  ///
+  /// The [address] must be ${sizeOf(elementSize)}-byte aligned.
+""";
+
+  const alignmentIntptr = """
+  ///
+  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
+  /// platforms the [address] must be 8-byte aligned.
+""";
+
+  String alignment = "";
+  if (nativeType == "IntPtr") {
+    alignment = alignmentIntptr;
+  } else if (elementSize != 1) {
+    alignment = alignmentDefault;
+  }
 
   final asTypedList = typedListType == kDoNotEmit
       ? ""
       : """
   /// Creates a typed list view backed by memory in the address space.
   ///
-  /// The returned view will allow access to the memory range from `address`
-  /// to `address + ${elementSize > 1 ? '$elementSize * ' : ''}length`.
+  /// The returned view will allow access to the memory range from [address]
+  /// to `address + ${sizeTimes}length`.
   ///
   /// The user has to ensure the memory range is accessible while using the
   /// returned list.
-  external $typedListType asTypedList(int length);
+$alignment  external $typedListType asTypedList(int length);
 """;
 
+  // TODO(38892): Stop generating documentation on setter.
   buffer.write("""
 /// Extension on [Pointer] specialized for the type argument [$nativeType].
 extension ${nativeType}Pointer on Pointer<$nativeType> {
-  /// Load a Dart value from this location.
-  ///
-  /// The value is automatically unmarshalled from its native representation.
-$loadSignExtend  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
-  external $dartType get value;
+  /// The $property at [address].
+$platform$truncate$alignment  external $dartType get value;
 
-  /// Store a Dart value into this location.
-  ///
-  /// The [value] is automatically marshalled into its native representation.
-$storeTruncate  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
-  external void set value($dartType value);
+  /// The $property at [address].
+$platform$truncate$alignment  external void set value($dartType value);
 
-  /// Load a Dart value from this location offset by [index].
-  ///
-  /// The value is automatically unmarshalled from its native representation.
-$loadSignExtend  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
-  external $dartType operator [](int index);
+  /// The $property at `address + ${sizeTimes}index`.
+$platform$truncate$alignment  external $dartType operator [](int index);
 
-  /// Store a Dart value into this location offset by [index].
-  ///
-  /// The [value] is automatically marshalled into its native representation.
-$storeTruncate  ///
-  /// Note that [address] needs to be aligned to the size of [$nativeType].
-  external void operator []=(int index, $dartType value);
+  /// The $property at `address + ${sizeTimes}index`.
+$platform$truncate$alignment  external void operator []=(int index, $dartType value);
 
 $asTypedList
 }
@@ -191,6 +239,32 @@ void generateFooter(StringBuffer buffer) {
 //
 
 bool _isInt(String type) => type.startsWith("Int") || type.startsWith("Uint");
+bool _isSigned(String type) => type.startsWith("Int");
+
+String sizeOf(int size) {
+  switch (size) {
+    case kIntPtrElementSize:
+      return "4 or 8";
+    default:
+      return "$size";
+  }
+}
+
+String sizeOfBits(int size) {
+  switch (size) {
+    case kIntPtrElementSize:
+      return "32 or 64";
+    default:
+      return "${size * 8}";
+  }
+}
+
+String bracketOr(String input) {
+  if (input.contains("or")) {
+    return "($input)";
+  }
+  return input;
+}
 
 final Uri _containingFolder = File.fromUri(Platform.script).parent.uri;
 
