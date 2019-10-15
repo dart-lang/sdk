@@ -222,7 +222,7 @@ analyzer:
     // Gather the data needed in order to produce the output.
     InfoBuilder infoBuilder =
         InfoBuilder(instrumentationListener.data, listener);
-    List<UnitInfo> unitInfos = await infoBuilder.explainMigration();
+    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
     var pathContext = provider.pathContext;
     MigrationInfo migrationInfo =
         MigrationInfo(unitInfos, pathContext, includedRoot);

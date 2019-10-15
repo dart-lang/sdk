@@ -366,7 +366,7 @@ class InstrumentationRenderer {
 /// instrumentation output.
 class MigrationInfo {
   /// The information about the compilation units that are are migrated.
-  final List<UnitInfo> units;
+  final Set<UnitInfo> units;
 
   /// The resource provider's path context.
   final path.Context pathContext;

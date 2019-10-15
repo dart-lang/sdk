@@ -92,7 +92,7 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
     InfoBuilder builder = InfoBuilder(info, listener);
-    infos = await builder.explainMigration();
+    infos = (await builder.explainMigration()).toList();
   }
 
   test_asExpression() async {

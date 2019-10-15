@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
@@ -52,9 +54,10 @@ class InfoBuilder {
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
-  Future<List<UnitInfo>> explainMigration() async {
+  Future<Set<UnitInfo>> explainMigration() async {
     Map<Source, SourceInformation> sourceInfoMap = info.sourceInformation;
-    List<UnitInfo> units = [];
+    Set<UnitInfo> units =
+        SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
     for (Source source in sourceInfoMap.keys) {
       String filePath = source.fullName;
       AnalysisSession session =
