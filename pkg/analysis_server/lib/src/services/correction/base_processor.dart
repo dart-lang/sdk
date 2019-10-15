@@ -99,27 +99,32 @@ abstract class BaseProcessor {
       return null;
     }
 
-    var constructorName;
+    var constructorId;
     var typeArgs;
+    var constructorName = '';
 
-    if (type.isDartCoreInt) {
-      constructorName = 'IntProperty';
+    if (type.element is FunctionTypedElement) {
+      constructorId = 'ObjectFlagProperty';
+      typeArgs = [type];
+      constructorName = '.has';
+    } else if (type.isDartCoreInt) {
+      constructorId = 'IntProperty';
     } else if (type.isDartCoreDouble) {
-      constructorName = 'DoubleProperty';
+      constructorId = 'DoubleProperty';
     } else if (type.isDartCoreString) {
-      constructorName = 'StringProperty';
+      constructorId = 'StringProperty';
     } else if (isEnum(type)) {
-      constructorName = 'EnumProperty';
+      constructorId = 'EnumProperty';
       typeArgs = [type];
     } else if (isIterable(type)) {
-      constructorName = 'IterableProperty';
+      constructorId = 'IterableProperty';
       typeArgs = (type as InterfaceType).typeArguments;
     } else if (flutter.isColor(type)) {
-      constructorName = 'ColorProperty';
+      constructorId = 'ColorProperty';
     } else if (flutter.isMatrix4(type)) {
-      constructorName = 'TransformProperty';
+      constructorId = 'TransformProperty';
     } else {
-      constructorName = 'DiagnosticsProperty';
+      constructorId = 'DiagnosticsProperty';
       if (!type.isDynamic) {
         typeArgs = [type];
       }
@@ -130,7 +135,7 @@ abstract class BaseProcessor {
       @required String prefix,
       @required String builderName,
     }) {
-      builder.write("$prefix$builderName.add($constructorName");
+      builder.write("$prefix$builderName.add($constructorId");
       if (typeArgs != null) {
         builder.write('<');
         builder.writeTypes(typeArgs);
@@ -154,7 +159,7 @@ abstract class BaseProcessor {
           }
         }
       }
-      builder.writeln("('${name.name}', ${name.name}));");
+      builder.writeln("$constructorName('${name.name}', ${name.name}));");
     }
 
     final classDeclaration = parent.thisOrAncestorOfType<ClassDeclaration>();

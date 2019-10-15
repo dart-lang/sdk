@@ -208,6 +208,37 @@ class A extends Widget {
 ''');
   }
 
+  test_functionField_debugFillProperties() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+typedef ValueChanged<T> = void Function(T value);
+
+class A extends Widget {
+  ValueChanged<double> /*LINT*/onChanged;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+  }
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+typedef ValueChanged<T> = void Function(T value);
+
+class A extends Widget {
+  ValueChanged<double> /*LINT*/onChanged;
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(ObjectFlagProperty<ValueChanged<double>>.has('onChanged', onChanged));
+  }
+}
+''');
+  }
+
   test_intField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
