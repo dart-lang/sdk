@@ -2113,6 +2113,7 @@ project
 project's
 projects
 prologue
+promotable
 promote
 promoted
 promoter
@@ -2583,6 +2584,7 @@ starts
 startup
 state
 statement
+statement's
 statements
 states
 static
