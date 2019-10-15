@@ -352,7 +352,9 @@ class Driver implements ServerStarter {
     final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
-    if (!enableCompletionModel) {
+    if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
+      // This is the case where the user has explicitly turned off model-based
+      // code completion.
       analysisServerOptions.completionModelFolder = null;
     }
     if (enableCompletionModel &&
