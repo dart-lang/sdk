@@ -72,7 +72,7 @@ bool isStopToken(Token token, int cursorOffset) {
     // token is NOT an identifier, keyword, or literal. The rationale is that
     // we want to keep moving if we have a situation like
     // FooBar foo^ since foo is not a previous token to pass to the model.
-    return token.lexeme[token.lexeme.length - 1]
+    return !token.lexeme[token.lexeme.length - 1]
         .contains(new RegExp(r'[0-9A-Za-z_]'));
   }
   // Stop if the token's location is strictly before the cursor, continue

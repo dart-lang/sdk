@@ -87,7 +87,7 @@ void main() {
     when(token.offset).thenReturn(4);
     when(token.length).thenReturn(1);
     when(token.lexeme).thenReturn(')');
-    expect(isStopToken(token, 5), equals(false));
+    expect(isStopToken(token, 5), equals(true));
   });
 
   test('isStopToken alphabetic', () {
@@ -96,7 +96,7 @@ void main() {
     when(token.offset).thenReturn(2);
     when(token.length).thenReturn(3);
     when(token.lexeme).thenReturn('foo');
-    expect(isStopToken(token, 5), equals(true));
+    expect(isStopToken(token, 5), equals(false));
   });
 
   test('isStringLiteral null', () {
@@ -193,6 +193,34 @@ void main() {
     when(request.target).thenReturn(target);
     when(target.entity).thenReturn(two);
     expect(constructQuery(request, 100), equals(['class', 'Animal']));
+  });
+
+  test('constructQuery cursor over paren', () {
+    final start = MockToken();
+    when(start.isSynthetic).thenReturn(true);
+    when(start.isEof).thenReturn(true);
+    final one = MockToken();
+    when(one.lexeme).thenReturn('main');
+    when(one.offset).thenReturn(0);
+    when(one.length).thenReturn(4);
+    when(one.isSynthetic).thenReturn(false);
+    when(one.isEof).thenReturn(false);
+    when(one.type).thenReturn(TokenType.IDENTIFIER);
+    final two = MockToken();
+    when(two.lexeme).thenReturn('(');
+    when(two.offset).thenReturn(5);
+    when(two.length).thenReturn(1);
+    when(two.isSynthetic).thenReturn(false);
+    when(one.previous).thenReturn(start);
+    when(two.previous).thenReturn(one);
+    when(two.type).thenReturn(TokenType.OPEN_PAREN);
+    when(two.isEof).thenReturn(false);
+    final request = MockCompletionRequest();
+    final target = MockCompletionTarget();
+    when(request.offset).thenReturn(6);
+    when(request.target).thenReturn(target);
+    when(target.entity).thenReturn(two);
+    expect(constructQuery(request, 50), equals(['main', '(']));
   });
 
   test('elementNameFromRelevanceTag', () {
