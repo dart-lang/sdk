@@ -15,7 +15,10 @@ foo({p: null}) {} //LINT
 class X {
   static const nil = null; //OK
   final nil2 = null; //OK
-  int x = null; //LINT
+
+  // TODO(pq): ints are not nullable so we'll want to update the lint here
+  // since it will produce a compilation error.
+  // int x = null; //LINT
   int y; //OK
   int z;
 

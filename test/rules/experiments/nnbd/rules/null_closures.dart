@@ -39,6 +39,7 @@ void future_wait() {
 }
 
 void list_generate() {
+  // todo (pq): look at migrated SDK and see if generators can be null.
   // List.generate is a _constructor_ with a _positional_ argument.
   new List.generate(3, null); // LINT
   new List.generate(3, (_) => null); // OK
