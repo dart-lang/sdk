@@ -55,6 +55,44 @@
       "xcodebuild/ReleaseX64/dart-sdk/",
       "xcodebuild/ReleaseX64/gen/utils/dartdevc/"
     ],
+    "dart2js_nnbd": [
+      ".packages",
+      "out/ReleaseIA32NNBD/dart-sdk/",
+      "out/ReleaseX64NNBD/dart-sdk/",
+      "out/ReleaseX64NNBD/gen/utils/dartdevc/",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk_nnbd/",
+      "tests/angular/",
+      "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-dart2js.status",
+      "tests/co19_2/co19_2-dartdevc.status",
+      "tests/co19_2/co19_2-kernel.status",
+      "tests/co19_2/co19_2-runtime.status",
+      "tests/compiler/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/kernel/",
+      "tests/language_2/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone/",
+      "tests/standalone_2/",
+      "tests/ffi/",
+      "third_party/babel/babel.min.js",
+      "third_party/d8/",
+      "third_party/observatory_pub_packages/packages/web_components/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseIA32NNBD/dart-sdk/",
+      "xcodebuild/ReleaseX64NNBD/dart-sdk/",
+      "xcodebuild/ReleaseX64NNBD/gen/utils/dartdevc/"
+    ],
     "dart2js_hostasserts": [
       ".packages",
       "out/ReleaseIA32/dart",
@@ -455,6 +493,12 @@
       "options": {
         "checked": true,
         "use-sdk": true
+    }},
+    "dartdevc-strong-linux-release-chrome": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"]
     }},
     "fasta-(linux|mac|win)": { },
     "analyzer-(linux|mac|win)": {
@@ -1293,6 +1337,30 @@
             "lib_2",
             "dartdevc_native"
           ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-nnbd-linux-release-chrome"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc nnbd builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--nnbd", "dartdevc_test"]
+        },
+        {
+          "name": "ddc nnbd strong tests",
+          "arguments": [
+            "-ndartdevc-strong-linux-release-chrome",
+            "dartdevc_native"
+          ],
+          "shards": 1,
+          "fileset": "dart2js_nnbd"
         }
       ]
     },
