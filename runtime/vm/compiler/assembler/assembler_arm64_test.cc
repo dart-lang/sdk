@@ -1925,7 +1925,7 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
-  __ LoadUnaligned(R1, R0, TMP, kHalfword);
+  __ ldr(R1, R0, kHalfword);
   __ mov(R0, R1);
   __ ret();
 }
@@ -1948,7 +1948,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
-  __ LoadUnaligned(R1, R0, TMP, kUnsignedHalfword);
+  __ ldr(R1, R0, kUnsignedHalfword);
   __ mov(R0, R1);
   __ ret();
 }
@@ -1970,7 +1970,7 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0xABCD);
-  __ StoreUnaligned(R1, R0, TMP, kHalfword);
+  __ str(R1, R0, kHalfword);
   __ mov(R0, R1);
   __ ret();
 }
@@ -1998,7 +1998,7 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
-  __ LoadUnaligned(R1, R0, TMP, kUnsignedWord);
+  __ ldr(R1, R0, kUnsignedWord);
   __ mov(R0, R1);
   __ ret();
 }
@@ -2028,7 +2028,7 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
 
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
   __ LoadImmediate(R1, 0x12345678);
-  __ StoreUnaligned(R1, R0, TMP, kUnsignedWord);
+  __ str(R1, R0, kUnsignedWord);
   __ mov(R0, R1);
   __ ret();
 }
