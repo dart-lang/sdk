@@ -1096,14 +1096,28 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genConstructorInitializers(Constructor node) {
-    final bool isRedirecting =
-        node.initializers.any((init) => init is RedirectingInitializer);
+    bool isRedirecting = false;
+    Set<Field> initializedInInitializersList = new Set<Field>();
+    for (var initializer in node.initializers) {
+      if (initializer is RedirectingInitializer) {
+        isRedirecting = true;
+      } else if (initializer is FieldInitializer) {
+        initializedInInitializersList.add(initializer.field);
+      }
+    }
 
     if (!isRedirecting) {
       initializedFields = new Set<Field>();
       for (var field in node.enclosingClass.fields) {
         if (!field.isStatic && field.initializer != null) {
-          _genFieldInitializer(field, field.initializer);
+          if (initializedInInitializersList.contains(field)) {
+            // Do not store a value into the field as it is going to be
+            // overwritten by initializers list.
+            _generateNode(field.initializer);
+            asm.emitDrop1();
+          } else {
+            _genFieldInitializer(field, field.initializer);
+          }
         }
       }
     }
