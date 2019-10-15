@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show htmlEscape, LineSplitter;
+
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
@@ -76,8 +78,9 @@ h2 {
 }
 
 .code {
-  position: absolute;
   left: 0.5em;
+  padding-left: 60px;
+  position: absolute;
   top: 0.5em;
 }
 
@@ -95,6 +98,28 @@ h2 {
   /* The content of the regions is not visible; the user instead will see the
    * highlighted copy of the content. */
   visibility: hidden;
+}
+
+.regions table {
+  border-spacing: 0;
+}
+
+.regions td {
+  border: none;
+  padding: 0;
+  white-space: pre;
+}
+
+.regions td:empty:after {
+  content: "\00a0";
+}
+
+.regions td.line-no {
+  color: #999999;
+  padding-right: 4px;
+  text-align: right;
+  visibility: visible;
+  width: 50px;
 }
 
 .region {
@@ -159,25 +184,9 @@ h2 {
     '{{{ navContent }}}'
     '</div>'
     '<div class="regions">'
-    '{{! The regions are then written again, overlaying the first two copies }}'
-    '{{! of the content, to provide tooltips for modified regions. }}'
-    '{{# regions }}'
-    '{{^ modified }}{{ content }}{{/ modified }}'
-    '{{# modified }}'
-    '<span class="region">{{ content }}'
-    '<span class="tooltip"><p>{{ explanation }}</p>'
-    '  <ul>'
-    '    {{# details }}'
-    '    <li>'
-    '      {{# isLink }}<a href="{{ target }}">{{ description }}</a>{{/ isLink }}'
-    '      {{^ isLink }}{{ description }}{{/ isLink }}'
-    '    </li>'
-    '    {{/ details }}'
-    '  </ul>'
-    '</span>'
-    '</span>'
-    '{{/ modified }}'
-    '{{/ regions }}'
+    '{{! The regions are then written again, overlaying the first copy of }}'
+    '{{! the content, to provide tooltips for modified regions. }}'
+    '{{{ regionContent }}}'
     '</div></div>'
     r'''
     {{/ units }}
@@ -213,8 +222,6 @@ class InstrumentationRenderer {
 
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
-    // TODO(brianwilkerson) Restore syntactic highlighting.
-    // TODO(brianwilkerson) Add line numbers beside the content.
     Map<String, dynamic> mustacheContext = {
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.unitLinks(unitInfo),
@@ -224,7 +231,7 @@ class InstrumentationRenderer {
     };
     mustacheContext['units'].add({
       'path': unitInfo.path,
-      'regions': _computeRegions(unitInfo),
+      'regionContent': _computeRegionContent(unitInfo),
     });
     return _template.renderString(mustacheContext);
   }
@@ -291,53 +298,72 @@ class InstrumentationRenderer {
     return navContent2.toString();
   }
 
-  /// Return a list of Mustache context, based on the [unitInfo] for both
-  /// unmodified and modified regions:
-  ///
-  /// * 'modified': Whether this region represents modified source, or
-  ///   unmodified.
-  /// * 'content': The textual content of this region.
-  /// * 'explanation': The Mustache context for the tooltip explaining why the
-  ///   content in this region was modified.
-  List<Map> _computeRegions(UnitInfo unitInfo) {
+  /// Return the content of regions, based on the [unitInfo] for both
+  /// unmodified and modified regions.
+  String _computeRegionContent(UnitInfo unitInfo) {
     String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
-    List<Map> regions = [];
+    StringBuffer regions = StringBuffer();
+    int lineNumber = 1;
+
+    void writeSplitLines(String lines) {
+      Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
+      lineIterator.moveNext();
+
+      while (true) {
+        regions.write(htmlEscape.convert(lineIterator.current));
+        if (lineIterator.moveNext()) {
+          // If we're not on the last element, end this table row, and start a
+          // new table row.
+          lineNumber++;
+          regions.write(
+              '</td></tr>' '<tr><td class="line-no">$lineNumber</td><td>');
+        } else {
+          break;
+        }
+      }
+    }
+
     int previousOffset = 0;
+    regions.write('<table><tbody><tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       int offset = region.offset;
       int length = region.length;
       if (offset > previousOffset) {
         // Display a region of unmodified content.
-        regions.add({
-          'modified': false,
-          'content': content.substring(previousOffset, offset),
-        });
+        writeSplitLines(content.substring(previousOffset, offset));
         previousOffset = offset + length;
       }
-      List<Map> details = [];
-      for (var detail in region.details) {
-        details.add({
-          'description': detail.description,
-          'target': _uriForTarget(detail.target, unitDir),
-          'isLink': detail.target != null,
-        });
+      regions.write('<span class="region">'
+          '${content.substring(offset, offset + length)}'
+          '<span class="tooltip">'
+          '<p>${region.explanation}</p>');
+      if (region.details.isNotEmpty) {
+        regions.write('<ul>');
       }
-      regions.add({
-        'modified': true,
-        'content': content.substring(offset, offset + length),
-        'explanation': region.explanation,
-        'details': details,
-      });
+      for (var detail in region.details) {
+        regions.write('<li>');
+
+        if (detail.target != null) {
+          regions.write('<a href="${_uriForTarget(detail.target, unitDir)}">');
+        }
+        writeSplitLines(detail.description);
+        if (detail.target != null) {
+          regions.write('</a>');
+        }
+        regions.write('</li>');
+      }
+      if (region.details.isNotEmpty) {
+        regions.write('</ul>');
+      }
+      regions.write('</span></span>');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.
-      regions.add({
-        'modified': false,
-        'content': content.substring(previousOffset),
-      });
+      writeSplitLines(content.substring(previousOffset));
     }
-    return regions;
+    regions.write('</td></tr></tbody></table>');
+    return regions.toString();
   }
 
   /// Return the path to the directory containing the output generated from the
