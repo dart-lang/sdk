@@ -35,7 +35,7 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2aot
+# ......dart2native
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
@@ -432,19 +432,6 @@ copy("copy_gen_snapshot") {
   }
   outputs = [
     "$root_out_dir/dart-sdk/bin/utils/{{source_file_part}}",
-  ]
-}
-
-copy("copy_dart2aot") {
-  ext = ""
-  if (is_win) {
-    ext = ".bat"
-  }
-  sources = [
-    "bin/dart2aot$ext",
-  ]
-  outputs = [
-    "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
   ]
 }
 
