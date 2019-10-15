@@ -84,6 +84,8 @@ dart/data_uri_import_test/utf16: Crash
 dart/data_uri_import_test/wrongmime: Crash
 
 [ $builder_tag == obfuscated && $compiler == dartkp ]
+dart/extension_names_test: SkipByDesign # No demangling (obfuscated).
+dart/extension_unnamed_names_test: SkipByDesign # No demangling (obfuscated).
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/regress_37382_test: SkipByDesign # Matches the type arguments names
@@ -106,8 +108,6 @@ dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/extension_names_test: SkipByDesign # No name demangling in AOT.
-dart/extension_unnamed_names_test: SkipByDesign # No name demangling in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 

@@ -323,7 +323,6 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
     unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
   unmangled_segments.Clear();
   intptr_t start = 0;
   intptr_t final_len = 0;
@@ -402,7 +401,6 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
   }
 
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   return Symbols::New(thread, unmangled_name);
 }
