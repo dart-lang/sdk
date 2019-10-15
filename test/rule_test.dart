@@ -60,16 +60,20 @@ defineRuleTests() {
 
       for (var entry in Directory(p.join(ruleDir, 'experiments')).listSync()) {
         if (entry is! Directory) continue;
-        var analysisOptionsFile =
-            File(p.join(entry.path, 'analysis_options.yaml'));
-        var analysisOptions = analysisOptionsFile.readAsStringSync();
-        var ruleName = p.basename(entry.path);
-        var testFile = File(p.join(entry.path, '$ruleName.dart'));
-        if (!testFile.existsSync()) {
-          testFile = File(p.join(entry.path, 'lib', '$ruleName.dart'));
-        }
-        testRule(p.basename(ruleName), testFile,
-            analysisOptions: analysisOptions, debug: true);
+
+        group(p.basename(entry.path), () {
+          final analysisOptionsFile =
+              File(p.join(entry.path, 'analysis_options.yaml'));
+          final analysisOptions = analysisOptionsFile.readAsStringSync();
+          final ruleTestDir = Directory(p.join(entry.path, 'rules'));
+          for (var test in ruleTestDir.listSync()) {
+            if (test is! File) continue;
+            File testFile = test as File;
+            final ruleName = p.basenameWithoutExtension(test.path);
+            testRule(ruleName, testFile,
+                analysisOptions: analysisOptions, debug: true);
+          }
+        });
       }
     });
 
