@@ -2268,14 +2268,11 @@ class CodeGenerator extends Object
             p.parameterKind))
         .toList();
 
-    var function = FunctionElementImpl("", -1)
-      ..isSynthetic = true
-      ..returnType = element.returnType
-      // TODO(jmesserly): do covariant type parameter bounds also need to be
-      // reified as `Object`?
-      ..shareTypeParameters(element.typeParameters)
-      ..parameters = parameters;
-    return function.type = FunctionTypeImpl(function);
+    return FunctionTypeImpl.synthetic(
+      element.returnType,
+      element.typeParameters,
+      parameters,
+    );
   }
 
   js_ast.Expression _constructorName(String name) {
