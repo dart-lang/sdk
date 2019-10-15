@@ -2347,6 +2347,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_end_token_pos(field.end_token_pos());
   initializer_fun.set_accessor_field(field);
   initializer_fun.InheritBinaryDeclarationFrom(field);
+  initializer_fun.set_is_extension_member(field.is_extension_member());
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }
