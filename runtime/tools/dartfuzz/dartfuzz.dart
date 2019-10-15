@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.59';
+const String version = '1.60';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -153,7 +153,7 @@ class DartFuzz {
     }
     // Generate.
     emitHeader();
-    emitVarDecls(varName, globalVars);
+    emitVariableDeclarations(varName, globalVars);
     emitMethods(methodName, globalMethods, ffiStatus);
     emitClasses();
     emitMain();
@@ -187,63 +187,109 @@ class DartFuzz {
   void incIndent() => indent += 2;
   void decIndent() => indent -= 2;
 
+  void emitZero() => emit('0');
+
   void emitTryCatchFinally(Function tryBody, Function catchBody,
       {Function finallyBody, bool catchOOM = true}) {
-    emitLn('try ');
-    _emitBraceWrapped(() => tryBody());
+    emitLn('try ', newline: false);
+    emitBraceWrapped(() => tryBody());
     if (catchOOM) {
       emit(' on OutOfMemoryError ');
-      _emitBraceWrapped(() => emitLn("exit(${oomExitCode});"));
+      emitBraceWrapped(() => emitLn("exit(${oomExitCode});", newline: false));
     }
-    emitLn(' catch (e, st) ');
-    _emitBraceWrapped(catchBody);
+    emit(' catch (e, st) ');
+    emitBraceWrapped(catchBody);
     if (finallyBody != null) {
-      emitLn(' finally ');
-      _emitBraceWrapped(finallyBody);
+      emit(' finally ');
+      emitBraceWrapped(finallyBody);
     }
   }
 
-  void _emitWrapped(List<String> pair, Function exprEmitter,
-      {bool shouldIndent = false}) {
+  dynamic emitWrapped(List<String> pair, Function exprEmitter,
+      {bool shouldIndent = true}) {
     assert(pair.length == 2);
     emit(pair[0]);
     if (shouldIndent) {
       incIndent();
+      emitNewline();
     }
-    exprEmitter();
+    final result = exprEmitter();
     if (shouldIndent) {
       decIndent();
+      emitNewline();
+      emitLn(pair[1], newline: false);
+    } else {
+      emit(pair[1]);
     }
-    emit(pair[1]);
+    return result;
   }
 
-  void _emitParenWrapped(Function exprEmitter) =>
-      _emitWrapped(const ['(', ')'], exprEmitter);
+  dynamic emitParenWrapped(Function exprEmitter,
+      {bool includeSemicolon = false}) {
+    final result =
+        emitWrapped(const ['(', ')'], exprEmitter, shouldIndent: false);
+    if (includeSemicolon) {
+      emit(';');
+    }
+    return result;
+  }
 
-  void _emitBraceWrapped(Function exprEmitter, {bool shouldIndent = true}) =>
-      _emitWrapped(const ['{', '}'], exprEmitter, shouldIndent: shouldIndent);
+  dynamic emitBraceWrapped(Function exprEmitter, {bool shouldIndent = true}) =>
+      emitWrapped(const ['{', '}'], exprEmitter, shouldIndent: shouldIndent);
 
-  void _emitSquareBraceWrapped(Function exprEmitter) =>
-      _emitWrapped(const ['[', ']'], exprEmitter);
+  dynamic emitSquareBraceWrapped(Function exprEmitter) =>
+      emitWrapped(const ['[', ']'], exprEmitter, shouldIndent: false);
 
-  void _emitCommaSeparated(Function(int) elementBuilder, int length,
-      {int start = 0}) {
+  dynamic emitCommaSeparated(Function(int) elementBuilder, int length,
+      {int start = 0, bool newline = false}) {
     for (int i = start; i < length; ++i) {
       elementBuilder(i);
       if (i + 1 != length) {
-        emit(', ');
+        emit(',', newline: newline);
+        if (!newline) {
+          emit(' ');
+        }
       }
     }
   }
 
-  void _emitFunctionDefinition(String name, Function body, {String retType}) {
+  void emitFunctionDefinition(String name, Function body, {String retType}) {
+    emitIndentation();
     if (retType != null) {
       emit(retType + ' ');
     }
     emit(name);
     emit('() '); // TODO(bkonyi): handle params
 
-    _emitBraceWrapped(body);
+    emitBraceWrapped(body);
+  }
+
+  bool emitIfStatement(
+      Function ifConditionEmitter, bool Function() ifBodyEmitter,
+      {bool Function() elseBodyEmitter}) {
+    emitLn('if ', newline: false);
+    emitParenWrapped(ifConditionEmitter);
+    final bool b1 = emitBraceWrapped(ifBodyEmitter);
+    bool b2 = false;
+    if (elseBodyEmitter != null) {
+      emit(' else ');
+      b2 = emitBraceWrapped(elseBodyEmitter);
+    }
+    return b1 || b2;
+  }
+
+  void emitImport(String library, {String asName}) => (asName == null)
+      ? emitLn("import '$library';")
+      : emitLn("import '$library' as $asName;");
+
+  void emitBinaryComparison(Function e1, String op, Function e2,
+      {bool includeSemicolon = false}) {
+    e1();
+    emit(' $op ');
+    e2();
+    if (includeSemicolon) {
+      emit(';');
+    }
   }
 
   // Randomly specialize interface if possible. E.g. num to int.
@@ -387,63 +433,68 @@ class DartFuzz {
   void emitHeader() {
     emitLn('// The Dart Project Fuzz Tester ($version).');
     emitLn('// Program generated as:');
-    emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp ' +
+    emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp '
         '--${ffi ? "" : "no-"}ffi --${flatTp ? "" : "no-"}flat');
-    emitLn('');
-    emitLn("import 'dart:async';");
-    emitLn("import 'dart:cli';");
-    emitLn("import 'dart:collection';");
-    emitLn("import 'dart:convert';");
-    emitLn("import 'dart:core';");
-    emitLn("import 'dart:io';");
-    emitLn("import 'dart:isolate';");
-    emitLn("import 'dart:math';");
-    emitLn("import 'dart:typed_data';");
+    emitNewline();
+    emitImport('dart:async');
+    emitImport('dart:cli');
+    emitImport('dart:collection');
+    emitImport('dart:convert');
+    emitImport('dart:core');
+    emitImport('dart:io');
+    emitImport('dart:isolate');
+    emitImport('dart:math');
+    emitImport('dart:typed_data');
     if (ffi) {
-      emitLn("import 'dart:ffi' as ffi;");
+      emitImport('dart:ffi', asName: 'ffi');
       emitLn(DartFuzzFfiApi.ffiapi);
     }
+    emitNewline();
   }
 
   void emitFfiCast(String dartFuncName, String ffiFuncName, String typeName,
       List<DartType> pars) {
-    emit("${pars[0].name} Function(");
-    _emitCommaSeparated((int i) => emit('${pars[i].name}'), pars.length,
-        start: 1);
-    emit(') ${dartFuncName} = ' +
-        'ffi.Pointer.fromFunction<${typeName}>(${ffiFuncName}, ');
-    emitLiteral(0, pars[0], smallPositiveValue: true);
-    emitLn(').cast<ffi.NativeFunction<${typeName}>>().asFunction();');
+    emit("${pars[0].name} Function");
+    emitParenWrapped(() => emitCommaSeparated(
+        (int i) => emit('${pars[i].name}'), pars.length,
+        start: 1));
+    emit(' ${dartFuncName} = ffi.Pointer.fromFunction<${typeName}>');
+    emitParenWrapped(() {
+      emit('${ffiFuncName}, ');
+      emitLiteral(0, pars[0], smallPositiveValue: true);
+    });
+    emit('.cast<ffi.NativeFunction<${typeName}>>().asFunction();');
+    emitNewline();
   }
 
   void emitMethod(
       String name, int index, List<DartType> method, bool isFfiMethod) {
+    final type = method[0].name;
+    final methodName = '$name${isFfiMethod ? "Ffi" : ''}$index';
     if (isFfiMethod) {
       emitFfiTypedef("${name}Ffi${index}Type", method);
-      emitLn('${method[0].name} ${name}Ffi$index(', newline: false);
-    } else {
-      emitLn('${method[0].name} $name$index(', newline: false);
     }
-    emitParDecls(method);
+    emitLn('$type $methodName', newline: false);
+    emitParenWrapped(() => emitParDecls(method));
     if (!isFfiMethod && rollDice(10)) {
       // Emit a method using "=>" syntax.
-      emit(') => ');
+      emit(' => ');
       emitExpr(0, method[0], includeSemicolon: true);
-      return;
+    } else {
+      emitBraceWrapped(() {
+        assert(localVars.isEmpty);
+        if (emitStatements(0)) {
+          emitReturn();
+        }
+        assert(localVars.isEmpty);
+      });
     }
-    emit(') ', newline: true);
-    _emitBraceWrapped(() {
-      assert(localVars.isEmpty);
-      if (emitStatements(0)) {
-        emitReturn();
-      }
-      assert(localVars.isEmpty);
-    });
     if (isFfiMethod) {
       emitFfiCast("${name}${index}", "${name}Ffi${index}",
           "${name}Ffi${index}Type", method);
     }
-    emit('', newline: true);
+    emitNewline();
+    emitNewline();
   }
 
   void emitMethods(String name, List<List<DartType>> methods,
@@ -509,12 +560,12 @@ class DartFuzz {
           }
         }
       }
-      _emitBraceWrapped(() {
-        emitVarDecls('$fieldName${i}_', classFields[i]);
+      emitBraceWrapped(() {
+        emitVariableDeclarations('$fieldName${i}_', classFields[i]);
         currentClass = i;
         emitVirtualMethods();
         emitMethods('$methodName${i}_', classMethods[i]);
-        _emitFunctionDefinition('run', () {
+        emitFunctionDefinition('run', () {
           if (i > 0) {
             // FIXME(bkonyi): fix potential issue where we try to apply a class
             // as a mixin when it calls super.
@@ -526,6 +577,8 @@ class DartFuzz {
         }, retType: 'void');
       });
       currentClass = null;
+      emitNewline();
+      emitNewline();
     }
   }
 
@@ -538,35 +591,35 @@ class DartFuzz {
           '// By not catching this exception, we terminate the program with ' +
               'a full stack trace');
       emitLn('// which, in turn, flags the problem prominently');
-      emitLn('if (ffiTestFunctions == null) {');
-      incIndent();
-      emitPrint('Did not load ffi test functions');
-      decIndent();
-      emitLn('}');
+      emitIfStatement(() => emit('ffiTestFunctions == null'),
+          () => emitPrint('Did not load ffi test functions'));
     }
   }
 
-  void emitMain() => _emitFunctionDefinition('main', () {
+  void emitMain() => emitFunctionDefinition('main', () {
         emitLoadFfiLib();
 
         // Call each global method once.
         for (int i = 0; i < globalMethods.length; i++) {
+          final outputName = '$methodName$i';
           emitTryCatchFinally(() {
-            emitCall(1, "$methodName${i}", globalMethods[i],
-                includeSemicolon: true);
+            emitCall(1, outputName, globalMethods[i], includeSemicolon: true);
           }, () {
-            emitPrint('$methodName$i throws');
+            emitPrint('$outputName throws');
           });
+          emitNewline();
         }
 
         // Call each class method once.
         for (int i = 0; i < classMethods.length; i++) {
           for (int j = 0; j < classMethods[i].length; j++) {
+            final outputName = 'X${i}().$methodName${i}_${j}';
+            emitNewline();
             emitTryCatchFinally(() {
-              emitCall(1, "X${i}().$methodName${i}_${j}", classMethods[i][j],
+              emitCall(1, outputName, classMethods[i][j],
                   includeSemicolon: true);
             }, () {
-              emitPrint('X${i}().$methodName${i}_${j}() throws');
+              emitPrint('$outputName() throws');
             });
           }
           // Call each virtual class method once.
@@ -576,23 +629,26 @@ class DartFuzz {
               for (int j = 0;
                   j < virtualClassMethods[i][parentClass].length;
                   j++) {
+                final outputName = 'X${i}().$methodName${parentClass}_${j}';
+                emitNewline();
                 emitTryCatchFinally(
-                    () => emitCall(1, "X${i}().$methodName${parentClass}_${j}",
-                        classMethods[parentClass][j], includeSemicolon: true),
-                    () => emitPrint(
-                        'X${i}().$methodName${parentClass}_${j}() throws'));
+                    () => emitCall(1, outputName, classMethods[parentClass][j],
+                        includeSemicolon: true),
+                    () => emitPrint('$outputName() throws'));
               }
             }
             parentClass = classParents[parentClass];
           }
         }
 
+        emitNewline();
         emitTryCatchFinally(() {
-          emit('X${classFields.length - 1}().run();');
+          emitLn('X${classFields.length - 1}().run();', newline: false);
         }, () {
           emitPrint('X${classFields.length - 1}().run() throws');
         });
 
+        emitNewline();
         emitTryCatchFinally(() {
           String body = '';
           for (int i = 0; i < globalVars.length; i++) {
@@ -606,17 +662,36 @@ class DartFuzz {
   // Declarations.
   //
 
-  void emitVarDecls(String name, List<DartType> vars) {
-    emit('', newline: true);
+  void emitVariableDeclarations(String name, List<DartType> vars) {
     for (int i = 0; i < vars.length; i++) {
       DartType tp = vars[i];
-      emitLn('${tp.name} $name$i = ', newline: false);
-      emitConstructorOrLiteral(0, tp, includeSemicolon: true);
+      final varName = '$name$i';
+      emitVariableDeclaration(varName, tp,
+          initializerEmitter: () => emitConstructorOrLiteral(0, tp));
     }
-    emit('', newline: true);
+    emitNewline();
   }
 
-  void emitParDecls(List<DartType> pars) => _emitCommaSeparated((int i) {
+  void emitVariableDeclaration(String name, DartType tp,
+      {Function initializerEmitter,
+      bool indent = true,
+      bool newline = true,
+      bool includeSemicolon = true}) {
+    final typeName = tp.name;
+    if (indent) {
+      emitIndentation();
+    }
+    emit('$typeName $name', newline: false);
+    if (initializerEmitter != null) {
+      emit(' = ');
+      initializerEmitter();
+    }
+    if (includeSemicolon) {
+      emit(';', newline: newline);
+    }
+  }
+
+  void emitParDecls(List<DartType> pars) => emitCommaSeparated((int i) {
         DartType tp = pars[i];
         emit('${tp.name} $paramName$i');
       }, pars.length, start: 1);
@@ -670,7 +745,7 @@ class DartFuzz {
         throw 'No assign operation for ${tp.name}';
       }
     }
-    emitLn('', newline: false);
+    emitIndentation();
     // Emit a variable of the lhs type.
     final emittedVar = emitVar(0, tp, isLhs: true);
     RhsFilter rhsFilter = RhsFilter.fromDartType(tp, emittedVar);
@@ -688,14 +763,15 @@ class DartFuzz {
 
   // Emit a print statement.
   bool emitPrint([String body]) {
-    emitLn('print(', newline: false);
-    if (body != null) {
-      emit("'$body'");
-    } else {
-      DartType tp = oneOfSet(dartType.allTypes);
-      emitExpr(0, tp);
-    }
-    emit(');', newline: true);
+    emitLn('print', newline: false);
+    emitParenWrapped(() {
+      if (body != null) {
+        emit("'$body'");
+      } else {
+        DartType tp = oneOfSet(dartType.allTypes);
+        emitExpr(0, tp);
+      }
+    }, includeSemicolon: true);
     return true;
   }
 
@@ -720,32 +796,13 @@ class DartFuzz {
   }
 
   // Emit a one-way if statement.
-  bool emitIf1(int depth) {
-    emitLn('if (', newline: false);
-    emitExpr(0, DartType.BOOL);
-    emit(') {', newline: true);
-    incIndent();
-    emitStatements(depth + 1);
-    decIndent();
-    emitLn('}');
-    return true;
-  }
+  bool emitIf1(int depth) => emitIfStatement(
+      () => emitExpr(0, DartType.BOOL), () => emitStatements(depth + 1));
 
   // Emit a two-way if statement.
-  bool emitIf2(int depth) {
-    emitLn('if (', newline: false);
-    emitExpr(0, DartType.BOOL);
-    emit(') {', newline: true);
-    incIndent();
-    bool b1 = emitStatements(depth + 1);
-    decIndent();
-    emitLn('} else {');
-    incIndent();
-    bool b2 = emitStatements(depth + 1);
-    decIndent();
-    emitLn('}');
-    return b1 || b2;
-  }
+  bool emitIf2(int depth) => emitIfStatement(
+      () => emitExpr(0, DartType.BOOL), () => emitStatements(depth + 1),
+      elseBodyEmitter: () => emitStatements(depth + 1));
 
   // Emit a simple increasing for-loop.
   bool emitFor(int depth) {
@@ -754,12 +811,18 @@ class DartFuzz {
       return emitAssign();
     }
     final int i = localVars.length;
-    emitLn('for (int $localName$i = 0; $localName$i < ', newline: false);
-    emitSmallPositiveInt();
-    emit('; $localName$i++) ', newline: true);
-    _emitBraceWrapped(() {
+    emitLn('for ', newline: false);
+    emitParenWrapped(() {
+      final name = '$localName$i';
+      emitVariableDeclaration(name, DartType.INT,
+          initializerEmitter: emitZero, newline: false, indent: false);
+      emitBinaryComparison(() => emit(name), '<', emitSmallPositiveInt,
+          includeSemicolon: true);
+      emit('$name++');
+    });
+    emitBraceWrapped(() {
       nest++;
-      iterVars.add("$localName$i");
+      iterVars.add('$localName$i');
       localVars.add(DartType.INT);
       emitStatements(depth + 1);
       localVars.removeLast();
@@ -783,12 +846,14 @@ class DartFuzz {
     if (elementType == null) {
       throw 'No element type for iteration type ${iterType.name}';
     }
-    emitLn('for (${elementType.name} $localName$i in ', newline: false);
-    localVars.add(null); // declared, but don't use
-    emitExpr(0, iterType);
-    localVars.removeLast(); // will get type
-    emit(') ', newline: true);
-    _emitBraceWrapped(() {
+    emitLn('for ', newline: false);
+    emitParenWrapped(() {
+      emit('${elementType.name} $localName$i in ');
+      localVars.add(null); // declared, but don't use
+      emitExpr(0, iterType);
+      localVars.removeLast(); // will get type
+    });
+    emitBraceWrapped(() {
       nest++;
       localVars.add(elementType);
       emitStatements(depth + 1);
@@ -804,28 +869,31 @@ class DartFuzz {
     if (choose(nest + 1) > nestDepth) {
       return emitAssign();
     }
-    final int i = localVars.length;
-    final int j = i + 1;
-    emitLn("", newline: false);
+    emitIndentation();
+
     // Select one map type to be used in forEach loop.
     final mapType = oneOfSet(dartType.mapTypes);
     final emittedVar = emitScalarVar(mapType, isLhs: false);
     iterVars.add(emittedVar);
-    emit('.forEach(($localName$i, $localName$j) ');
-    _emitBraceWrapped(() {
-      final int nestTmp = nest;
-      // Reset, since forEach cannot break out of own or enclosing context.
-      nest = 0;
-      // Get the type of the map key and add it to the local variables.
-      localVars.add(dartType.indexType(mapType));
-      // Get the type of the map values and add it to the local variables.
-      localVars.add(dartType.elementType(mapType));
-      emitStatements(depth + 1);
-      localVars.removeLast();
-      localVars.removeLast();
-      nest = nestTmp;
-    });
-    emitLn(');');
+    emit('.forEach');
+    final i = localVars.length;
+    final j = i + 1;
+    emitParenWrapped(() {
+      emitParenWrapped(() => emit('$localName$i, $localName$j'));
+      emitBraceWrapped(() {
+        final int nestTmp = nest;
+        // Reset, since forEach cannot break out of own or enclosing context.
+        nest = 0;
+        // Get the type of the map key and add it to the local variables.
+        localVars.add(dartType.indexType(mapType));
+        // Get the type of the map values and add it to the local variables.
+        localVars.add(dartType.elementType(mapType));
+        emitStatements(depth + 1);
+        localVars.removeLast();
+        localVars.removeLast();
+        nest = nestTmp;
+      });
+    }, includeSemicolon: true);
     return true;
   }
 
@@ -836,13 +904,17 @@ class DartFuzz {
       return emitAssign();
     }
     final int i = localVars.length;
-    _emitBraceWrapped(() {
-      emitLn('int $localName$i = ', newline: false);
-      emitSmallPositiveInt(includeSemicolon: true);
-      emitLn('while (--$localName$i > 0) ');
-      _emitBraceWrapped(() {
+    emitIndentation();
+    emitBraceWrapped(() {
+      final name = '$localName$i';
+      emitVariableDeclaration(name, DartType.INT,
+          initializerEmitter: () => emitSmallPositiveInt());
+      emitLn('while ', newline: false);
+      emitParenWrapped(
+          () => emitBinaryComparison(() => emit('--$name'), '>', emitZero));
+      emitBraceWrapped(() {
         nest++;
-        iterVars.add("$localName$i");
+        iterVars.add(name);
         localVars.add(DartType.INT);
         emitStatements(depth + 1);
         localVars.removeLast();
@@ -860,23 +932,27 @@ class DartFuzz {
       return emitAssign();
     }
     final int i = localVars.length;
-    emitLn('{ int $localName$i = 0;');
-    incIndent();
-    emitLn('do {');
-    incIndent();
-    nest++;
-    iterVars.add('$localName$i');
-    localVars.add(DartType.INT);
-    emitStatements(depth + 1);
-    localVars.removeLast();
-    iterVars.removeLast();
-    nest--;
-    decIndent();
-    emitLn('} while (++$localName$i < ', newline: false);
-    emitSmallPositiveInt();
-    emit(');', newline: true);
-    decIndent();
-    emitLn('}');
+    emitIndentation();
+    emitBraceWrapped(() {
+      final name = '$localName$i';
+      emitVariableDeclaration(name, DartType.INT, initializerEmitter: emitZero);
+      emitLn('do ', newline: false);
+      emitBraceWrapped(() {
+        nest++;
+        iterVars.add(name);
+        localVars.add(DartType.INT);
+        emitStatements(depth + 1);
+        localVars.removeLast();
+        iterVars.removeLast();
+        nest--;
+      });
+      emit(' while ');
+      emitParenWrapped(
+          () => emitBinaryComparison(
+              () => emit('++$name'), '<', emitSmallPositiveInt),
+          includeSemicolon: true);
+    });
+    emitNewline();
     return true;
   }
 
@@ -897,35 +973,49 @@ class DartFuzz {
 
   // Emit a switch statement.
   bool emitSwitch(int depth) {
-    emitLn('switch (', newline: false);
-    emitExpr(0, DartType.INT);
-    emit(') {', newline: true);
-    int start = choose(1 << 32);
-    int step = chooseOneUpTo(10);
-    for (int i = 0; i < 2; i++, start += step) {
-      incIndent();
-      if (i == 2) {
-        emitLn('default: ');
+    emitCase(Function bodyEmitter, {int kase}) {
+      if (kase == null) {
+        emitLn('default: ', newline: false);
       } else {
-        emitLn('case $start: ');
+        emitLn('case $kase: ', newline: false);
       }
-      _emitBraceWrapped(() => emitStatements(depth + 1));
-      emitLn('break;'); // always generate, avoid FE complaints
-      decIndent();
+      emitBraceWrapped(() {
+        bodyEmitter();
+        emitNewline();
+        emitLn('break;',
+            newline: false); // always generate, avoid FE complaints
+      });
     }
-    emitLn('}');
+
+    emitLn('switch ', newline: false);
+    emitParenWrapped(() => emitExpr(0, DartType.INT));
+    emitBraceWrapped(() {
+      int start = choose(1 << 32);
+      int step = chooseOneUpTo(10);
+      final maxCases = 3;
+      for (int i = 0; i < maxCases; i++, start += step) {
+        emitCase(() => emitStatement(depth + 1),
+            kase: (i == 2 && coinFlip()) ? null : start);
+        if (i + 1 != maxCases) {
+          emitNewline();
+        }
+      }
+    });
     return true;
   }
 
   // Emit a new program scope that introduces a new local variable.
   bool emitScope(int depth) {
-    _emitBraceWrapped(() {
+    emitIndentation();
+    emitBraceWrapped(() {
       DartType tp = oneOfSet(dartType.allTypes);
       final int i = localVars.length;
-      emitLn('${tp.name} $localName$i = ', newline: false);
-      localVars.add(null); // declared, but don't use
-      emitExpr(0, tp, includeSemicolon: true);
-      localVars.removeLast(); // will get type
+      final name = '$localName$i';
+      emitVariableDeclaration(name, tp, initializerEmitter: () {
+        localVars.add(null); // declared, but don't use
+        emitExpr(0, tp);
+        localVars.removeLast(); // will get type
+      });
       localVars.add(tp);
       emitStatements(depth + 1);
       localVars.removeLast();
@@ -936,13 +1026,13 @@ class DartFuzz {
   // Emit try/catch/finally.
   bool emitTryCatch(int depth) {
     final emitStatementsClosure = () => emitStatements(depth + 1);
-    emit('try ');
-    _emitBraceWrapped(emitStatementsClosure);
-    emit(' catch (exception, stackTrace) ');
-    _emitBraceWrapped(emitStatementsClosure);
+    emitLn('try ', newline: false);
+    emitBraceWrapped(emitStatementsClosure);
+    emit(' catch (exception, stackTrace) ', newline: false);
+    emitBraceWrapped(emitStatementsClosure);
     if (rollDice(2)) {
-      emit(' finally ');
-      _emitBraceWrapped(emitStatementsClosure);
+      emit(' finally ', newline: false);
+      emitBraceWrapped(emitStatementsClosure);
     }
     return true;
   }
@@ -1010,6 +1100,9 @@ class DartFuzz {
       if (!emitStatement(depth)) {
         return false; // rest would be dead code
       }
+      if (i + 1 != s) {
+        emitNewline();
+      }
     }
     return true;
   }
@@ -1024,7 +1117,7 @@ class DartFuzz {
   void emitSmallPositiveInt({int limit = 50, bool includeSemicolon = false}) {
     emit('${choose(limit)}');
     if (includeSemicolon) {
-      emit(';', newline: true);
+      emit(';');
     }
   }
 
@@ -1103,6 +1196,7 @@ class DartFuzz {
     if (DartType.isMapType(tp)) {
       // Emit construct for the map key type.
       final indexType = dartType.indexType(tp);
+      emitIndentation();
       emitElementExpr(depth, indexType, rhsFilter: rhsFilter);
       emit(' : ');
       // Emit construct for the map value type.
@@ -1127,19 +1221,20 @@ class DartFuzz {
       case 0:
         // TODO (ajcbik): Remove restriction once compiler is fixed.
         if (depth < 2) {
-          emit('...'); // spread
+          emitLn('...', newline: false); // spread
           emitCollection(depth + 1, tp, rhsFilter: rhsFilter);
         } else {
           emitElement(depth, tp, rhsFilter: rhsFilter);
         }
         break;
       case 1:
-        emit('if (');
-        emitElementExpr(depth + 1, DartType.BOOL, rhsFilter: rhsFilter);
-        emit(') ');
+        emitLn('if ', newline: false);
+        emitParenWrapped(() =>
+            emitElementExpr(depth + 1, DartType.BOOL, rhsFilter: rhsFilter));
         emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
         if (coinFlip()) {
-          emit(' else ');
+          emitNewline();
+          emitLn('else ', newline: false);
           emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
         }
         break;
@@ -1148,31 +1243,41 @@ class DartFuzz {
           final int i = localVars.length;
           // TODO (felih): update to use new type system. Add types like
           // LIST_STRING etc.
-          emit('for (int $localName$i ');
-          // For-loop (induction, list, set).
-          localVars.add(null); // declared, but don't use
-          switch (choose(3)) {
-            case 0:
-              emit('= 0; $localName$i < ');
-              emitSmallPositiveInt(limit: 16);
-              emit('; $localName$i++) ');
-              break;
-            case 1:
-              emit('in ');
-              emitCollection(depth + 1, DartType.LIST_INT,
-                  rhsFilter: rhsFilter);
-              emit(') ');
-              break;
-            default:
-              emit('in ');
-              emitCollection(depth + 1, DartType.SET_INT, rhsFilter: rhsFilter);
-              emit(') ');
-              break;
-          }
-          localVars.removeLast(); // will get type
+          emitLn('for ', newline: false);
+          emitParenWrapped(() {
+            final local = '$localName$i';
+            iterVars.add(local);
+            // For-loop (induction, list, set).
+            localVars.add(null); // declared, but don't use
+            switch (choose(3)) {
+              case 0:
+                emitVariableDeclaration(local, DartType.INT,
+                    initializerEmitter: emitZero, indent: false);
+                emitBinaryComparison(() => emit(local), '<',
+                    () => emitSmallPositiveInt(limit: 16),
+                    includeSemicolon: true);
+                emit('$local++');
+                break;
+              case 1:
+                emitVariableDeclaration(local, DartType.INT,
+                    includeSemicolon: false, indent: false);
+                emit(' in ');
+                emitCollection(depth + 1, DartType.LIST_INT,
+                    rhsFilter: rhsFilter);
+                break;
+              default:
+                emitVariableDeclaration(local, DartType.INT,
+                    includeSemicolon: false, indent: false);
+                emit(' in ');
+                emitCollection(depth + 1, DartType.SET_INT,
+                    rhsFilter: rhsFilter);
+                break;
+            }
+            localVars.removeLast(); // will get type
+          });
           nest++;
-          iterVars.add("$localName$i");
           localVars.add(DartType.INT);
+          emitNewline();
           emitCollectionElement(depth + 1, tp, rhsFilter: rhsFilter);
           localVars.removeLast();
           iterVars.removeLast();
@@ -1186,14 +1291,15 @@ class DartFuzz {
   }
 
   void emitCollection(int depth, DartType tp, {RhsFilter rhsFilter}) =>
-      _emitWrapped(
-          DartType.isListType(tp) ? const ['[', ']'] : const ['{', '}'], () {
+      emitWrapped(DartType.isListType(tp) ? const ['[', ']'] : const ['{', '}'],
+          () {
         // Collection length decreases as depth increases.
         int collectionLength = max(1, 8 - depth);
-        _emitCommaSeparated(
+        emitCommaSeparated(
             (int _) => emitCollectionElement(depth, tp, rhsFilter: rhsFilter),
-            chooseOneUpTo(collectionLength));
-      });
+            chooseOneUpTo(collectionLength),
+            newline: DartType.isMapType(tp));
+      }, shouldIndent: DartType.isMapType(tp));
 
   void emitLiteral(int depth, DartType tp,
       {bool smallPositiveValue = false, RhsFilter rhsFilter}) {
@@ -1247,14 +1353,14 @@ class DartFuzz {
         // TODO(bkonyi): remove unnecessary new
         emit('new ${tp.name}');
       }
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         // Iterate over constructor parameters.
         List<DartType> constructorParameters =
             dartType.constructorParameters(tp, constructor);
         if (constructorParameters == null) {
           throw 'No constructor parameters for ${tp.name}.$constructor';
         }
-        _emitCommaSeparated((int i) {
+        emitCommaSeparated((int i) {
           // If we are emitting a constructor parameter, we want to use small
           // values to avoid programs that run out of memory.
           // TODO (felih): maybe allow occasionally?
@@ -1267,7 +1373,7 @@ class DartFuzz {
       emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
     }
     if (includeSemicolon) {
-      emit(';', newline: true);
+      emit(';');
     }
   }
 
@@ -1343,7 +1449,7 @@ class DartFuzz {
       final indexType = dartType.indexType(iterType);
       // Emit a variable of the selected list or map type.
       ret = emitScalarVar(iterType, isLhs: isLhs, rhsFilter: rhsFilter);
-      _emitSquareBraceWrapped(() =>
+      emitSquareBraceWrapped(() =>
           // Emit an expression resolving into the index type.
           emitExpr(depth + 1, indexType));
     } else {
@@ -1378,8 +1484,8 @@ class DartFuzz {
   }
 
   void emitExprList(int depth, List<DartType> proto, {RhsFilter rhsFilter}) =>
-      _emitParenWrapped(() {
-        _emitCommaSeparated((int i) {
+      emitParenWrapped(() {
+        emitCommaSeparated((int i) {
           emitExpr(depth, proto[i], rhsFilter: rhsFilter);
         }, proto.length, start: 1);
       });
@@ -1389,9 +1495,9 @@ class DartFuzz {
     if (dartType.uniOps(tp).isEmpty) {
       return emitTerminal(depth, tp, rhsFilter: rhsFilter);
     }
-    _emitParenWrapped(() {
+    emitParenWrapped(() {
       emit(oneOfSet(dartType.uniOps(tp)));
-      _emitParenWrapped(() => emitExpr(depth + 1, tp, rhsFilter: rhsFilter));
+      emitParenWrapped(() => emitExpr(depth + 1, tp, rhsFilter: rhsFilter));
     });
   }
 
@@ -1414,7 +1520,7 @@ class DartFuzz {
     if (binop == "*" &&
         DartType.isGrowableType(binOpParams[0]) &&
         dartType.isInterfaceOfType(binOpParams[1], DartType.NUM)) {
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         emitExpr(depth + 1, binOpParams[0], rhsFilter: rhsFilter);
         emit(' $binop ');
         emitLiteral(depth + 1, binOpParams[1], smallPositiveValue: true);
@@ -1422,13 +1528,13 @@ class DartFuzz {
     } else if (binop == "*" &&
         DartType.isGrowableType(binOpParams[1]) &&
         dartType.isInterfaceOfType(binOpParams[0], DartType.NUM)) {
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         emitLiteral(depth + 1, binOpParams[0], smallPositiveValue: true);
         emit(' $binop ');
         emitExpr(depth + 1, binOpParams[1], rhsFilter: rhsFilter);
       });
     } else {
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         emitExpr(depth + 1, binOpParams[0], rhsFilter: rhsFilter);
         emit(' $binop ');
         emitExpr(depth + 1, binOpParams[1], rhsFilter: rhsFilter);
@@ -1438,7 +1544,7 @@ class DartFuzz {
 
   // Emit expression with ternary operator: (b ? x : y)
   void emitTernaryExpr(int depth, DartType tp, {RhsFilter rhsFilter}) =>
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         emitExpr(depth + 1, DartType.BOOL, rhsFilter: rhsFilter);
         emit(' ? ');
         emitExpr(depth + 1, tp, rhsFilter: rhsFilter);
@@ -1449,7 +1555,7 @@ class DartFuzz {
   // Emit expression with pre/post-increment/decrement operator: (x++)
   void emitPreOrPostExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.INT) {
-      _emitParenWrapped(() {
+      emitParenWrapped(() {
         // TODO(bkonyi): change to use coinFlip()
         bool pre = rollDice(2);
         if (pre) {
@@ -1473,26 +1579,24 @@ class DartFuzz {
       emitLiteral(depth + 1, tp, rhsFilter: rhsFilter);
       return;
     }
-    _emitParenWrapped(() {
+    emitParenWrapped(() {
       String proto = lib.proto;
       // Receiver.
       if (proto[0] != 'V') {
-        emit('(');
-        emitArg(depth + 1, proto[0], rhsFilter: rhsFilter);
-        emit(').');
+        emitParenWrapped(
+            () => emitArg(depth + 1, proto[0], rhsFilter: rhsFilter));
+        emit('.');
       }
       // Call.
       emit('${lib.name}');
       // Parameters.
       if (proto[1] != 'v') {
-        _emitParenWrapped(() {
+        emitParenWrapped(() {
           if (proto[1] != 'V') {
-            for (int i = 1; i < proto.length; i++) {
-              emitArg(depth + 1, proto[i], rhsFilter: rhsFilter);
-              if (i != (proto.length - 1)) {
-                emit(', ');
-              }
-            }
+            emitCommaSeparated(
+                (int i) => emitArg(depth + 1, proto[i], rhsFilter: rhsFilter),
+                proto.length,
+                start: 1);
           }
         });
       }
@@ -1506,10 +1610,10 @@ class DartFuzz {
   // Emit call to a specific method.
   void emitCall(int depth, String name, List<DartType> proto,
       {RhsFilter rhsFilter, bool includeSemicolon = false}) {
-    emit(name);
+    emitLn(name, newline: false);
     emitExprList(depth + 1, proto, rhsFilter: rhsFilter);
     if (includeSemicolon) {
-      emit(';', newline: true);
+      emit(';');
     }
   }
 
@@ -1606,7 +1710,7 @@ class DartFuzz {
     }
     processExprClose(resetExprStmt);
     if (includeSemicolon) {
-      emit(';', newline: true);
+      emit(';');
     }
   }
 
@@ -1755,18 +1859,25 @@ class DartFuzz {
   void emitFfiTypedef(String typeName, List<DartType> pars) {
     emit("typedef ${typeName} = ");
     emitFfiType(pars[0]);
-    emit(" Function(");
-    _emitCommaSeparated((int i) => emitFfiType(pars[i]), pars.length);
-    emitLn(');');
+    emit(' Function');
+    emitParenWrapped(
+        () => emitCommaSeparated((int i) => emitFfiType(pars[i]), pars.length),
+        includeSemicolon: true);
   }
 
   //
   // Output.
   //
 
-  // Emits incIndent()ed line to append to program.
+  // Emits a newline to the program.
+  void emitNewline() => emit('', newline: true);
+
+  // Emits indentation based on the current indentation count.
+  void emitIndentation() => file.writeStringSync(' ' * indent);
+
+  // Emits indented line to append to program.
   void emitLn(String line, {bool newline = true}) {
-    file.writeStringSync(' ' * indent);
+    emitIndentation();
     emit(line, newline: newline);
   }
 
