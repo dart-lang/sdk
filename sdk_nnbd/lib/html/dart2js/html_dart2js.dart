@@ -12616,7 +12616,7 @@ class Element extends Node
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
-  **/
+   */
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
