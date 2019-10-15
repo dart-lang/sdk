@@ -178,26 +178,31 @@ class InfoBuilder {
   /// Return a description of the given [origin] associated with the [edge].
   RegionDetail _buildDetailForOrigin(EdgeOriginInfo origin, EdgeInfo edge) {
     AstNode node = origin.node;
-    if (origin.kind == EdgeOriginKind.inheritance) {
-      // The node is the method declaration in the subclass and we want to link
-      // to the corresponding parameter in the declaration in the superclass.
-      TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
-      if (type != null) {
-        CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
-        NavigationTarget target;
-        // Some nodes don't need a target; default formal parameters
-        // without explicit default values, for example.
-        if (node is DefaultFormalParameter && node.defaultValue == null) {
-          target = null;
-        } else {
+    NavigationTarget target;
+    // Some nodes don't need a target; default formal parameters
+    // without explicit default values, for example.
+    if (node is DefaultFormalParameter && node.defaultValue == null) {
+      target = null;
+    } else {
+      if (origin.kind == EdgeOriginKind.inheritance) {
+        // The node is the method declaration in the subclass and we want to
+        // link to the corresponding parameter in the declaration in the
+        // superclass.
+        TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
+        if (type != null) {
+          CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _targetForNode(unit.declaredElement.source.fullName, type);
+          return RegionDetail(
+              "The corresponding parameter in the overridden method is nullable",
+              target);
+          // TODO(srawlins): Also, this could be where a return type in an
+          //  overridden method is made nullable because an overriding method
+          //  was found with a nullable return type. Figure out how to tell
+          //  which situation we are in.
         }
-        return RegionDetail(
-            "The corresponding parameter in the overridden method is nullable",
-            target);
       }
+      target = _targetForNode(origin.source.fullName, node);
     }
-    NavigationTarget target = _targetForNode(origin.source.fullName, node);
     return RegionDetail(_buildDescriptionForOrigin(node), target);
   }
 

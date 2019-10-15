@@ -464,6 +464,36 @@ void f([String? s]) {}
         details: ["This parameter has an implicit default value of 'null'"]);
   }
 
+  @failingTest
+  test_return_fromOverriden() async {
+    addTestFile('''
+abstract class A {
+  String m();
+}
+class B implements A {
+  String m() => 1 == 2 ? "Hello" : null;
+}
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, '''
+abstract class A {
+  String? m();
+}
+class B implements A {
+  String? m() => 1 == 2 ? "Hello" : null;
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 27,
+        details: ["An overridding method has a nullable return value"]);
+  }
+
   test_returnDetailTarget() async {
     addTestFile('''
 String g() {
