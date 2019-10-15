@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.60';
+const String version = '1.61';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -527,8 +527,7 @@ class DartFuzz {
           currentClass = null;
         }
       }
-      // TODO(bkonyi): change to use coinFlip()
-      if (rollDice(2) || classParents.length > parentClass) {
+      if (coinFlip() || classParents.length > parentClass) {
         break;
       } else {
         parentClass = classParents[parentClass];
@@ -1030,7 +1029,7 @@ class DartFuzz {
     emitBraceWrapped(emitStatementsClosure);
     emit(' catch (exception, stackTrace) ', newline: false);
     emitBraceWrapped(emitStatementsClosure);
-    if (rollDice(2)) {
+    if (coinFlip()) {
       emit(' finally ', newline: false);
       emitBraceWrapped(emitStatementsClosure);
     }
@@ -1111,8 +1110,7 @@ class DartFuzz {
   // Expressions.
   //
 
-  // TODO(bkonyi): swap to use coinFlip()
-  void emitBool() => emit(rollDice(2) ? 'true' : 'false');
+  void emitBool() => emit(coinFlip() ? 'true' : 'false');
 
   void emitSmallPositiveInt({int limit = 50, bool includeSemicolon = false}) {
     emit('${choose(limit)}');
@@ -1145,8 +1143,7 @@ class DartFuzz {
   void emitDouble() => emit('${uniform()}');
 
   void emitNum({bool smallPositiveValue = false}) {
-    // TODO(bkonyi): change to use coinFlip()
-    if (!fp || rollDice(2)) {
+    if (!fp || coinFlip()) {
       if (smallPositiveValue) {
         emitSmallPositiveInt();
       } else {
@@ -1350,8 +1347,9 @@ class DartFuzz {
       if (constructor.isNotEmpty) {
         emit('${tp.name}.${constructor}');
       } else {
-        // TODO(bkonyi): remove unnecessary new
-        emit('new ${tp.name}');
+        // New is no longer necessary as of Dart 2, but is still supported.
+        // Emit a `new` once in a while to ensure it's covered.
+        emit('${rollDice(10) ? "new " : ""}${tp.name}');
       }
       emitParenWrapped(() {
         // Iterate over constructor parameters.
@@ -1556,8 +1554,7 @@ class DartFuzz {
   void emitPreOrPostExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
     if (tp == DartType.INT) {
       emitParenWrapped(() {
-        // TODO(bkonyi): change to use coinFlip()
-        bool pre = rollDice(2);
+        bool pre = coinFlip();
         if (pre) {
           emitPreOrPostOp(tp);
         }
@@ -1644,8 +1641,7 @@ class DartFuzz {
       int classIndex = currentClass;
       // Chase randomly up in class hierarchy.
       while (classParents[classIndex] > 0) {
-        // TODO(bkonyi): change to use coinFlip()
-        if (rollDice(2)) {
+        if (coinFlip()) {
           break;
         }
         classIndex = classParents[classIndex];
@@ -1861,8 +1857,11 @@ class DartFuzz {
     emitFfiType(pars[0]);
     emit(' Function');
     emitParenWrapped(
-        () => emitCommaSeparated((int i) => emitFfiType(pars[i]), pars.length),
+        () => emitCommaSeparated((int i) => emitFfiType(pars[i]), pars.length,
+            start: 1),
         includeSemicolon: true);
+    emitNewline();
+    emitNewline();
   }
 
   //
