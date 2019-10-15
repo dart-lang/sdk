@@ -39,21 +39,21 @@ class C<T extends Function> {
   }
 }
 ''', [
-      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 110, 1),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 89, 26),
     ]);
   }
 
   test_lookupFunction_F() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-typedef T = int Function(int);
+typedef T = Int8 Function(Int8);
 class C<F extends int Function(int)> {
   void f(DynamicLibrary lib, NativeFunction x) {
     lib.lookupFunction<T, F>('g');
   }
 }
 ''', [
-      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 164, 1),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1),
     ]);
   }
 
@@ -67,7 +67,7 @@ class C<T extends Function> {
   }
 }
 ''', [
-      error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 152, 1),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1),
     ]);
   }
 }

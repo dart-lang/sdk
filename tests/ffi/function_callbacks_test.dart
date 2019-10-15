@@ -179,11 +179,13 @@ void testGC() {
   triggerGc();
 }
 
-typedef WaitForHelper = Void Function(Pointer<Void>);
+typedef WaitForHelperNative = Void Function(Pointer<Void>);
+typedef WaitForHelper = void Function(Pointer<Void>);
+
 void waitForHelper(Pointer<Void> helper) {
   print("helper: $helper");
   testLibrary
-      .lookupFunction<WaitForHelper, WaitForHelper>("WaitForHelper")(helper);
+      .lookupFunction<WaitForHelperNative, WaitForHelper>("WaitForHelper")(helper);
 }
 
 final List<Test> testcases = [
@@ -211,7 +213,7 @@ final List<Test> testcases = [
   Test("ThrowException",
       Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
   Test("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
-  Test("UnprotectCode", Pointer.fromFunction<WaitForHelper>(waitForHelper)),
+  Test("UnprotectCode", Pointer.fromFunction<WaitForHelperNative>(waitForHelper)),
 ];
 
 testCallbackWrongThread() =>

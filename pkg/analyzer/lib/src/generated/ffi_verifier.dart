@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
@@ -162,42 +161,25 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Return `true` if the [foundType] matches one of the [requiredTypes].
-  bool _matchesAllowed(_FoundType foundType, _RequiredTypes requiredTypes) {
-    return requiredTypes == _RequiredTypes.any ||
-        (requiredTypes == _RequiredTypes.int && foundType == _FoundType.int) ||
-        (requiredTypes == _RequiredTypes.double &&
-            foundType == _FoundType.double);
-  }
-
   /// Return an indication of the Dart type associated with the [annotation].
-  _FoundType _typeForAnnotation(Annotation annotation) {
+  _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
     Element element = annotation.element;
     if (element is ConstructorElement) {
       String name = element.enclosingElement.name;
-      if ([
-        'Int8',
-        'Int16',
-        'Int32',
-        'Int64',
-        'Uint8',
-        'Uint16',
-        'Uint32',
-        'Uint64'
-      ].contains(name)) {
-        return _FoundType.int;
-      } else if (['Double', 'Float'].contains(name)) {
-        return _FoundType.double;
+      if (_primitiveIntegerNativeTypes.contains(name)) {
+        return _PrimitiveDartType.int;
+      } else if (_primitiveDoubleNativeTypes.contains(name)) {
+        return _PrimitiveDartType.double;
       }
     }
-    return _FoundType.none;
+    return _PrimitiveDartType.none;
   }
 
   /// Validate that the [annotations] include exactly one annotation that
   /// satisfies the [requiredTypes]. If an error is produced that cannot be
   /// associated with an annotation, associate it with the [errorNode].
   void _validateAnnotations(AstNode errorNode, NodeList<Annotation> annotations,
-      _RequiredTypes requiredTypes) {
+      _PrimitiveDartType requiredType) {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
@@ -205,12 +187,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (requiredFound) {
           extraAnnotations.add(annotation);
         } else {
-          _FoundType foundType = _typeForAnnotation(annotation);
-          if (foundType == _FoundType.none) {
-            // This should never happen because `_typeForAnnotation` should
-            // handle all of the classes from dart:ffi that can be used as an
-            // annotation.
-          } else if (_matchesAllowed(foundType, requiredTypes)) {
+          _PrimitiveDartType foundType = _typeForAnnotation(annotation);
+          if (foundType == requiredType) {
             requiredFound = true;
           } else {
             extraAnnotations.add(annotation);
@@ -248,33 +226,24 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (targetType is InterfaceType &&
         _isPointer(targetType.element) &&
         targetType.typeArguments.length == 1) {
-      DartType T = targetType.typeArguments[0];
-      if (T is InterfaceTypeImpl) {
-        ClassElement nativeFunctionElement =
-            element.enclosingElement.library.getType('NativeFunction');
-        InterfaceType nativeFunctionType =
-            T.asInstanceOf(nativeFunctionElement);
-        if (nativeFunctionType == null) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, target);
-        } else {
-          DartType TPrime = nativeFunctionType.typeArguments[0];
-          if (TPrime is TypeParameterType) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER, target);
-          } else {
-            DartType F = node.typeArgumentTypes[0];
-            if (!typeSystem.isSubtypeOf(TPrime, F)) {
-              _errorReporter.reportTypeErrorForNode(
-                  FfiCode.MUST_BE_A_SUBTYPE,
-                  typeArguments[0],
-                  [TPrime.displayName, F.displayName, 'asFunction']);
-            }
-          }
-        }
-      } else if (T is TypeParameterType) {
-        _errorReporter.reportErrorForNode(
-            FfiCode.NON_CONSTANT_TYPE_ARGUMENT_TO_POINTER, target);
+      final DartType T = targetType.typeArguments[0];
+      if (!_isNativeFunctionInterfaceType(T) ||
+          !_isValidFfiNativeFunctionType(
+              (T as InterfaceType).typeArguments.single)) {
+        final AstNode errorNode =
+            typeArguments != null ? typeArguments[0] : node;
+        _errorReporter.reportTypeErrorForNode(
+            FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
+            errorNode,
+            [T.displayName]);
+        return;
+      }
+
+      final DartType TPrime = (T as InterfaceType).typeArguments[0];
+      final DartType F = node.typeArgumentTypes[0];
+      if (!_validateCompatibleFunctionTypes(F, TPrime)) {
+        _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, node,
+            [TPrime.displayName, F.displayName, 'asFunction']);
       }
     }
   }
@@ -294,9 +263,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else {
       DartType declaredType = fieldType.type;
       if (declaredType.isDartCoreInt) {
-        _validateAnnotations(fieldType, annotations, _RequiredTypes.int);
+        _validateAnnotations(fieldType, annotations, _PrimitiveDartType.int);
       } else if (declaredType.isDartCoreDouble) {
-        _validateAnnotations(fieldType, annotations, _RequiredTypes.double);
+        _validateAnnotations(fieldType, annotations, _PrimitiveDartType.double);
       } else if (_isPointer(declaredType.element)) {
         _validateNoAnnotations(annotations);
       } else {
@@ -315,63 +284,74 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate the invocation of the static method
   /// `Pointer<T>.fromFunction(f, e)`.
   void _validateFromFunction(MethodInvocation node, MethodElement element) {
-    int argCount = node.argumentList.arguments.length;
+    final int argCount = node.argumentList.arguments.length;
     if (argCount < 1 || argCount > 2) {
       // There are other diagnostics reported against the invocation and the
       // diagnostics generated below might be inaccurate, so don't report them.
       return;
     }
-    DartType T = node.typeArgumentTypes[0];
-    if (T is FunctionType) {
-      Expression f = node.argumentList.arguments[0];
-      if (!typeSystem.isSubtypeOf(f.staticType, T)) {
-        _errorReporter.reportTypeErrorForNode(
-            FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
-      }
-      // TODO(brianwilkerson) Validate that `f` is a top-level function.
-      DartType R = T.returnType;
-      if (R.isVoid || _isPointer(R.element)) {
-        if (argCount != 1) {
-          _errorReporter.reportErrorForNode(
-              FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
-        }
-      } else if (argCount != 2) {
+
+    final DartType T = node.typeArgumentTypes[0];
+    if (!_isValidFfiNativeFunctionType(T)) {
+      _errorReporter.reportTypeErrorForNode(
+          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          node,
+          [T.displayName, 'fromFunction']);
+      return;
+    }
+
+    Expression f = node.argumentList.arguments[0];
+    DartType FT = f.staticType;
+    if (!_validateCompatibleFunctionTypes(FT, T)) {
+      _errorReporter.reportTypeErrorForNode(
+          FfiCode.MUST_BE_A_SUBTYPE, f, [f.staticType, T, 'fromFunction']);
+      return;
+    }
+
+    // TODO(brianwilkerson) Validate that `f` is a top-level function.
+    final DartType R = (T as FunctionType).returnType;
+    if ((FT as FunctionType).returnType.isVoid || _isPointer(R.element)) {
+      if (argCount != 1) {
         _errorReporter.reportErrorForNode(
-            FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
-      } else {
-        Expression e = node.argumentList.arguments[1];
-        // TODO(brianwilkerson) Validate that `e` is a constant expression.
-        if (!typeSystem.isSubtypeOf(e.staticType, R)) {
-          _errorReporter.reportTypeErrorForNode(
-              FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
-        }
+            FfiCode.INVALID_EXCEPTION_VALUE, node.argumentList.arguments[1]);
       }
-    } else if (T is TypeParameterType) {
-      _errorReporter.reportErrorForNode(FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
-          node.typeArguments.arguments[0], ['fromFunction']);
+    } else if (argCount != 2) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.MISSING_EXCEPTION_VALUE, node.methodName);
+    } else {
+      Expression e = node.argumentList.arguments[1];
+      // TODO(brianwilkerson) Validate that `e` is a constant expression.
+      if (!_validateCompatibleNativeType(e.staticType, R, true)) {
+        _errorReporter.reportTypeErrorForNode(
+            FfiCode.MUST_BE_A_SUBTYPE, e, [e.staticType, R, 'fromFunction']);
+      }
     }
   }
 
   /// Validate the invocation of the instance method
   /// `DynamicLibrary.lookupFunction<S, F>()`.
   void _validateLookupFunction(MethodInvocation node) {
-    NodeList<TypeAnnotation> typeArguments = node.typeArguments?.arguments;
-    if (typeArguments != null && typeArguments.length == 2) {
-      if (_validateTypeArgument(typeArguments[0], 'lookupFunction') ||
-          _validateTypeArgument(typeArguments[1], 'lookupFunction')) {
-        return;
-      }
+    final NodeList<TypeAnnotation> typeArguments =
+        node.typeArguments?.arguments;
+    if (typeArguments?.length != 2) {
+      // There are other diagnostics reported against the invocation and the
+      // diagnostics generated below might be inaccurate, so don't report them.
+      return;
     }
-    List<DartType> argTypes = node.typeArgumentTypes;
-    DartType S = argTypes[0];
-    DartType F = argTypes[1];
-    if (!typeSystem.isSubtypeOf(S, F)) {
-      AstNode errorNode;
-      if (typeArguments != null && typeArguments.length >= 2) {
-        errorNode = typeArguments[1];
-      } else {
-        errorNode = node.typeArguments;
-      }
+
+    final List<DartType> argTypes = node.typeArgumentTypes;
+    final DartType S = argTypes[0];
+    final DartType F = argTypes[1];
+    if (!_isValidFfiNativeFunctionType(S)) {
+      final AstNode errorNode = typeArguments[0];
+      _errorReporter.reportTypeErrorForNode(
+          FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          errorNode,
+          [S.displayName, 'lookupFunction']);
+      return;
+    }
+    if (!_validateCompatibleFunctionTypes(F, S)) {
+      final AstNode errorNode = typeArguments[1];
       _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE,
           errorNode, [S.displayName, F.displayName, 'lookupFunction']);
     }
@@ -397,18 +377,201 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
+
+  /// Validates that the given [nativeType] is, when native types are converted
+  /// to their Dart equivalent, a subtype of [dartType].
+  bool _validateCompatibleFunctionTypes(
+      DartType dartType, DartType nativeType) {
+    // We require both to be valid function types.
+    if (dartType is! FunctionType ||
+        dartType.isDartCoreFunction ||
+        nativeType is! FunctionType ||
+        nativeType.isDartCoreFunction) {
+      return false;
+    }
+
+    final dartFType = dartType as FunctionType;
+    final nativeFType = nativeType as FunctionType;
+
+    // We disallow any optional parameters.
+    final int parameterCount = dartFType.normalParameterTypes.length;
+    if (parameterCount != nativeFType.normalParameterTypes.length) {
+      return false;
+    }
+    // We disallow generic function types.
+    if (dartFType.typeFormals.isNotEmpty ||
+        nativeFType.typeFormals.isNotEmpty) {
+      return false;
+    }
+    if (dartFType.namedParameterTypes.isNotEmpty ||
+        dartFType.optionalParameterTypes.isNotEmpty ||
+        nativeFType.namedParameterTypes.isNotEmpty ||
+        nativeFType.optionalParameterTypes.isNotEmpty) {
+      return false;
+    }
+
+    // Validate that the return types are compatible.
+    if (!_validateCompatibleNativeType(
+        dartFType.returnType, nativeFType.returnType, false)) {
+      return false;
+    }
+
+    // Validate that the parameter types are compatible.
+    for (int i = 0; i < parameterCount; ++i) {
+      if (!_validateCompatibleNativeType(dartFType.normalParameterTypes[i],
+          nativeFType.normalParameterTypes[i], true)) {
+        return false;
+      }
+    }
+
+    // Signatures have same number of parameters and the types match.
+    return true;
+  }
+
+  // Validates that, if we convert [nativeType] to it's corresponding
+  // [dartType] the latter is a subtype of the former if
+  // [checkCovariance].
+  bool _validateCompatibleNativeType(
+      DartType dartType, DartType nativeType, bool checkCovariance) {
+    final nativeReturnType = _primitiveNativeType(nativeType);
+    if (nativeReturnType == _PrimitiveDartType.int) {
+      return dartType.isDartCoreInt;
+    } else if (nativeReturnType == _PrimitiveDartType.double) {
+      return dartType.isDartCoreDouble;
+    } else if (nativeReturnType == _PrimitiveDartType.void_) {
+      return dartType.isVoid;
+    } else if (dartType is InterfaceType && nativeType is InterfaceType) {
+      return checkCovariance
+          ? typeSystem.isSubtypeOf(dartType, nativeType)
+          : typeSystem.isSubtypeOf(nativeType, dartType);
+    } else {
+      // If the [nativeType] is not a primitive int/double type then it has to
+      // be a Pointer type atm.
+      return false;
+    }
+  }
+
+  // Validates that the given type is a valid dart:ffi native function
+  // signature.
+  bool _isValidFfiNativeFunctionType(DartType nativeType) {
+    if (nativeType is FunctionType && !nativeType.isDartCoreFunction) {
+      if (nativeType.namedParameterTypes.isNotEmpty ||
+          nativeType.optionalParameterTypes.isNotEmpty) {
+        return false;
+      }
+      if (!_isValidFfiNativeType(nativeType.returnType, true)) {
+        return false;
+      }
+
+      for (final DartType typeArg in nativeType.typeArguments) {
+        if (!_isValidFfiNativeType(typeArg, false)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // Validates that the given [nativeType] is a valid dart:ffi native type.
+  bool _isValidFfiNativeType(DartType nativeType, bool allowVoid) {
+    if (nativeType is InterfaceType) {
+      // Is it a primitive integer/double type (or ffi.Void if we allow it).
+      final primitiveType = _primitiveNativeType(nativeType);
+      if (primitiveType != _PrimitiveDartType.none &&
+          (primitiveType != _PrimitiveDartType.void_ || allowVoid)) {
+        return true;
+      }
+      if (_isNativeFunctionInterfaceType(nativeType)) {
+        return _isValidFfiNativeFunctionType(nativeType.typeArguments.single);
+      }
+      if (_isPointerInterfaceType(nativeType)) {
+        final nativeArgumentType = nativeType.typeArguments.single;
+        return _isValidFfiNativeType(nativeArgumentType, true) ||
+            _isStructClass(nativeArgumentType);
+      }
+    } else if (nativeType is FunctionType) {
+      return _isValidFfiNativeFunctionType(nativeType);
+    }
+    return false;
+  }
+
+  _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        final String name = element.name;
+        if (_primitiveIntegerNativeTypes.contains(name)) {
+          return _PrimitiveDartType.int;
+        }
+        if (_primitiveDoubleNativeTypes.contains(name)) {
+          return _PrimitiveDartType.double;
+        }
+        if (name == 'Void') {
+          return _PrimitiveDartType.void_;
+        }
+      }
+    }
+    return _PrimitiveDartType.none;
+  }
+
+  // Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
+  bool _isNativeFunctionInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'NativeFunction' &&
+            nativeType.typeArguments?.length == 1;
+      }
+    }
+    return false;
+  }
+
+  // Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
+  bool _isPointerInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'Pointer' &&
+            nativeType.typeArguments?.length == 1;
+      }
+    }
+    return false;
+  }
+
+  // Returns `true` iff [nativeType] is a struct type.
+  _isStructClass(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final superClassElement = nativeType.element.supertype.element;
+      if (superClassElement.library.name == 'dart.ffi') {
+        return superClassElement.name == 'Struct' &&
+            nativeType.typeArguments?.isEmpty == true;
+      }
+    }
+    return false;
+  }
+
+  static const List<String> _primitiveIntegerNativeTypes = [
+    'Int8',
+    'Int16',
+    'Int32',
+    'Int64',
+    'Uint8',
+    'Uint16',
+    'Uint32',
+    'Uint64',
+    'IntPtr'
+  ];
+
+  static const List<String> _primitiveDoubleNativeTypes = [
+    'Float',
+    'Double',
+  ];
 }
 
-/// An enumeration of the type corresponding to an annotation.
-enum _FoundType {
+enum _PrimitiveDartType {
   double,
   int,
+  void_,
   none,
-}
-
-/// An enumeration of the type of annotation that is required to be on a field.
-enum _RequiredTypes {
-  any,
-  double,
-  int,
 }

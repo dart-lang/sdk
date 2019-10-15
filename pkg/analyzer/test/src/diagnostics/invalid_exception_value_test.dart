@@ -18,13 +18,13 @@ class InvalidExceptionValueTest extends DriverResolutionTest {
   test_missing() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-typedef T = void Function(int);
+typedef T = Void Function(Int8);
 void f(int i) {}
 void g() {
   Pointer.fromFunction<T>(f, 42);
 }
 ''', [
-      error(FfiCode.INVALID_EXCEPTION_VALUE, 108, 2),
+      error(FfiCode.INVALID_EXCEPTION_VALUE, 109, 2),
     ]);
   }
 }

@@ -118,6 +118,17 @@ class FfiCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the type that should be a valid dart:ffi native type.
+   * 1: the name of the function whose invocation depends on this relationship
+   */
+  static const FfiCode MUST_BE_A_NATIVE_FUNCTION_TYPE = const FfiCode(
+      name: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
+      message:
+          "The type '{0}' given to {1} must be a valid `dart:ffi` native function type.",
+      correction: "Try changing the type to only use members for `dart:ffi`.");
+
+  /**
+   * Parameters:
    * 0: the type that should be a subtype
    * 1: the supertype that the subtype is compared to
    * 2: the name of the function whose invocation depends on this relationship
@@ -149,13 +160,14 @@ class FfiCode extends AnalyzerErrorCode {
       correction: "Try changing the type argument to be a constant type.");
 
   /**
-   * No parameters.
+   * Parameters:
+   * 0: the type that should be a valid dart:ffi native type.
    */
   static const FfiCode NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER =
       const FfiCode(
           name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
           message:
-              "The type argument for the pointer must be a 'NativeFunction' in "
+              "The type argument for the pointer, '{0}' must be a 'NativeFunction' in "
               "order to use 'asFunction'.",
           correction:
               "Try changing the type argument to be a 'NativeFunction'.");

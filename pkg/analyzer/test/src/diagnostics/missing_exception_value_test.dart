@@ -18,13 +18,13 @@ class MissingExceptionValueTest extends DriverResolutionTest {
   test_missing() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-typedef T = int Function(int);
+typedef T = Int8 Function(Int8);
 int f(int i) => i * 2;
 void g() {
   Pointer.fromFunction<T>(f);
 }
 ''', [
-      error(FfiCode.MISSING_EXCEPTION_VALUE, 94, 12),
+      error(FfiCode.MISSING_EXCEPTION_VALUE, 96, 12),
     ]);
   }
 }

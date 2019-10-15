@@ -308,11 +308,6 @@ class LibraryAnalyzer {
           errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
       unit.accept(verifier);
     }
-
-    // Verify constraints on FFI uses. The CFE enforces these constraints as
-    // compile-time errors. However, since the FFI constraints are not
-    // technically part of the Dart language, we surface them as hints.
-    unit.accept(FfiVerifier(_typeSystem, errorReporter));
   }
 
   void _computeLints(FileState file, LinterContextUnit currentUnit,
@@ -397,6 +392,10 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
+
+    // Verify constraints on FFI uses. The CFE enforces these constraints as
+    // compile-time errors and so does the analyzer.
+    unit.accept(FfiVerifier(_typeSystem, errorReporter));
   }
 
   /**

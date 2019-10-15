@@ -18,14 +18,14 @@ class NonNativeFunctionTypeArgumentToPointerTest extends DriverResolutionTest {
   test_asFunction() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-typedef R = int Function(int);
+typedef R = Int8 Function(Int8);
 class C {
   void f(Pointer<Double> p) {
     p.asFunction<R>();
   }
 }
 ''', [
-      error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 94, 1),
+      error(FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER, 109, 1),
     ]);
   }
 }
