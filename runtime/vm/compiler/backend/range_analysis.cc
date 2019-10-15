@@ -2773,6 +2773,7 @@ static RangeBoundary::RangeSize RepresentationToRangeSize(Representation r) {
     case kUnboxedInt32:
       return RangeBoundary::kRangeBoundaryInt32;
     case kUnboxedInt64:
+    case kUnboxedUint32:  // Overapproximate Uint32 as Int64.
       return RangeBoundary::kRangeBoundaryInt64;
     default:
       UNREACHABLE();

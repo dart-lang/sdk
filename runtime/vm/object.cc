@@ -6709,7 +6709,7 @@ bool Function::CanBeInlined() const {
   // functions cannot deoptimize to unoptimized frames we prevent them from
   // being inlined (for now).
   if (ForceOptimize()) {
-    return false;
+    return FLAG_precompiled_mode;
   }
 #if defined(PRODUCT)
   return is_inlinable() && !is_external() && !is_generated_body();
