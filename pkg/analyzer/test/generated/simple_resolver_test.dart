@@ -770,7 +770,6 @@ class H extends D<W> {
 }
 ''');
     assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    verifyTestResolved();
   }
 
   @failingTest

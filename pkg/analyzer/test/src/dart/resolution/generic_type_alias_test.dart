@@ -128,6 +128,21 @@ void f() {
     ]);
   }
 
+  test_missingGenericFunction_imported_withPrefix() async {
+    newFile('/test/lib/a.dart', content: r'''
+typedef F<T> = ;
+''');
+    await assertErrorsInCode(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.F.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+    ]);
+  }
+
   test_type_element() async {
     await resolveTestCode(r'''
 G<int> g;

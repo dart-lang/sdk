@@ -57,14 +57,11 @@ class CommonUsageSorter implements DartContributionSorter {
     var target = _getCompletionTarget(request);
     if (target != null) {
       var visitor = new _BestTypeVisitor(target.entity);
-      DartType type = target.containingNode.accept(visitor);
-      if (type != null) {
-        Element typeElem = type.element;
-        if (typeElem != null) {
-          LibraryElement libElem = typeElem.library;
-          if (libElem != null) {
-            _updateInvocationRelevance(type, libElem, suggestions);
-          }
+      var typeElem = target.containingNode.accept(visitor);
+      if (typeElem != null) {
+        LibraryElement libElem = typeElem.library;
+        if (libElem != null) {
+          _updateInvocationRelevance(typeElem.name, libElem, suggestions);
         }
       }
     }
@@ -74,9 +71,8 @@ class CommonUsageSorter implements DartContributionSorter {
    * Adjusts the relevance of all method suggestions based upon the given
    * target type and library.
    */
-  void _updateInvocationRelevance(DartType type, LibraryElement libElem,
+  void _updateInvocationRelevance(String typeName, LibraryElement libElem,
       Iterable<CompletionSuggestion> suggestions) {
-    String typeName = type.name;
     List<String> selectors = selectorRelevance['${libElem.name}.$typeName'];
     if (selectors != null) {
       for (CompletionSuggestion suggestion in suggestions) {
@@ -102,7 +98,7 @@ class CommonUsageSorter implements DartContributionSorter {
 /**
  * An [AstVisitor] used to determine the best defining type of a node.
  */
-class _BestTypeVisitor extends UnifyingAstVisitor<DartType> {
+class _BestTypeVisitor extends UnifyingAstVisitor<Element> {
   /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or
@@ -114,32 +110,43 @@ class _BestTypeVisitor extends UnifyingAstVisitor<DartType> {
   _BestTypeVisitor(this.entity);
 
   @override
-  DartType visitConstructorName(ConstructorName node) =>
-      node.period != null && node.name == entity ? node.type?.type : null;
+  Element visitConstructorName(ConstructorName node) {
+    return node.period != null && node.name == entity
+        ? node.type?.type?.element
+        : null;
+  }
 
   @override
-  DartType visitNamedExpression(NamedExpression node) {
+  Element visitNamedExpression(NamedExpression node) {
     AstNode parent = node.parent;
     if (parent is ArgumentListImpl) {
       List<ParameterElement> params = parent.correspondingStaticParameters;
       if (params != null) {
         int index = parent.arguments.indexOf(node);
-        return params[index]?.type;
+        return params[index]?.type?.element;
       }
     }
     return super.visitNamedExpression(node);
   }
 
   @override
-  DartType visitNode(AstNode node) {
+  Element visitNode(AstNode node) {
     return null;
   }
 
   @override
-  DartType visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      node.identifier == entity ? node.prefix?.staticType : null;
+  Element visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.identifier == entity) {
+      var type = node.prefix.staticType;
+      if (type is InterfaceType) {
+        return type.element;
+      }
+      return node.prefix.staticElement;
+    }
+    return null;
+  }
 
   @override
-  DartType visitPropertyAccess(PropertyAccess node) =>
-      node.propertyName == entity ? node.realTarget?.staticType : null;
+  Element visitPropertyAccess(PropertyAccess node) =>
+      node.propertyName == entity ? node.realTarget?.staticType?.element : null;
 }

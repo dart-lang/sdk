@@ -1068,7 +1068,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _writeNextCodeLine(node);
-    _writeln('PrefixedIdentifier');
+    _writeln('PropertyAccess');
     _withIndent(() {
       var properties = _Properties();
       _writeToken('operator', node.operator);

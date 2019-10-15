@@ -255,7 +255,7 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    DartType type = declaredIdentifier.identifier.staticType;
+    DartType type = declaredIdentifier.declaredElement.type;
     if (type is! InterfaceType && type is! FunctionType) {
       _coverageMarker();
       return null;

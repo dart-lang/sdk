@@ -207,7 +207,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
     }
     type = element.returnType;
   } else if (element is VariableElement) {
-    type = identifier.staticType;
+    type = element.type;
   } else {
     return null;
   }

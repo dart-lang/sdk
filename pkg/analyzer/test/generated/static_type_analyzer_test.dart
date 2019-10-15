@@ -141,7 +141,7 @@ main() {
   print(C.m);
 }
 ''');
-    expectFunctionType('m);', 'void Function()');
+    assertType(findNode.simple('m);'), 'void Function()');
   }
 
   test_staticMethods_classTypeParameters_genericMethod() async {

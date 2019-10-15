@@ -2709,7 +2709,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // The type of the loop variable.
-    DartType variableType = getStaticType(variable);
+    DartType variableType;
+    var variableElement = variable.staticElement;
+    if (variableElement is VariableElement) {
+      variableType = variableElement.type;
+    } else {
+      return false;
+    }
 
     AstNode parent = node.parent;
     Token awaitKeyword;

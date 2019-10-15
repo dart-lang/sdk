@@ -4335,8 +4335,8 @@ main() {
     FunctionType ft = f.staticInvokeType;
     expect(ft.toString(), 'List<int> Function(String)');
 
-    SimpleIdentifier x = findNode.simple('x');
-    expect(x.staticType, typeProvider.listType2(typeProvider.intType));
+    var x = findElement.localVar('x');
+    expect(x.type, typeProvider.listType2(typeProvider.intType));
   }
 
   test_genericMethod_functionExpressionInvocation_explicit() async {
@@ -4363,14 +4363,14 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = (pf)<int>(3);
 }
 ''');
-    expectIdentifierType('methodCall', "int");
-    expectIdentifierType('staticCall', "int");
-    expectIdentifierType('staticFieldCall', "int");
-    expectIdentifierType('topFunCall', "int");
-    expectIdentifierType('topFieldCall', "int");
-    expectIdentifierType('localCall', "int");
-    expectIdentifierType('paramCall', "int");
-    expectIdentifierType('lambdaCall', "int");
+    _assertLocalVarType('lambdaCall', "int");
+    _assertLocalVarType('methodCall', "int");
+    _assertLocalVarType('staticCall', "int");
+    _assertLocalVarType('staticFieldCall', "int");
+    _assertLocalVarType('topFunCall', "int");
+    _assertLocalVarType('topFieldCall', "int");
+    _assertLocalVarType('localCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
@@ -4379,7 +4379,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
 ''');
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
@@ -4388,7 +4388,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
 ''');
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
@@ -4415,14 +4415,14 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = (pf)(3);
 }
 ''');
-    expectIdentifierType('methodCall', "int");
-    expectIdentifierType('staticCall', "int");
-    expectIdentifierType('staticFieldCall', "int");
-    expectIdentifierType('topFunCall', "int");
-    expectIdentifierType('topFieldCall', "int");
-    expectIdentifierType('localCall', "int");
-    expectIdentifierType('paramCall', "int");
-    expectIdentifierType('lambdaCall', "int");
+    _assertLocalVarType('lambdaCall', "int");
+    _assertLocalVarType('methodCall', "int");
+    _assertLocalVarType('staticCall', "int");
+    _assertLocalVarType('staticFieldCall', "int");
+    _assertLocalVarType('topFunCall', "int");
+    _assertLocalVarType('topFieldCall', "int");
+    _assertLocalVarType('localCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_explicit() async {
@@ -4447,13 +4447,13 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = pf<int>(3);
 }
 ''');
-    expectIdentifierType('methodCall', "int");
-    expectIdentifierType('staticCall', "int");
-    expectIdentifierType('staticFieldCall', "int");
-    expectIdentifierType('topFunCall', "int");
-    expectIdentifierType('topFieldCall', "int");
-    expectIdentifierType('localCall', "int");
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('methodCall', "int");
+    _assertLocalVarType('staticCall', "int");
+    _assertLocalVarType('staticFieldCall', "int");
+    _assertLocalVarType('topFunCall', "int");
+    _assertLocalVarType('topFieldCall', "int");
+    _assertLocalVarType('localCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
@@ -4462,7 +4462,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
 ''');
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
@@ -4471,7 +4471,7 @@ void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
 ''');
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_inferred() async {
@@ -4496,13 +4496,13 @@ void test<S>(T Function<T>(T) pf) {
   var paramCall = pf(3);
 }
 ''');
-    expectIdentifierType('methodCall', "int");
-    expectIdentifierType('staticCall', "int");
-    expectIdentifierType('staticFieldCall', "int");
-    expectIdentifierType('topFunCall', "int");
-    expectIdentifierType('topFieldCall', "int");
-    expectIdentifierType('localCall', "int");
-    expectIdentifierType('paramCall', "int");
+    _assertLocalVarType('methodCall', "int");
+    _assertLocalVarType('staticCall', "int");
+    _assertLocalVarType('staticFieldCall', "int");
+    _assertLocalVarType('topFunCall', "int");
+    _assertLocalVarType('topFieldCall', "int");
+    _assertLocalVarType('localCall', "int");
+    _assertLocalVarType('paramCall', "int");
   }
 
   test_genericMethod_functionTypedParameter() async {
@@ -4537,7 +4537,7 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
 ''');
-    expectIdentifierType('paramTearOff', "T Function<T>(T)");
+    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
 
   test_genericMethod_implicitDynamic() async {
@@ -4670,8 +4670,14 @@ S f<S>(S x) {
   return null;
 }
 ''');
-    expectIdentifierType('f<S>', 'S Function<S>(S)');
-    expectIdentifierType('g<S>', 'S Function<S>(S) Function<S>(S)');
+    assertElementTypeString(
+      findElement.topFunction('f').type,
+      'S Function<S>(S)',
+    );
+    assertElementTypeString(
+      findElement.localFunction('g').type,
+      'S Function<S>(S) Function<S>(S)',
+    );
   }
 
   test_genericMethod_override() async {
@@ -4809,7 +4815,7 @@ C toSpan(dynamic element) {
   }
   return null;
 }''');
-    expectIdentifierType('y = ', 'List<C>');
+    _assertLocalVarType('y', 'List<C>');
   }
 
   test_genericMethod_tearoff() async {
@@ -4834,13 +4840,13 @@ void test<S>(T Function<T>(T) pf) {
   var paramTearOff = pf;
 }
 ''');
-    expectIdentifierType('methodTearOff', "T Function<T>(int)");
-    expectIdentifierType('staticTearOff', "T Function<T>(T)");
-    expectIdentifierType('staticFieldTearOff', "T Function<T>(T)");
-    expectIdentifierType('topFunTearOff', "T Function<T>(T)");
-    expectIdentifierType('topFieldTearOff', "T Function<T>(T)");
-    expectIdentifierType('localTearOff', "T Function<T>(T)");
-    expectIdentifierType('paramTearOff', "T Function<T>(T)");
+    _assertLocalVarType('methodTearOff', "T Function<T>(int)");
+    _assertLocalVarType('staticTearOff', "T Function<T>(T)");
+    _assertLocalVarType('staticFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType('topFunTearOff', "T Function<T>(T)");
+    _assertLocalVarType('topFieldTearOff', "T Function<T>(T)");
+    _assertLocalVarType('localTearOff', "T Function<T>(T)");
+    _assertLocalVarType('paramTearOff', "T Function<T>(T)");
   }
 
   @failingTest
@@ -4930,7 +4936,7 @@ void test() {
   var fieldRead = C.h;
 }
 ''');
-    expectIdentifierType('fieldRead', "T Function<T>(T)");
+    _assertLocalVarType('fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
@@ -4942,7 +4948,6 @@ class B<T extends num> {}
 class C<S extends int, T extends B<S>, U extends A> {}
 
 void test() {
-//
   A ai;
   B bi;
   C ci;
@@ -4951,12 +4956,12 @@ void test() {
   var cc = new C();
 }
 ''');
-    expectIdentifierType('ai', "A<dynamic>");
-    expectIdentifierType('bi', "B<num>");
-    expectIdentifierType('ci', "C<int, B<int>, A<dynamic>>");
-    expectIdentifierType('aa', "A<dynamic>");
-    expectIdentifierType('bb', "B<num>");
-    expectIdentifierType('cc', "C<int, B<int>, A<dynamic>>");
+    _assertLocalVarType('ai', "A<dynamic>");
+    _assertLocalVarType('bi', "B<num>");
+    _assertLocalVarType('ci', "C<int, B<int>, A<dynamic>>");
+    _assertLocalVarType('aa', "A<dynamic>");
+    _assertLocalVarType('bb', "B<num>");
+    _assertLocalVarType('cc', "C<int, B<int>, A<dynamic>>");
   }
 
   test_instantiateToBounds_class_error_extension_malbounded() async {
@@ -4983,7 +4988,7 @@ void test() {
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 81, 1),
       error(StrongModeCode.COULD_NOT_INFER, 81, 1),
     ]);
-    expectIdentifierType('c =', 'C<List<dynamic>, List<List<dynamic>>>');
+    _assertLocalVarType('c', 'C<List<dynamic>, List<List<dynamic>>>');
   }
 
   test_instantiateToBounds_class_error_recursion() async {
@@ -4991,8 +4996,7 @@ void test() {
 class C<T0 extends List<T1>, T1 extends List<T0>> {}
 C c;
 ''', []);
-
-    expectIdentifierType('c;', 'C<List<dynamic>, List<dynamic>>');
+    _assertTopVarType('c', 'C<List<dynamic>, List<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self() async {
@@ -5000,8 +5004,7 @@ C c;
 class C<T extends C<T>> {}
 C c;
 ''', []);
-
-    expectIdentifierType('c;', 'C<C<dynamic>>');
+    _assertTopVarType('c', 'C<C<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_recursion_self2() async {
@@ -5010,8 +5013,7 @@ class A<E> {}
 class C<T extends A<T>> {}
 C c;
 ''', []);
-
-    expectIdentifierType('c;', 'C<A<dynamic>>');
+    _assertTopVarType('c', 'C<A<dynamic>>');
   }
 
   test_instantiateToBounds_class_error_typedef() async {
@@ -5020,8 +5022,7 @@ typedef T F<T>(T x);
 class C<T extends F<T>> {}
 C c;
 ''', []);
-
-    expectIdentifierType('c;', 'C<dynamic Function(dynamic)>');
+    _assertTopVarType('c', 'C<dynamic Function(dynamic)>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
@@ -5029,9 +5030,7 @@ C c;
 class C<T0 extends Map<T1, T2>, T1 extends List, T2 extends int> {}
 C c;
 ''');
-
-    expectIdentifierType(
-        'c;', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
+    _assertTopVarType('c', 'C<Map<List<dynamic>, int>, List<dynamic>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after() async {
@@ -5039,8 +5038,7 @@ C c;
 class C<T0 extends T1, T1 extends int> {}
 C c;
 ''');
-
-    expectIdentifierType('c;', 'C<int, int>');
+    _assertTopVarType('c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_after2() async {
@@ -5048,8 +5046,7 @@ C c;
 class C<T0 extends Map<T1, T1>, T1 extends int> {}
 C c;
 ''');
-
-    expectIdentifierType('c;', 'C<Map<int, int>, int>');
+    _assertTopVarType('c', 'C<Map<int, int>, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_before() async {
@@ -5057,8 +5054,7 @@ C c;
 class C<T0 extends int, T1 extends T0> {}
 C c;
 ''');
-
-    expectIdentifierType('c;', 'C<int, int>');
+    _assertTopVarType('c', 'C<int, int>');
   }
 
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
@@ -5066,8 +5062,7 @@ C c;
 class C<T0 extends Map<T1, T2>, T1 extends List<T2>, T2 extends int> {}
 C c;
 ''');
-
-    expectIdentifierType('c;', 'C<Map<List<int>, int>, List<int>, int>');
+    _assertTopVarType('c', 'C<Map<List<int>, int>, List<int>, int>');
   }
 
   test_instantiateToBounds_class_ok_simpleBounds() async {
@@ -5083,11 +5078,10 @@ void main() {
   D d;
 }
 ''');
-
-    expectIdentifierType('a;', 'A<dynamic>');
-    expectIdentifierType('b;', 'B<num>');
-    expectIdentifierType('c;', 'C<List<int>>');
-    expectIdentifierType('d;', 'D<A<dynamic>>');
+    _assertLocalVarType('a', 'A<dynamic>');
+    _assertLocalVarType('b', 'B<num>');
+    _assertLocalVarType('c', 'C<List<int>>');
+    _assertLocalVarType('d', 'D<A<dynamic>>');
   }
 
   test_instantiateToBounds_generic_function_error_malbounded() async {
@@ -5104,7 +5098,7 @@ void g() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
       error(StrongModeCode.COULD_NOT_INFER, 73, 1),
     ]);
-    expectIdentifierType('c =', 'List<dynamic>');
+    _assertLocalVarType('c', 'List<dynamic>');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before() async {
@@ -5522,14 +5516,24 @@ main() {
     expectInitializerType('foo', 'int');
   }
 
+  void _assertLocalVarType(String name, String expectedType) {
+    var element = findElement.localVar(name);
+    assertElementTypeString(element.type, expectedType);
+  }
+
+  void _assertTopVarType(String name, String expectedType) {
+    var element = findElement.topVar(name);
+    assertElementTypeString(element.type, expectedType);
+  }
+
   Future<void> _objectMethodOnFunctions_helper2(String code) async {
     await assertNoErrorsInCode(code);
-    expectIdentifierType('t0', "String");
-    expectIdentifierType('t1', "String Function()");
-    expectIdentifierType('t2', "int");
-    expectIdentifierType('t3', "String");
-    expectIdentifierType('t4', "String Function()");
-    expectIdentifierType('t5', "int");
+    _assertLocalVarType('t0', "String");
+    _assertLocalVarType('t1', "String Function()");
+    _assertLocalVarType('t2', "int");
+    _assertLocalVarType('t3', "String");
+    _assertLocalVarType('t4', "String Function()");
+    _assertLocalVarType('t5', "int");
   }
 }
 
@@ -5543,7 +5547,7 @@ main() {
     v; // marker
   }
 }''');
-    assertTypeDynamic(findNode.simple('v in'));
+    assertElementTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5568,7 +5572,7 @@ main() {
     v; // marker
   }
 }''');
-    assertType(findNode.simple('v in'), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5580,7 +5584,7 @@ main() {
     v; // marker
   }
 }''');
-    assertType(findNode.simple('v in'), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5593,7 +5597,7 @@ main() async {
     v; // marker
   }
 }''');
-    assertType(findNode.simple('v in'), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5622,7 +5626,7 @@ main() {
   var v = null;
   v; // marker
 }''');
-    assertTypeDynamic(findNode.simple('v ='));
+    assertElementTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5632,7 +5636,7 @@ main() {
   var v = 3;
   v; // marker
 }''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5642,7 +5646,7 @@ main() {
   dynamic v = 3;
   v; // marker
 }''');
-    assertTypeDynamic(findNode.simple('v ='));
+    assertElementTypeDynamic(findElement.localVar('v').type);
     assertTypeDynamic(findNode.simple('v; // marker'));
   }
 
@@ -5669,7 +5673,7 @@ class A {
 main() {
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5685,7 +5689,7 @@ class A {
 main() {
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5701,7 +5705,7 @@ class A {
 main() {
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5717,7 +5721,7 @@ class A {
 main() {
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5728,7 +5732,7 @@ main() {
   var v = x[0];
   v; // marker
 }''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5739,7 +5743,7 @@ main() {
   var v = x;
   v; // marker
 }''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5751,7 +5755,7 @@ main() {
   v; // marker
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5763,7 +5767,7 @@ main() {
 }
 final x = 3;
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5775,7 +5779,7 @@ main() {
   v; // marker
 }
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 
@@ -5787,7 +5791,7 @@ main() {
 }
 int x = 3;
 ''');
-    assertType(findNode.simple('v ='), 'int');
+    assertElementTypeString(findElement.localVar('v').type, 'int');
     assertType(findNode.simple('v; // marker'), 'int');
   }
 }

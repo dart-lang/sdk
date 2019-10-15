@@ -804,7 +804,7 @@ class FixProcessor extends BaseProcessor {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.leftHandSide.staticType;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      toType = parent.name.staticType;
+      toType = parent.declaredElement.type;
     } else {
       // TODO(brianwilkerson) Handle function arguments.
       return;
@@ -1976,12 +1976,7 @@ class FixProcessor extends BaseProcessor {
     bool staticModifier = false;
     ClassElement targetClassElement;
     if (target != null) {
-      // prepare target interface type
-      DartType targetType = target.staticType;
-      if (targetType is! InterfaceType) {
-        return;
-      }
-      targetClassElement = targetType.element;
+      targetClassElement = _getTargetClassElement(target);
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
@@ -1993,10 +1988,10 @@ class FixProcessor extends BaseProcessor {
       }
     } else {
       targetClassElement = getEnclosingClassElement(node);
-      if (targetClassElement == null) {
-        return;
-      }
       staticModifier = _inStaticContext();
+    }
+    if (targetClassElement == null) {
+      return;
     }
     if (targetClassElement.librarySource.isInSystemLibrary) {
       return;
@@ -2311,16 +2306,14 @@ class FixProcessor extends BaseProcessor {
       targetNode = enclosingMember.parent;
       staticModifier = _inStaticContext();
     } else {
-      // prepare target interface type
-      DartType targetType = target.staticType;
-      if (targetType is! InterfaceType) {
-        return;
-      }
-      ClassElement targetClassElement = targetType.element as ClassElement;
-      if (targetClassElement.librarySource.isInSystemLibrary) {
+      var targetClassElement = _getTargetClassElement(target);
+      if (targetClassElement == null) {
         return;
       }
       targetElement = targetClassElement;
+      if (targetClassElement.librarySource.isInSystemLibrary) {
+        return;
+      }
       // prepare target ClassDeclaration
       targetNode = await _getClassDeclaration(targetClassElement);
       if (targetNode == null) {
@@ -4182,9 +4175,8 @@ class FixProcessor extends BaseProcessor {
           target.staticElement is ExtensionElement) {
         _updateFinderWithExtensionMembers(finder, target.staticElement);
       } else {
-        DartType type = target.staticType;
-        if (type is InterfaceType) {
-          ClassElement classElement = type.element;
+        var classElement = _getTargetClassElement(target);
+        if (classElement != null) {
           _updateFinderWithClassMembers(finder, classElement);
         }
       }
@@ -4938,6 +4930,19 @@ class FixProcessor extends BaseProcessor {
     if (element != null) {
       finder._updateList(getExtensionMembers(element));
     }
+  }
+
+  static ClassElement _getTargetClassElement(Expression target) {
+    var type = target.staticType;
+    if (type is InterfaceType) {
+      return type.element;
+    } else if (target is Identifier) {
+      var element = target.staticElement;
+      if (element is ClassElement) {
+        return element;
+      }
+    }
+    return null;
   }
 
   static bool _isNameOfType(String name) {
