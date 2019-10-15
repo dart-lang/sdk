@@ -1641,6 +1641,18 @@ class Assembler : public AssemblerBase {
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  // Special version of ElementAddressForRegIndex for the case when cid and
+  // operand size for the target load don't match (e.g. when loading a few
+  // elements of the array with one load).
+  Address ElementAddressForRegIndexWithSize(bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            OperandSize size,
+                                            intptr_t index_scale,
+                                            Register array,
+                                            Register index);
+
   void LoadElementAddressForRegIndex(Register address,
                                      bool is_load,
                                      bool is_external,

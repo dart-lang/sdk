@@ -1458,10 +1458,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The string register points to the backing store for external strings.
   const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
-
-  compiler::Address element_address = __ ElementAddressForRegIndex(
-      true, IsExternal(), class_id(), index_scale(), str, index.reg());
-  // Warning: element_address may use register TMP as base.
+  OperandSize sz = OperandSize::kByte;
 
   Register result = locs()->out(0).reg();
   switch (class_id()) {
@@ -1469,37 +1466,41 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1:
-          __ ldr(result, element_address, kUnsignedByte);
+          sz = kUnsignedByte;
           break;
         case 2:
-          __ ldr(result, element_address, kUnsignedHalfword);
+          sz = kUnsignedHalfword;
           break;
         case 4:
-          __ ldr(result, element_address, kUnsignedWord);
+          sz = kUnsignedWord;
           break;
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1:
-          __ ldr(result, element_address, kUnsignedHalfword);
+          sz = kUnsignedHalfword;
           break;
         case 2:
-          __ ldr(result, element_address, kUnsignedWord);
+          sz = kUnsignedWord;
           break;
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     default:
       UNREACHABLE();
       break;
   }
+  // Warning: element_address may use register TMP as base.
+  compiler::Address element_address = __ ElementAddressForRegIndexWithSize(
+      true, IsExternal(), class_id(), sz, index_scale(), str, index.reg());
+  __ ldr(result, element_address, sz);
+
+  __ SmiTag(result);
 }
 
 Representation StoreIndexedInstr::RequiredInputRepresentation(

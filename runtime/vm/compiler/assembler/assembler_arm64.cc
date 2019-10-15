@@ -1770,6 +1770,22 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              intptr_t index_scale,
                                              Register array,
                                              Register index) {
+  return ElementAddressForRegIndexWithSize(is_load,
+                                           is_external,
+                                           cid,
+                                           Address::OperandSizeFor(cid),
+                                           index_scale,
+                                           array,
+                                           index);
+}
+
+Address Assembler::ElementAddressForRegIndexWithSize(bool is_load,
+                                                     bool is_external,
+                                                     intptr_t cid,
+                                                     OperandSize size,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
   const int32_t offset =
@@ -1785,7 +1801,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   } else {
     add(base, array, Operand(index, LSL, shift));
   }
-  const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(base, offset, Address::Offset, size);
 }
