@@ -156,7 +156,11 @@ class AssistProcessor extends BaseProcessor {
     )) {
       await _addProposal_useCurlyBraces();
     }
-
+    if (!_containsErrorCode(
+      {LintNames.diagnostic_describe_all_properties},
+    )) {
+      await _addProposal_addDiagnosticPropertyReference();
+    }
     if (experimentStatus.control_flow_collections) {
       if (!_containsErrorCode(
         {LintNames.prefer_if_elements_to_conditional_expressions},
@@ -3162,6 +3166,12 @@ class AssistProcessor extends BaseProcessor {
   Future<void> _addProposal_useCurlyBraces() async {
     final changeBuilder = await createBuilder_useCurlyBraces();
     _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+  }
+
+  Future<void> _addProposal_addDiagnosticPropertyReference() async {
+    final changeBuilder = await createBuilder_addDiagnosticPropertyReference();
+    _addAssistFromBuilder(
+        changeBuilder, DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE);
   }
 
   Future<void> _addProposals_addTypeAnnotation() async {

@@ -31,6 +31,10 @@ class DartAssistContextImpl implements DartAssistContext {
  * An enumeration of possible assist kinds.
  */
 class DartAssistKind {
+  static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = const AssistKind(
+      'ADD_DIAGNOSTIC_PROPERTY_REFERENCE',
+      30,
+      "Add a debug reference to this property");
   static const ADD_NOT_NULL_ASSERT = const AssistKind(
       'dart.assist.addNotNullAssert', 30, "Add a not-null assertion");
   static const ADD_TYPE_ANNOTATION = const AssistKind(
