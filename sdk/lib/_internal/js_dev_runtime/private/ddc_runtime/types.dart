@@ -19,7 +19,7 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///   - All other types are represented as instances of class [DartType],
 ///     defined in this module.
-///     - Dynamic, Void, and Bottom are singleton instances of sentinal
+///     - Dynamic, Void, and Bottom are singleton instances of sentinel
 ///       classes.
 ///     - Function types are instances of subclasses of AbstractFunctionType.
 ///
@@ -898,6 +898,8 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
       // FutureOr<A> <: FutureOr<B> iff A <: B
+      // TODO(nshahan): Proven to not actually be true and needs cleanup.
+      // https://github.com/dart-lang/sdk/issues/38818
       return $_isSubtype(t1TypeArg, t2TypeArg);
     }
 

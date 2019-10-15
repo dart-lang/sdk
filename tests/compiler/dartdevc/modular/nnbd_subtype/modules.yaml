@@ -7,5 +7,5 @@
 # nnbd.
 dependencies:
   main: expect
-# flags:
-#   - non-nullable
+flags:
+  - non-nullable

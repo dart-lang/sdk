@@ -146,7 +146,7 @@ class DDCStep implements IOModularStep {
       Uri output = toUri(module, jsId);
 
       List<String> args = [
-        '--packages=${sdkRoot.toFilePath()}/.packages',
+        '--packages=${sdkRoot.toFilePath()}.packages',
         _dartdevcScript,
         '--modules=es6',
         '--summarize',
