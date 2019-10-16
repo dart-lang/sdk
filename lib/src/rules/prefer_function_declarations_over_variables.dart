@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+
 import '../analyzer.dart';
 
 const _desc = r'Use a function declaration to bind a function to a name.';

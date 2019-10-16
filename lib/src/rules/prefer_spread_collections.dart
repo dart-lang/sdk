@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
+
 import '../analyzer.dart';
 
 const _desc = r'Use spread collections when possible.';

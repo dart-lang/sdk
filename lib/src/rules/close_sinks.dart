@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
 import '../util/leak_detector_visitor.dart';

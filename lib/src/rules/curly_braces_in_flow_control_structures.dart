@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+
 import '../analyzer.dart';
 
 const _desc = r'DO use curly braces for all flow control structures.';
