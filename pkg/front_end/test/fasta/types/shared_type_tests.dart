@@ -64,7 +64,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('(num*) ->* int*', '(num*) ->* num*');
     isSubtype('(num*) ->* int*', '(int*) ->* num*');
     isNotSubtype('(int*) ->* int*', '(num*) ->* num*');
-    isSubtype('Null*', '(int*) ->* num*');
+    isSubtype('Null?', '(int*) ->* num*');
 
     isSubtype('(num*) ->* (num*) ->* num*', '(num*) ->* (int*) ->* num*');
     isNotSubtype('(num*) ->* (int*) ->* int*', '(num*) ->* (num*) ->* num*');
@@ -122,8 +122,8 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('FutureOr<double*>*', 'int*');
     isNotSubtype('FutureOr<int*>*', 'Future<num*>*');
     isNotSubtype('FutureOr<int*>*', 'num*');
-    isSubtype('Null*', 'FutureOr<int*>*');
-    isSubtype('Null*', 'Future<int*>*');
+    isSubtype('Null?', 'FutureOr<int*>*');
+    isSubtype('Null?', 'Future<int*>*');
     isSubtype('dynamic', 'FutureOr<dynamic>*');
     isNotSubtype('dynamic', 'FutureOr<String*>*');
     isSubtype('void', 'FutureOr<void>*');
@@ -167,7 +167,7 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T & int*', 'T & num*', typeParameters: 'T');
     isSubtype('T & num*', 'T & num*', typeParameters: 'T');
     isNotSubtype('T & num*', 'T & int*', typeParameters: 'T');
-    isSubtype('Null*', 'T & num*', typeParameters: 'T');
+    isSubtype('Null?', 'T & num*', typeParameters: 'T');
 
     // T & B <: T extends A if B <: A
     // (Trivially satisfied since promoted bounds are always a isSubtype of the
@@ -223,16 +223,16 @@ abstract class SubtypeTest<T, E> {
     isSubtype('() ->* int*', 'Function*');
     isSubtype('() ->* int*', 'Object*');
 
-    isNotSubtype('Null*', 'bottom');
-    isSubtype('Null*', 'Object*');
-    isSubtype('Null*', 'void');
-    isSubtype('Null*', 'dynamic');
-    isSubtype('Null*', 'double*');
-    isSubtype('Null*', 'Comparable<Object*>*');
-    isSubtype('Null*', 'Typedef<Object*>*');
-    isSubtype('Null*', 'T', typeParameters: 'T extends Object*');
+    isNotSubtype('Null?', 'bottom');
+    isSubtype('Null?', 'Object*');
+    isSubtype('Null?', 'void');
+    isSubtype('Null?', 'dynamic');
+    isSubtype('Null?', 'double*');
+    isSubtype('Null?', 'Comparable<Object*>*');
+    isSubtype('Null?', 'Typedef<Object*>*');
+    isSubtype('Null?', 'T', typeParameters: 'T extends Object*');
 
-    isSubtype('Null*', 'Null*');
+    isSubtype('Null?', 'Null?');
     isSubtype('bottom', 'bottom');
     isSubtype('Object*', 'Object*');
     isSubtype('Object*', 'dynamic');
@@ -359,7 +359,7 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype('Id<() ->* Object*>*', 'Id<() ->* int*>*');
 
     isSubtype('void', 'Id<void>*');
-    isNotSubtype('void', 'Id<Null*>*');
+    isNotSubtype('void', 'Id<Null?>*');
 
     // The following function type tests are derived from
     // ../../../../../tests/compiler/dart2js/model/subtype_test.dart.

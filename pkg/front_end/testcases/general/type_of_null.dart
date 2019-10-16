@@ -15,9 +15,9 @@ main() {
   /*@ typeArgs=Null? */ map(/*@ returnType=<BottomType> */ () => throw "hello",
       /*@ returnType=Null? */ () {});
   Null Function() f = /*@ returnType=Null? */ () {};
-  /*@ typeArgs=Null* */ map(
+  /*@ typeArgs=Null? */ map(
       foo, /*@ returnType=<BottomType> */ () => throw "hello");
-  /*@ typeArgs=Null* */ map(
+  /*@ typeArgs=Null? */ map(
       /*@ returnType=<BottomType> */ () => throw "hello", foo);
   /*@ typeArgs=Null? */ map(/*@ returnType=Null? */ () {
     return null;

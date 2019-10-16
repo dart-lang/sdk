@@ -113,7 +113,8 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor {
 
 DartType instantiateToBounds(DartType type, Class objectClass) {
   if (type is InterfaceType) {
-    for (var typeArgument in type.typeArguments) {
+    if (type.typeArguments.isEmpty) return type;
+    for (DartType typeArgument in type.typeArguments) {
       // If at least one of the arguments is not dynamic, we assume that the
       // type is not raw and does not need instantiation of its type parameters
       // to their bounds.
@@ -121,17 +122,22 @@ DartType instantiateToBounds(DartType type, Class objectClass) {
         return type;
       }
     }
-    return new InterfaceType.byReference(type.className,
-        calculateBounds(type.classNode.typeParameters, objectClass));
+    return new InterfaceType.byReference(
+        type.className,
+        calculateBounds(type.classNode.typeParameters, objectClass),
+        type.nullability);
   }
   if (type is TypedefType) {
-    for (var typeArgument in type.typeArguments) {
+    if (type.typeArguments.isEmpty) return type;
+    for (DartType typeArgument in type.typeArguments) {
       if (typeArgument is! DynamicType) {
         return type;
       }
     }
-    return new TypedefType.byReference(type.typedefReference,
-        calculateBounds(type.typedefNode.typeParameters, objectClass));
+    return new TypedefType.byReference(
+        type.typedefReference,
+        calculateBounds(type.typedefNode.typeParameters, objectClass),
+        type.nullability);
   }
   return type;
 }

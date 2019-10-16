@@ -875,6 +875,7 @@ nnbd/function_types: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
 nnbd/late: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
+nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure

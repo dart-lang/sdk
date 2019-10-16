@@ -205,6 +205,8 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   Class get actualCls;
 
+  bool isNullClass;
+
   InterfaceType get legacyRawType;
 
   InterfaceType get nullableRawType;
@@ -374,6 +376,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   ClassBuilder patchForTesting;
+
+  @override
+  bool isNullClass = false;
 
   ClassBuilderImpl(
       List<MetadataBuilder> metadata,
@@ -661,6 +666,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   InterfaceType buildTypesWithBuiltArguments(LibraryBuilder library,
       Nullability nullability, List<DartType> arguments) {
     assert(arguments == null || cls.typeParameters.length == arguments.length);
+    if (isNullClass) {
+      nullability = Nullability.nullable;
+    }
     return arguments == null
         ? rawType(nullability)
         : new InterfaceType(cls, arguments, nullability);
