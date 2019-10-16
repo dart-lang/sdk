@@ -929,6 +929,8 @@ class _TreeShakerPass2 extends Transformer {
         return !shaker.isClassUsed(node);
       } else if (node is Typedef) {
         return !shaker.isTypedefUsed(node);
+      } else if (node is Extension) {
+        return !shaker.isExtensionUsed(node);
       } else {
         return !shaker.isMemberUsed(node as Member);
       }
