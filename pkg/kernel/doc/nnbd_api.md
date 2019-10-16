@@ -8,6 +8,9 @@ Status: Draft
 
 ## CHANGELOG
 
+2019.10.15
+- Added description of `DartType.withNullability`.
+
 2019.09.26:
 - Initial version uploaded.
 
@@ -277,10 +280,11 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 
 #### Nullability attribute on types
 
-- `DartType.nullability` is added to `DartType` and the implementations are added to subclasses to subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
+- `DartType.nullability` is added to `DartType` and the implementations are added to the subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
 - Nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.
-- `TypeParameterType.typeParameterTypeNullability is added.  For details see section **Nullability of Intersection Types** of this document.
-- `TypeParameterType.computeNullabilityFromBound is added.
+- `TypeParameterType.typeParameterTypeNullability` is added.  For details see section **Nullability of Intersection Types** of this document.
+- `TypeParameterType.computeNullabilityFromBound` is added.
+- `DartType.withNullability` method is added to `DartType` and is implemented in its subclasses.  The method takes a single parameter, the desired nullability, and returns the type that is the receiver with the given nullability.  If the receiver already has the nullability that is passed in as the parameter, the receiver object itself is returned, and a copy isn't created.  If the types that are represented by a particular `DartType` subclass always have a certain nullability, like `dynamic` or `void`, invocations of `withNullability` on them always return the receiver.
 
 #### isRequired and isLate flags
 
