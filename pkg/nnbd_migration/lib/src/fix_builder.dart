@@ -102,13 +102,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       : typeProvider = (typeProvider as TypeProviderImpl)
             .withNullability(NullabilitySuffix.none);
 
-  /// Called whenever a type annotation is found for which a `?` needs to be
-  /// inserted.
-  void addNullable(TypeAnnotation node);
-
-  /// Called whenever an expression is found for which a `!` needs to be
-  /// inserted.
-  void addNullCheck(Expression subexpression);
+  /// Called whenever an AST node is found that needs to be changed.
+  void addChange(AstNode node, NodeChange change);
 
   /// Called whenever code is found that can't be automatically fixed.
   void addProblem(AstNode node, Problem problem);
@@ -482,7 +477,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       _contextType = contextType;
       var type = subexpression.accept(this);
       if (_doesAssignmentNeedCheck(from: type, to: contextType)) {
-        addNullCheck(subexpression);
+        addChange(subexpression, NullCheck());
         _flowAnalysis.nonNullAssert_end(subexpression);
         return _typeSystem.promoteToNonNull(type as TypeImpl);
       } else {
@@ -517,7 +512,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       var element = decoratedType.type.element as ClassElement;
       bool isNullable = decoratedType.node.isNullable;
       if (isNullable) {
-        addNullable(node);
+        addChange(node, MakeNullable());
       }
       return InterfaceTypeImpl.explicit(element, arguments,
           nullabilitySuffix:
@@ -692,6 +687,26 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   /// types they ger migrated to.
   List<DartType> _visitTypeArgumentList(TypeArgumentList arguments) =>
       [for (var argument in arguments.arguments) argument.accept(this)];
+}
+
+/// [NodeChange] reprensenting a type annotation that needs to have a question
+/// mark added to it, to make it nullable.
+class MakeNullable implements NodeChange {
+  factory MakeNullable() => const MakeNullable._();
+
+  const MakeNullable._();
+}
+
+/// Base class representing a change the FixBuilder wishes to make to an AST
+/// node.
+abstract class NodeChange {}
+
+/// [NodeChange] representing an expression that needs to have a null check
+/// added to it.
+class NullCheck implements NodeChange {
+  factory NullCheck() => const NullCheck._();
+
+  const NullCheck._();
 }
 
 /// Common supertype for problems reported by [FixBuilder.addProblem].
