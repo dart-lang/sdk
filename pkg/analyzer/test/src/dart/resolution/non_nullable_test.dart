@@ -238,6 +238,19 @@ mixin X2 implements A {} // 2
     assertType(findNode.typeName('A {} // 2'), 'A');
   }
 
+  test_nonNullPromotion_typeParameter() async {
+    await assertNoErrorsInCode(r'''
+class C<T> {
+  void foo(T? t) {
+    T temp = t!;
+  }
+  T bar(T? t) {
+    return t!;
+  }
+}
+''');
+  }
+
   test_null_assertion_operator_changes_null_to_never() async {
     await resolveTestCode('''
 main() {
@@ -258,6 +271,26 @@ main() {
 ''');
     assertNoTestErrors();
     assertType(findNode.postfix('x!'), 'Object');
+  }
+
+  test_parameter_functionTyped() async {
+    await assertNoErrorsInCode('''
+void f1(void p1()) {}
+void f2(void p2()?) {}
+void f3({void p3()?}) {}
+''');
+    assertElementTypeString(
+      findElement.parameter('p1').type,
+      'void Function()',
+    );
+    assertElementTypeString(
+      findElement.parameter('p2').type,
+      'void Function()?',
+    );
+    assertElementTypeString(
+      findElement.parameter('p3').type,
+      'void Function()?',
+    );
   }
 
   @FailingTest(
@@ -284,26 +317,6 @@ class A {
     );
     assertElementTypeString(
       findElement.parameter('f3').type,
-      'void Function()?',
-    );
-  }
-
-  test_parameter_functionTyped() async {
-    await assertNoErrorsInCode('''
-void f1(void p1()) {}
-void f2(void p2()?) {}
-void f3({void p3()?}) {}
-''');
-    assertElementTypeString(
-      findElement.parameter('p1').type,
-      'void Function()',
-    );
-    assertElementTypeString(
-      findElement.parameter('p2').type,
-      'void Function()?',
-    );
-    assertElementTypeString(
-      findElement.parameter('p3').type,
       'void Function()?',
     );
   }

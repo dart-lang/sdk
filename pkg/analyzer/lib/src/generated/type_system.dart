@@ -2561,17 +2561,25 @@ abstract class TypeSystem implements public.TypeSystem {
     if (type.isDartCoreNull) return BottomTypeImpl.instance;
 
     if (type is TypeParameterTypeImpl) {
-      var promotedElement = TypeParameterElementImpl.synthetic(
-        type.element.name,
-      );
-
-      var bound = type.element.bound ?? typeProvider.objectType;
-      promotedElement.bound = promoteToNonNull(bound);
-
-      return TypeParameterTypeImpl(
-        promotedElement,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      var element = type.element;
+      var promotedBound =
+          promoteToNonNull(element.bound ?? typeProvider.objectType);
+      var identicalBound = identical(promotedBound, element.bound);
+      if (identicalBound) {
+        if (type.nullabilitySuffix == NullabilitySuffix.none) {
+          return type;
+        } else {
+          return TypeParameterTypeImpl(
+            element,
+            nullabilitySuffix: NullabilitySuffix.none,
+          );
+        }
+      } else {
+        return TypeParameterTypeImpl(
+          TypeParameterMember(element, null, promotedBound),
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }
     }
 
     return type.withNullability(NullabilitySuffix.none);

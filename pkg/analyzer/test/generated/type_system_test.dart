@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -4044,56 +4045,94 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_promoteToNonNull_typeParameter_noneBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: noneType),
-      ),
-      typeParameterTypeNone(bound: noneType),
+    var element = _typeParameter('T', bound: noneType);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    expect(typeSystem.promoteToNonNull(type), same(type));
+  }
+
+  test_promoteToNonNull_typeParameter_noneBound_question() {
+    var element = _typeParameter('T', bound: stringClassTypeNone);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_nullBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: null),
-      ),
-      typeParameterTypeNone(bound: objectClassTypeNone),
+    var element = _typeParameter('T', bound: null);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: objectClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_question() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeQuestion(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_questionBound_star() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeStar(bound: stringClassTypeQuestion),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeQuestion);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   test_promoteToNonNull_typeParameter_starBound_none() {
-    expect(
-      typeSystem.promoteToNonNull(
-        typeParameterTypeNone(bound: stringClassTypeStar),
-      ),
-      typeParameterTypeNone(bound: stringClassTypeNone),
+    var element = _typeParameter('T', bound: stringClassTypeStar);
+    var type = _typeParameterType(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    _assertPromotedTypeParameterType(
+      typeSystem.promoteToNonNull(type),
+      baseElement: element,
+      expectedBound: stringClassTypeNone,
+      expectedNullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -4126,5 +4165,24 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       element,
       nullabilitySuffix: NullabilitySuffix.star,
     );
+  }
+
+  /// If [expectedBound] is `null`, the element of [actual] must be the same
+  /// as the [baseElement].  Otherwise the element of [actual] must be a
+  /// [TypeParameterMember] with the [baseElement] and the [expectedBound].
+  void _assertPromotedTypeParameterType(
+    TypeParameterTypeImpl actual, {
+    @required TypeParameterElement baseElement,
+    TypeImpl expectedBound,
+    @required NullabilitySuffix expectedNullabilitySuffix,
+  }) {
+    if (expectedBound != null) {
+      var actualMember = actual.element as TypeParameterMember;
+      expect(actualMember.baseElement, same(baseElement));
+      expect(actualMember.bound, expectedBound);
+    } else {
+      expect(actual.element, same(baseElement));
+    }
+    expect(actual.nullabilitySuffix, expectedNullabilitySuffix);
   }
 }
