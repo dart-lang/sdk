@@ -3325,9 +3325,11 @@ Fragment StreamingFlowGraphBuilder::BuildNullCheck(TokenPosition* p) {
   if (p != nullptr) *p = position;
 
   TokenPosition operand_position = TokenPosition::kNoSource;
-  Fragment instructions =
-      BuildExpression(&operand_position);  // read expression.
-  // TODO(37479): Implement null-check semantics.
+  Fragment instructions = BuildExpression(&operand_position);
+  LocalVariable* expr_temp = MakeTemporary();
+  instructions += CheckNull(position, expr_temp, String::null_string(),
+                            /* clear_the_temp = */ false);
+
   return instructions;
 }
 

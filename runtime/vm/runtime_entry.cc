@@ -153,6 +153,17 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
 }
 
 static void NullErrorHelper(Zone* zone, const String& selector) {
+  // If the selector is null, this must be a null check that wasn't due to a
+  // method invocation, so was due to the null check operator.
+  if (selector.IsNull()) {
+    const Array& args = Array::Handle(zone, Array::New(4));
+    args.SetAt(
+        3, String::Handle(
+               zone, String::New("Null check operator used on a null value")));
+    Exceptions::ThrowByType(Exceptions::kCast, args);
+    return;
+  }
+
   InvocationMirror::Kind kind = InvocationMirror::kMethod;
   if (Field::IsGetterName(selector)) {
     kind = InvocationMirror::kGetter;
