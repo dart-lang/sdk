@@ -1533,13 +1533,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             token.charOffset, token.length);
       }
     } else {
-      Expression result = buildMethodInvocation(a, new Name(operator),
-          forest.createArguments(noLocation, <Expression>[b]), token.charOffset,
+      Expression result = buildMethodInvocation(
+          a,
+          new Name(operator),
+          forest.createArguments(token.charOffset, <Expression>[b]),
+          token.charOffset,
           // This *could* be a constant expression, we can't know without
           // evaluating [a] and [b].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? forest.createNot(noLocation, result) : result;
+      return negate ? forest.createNot(token.charOffset, result) : result;
     }
   }
 

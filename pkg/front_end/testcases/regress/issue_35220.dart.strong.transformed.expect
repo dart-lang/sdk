@@ -1,0 +1,24 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/regress/issue_35220.dart'.
+//   A bad() { return true != 2; }
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method bad() → self::A* {
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/regress/issue_35220.dart'.
+  A bad() { return true != 2; }
+                        ^" in !true.{core::Object::==}(2) as{TypeError} self::A*;
+  }
+}
+static method main() → dynamic {}

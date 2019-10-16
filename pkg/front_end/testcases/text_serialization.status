@@ -1050,6 +1050,7 @@ regress/issue_34850: TextSerializationFailure # Was: Pass
 regress/issue_35151: TextSerializationFailure # Was: Pass
 regress/issue_35177: TextSerializationFailure # Was: RuntimeError
 regress/issue_35213: TextSerializationFailure # Was: Pass
+regress/issue_35220: TextSerializationFailure
 regress/issue_35258: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35259: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35260: TextSerializationFailure # Was: RuntimeError # Expected
