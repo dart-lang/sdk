@@ -1838,7 +1838,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             receiverType != null,
             "No receiver type provided for implicit extension member "
             "invocation.");
-        inferredType = receiverType;
+        return;
       } else {
         ExpressionInferenceResult result = inferExpression(
             expression,
