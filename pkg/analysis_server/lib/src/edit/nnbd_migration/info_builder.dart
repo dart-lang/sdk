@@ -284,7 +284,7 @@ class InfoBuilder {
     // [fileEdit] is null when a file has no edits.
     if (fileEdit != null) {
       List<RegionInfo> regions = unitInfo.regions;
-      List<SourceEdit> edits = fileEdit.edits;
+      List<SourceEdit> edits = List.of(fileEdit.edits);
       edits.sort((first, second) => first.offset.compareTo(second.offset));
       OffsetMapper mapper = OffsetMapper.forEdits(edits);
       // Apply edits in reverse order and build the regions.
