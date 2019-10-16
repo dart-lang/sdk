@@ -531,6 +531,405 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   void write(Variable variable);
 }
 
+/// Alternate implementation of [FlowAnalysis] that prints out inputs and output
+/// at the API boundary, for assistance in debugging.
+class FlowAnalysisDebug<Statement, Expression, Variable, Type>
+    implements FlowAnalysis<Statement, Expression, Variable, Type> {
+  _FlowAnalysisImpl<Statement, Expression, Variable, Type> _wrapped;
+
+  bool _exceptionOccurred = false;
+
+  factory FlowAnalysisDebug(
+      TypeOperations<Variable, Type> typeOperations,
+      Iterable<Variable> variablesWrittenAnywhere,
+      Iterable<Variable> variablesCapturedAnywhere) {
+    variablesWrittenAnywhere = variablesWrittenAnywhere.toList();
+    variablesCapturedAnywhere = variablesCapturedAnywhere.toList();
+    print('FlowAnalysisDebug($variablesWrittenAnywhere, '
+        '$variablesCapturedAnywhere)');
+    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
+        typeOperations, variablesWrittenAnywhere, variablesCapturedAnywhere));
+  }
+
+  FlowAnalysisDebug._(this._wrapped);
+
+  @override
+  bool get isReachable =>
+      _wrap('isReachable', () => _wrapped.isReachable, isQuery: true);
+
+  @override
+  void booleanLiteral(Expression expression, bool value) {
+    _wrap('booleanLiteral($expression, $value)',
+        () => _wrapped.booleanLiteral(expression, value));
+  }
+
+  @override
+  void conditional_elseBegin(Expression thenExpression) {
+    _wrap('conditional_elseBegin($thenExpression',
+        () => _wrapped.conditional_elseBegin(thenExpression));
+  }
+
+  @override
+  void conditional_end(
+      Expression conditionalExpression, Expression elseExpression) {
+    _wrap('conditional_end($conditionalExpression, $elseExpression',
+        () => _wrapped.conditional_end(conditionalExpression, elseExpression));
+  }
+
+  @override
+  void conditional_thenBegin(Expression condition) {
+    _wrap('conditional_thenBegin($condition)',
+        () => _wrapped.conditional_thenBegin(condition));
+  }
+
+  @override
+  void doStatement_bodyBegin(Statement doStatement,
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+    loopAssigned = loopAssigned.toList();
+    loopCaptured = loopCaptured.toList();
+    return _wrap(
+        'doStatement_bodyBegin($doStatement, $loopAssigned, $loopCaptured)',
+        () => _wrapped.doStatement_bodyBegin(
+            doStatement, loopAssigned, loopCaptured));
+  }
+
+  @override
+  void doStatement_conditionBegin() {
+    return _wrap('doStatement_conditionBegin()',
+        () => _wrapped.doStatement_conditionBegin());
+  }
+
+  @override
+  void doStatement_end(Expression condition) {
+    return _wrap('doStatement_end($condition)',
+        () => _wrapped.doStatement_end(condition));
+  }
+
+  @override
+  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      {bool notEqual = false}) {
+    _wrap(
+        'equalityOp_end($wholeExpression, $rightOperand, notEqual: $notEqual)',
+        () => _wrapped.equalityOp_end(wholeExpression, rightOperand,
+            notEqual: notEqual));
+  }
+
+  @override
+  void equalityOp_rightBegin(Expression leftOperand) {
+    _wrap('equalityOp_rightBegin($leftOperand)',
+        () => _wrapped.equalityOp_rightBegin(leftOperand));
+  }
+
+  @override
+  void finish() {
+    if (_exceptionOccurred) {
+      print('finish() (skipped)');
+    } else {
+      print('finish()');
+      _wrapped.finish();
+    }
+  }
+
+  @override
+  void for_bodyBegin(Statement node, Expression condition) {
+    _wrap('for_bodyBegin($node, $condition)',
+        () => _wrapped.for_bodyBegin(node, condition));
+  }
+
+  @override
+  void for_conditionBegin(
+      Set<Variable> loopAssigned, Set<Variable> loopCaptured) {
+    _wrap('for_conditionBegin($loopAssigned, $loopCaptured)',
+        () => _wrapped.for_conditionBegin(loopAssigned, loopCaptured));
+  }
+
+  @override
+  void for_end() {
+    _wrap('for_end()', () => _wrapped.for_end());
+  }
+
+  @override
+  void for_updaterBegin() {
+    _wrap('for_updaterBegin()', () => _wrapped.for_updaterBegin());
+  }
+
+  @override
+  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
+      Iterable<Variable> loopCaptured, Variable loopVariable) {
+    loopAssigned = loopAssigned.toList();
+    loopCaptured = loopCaptured.toList();
+    return _wrap(
+        'forEach_bodyBegin($loopAssigned, $loopCaptured, $loopVariable)',
+        () => _wrapped.forEach_bodyBegin(
+            loopAssigned, loopCaptured, loopVariable));
+  }
+
+  @override
+  void forEach_end() {
+    return _wrap('forEach_end()', () => _wrapped.forEach_end());
+  }
+
+  @override
+  void functionExpression_begin(Iterable<Variable> writeCaptured) {
+    writeCaptured = writeCaptured.toList();
+    _wrap('functionExpression_begin($writeCaptured)',
+        () => _wrapped.functionExpression_begin(writeCaptured));
+  }
+
+  @override
+  void functionExpression_end() {
+    _wrap('functionExpression_end()', () => _wrapped.functionExpression_end());
+  }
+
+  @override
+  void handleBreak(Statement target) {
+    _wrap('handleBreak($target)', () => _wrapped.handleBreak(target));
+  }
+
+  @override
+  void handleContinue(Statement target) {
+    _wrap('handleContinue($target)', () => _wrapped.handleContinue(target));
+  }
+
+  @override
+  void handleExit() {
+    _wrap('handleExit()', () => _wrapped.handleExit());
+  }
+
+  @override
+  void ifNullExpression_end() {
+    return _wrap(
+        'ifNullExpression_end()', () => _wrapped.ifNullExpression_end());
+  }
+
+  @override
+  void ifNullExpression_rightBegin() {
+    return _wrap('ifNullExpression_rightBegin()',
+        () => _wrapped.ifNullExpression_rightBegin());
+  }
+
+  @override
+  void ifStatement_elseBegin() {
+    return _wrap(
+        'ifStatement_elseBegin()', () => _wrapped.ifStatement_elseBegin());
+  }
+
+  @override
+  void ifStatement_end(bool hasElse) {
+    _wrap('ifStatement_end($hasElse)', () => _wrapped.ifStatement_end(hasElse));
+  }
+
+  @override
+  void ifStatement_thenBegin(Expression condition) {
+    _wrap('ifStatement_thenBegin($condition)',
+        () => _wrapped.ifStatement_thenBegin(condition));
+  }
+
+  @override
+  void initialize(Variable variable) {
+    _wrap('initialize($variable)', () => _wrapped.initialize(variable));
+  }
+
+  @override
+  bool isAssigned(Variable variable) {
+    return _wrap('isAssigned($variable)', () => _wrapped.isAssigned(variable),
+        isQuery: true);
+  }
+
+  @override
+  void isExpression_end(
+      Expression isExpression, Variable variable, bool isNot, Type type) {
+    _wrap('isExpression_end($isExpression, $variable, $isNot, $type)',
+        () => _wrapped.isExpression_end(isExpression, variable, isNot, type));
+  }
+
+  @override
+  void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
+      {@required bool isAnd}) {
+    _wrap(
+        'logicalBinaryOp_end($wholeExpression, $rightOperand, isAnd: $isAnd)',
+        () => _wrapped.logicalBinaryOp_end(wholeExpression, rightOperand,
+            isAnd: isAnd));
+  }
+
+  @override
+  void logicalBinaryOp_rightBegin(Expression leftOperand,
+      {@required bool isAnd}) {
+    _wrap('logicalBinaryOp_rightBegin($leftOperand, isAnd: $isAnd)',
+        () => _wrapped.logicalBinaryOp_rightBegin(leftOperand, isAnd: isAnd));
+  }
+
+  @override
+  void logicalNot_end(Expression notExpression, Expression operand) {
+    return _wrap('logicalNot_end($notExpression, $operand)',
+        () => _wrapped.logicalNot_end(notExpression, operand));
+  }
+
+  @override
+  void nonNullAssert_end(Expression operand) {
+    return _wrap('nonNullAssert_end($operand)',
+        () => _wrapped.nonNullAssert_end(operand));
+  }
+
+  @override
+  void nullLiteral(Expression expression) {
+    _wrap('nullLiteral($expression)', () => _wrapped.nullLiteral(expression));
+  }
+
+  @override
+  void parenthesizedExpression(
+      Expression outerExpression, Expression innerExpression) {
+    _wrap(
+        'parenthesizedExpression($outerExpression, $innerExpression)',
+        () =>
+            _wrapped.parenthesizedExpression(outerExpression, innerExpression));
+  }
+
+  @override
+  Type promotedType(Variable variable) {
+    return _wrap(
+        'promotedType($variable)', () => _wrapped.promotedType(variable),
+        isQuery: true);
+  }
+
+  @override
+  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
+      Iterable<Variable> captured) {
+    notPromoted = notPromoted.toList();
+    _wrap(
+        'switchStatement_beginCase($hasLabel, $notPromoted, $captured)',
+        () => _wrapped.switchStatement_beginCase(
+            hasLabel, notPromoted, captured));
+  }
+
+  @override
+  void switchStatement_end(bool hasDefault) {
+    _wrap('switchStatement_end($hasDefault)',
+        () => _wrapped.switchStatement_end(hasDefault));
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement switchStatement) {
+    _wrap('switchStatement_expressionEnd($switchStatement)',
+        () => _wrapped.switchStatement_expressionEnd(switchStatement));
+  }
+
+  @override
+  void tryCatchStatement_bodyBegin() {
+    return _wrap('tryCatchStatement_bodyBegin()',
+        () => _wrapped.tryCatchStatement_bodyBegin());
+  }
+
+  @override
+  void tryCatchStatement_bodyEnd(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+    assignedInBody = assignedInBody.toList();
+    capturedInBody = capturedInBody.toList();
+    return _wrap(
+        'tryCatchStatement_bodyEnd($assignedInBody, $capturedInBody)',
+        () =>
+            _wrapped.tryCatchStatement_bodyEnd(assignedInBody, capturedInBody));
+  }
+
+  @override
+  void tryCatchStatement_catchBegin() {
+    return _wrap('tryCatchStatement_catchBegin()',
+        () => _wrapped.tryCatchStatement_catchBegin());
+  }
+
+  @override
+  void tryCatchStatement_catchEnd() {
+    return _wrap('tryCatchStatement_catchEnd()',
+        () => _wrapped.tryCatchStatement_catchEnd());
+  }
+
+  @override
+  void tryCatchStatement_end() {
+    return _wrap(
+        'tryCatchStatement_end()', () => _wrapped.tryCatchStatement_end());
+  }
+
+  @override
+  void tryFinallyStatement_bodyBegin() {
+    return _wrap('tryFinallyStatement_bodyBegin()',
+        () => _wrapped.tryFinallyStatement_bodyBegin());
+  }
+
+  @override
+  void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
+    return _wrap('tryFinallyStatement_end($assignedInFinally)',
+        () => _wrapped.tryFinallyStatement_end(assignedInFinally));
+  }
+
+  @override
+  void tryFinallyStatement_finallyBegin(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+    assignedInBody = assignedInBody.toList();
+    capturedInBody = capturedInBody.toList();
+    return _wrap(
+        'tryFinallyStatement_finallyBegin($assignedInBody, $capturedInBody)',
+        () => _wrapped.tryFinallyStatement_finallyBegin(
+            assignedInBody, capturedInBody));
+  }
+
+  @override
+  Type variableRead(Expression expression, Variable variable) {
+    return _wrap('variableRead($expression, $variable)',
+        () => _wrapped.variableRead(expression, variable),
+        isQuery: true, isPure: false);
+  }
+
+  @override
+  void whileStatement_bodyBegin(
+      Statement whileStatement, Expression condition) {
+    return _wrap('whileStatement_bodyBegin($whileStatement, $condition)',
+        () => _wrapped.whileStatement_bodyBegin(whileStatement, condition));
+  }
+
+  @override
+  void whileStatement_conditionBegin(
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+    loopAssigned = loopAssigned.toList();
+    loopCaptured = loopCaptured.toList();
+    return _wrap(
+        'whileStatement_conditionBegin($loopAssigned, $loopCaptured)',
+        () =>
+            _wrapped.whileStatement_conditionBegin(loopAssigned, loopCaptured));
+  }
+
+  @override
+  void whileStatement_end() {
+    return _wrap('whileStatement_end()', () => _wrapped.whileStatement_end());
+  }
+
+  @override
+  void write(Variable variable) {
+    _wrap('write($variable)', () => _wrapped.write(variable));
+  }
+
+  T _wrap<T>(String description, T callback(),
+      {bool isQuery: false, bool isPure}) {
+    isPure ??= isQuery;
+    print(description);
+    T result;
+    try {
+      result = callback();
+    } catch (e, st) {
+      print('  => EXCEPTION $e');
+      print('    ' + st.toString().replaceAll('\n', '\n    '));
+      _exceptionOccurred = true;
+      rethrow;
+    }
+    if (!isPure) {
+      _wrapped._dumpState();
+    }
+    if (isQuery) {
+      print('  => $result');
+    }
+    return result;
+  }
+}
+
 /// An instance of the [FlowModel] class represents the information gathered by
 /// flow analysis at a single point in the control flow of the function or
 /// method being analyzed.
@@ -951,8 +1350,19 @@ class VariableModel<Type> {
   }
 
   @override
-  String toString() =>
-      'VariableModel($promotedType, $assigned, $writeCaptured)';
+  String toString() {
+    List<String> parts = [];
+    if (promotedType != null) {
+      parts.add('promotedType: $promotedType');
+    }
+    if (assigned) {
+      parts.add('assigned: true');
+    }
+    if (writeCaptured) {
+      parts.add('writeCaptured: true');
+    }
+    return 'VariableModel(${parts.join(', ')})';
+  }
 
   /// Returns a new [VariableModel] where the promoted type is replaced with
   /// [promotedType].
@@ -1028,6 +1438,9 @@ class _BranchContext<Variable, Type> extends _FlowContext {
   final _ExpressionInfo<Variable, Type> _conditionInfo;
 
   _BranchContext(this._conditionInfo);
+
+  @override
+  String toString() => '_BranchContext(conditionInfo: $_conditionInfo)';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -1040,6 +1453,10 @@ class _BranchTargetContext<Variable, Type> extends _FlowContext {
   /// Accumulated flow model for all `continue` statements seen so far, or
   /// `null` if no `continue` statements have been seen yet.
   FlowModel<Variable, Type> _continueModel;
+
+  @override
+  String toString() => '_BranchTargetContext(breakModel: $_breakModel, '
+      'continueModel: $_continueModel)';
 }
 
 /// [_FlowContext] representing a conditional expression.
@@ -1051,6 +1468,10 @@ class _ConditionalContext<Variable, Type>
 
   _ConditionalContext(_ExpressionInfo<Variable, Type> conditionInfo)
       : super(conditionInfo);
+
+  @override
+  String toString() => '_ConditionalContext(conditionInfo: $_conditionInfo, '
+      'thenInfo: $_thenInfo)';
 }
 
 /// A collection of flow models representing the possible outcomes of evaluating
@@ -1067,6 +1488,10 @@ class _ExpressionInfo<Variable, Type> {
   final FlowModel<Variable, Type> _ifFalse;
 
   _ExpressionInfo(this._after, this._ifTrue, this._ifFalse);
+
+  @override
+  String toString() =>
+      '_ExpressionInfo(after: $_after, _ifTrue: $_ifTrue, ifFalse: $_ifFalse)';
 }
 
 class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
@@ -1576,6 +2001,16 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
     _current = _current.write(variable);
   }
 
+  void _dumpState() {
+    print('  current: $_current');
+    print('  expressionWithInfo: $_expressionWithInfo');
+    print('  expressionInfo: $_expressionInfo');
+    print('  stack:');
+    for (_FlowContext stackEntry in _stack.reversed) {
+      print('    $stackEntry');
+    }
+  }
+
   /// Gets the [_ExpressionInfo] associated with the [expression] (which should
   /// be the last expression that was traversed).  If there is no
   /// [_ExpressionInfo] associated with the [expression], then a fresh
@@ -1615,7 +2050,7 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
 
 /// Base class for objects representing constructs in the Dart programming
 /// language for which flow analysis information needs to be tracked.
-class _FlowContext {}
+abstract class _FlowContext {}
 
 /// [_FlowContext] representing an `if` statement.
 class _IfContext<Variable, Type> extends _BranchContext<Variable, Type> {
@@ -1625,6 +2060,10 @@ class _IfContext<Variable, Type> extends _BranchContext<Variable, Type> {
 
   _IfContext(_ExpressionInfo<Variable, Type> conditionInfo)
       : super(conditionInfo);
+
+  @override
+  String toString() =>
+      '_IfContext(conditionInfo: $_conditionInfo, afterThen: $_afterThen)';
 }
 
 /// [_ExpressionInfo] representing a `null` literal.
@@ -1653,6 +2092,9 @@ class _SimpleContext<Variable, Type> extends _FlowContext {
   final FlowModel<Variable, Type> _previous;
 
   _SimpleContext(this._previous);
+
+  @override
+  String toString() => '_SimpleContext(previous: $_previous)';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -1667,6 +2109,10 @@ class _SimpleStatementContext<Variable, Type>
   final FlowModel<Variable, Type> _previous;
 
   _SimpleStatementContext(this._previous);
+
+  @override
+  String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
+      'continueModel: $_continueModel, previous: $_previous)';
 }
 
 /// [_FlowContext] representing a try statement.
@@ -1683,6 +2129,11 @@ class _TryContext<Variable, Type> extends _SimpleContext<Variable, Type> {
   FlowModel<Variable, Type> _afterBodyAndCatches;
 
   _TryContext(FlowModel<Variable, Type> previous) : super(previous);
+
+  @override
+  String toString() =>
+      '_TryContext(previous: $_previous, beforeCatch: $_beforeCatch, '
+      'afterBodyAndCatches: $_afterBodyAndCatches)';
 }
 
 /// [_ExpressionInfo] representing an expression that reads the value of a
@@ -1702,6 +2153,10 @@ class _VariableReadInfo<Variable, Type>
 
   @override
   FlowModel<Variable, Type> get _ifTrue => _after;
+
+  @override
+  String toString() =>
+      '_VariableReadInfo(after: $_after, variable: $_variable)';
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
@@ -1712,4 +2167,8 @@ class _WhileContext<Variable, Type>
   final _ExpressionInfo<Variable, Type> _conditionInfo;
 
   _WhileContext(this._conditionInfo);
+
+  @override
+  String toString() => '_WhileContext(breakModel: $_breakModel, '
+      'continueModel: $_continueModel, conditionInfo: $_conditionInfo)';
 }

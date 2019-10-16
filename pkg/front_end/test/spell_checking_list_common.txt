@@ -97,6 +97,7 @@ along
 alpha
 already
 also
+alternate
 alternating
 alternative
 alternatively
@@ -183,6 +184,7 @@ assignable
 assigned
 assignment
 assignments
+assistance
 associate
 associated
 associates
