@@ -306,10 +306,6 @@ library;
 // class Sub extends C {
 //                   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
-// class Sub extends C {
-//                   ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:34:3: Error: Can't use 'main' because it is declared more than once.
 //   main();
 //   ^

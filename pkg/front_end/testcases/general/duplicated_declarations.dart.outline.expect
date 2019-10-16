@@ -306,10 +306,6 @@ library;
 // class Sub extends C {
 //                   ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:65:19: Error: 'C' isn't a type.
-// class Sub extends C {
-//                   ^
-//
 import self as self;
 import "dart:core" as core;
 
