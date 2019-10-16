@@ -13,7 +13,8 @@ import 'package:tflite_native/tflite.dart' as tfl;
 /// Interface to TensorFlow-based Dart language model for next-token prediction.
 class LanguageModel {
   static const _defaultCompletions = 100;
-  static final _numeric = RegExp(r'^\d+(.\d+)?$');
+  static final _numeric = RegExp(r'^\d+(\.\d+)?$');
+  static final _alphanumeric = RegExp(r"^['\w]+$");
 
   final tfl.Interpreter _interpreter;
   final Map<String, int> _word2idx;
@@ -120,12 +121,23 @@ class LanguageModel {
       final lexeme =
           k < _idx2word.length ? _idx2word[k] : tokens[k - _idx2word.length];
       final sanitized = lexeme.replaceAll('"', '\'');
+      if (k >= _idx2word.length && !_isAlphanumeric(sanitized)) {
+        // Don't assign probability to punctuation by reference.
+        return;
+      }
+
       scores[sanitized] = (scores[sanitized] ?? 0.0) + v;
     });
 
     final entries = scores.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     return Map.fromEntries(entries.sublist(0, completions));
+  }
+
+  bool _isAlphanumeric(String token) {
+    // Note that _numeric covers integral and decimal values whereas
+    // _alphanumeric only matches integral values. Check both.
+    return _alphanumeric.hasMatch(token) || _numeric.hasMatch(token);
   }
 
   bool _isString(String token) {
