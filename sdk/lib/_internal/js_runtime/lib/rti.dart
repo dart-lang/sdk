@@ -2035,10 +2035,6 @@ class _Parser {
   static Rti toType(Object universe, Rti environment, Object item) {
     if (_Utils.isString(item)) {
       String name = _Utils.asString(item);
-      // TODO(sra): Compile this out for minified code.
-      if ('dynamic' == name) {
-        return _Universe._lookupDynamicRti(universe);
-      }
       return _Universe._lookupInterfaceRti(
           universe, name, _Universe.sharedEmptyArray(universe));
     } else if (_Utils.isNum(item)) {

@@ -10,8 +10,8 @@ main() {
 
   // TODO(sra): Add call: rti.testingAddRules(universe, ???);
 
-  var dynamicRti1 = rti.testingUniverseEval(universe, 'dynamic');
-  var dynamicRti2 = rti.testingUniverseEval(universe, 'dynamic');
+  var dynamicRti1 = rti.testingUniverseEval(universe, '@');
+  var dynamicRti2 = rti.testingUniverseEval(universe, '@');
 
   Expect.isTrue(identical(dynamicRti1, dynamicRti2));
   Expect.isFalse(dynamicRti1 is String);
