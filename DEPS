@@ -38,7 +38,7 @@ vars = {
 
   # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
   # It requires access to the dart-build-access group, which EngProd has.
-  "co19_2_rev": "52daae49d7bff80039ff1eea36a24e98c2b9a837",
+  "co19_2_rev": "a8f7aa15ab860a309667168243bda01fda0794df",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -84,7 +84,9 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "v0.28.7",
+  "args_tag" : "1.5.2",
+  "dartdoc_tag" : "v0.28.8",
+  "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -99,7 +101,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.100",
+  "linter_tag": "0.1.101",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -138,7 +140,7 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test-v1.6.4",
-  "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
+  "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -275,8 +277,12 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
+  Var("dart_root") + "/third_party/pkg/args":
+      Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+  Var("dart_root") + "/third_party/pkg/ffi":
+      Var("dart_git") + "ffi.git" + "@" + Var("ffi_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
@@ -421,7 +427,7 @@ deps = {
     "packages": [
       {
         "package": "dart/language_model",
-        "version": "EFtZ0Z5T822s4EUOOaWeiXUppRGKp5d9Z6jomJIeQYcC",
+        "version": "9fJQZ0TrnAGQKrEtuL3-AXbUfPzYxqpN_OBHr9P4hE4C",
       }
     ],
     "dep_type": "cipd",

@@ -481,6 +481,38 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode INVALID_UNICODE_ESCAPE = _INVALID_UNICODE_ESCAPE;
 
+  /**
+   * No parameters.
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a member declared inside an
+  // extension uses the keyword `covariant` in the declaration of a parameter.
+  // Extensions aren't classes and don't have subclasses, so the keyword serves
+  // no purpose.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a([!covariant!] int i) {}
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the 'covariant' keyword:
+  //
+  // ```dart
+  // extension E on String {
+  //   void a(int i) {}
+  // }
+  // ```
+  static const ParserErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
+      _INVALID_USE_OF_COVARIANT_IN_EXTENSION;
+
   static const ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST =
       _LIBRARY_DIRECTIVE_NOT_FIRST;
 

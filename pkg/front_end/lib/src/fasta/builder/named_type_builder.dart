@@ -19,36 +19,26 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
 
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import '../problems.dart' show unhandled;
 
+import '../scope.dart';
+
 import '../severity.dart' show Severity;
 
-import 'builder.dart'
-    show
-        Builder,
-        Identifier,
-        LibraryBuilder,
-        NullabilityBuilder,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
-
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        InvalidTypeBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
+import 'builder.dart';
+import 'class_builder.dart';
+import 'invalid_type_declaration_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
+import 'type_declaration_builder.dart';
+import 'type_variable_builder.dart';
 
 class NamedTypeBuilder extends TypeBuilder {
   final Object name;
@@ -105,7 +95,7 @@ class NamedTypeBuilder extends TypeBuilder {
         Message message =
             templateTypeArgumentsOnTypeVariable.withArguments(typeName);
         library.addProblem(message, typeNameOffset, typeName.length, fileUri);
-        declaration = buildInvalidType(
+        declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri, typeNameOffset, typeName.length));
       }
       return;
@@ -146,7 +136,7 @@ class NamedTypeBuilder extends TypeBuilder {
         name is Identifier ? name.endCharOffset - charOffset : flatName.length;
     Message message = template.withArguments(flatName);
     library.addProblem(message, charOffset, length, fileUri, context: context);
-    declaration = buildInvalidType(
+    declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri, charOffset, length),
         context: context);
   }
@@ -158,8 +148,8 @@ class NamedTypeBuilder extends TypeBuilder {
       Message message = templateTypeArgumentMismatch
           .withArguments(declaration.typeVariablesCount);
       library.addProblem(message, charOffset, noLength, fileUri);
-      declaration =
-          buildInvalidType(message.withLocation(fileUri, charOffset, noLength));
+      declaration = buildInvalidTypeDeclarationBuilder(
+          message.withLocation(fileUri, charOffset, noLength));
     }
   }
 
@@ -189,11 +179,12 @@ class NamedTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  InvalidTypeBuilder buildInvalidType(LocatedMessage message,
+  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
+      LocatedMessage message,
       {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // InvalidTypeBuilder?
-    return new InvalidTypeBuilder(
+    return new InvalidTypeDeclarationBuilder(
         flattenName(name, message.charOffset, message.uri), message,
         context: context);
   }
@@ -222,7 +213,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildSupertype(library, arguments);
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
@@ -240,7 +231,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,

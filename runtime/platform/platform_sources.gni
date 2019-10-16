@@ -33,6 +33,7 @@ platform_sources = [
   "syslog_win.cc",
   "text_buffer.cc",
   "text_buffer.h",
+  "thread_sanitizer.h",
   "unicode.cc",
   "unicode.h",
   "utils.cc",

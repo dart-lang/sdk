@@ -3,9 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import '../fasta/builder/builder.dart';
+
+import '../fasta/builder/class_builder.dart';
+import '../fasta/builder/library_builder.dart';
+import '../fasta/builder/member_builder.dart';
+import '../fasta/builder/named_type_builder.dart';
+import '../fasta/builder/type_builder.dart';
+import '../fasta/builder/type_variable_builder.dart';
 import '../fasta/builder/extension_builder.dart';
-import '../fasta/kernel/kernel_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -412,6 +417,9 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       visitList(node.typeArguments);
       sb.write('>');
     }
+    if (!isNull(node)) {
+      sb.write(nullabilityToText(node.nullability));
+    }
   }
 
   void visitFunctionType(FunctionType node) {
@@ -441,12 +449,15 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       }
       sb.write('}');
     }
-    sb.write(')->');
+    sb.write(')');
+    sb.write(nullabilityToText(node.nullability));
+    sb.write('->');
     visit(node.returnType);
   }
 
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
+    sb.write(nullabilityToText(node.nullability));
     if (node.promotedBound != null) {
       sb.write(' extends ');
       visit(node.promotedBound);
@@ -460,6 +471,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       visitList(node.typeArguments);
       sb.write('>');
     }
+    sb.write(nullabilityToText(node.nullability));
   }
 }
 
@@ -467,6 +479,13 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
 bool isObject(DartType type) {
   return type is InterfaceType &&
       type.classNode.name == 'Object' &&
+      '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
+}
+
+/// Returns `true` if [type] is `Null` from `dart:core`.
+bool isNull(DartType type) {
+  return type is InterfaceType &&
+      type.classNode.name == 'Null' &&
       '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
 }
 
@@ -559,4 +578,19 @@ String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
     sb.write(name);
   }
   return sb.toString();
+}
+
+/// Returns a textual representation of [nullability] to be used in testing.
+String nullabilityToText(Nullability nullability) {
+  switch (nullability) {
+    case Nullability.nonNullable:
+      return '!';
+    case Nullability.nullable:
+      return '?';
+    case Nullability.neither:
+      return '%';
+    case Nullability.legacy:
+      return '';
+  }
+  throw new UnsupportedError('Unexpected nullability: $nullability.');
 }

@@ -43,16 +43,6 @@ inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
   __sync_fetch_and_sub(p, value);
 }
 
-inline uint32_t AtomicOperations::FetchOrRelaxedUint32(uint32_t* ptr,
-                                                       uint32_t value) {
-  return __atomic_fetch_or(ptr, value, __ATOMIC_RELAXED);
-}
-
-inline uint32_t AtomicOperations::FetchAndRelaxedUint32(uint32_t* ptr,
-                                                        uint32_t value) {
-  return __atomic_fetch_and(ptr, value, __ATOMIC_RELAXED);
-}
-
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {

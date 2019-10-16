@@ -932,6 +932,20 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
   return kTagged;
 }
 
+Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  // Dart objects are allocated null-initialized, which means we can eliminate
+  // all initializing stores which store null value.
+  // TODO(dartbug.com/38454) Context objects can be allocated uninitialized
+  // as a performance optimization (all initializing stores are inlined into
+  // the caller, which allocates the context). Investigate if this can be
+  // changed to align with normal Dart objects for code size reasons.
+  if (is_initialization_ && slot().IsDartField() &&
+      value()->BindsToConstantNull()) {
+    return nullptr;
+  }
+  return this;
+}
+
 bool GuardFieldClassInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardFieldClass()->field().raw();
 }
@@ -1437,6 +1451,15 @@ void Instruction::UnuseAllInputs() {
   }
   for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
+  }
+}
+
+void Instruction::RepairPushArgsInEnvironment() const {
+  const intptr_t arg_count = ArgumentCount();
+  ASSERT(arg_count <= env()->Length());
+  const intptr_t env_base = env()->Length() - arg_count;
+  for (intptr_t i = 0; i < arg_count; ++i) {
+    env()->ValueAt(env_base + i)->BindToEnvironment(PushArgumentAt(i));
   }
 }
 
@@ -2780,6 +2803,8 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kDartField:
     case Slot::Kind::kPointer_c_memory_address:
+    case Slot::Kind::kType_arguments:
+    case Slot::Kind::kTypeArgumentsIndex:
       return false;
   }
   UNREACHABLE();
@@ -4082,7 +4107,16 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // (As opposed to here where we don't check for the return value of
   // [Intrinsify]).
   const Function& function = compiler->parsed_function().function();
-  if (function.IsDynamicFunction()) {
+
+  // For functions which need an args descriptor the switchable call sites will
+  // transition directly to calling via a stub (and therefore never call the
+  // monomorphic entry).
+  //
+  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
+  const bool needs_args_descriptor =
+      function.HasOptionalParameters() || function.IsGeneric();
+
+  if (function.IsDynamicFunction() && !needs_args_descriptor) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
     if (!FLAG_precompiled_mode) {
       __ MonomorphicCheckedEntryJIT();

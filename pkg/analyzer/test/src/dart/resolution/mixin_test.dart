@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
@@ -1077,8 +1078,14 @@ mixin M implements A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');
@@ -1325,8 +1332,14 @@ mixin M on A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');

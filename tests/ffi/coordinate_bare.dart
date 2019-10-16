@@ -7,7 +7,7 @@ library FfiTestCoordinateBare;
 import 'dart:ffi';
 
 /// Stripped down sample struct for dart:ffi library.
-class Coordinate extends Struct<Coordinate> {
+class Coordinate extends Struct {
   @Double()
   double x;
 

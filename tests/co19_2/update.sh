@@ -15,7 +15,7 @@ rm -rf tests/co19_2/src.git
 git clone https://dart.googlesource.com/co19 tests/co19_2/src.git
 CO19=tests/co19_2/src.git
 OLD=$(gclient getdep --var=co19_2_rev)
-NEW=$(cd $CO19 && git fetch origin && git rev-parse origin/master)
+NEW=$(cd $CO19 && git fetch origin && git rev-parse origin/pre-nnbd)
 
 git fetch origin
 git branch cl-co19-roll-co19-to-$NEW origin/master
@@ -57,7 +57,7 @@ BUILDERS=$(jq '.builder_configurations|
                 tools/bots/test_matrix.json \
              | tr -d '[",]')
 
-git cl try -B luci.dart.try $(for BUILDER in $BUILDERS; do echo -b $BUILDER-try; done)
+git cl try -B dart/try $(for BUILDER in $BUILDERS; do echo -b $BUILDER-try; done)
 
 git cl web
 

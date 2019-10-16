@@ -8,6 +8,7 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
+#include "vm/compiler/aot/precompiler.h"  // For Obfuscator
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/frontend/bytecode_scope_builder.h"
 #include "vm/constants_kbc.h"
@@ -1195,6 +1196,15 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   reader_.ReadUInt32();  // Skip annotations.numItems
   const intptr_t annotations_offset = start_offset + reader_.ReadUInt32();
 
+  intptr_t num_protected_names = 0;
+  intptr_t protected_names_offset = 0;
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
+                "Cleanup condition");
+  if (version >= 23) {
+    num_protected_names = reader_.ReadUInt32();
+    protected_names_offset = start_offset + reader_.ReadUInt32();
+  }
+
   // Read header of string table.
   reader_.set_offset(string_table_offset);
   const intptr_t num_one_byte_strings = reader_.ReadUInt32();
@@ -1229,6 +1239,21 @@ RawArray* BytecodeReaderHelper::ReadBytecodeComponent(intptr_t md_offset) {
   for (intptr_t i = 0; i < num_objects; ++i) {
     offs = Smi::New(reader_.ReadUInt());
     bytecode_component.SetObject(i, offs);
+  }
+
+  // Read protected names.
+  if (I->obfuscate() && (num_protected_names > 0)) {
+    bytecode_component_ = &bytecode_component;
+
+    reader_.set_offset(protected_names_offset);
+    Obfuscator obfuscator(thread_, Object::null_string());
+    auto& name = String::Handle(Z);
+    for (intptr_t i = 0; i < num_protected_names; ++i) {
+      name = ReadString();
+      obfuscator.PreventRenaming(name);
+    }
+
+    bytecode_component_ = nullptr;
   }
 
   H.SetBytecodeComponent(bytecode_component_array);
@@ -1325,6 +1350,10 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
   // Script flags, must be in sync with _ScriptHandle constants in
   // pkg/vm/lib/bytecode/object_table.dart.
   const int kFlagHasSourceFile = kFlagBit0;
+
+  // Name flags, must be in sync with _NameHandle constants in
+  // pkg/vm/lib/bytecode/object_table.dart.
+  const intptr_t kFlagIsPublic = kFlagBit0;
 
   const intptr_t kind = (header >> kKindShift) & kKindMask;
   const intptr_t flags = header & kFlagsMask;
@@ -1448,13 +1477,28 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       return closures_->At(closure_index);
     }
     case kName: {
-      const Library& library = Library::CheckedHandle(Z, ReadObject());
-      if (library.IsNull()) {
-        return ReadString();
+      if ((flags & kFlagIsPublic) == 0) {
+        const Library& library = Library::CheckedHandle(Z, ReadObject());
+        static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 23,
+                      "Cleanup library.IsNull() condition");
+        if (!library.IsNull()) {
+          auto& name =
+              String::Handle(Z, ReadString(/* is_canonical = */ false));
+          name = library.PrivateName(name);
+          if (I->obfuscate()) {
+            const auto& library_key = String::Handle(Z, library.private_key());
+            Obfuscator obfuscator(thread_, library_key);
+            return obfuscator.Rename(name);
+          }
+          return name.raw();
+        }
+      }
+      if (I->obfuscate()) {
+        Obfuscator obfuscator(thread_, Object::null_string());
+        const auto& name = String::Handle(Z, ReadString());
+        return obfuscator.Rename(name);
       } else {
-        const String& name =
-            String::Handle(Z, ReadString(/* is_canonical = */ false));
-        return library.PrivateName(name);
+        return ReadString();
       }
     }
     case kTypeArguments: {
@@ -1519,6 +1563,7 @@ RawObject* BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
     kBool,
     kSymbol,
     kTearOffInstantiation,
+    kString,
   };
 
   switch (tag) {
@@ -1610,6 +1655,8 @@ RawObject* BytecodeReaderHelper::ReadConstObject(intptr_t tag) {
           Context::Handle(Z, closure.context()), Heap::kOld);
       return H.Canonicalize(closure);
     }
+    case kString:
+      return ReadString();
     default:
       UNREACHABLE();
   }
@@ -2531,6 +2578,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   const int kUsesDartMirrorsFlag = 1 << 0;
   const int kUsesDartFfiFlag = 1 << 1;
   const int kHasExtensionsFlag = 1 << 2;
+  const int kIsNonNullableByDefaultFlag = 1 << 3;
 
   ASSERT(library.is_declared_in_bytecode());
   ASSERT(!library.Loaded());
@@ -2573,6 +2621,10 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
       library.AddImport(import_namespace);
     }
     H.AddPotentialExtensionLibrary(library);
+  }
+
+  if ((flags & kIsNonNullableByDefaultFlag) != 0) {
+    library.set_is_nnbd(true);
   }
 
   // The bootstrapper will take care of creating the native wrapper classes,

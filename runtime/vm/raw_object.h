@@ -267,8 +267,7 @@ class RawObject {
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotMarkedBit::update(false, tags);
+    ptr()->tags_ = OldAndNotMarkedBit::update(false, ptr()->tags_);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
@@ -318,8 +317,7 @@ class RawObject {
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = CardRememberedBit::update(true, tags);
+    ptr()->tags_ = CardRememberedBit::update(true, ptr()->tags_);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -360,10 +358,7 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
+  intptr_t GetClassId() const { return ClassIdTag::decode(ptr()->tags_); }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -381,7 +376,7 @@ class RawObject {
       // recomputing size from tags.
       const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
-          (ptr()->tags_ != tags)) {
+          (ptr()->tags_) != tags) {
         result = SizeTag::decode(ptr()->tags_);
       }
       ASSERT(result == size_from_class);
@@ -492,7 +487,7 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  uint32_t tags_;  // Various object tags (bits).
+  RelaxedAtomic<uint32_t> tags_;  // Various object tags (bits).
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
@@ -515,31 +510,28 @@ class RawObject {
   intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = ClassIdTag::update(new_cid, tags);
+    ptr()->tags_ = ClassIdTag::update(new_cid, ptr()->tags_);
   }
 
   template <class TagBitField>
   void UpdateTagBit(bool value) {
     if (value) {
-      AtomicOperations::FetchOrRelaxedUint32(&ptr()->tags_,
-                                             TagBitField::encode(true));
+      ptr()->tags_.fetch_or(TagBitField::encode(true));
     } else {
-      AtomicOperations::FetchAndRelaxedUint32(&ptr()->tags_,
-                                              ~TagBitField::encode(true));
+      ptr()->tags_.fetch_and(~TagBitField::encode(true));
     }
   }
 
   template <class TagBitField>
   bool TryAcquireTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchOrRelaxedUint32(
-        &ptr()->tags_, TagBitField::encode(true));
+    uint32_t mask = TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_or(mask);
     return !TagBitField::decode(old_tags);
   }
   template <class TagBitField>
   bool TryClearTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchAndRelaxedUint32(
-        &ptr()->tags_, ~TagBitField::encode(true));
+    uint32_t mask = ~TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_and(mask);
     return TagBitField::decode(old_tags);
   }
 
@@ -1221,6 +1213,20 @@ class RawLibrary : public RawObject {
     kLoaded,          // Library is loaded.
   };
 
+  enum LibraryFlags {
+    kDartSchemeBit = 0,
+    kDebuggableBit,      // True if debugger can stop in library.
+    kInFullSnapshotBit,  // True if library is in a full snapshot.
+    kNnbdBit,            // True if library is non nullable by default.
+    kNumFlagBits,
+  };
+  COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
+  class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
+  class DebuggableBit : public BitField<uint8_t, bool, kDebuggableBit, 1> {};
+  class InFullSnapshotBit
+      : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
+  class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
   VISIT_FROM(RawObject*, name_);
@@ -1259,9 +1265,7 @@ class RawLibrary : public RawObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  bool is_dart_scheme_;
-  bool debuggable_;          // True if debugger can stop in library.
-  bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
+  uint8_t flags_;         // BitField for LibraryFlags.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1367,9 +1371,7 @@ class RawCode : public RawObject {
     RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
-  // The stackmaps_ array contains alternating Smi and StackMap values, where
-  // each Smi value is the PC offset for the following StackMap value.
-  RawArray* stackmaps_;
+  RawCompressedStackMaps* compressed_stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
@@ -1612,21 +1614,35 @@ class RawCodeSourceMap : public RawObject {
   friend class ImageWriter;
 };
 
-// StackMap is an immutable representation of the layout of the stack at a
-// PC. The stack map representation consists of a bit map which marks each
-// live object index starting from the base of the frame.
-//
-// The bit map representation is optimized for dense and small bit maps, without
-// any upper bound.
-class RawStackMap : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
+// RawCompressedStackMaps is a compressed representation of the stack maps
+// for certain PC offsets into a set of instructions, where a stack map is a bit
+// map that marks each live object index starting from the base of the frame.
+class RawCompressedStackMaps : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
-  uint16_t length_;               // Length of payload, in bits.
-  uint16_t slow_path_bit_count_;  // Slow path live values, included in length_.
-  // ARM64 requires register_bit_count_ to be as large as 96.
+  uint32_t payload_size_;  // Length of the encoded payload, in bytes.
 
-  // Variable length data follows here (bitmap of the stack layout).
+  // Variable length data follows here. The payload consists of entries with
+  // the following information:
+  //
+  // * A header containing the following three pieces of information:
+  //   * An unsigned integer representing the PC offset as a delta from the
+  //     PC offset of the previous entry (from 0 for the first entry).
+  //   * An unsigned integer representing the number of bits used for
+  //     register entries.
+  //   * An unsigned integer representing the number of bits used for spill
+  //     slot entries.
+  // * The body containing the bits for the stack map. The length of the body
+  //   in bits is the sum of the register and spill slot bit counts.
+  //
+  // Each unsigned integer is LEB128 encoded, as generally they tend to fit in
+  // a single byte or two. Thus, entry headers are not a fixed length, and
+  // currently there is no random access of entries.  In addition, PC offsets
+  // are currently encoded as deltas, which also inhibits random access without
+  // accessing previous entries. That means to find an entry for a given PC
+  // offset, a linear search must be done where the payload is decoded
+  // up to the entry whose PC offset is >= the given PC.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
@@ -2788,7 +2804,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
          (index == kObjectPoolCid) || (index == kPcDescriptorsCid) ||
-         (index == kCodeSourceMapCid) || (index == kStackMapCid) ||
+         (index == kCodeSourceMapCid) || (index == kCompressedStackMapsCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) || (index == kCodeCid) ||
          (index == kContextScopeCid) || (index == kInstanceCid) ||

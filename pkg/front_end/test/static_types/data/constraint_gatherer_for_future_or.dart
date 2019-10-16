@@ -6,6 +6,8 @@
 // case the supertype of the match is a FutureOr<X> or one of its alternatives
 // (either Future<X> or X).
 
+/*cfe.library: nnbd=false*/
+/*cfe:nnbd.library: nnbd=true*/
 import 'dart:async';
 
 // -----------------------------------------------------------------------------
@@ -49,7 +51,7 @@ void func4() {
 void func5() {
   void foo<S>(FutureOr<S> bar) {}
 
-  /*invoke: void*/ foo/*<int>*/(/*int*/ 42);
+  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (/*int*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -58,7 +60,7 @@ void func5() {
 void func6() {
   void foo<S>(S bar) {}
 
-  /*invoke: void*/ foo/*<int>*/(/*int*/ 42);
+  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (/*int*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -66,7 +68,7 @@ void func6() {
 void func7() {
   void foo<S>(FutureOr<FutureOr<S>> bar) {}
 
-  /*invoke: void*/ foo/*<int>*/(/*int*/ 42);
+  /*invoke: void*/ foo /*cfe|dart2js.<int>*/ /*cfe:nnbd.<int!>*/ (/*int*/ 42);
 }
 
 // -----------------------------------------------------------------------------

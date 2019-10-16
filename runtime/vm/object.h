@@ -10,8 +10,11 @@
 #endif
 
 #include <tuple>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/atomic.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/bitmap.h"
 #include "vm/code_entry_kind.h"
@@ -270,8 +273,8 @@ class Object {
   void operator=(RawObject* value) { initializeHandle(this, value); }
 
   uint32_t CompareAndSwapTags(uint32_t old_tags, uint32_t new_tags) const {
-    return AtomicOperations::CompareAndSwapUint32(&raw()->ptr()->tags_,
-                                                  old_tags, new_tags);
+    raw()->ptr()->tags_.compare_exchange_strong(old_tags, new_tags);
+    return old_tags;
   }
   bool IsCanonical() const { return raw()->IsCanonical(); }
   void SetCanonical() const { raw()->SetCanonical(); }
@@ -467,7 +470,9 @@ class Object {
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
   static RawClass* code_source_map_class() { return code_source_map_class_; }
-  static RawClass* stackmap_class() { return stackmap_class_; }
+  static RawClass* compressed_stackmaps_class() {
+    return compressed_stackmaps_class_;
+  }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
@@ -707,7 +712,7 @@ class Object {
   }
 
   static cpp_vtable handle_vtable_;
-  static cpp_vtable builtin_vtables_[kNumPredefinedCids];
+  static RelaxedAtomic<cpp_vtable> builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -736,7 +741,8 @@ class Object {
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static RawClass* stackmap_class_;         // Class of StackMap vm object.
+  static RawClass*
+      compressed_stackmaps_class_;          // Class of CompressedStackMaps.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* deopt_info_class_;          // Class of DeoptInfo.
@@ -1059,7 +1065,8 @@ class Class : public Object {
 
   static bool IsInFullSnapshot(RawClass* cls) {
     NoSafepointScope no_safepoint;
-    return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
+    return RawLibrary::InFullSnapshotBit::decode(
+        cls->ptr()->library_->ptr()->flags_);
   }
 
   // Returns true if the type specified by cls and type_arguments is a
@@ -2726,7 +2733,8 @@ class Function : public Object {
     // On DBC we use native calls instead of IR for the view factories (see
     // kernel_to_il.cc)
 #if !defined(TARGET_ARCH_DBC)
-    if (IsTypedDataViewFactory()) {
+    if (IsTypedDataViewFactory() || IsFfiLoad() || IsFfiStore() ||
+        IsFfiFromAddress() || IsFfiGetAddress()) {
       return true;
     }
 #endif
@@ -2881,6 +2889,28 @@ class Function : public Object {
     NoSafepointScope no_safepoint;
     return KindBits::decode(function->ptr()->kind_tag_) ==
            RawFunction::kFfiTrampoline;
+  }
+
+  bool IsFfiLoad() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return MethodRecognizer::kFfiLoadInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiLoadPointer;
+  }
+
+  bool IsFfiStore() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return MethodRecognizer::kFfiStoreInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiStorePointer;
+  }
+
+  bool IsFfiFromAddress() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return kind == MethodRecognizer::kFfiFromAddress;
+  }
+
+  bool IsFfiGetAddress() const {
+    const auto kind = MethodRecognizer::RecognizeKind(*this);
+    return kind == MethodRecognizer::kFfiGetAddress;
   }
 
   bool IsAsyncFunction() const { return modifier() == RawFunction::kAsync; }
@@ -4187,9 +4217,18 @@ class Library : public Object {
                     native_symbol_resolver);
   }
 
-  bool is_in_fullsnapshot() const { return raw_ptr()->is_in_fullsnapshot_; }
+  bool is_in_fullsnapshot() const {
+    return RawLibrary::InFullSnapshotBit::decode(raw_ptr()->flags_);
+  }
   void set_is_in_fullsnapshot(bool value) const {
-    StoreNonPointer(&raw_ptr()->is_in_fullsnapshot_, value);
+    set_flags(RawLibrary::InFullSnapshotBit::update(value, raw_ptr()->flags_));
+  }
+
+  bool is_nnbd() const {
+    return RawLibrary::NnbdBit::decode(raw_ptr()->flags_);
+  }
+  void set_is_nnbd(bool value) const {
+    set_flags(RawLibrary::NnbdBit::update(value, raw_ptr()->flags_));
   }
 
   RawString* PrivateName(const String& name) const;
@@ -4203,14 +4242,18 @@ class Library : public Object {
   static void RegisterLibraries(Thread* thread,
                                 const GrowableObjectArray& libs);
 
-  bool IsDebuggable() const { return raw_ptr()->debuggable_; }
+  bool IsDebuggable() const {
+    return RawLibrary::DebuggableBit::decode(raw_ptr()->flags_);
+  }
   void set_debuggable(bool value) const {
-    StoreNonPointer(&raw_ptr()->debuggable_, value);
+    set_flags(RawLibrary::DebuggableBit::update(value, raw_ptr()->flags_));
   }
 
-  bool is_dart_scheme() const { return raw_ptr()->is_dart_scheme_; }
+  bool is_dart_scheme() const {
+    return RawLibrary::DartSchemeBit::decode(raw_ptr()->flags_);
+  }
   void set_is_dart_scheme(bool value) const {
-    StoreNonPointer(&raw_ptr()->is_dart_scheme_, value);
+    set_flags(RawLibrary::DartSchemeBit::update(value, raw_ptr()->flags_));
   }
 
   // Includes 'dart:async', 'dart:typed_data', etc.
@@ -4373,6 +4416,7 @@ class Library : public Object {
   void set_url(const String& url) const;
 
   void set_num_imports(intptr_t value) const;
+  void set_flags(uint8_t flags) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -5102,62 +5146,52 @@ class CodeSourceMap : public Object {
   friend class Object;
 };
 
-class StackMap : public Object {
+class CompressedStackMaps : public Object {
  public:
-  bool IsObject(intptr_t index) const {
-    ASSERT(InRange(index));
-    return GetBit(index);
-  }
+  static const intptr_t kHashBits = 30;
 
-  intptr_t Length() const { return raw_ptr()->length_; }
+  intptr_t payload_size() const { return raw_ptr()->payload_size_; }
 
-  intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
-  void SetSlowPathBitCount(intptr_t bit_count) const {
-    ASSERT(bit_count <= kMaxUint16);
-    StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
-  }
-
-  bool Equals(const StackMap& other) const {
-    if (Length() != other.Length()) {
-      return false;
-    }
+  bool Equals(const CompressedStackMaps& other) const {
+    if (payload_size() != other.payload_size()) return false;
     NoSafepointScope no_safepoint;
-    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Length())) == 0;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(payload_size())) ==
+           0;
   }
+  intptr_t Hash() const;
 
-  static const intptr_t kMaxLengthInBytes = kSmiMax;
-
-  static intptr_t UnroundedSize(RawStackMap* map) {
-    return UnroundedSize(map->ptr()->length_);
+  static intptr_t UnroundedSize(RawCompressedStackMaps* maps) {
+    return UnroundedSize(maps->ptr()->payload_size_);
   }
-  static intptr_t UnroundedSize(intptr_t len) {
-    // The stackmap payload is in an array of bytes.
-    intptr_t payload_size = Utils::RoundUp(len, kBitsPerByte) / kBitsPerByte;
-    return sizeof(RawStackMap) + payload_size;
+  static intptr_t UnroundedSize(intptr_t length) {
+    return sizeof(RawCompressedStackMaps) + length;
   }
   static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawStackMap) == OFFSET_OF_RETURNED_VALUE(RawStackMap, data));
+    ASSERT(sizeof(RawCompressedStackMaps) ==
+           OFFSET_OF_RETURNED_VALUE(RawCompressedStackMaps, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
     return RoundedAllocationSize(UnroundedSize(length));
   }
-  static RawStackMap* New(BitmapBuilder* bmap, intptr_t slow_path_bit_count);
 
  private:
-  void SetLength(intptr_t length) const {
-    ASSERT(length <= kMaxUint16);
-    StoreNonPointer(&raw_ptr()->length_, length);
+  // The encoding logic for CompressedStackMaps entries is in
+  // CompressedStackMapsBuilder, and the decoding logic is in
+  // CompressedStackMapsIterator.
+  static RawCompressedStackMaps* New(const GrowableArray<uint8_t>& bytes);
+
+  void set_payload_size(intptr_t payload_size) const {
+    StoreNonPointer(&raw_ptr()->payload_size_, payload_size);
   }
 
-  bool InRange(intptr_t index) const { return index < Length(); }
+  const uint8_t* Payload() const { return raw_ptr()->data(); }
+  void SetPayload(const GrowableArray<uint8_t>& payload) const;
 
-  bool GetBit(intptr_t bit_index) const;
-  void SetBit(intptr_t bit_index, bool value) const;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(StackMap, Object);
-  friend class BitmapBuilder;
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps, Object);
   friend class Class;
+  friend class CompressedStackMapsBuilder;
+  friend class CompressedStackMapsIterator;
 };
 
 class ExceptionHandlers : public Object {
@@ -5292,9 +5326,6 @@ class Code : public Object {
     return ForceOptimizedBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_force_optimized(bool value) const;
-  static bool IsForceOptimized(RawCode* code) {
-    return Code::ForceOptimizedBit::decode(code->ptr()->state_bits_);
-  }
 
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
@@ -5363,11 +5394,11 @@ class Code : public Object {
   void set_catch_entry_moves_maps(const TypedData& maps) const;
 #endif
 
-  RawArray* stackmaps() const { return raw_ptr()->stackmaps_; }
-  void set_stackmaps(const Array& maps) const;
-  RawStackMap* GetStackMap(uint32_t pc_offset,
-                           Array* stackmaps,
-                           StackMap* map) const;
+  RawCompressedStackMaps* compressed_stackmaps() const {
+    return raw_ptr()->compressed_stackmaps_;
+  }
+  void set_compressed_stackmaps(const CompressedStackMaps& maps) const;
+
   enum CallKind {
     kPcRelativeCall = 1,
     kPcRelativeTailCall = 2,
@@ -7800,8 +7831,9 @@ class String : public Instance {
 
   static RawString* RemovePrivateKey(const String& name);
 
-  static RawString* ScrubName(const String& name);
-  static RawString* ScrubNameRetainPrivate(const String& name);
+  static RawString* ScrubName(const String& name, bool is_extension = false);
+  static RawString* ScrubNameRetainPrivate(const String& name,
+                                           bool is_extension = false);
 
   static bool EqualsIgnoringPrivateKey(const String& str1, const String& str2);
 
@@ -9905,7 +9937,8 @@ RawClass* Object::clazz() const {
   return Isolate::Current()->class_table()->At(raw()->GetClassId());
 }
 
-DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
+DART_FORCE_INLINE
+void Object::SetRaw(RawObject* value) {
   NoSafepointScope no_safepoint_scope;
   raw_ = value;
   if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {

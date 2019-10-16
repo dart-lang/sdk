@@ -184,7 +184,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node.type == null) {
       Token token = node.keyword;
       if (token?.keyword == Keyword.VAR) {
-        DartType inferredType = node.identifier?.staticType;
+        DartType inferredType = node.declaredElement?.type;
         Element element = inferredType?.element;
         if (element != null) {
           computer._addRegionForToken(token, element);
@@ -294,12 +294,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
      * inferred type.
      */
     Element getCommonElement(List<VariableDeclaration> variables) {
-      Element firstElement = variables[0].name?.staticType?.element;
+      Element firstElement = variables[0].declaredElement.type?.element;
       if (firstElement == null) {
         return null;
       }
       for (int i = 1; i < variables.length; i++) {
-        Element element = variables[1].name?.staticType?.element;
+        Element element = variables[1].declaredElement.type?.element;
         if (element != firstElement) {
           return null;
         }

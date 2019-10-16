@@ -478,6 +478,66 @@ class _SymbolImpl {
   ],
 );
 
+final MockSdkLibrary _LIB_FFI = MockSdkLibrary([
+  MockSdkLibraryUnit(
+    'dart:ffi',
+    '$sdkRoot/lib/ffi/ffi.dart',
+    '''
+library dart.ffi;
+class NativeType {
+  const NativeType();
+}
+class Void extends NativeType {}
+class Int8 extends NativeType {
+  const Int8();
+}
+class Uint8 extends NativeType {
+  const Uint8();
+}
+class Int16 extends NativeType {
+  const Int16();
+}
+class Uint16 extends NativeType {
+  const Uint16();
+}
+class Int32 extends NativeType {
+  const Int32();
+}
+class Uint32 extends NativeType {
+  const Uint32();
+}
+class Int64 extends NativeType {
+  const Int64();
+}
+class Uint64 extends NativeType {
+  const Uint64();
+}
+class Float extends NativeType {
+  const Float();
+}
+class Double extends NativeType {
+  const Double();
+}
+class Pointer<T extends NativeType> extends NativeType {
+  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+      @DartRepresentationOf("T") Function f,
+      [Object exceptionalReturn]);
+  R asFunction<@DartRepresentationOf("T") R extends Function>();
+}
+class Struct extends NativeType {}
+
+abstract class DynamicLibrary {
+  F lookupFunction<T extends Function, F extends Function>(String symbolName);
+}
+abstract class NativeFunction<T extends Function> extends NativeType {}
+
+class DartRepresentationOf {
+  const DartRepresentationOf(String nativeType);
+}
+''',
+  )
+]);
+
 final MockSdkLibrary _LIB_FOREIGN_HELPER = MockSdkLibrary(
   [
     MockSdkLibraryUnit(
@@ -944,6 +1004,7 @@ final List<SdkLibrary> _LIBRARIES = [
   _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
+  _LIB_FFI,
   _LIB_FOREIGN_HELPER,
   _LIB_IO,
   _LIB_MATH,
@@ -958,6 +1019,7 @@ final Map<String, String> _librariesDartEntries = {
   'collection': 'const LibraryInfo("collection/collection.dart")',
   'convert': 'const LibraryInfo("convert/convert.dart")',
   'core': 'const LibraryInfo("core/core.dart")',
+  'ffi': 'const LibraryInfo("ffi/ffi.dart")',
   'html': 'const LibraryInfo("html/dartium/html_dartium.dart", '
       'dart2jsPath: "html/dart2js/html_dart2js.dart")',
   'io': 'const LibraryInfo("io/io.dart")',

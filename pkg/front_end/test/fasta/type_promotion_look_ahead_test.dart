@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/fasta/builder/declaration.dart';
+import 'package:front_end/src/fasta/builder/builder.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

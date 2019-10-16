@@ -822,6 +822,16 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
+// Floating-point reciprocal estimate and step (see pages A2-85 and A2-86 of
+// ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalEstimate(float op);
+float ReciprocalStep(float op1, float op2);
+
+// Floating-point reciprocal square root estimate and step (see pages A2-87 to
+// A2-90 of ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalSqrtEstimate(float op);
+float ReciprocalSqrtStep(float op1, float op2);
+
 }  // namespace arch_arm
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM_H_

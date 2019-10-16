@@ -18,6 +18,21 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
       .toList();
 }
 
+/// Generates a list with a single `--enable-experiment=` option that includes
+/// all experiments enabled by [configuration] and [testFile].
+///
+/// Returns an empty list if there are no experiments to enable. Returning a
+/// list allows the result of calling this to be spread into another list.
+List<String> _experimentsArgument(
+    TestConfiguration configuration, TestFile testFile) {
+  if (configuration.experiments.isEmpty && testFile.experiments.isEmpty) {
+    return const [];
+  }
+
+  var experiments = [...configuration.experiments, ...testFile.experiments];
+  return ["--enable-experiment=${experiments.join(',')}"];
+}
+
 /// Grouping of a command with its expected result.
 class CommandArtifact {
   final List<Command> commands;
@@ -128,6 +143,7 @@ abstract class CompilerConfiguration {
     return [
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...args
     ];
   }
@@ -164,6 +180,7 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...originalArguments,
       ...testFile.dartOptions
     ];
@@ -205,6 +222,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     return [
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...vmOptions,
       ...args
     ];
@@ -232,6 +250,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ..._replaceDartFiles(originalArguments, filename),
       ...testFile.dartOptions
     ];
@@ -324,6 +343,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...args
     ];
   }
@@ -406,6 +426,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     return [
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...testFile.dart2jsOptions,
       ...args
     ];
@@ -482,6 +503,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     return [
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
       // The file being compiled is the last argument.
       args.last
@@ -816,6 +838,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ...filterVmOptions(vmOptions),
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...args
     ];
   }
@@ -840,6 +863,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...originalArguments,
       ...testFile.dartOptions
     ];
@@ -886,6 +910,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ...args,
       ...testFile.dartOptions
     ];
@@ -902,6 +927,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile),
       ..._replaceDartFiles(originalArguments, artifact.filename),
       ...testFile.dartOptions
     ];
@@ -1158,7 +1184,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       TestFile testFile, List<String> vmOptions, List<String> args) {
     var arguments = [
       ...testFile.sharedOptions,
-      ..._configuration.sharedOptions
+      ..._configuration.sharedOptions,
+      ..._experimentsArgument(_configuration, testFile)
     ];
     for (var argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;

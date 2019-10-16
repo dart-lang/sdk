@@ -88,11 +88,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return _typeSystem ??= Dart2TypeSystem(typeProvider);
   }
 
-  @override
-  void applyChanges(ChangeSet changeSet) {
-    throw UnimplementedError();
-  }
-
   /**
    * Create an analysis cache based on the given source [factory].
    */

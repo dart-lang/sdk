@@ -1231,10 +1231,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("TypeVariables");
   }
 
-  void handleVarianceModifier(Token variance) {
-    logEvent("VarianceModifier");
-  }
-
   void reportVarianceModifierNotEnabled(Token variance) {
     if (variance != null) {
       handleRecoverableError(

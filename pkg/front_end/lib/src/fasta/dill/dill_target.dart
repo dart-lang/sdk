@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart' show Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../kernel/kernel_builder.dart' show ClassBuilder;
+import '../builder/class_builder.dart';
 
 import '../problems.dart' show unsupported;
 

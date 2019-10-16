@@ -236,7 +236,7 @@ abstract class _AcceptStructuredClone {
     }
 
     if (isJavaScriptPromise(e)) {
-      return convertNativePromiseToDartFuture(e);
+      return promiseToFuture(e);
     }
 
     if (isJavaScriptSimpleObject(e)) {

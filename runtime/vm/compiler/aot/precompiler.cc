@@ -2750,22 +2750,56 @@ RawString* Obfuscator::ObfuscationState::NewAtomicRename(
 
 RawString* Obfuscator::ObfuscationState::BuildRename(const String& name,
                                                      bool atomic) {
-  const bool is_private = name.CharAt(0) == '_';
-  if (!atomic && is_private) {
+  if (atomic) {
+    return NewAtomicRename(name.CharAt(0) == '_');
+  }
+
+  intptr_t start = 0;
+  intptr_t end = name.Length();
+
+  // Follow the rules:
+  //
+  //         Rename(get:foo) = get:Rename(foo).
+  //         Rename(set:foo) = set:Rename(foo).
+  //
+  bool is_getter = false;
+  bool is_setter = false;
+  if (Field::IsGetterName(name)) {
+    is_getter = true;
+    start = kGetterPrefixLength;
+  } else if (Field::IsSetterName(name)) {
+    is_setter = true;
+    start = kSetterPrefixLength;
+  }
+
+  // Follow the rule:
+  //
+  //         Rename(_ident@key) = Rename(_ident)@private_key_.
+  //
+  const bool is_private = name.CharAt(start) == '_';
+  if (is_private) {
     // Find the first '@'.
-    intptr_t i = 0;
+    intptr_t i = start;
     while (i < name.Length() && name.CharAt(i) != '@') {
       i++;
     }
-    const intptr_t end = i;
+    end = i;
+  }
 
-    // Follow the rule:
-    //
-    //         Rename(_ident@key) = Rename(_ident)@private_key_.
-    //
-    string_ = Symbols::New(thread_, name, 0, end);
+  if (is_getter || is_setter || is_private) {
+    string_ = Symbols::New(thread_, name, start, end - start);
+    // It's OK to call RenameImpl() recursively because 'string_' is used
+    // only if atomic == false.
     string_ = RenameImpl(string_, /*atomic=*/true);
-    return Symbols::FromConcat(thread_, string_, private_key_);
+    if (is_private && (end < name.Length())) {
+      string_ = Symbols::FromConcat(thread_, string_, private_key_);
+    }
+    if (is_getter) {
+      return Symbols::FromGet(thread_, string_);
+    } else if (is_setter) {
+      return Symbols::FromSet(thread_, string_);
+    }
+    return string_.raw();
   } else {
     return NewAtomicRename(is_private);
   }

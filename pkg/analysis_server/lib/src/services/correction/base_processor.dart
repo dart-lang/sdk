@@ -99,26 +99,32 @@ abstract class BaseProcessor {
       return null;
     }
 
-    var constructorName;
+    var constructorId;
     var typeArgs;
+    var constructorName = '';
 
-    if (type.isDartCoreInt) {
-      constructorName = 'IntProperty';
+    if (type.element is FunctionTypedElement) {
+      constructorId = 'ObjectFlagProperty';
+      typeArgs = [type];
+      constructorName = '.has';
+    } else if (type.isDartCoreInt) {
+      constructorId = 'IntProperty';
     } else if (type.isDartCoreDouble) {
-      constructorName = 'DoubleProperty';
+      constructorId = 'DoubleProperty';
     } else if (type.isDartCoreString) {
-      constructorName = 'StringProperty';
+      constructorId = 'StringProperty';
     } else if (isEnum(type)) {
-      constructorName = 'EnumProperty';
+      constructorId = 'EnumProperty';
+      typeArgs = [type];
     } else if (isIterable(type)) {
-      constructorName = 'IterableProperty';
+      constructorId = 'IterableProperty';
       typeArgs = (type as InterfaceType).typeArguments;
     } else if (flutter.isColor(type)) {
-      constructorName = 'ColorProperty';
+      constructorId = 'ColorProperty';
     } else if (flutter.isMatrix4(type)) {
-      constructorName = 'TransformProperty';
+      constructorId = 'TransformProperty';
     } else {
-      constructorName = 'DiagnosticsProperty';
+      constructorId = 'DiagnosticsProperty';
       if (!type.isDynamic) {
         typeArgs = [type];
       }
@@ -129,13 +135,31 @@ abstract class BaseProcessor {
       @required String prefix,
       @required String builderName,
     }) {
-      builder.write("$prefix$builderName.add($constructorName");
+      builder.write("$prefix$builderName.add($constructorId");
       if (typeArgs != null) {
         builder.write('<');
         builder.writeTypes(typeArgs);
         builder.write('>');
+      } else if (type.isDynamic) {
+        TypeAnnotation declType;
+        final decl = node.thisOrAncestorOfType<VariableDeclarationList>();
+        if (decl != null) {
+          declType = decl.type;
+          // getter
+        } else if (parent is MethodDeclaration) {
+          declType = parent.returnType;
+        }
+
+        if (declType != null) {
+          final typeText = utils.getNodeText(declType);
+          if (typeText != 'dynamic') {
+            builder.write('<');
+            builder.write(utils.getNodeText(declType));
+            builder.write('>');
+          }
+        }
       }
-      builder.writeln("('${name.name}', ${name.name}));");
+      builder.writeln("$constructorName('${name.name}', ${name.name}));");
     }
 
     final classDeclaration = parent.thisOrAncestorOfType<ClassDeclaration>();
@@ -236,7 +260,7 @@ abstract class BaseProcessor {
       _coverageMarker();
       return null;
     }
-    DartType type = declaredIdentifier.identifier.staticType;
+    DartType type = declaredIdentifier.declaredElement.type;
     if (type is! InterfaceType && type is! FunctionType) {
       _coverageMarker();
       return null;
@@ -1008,7 +1032,8 @@ abstract class BaseProcessor {
       return null;
     }
 
-    final String relativePath = path.relative(
+    // We only write posix style paths in import directives.
+    final String relativePath = path.posix.relative(
       importUri.path,
       from: path.dirname(sourceUri.path),
     );

@@ -862,19 +862,6 @@ class ConstantEvaluationEngine {
       return true;
     }
     var objType = obj.type;
-    if (objType.isDartCoreInt && type.isDartCoreDouble) {
-      // Work around dartbug.com/35993 by allowing `int` to be used in a place
-      // where `double` is expected.
-      //
-      // Note that this is not technically correct, because it allows code like
-      // this:
-      //   const Object x = 1;
-      //   const double y = x;
-      //
-      // TODO(paulberry): remove this workaround once dartbug.com/33441 is
-      // fixed.
-      return true;
-    }
     return typeSystem.isSubtypeOf(objType, type);
   }
 

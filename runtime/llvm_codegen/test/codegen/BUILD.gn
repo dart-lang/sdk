@@ -5,5 +5,5 @@
 import("../bit_test.gni")
 
 bit_test("codegen") {
-  tests = [ "basic.ll" ]
+  tests = [ "hello.test" ]
 }

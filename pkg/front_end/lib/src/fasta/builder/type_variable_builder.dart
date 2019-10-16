@@ -4,10 +4,8 @@
 
 library fasta.type_variable_builder;
 
-import 'builder.dart' show LibraryBuilder, NullabilityBuilder, TypeBuilder;
-
 import 'package:kernel/ast.dart'
-    show DartType, Nullability, TypeParameter, TypeParameterType;
+    show DartType, Nullability, TypeParameter, TypeParameterType, Variance;
 
 import '../fasta_codes.dart'
     show
@@ -15,15 +13,16 @@ import '../fasta_codes.dart'
         templateInternalProblemUnfinishedTypeVariable,
         templateTypeArgumentsOnTypeVariable;
 
-import '../kernel/kernel_builder.dart'
-    show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
-
 import '../problems.dart' show unsupported;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'declaration.dart';
-
+import 'builder.dart';
+import 'class_builder.dart';
+import 'library_builder.dart';
+import 'named_type_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 import 'type_declaration_builder.dart';
 
 class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
@@ -39,9 +38,12 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound, this.isExtensionTypeParameter: false})
+      {this.bound,
+      this.isExtensionTypeParameter: false,
+      int variableVariance: Variance.covariant})
       : actualParameter = new TypeParameter(name, null)
-          ..fileOffset = charOffset,
+          ..fileOffset = charOffset
+          ..variance = variableVariance,
         super(null, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
@@ -236,7 +238,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
     // An alternative is to use the offset of the node the cloned type variable
     // is declared on.
     return new TypeVariableBuilder(name, parent, charOffset,
-        bound: bound.clone(newTypes));
+        bound: bound.clone(newTypes), variableVariance: variance);
   }
 
   @override

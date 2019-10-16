@@ -22,18 +22,16 @@ import 'package:kernel/type_algebra.dart' show containsTypeVariable;
 
 import 'package:kernel/util/graph.dart' show Graph, computeStrongComponents;
 
-import '../builder/builder.dart';
-
-import 'kernel_builder.dart'
-    show
-        ClassBuilder,
-        FormalParameterBuilder,
-        FunctionTypeBuilder,
-        NamedTypeBuilder,
-        TypeAliasBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder;
+import '../builder/class_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 
@@ -68,8 +66,11 @@ int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
       if (declaration is ClassBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
-          for (TypeBuilder argument in type.arguments) {
-            result = Variance.meet(result, computeVariance(variable, argument));
+          for (int i = 0; i < type.arguments.length; ++i) {
+            result = Variance.meet(
+                result,
+                Variance.combine(declaration.cls.typeParameters[i].variance,
+                    computeVariance(variable, type.arguments[i])));
           }
         }
         return result;
@@ -227,7 +228,7 @@ TypeBuilder substituteRange(
           arguments[i] = substitutedArgument;
         }
       }
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       // Don't substitute.
     } else {
       assert(false, "Unexpected named type builder declaration: $declaration.");

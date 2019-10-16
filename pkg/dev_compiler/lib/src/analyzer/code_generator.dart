@@ -16,7 +16,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
@@ -2269,14 +2268,11 @@ class CodeGenerator extends Object
             p.parameterKind))
         .toList();
 
-    var function = FunctionElementImpl("", -1)
-      ..isSynthetic = true
-      ..returnType = element.returnType
-      // TODO(jmesserly): do covariant type parameter bounds also need to be
-      // reified as `Object`?
-      ..shareTypeParameters(element.typeParameters)
-      ..parameters = parameters;
-    return function.type = FunctionTypeImpl(function);
+    return FunctionTypeImpl.synthetic(
+      element.returnType,
+      element.typeParameters,
+      parameters,
+    );
   }
 
   js_ast.Expression _constructorName(String name) {
@@ -6740,9 +6736,7 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
   TemporaryVariableElement.forNode(
       Identifier name, this.jsVariable, Element enclosingElement)
       : super.forNode(name) {
-    this.enclosingElement = enclosingElement is ElementHandle
-        ? enclosingElement.actualElement
-        : enclosingElement;
+    this.enclosingElement = enclosingElement;
   }
 
   @override

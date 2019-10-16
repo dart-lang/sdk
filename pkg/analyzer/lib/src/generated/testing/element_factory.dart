@@ -274,8 +274,6 @@ class ElementFactory {
     // We don't create parameter elements because we don't have parameter names
     FunctionElementImpl functionElement =
         new FunctionElementImpl(functionName, 0);
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
@@ -308,8 +306,6 @@ class ElementFactory {
       List<ClassElement> namedParameters) {
     FunctionElementImpl functionElement =
         new FunctionElementImpl(functionName, 0);
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     int nameCount = names == null ? 0 : names.length;
@@ -405,8 +401,6 @@ class ElementFactory {
     functionElement.returnType =
         returnType == null ? VoidTypeImpl.instance : returnType;
     functionElement.parameters = parameters;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     return functionElement;
   }
 
@@ -434,8 +428,6 @@ class ElementFactory {
     getter.returnType = type;
     getter.isStatic = isStatic;
     field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
     return getter;
   }
 
@@ -482,8 +474,6 @@ class ElementFactory {
       method.parameters = parameters;
     }
     method.returnType = returnType;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(method);
-    method.type = methodType;
     return method;
   }
 
@@ -496,7 +486,6 @@ class ElementFactory {
     method.enclosingElement = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
-    method.type = new FunctionTypeImpl(method);
     return method;
   }
 
@@ -586,8 +575,6 @@ class ElementFactory {
     getter.variable = field;
     getter.returnType = type;
     field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter =
         new PropertyAccessorElementImpl(name, -1);
@@ -596,7 +583,6 @@ class ElementFactory {
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
-    setter.type = new FunctionTypeImpl(setter);
     setter.isStatic = isStatic;
     field.setter = setter;
     return setter;

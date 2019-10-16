@@ -531,7 +531,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkClass(node);
@@ -569,7 +569,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
     ClassElementImpl outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
@@ -1111,7 +1111,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // TODO(scheglov) Verify for all mixin errors.
     ClassElementImpl outerClass = _enclosingClass;
     try {
-      _enclosingClass = AbstractClassElementImpl.getImpl(node.declaredElement);
+      _enclosingClass = node.declaredElement;
 
       List<ClassMember> members = node.members;
       _duplicateDefinitionVerifier.checkMixin(node);
@@ -2709,7 +2709,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     // The type of the loop variable.
-    DartType variableType = getStaticType(variable);
+    DartType variableType;
+    var variableElement = variable.staticElement;
+    if (variableElement is VariableElement) {
+      variableType = variableElement.type;
+    } else {
+      return false;
+    }
 
     AstNode parent = node.parent;
     Token awaitKeyword;
@@ -3904,8 +3910,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// implementations of all the super-invoked members of the [mixinElement].
   bool _checkForMixinSuperInvokedMembers(int mixinIndex, TypeName mixinName,
       ClassElement mixinElement, InterfaceType mixinType) {
-    ClassElementImpl mixinElementImpl =
-        AbstractClassElementImpl.getImpl(mixinElement);
+    ClassElementImpl mixinElementImpl = mixinElement;
     if (mixinElementImpl.superInvokedNames.isEmpty) {
       return false;
     }
@@ -5497,10 +5502,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       Token keyword = parameter.covariantKeyword;
       if (keyword != null) {
         if (_enclosingExtension != null) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
-            keyword,
-          );
+          // Reported by the parser.
         } else {
           _errorReporter.reportErrorForToken(
             CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,

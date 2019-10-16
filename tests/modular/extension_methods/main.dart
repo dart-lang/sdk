@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import 'def.dart';
+import 'def2.dart';
 
 main() {
   testExplicitAccess(new Class(42));

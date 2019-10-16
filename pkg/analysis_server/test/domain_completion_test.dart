@@ -1298,4 +1298,3 @@ class MockRelevancySorter implements DartContributionSorter {
     return new Future.value();
   }
 }
-

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Reproduction fo https://github.com/flutter/flutter/issues/40966.
+# Reproduction of https://github.com/flutter/flutter/issues/40966.
 
 type: newworld
 target: None
@@ -17,6 +17,7 @@ modules:
       module:.
 worlds:
   - entry: main.dart
+    fromComponent: true
     sources:
       main.dart: |
         import "package:module/a.dart";

@@ -295,10 +295,26 @@ abstract class SubtypeTester {
       if (upcastType == null) return const IsSubtypeOf.never();
       for (int i = 0; i < upcastType.typeArguments.length; ++i) {
         // Termination: the 'supertype' parameter decreases in size.
-        if (!performNullabilityAwareSubtypeCheck(
-                upcastType.typeArguments[i], supertype.typeArguments[i])
-            .isSubtypeWhenIgnoringNullabilities()) {
-          return const IsSubtypeOf.never();
+        int variance = upcastType.classNode.typeParameters[i].variance;
+        DartType leftType = upcastType.typeArguments[i];
+        DartType rightType = supertype.typeArguments[i];
+        if (variance == Variance.contravariant) {
+          if (!performNullabilityAwareSubtypeCheck(rightType, leftType)
+              .isSubtypeWhenIgnoringNullabilities()) {
+            return const IsSubtypeOf.never();
+          }
+        } else if (variance == Variance.invariant) {
+          if (!performNullabilityAwareSubtypeCheck(rightType, leftType)
+                  .isSubtypeWhenIgnoringNullabilities() ||
+              !performNullabilityAwareSubtypeCheck(leftType, rightType)
+                  .isSubtypeWhenIgnoringNullabilities()) {
+            return const IsSubtypeOf.never();
+          }
+        } else {
+          if (!performNullabilityAwareSubtypeCheck(leftType, rightType)
+              .isSubtypeWhenIgnoringNullabilities()) {
+            return const IsSubtypeOf.never();
+          }
         }
       }
       return const IsSubtypeOf.always();

@@ -66,8 +66,8 @@ main() {
     throw "'file' failed";
     return;
   }
-  if (!result.stdout.contains("Mach-O")) {
-    print("Skipping test because we are not running from a dylib");
+  if (!result.stdout.contains("ELF") && !result.stdout.contains("Mach-O")) {
+    print("Skipping test because we are not running from a dylib or ELF.");
     return;
   }
 

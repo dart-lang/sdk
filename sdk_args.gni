@@ -1,0 +1,5 @@
+declare_args() {
+  # Whether to use the NNBD fork of the SDK core libraries.
+  # TODO(#38701): Remove this when the fork has been merged back in.
+  use_nnbd = false
+}

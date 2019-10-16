@@ -754,10 +754,9 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
-  /// Whether or not to enable ML code completion.
-  bool enableCompletionModel = false;
-
   /// Base path to locate trained completion language model files.
+  ///
+  /// ML completion is enabled if this is non-null.
   String completionModelFolder;
 
   /// Whether to enable parsing via the Fasta parser.
@@ -915,14 +914,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
-      changeSet.addedSources.forEach((source) {
-        analysisDriver.addFile(source.fullName);
+      changeSet.addedFiles.forEach((path) {
+        analysisDriver.addFile(path);
       });
-      changeSet.changedSources.forEach((source) {
-        analysisDriver.changeFile(source.fullName);
+      changeSet.changedFiles.forEach((path) {
+        analysisDriver.changeFile(path);
       });
-      changeSet.removedSources.forEach((source) {
-        analysisDriver.removeFile(source.fullName);
+      changeSet.removedFiles.forEach((path) {
+        analysisDriver.removeFile(path);
       });
     }
   }

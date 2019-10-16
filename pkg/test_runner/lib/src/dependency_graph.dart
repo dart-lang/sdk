@@ -4,8 +4,6 @@
 
 import 'dart:async';
 
-import 'utils.dart';
-
 /// A directed acyclic graph where each node is in a [NodeState] and can have
 /// data attached to it with [Node.data].
 ///
@@ -112,7 +110,7 @@ class Graph<T> {
 }
 
 /// A single node in a [Graph].
-class Node<T> extends UniqueObject {
+class Node<T> {
   final T data;
   final bool timingDependency;
   NodeState _state = NodeState.initialized;

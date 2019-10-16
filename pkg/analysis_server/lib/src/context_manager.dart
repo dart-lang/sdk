@@ -42,6 +42,41 @@ import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 import 'package:yaml/yaml.dart';
 
+/// An indication of which files have been added, changed, removed, or deleted.
+///
+/// No file should be added to the change set more than once, either with the
+/// same or a different kind of change. It does not make sense, for example,
+/// for a file to be both added and removed.
+class ChangeSet {
+  /// A list containing paths of added files.
+  final List<String> addedFiles = [];
+
+  /// A list containing paths of changed files.
+  final List<String> changedFiles = [];
+
+  /// A list containing paths of removed files.
+  final List<String> removedFiles = [];
+
+  /// Return `true` if this change set does not contain any changes.
+  bool get isEmpty =>
+      addedFiles.isEmpty && changedFiles.isEmpty && removedFiles.isEmpty;
+
+  /// Record that the file with the specified [path] has been added.
+  void addedSource(String path) {
+    addedFiles.add(path);
+  }
+
+  /// Record that the file with the specified [path] has been changed.
+  void changedSource(String path) {
+    changedFiles.add(path);
+  }
+
+  /// Record that the file with the specified [path] has been removed.
+  void removedSource(String path) {
+    removedFiles.add(path);
+  }
+}
+
 /**
  * Information tracked by the [ContextManager] for each context.
  */
@@ -770,7 +805,7 @@ class ContextManagerImpl implements ContextManager {
       ChangeSet changeSet = new ChangeSet();
       excludedSources.forEach((String path, Source source) {
         info.sources.remove(path);
-        changeSet.removedSource(source);
+        changeSet.removedSource(path);
       });
       callbacks.applyChangesToContext(info.folder, changeSet);
     }
@@ -819,7 +854,7 @@ class ContextManagerImpl implements ContextManager {
         }
         // do add the file
         Source source = createSourceInContext(info.analysisDriver, child);
-        changeSet.addedSource(source);
+        changeSet.addedSource(child.path);
         info.sources[path] = source;
       } else if (child is Folder) {
         _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
@@ -854,7 +889,7 @@ class ContextManagerImpl implements ContextManager {
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
           Source source = createSourceInContext(info.analysisDriver, child);
-          changeSet.addedSource(source);
+          changeSet.addedSource(child.path);
           info.sources[path] = source;
         }
       } else if (child is Folder) {
@@ -1277,7 +1312,7 @@ class ContextManagerImpl implements ContextManager {
       ChangeSet changeSet = new ChangeSet();
       extractedSources.forEach((path, source) {
         newInfo.sources[path] = source;
-        changeSet.addedSource(source);
+        changeSet.addedSource(path);
       });
       callbacks.applyChangesToContext(newFolder, changeSet);
     }
@@ -1286,7 +1321,7 @@ class ContextManagerImpl implements ContextManager {
       ChangeSet changeSet = new ChangeSet();
       extractedSources.forEach((path, source) {
         oldInfo.sources.remove(path);
-        changeSet.removedSource(source);
+        changeSet.removedSource(path);
       });
       callbacks.applyChangesToContext(oldInfo.folder, changeSet);
     }
@@ -1568,7 +1603,7 @@ class ContextManagerImpl implements ContextManager {
       ChangeSet changeSet = new ChangeSet();
       info.sources.forEach((path, source) {
         parentInfo.sources[path] = source;
-        changeSet.addedSource(source);
+        changeSet.addedSource(path);
       });
       callbacks.applyChangesToContext(parentInfo.folder, changeSet);
     }

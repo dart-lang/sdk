@@ -45,6 +45,17 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+
 import '../compiler_context.dart' show CompilerContext;
 
 import '../crash.dart' show withCrashReporting;
@@ -85,19 +96,6 @@ import '../target_implementation.dart' show TargetImplementation;
 import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants show transformLibraries;
-
-import 'kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        InvalidTypeBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        NullabilityBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -256,10 +254,7 @@ class KernelTarget extends TargetImplementation {
           loader.coreLibrary.lookupLocalMember("dynamic", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
-      objectType
-          .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
-      bottomType
-          .bind(loader.coreLibrary.lookupLocalMember("Null", required: true));
+      setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
@@ -465,7 +460,7 @@ class KernelTarget extends TargetImplementation {
       unhandled("${type.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
-    if (supertype.isMixinApplication && supertype is SourceClassBuilder) {
+    if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
     if (supertype is ClassBuilder) {
@@ -479,7 +474,7 @@ class KernelTarget extends TargetImplementation {
               builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
-    } else if (supertype is InvalidTypeBuilder) {
+    } else if (supertype is InvalidTypeDeclarationBuilder) {
       builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
@@ -565,6 +560,16 @@ class KernelTarget extends TargetImplementation {
       typeParameterTypes.add(new TypeParameterType(typeParameter));
     }
     return new InterfaceType(enclosingClass, typeParameterTypes);
+  }
+
+  void setupTopAndBottomTypes() {
+    objectType
+        .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
+
+    ClassBuilder nullClassBuilder =
+        loader.coreLibrary.lookupLocalMember("Null", required: true);
+    nullClassBuilder.isNullClass = true;
+    bottomType.bind(nullClassBuilder);
   }
 
   void computeCoreTypes() {
@@ -795,6 +800,7 @@ class KernelTarget extends TargetImplementation {
         environment,
         new KernelConstantErrorReporter(loader),
         desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

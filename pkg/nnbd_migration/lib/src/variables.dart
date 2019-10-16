@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -43,7 +42,6 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
       ClassElement class_) {
-    assert(class_ is! ClassElementHandle);
     return _decoratedDirectSupertypes[class_] ??=
         _decorateDirectSupertypes(class_);
   }
@@ -115,13 +113,6 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   void recordDecoratedDirectSupertypes(ClassElement class_,
       Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
-    assert(() {
-      assert(class_ is! ClassElementHandle);
-      for (var key in decoratedDirectSupertypes.keys) {
-        assert(key is! ClassElementHandle);
-      }
-      return true;
-    }());
     _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
@@ -210,9 +201,6 @@ class Variables implements VariableRecorder, VariableRepository {
         in _alreadyMigratedCodeDecorator.getImmediateSupertypes(class_)) {
       assert(identical(decoratedSupertype.node, _graph.never));
       var class_ = (decoratedSupertype.type as InterfaceType).element;
-      if (class_ is ClassElementHandle) {
-        class_ = (class_ as ClassElementHandle).actualElement;
-      }
       result[class_] = decoratedSupertype;
     }
     return result;

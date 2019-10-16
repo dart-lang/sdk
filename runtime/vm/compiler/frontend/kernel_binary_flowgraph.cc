@@ -162,10 +162,9 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
-    NameIndex canonical_name) {
+    const Field& field,
+    bool only_for_side_effects) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
-  Field& field =
-      Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
     if (H.thread()->IsMutatorThread()) {
@@ -177,13 +176,19 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   }
 
   Fragment instructions;
-  instructions += LoadLocal(parsed_function()->receiver_var());
+  if (!only_for_side_effects) {
+    instructions += LoadLocal(parsed_function()->receiver_var());
+  }
   // All closures created inside BuildExpression will have
   // field.RawOwner() as its owner.
   closure_owner_ = field.RawOwner();
   instructions += BuildExpression();
   closure_owner_ = Object::null();
-  instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
+  if (only_for_side_effects) {
+    instructions += Drop();
+  } else {
+    instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
+  }
   return instructions;
 }
 
@@ -200,47 +205,105 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     initializers_offset = ReaderOffset();
   }
 
-  // These come from:
-  //   class A {
-  //     var x = (expr);
-  //   }
-  // We don't want to do that when this is a Redirecting Constructors though
-  // (i.e. has a single initializer being of type kRedirectingInitializer).
   bool is_redirecting_constructor = false;
+
+  // Field which will be initialized by the initializer with the given index.
+  GrowableArray<const Field*> initializer_fields(5);
+
+  // Check if this is a redirecting constructor and collect all fields which
+  // will be initialized by the constructor initializer list.
   {
     AlternativeReadingScope alt(&reader_, initializers_offset);
-    intptr_t list_length = ReadListLength();  // read initializers list length.
-    bool no_field_initializers = true;
+
+    const intptr_t list_length =
+        ReadListLength();  // read initializers list length.
+    initializer_fields.EnsureLength(list_length, nullptr);
+
+    bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
       if (PeekTag() == kRedirectingInitializer) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
-        no_field_initializers = false;
+        has_field_initializers = true;
+        ReadTag();
+        ReadBool();
+        const NameIndex field_name = ReadCanonicalNameReference();
+        const Field& field =
+            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
+        initializer_fields[i] = &field;
+        SkipExpression();
+        continue;
       }
       SkipInitializer();
     }
-    ASSERT(is_redirecting_constructor ? no_field_initializers : true);
+    ASSERT(!is_redirecting_constructor || !has_field_initializers);
   }
 
+  // These come from:
+  //
+  //   class A {
+  //     var x = (expr);
+  //   }
+  //
+  // We don't want to do that when this is a Redirecting Constructors though
+  // (i.e. has a single initializer being of type kRedirectingInitializer).
   if (!is_redirecting_constructor) {
+    // Sort list of fields (represented as their kernel offsets) which will
+    // be initialized by the constructor initializer list. We will not emit
+    // StoreInstanceField instructions for those initializers though we will
+    // still evaluate initialization expression for its side effects.
+    GrowableArray<intptr_t> constructor_initialized_field_offsets(
+        initializer_fields.length());
+    for (auto field : initializer_fields) {
+      if (field != nullptr) {
+        constructor_initialized_field_offsets.Add(field->kernel_offset());
+      }
+    }
+
+    constructor_initialized_field_offsets.Sort(
+        [](const intptr_t* a, const intptr_t* b) {
+          return static_cast<int>(*a) - static_cast<int>(*b);
+        });
+    constructor_initialized_field_offsets.Add(-1);
+
+    ExternalTypedData& kernel_data = ExternalTypedData::Handle(Z);
     Array& class_fields = Array::Handle(Z, parent_class.fields());
     Field& class_field = Field::Handle(Z);
+    intptr_t next_constructor_initialized_field_index = 0;
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        const intptr_t field_offset = class_field.kernel_offset();
+
+        // Check if this field will be initialized by the constructor
+        // initializer list.
+        // Note that both class_fields and the list of initialized fields
+        // are sorted by their kernel offset (by construction) -
+        // so we don't need to perform the search.
+        bool is_constructor_initialized = false;
+        const intptr_t constructor_initialized_field_offset =
+            constructor_initialized_field_offsets
+                [next_constructor_initialized_field_index];
+        if (constructor_initialized_field_offset == field_offset) {
+          next_constructor_initialized_field_index++;
+          is_constructor_initialized = true;
+        }
+
+        kernel_data = class_field.KernelData();
         ASSERT(!kernel_data.IsNull());
-        intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
                                                field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-        Tag initializer_tag = ReadTag();  // read first part of initializer.
+        const Tag initializer_tag = ReadTag();
         if (initializer_tag == kSomething) {
           EnterScope(field_offset);
+          // If this field is initialized in constructor then we can ignore the
+          // value produced by the field initializer. However we still need to
+          // execute it for its side effects.
           instructions += BuildFieldInitializer(
-              field_helper.canonical_name_);  // read initializer.
+              Field::ZoneHandle(Z, class_field.raw()),
+              /*only_for_side_effects=*/is_constructor_initialized);
           ExitScope(field_offset);
         }
       }
@@ -264,9 +327,10 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           UNIMPLEMENTED();
           return Fragment();
         case kFieldInitializer: {
-          NameIndex canonical_name =
-              ReadCanonicalNameReference();  // read field_reference.
-          instructions += BuildFieldInitializer(canonical_name);  // read value.
+          ReadCanonicalNameReference();
+          instructions += BuildFieldInitializer(
+              Field::ZoneHandle(Z, initializer_fields[i]->raw()),
+              /*only_for_size_effects=*/false);
           break;
         }
         case kAssertInitializer: {
@@ -3511,7 +3575,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // or explicitly written by the user, in both cases we use an assert
     // assignable.
     instructions += LoadLocal(MakeTemporary());
-    instructions += B->AssertAssignable(
+    instructions += B->AssertAssignableLoadTypeArguments(
         position, type,
         is_type_error ? Symbols::Empty() : Symbols::InTypeCast(),
         AssertAssignableInstr::kInsertedByFrontend);

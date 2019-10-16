@@ -3,7 +3,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Smoke test runner for Dart AOT (dart2aot, dartaotruntime).
+// Smoke test runner for Dart AOT (dart2native, dartaotruntime).
 // aot_smoke_tests.dart and dart_aot_test.dart together form the test that the
 // AOT toolchain is compiled and included correctly in the SDK.
 // This tests that the AOT tools can both successfully compile Dart -> AOT and
@@ -20,7 +20,6 @@ final String newline = Platform.isWindows ? '\r\n' : '\n';
 final String scriptSuffix = Platform.isWindows ? ".bat" : "";
 final String executableSuffix = Platform.isWindows ? ".exe" : "";
 final String sdkBinDir = path.dirname(Platform.executable);
-final String dart2aot = path.join(sdkBinDir, 'dart2aot${scriptSuffix}');
 final String dartaotruntime =
     path.join(sdkBinDir, 'dartaotruntime${executableSuffix}');
 final String dart2native = path.join(sdkBinDir, 'dart2native${scriptSuffix}');
@@ -35,30 +34,6 @@ Future<void> withTempDir(Future fun(String dir)) async {
 }
 
 void main(List<String> args) {
-  test("dart2aot: Can compile and run AOT", () async {
-    await withTempDir((String tmp) async {
-      final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');
-      final String tmpAot = path.join(tmp, 'dart_aot_test.aot');
-
-      {
-        final ProcessResult result =
-            await Process.run(dart2aot, [testCode, tmpAot]);
-        expect(result.stderr, '');
-        expect(result.exitCode, 0);
-        expect(result.stdout, '');
-      }
-
-      {
-        const String testStr = 'Dart AOT';
-        final ProcessResult result =
-            await Process.run(dartaotruntime, [tmpAot, testStr]);
-        expect(result.stderr, '');
-        expect(result.exitCode, 0);
-        expect(result.stdout, 'Hello, ${testStr}.${newline}');
-      }
-    });
-  });
-
   test("dart2native: Can compile and run AOT", () async {
     await withTempDir((String tmp) async {
       final String testCode = path.join('tools', 'bots', 'dart_aot_test.dart');

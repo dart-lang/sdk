@@ -400,6 +400,9 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     Class& cls = Class::Handle(zone());
     Function& fun = Function::Handle(zone());
     for (intptr_t i = 0, len = data->NumberOfChecks(); i < len; i++) {
+      if (!data->IsUsedAt(i)) {
+        continue;  // do not consider
+      }
       fun = data->GetTargetAt(i);
       cls = fun.Owner();
       if (data->GetReceiverClassIdAt(i) == cid || cls.id() == cid) {

@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'add_diagnostic_property_reference_test.dart' as add_diagnostic_property;
 import 'add_not_null_assert.dart' as add_not_null_assert;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
@@ -83,6 +84,7 @@ import 'use_curly_braces_test.dart' as use_curly_braces;
 
 main() {
   defineReflectiveSuite(() {
+    add_diagnostic_property.main();
     add_not_null_assert.main();
     add_type_annotation.main();
     assign_to_local_variable.main();

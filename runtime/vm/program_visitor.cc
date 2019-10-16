@@ -201,42 +201,39 @@ void ProgramVisitor::ShareMegamorphicBuckets() {
   }
 }
 
-class StackMapKeyValueTrait {
+class CompressedStackMapsKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const StackMap* Key;
-  typedef const StackMap* Value;
-  typedef const StackMap* Pair;
+  typedef const CompressedStackMaps* Key;
+  typedef const CompressedStackMaps* Value;
+  typedef const CompressedStackMaps* Pair;
 
   static Key KeyOf(Pair kv) { return kv; }
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    intptr_t hash = key->SlowPathBitCount();
-    hash = CombineHashes(hash, key->Length());
-    return FinalizeHash(hash, kBitsPerWord - 1);
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
   }
 };
 
-typedef DirectChainedHashMap<StackMapKeyValueTrait> StackMapSet;
+typedef DirectChainedHashMap<CompressedStackMapsKeyValueTrait>
+    CompressedStackMapsSet;
 
-void ProgramVisitor::DedupStackMaps() {
-  class DedupStackMapsVisitor : public FunctionVisitor {
+void ProgramVisitor::DedupCompressedStackMaps() {
+  class DedupCompressedStackMapsVisitor : public FunctionVisitor {
    public:
-    explicit DedupStackMapsVisitor(Zone* zone)
+    explicit DedupCompressedStackMapsVisitor(Zone* zone)
         : zone_(zone),
-          canonical_stackmaps_(),
+          canonical_compressed_stackmaps_set_(),
           code_(Code::Handle(zone)),
-          stackmaps_(Array::Handle(zone)),
-          stackmap_(StackMap::Handle(zone)) {}
+          compressed_stackmaps_(CompressedStackMaps::Handle(zone)) {}
 
-    void AddStackMap(const StackMap& stackmap) {
-      canonical_stackmaps_.Insert(&StackMap::ZoneHandle(zone_, stackmap.raw()));
+    void AddCompressedStackMaps(const CompressedStackMaps& maps) {
+      canonical_compressed_stackmaps_set_.Insert(
+          &CompressedStackMaps::ZoneHandle(zone_, maps.raw()));
     }
 
     void Visit(const Function& function) {
@@ -244,43 +241,40 @@ void ProgramVisitor::DedupStackMaps() {
         return;
       }
       code_ = function.CurrentCode();
-      stackmaps_ = code_.stackmaps();
-      if (stackmaps_.IsNull()) return;
-      for (intptr_t i = 1; i < stackmaps_.Length(); i += 2) {
-        stackmap_ ^= stackmaps_.At(i);
-        stackmap_ = DedupStackMap(stackmap_);
-        stackmaps_.SetAt(i, stackmap_);
-      }
+      compressed_stackmaps_ = code_.compressed_stackmaps();
+      if (compressed_stackmaps_.IsNull()) return;
+      compressed_stackmaps_ = DedupCompressedStackMaps(compressed_stackmaps_);
+      code_.set_compressed_stackmaps(compressed_stackmaps_);
     }
 
-    RawStackMap* DedupStackMap(const StackMap& stackmap) {
-      const StackMap* canonical_stackmap =
-          canonical_stackmaps_.LookupValue(&stackmap);
-      if (canonical_stackmap == NULL) {
-        AddStackMap(stackmap);
-        return stackmap.raw();
+    RawCompressedStackMaps* DedupCompressedStackMaps(
+        const CompressedStackMaps& maps) {
+      auto const canonical_maps =
+          canonical_compressed_stackmaps_set_.LookupValue(&maps);
+      if (canonical_maps == nullptr) {
+        AddCompressedStackMaps(maps);
+        return maps.raw();
       } else {
-        return canonical_stackmap->raw();
+        return canonical_maps->raw();
       }
     }
 
    private:
     Zone* zone_;
-    StackMapSet canonical_stackmaps_;
+    CompressedStackMapsSet canonical_compressed_stackmaps_set_;
     Code& code_;
-    Array& stackmaps_;
-    StackMap& stackmap_;
+    CompressedStackMaps& compressed_stackmaps_;
   };
 
-  DedupStackMapsVisitor visitor(Thread::Current()->zone());
+  DedupCompressedStackMapsVisitor visitor(Thread::Current()->zone());
   if (Snapshot::IncludesCode(Dart::vm_snapshot_kind())) {
     // Prefer existing objects in the VM isolate.
     const Array& object_table = Object::vm_isolate_snapshot_object_table();
     Object& object = Object::Handle();
     for (intptr_t i = 0; i < object_table.Length(); i++) {
       object = object_table.At(i);
-      if (object.IsStackMap()) {
-        visitor.AddStackMap(StackMap::Cast(object));
+      if (object.IsCompressedStackMaps()) {
+        visitor.AddCompressedStackMaps(CompressedStackMaps::Cast(object));
       }
     }
   }
@@ -620,11 +614,6 @@ void ProgramVisitor::DedupLists() {
     void Visit(const Function& function) {
       code_ = function.CurrentCode();
       if (!code_.IsNull()) {
-        list_ = code_.stackmaps();
-        if (!list_.IsNull()) {
-          list_ = DedupList(list_);
-          code_.set_stackmaps(list_);
-        }
         list_ = code_.inlined_id_to_function();
         if (!list_.IsNull()) {
           list_ = DedupList(list_);
@@ -732,12 +721,17 @@ typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
 
 // Traits for comparing two [Code] objects for equality.
 //
-// It considers two [Code] objects to be equal if
+// The instruction deduplication naturally causes us to have a one-to-many
+// relationship between Instructions and Code objects.
 //
-//   * their [RawInstruction]s are bit-wise equal
-//   * their [RawPcDescriptor]s are the same
-//   * their [RawStackMaps]s are the same
-//   * their static call targets are the same
+// In AOT bare instructions mode frames only have PCs. However, the runtime
+// needs e.g. stack maps from the [Code] to scan such a frame. So we ensure that
+// instructions of code objects are only deduplicated if the metadata in the
+// code is the same. The runtime can then pick any code object corresponding to
+// the PC in the frame and use the metadata.
+//
+// In AOT non-bare instructions mode frames are expanded, like in JIT, and
+// contain the unique code object.
 #if defined(DART_PRECOMPILER)
 class CodeKeyValueTrait {
  public:
@@ -760,13 +754,16 @@ class CodeKeyValueTrait {
     if (pair->static_calls_target_table() != key->static_calls_target_table()) {
       return false;
     }
-    if (pair->pc_descriptors() == key->pc_descriptors()) {
+    if (pair->pc_descriptors() != key->pc_descriptors()) {
       return false;
     }
-    if (pair->stackmaps() == key->stackmaps()) {
+    if (pair->compressed_stackmaps() != key->compressed_stackmaps()) {
       return false;
     }
-    if (pair->catch_entry_moves_maps() == key->catch_entry_moves_maps()) {
+    if (pair->catch_entry_moves_maps() != key->catch_entry_moves_maps()) {
+      return false;
+    }
+    if (pair->exception_handlers() != key->exception_handlers()) {
       return false;
     }
     return Instructions::Equals(pair->instructions(), key->instructions());
@@ -841,7 +838,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
         : zone_(zone),
           canonical_set_(),
           code_(Code::Handle(zone)),
-          owner_(Object::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
     void VisitObject(RawObject* obj) {
@@ -855,19 +851,25 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
         return;
       }
       code_ = function.CurrentCode();
-      instructions_ = DedupOneInstructions(code_);
+      instructions_ = DedupOneInstructions(function, code_);
       code_.SetActiveInstructions(instructions_);
       code_.set_instructions(instructions_);
       function.SetInstructions(code_);  // Update cached entry point.
     }
 
-    RawInstructions* DedupOneInstructions(const Code& code) {
+    RawInstructions* DedupOneInstructions(const Function& function,
+                                          const Code& code) {
+      // Switchable calls rely on a unique PC -> Code mapping atm, so we do not
+      // dedup any instructions for instance methods.
+      if (function.IsDynamicFunction()) {
+        return code.instructions();
+      }
+
       const Code* canonical = canonical_set_.LookupValue(&code);
-      if (canonical == NULL) {
+      if (canonical == nullptr) {
         canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
         return code.instructions();
       } else {
-        owner_ = code.owner();
         return canonical->instructions();
       }
     }
@@ -876,7 +878,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
     Zone* zone_;
     CodeSet canonical_set_;
     Code& code_;
-    Object& owner_;
     Instructions& instructions_;
   };
 
@@ -894,7 +895,7 @@ void ProgramVisitor::Dedup() {
 
   BindStaticCalls();
   ShareMegamorphicBuckets();
-  DedupStackMaps();
+  DedupCompressedStackMaps();
   DedupPcDescriptors();
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
 #if defined(DART_PRECOMPILER)

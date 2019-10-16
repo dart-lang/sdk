@@ -18,6 +18,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         TypedefType,
+        Variance,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -227,14 +228,24 @@ class Types {
     throw "Unhandled type combination: ${t.runtimeType} ${s.runtimeType}";
   }
 
-  /// Returns true if all types in [s] and [t] pairwise are subtypes.
-  bool areSubtypesOfKernel(List<DartType> s, List<DartType> t) {
-    if (s.length != t.length) {
-      throw "Numbers of type arguments don't match $s $t.";
+  /// Returns true if all type arguments in [s] and [t] pairwise are subtypes
+  /// with respect to the variance of the corresponding [p] type parameter.
+  bool areTypeArgumentsOfSubtypeKernel(
+      List<DartType> s, List<DartType> t, List<TypeParameter> p) {
+    if (s.length != t.length || s.length != p.length) {
+      throw "Numbers of type arguments don't match $s $t with parameters $p.";
     }
     for (int i = 0; i < s.length; i++) {
-      if (!isSubtypeOfKernel(
-          s[i], t[i], SubtypeCheckMode.ignoringNullabilities)) return false;
+      int variance = p[i].variance;
+      if (variance == Variance.contravariant) {
+        if (!isSubtypeOfKernel(
+            t[i], s[i], SubtypeCheckMode.ignoringNullabilities)) return false;
+      } else if (variance == Variance.invariant) {
+        if (!isSameTypeKernel(s[i], t[i])) return false;
+      } else {
+        if (!isSubtypeOfKernel(
+            s[i], t[i], SubtypeCheckMode.ignoringNullabilities)) return false;
+      }
     }
     return true;
   }
@@ -297,8 +308,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
     if (asSupertype == null) {
       return false;
     } else {
-      return types.areSubtypesOfKernel(
-          asSupertype.typeArguments, t.typeArguments);
+      return types.areTypeArgumentsOfSubtypeKernel(asSupertype.typeArguments,
+          t.typeArguments, t.classNode.typeParameters);
     }
   }
 

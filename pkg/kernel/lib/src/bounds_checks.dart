@@ -113,7 +113,8 @@ class OccurrenceCollectorVisitor extends DartTypeVisitor {
 
 DartType instantiateToBounds(DartType type, Class objectClass) {
   if (type is InterfaceType) {
-    for (var typeArgument in type.typeArguments) {
+    if (type.typeArguments.isEmpty) return type;
+    for (DartType typeArgument in type.typeArguments) {
       // If at least one of the arguments is not dynamic, we assume that the
       // type is not raw and does not need instantiation of its type parameters
       // to their bounds.
@@ -121,17 +122,22 @@ DartType instantiateToBounds(DartType type, Class objectClass) {
         return type;
       }
     }
-    return new InterfaceType.byReference(type.className,
-        calculateBounds(type.classNode.typeParameters, objectClass));
+    return new InterfaceType.byReference(
+        type.className,
+        calculateBounds(type.classNode.typeParameters, objectClass),
+        type.nullability);
   }
   if (type is TypedefType) {
-    for (var typeArgument in type.typeArguments) {
+    if (type.typeArguments.isEmpty) return type;
+    for (DartType typeArgument in type.typeArguments) {
       if (typeArgument is! DynamicType) {
         return type;
       }
     }
-    return new TypedefType.byReference(type.typedefReference,
-        calculateBounds(type.typedefNode.typeParameters, objectClass));
+    return new TypedefType.byReference(
+        type.typedefReference,
+        calculateBounds(type.typedefNode.typeParameters, objectClass),
+        type.nullability);
   }
   return type;
 }
@@ -192,16 +198,20 @@ List<DartType> calculateBounds(
 }
 
 class TypeArgumentIssue {
-  // The type argument that violated the bound.
+  /// The index for type argument within the passed type arguments.
+  final int index;
+
+  /// The type argument that violated the bound.
   final DartType argument;
 
-  // The type parameter with the bound that was violated.
+  /// The type parameter with the bound that was violated.
   final TypeParameter typeParameter;
 
-  // The enclosing type of the issue, that is, the one with [typeParameter].
+  /// The enclosing type of the issue, that is, the one with [typeParameter].
   final DartType enclosingType;
 
-  TypeArgumentIssue(this.argument, this.typeParameter, this.enclosingType);
+  TypeArgumentIssue(
+      this.index, this.argument, this.typeParameter, this.enclosingType);
 }
 
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
@@ -273,13 +283,13 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(argument, variables[i], type));
+      result.add(new TypeArgumentIssue(i, argument, variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
         argument,
         substitute(variables[i].bound, substitutionMap),
         SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(argument, variables[i], type));
+      result.add(new TypeArgumentIssue(i, argument, variables[i], type));
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
@@ -320,15 +330,15 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
     if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
-      result
-          .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
+      result.add(
+          new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
     } else if (!typeEnvironment.isSubtypeOf(
         argument,
         substitute(variables[i].bound, substitutionMap),
         SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
-      result
-          .add(new TypeArgumentIssue(argumentsToReport[i], variables[i], type));
+      result.add(
+          new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
     }
   }
   if (argumentsResult != null) {
@@ -359,17 +369,17 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     DartType argument = arguments[i];
     if (argument is TypeParameterType && argument.promotedBound != null) {
       result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(argument, parameters[i], null));
+      result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (argument is FunctionType && argument.typeParameters.length > 0) {
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(argument, parameters[i], null));
+      result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     } else if (!typeEnvironment.isSubtypeOf(
         argument,
         substitute(parameters[i].bound, substitutionMap),
         SubtypeCheckMode.ignoringNullabilities)) {
       result ??= <TypeArgumentIssue>[];
-      result.add(new TypeArgumentIssue(argument, parameters[i], null));
+      result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(

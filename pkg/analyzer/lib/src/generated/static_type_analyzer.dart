@@ -545,12 +545,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // we only need to handle local functions.
       if (node.returnType == null) {
         _inferLocalFunctionReturnType(node.functionExpression);
+        _recordStaticTypeWhereItShouldNotBe(node.name, functionElement.type);
         return;
       }
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
     _recordStaticType(function, functionElement.type);
+    _recordStaticTypeWhereItShouldNotBe(node.name, functionElement.type);
   }
 
   /**
@@ -2047,6 +2049,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       expression.staticType = type;
     }
+  }
+
+  /// Remove when https://dart-review.googlesource.com/c/sdk/+/119761 lands.
+  void _recordStaticTypeWhereItShouldNotBe(Expression node, DartType type) {
+    node.staticType = type;
   }
 
   void _setExtensionIdentifierType(Identifier node) {

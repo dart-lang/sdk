@@ -10,34 +10,21 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 
-/// A visitor that will re-write an AST to support the optional `new` and
-/// `const` feature.
-class AstRewriteVisitor extends ScopedVisitor {
-  final TypeSystem typeSystem;
+/// Helper for [MethodInvocation]s into [InstanceCreationExpression] to support
+/// the optional `new` and `const` feature, or [ExtensionOverride].
+class AstRewriter {
+  final LibraryElement _libraryElement;
+  final ErrorReporter _errorReporter;
 
-  /// Initialize a newly created visitor.
-  AstRewriteVisitor(
-      this.typeSystem,
-      LibraryElement definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      {Scope nameScope})
-      : super(definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+  AstRewriter(this._libraryElement, this._errorReporter);
 
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    super.visitMethodInvocation(node);
-
+  AstNode methodInvocation(Scope nameScope, MethodInvocation node) {
     SimpleIdentifier methodName = node.methodName;
     if (methodName.isSynthetic) {
       // This isn't a constructor invocation because the method name is
       // synthetic.
-      return;
+      return node;
     }
 
     Expression target = node.target;
@@ -45,9 +32,9 @@ class AstRewriteVisitor extends ScopedVisitor {
       // Possible cases: C() or C<>()
       if (node.realTarget != null) {
         // This isn't a constructor invocation because it's in a cascade.
-        return;
+        return node;
       }
-      Element element = nameScope.lookup(methodName, definingLibrary);
+      Element element = nameScope.lookup(methodName, _libraryElement);
       if (element is ClassElement) {
         TypeName typeName = astFactory.typeName(methodName, node.typeArguments);
         ConstructorName constructorName =
@@ -56,12 +43,14 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.instanceCreationExpression(
                 null, constructorName, node.argumentList);
         NodeReplacer.replace(node, instanceCreationExpression);
+        return instanceCreationExpression;
       } else if (element is ExtensionElement) {
         ExtensionOverride extensionOverride = astFactory.extensionOverride(
             extensionName: methodName,
             typeArguments: node.typeArguments,
             argumentList: node.argumentList);
         NodeReplacer.replace(node, extensionOverride);
+        return extensionOverride;
       }
     } else if (target is SimpleIdentifier) {
       // Possible cases: C.n(), p.C() or p.C<>()
@@ -69,14 +58,14 @@ class AstRewriteVisitor extends ScopedVisitor {
         // This isn't a constructor invocation because a null aware operator is
         // being used.
       }
-      Element element = nameScope.lookup(target, definingLibrary);
+      Element element = nameScope.lookup(target, _libraryElement);
       if (element is ClassElement) {
         // Possible case: C.n()
         var constructorElement = element.getNamedConstructor(methodName.name);
         if (constructorElement != null) {
           var typeArguments = node.typeArguments;
           if (typeArguments != null) {
-            errorReporter.reportErrorForNode(
+            _errorReporter.reportErrorForNode(
                 StaticTypeWarningCode
                     .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                 typeArguments,
@@ -91,6 +80,7 @@ class AstRewriteVisitor extends ScopedVisitor {
                   null, constructorName, node.argumentList,
                   typeArguments: typeArguments);
           NodeReplacer.replace(node, instanceCreationExpression);
+          return instanceCreationExpression;
         }
       } else if (element is PrefixElement) {
         // Possible cases: p.C() or p.C<>()
@@ -98,7 +88,7 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.simpleIdentifier(target.token),
             null,
             astFactory.simpleIdentifier(methodName.token));
-        Element prefixedElement = nameScope.lookup(identifier, definingLibrary);
+        Element prefixedElement = nameScope.lookup(identifier, _libraryElement);
         if (prefixedElement is ClassElement) {
           TypeName typeName = astFactory.typeName(
               astFactory.prefixedIdentifier(target, node.operator, methodName),
@@ -109,6 +99,7 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.instanceCreationExpression(
                   null, constructorName, node.argumentList);
           NodeReplacer.replace(node, instanceCreationExpression);
+          return instanceCreationExpression;
         } else if (prefixedElement is ExtensionElement) {
           PrefixedIdentifier extensionName =
               astFactory.prefixedIdentifier(target, node.operator, methodName);
@@ -117,20 +108,21 @@ class AstRewriteVisitor extends ScopedVisitor {
               typeArguments: node.typeArguments,
               argumentList: node.argumentList);
           NodeReplacer.replace(node, extensionOverride);
+          return extensionOverride;
         }
       }
     } else if (target is PrefixedIdentifier) {
       // Possible case: p.C.n()
-      Element prefixElement = nameScope.lookup(target.prefix, definingLibrary);
+      Element prefixElement = nameScope.lookup(target.prefix, _libraryElement);
       target.prefix.staticElement = prefixElement;
       if (prefixElement is PrefixElement) {
-        Element element = nameScope.lookup(target, definingLibrary);
+        Element element = nameScope.lookup(target, _libraryElement);
         if (element is ClassElement) {
           var constructorElement = element.getNamedConstructor(methodName.name);
           if (constructorElement != null) {
             var typeArguments = node.typeArguments;
             if (typeArguments != null) {
-              errorReporter.reportErrorForNode(
+              _errorReporter.reportErrorForNode(
                   StaticTypeWarningCode
                       .WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
                   typeArguments,
@@ -143,9 +135,11 @@ class AstRewriteVisitor extends ScopedVisitor {
                 astFactory.instanceCreationExpression(
                     null, constructorName, node.argumentList);
             NodeReplacer.replace(node, instanceCreationExpression);
+            return instanceCreationExpression;
           }
         }
       }
     }
+    return node;
   }
 }

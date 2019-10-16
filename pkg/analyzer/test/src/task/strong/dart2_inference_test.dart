@@ -620,7 +620,9 @@ void test(List<A> listA, List<B> listB) {
     void assertTypes(
         String vSearch, String vType, String fSearch, String fType) {
       var node = findNode.simple(vSearch);
-      expect(node.staticType.toString(), vType);
+
+      var element = node.staticElement as LocalVariableElement;
+      expect(element.type.toString(), vType);
 
       var invocation = findNode.methodInvocation(fSearch);
       expect(invocation.staticType.toString(), fType);
@@ -692,11 +694,13 @@ var x = [];
 var y = {};
 ''';
     await resolveTestCode(code);
-    SimpleIdentifier x = findNode.expression('x = ');
-    expect(x.staticType.toString(), 'List<dynamic>');
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type.toString(), 'List<dynamic>');
 
-    SimpleIdentifier y = findNode.expression('y = ');
-    expect(y.staticType.toString(), 'Map<dynamic, dynamic>');
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type.toString(), 'Map<dynamic, dynamic>');
   }
 
   test_listMap_null() async {
@@ -705,11 +709,13 @@ var x = [null];
 var y = {null: null};
 ''';
     await resolveTestCode(code);
-    SimpleIdentifier x = findNode.expression('x = ');
-    expect(x.staticType.toString(), 'List<Null>');
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type.toString(), 'List<Null>');
 
-    SimpleIdentifier y = findNode.expression('y = ');
-    expect(y.staticType.toString(), 'Map<Null, Null>');
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type.toString(), 'Map<Null, Null>');
   }
 
   test_switchExpression_asContext_forCases() async {
@@ -742,11 +748,13 @@ main() {
 }
 ''';
     await resolveTestCode(code);
-    SimpleIdentifier x = findNode.expression('x = ');
-    expect(x.staticType, VoidTypeImpl.instance);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type, VoidTypeImpl.instance);
 
-    SimpleIdentifier y = findNode.expression('y = ');
-    expect(y.staticType, VoidTypeImpl.instance);
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type, VoidTypeImpl.instance);
   }
 
   test_voidType_topLevelFunction() async {
@@ -758,11 +766,13 @@ main() {
 }
 ''';
     await resolveTestCode(code);
-    SimpleIdentifier x = findNode.expression('x = ');
-    expect(x.staticType, VoidTypeImpl.instance);
+    var xNode = findNode.simple('x = ');
+    var xElement = xNode.staticElement as VariableElement;
+    expect(xElement.type, VoidTypeImpl.instance);
 
-    SimpleIdentifier y = findNode.expression('y = ');
-    expect(y.staticType, VoidTypeImpl.instance);
+    var yNode = findNode.simple('y = ');
+    var yElement = yNode.staticElement as VariableElement;
+    expect(yElement.type, VoidTypeImpl.instance);
   }
 
   void _assertTypeAnnotations() {
@@ -792,7 +802,8 @@ main() {
         if (comment != null) {
           String expectedType = types[comment.offset];
           if (expectedType != null) {
-            String actualType = node.staticType.toString();
+            VariableElement element = node.staticElement;
+            String actualType = element.type.toString();
             expect(actualType, expectedType, reason: '@${comment.offset}');
           }
         }

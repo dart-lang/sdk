@@ -719,7 +719,8 @@ static void UpdateTypeTestCache(
 }
 
 // Check that the given instance is an instance of the given type.
-// Tested instance may not be null, because the null test is inlined.
+// Tested instance may be null, because a null test cannot always be inlined,
+// e.g 'null is T' yields true if T = Null, but false if T = bool.
 // Arg0: instance being checked.
 // Arg1: type.
 // Arg2: type arguments of the instantiator of the type.
@@ -751,6 +752,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
+// Tested instance may not be null, because a null test is always inlined.
 // Arg0: instance being assigned.
 // Arg1: type being assigned to.
 // Arg2: type arguments of the instantiator of the type being assigned to.
@@ -1565,6 +1567,14 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
   }
 
+  // If the target function has optional parameters or is generic, it's
+  // prologue requires ARGS_DESC_REG to be populated. Yet the switchable calls
+  // do not populate that on the call site, which is why we don't transition
+  // those call sites to monomorphic, but rather directly to call via stub
+  // (which will populate the ARGS_DESC_REG from the ICData).
+  //
+  // Because of this we also don't generate monomorphic checks for those
+  // functions.
   if (!target_function.IsNull() && !target_function.HasOptionalParameters() &&
       !target_function.IsGeneric()) {
     // Patch to monomorphic call.
@@ -3067,6 +3077,12 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
   ASSERT(Function::HasBytecode(function));
   ASSERT(interpreter != NULL);
 #endif
+  // Tell MemorySanitizer 'argv' is initialized by generated code.
+  if (argc < 0) {
+    MSAN_UNPOISON(argv - argc, -argc * sizeof(RawObject*));
+  } else {
+    MSAN_UNPOISON(argv, argc * sizeof(RawObject*));
+  }
   RawObject* result = interpreter->Call(function, argdesc, argc, argv, thread);
   DEBUG_ASSERT(thread->top_exit_frame_info() == exit_fp);
   if (RawObject::IsErrorClassId(result->GetClassIdMayBeSmi())) {

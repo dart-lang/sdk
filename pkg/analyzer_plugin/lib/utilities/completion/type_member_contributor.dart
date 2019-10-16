@@ -265,7 +265,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     if (name.name == targetName) {
-      typeFound = name.staticType;
+      var element = name.staticElement as VariableElement;
+      typeFound = element.type;
       finished();
     }
   }

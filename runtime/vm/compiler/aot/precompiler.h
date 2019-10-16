@@ -477,9 +477,10 @@ class Obfuscator : public ValueObject {
     // Note: |name| *must* be a Symbol.
     //
     // By default renames are aware about mangling scheme used for private
-    // names: '_ident@key' and '_ident' will be renamed consistently. If such
-    // interpretation is undesirable e.g. it is known that name does not
-    // contain a private key suffix or name is not a Dart identifier at all
+    // names, getters and setters: '_ident@key', 'get:_ident@key' and
+    // '_ident' will be renamed consistently. If such interpretation is
+    // undesirable e.g. it is known that name does not contain a private
+    // key suffix or name is not a Dart identifier at all
     // then this function should be called with |atomic| set to true.
     //
     // Note: if obfuscator was created with private_key then all

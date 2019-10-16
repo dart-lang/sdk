@@ -25,7 +25,7 @@ class B<T extends core::Object* = dynamic> extends self::A<self::B::T*> {
 }
 static method main() → dynamic {
   dynamic x = new self::B::•<dynamic>().{self::A::x};
-  if(!(x is self::_Y<core::Null*>*)) {
+  if(!(x is self::_Y<core::Null?>*)) {
     throw "Unexpected run-time type: `new B().x` is ${x.{core::Object::runtimeType}}, but `_Y<Null>` expected";
   }
 }

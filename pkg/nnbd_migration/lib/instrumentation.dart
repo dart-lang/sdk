@@ -94,12 +94,38 @@ abstract class EdgeInfo implements FixReasonInfo {
 /// Information exposed to the migration client about the location in source
 /// code that led an edge to be introduced into the nullability graph.
 abstract class EdgeOriginInfo {
+  /// The kind of origin represented by this info.
+  EdgeOriginKind get kind;
+
   /// The AST node that led the edge to be introduced into the nullability
   /// graph.
   AstNode get node;
 
   /// The source file that [node] appears in.
   Source get source;
+}
+
+/// An enumeration of the various kinds of edge origins created by the migration
+/// engine.
+enum EdgeOriginKind {
+  alwaysNullableType,
+  compoundAssignment,
+  defaultValue,
+  expressionChecks,
+  fieldFormalParameter,
+  forEachVariable,
+  greatestLowerBound,
+  ifNull,
+  implicitMixinSuperCall,
+  inheritance,
+  initializerInference,
+  instantiateToBounds,
+  isCheckComponentType,
+  isCheckMainType,
+  namedParameterNotSupplied,
+  nonNullAssertion,
+  nullabilityComment,
+  optionalFormalParameter,
 }
 
 /// Interface used by the migration engine to expose information to its client

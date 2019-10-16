@@ -20,6 +20,7 @@ final _vmOptionsRegExp = RegExp(r"// VMOptions=(.*)");
 final _environmentRegExp = RegExp(r"// Environment=(.*)");
 final _packageRootRegExp = RegExp(r"// PackageRoot=(.*)");
 final _packagesRegExp = RegExp(r"// Packages=(.*)");
+final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z,-]+)$");
 
 List<String> _splitWords(String s) =>
     s.split(' ').where((e) => e != '').toList();
@@ -128,7 +129,7 @@ abstract class _TestFileBase {
 ///
 ///         // VMOptions=--flag1 --flag2
 ///
-/// *   Flags can be passed to dart2js, vm or dartdevc by adding a comment to
+/// *   Flags can be passed to dart2js, VM or dartdevc by adding a comment to
 ///     the test file:
 ///
 ///         // SharedOptions=--flag1 --flag2
@@ -222,6 +223,28 @@ class TestFile extends _TestFileBase {
         allowMultiple: true);
     var sharedObjects = _parseStringOption(filePath, contents, 'SharedObjects',
         allowMultiple: true);
+
+    // Extract the experiments from the shared options.
+    // TODO(rnystrom): Either tests should stop specifying experiment flags
+    // entirely and use "// Requirements=", or we should come up with a better
+    // syntax. Parsing from "// SharedOptions=" for now since that's where they
+    // are currently specified.
+    var experiments = <String>[];
+    for (var i = 0; i < sharedOptions.length; i++) {
+      var sharedOption = sharedOptions[i];
+      if (sharedOption.contains("--enable-experiment")) {
+        var match = _experimentRegExp.firstMatch(sharedOption);
+        if (match == null) {
+          throw Exception(
+              "SharedOptions marker cannot mix experiment flags with other "
+              "flags. Was:\n$sharedOption");
+        }
+
+        experiments.addAll(match.group(1).split(","));
+        sharedOptions.removeAt(i);
+        i--;
+      }
+    }
 
     // Environment.
     Map<String, String> environment;
@@ -333,7 +356,8 @@ class TestFile extends _TestFileBase {
         ddcOptions: ddcOptions,
         vmOptions: vmOptions,
         sharedObjects: sharedObjects,
-        otherResources: otherResources);
+        otherResources: otherResources,
+        experiments: experiments);
   }
 
   /// A special fake test file for representing a VM unit test written in C++.
@@ -357,6 +381,7 @@ class TestFile extends _TestFileBase {
         vmOptions = [],
         sharedObjects = [],
         otherResources = [],
+        experiments = [],
         super(null, null, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
@@ -378,7 +403,8 @@ class TestFile extends _TestFileBase {
       this.ddcOptions,
       this.vmOptions,
       this.sharedObjects,
-      this.otherResources})
+      this.otherResources,
+      this.experiments})
       : super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
   }
@@ -417,6 +443,13 @@ class TestFile extends _TestFileBase {
   final List<String> sharedObjects;
   final List<String> otherResources;
 
+  /// The experiments this test enables.
+  ///
+  /// Parsed from a shared options line like:
+  ///
+  ///     // SharedOptions=--enable-experiment=flubber,gloop
+  final List<String> experiments;
+
   /// Derive a multitest test section file from this multitest file with the
   /// given [multitestKey] and expectations.
   TestFile split(Path path, String multitestKey, String contents,
@@ -451,6 +484,7 @@ class TestFile extends _TestFileBase {
   vmOptions: $vmOptions
   sharedObjects: $sharedObjects
   otherResources: $otherResources
+  experiments: $experiments
 )""";
 }
 
@@ -494,6 +528,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
 
   List<String> get otherResources => _origin.otherResources;
   List<String> get sharedObjects => _origin.sharedObjects;
+  List<String> get experiments => _origin.experiments;
   List<String> get sharedOptions => _origin.sharedOptions;
   List<String> get subtestNames => _origin.subtestNames;
   List<List<String>> get vmOptions => _origin.vmOptions;

@@ -17,7 +17,7 @@ export '../api_prototype/file_system.dart'
 export '../api_prototype/front_end.dart' show CompilerResult;
 
 export '../api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator, isLegalIdentifier;
+    show IncrementalKernelGenerator, IncrementalSerializer, isLegalIdentifier;
 
 export '../api_prototype/kernel_generator.dart'
     show kernelForModule, kernelForProgram;
@@ -54,8 +54,6 @@ export '../fasta/fasta_codes.dart'
         templateFfiStructGeneric,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
-        templateFfiTypeUnsized,
-        templateFfiWrongStructInheritance,
         templateIllegalRecursiveType;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;

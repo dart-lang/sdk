@@ -390,13 +390,15 @@
     },
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
+      "test/analyser_ignored/",
       "test/extensions/data/",
       "test/id_testing/data/",
       "test/language_versioning/data/",
       "test/flow_analysis/definite_assignment/data/",
       "test/flow_analysis/nullability/data/",
       "test/flow_analysis/reachability/data/",
-      "test/flow_analysis/type_promotion/data/"
+      "test/flow_analysis/type_promotion/data/",
+      "test/patching/data"
     ]
   }
 }

@@ -10,18 +10,16 @@ import 'package:kernel/ast.dart';
 
 import '../problems.dart' show unsupported;
 
-import 'builder.dart' show ClassBuilder, Builder, LibraryBuilder;
-
-import 'declaration.dart';
+import 'builder.dart';
+import 'class_builder.dart';
 import 'declaration_builder.dart';
 import 'extension_builder.dart';
+import 'library_builder.dart';
 import 'modifier_builder.dart';
 
 import '../kernel/class_hierarchy_builder.dart';
 
 abstract class MemberBuilder implements ModifierBuilder, ClassMember {
-  bool get isRedirectingGenerativeConstructor;
-
   void set parent(Builder value);
 
   LibraryBuilder get library;
@@ -85,7 +83,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isNative => false;
 
-  @override
   bool get isRedirectingGenerativeConstructor => false;
 
   @override

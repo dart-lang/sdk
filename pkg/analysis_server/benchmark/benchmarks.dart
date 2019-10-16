@@ -71,7 +71,7 @@ class RunCommand extends Command {
             'gathering accurate times,\nbut can be used to validate that the '
             'benchmark works.');
     argParser.addOption('repeat',
-        defaultsTo: '10', help: 'The number of times to repeat the benchmark.');
+        defaultsTo: '4', help: 'The number of times to repeat the benchmark.');
     argParser.addFlag('verbose',
         negatable: false,
         help: 'Print all communication to and from the analysis server.');

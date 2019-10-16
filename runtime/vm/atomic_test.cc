@@ -51,15 +51,15 @@ VM_UNIT_TEST_CASE(DecrementBy) {
 }
 
 VM_UNIT_TEST_CASE(FetchOrRelaxed) {
-  uint32_t v = 42;
-  uint32_t previous = AtomicOperations::FetchOrRelaxedUint32(&v, 3);
+  RelaxedAtomic<uint32_t> v = 42;
+  uint32_t previous = v.fetch_or(3);
   EXPECT_EQ(static_cast<uint32_t>(42), previous);
   EXPECT_EQ(static_cast<uint32_t>(43), v);
 }
 
 VM_UNIT_TEST_CASE(FetchAndRelaxed) {
-  uint32_t v = 42;
-  uint32_t previous = AtomicOperations::FetchAndRelaxedUint32(&v, 3);
+  RelaxedAtomic<uint32_t> v = 42;
+  uint32_t previous = v.fetch_and(3);
   EXPECT_EQ(static_cast<uint32_t>(42), previous);
   EXPECT_EQ(static_cast<uint32_t>(2), v);
 }

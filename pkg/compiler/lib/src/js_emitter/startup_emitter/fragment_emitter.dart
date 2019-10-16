@@ -439,6 +439,9 @@ var #staticStateDeclaration = {};
 // Adds the subtype rules for the new RTI.
 #typeRules;
 
+// Shared types need to be initialized before constants.
+#sharedTypeRtis;
+
 // Instantiates all constants.
 #constants;
 
@@ -537,6 +540,7 @@ var #typesOffset = hunkHelpers.updateTypes(#types);
 // Adds the subtype rules for the new RTI.
 #typeRules;
 
+#sharedTypeRtis;
 // Instantiates all constants of this deferred fragment.
 // Note that the constant-holder has been updated earlier and storing the
 // constant values in the constant-holder makes them available globally.
@@ -697,6 +701,8 @@ class FragmentEmitter {
       'embeddedGlobalsPart2':
           emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'typeRules': emitTypeRules(fragment),
+      'sharedTypeRtis':
+          _options.experimentNewRti ? TypeReferenceResource() : [],
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
@@ -710,7 +716,7 @@ class FragmentEmitter {
       'call2selector': js.quoteName(call2Name),
     });
     if (program.hasSoftDeferredClasses) {
-      return new js.Block([
+      mainCode = js.Block([
         js.js.statement(softDeferredBoilerplate, {
           'deferredGlobal': ModelEmitter.deferredInitializersGlobal,
           'softId': js.string(softDeferredId),
@@ -727,6 +733,7 @@ class FragmentEmitter {
         mainCode
       ]);
     }
+    finalizeTypeReferences(mainCode);
     return mainCode;
   }
 
@@ -826,12 +833,24 @@ class FragmentEmitter {
       'types': deferredTypes,
       'nativeSupport': nativeSupport,
       'typesOffset': _namer.typesOffsetName,
+      'sharedTypeRtis':
+          _options.experimentNewRti ? TypeReferenceResource() : [],
     });
 
     if (_options.experimentStartupFunctions) {
       code = js.Parentheses(code);
     }
+    finalizeTypeReferences(code);
     return code;
+  }
+
+  void finalizeTypeReferences(js.Node code) {
+    if (!_options.experimentNewRti) return;
+
+    TypeReferenceFinalizer finalizer = TypeReferenceFinalizerImpl(
+        _emitter, _commonElements, _recipeEncoder, _options.enableMinification);
+    finalizer.addCode(code);
+    finalizer.finalize();
   }
 
   /// Emits all holders, except for the static-state holder.

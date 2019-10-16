@@ -47,12 +47,12 @@ class ClassAndSize {
 template <typename T>
 class AllocStats {
  public:
-  T new_count;
-  T new_size;
-  T new_external_size;
-  T old_count;
-  T old_size;
-  T old_external_size;
+  RelaxedAtomic<T> new_count;
+  RelaxedAtomic<T> new_size;
+  RelaxedAtomic<T> new_external_size;
+  RelaxedAtomic<T> old_count;
+  RelaxedAtomic<T> old_size;
+  RelaxedAtomic<T> old_external_size;
 
   void ResetNew() {
     new_count = 0;
@@ -62,18 +62,16 @@ class AllocStats {
   }
 
   void AddNew(T size) {
-    AtomicOperations::IncrementBy(&new_count, 1);
-    AtomicOperations::IncrementBy(&new_size, size);
+    new_count.fetch_add(1);
+    new_size.fetch_add(size);
   }
 
   void AddNewGC(T size) {
-    new_count += 1;
-    new_size += size;
+    new_count.fetch_add(1);
+    new_size.fetch_add(size);
   }
 
-  void AddNewExternal(T size) {
-    AtomicOperations::IncrementBy(&new_external_size, size);
-  }
+  void AddNewExternal(T size) { new_external_size.fetch_add(size); }
 
   void ResetOld() {
     old_count = 0;
@@ -83,18 +81,16 @@ class AllocStats {
   }
 
   void AddOld(T size, T count = 1) {
-    AtomicOperations::IncrementBy(&old_count, count);
-    AtomicOperations::IncrementBy(&old_size, size);
+    old_count.fetch_add(count);
+    old_size.fetch_add(size);
   }
 
   void AddOldGC(T size, T count = 1) {
-    old_count += count;
-    old_size += size;
+    old_count.fetch_add(count);
+    old_size.fetch_add(size);
   }
 
-  void AddOldExternal(T size) {
-    AtomicOperations::IncrementBy(&old_external_size, size);
-  }
+  void AddOldExternal(T size) { old_external_size.fetch_add(size); }
 
   void Reset() {
     ResetNew();

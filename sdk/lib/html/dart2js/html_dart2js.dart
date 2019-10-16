@@ -66,8 +66,9 @@ import 'dart:_interceptors'
         getNativeInterceptor,
         setDispatchProperty;
 
-export 'dart:math' show Rectangle, Point;
 export 'dart:_internal' show HttpStatus;
+export 'dart:html_common' show promiseToFuture;
+export 'dart:math' show Rectangle, Point;
 
 /**
  * Top-level container for a web page, which is usually a browser tab or window.
@@ -90,33 +91,13 @@ Window get window => JS('Window', 'window');
 HtmlDocument get document =>
     JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
-// Supoort to convert JS Promise to a Dart Future.
-Future<T> promiseToFuture<T>(jsPromise) {
-  var completer = new Completer<T>();
-
-  var thenSuccessCode = (promiseValue) => completer.complete(promiseValue);
-  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
-
-  JS("", "#.then(#, #)", jsPromise, convertDartClosureToJS(thenSuccessCode, 1),
-      convertDartClosureToJS(thenErrorCode, 1));
-
-  return completer.future;
-}
-
-// Supoort to convert JS Promise to a Dart Future<Map<String, dynamic>>.  Each property of the JS
-// object is added to the Map as a key of type String with a value of type dynamic.
-Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) {
-  var completer = new Completer<Map<String, dynamic>>();
-
-  var thenSuccessCode = (promiseValue) =>
-      completer.complete(convertNativeToDart_Dictionary(promiseValue));
-  var thenErrorCode = (promiseError) => completer.completeError(promiseError);
-
-  JS("", "#.then(#, #)", jsPromise, convertDartClosureToJS(thenSuccessCode, 1),
-      convertDartClosureToJS(thenErrorCode, 1));
-
-  return completer.future;
-}
+/// Convert a JS Promise to a Future<Map<String, dynamic>>.
+///
+/// On a successful result the native JS result will be converted to a Dart Map.
+/// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
+/// forwarded without change.
+Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) =>
+    promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
@@ -12633,7 +12614,7 @@ class Element extends Node
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
-  **/
+   */
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {

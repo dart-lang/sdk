@@ -21,7 +21,7 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 // Returns sWrapped<tWrapped> as a wrapped type.
-Object generic1(Type sWrapped, Type tWrapped) {
+Type generic1(Type sWrapped, Type tWrapped) {
   var s = dart.unwrapType(sWrapped);
   var t = dart.unwrapType(tWrapped);
   var sGeneric = dart.getGenericClass(s);
@@ -29,7 +29,7 @@ Object generic1(Type sWrapped, Type tWrapped) {
 }
 
 // Returns sWrapped<tWrapped, rWrapped> as a wrapped type.
-Object generic2(Type sWrapped, Type tWrapped, Type rWrapped) {
+Type generic2(Type sWrapped, Type tWrapped, Type rWrapped) {
   var s = dart.unwrapType(sWrapped);
   var t = dart.unwrapType(tWrapped);
   var r = dart.unwrapType(rWrapped);
@@ -38,7 +38,7 @@ Object generic2(Type sWrapped, Type tWrapped, Type rWrapped) {
 }
 
 // Returns a function type of argWrapped -> returnWrapped as a wrapped type.
-Object function1(Type returnWrapped, Type argWrapped) {
+Type function1(Type returnWrapped, Type argWrapped) {
   var returnType = dart.unwrapType(returnWrapped);
   var argType = dart.unwrapType(argWrapped);
   var fun = dart.fnType(returnType, [argType]);
@@ -47,12 +47,12 @@ Object function1(Type returnWrapped, Type argWrapped) {
 
 // Returns a function type with a bounded type argument that takes no argument
 // and returns void as a wrapped type.
-Object genericFunction(Type boundWrapped) => dart.wrapType(dart.gFnType(
+Type genericFunction(Type boundWrapped) => dart.wrapType(dart.gFnType(
     (T) => [dart.VoidType, []], (T) => [dart.unwrapType(boundWrapped)]));
 
 // Returns a function type with a bounded generic return type of
 // <T extends typeBoud> argWrapped -> T as a wrapped type.
-Object functionGenericReturn(Type boundWrapped, Type argWrapped) =>
+Type functionGenericReturn(Type boundWrapped, Type argWrapped) =>
     dart.wrapType(dart.gFnType(
         (T) => [
               T,
@@ -62,7 +62,7 @@ Object functionGenericReturn(Type boundWrapped, Type argWrapped) =>
 
 // Returns a function with a bounded generic argument type of
 // <T extends typeBoud> T -> returnWrapped as a wrapped type.
-Object functionGenericArg(Type boundWrapped, Type returnWrapped) =>
+Type functionGenericArg(Type boundWrapped, Type returnWrapped) =>
     dart.wrapType(dart.gFnType(
         (T) => [
               dart.unwrapType(returnWrapped),
@@ -80,30 +80,52 @@ void checkProperSubtype(Type sWrapped, Type tWrapped) {
   var s = dart.unwrapType(sWrapped);
   var t = dart.unwrapType(tWrapped);
   Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
-  Expect.isFalse(dart.isSubtypeOf(t, s), '$t should not be subtype of $s.');
+  checkSubtypeFailure(tWrapped, sWrapped);
+}
+
+void checkSubtypeFailure(Type sWrapped, Type tWrapped) {
+  var s = dart.unwrapType(sWrapped);
+  var t = dart.unwrapType(tWrapped);
+  Expect.isFalse(dart.isSubtypeOf(s, t), '$s should not be subtype of $t.');
+}
+
+// NNBD tests
+// Returns tWrapped? as a wrapped type.
+Type nullable(Type tWrapped) {
+  var t = dart.unwrapType(tWrapped);
+  var tNullable = dart.nullable(t);
+  return dart.wrapType(tNullable);
+}
+
+// Returns tWrapped* as a wrapped type.
+Type legacy(Type tWrapped) {
+  var t = dart.unwrapType(tWrapped);
+  var tLegacy = dart.legacy(t);
+  return dart.wrapType(tLegacy);
 }
 
 void main() {
+  // dynamic <\: A
+  checkSubtypeFailure(dynamic, A);
   // A <: dynamic
   checkProperSubtype(A, dynamic);
-  // A <: Object
-  checkProperSubtype(A, Object);
-  // TODO(nshahan) Test void as top? A <: void
+  // A <: void
+  checkProperSubtype(A, dart.wrapType(dart.void_));
+  // Null <\: A
+  checkSubtypeFailure(Null, A);
 
-  // Null <: A
-  checkProperSubtype(Null, A);
-
-  // FutureOr<Null> <: Future<Null>
-  checkSubtype(generic1(FutureOr, Null), generic1(Future, Null));
+  // FutureOr<Never> <: Future<Never>
+  checkSubtype(generic1(FutureOr, dart.wrapType(dart.never_)),
+      generic1(Future, dart.wrapType(dart.never_)));
   // Future<B> <: FutureOr<A>
   checkProperSubtype(generic1(Future, B), generic1(FutureOr, A));
   // B <: <: FutureOr<A>
   checkProperSubtype(B, generic1(FutureOr, A));
   // Future<B> <: Future<A>
   checkProperSubtype(generic1(Future, B), generic1(Future, A));
+
   // B <: A
   checkProperSubtype(B, A);
-
   // A <: A
   checkSubtype(A, A);
   // C <: B
@@ -202,4 +224,51 @@ void main() {
   checkProperSubtype(generic2(E, B, B), E);
   // // E<B, B> <: E<A, A>
   checkProperSubtype(generic2(E, B, B), generic2(E, A, A));
+
+  // A <: A?
+  checkProperSubtype(A, nullable(A));
+  // B <: A?
+  checkProperSubtype(B, nullable(A));
+  // C <: A?
+  checkProperSubtype(C, nullable(A));
+  // B? <: A?
+  checkProperSubtype(nullable(B), nullable(A));
+  // C? <: A?
+  checkProperSubtype(nullable(C), nullable(A));
+
+  // A <: Object
+  checkProperSubtype(A, Object);
+  // A* <: Object
+  checkProperSubtype(legacy(A), Object);
+  // dynamic <\: Object
+  checkSubtypeFailure(dynamic, Object);
+  // void <\: Object
+  checkSubtypeFailure(dart.wrapType(dart.void_), Object);
+  // Null <\: Object
+  checkSubtypeFailure(Null, Object);
+  // A? <\: Object
+  checkSubtypeFailure(nullable(A), Object);
+
+  // Null <: FutureOr<A?>
+  checkProperSubtype(Null, generic1(FutureOr, nullable(A)));
+  // Null <: Null
+  checkSubtype(Null, Null);
+  // Null <: A?
+  checkProperSubtype(Null, nullable(A));
+  // Null <: A*
+  checkProperSubtype(Null, legacy(A));
+
+  // B* <: A
+  checkProperSubtype(legacy(B), A);
+  // A* <\: B
+  checkSubtypeFailure(legacy(A), B);
+
+  // B? <: A*
+  checkProperSubtype(nullable(B), legacy(A));
+  // B <: A*
+  checkProperSubtype(B, legacy(A));
+  // A <: B*
+  checkSubtypeFailure(A, legacy(B));
+  // A? <: B*
+  checkSubtypeFailure(nullable(A), legacy(B));
 }

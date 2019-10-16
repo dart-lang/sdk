@@ -459,13 +459,8 @@ class Printer extends Visitor<Null> {
   void writeAdditionalExports(List<Reference> additionalExports) {
     if (additionalExports.isEmpty) return;
     write('additionalExports = (');
-    bool isFirst = true;
-    for (Reference reference in additionalExports) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        write(', ');
-      }
+    for (int i = 0; i < additionalExports.length; i++) {
+      Reference reference = additionalExports[i];
       var node = reference.node;
       if (node is Class) {
         Library nodeLibrary = node.enclosingLibrary;
@@ -488,10 +483,14 @@ class Printer extends Visitor<Null> {
       } else {
         throw new UnimplementedError('${node.runtimeType}');
       }
-      endLine(')');
-    }
 
-    endLine();
+      if (i + 1 == additionalExports.length) {
+        endLine(")");
+      } else {
+        endLine(",");
+        write("  ");
+      }
+    }
   }
 
   void writeComponentFile(Component component) {

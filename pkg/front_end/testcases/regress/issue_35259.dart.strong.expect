@@ -17,13 +17,13 @@ library;
 //   factory Supertype() = Unresolved;
 //                         ^
 //
-// pkg/front_end/testcases/regress/issue_35259.dart:7:11: Error: Redirection constructor target not found: 'Unresolved'
+// pkg/front_end/testcases/regress/issue_35259.dart:7:25: Error: Redirection constructor target not found: 'Unresolved'
 //   factory Supertype() = Unresolved;
-//           ^
+//                         ^
 //
-// pkg/front_end/testcases/regress/issue_35259.dart:6:11: Error: Redirection constructor target not found: 'Unresolved'
+// pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Redirection constructor target not found: 'Unresolved'
 //   factory Supertype() = Unresolved;
-//           ^
+//                         ^
 //
 // pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
 //   print(new Supertype());

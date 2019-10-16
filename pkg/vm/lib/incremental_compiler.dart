@@ -19,6 +19,7 @@ const String kDebugProcedureName = ":Eval";
 /// accepted.
 class IncrementalCompiler {
   IncrementalKernelGenerator _generator;
+  IncrementalSerializer incrementalSerializer;
 
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
@@ -34,9 +35,12 @@ class IncrementalCompiler {
   Uri get entryPoint => _entryPoint;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
-      {this.initializeFromDillUri}) {
-    _generator = new IncrementalKernelGenerator(
-        _compilerOptions, _entryPoint, initializeFromDillUri);
+      {this.initializeFromDillUri, bool incrementalSerialization: true}) {
+    if (incrementalSerialization) {
+      incrementalSerializer = new IncrementalSerializer();
+    }
+    _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
+        initializeFromDillUri, false, incrementalSerializer);
     _pendingDeltas = <Component>[];
   }
 
@@ -127,8 +131,11 @@ class IncrementalCompiler {
     _pendingDeltas.clear();
     // Need to reset and warm up compiler so that expression evaluation requests
     // are processed in that known good state.
-    _generator = new IncrementalKernelGenerator.fromComponent(
-        _compilerOptions, _entryPoint, _lastKnownGood);
+    if (incrementalSerializer != null) {
+      incrementalSerializer = new IncrementalSerializer();
+    }
+    _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
+        _entryPoint, _lastKnownGood, false, incrementalSerializer);
     await _generator.computeDelta(entryPoints: [_entryPoint]);
   }
 

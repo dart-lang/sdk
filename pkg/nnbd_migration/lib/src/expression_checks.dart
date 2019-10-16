@@ -84,4 +84,7 @@ class ExpressionChecksOrigin extends EdgeOrigin {
 
   ExpressionChecksOrigin(Source source, Expression node, this.checks)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.expressionChecks;
 }

@@ -16,6 +16,9 @@ import 'package:nnbd_migration/instrumentation.dart';
 /// nullable.
 class AlwaysNullableTypeOrigin extends EdgeOrigin {
   AlwaysNullableTypeOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.alwaysNullableType;
 }
 
 /// Edge origin resulting from the use of a value on the LHS of a compound
@@ -25,6 +28,9 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
       : super(source, node);
 
   @override
+  EdgeOriginKind get kind => EdgeOriginKind.compoundAssignment;
+
+  @override
   AssignmentExpression get node => super.node as AssignmentExpression;
 }
 
@@ -32,6 +38,9 @@ class CompoundAssignmentOrigin extends EdgeOrigin {
 /// a parameter.
 class DefaultValueOrigin extends EdgeOrigin {
   DefaultValueOrigin(Source source, Expression node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.defaultValue;
 }
 
 /// Common interface for classes providing information about how an edge came
@@ -52,6 +61,9 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
 class FieldFormalParameterOrigin extends EdgeOrigin {
   FieldFormalParameterOrigin(Source source, FieldFormalParameter node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.fieldFormalParameter;
 }
 
 /// Edge origin resulting from the use of an iterable type in a for-each loop.
@@ -65,6 +77,9 @@ class FieldFormalParameterOrigin extends EdgeOrigin {
 /// parameter to the type of `i`.
 class ForEachVariableOrigin extends EdgeOrigin {
   ForEachVariableOrigin(Source source, ForEachParts node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.forEachVariable;
 }
 
 /// Edge origin resulting from the use of greatest lower bound.
@@ -78,11 +93,17 @@ class ForEachVariableOrigin extends EdgeOrigin {
 /// is the greatest lower bound of the two other `int`s.
 class GreatestLowerBoundOrigin extends EdgeOrigin {
   GreatestLowerBoundOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.greatestLowerBound;
 }
 
 /// Edge origin resulting from the presence of a `??` operator.
 class IfNullOrigin extends EdgeOrigin {
   IfNullOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.ifNull;
 }
 
 /// Edge origin resulting from the implicit call from a mixin application
@@ -101,17 +122,26 @@ class IfNullOrigin extends EdgeOrigin {
 class ImplicitMixinSuperCallOrigin extends EdgeOrigin {
   ImplicitMixinSuperCallOrigin(Source source, ClassTypeAlias node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.implicitMixinSuperCall;
 }
 
 /// Edge origin resulting from an inheritance relationship between two methods.
 class InheritanceOrigin extends EdgeOrigin {
   InheritanceOrigin(Source source, AstNode node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.inheritance;
 }
 
 /// Edge origin resulting from a type that is inferred from its initializer.
 class InitializerInferenceOrigin extends EdgeOrigin {
   InitializerInferenceOrigin(Source source, VariableDeclaration node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.initializerInference;
 }
 
 /// Edge origin resulting from a class that is instantiated to bounds.
@@ -124,6 +154,9 @@ class InitializerInferenceOrigin extends EdgeOrigin {
 /// with the type bound in the declaration of C.
 class InstantiateToBoundsOrigin extends EdgeOrigin {
   InstantiateToBoundsOrigin(Source source, TypeName node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.instantiateToBounds;
 }
 
 /// Edge origin resulting from the use of a type as a component type in an 'is'
@@ -135,6 +168,9 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
 class IsCheckComponentTypeOrigin extends EdgeOrigin {
   IsCheckComponentTypeOrigin(Source source, TypeAnnotation node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.isCheckComponentType;
 }
 
 /// Edge origin resulting from the use of a type as the main type in an 'is'
@@ -145,6 +181,9 @@ class IsCheckComponentTypeOrigin extends EdgeOrigin {
 class IsCheckMainTypeOrigin extends EdgeOrigin {
   IsCheckMainTypeOrigin(Source source, TypeAnnotation node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.isCheckMainType;
 }
 
 /// Edge origin resulting from a call site that does not supply a named
@@ -162,6 +201,9 @@ class IsCheckMainTypeOrigin extends EdgeOrigin {
 class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
   NamedParameterNotSuppliedOrigin(Source source, AstNode node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.namedParameterNotSupplied;
 }
 
 /// Edge origin resulting from the presence of a non-null assertion.
@@ -175,6 +217,9 @@ class NamedParameterNotSuppliedOrigin extends EdgeOrigin {
 /// `never`, due to the assert statement proclaiming that `i` is not `null`.
 class NonNullAssertionOrigin extends EdgeOrigin {
   NonNullAssertionOrigin(Source source, Assertion node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nonNullAssertion;
 }
 
 /// Edge origin resulting from the presence of an explicit nullability hint
@@ -188,6 +233,9 @@ class NonNullAssertionOrigin extends EdgeOrigin {
 class NullabilityCommentOrigin extends EdgeOrigin {
   NullabilityCommentOrigin(Source source, TypeAnnotation node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.nullabilityComment;
 }
 
 /// Edge origin resulting from the presence of an optional formal parameter.
@@ -200,4 +248,7 @@ class NullabilityCommentOrigin extends EdgeOrigin {
 class OptionalFormalParameterOrigin extends EdgeOrigin {
   OptionalFormalParameterOrigin(Source source, DefaultFormalParameter node)
       : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.optionalFormalParameter;
 }

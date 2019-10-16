@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
@@ -52,9 +54,10 @@ class InfoBuilder {
 
   /// Return the migration information for all of the libraries that were
   /// migrated.
-  Future<List<UnitInfo>> explainMigration() async {
+  Future<Set<UnitInfo>> explainMigration() async {
     Map<Source, SourceInformation> sourceInfoMap = info.sourceInformation;
-    List<UnitInfo> units = [];
+    Set<UnitInfo> units =
+        SplayTreeSet<UnitInfo>((u1, u2) => u1.path.compareTo(u2.path));
     for (Source source in sourceInfoMap.keys) {
       String filePath = source.fullName;
       AnalysisSession session =
@@ -114,11 +117,13 @@ class InfoBuilder {
     AstNode findFunctionBody() {
       if (parent is ExpressionFunctionBody) {
         return parent;
-      } else if (parent is ReturnStatement &&
-          parent.parent?.parent is BlockFunctionBody) {
-        return parent.parent.parent;
+      } else {
+        ReturnStatement returnNode =
+            parent.thisOrAncestorOfType<ReturnStatement>();
+        BlockFunctionBody bodyNode =
+            returnNode?.thisOrAncestorOfType<BlockFunctionBody>();
+        return bodyNode;
       }
-      return null;
     }
 
     AstNode functionBody = findFunctionBody();
@@ -143,6 +148,8 @@ class InfoBuilder {
         return "This variable is initialized to null";
       }
       return "This variable is initialized to a nullable value";
+    } else if (parent is AsExpression) {
+      return "The value of the expression is nullable";
     }
     if (node is NullLiteral) {
       return "An explicit 'null' is assigned";
@@ -173,6 +180,37 @@ class InfoBuilder {
     return description;
   }
 
+  /// Return a description of the given [origin] associated with the [edge].
+  RegionDetail _buildDetailForOrigin(EdgeOriginInfo origin, EdgeInfo edge) {
+    AstNode node = origin.node;
+    NavigationTarget target;
+    // Some nodes don't need a target; default formal parameters
+    // without explicit default values, for example.
+    if (node is DefaultFormalParameter && node.defaultValue == null) {
+      target = null;
+    } else {
+      if (origin.kind == EdgeOriginKind.inheritance) {
+        // The node is the method declaration in the subclass and we want to
+        // link to the corresponding parameter in the declaration in the
+        // superclass.
+        TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
+        if (type != null) {
+          CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
+          target = _targetForNode(unit.declaredElement.source.fullName, type);
+          return RegionDetail(
+              "The corresponding parameter in the overridden method is nullable",
+              target);
+          // TODO(srawlins): Also, this could be where a return type in an
+          //  overridden method is made nullable because an overriding method
+          //  was found with a nullable return type. Figure out how to tell
+          //  which situation we are in.
+        }
+      }
+      target = _targetForNode(origin.source.fullName, node);
+    }
+    return RegionDetail(_buildDescriptionForOrigin(node), target);
+  }
+
   /// Compute the details for the fix with the given [fixInfo].
   List<RegionDetail> _computeDetails(FixInfo fixInfo) {
     List<RegionDetail> details = [];
@@ -182,12 +220,7 @@ class InfoBuilder {
           if (edge.isTriggered) {
             EdgeOriginInfo origin = info.edgeOrigin[edge];
             if (origin != null) {
-              // TODO(brianwilkerson) If the origin is an InheritanceOrigin then
-              //  the node is the method declaration in the subclass and we want
-              //  to link to the corresponding parameter in the declaration in
-              //  the superclass.
-              details.add(RegionDetail(_buildDescriptionForOrigin(origin.node),
-                  _targetForNode(origin.source.fullName, origin.node)));
+              details.add(_buildDetailForOrigin(origin, edge));
             } else {
               details.add(
                   RegionDetail('upstream edge with no origin ($edge)', null));
@@ -321,7 +354,32 @@ class InfoBuilder {
   /// Return the navigation target corresponding to the given [node] in the file
   /// with the given [filePath].
   NavigationTarget _targetForNode(String filePath, AstNode node) {
-    return _targetFor(filePath, node.offset, node.length);
+    AstNode parent = node.parent;
+    if (node is ConstructorDeclaration) {
+      if (node.name != null) {
+        return _targetFor(filePath, node.name.offset, node.name.length);
+      } else {
+        return _targetFor(
+            filePath, node.returnType.offset, node.returnType.length);
+      }
+    } else if (node is MethodDeclaration) {
+      // Rather than create a NavigationTarget for an entire method declaration
+      // (starting at its doc comment, ending at `}`, return a target pointing
+      // to the method's name.
+      return _targetFor(filePath, node.name.offset, node.name.length);
+    } else if (parent is ReturnStatement) {
+      // Rather than create a NavigationTarget for an entire expression, return
+      // a target pointing to the `return` token.
+      return _targetFor(
+          filePath, parent.returnKeyword.offset, parent.returnKeyword.length);
+    } else if (parent is ExpressionFunctionBody) {
+      // Rather than create a NavigationTarget for an entire expression function
+      // body, return a target pointing to the `=>` token.
+      return _targetFor(filePath, parent.functionDefinition.offset,
+          parent.functionDefinition.length);
+    } else {
+      return _targetFor(filePath, node.offset, node.length);
+    }
   }
 
   /// Return the unit info for the file at the given [path].

@@ -46,7 +46,7 @@ main(List<String> arguments) {
         ffiTestFunctions.lookup("CoordinateUnOpTrice");
     CoordinateTrice coordinateUnOpTrice = p2.asFunction();
     Coordinate c1 = Coordinate(10.0, 20.0, null);
-    c1.next = c1;
+    c1.next = c1.addressOf;
     Coordinate result = coordinateUnOpTrice(transposeCoordinatePointer, c1);
     print(result.runtimeType);
     print(result.x);
@@ -67,7 +67,7 @@ main(List<String> arguments) {
 
   {
     ffi.Pointer<ffi.NativeFunction<NativeIntptrBinOp>> pointer =
-        ffi.fromFunction(myPlus);
+        ffi.Pointer.fromFunction(myPlus);
     print(pointer);
 
     ffi.Pointer<ffi.NativeFunction<NativeApplyTo42And74Type>> p17 =

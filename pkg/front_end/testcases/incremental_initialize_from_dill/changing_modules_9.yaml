@@ -25,6 +25,7 @@ modules:
       moduleB:.
 worlds:
   - entry: main.dart
+    fromComponent: true
     sources:
       main.dart: |
         import "package:moduleA/a.dart";

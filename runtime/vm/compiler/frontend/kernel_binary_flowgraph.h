@@ -67,7 +67,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadDefaultFunctionTypeArguments(const Function& function);
 
   FlowGraph* BuildGraphOfFieldInitializer();
-  Fragment BuildFieldInitializer(NameIndex canonical_name);
+  Fragment BuildFieldInitializer(const Field& field,
+                                 bool only_for_side_effects);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 

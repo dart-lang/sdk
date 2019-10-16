@@ -33,30 +33,42 @@ class AssignedVariables<Node, Variable> {
   /// write is captured by a local function or closure inside that node.
   final Map<Node, Set<Variable>> _capturedInNode = {};
 
+  /// Set of local variables that are potentially written to anywhere in the
+  /// code being analyzed.
+  final Set<Variable> _writtenAnywhere = {};
+
+  /// Set of local variables for which a potential write is captured by a local
+  /// function or closure anywhere in the code being analyzed.
+  final Set<Variable> _capturedAnywhere = {};
+
   /// Stack of sets accumulating variables that are potentially written to.
   ///
   /// A set is pushed onto the stack when a node is entered, and popped when
   /// a node is left.
-  final List<Set<Variable>> _writtenStack = [];
+  final List<Set<Variable>> _writtenStack = [new Set<Variable>.identity()];
+
+  /// Stack of sets accumulating variables that are declared.
+  ///
+  /// A set is pushed onto the stack when a node is entered, and popped when
+  /// a node is left.
+  final List<Set<Variable>> _declaredStack = [new Set<Variable>.identity()];
 
   /// Stack of sets accumulating variables for which a potential write is
   /// captured by a local function or closure.
   ///
   /// A set is pushed onto the stack when a node is entered, and popped when
   /// a node is left.
-  final List<Set<Variable>> _capturedStack = [];
-
-  /// Stack of integers counting the number of entries in [_capturedStack] that
-  /// should be updated when a variable write is seen.
-  ///
-  /// When a closure is entered, the length of [_capturedStack] is pushed onto
-  /// this stack; when a node is left, it is popped.
-  ///
-  /// Each time a write occurs, we consult the top of this stack to determine
-  /// how many elements of [capturedStack] should be updated.
-  final List<int> _closureIndexStack = [];
+  final List<Set<Variable>> _capturedStack = [new Set<Variable>.identity()];
 
   AssignedVariables();
+
+  /// Queries the set of variables for which a potential write is captured by a
+  /// local function or closure anywhere in the code being analyzed.
+  Set<Variable> get capturedAnywhere => _capturedAnywhere;
+
+  /// Queries the set of variables that are potentially written to anywhere in
+  /// the code being analyzed.
+  Set<Variable> get writtenAnywhere => _writtenAnywhere;
 
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
@@ -70,18 +82,26 @@ class AssignedVariables<Node, Variable> {
   /// covered, but the initializers should not.  Similarly, in a switch
   /// statement, the body of the switch statement should be covered, but the
   /// switch expression should not.
-  void beginNode({bool isClosure: false}) {
+  void beginNode() {
     _writtenStack.add(new Set<Variable>.identity());
-    if (isClosure) {
-      _closureIndexStack.add(_capturedStack.length);
-    }
+    _declaredStack.add(new Set<Variable>.identity());
     _capturedStack.add(new Set<Variable>.identity());
   }
 
   /// Queries the set of variables for which a potential write is captured by a
   /// local function or closure inside the [node].
   Set<Variable> capturedInNode(Node node) {
-    return _capturedInNode[node] ?? const {};
+    return _capturedInNode[node] ??
+        (throw new StateError('No information for $node'));
+  }
+
+  /// This method should be called during pre-traversal, to indicate that the
+  /// declaration of a variable has been found.
+  ///
+  /// It is not required for the declaration to be seen prior to its use (this
+  /// is to allow for error recovery in the analyzer).
+  void declare(Variable variable) {
+    _declaredStack.last.add(variable);
   }
 
   /// This method should be called during pre-traversal, to mark the end of a
@@ -92,185 +112,119 @@ class AssignedVariables<Node, Variable> {
   ///
   /// See [beginNode] for more details.
   void endNode(Node node, {bool isClosure: false}) {
-    _writtenInNode[node] = _writtenStack.removeLast();
-    _capturedInNode[node] = _capturedStack.removeLast();
+    Set<Variable> declaredInThisNode = _declaredStack.removeLast();
+    Set<Variable> writtenInThisNode = _writtenStack.removeLast()
+      ..removeAll(declaredInThisNode);
+    Set<Variable> capturedInThisNode = _capturedStack.removeLast()
+      ..removeAll(declaredInThisNode);
+    _writtenInNode[node] = writtenInThisNode;
+    _capturedInNode[node] = capturedInThisNode;
+    _writtenStack.last.addAll(writtenInThisNode);
+    _capturedStack.last.addAll(capturedInThisNode);
     if (isClosure) {
-      _closureIndexStack.removeLast();
+      _capturedStack.last.addAll(writtenInThisNode);
+      _capturedAnywhere.addAll(writtenInThisNode);
     }
+  }
+
+  /// Call this after visiting the code to be analyzed, to check invariants.
+  void finish() {
+    assert(() {
+      assert(_writtenStack.length == 1);
+      assert(_declaredStack.length == 1);
+      assert(_capturedStack.length == 1);
+      Set<Variable> writtenInThisNode = _writtenStack.last;
+      Set<Variable> declaredInThisNode = _declaredStack.last;
+      Set<Variable> capturedInThisNode = _capturedStack.last;
+      Set<Variable> undeclaredWrites =
+          writtenInThisNode.difference(declaredInThisNode);
+      assert(undeclaredWrites.isEmpty,
+          'Variables written to but not declared: $undeclaredWrites');
+      Set<Variable> undeclaredCaptures =
+          capturedInThisNode.difference(declaredInThisNode);
+      assert(undeclaredCaptures.isEmpty,
+          'Variables captured but not declared: $undeclaredCaptures');
+      return true;
+    }());
   }
 
   /// This method should be called during pre-traversal, to mark a write to a
   /// variable.
   void write(Variable variable) {
-    for (int i = 0; i < _writtenStack.length; ++i) {
-      _writtenStack[i].add(variable);
-    }
-    if (_closureIndexStack.isNotEmpty) {
-      int closureIndex = _closureIndexStack.last;
-      for (int i = 0; i < closureIndex; ++i) {
-        _capturedStack[i].add(variable);
-      }
-    }
+    _writtenStack.last.add(variable);
+    _writtenAnywhere.add(variable);
   }
 
   /// Queries the set of variables that are potentially written to inside the
   /// [node].
   Set<Variable> writtenInNode(Node node) {
-    return _writtenInNode[node] ?? const {};
+    return _writtenInNode[node] ??
+        (throw new StateError('No information for $node'));
   }
 }
 
-class FlowAnalysis<Statement, Expression, Variable, Type> {
-  /// The [NodeOperations], used to manipulate expressions.
-  final NodeOperations<Expression> nodeOperations;
-
-  /// The [TypeOperations], used to access types, and check subtyping.
-  final TypeOperations<Variable, Type> typeOperations;
-
-  /// The enclosing function body, used to check for potential mutations.
-  final FunctionBodyAccess<Variable> functionBody;
-
-  /// The stack of states of variables that are not definitely assigned.
-  final List<FlowModel<Variable, Type>> _stack = [];
-
-  /// The mapping from labeled [Statement]s to the index in the [_stack]
-  /// where the first related element is located.  The number of elements
-  /// is statement specific.  Loops have two elements: `break` and `continue`
-  /// states.
-  final Map<Statement, int> _statementToStackIndex = {};
-
-  FlowModel<Variable, Type> _current;
-
-  /// The last boolean condition, for [_conditionTrue] and [_conditionFalse].
-  Expression _condition;
-
-  /// The state when [_condition] evaluates to `true`.
-  FlowModel<Variable, Type> _conditionTrue;
-
-  /// The state when [_condition] evaluates to `false`.
-  FlowModel<Variable, Type> _conditionFalse;
-
+/// Implementation of flow analysis to be shared between the analyzer and the
+/// front end.
+///
+/// The client should create one instance of this class for every method, field,
+/// or top level variable to be analyzed, and call the appropriate methods
+/// while visiting the code for type inference.
+abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   factory FlowAnalysis(
-    NodeOperations<Expression> nodeOperations,
-    TypeOperations<Variable, Type> typeOperations,
-    FunctionBodyAccess<Variable> functionBody,
-  ) {
-    return new FlowAnalysis._(nodeOperations, typeOperations, functionBody);
-  }
-
-  FlowAnalysis._(this.nodeOperations, this.typeOperations, this.functionBody) {
-    _current = new FlowModel<Variable, Type>(true);
+      TypeOperations<Variable, Type> typeOperations,
+      Iterable<Variable> variablesWrittenAnywhere,
+      Iterable<Variable> variablesCapturedAnywhere) {
+    return new _FlowAnalysisImpl(typeOperations,
+        variablesWrittenAnywhere.toList(), variablesCapturedAnywhere.toList());
   }
 
   /// Return `true` if the current state is reachable.
-  bool get isReachable => _current.reachable;
+  bool get isReachable;
 
-  void booleanLiteral(Expression expression, bool value) {
-    _condition = expression;
-    if (value) {
-      _conditionTrue = _current;
-      _conditionFalse = _current.setReachable(false);
-    } else {
-      _conditionTrue = _current.setReachable(false);
-      _conditionFalse = _current;
-    }
-  }
+  /// Call this method when visiting a boolean literal expression.
+  void booleanLiteral(Expression expression, bool value);
 
-  void conditional_elseBegin(Expression thenExpression) {
-    FlowModel<Variable, Type> afterThen = _current;
-    FlowModel<Variable, Type> falseCondition = _stack.removeLast();
+  /// Call this method upon reaching the ":" part of a conditional expression
+  /// ("?:").  [thenExpression] should be the expression preceding the ":".
+  void conditional_elseBegin(Expression thenExpression);
 
-    _conditionalEnd(thenExpression);
-    // Tail of the stack: falseThen, trueThen
-
-    _stack.add(afterThen);
-    _current = falseCondition;
-  }
-
+  /// Call this method when finishing the visit of a conditional expression
+  /// ("?:").  [elseExpression] should be the expression preceding the ":", and
+  /// [conditionalExpression] should be the whole conditional expression.
   void conditional_end(
-      Expression conditionalExpression, Expression elseExpression) {
-    FlowModel<Variable, Type> afterThen = _stack.removeLast();
-    FlowModel<Variable, Type> afterElse = _current;
+      Expression conditionalExpression, Expression elseExpression);
 
-    _conditionalEnd(elseExpression);
-    // Tail of the stack: falseThen, trueThen, falseElse, trueElse
+  /// Call this method upon reaching the "?" part of a conditional expression
+  /// ("?:").  [condition] should be the expression preceding the "?".
+  void conditional_thenBegin(Expression condition);
 
-    FlowModel<Variable, Type> trueElse = _stack.removeLast();
-    FlowModel<Variable, Type> falseElse = _stack.removeLast();
+  /// Call this method before visiting the body of a "do-while" statement.
+  /// [loopAssigned] should be the set of variables that are assigned in the
+  /// body of the loop (or the condition), and [loopCaptured] should be the set
+  /// of variables that are captured by closures within the body of the loop (or
+  /// the condition).
+  void doStatement_bodyBegin(Statement doStatement,
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured);
 
-    FlowModel<Variable, Type> trueThen = _stack.removeLast();
-    FlowModel<Variable, Type> falseThen = _stack.removeLast();
+  /// Call this method after visiting the body of a "do-while" statement, and
+  /// before visiting its condition.
+  void doStatement_conditionBegin();
 
-    FlowModel<Variable, Type> trueResult = _join(trueThen, trueElse);
-    FlowModel<Variable, Type> falseResult = _join(falseThen, falseElse);
+  /// Call this method after visiting the condition of a "do-while" statement.
+  /// [condition] should be the condition of the loop.
+  void doStatement_end(Expression condition);
 
-    _condition = conditionalExpression;
-    _conditionTrue = trueResult;
-    _conditionFalse = falseResult;
+  /// Call this method just after visiting a binary `==` or `!=` expression.
+  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      {bool notEqual = false});
 
-    _current = _join(afterThen, afterElse);
-  }
-
-  void conditional_thenBegin(Expression condition) {
-    _conditionalEnd(condition);
-    // Tail of the stack: falseCondition, trueCondition
-
-    FlowModel<Variable, Type> trueCondition = _stack.removeLast();
-    _current = trueCondition;
-  }
-
-  /// The [binaryExpression] checks that the [variable] is, or is not, equal to
-  /// `null`.
-  void conditionEqNull(Expression binaryExpression, Variable variable,
-      {bool notEqual: false}) {
-    if (functionBody.isPotentiallyMutatedInClosure(variable)) {
-      return;
-    }
-
-    _condition = binaryExpression;
-    FlowModel<Variable, Type> currentModel =
-        _current.markNonNullable(typeOperations, variable);
-    if (notEqual) {
-      _conditionTrue = currentModel;
-      _conditionFalse = _current;
-    } else {
-      _conditionTrue = _current;
-      _conditionFalse = currentModel;
-    }
-  }
-
-  void doStatement_bodyBegin(
-      Statement doStatement, Iterable<Variable> loopAssigned) {
-    _current = _current.removePromotedAll(loopAssigned);
-
-    _statementToStackIndex[doStatement] = _stack.length;
-    _stack.add(null); // break
-    _stack.add(null); // continue
-  }
-
-  void doStatement_conditionBegin() {
-    // Tail of the stack: break, continue
-
-    FlowModel<Variable, Type> continueState = _stack.removeLast();
-    _current = _join(_current, continueState);
-  }
-
-  void doStatement_end(Expression condition) {
-    _conditionalEnd(condition);
-    // Tail of the stack:  break, falseCondition, trueCondition
-
-    _stack.removeLast(); // trueCondition
-    FlowModel<Variable, Type> falseCondition = _stack.removeLast();
-    FlowModel<Variable, Type> breakState = _stack.removeLast();
-
-    _current = _join(falseCondition, breakState);
-  }
+  /// Call this method just after visiting the left hand side of a binary `==`
+  /// or `!=` expression.
+  void equalityOp_rightBegin(Expression leftOperand);
 
   /// This method should be called at the conclusion of flow analysis for a top
   /// level function or method.  Performs assertion checks.
-  void finish() {
-    assert(_stack.isEmpty);
-  }
+  void finish();
 
   /// Call this method just before visiting the body of a conventional "for"
   /// statement or collection element.  See [for_conditionBegin] for details.
@@ -285,27 +239,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// the loop condition should cause any promotions to occur.  If [condition]
   /// is null, the condition is understood to be empty (equivalent to a
   /// condition of `true`).
-  void for_bodyBegin(Statement node, Expression condition) {
-    FlowModel<Variable, Type> trueCondition;
-    if (condition == null) {
-      trueCondition = _current;
-      _stack.add(_current.setReachable(false));
-    } else {
-      _conditionalEnd(condition);
-      // Tail of the stack: falseCondition, trueCondition
-
-      trueCondition = _stack.removeLast();
-    }
-    // Tail of the stack: falseCondition
-
-    if (node != null) {
-      _statementToStackIndex[node] = _stack.length;
-    }
-    _stack.add(null); // break
-    _stack.add(null); // continue
-
-    _current = trueCondition;
-  }
+  void for_bodyBegin(Statement node, Expression condition);
 
   /// Call this method just before visiting the condition of a conventional
   /// "for" statement or collection element.
@@ -327,29 +261,16 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   ///
   /// [loopAssigned] should be the set of variables that are assigned anywhere
   /// in the loop's condition, updaters, or body.
-  void for_conditionBegin(Set<Variable> loopAssigned) {
-    _current = _current.removePromotedAll(loopAssigned);
-  }
+  void for_conditionBegin(
+      Set<Variable> loopAssigned, Set<Variable> loopCaptured);
 
   /// Call this method just after visiting the updaters of a conventional "for"
   /// statement or collection element.  See [for_conditionBegin] for details.
-  void for_end() {
-    // Tail of the stack: falseCondition, break
-    FlowModel<Variable, Type> breakState = _stack.removeLast();
-    FlowModel<Variable, Type> falseCondition = _stack.removeLast();
-
-    _current = _join(falseCondition, breakState);
-  }
+  void for_end();
 
   /// Call this method just before visiting the updaters of a conventional "for"
   /// statement or collection element.  See [for_conditionBegin] for details.
-  void for_updaterBegin() {
-    // Tail of the stack: falseCondition, break, continue
-    FlowModel<Variable, Type> afterBody = _current;
-    FlowModel<Variable, Type> continueState = _stack.removeLast();
-
-    _current = _join(afterBody, continueState);
-  }
+  void for_updaterBegin();
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.
@@ -364,185 +285,120 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// [loopAssigned] should be the set of variables that are assigned anywhere
   /// in the loop's body.  [loopVariable] should be the loop variable, if it's a
   /// local variable, or `null` otherwise.
-  void forEach_bodyBegin(Set<Variable> loopAssigned, Variable loopVariable) {
-    _stack.add(_current);
-    _current = _current.removePromotedAll(loopAssigned);
-    if (loopVariable != null) {
-      assert(loopAssigned.contains(loopVariable));
-      _current = _current.write(loopVariable);
-    }
-  }
+  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
+      Iterable<Variable> loopCaptured, Variable loopVariable);
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.  See [forEach_bodyBegin] for details.
-  void forEach_end() {
-    FlowModel<Variable, Type> afterIterable = _stack.removeLast();
-    _current = _join(_current, afterIterable);
-  }
+  void forEach_end();
 
-  void functionExpression_begin() {
-    _stack.add(_current);
+  /// Call this method just before visiting the body of a function expression or
+  /// local function.
+  void functionExpression_begin(Iterable<Variable> writeCaptured);
 
-    List<Variable> notPromoted = [];
-    for (MapEntry<Variable, VariableModel<Type>> entry
-        in _current.variableInfo.entries) {
-      Variable variable = entry.key;
-      Type promotedType = entry.value.promotedType;
-      if (promotedType != null &&
-          functionBody.isPotentiallyMutatedInScope(variable)) {
-        notPromoted.add(variable);
-      }
-    }
+  /// Call this method just after visiting the body of a function expression or
+  /// local function.
+  void functionExpression_end();
 
-    if (notPromoted.isNotEmpty) {
-      _current = _current.removePromotedAll(notPromoted);
-    }
-  }
+  /// Call this method when visiting a break statement.  [target] should be the
+  /// statement targeted by the break.
+  void handleBreak(Statement target);
 
-  void functionExpression_end() {
-    _current = _stack.removeLast();
-  }
-
-  void handleBreak(Statement target) {
-    int breakIndex = _statementToStackIndex[target];
-    if (breakIndex != null) {
-      _stack[breakIndex] = _join(_stack[breakIndex], _current);
-    }
-    _current = _current.setReachable(false);
-  }
-
-  void handleContinue(Statement target) {
-    int breakIndex = _statementToStackIndex[target];
-    if (breakIndex != null) {
-      int continueIndex = breakIndex + 1;
-      _stack[continueIndex] = _join(_stack[continueIndex], _current);
-    }
-    _current = _current.setReachable(false);
-  }
+  /// Call this method when visiting a continue statement.  [target] should be
+  /// the statement targeted by the continue.
+  void handleContinue(Statement target);
 
   /// Register the fact that the current state definitely exists, e.g. returns
   /// from the body, throws an exception, etc.
-  void handleExit() {
-    _current = _current.setReachable(false);
-  }
+  void handleExit();
 
-  void ifNullExpression_end() {
-    FlowModel<Variable, Type> afterLeft = _stack.removeLast();
-    _current = _join(_current, afterLeft);
-  }
+  /// Call this method after visiting the RHS of an if-null ("??") expression.
+  void ifNullExpression_end();
 
-  void ifNullExpression_rightBegin() {
-    _stack.add(_current); // afterLeft
-  }
+  /// Call this method after visiting the LHS of an if-null ("??") expression.
+  void ifNullExpression_rightBegin();
 
-  void ifStatement_elseBegin() {
-    FlowModel<Variable, Type> afterThen = _current;
-    FlowModel<Variable, Type> falseCondition = _stack.removeLast();
-    _stack.add(afterThen);
-    _current = falseCondition;
-  }
+  /// Call this method after visiting the "then" part of an if statement, and
+  /// before visiting the "else" part.
+  void ifStatement_elseBegin();
 
-  void ifStatement_end(bool hasElse) {
-    FlowModel<Variable, Type> afterThen;
-    FlowModel<Variable, Type> afterElse;
-    if (hasElse) {
-      afterThen = _stack.removeLast();
-      afterElse = _current;
-    } else {
-      afterThen = _current; // no `else`, so `then` is still current
-      afterElse = _stack.removeLast(); // `falseCond` is still on the stack
-    }
-    _current = _join(afterThen, afterElse);
-  }
+  /// Call this method after visiting an if statement.
+  void ifStatement_end(bool hasElse);
 
-  void ifStatement_thenBegin(Expression condition) {
-    _conditionalEnd(condition);
-    // Tail of the stack:  falseCondition, trueCondition
+  /// Call this method after visiting the condition part of an if statement.
+  /// [condition] should be the if statement's condition.
+  ///
+  /// The order of visiting an if statement with no "else" part should be:
+  /// - Visit the condition
+  /// - Call [ifStatement_thenBegin]
+  /// - Visit the "then" statement
+  /// - Call [ifStatement_end], passing `false` for `hasElse`.
+  ///
+  /// The order of visiting an if statement with an "else" part should be:
+  /// - Visit the condition
+  /// - Call [ifStatement_thenBegin]
+  /// - Visit the "then" statement
+  /// - Call [ifStatement_elseBegin]
+  /// - Visit the "else" statement
+  /// - Call [ifStatement_end], passing `true` for `hasElse`.
+  void ifStatement_thenBegin(Expression condition);
 
-    FlowModel<Variable, Type> trueCondition = _stack.removeLast();
-    _current = trueCondition;
-  }
+  /// Register an initialized declaration of the given [variable] in the current
+  /// state.  Should also be called for function parameters.
+  void initialize(Variable variable);
 
   /// Return whether the [variable] is definitely assigned in the current state.
-  bool isAssigned(Variable variable) {
-    return _current.infoFor(variable).assigned;
-  }
+  bool isAssigned(Variable variable);
 
+  /// Call this method after visiting the LHS of an "is" expression that checks
+  /// the type of a promotable variable.
+  /// [isExpression] should be the complete expression.  [variable] should be
+  /// the promotable variable.  [isNot] should be a boolean indicating whether
+  /// this is an "is" or an "is!" expression.  [type] should be the type being
+  /// checked.
   void isExpression_end(
-      Expression isExpression, Variable variable, bool isNot, Type type) {
-    if (functionBody.isPotentiallyMutatedInClosure(variable)) {
-      return;
-    }
+      Expression isExpression, Variable variable, bool isNot, Type type);
 
-    _condition = isExpression;
-    if (isNot) {
-      _conditionTrue = _current;
-      _conditionFalse = _current.promote(typeOperations, variable, type);
-    } else {
-      _conditionTrue = _current.promote(typeOperations, variable, type);
-      _conditionFalse = _current;
-    }
-  }
-
+  /// Call this method after visiting the RHS of a logical binary operation
+  /// ("||" or "&&").
+  /// [wholeExpression] should be the whole logical binary expression.
+  /// [rightOperand] should be the RHS.  [isAnd] should indicate whether the
+  /// logical operator is "&&" or "||".
   void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
-      {@required bool isAnd}) {
-    _conditionalEnd(rightOperand);
-    // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
+      {@required bool isAnd});
 
-    FlowModel<Variable, Type> trueRight = _stack.removeLast();
-    FlowModel<Variable, Type> falseRight = _stack.removeLast();
-
-    FlowModel<Variable, Type> trueLeft = _stack.removeLast();
-    FlowModel<Variable, Type> falseLeft = _stack.removeLast();
-
-    FlowModel<Variable, Type> trueResult;
-    FlowModel<Variable, Type> falseResult;
-    if (isAnd) {
-      trueResult = trueRight;
-      falseResult = _join(falseLeft, falseRight);
-    } else {
-      trueResult = _join(trueLeft, trueRight);
-      falseResult = falseRight;
-    }
-
-    FlowModel<Variable, Type> afterResult = _join(trueResult, falseResult);
-
-    _condition = wholeExpression;
-    _conditionTrue = trueResult;
-    _conditionFalse = falseResult;
-
-    _current = afterResult;
-  }
-
+  /// Call this method after visiting the LHS of a logical binary operation
+  /// ("||" or "&&").
+  /// [rightOperand] should be the LHS.  [isAnd] should indicate whether the
+  /// logical operator is "&&" or "||".
   void logicalBinaryOp_rightBegin(Expression leftOperand,
-      {@required bool isAnd}) {
-    _conditionalEnd(leftOperand);
-    // Tail of the stack: falseLeft, trueLeft
+      {@required bool isAnd});
 
-    if (isAnd) {
-      FlowModel<Variable, Type> trueLeft = _stack.last;
-      _current = trueLeft;
-    } else {
-      FlowModel<Variable, Type> falseLeft = _stack[_stack.length - 2];
-      _current = falseLeft;
-    }
-  }
+  /// Call this method after visiting a logical not ("!") expression.
+  /// [notExpression] should be the complete expression.  [operand] should be
+  /// the subexpression whose logical value is being negated.
+  void logicalNot_end(Expression notExpression, Expression operand);
 
-  void logicalNot_end(Expression notExpression, Expression operand) {
-    _conditionalEnd(operand);
-    FlowModel<Variable, Type> trueExpr = _stack.removeLast();
-    FlowModel<Variable, Type> falseExpr = _stack.removeLast();
+  /// Call this method just after visiting a non-null assertion (`x!`)
+  /// expression.
+  void nonNullAssert_end(Expression operand);
 
-    _condition = notExpression;
-    _conditionTrue = falseExpr;
-    _conditionFalse = trueExpr;
-  }
+  /// Call this method when encountering an expression that is a `null` literal.
+  void nullLiteral(Expression expression);
+
+  /// Call this method just after visiting a parenthesized expression.
+  ///
+  /// This is only necessary if the implementation uses a different [Expression]
+  /// object to represent a parenthesized expression and its contents.
+  void parenthesizedExpression(
+      Expression outerExpression, Expression innerExpression);
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
-  Type promotedType(Variable variable) {
-    return _current.infoFor(variable).promotedType;
-  }
+  ///
+  /// For testing only.  Please use [variableRead] instead.
+  @visibleForTesting
+  Type promotedType(Variable variable);
 
   /// Call this method just before visiting one of the cases in the body of a
   /// switch statement.  See [switchStatement_expressionEnd] for details.
@@ -551,34 +407,14 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   ///
   /// The [notPromoted] set contains all variables that are potentially assigned
   /// within the body of the switch statement.
-  void switchStatement_beginCase(
-      bool hasLabel, Iterable<Variable> notPromoted) {
-    if (hasLabel) {
-      _current = _stack.last.removePromotedAll(notPromoted);
-    } else {
-      _current = _stack.last;
-    }
-  }
+  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
+      Iterable<Variable> captured);
 
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
   ///
   /// [hasDefault] indicates whether the switch statement had a "default" case.
-  void switchStatement_end(bool hasDefault) {
-    // Tail of the stack: break, continue, afterExpression
-    FlowModel<Variable, Type> afterExpression = _stack.removeLast();
-    _stack.removeLast(); // continue
-    FlowModel<Variable, Type> breakState = _stack.removeLast();
-
-    // It is allowed to "fall off" the end of a switch statement, so join the
-    // current state to any breaks that were found previously.
-    breakState = _join(breakState, _current);
-
-    // And, if there is an implicit fall-through default, join it to any breaks.
-    if (!hasDefault) breakState = _join(breakState, afterExpression);
-
-    _current = breakState;
-  }
+  void switchStatement_end(bool hasDefault);
 
   /// Call this method just after visiting the expression part of a switch
   /// statement.
@@ -590,104 +426,109 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   ///   - Call [switchStatement_beginCase].
   ///   - Visit the case.
   /// - Call [switchStatement_end].
-  void switchStatement_expressionEnd(Statement switchStatement) {
-    _statementToStackIndex[switchStatement] = _stack.length;
-    _stack.add(null); // break
-    _stack.add(null); // continue
-    _stack.add(_current); // afterExpression
-  }
+  void switchStatement_expressionEnd(Statement switchStatement);
 
-  void tryCatchStatement_bodyBegin() {
-    _stack.add(_current);
-    // Tail of the stack: beforeBody
-  }
+  /// Call this method just before visiting the body of a "try/catch" statement.
+  ///
+  /// The order of visiting a "try/catch" statement should be:
+  /// - Call [tryCatchStatement_bodyBegin]
+  /// - Visit the try block
+  /// - Call [tryCatchStatement_bodyEnd]
+  /// - For each catch block:
+  ///   - Call [tryCatchStatement_catchBegin]
+  ///   - Call [initialize] for the exception and stack trace variables
+  ///   - Visit the catch block
+  ///   - Call [tryCatchStatement_catchEnd]
+  /// - Call [tryCatchStatement_end]
+  ///
+  /// The order of visiting a "try/catch/finally" statement should be:
+  /// - Call [tryFinallyStatement_bodyBegin]
+  /// - Call [tryCatchStatement_bodyBegin]
+  /// - Visit the try block
+  /// - Call [tryCatchStatement_bodyEnd]
+  /// - For each catch block:
+  ///   - Call [tryCatchStatement_catchBegin]
+  ///   - Call [initialize] for the exception and stack trace variables
+  ///   - Visit the catch block
+  ///   - Call [tryCatchStatement_catchEnd]
+  /// - Call [tryCatchStatement_end]
+  /// - Call [tryFinallyStatement_finallyBegin]
+  /// - Visit the finally block
+  /// - Call [tryFinallyStatement_end]
+  void tryCatchStatement_bodyBegin();
 
-  void tryCatchStatement_bodyEnd(Iterable<Variable> assignedInBody) {
-    FlowModel<Variable, Type> beforeBody = _stack.removeLast();
-    FlowModel<Variable, Type> beforeCatch =
-        beforeBody.removePromotedAll(assignedInBody);
-    _stack.add(beforeCatch);
-    _stack.add(_current); // afterBodyAndCatches
-    // Tail of the stack: beforeCatch, afterBodyAndCatches
-  }
+  /// Call this method just after visiting the body of a "try/catch" statement.
+  /// See [tryCatchStatement_bodyBegin] for details.
+  ///
+  /// [assignedInBody] should be the set of variables assigned in the "try" part
+  /// of the statement.  [capturedInBody] should be the set of variables
+  /// captured by closures in the "try" part of the statement.
+  void tryCatchStatement_bodyEnd(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody);
 
-  void tryCatchStatement_catchBegin() {
-    FlowModel<Variable, Type> beforeCatch = _stack[_stack.length - 2];
-    _current = beforeCatch;
-  }
+  /// Call this method just before visiting a catch clause of a "try/catch"
+  /// statement.  See [tryCatchStatement_bodyBegin] for details.
+  void tryCatchStatement_catchBegin();
 
-  void tryCatchStatement_catchEnd() {
-    FlowModel<Variable, Type> afterBodyAndCatches = _stack.last;
-    _stack.last = _join(afterBodyAndCatches, _current);
-  }
+  /// Call this method just after visiting a catch clause of a "try/catch"
+  /// statement.  See [tryCatchStatement_bodyBegin] for details.
+  void tryCatchStatement_catchEnd();
 
-  void tryCatchStatement_end() {
-    FlowModel<Variable, Type> afterBodyAndCatches = _stack.removeLast();
-    _stack.removeLast(); // beforeCatch
-    _current = afterBodyAndCatches;
-  }
+  /// Call this method just after visiting a "try/catch" statement.  See
+  /// [tryCatchStatement_bodyBegin] for details.
+  void tryCatchStatement_end();
 
-  void tryFinallyStatement_bodyBegin() {
-    _stack.add(_current); // beforeTry
-  }
+  /// Call this method just before visiting the body of a "try/finally"
+  /// statement.
+  ///
+  /// The order of visiting a "try/finally" statement should be:
+  /// - Call [tryFinallyStatement_bodyBegin]
+  /// - Visit the try block
+  /// - Call [tryFinallyStatement_finallyBegin]
+  /// - Visit the finally block
+  /// - Call [tryFinallyStatement_end]
+  ///
+  /// See [tryCatchStatement_bodyBegin] for the order of visiting a
+  /// "try/catch/finally" statement.
+  void tryFinallyStatement_bodyBegin();
 
-  void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
-    FlowModel<Variable, Type> afterBody = _stack.removeLast();
-    _current = _current.restrict(typeOperations, afterBody, assignedInFinally);
-  }
+  /// Call this method just after visiting a "try/finally" statement.
+  /// See [tryFinallyStatement_bodyBegin] for details.
+  ///
+  /// [assignedInFinally] should be the set of variables assigned in the
+  /// "finally" part of the statement.
+  void tryFinallyStatement_end(Set<Variable> assignedInFinally);
 
-  void tryFinallyStatement_finallyBegin(Iterable<Variable> assignedInBody) {
-    FlowModel<Variable, Type> beforeTry = _stack.removeLast();
-    FlowModel<Variable, Type> afterBody = _current;
-    _stack.add(afterBody);
-    _current = _join(afterBody, beforeTry.removePromotedAll(assignedInBody));
-  }
+  /// Call this method just before visiting the finally block of a "try/finally"
+  /// statement.  See [tryFinallyStatement_bodyBegin] for details.
+  void tryFinallyStatement_finallyBegin(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody);
 
-  void whileStatement_bodyBegin(
-      Statement whileStatement, Expression condition) {
-    _conditionalEnd(condition);
-    // Tail of the stack: falseCondition, trueCondition
+  /// Call this method when encountering an expression that reads the value of
+  /// a variable.
+  ///
+  /// If the variable's type is currently promoted, the promoted type is
+  /// returned.  Otherwise `null` is returned.
+  Type variableRead(Expression expression, Variable variable);
 
-    FlowModel<Variable, Type> trueCondition = _stack.removeLast();
+  /// Call this method after visiting the condition part of a "while" statement.
+  /// [whileStatement] should be the full while statement.  [condition] should
+  /// be the condition part of the while statement.
+  void whileStatement_bodyBegin(Statement whileStatement, Expression condition);
 
-    _statementToStackIndex[whileStatement] = _stack.length;
-    _stack.add(null); // break
-    _stack.add(null); // continue
+  /// Call this method before visiting the condition part of a "while"
+  /// statement.
+  /// [loopAssigned] should be the set of variables assigned in the body of the
+  /// loop (or in the condition).  [loopCaptured] should be the set of variables
+  /// captured by closures in the body of the loop (or in the condition).
+  void whileStatement_conditionBegin(
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured);
 
-    _current = trueCondition;
-  }
-
-  void whileStatement_conditionBegin(Iterable<Variable> loopAssigned) {
-    _current = _current.removePromotedAll(loopAssigned);
-  }
-
-  void whileStatement_end() {
-    _stack.removeLast(); // continue
-    FlowModel<Variable, Type> breakState = _stack.removeLast();
-    FlowModel<Variable, Type> falseCondition = _stack.removeLast();
-
-    _current = _join(falseCondition, breakState);
-  }
+  /// Call this method after visiting a "while" statement.
+  void whileStatement_end();
 
   /// Register write of the given [variable] in the current state.
-  void write(Variable variable) {
-    _current = _current.write(variable);
-  }
-
-  void _conditionalEnd(Expression condition) {
-    condition = nodeOperations.unwrapParenthesized(condition);
-    if (identical(condition, _condition)) {
-      _stack.add(_conditionFalse);
-      _stack.add(_conditionTrue);
-    } else {
-      _stack.add(_current);
-      _stack.add(_current);
-    }
-  }
-
-  FlowModel<Variable, Type> _join(
-          FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
-      FlowModel.join(typeOperations, first, second);
+  void write(Variable variable);
 }
 
 /// An instance of the [FlowModel] class represents the information gathered by
@@ -748,6 +589,7 @@ class FlowModel<Variable, Type> {
   FlowModel<Variable, Type> markNonNullable(
       TypeOperations<Variable, Type> typeOperations, Variable variable) {
     VariableModel<Type> info = infoFor(variable);
+    if (info.writeCaptured) return this;
     Type previousType = info.promotedType;
     previousType ??= typeOperations.variableType(variable);
     Type type = typeOperations.promoteToNonNull(previousType);
@@ -770,6 +612,7 @@ class FlowModel<Variable, Type> {
     Type type,
   ) {
     VariableModel<Type> info = infoFor(variable);
+    if (info.writeCaptured) return this;
     Type previousType = info.promotedType;
     previousType ??= typeOperations.variableType(variable);
 
@@ -780,8 +623,8 @@ class FlowModel<Variable, Type> {
     return _updateVariableInfo(variable, info.withPromotedType(type));
   }
 
-  /// Updates the state to indicate that the given [variables] are no longer
-  /// promoted; they are presumed to have their declared types.
+  /// Updates the state to indicate that the given [writtenVariables] are no
+  /// longer promoted; they are presumed to have their declared types.
   ///
   /// This is used at the top of loops to conservatively cancel the promotion of
   /// variables that are modified within the loop, so that we correctly analyze
@@ -799,13 +642,26 @@ class FlowModel<Variable, Type> {
   /// and only remove promotions if it can be shown that they aren't restored
   /// later in the loop body.  If we switch to a fixed point analysis, we should
   /// be able to remove this method.
-  FlowModel<Variable, Type> removePromotedAll(Iterable<Variable> variables) {
+  FlowModel<Variable, Type> removePromotedAll(
+      Iterable<Variable> writtenVariables,
+      Iterable<Variable> capturedVariables) {
     Map<Variable, VariableModel<Type>> newVariableInfo;
-    for (Variable variable in variables) {
+    for (Variable variable in writtenVariables) {
       VariableModel<Type> info = infoFor(variable);
       if (info.promotedType != null) {
         (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
             variableInfo))[variable] = info.withPromotedType(null);
+      }
+    }
+    for (Variable variable in capturedVariables) {
+      VariableModel<Type> info = variableInfo[variable];
+      if (info == null) {
+        (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
+                variableInfo))[variable] =
+            new VariableModel<Type>(null, false, true);
+      } else if (!info.writeCaptured) {
+        (newVariableInfo ??= new Map<Variable, VariableModel<Type>>.from(
+            variableInfo))[variable] = info.writeCapture();
       }
     }
     if (newVariableInfo == null) return this;
@@ -1017,19 +873,6 @@ class FlowModel<Variable, Type> {
   }
 }
 
-/// Accessor for function body information.
-abstract class FunctionBodyAccess<Variable> {
-  bool isPotentiallyMutatedInClosure(Variable variable);
-
-  bool isPotentiallyMutatedInScope(Variable variable);
-}
-
-/// Operations on nodes, abstracted from concrete node interfaces.
-abstract class NodeOperations<Expression> {
-  /// If the [node] is a parenthesized expression, recursively unwrap it.
-  Expression unwrapParenthesized(Expression node);
-}
-
 /// Operations on types, abstracted from concrete type interfaces.
 abstract class TypeOperations<Variable, Type> {
   /// Returns `true` if [type1] and [type2] are the same type.
@@ -1063,19 +906,27 @@ class VariableModel<Type> {
   /// Indicates whether the variable has definitely been assigned.
   final bool assigned;
 
-  VariableModel(this.promotedType, this.assigned);
+  /// Indicates whether the variable has been write captured.
+  final bool writeCaptured;
+
+  VariableModel(this.promotedType, this.assigned, this.writeCaptured) {
+    assert(!writeCaptured || promotedType == null,
+        "Write-captured variables can't be promoted");
+  }
 
   /// Creates a [VariableModel] representing a variable that's never been seen
   /// before.
   VariableModel.fresh()
       : promotedType = null,
-        assigned = false;
+        assigned = false,
+        writeCaptured = false;
 
   @override
   bool operator ==(Object other) {
     return other is VariableModel<Type> &&
         this.promotedType == other.promotedType &&
-        this.assigned == other.assigned;
+        this.assigned == other.assigned &&
+        this.writeCaptured == other.writeCaptured;
   }
 
   /// Returns an updated model reflect a control path that is known to have
@@ -1084,31 +935,41 @@ class VariableModel<Type> {
   VariableModel<Type> restrict(TypeOperations<Object, Type> typeOperations,
       VariableModel<Type> otherModel, bool unsafe) {
     Type thisType = promotedType;
-    Type otherType = otherModel?.promotedType;
+    Type otherType = otherModel.promotedType;
     bool newAssigned = assigned || otherModel.assigned;
+    bool newWriteCaptured = writeCaptured || otherModel.writeCaptured;
     if (!unsafe) {
       if (otherType != null &&
           (thisType == null ||
               typeOperations.isSubtypeOf(otherType, thisType))) {
-        return _identicalOrNew(this, otherModel, otherType, newAssigned);
+        return _identicalOrNew(
+            this, otherModel, otherType, newAssigned, newWriteCaptured);
       }
     }
-    return _identicalOrNew(this, otherModel, thisType, newAssigned);
+    return _identicalOrNew(
+        this, otherModel, thisType, newAssigned, newWriteCaptured);
   }
 
   @override
-  String toString() => 'VariableModel($promotedType, $assigned)';
+  String toString() =>
+      'VariableModel($promotedType, $assigned, $writeCaptured)';
 
   /// Returns a new [VariableModel] where the promoted type is replaced with
   /// [promotedType].
   VariableModel<Type> withPromotedType(Type promotedType) =>
-      new VariableModel<Type>(promotedType, assigned);
+      new VariableModel<Type>(promotedType, assigned, writeCaptured);
 
   /// Returns a new [VariableModel] reflecting the fact that the variable was
   /// just written to.
   VariableModel<Type> write() {
     if (promotedType == null && assigned) return this;
-    return new VariableModel<Type>(null, true);
+    return new VariableModel<Type>(null, true, writeCaptured);
+  }
+
+  /// Returns a new [VariableModel] reflecting the fact that the variable has
+  /// been write-captured.
+  VariableModel<Type> writeCapture() {
+    return new VariableModel<Type>(null, assigned, true);
   }
 
   /// Joins two variable models.  See [FlowModel.join] for details.
@@ -1131,21 +992,724 @@ class VariableModel<Type> {
       newPromotedType = null;
     }
     bool newAssigned = first.assigned && second.assigned;
-    return _identicalOrNew(first, second, newPromotedType, newAssigned);
+    bool newWriteCaptured = first.writeCaptured || second.writeCaptured;
+    return _identicalOrNew(
+        first, second, newPromotedType, newAssigned, newWriteCaptured);
   }
 
   /// Creates a new [VariableModel] object, unless it is equivalent to either
   /// [first] or [second], in which case one of those objects is re-used.
-  static VariableModel<Type> _identicalOrNew<Type>(VariableModel<Type> first,
-      VariableModel<Type> second, Type newPromotedType, bool newAssigned) {
+  static VariableModel<Type> _identicalOrNew<Type>(
+      VariableModel<Type> first,
+      VariableModel<Type> second,
+      Type newPromotedType,
+      bool newAssigned,
+      bool newWriteCaptured) {
     if (identical(first.promotedType, newPromotedType) &&
-        first.assigned == newAssigned) {
+        first.assigned == newAssigned &&
+        first.writeCaptured == newWriteCaptured) {
       return first;
     } else if (identical(second.promotedType, newPromotedType) &&
-        second.assigned == newAssigned) {
+        second.assigned == newAssigned &&
+        second.writeCaptured == newWriteCaptured) {
       return second;
     } else {
-      return new VariableModel<Type>(newPromotedType, newAssigned);
+      return new VariableModel<Type>(
+          newPromotedType, newAssigned, newWriteCaptured);
     }
   }
+}
+
+/// [_FlowContext] representing a language construct that branches on a boolean
+/// condition, such as an `if` statement, conditional expression, or a logical
+/// binary operator.
+class _BranchContext<Variable, Type> extends _FlowContext {
+  /// Flow models associated with the condition being branched on.
+  final _ExpressionInfo<Variable, Type> _conditionInfo;
+
+  _BranchContext(this._conditionInfo);
+}
+
+/// [_FlowContext] representing a language construct that can be targeted by
+/// `break` or `continue` statements, such as a loop or switch statement.
+class _BranchTargetContext<Variable, Type> extends _FlowContext {
+  /// Accumulated flow model for all `break` statements seen so far, or `null`
+  /// if no `break` statements have been seen yet.
+  FlowModel<Variable, Type> _breakModel;
+
+  /// Accumulated flow model for all `continue` statements seen so far, or
+  /// `null` if no `continue` statements have been seen yet.
+  FlowModel<Variable, Type> _continueModel;
+}
+
+/// [_FlowContext] representing a conditional expression.
+class _ConditionalContext<Variable, Type>
+    extends _BranchContext<Variable, Type> {
+  /// Flow models associated with the value of the conditional expression in the
+  /// circumstance where the "then" branch is taken.
+  _ExpressionInfo<Variable, Type> _thenInfo;
+
+  _ConditionalContext(_ExpressionInfo<Variable, Type> conditionInfo)
+      : super(conditionInfo);
+}
+
+/// A collection of flow models representing the possible outcomes of evaluating
+/// an expression that are relevant to flow analysis.
+class _ExpressionInfo<Variable, Type> {
+  /// The state after the expression evaluates, if we don't care what it
+  /// evaluates to.
+  final FlowModel<Variable, Type> _after;
+
+  /// The state after the expression evaluates, if it evaluates to `true`.
+  final FlowModel<Variable, Type> _ifTrue;
+
+  /// The state after the expression evaluates, if it evaluates to `false`.
+  final FlowModel<Variable, Type> _ifFalse;
+
+  _ExpressionInfo(this._after, this._ifTrue, this._ifFalse);
+}
+
+class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
+    implements FlowAnalysis<Statement, Expression, Variable, Type> {
+  final List<Variable> _variablesWrittenAnywhere;
+
+  final List<Variable> _variablesCapturedAnywhere;
+
+  /// The [TypeOperations], used to access types, and check subtyping.
+  final TypeOperations<Variable, Type> typeOperations;
+
+  /// Stack of [_FlowContext] objects representing the statements and
+  /// expressions that are currently being visited.
+  final List<_FlowContext> _stack = [];
+
+  /// The mapping from [Statement]s that can act as targets for `break` and
+  /// `continue` statements (i.e. loops and switch statements) to the to their
+  /// context information.
+  final Map<Statement, _BranchTargetContext<Variable, Type>>
+      _statementToContext = {};
+
+  FlowModel<Variable, Type> _current;
+
+  /// The most recently visited expression for which an [_ExpressionInfo] object
+  /// exists, or `null` if no expression has been visited that has a
+  /// corresponding [_ExpressionInfo] object.
+  Expression _expressionWithInfo;
+
+  /// If [_expressionWithInfo] is not `null`, the [_ExpressionInfo] object
+  /// corresponding to it.  Otherwise `null`.
+  _ExpressionInfo<Variable, Type> _expressionInfo;
+
+  int _functionNestingLevel = 0;
+
+  _FlowAnalysisImpl(this.typeOperations, this._variablesWrittenAnywhere,
+      this._variablesCapturedAnywhere) {
+    _current = new FlowModel<Variable, Type>(true);
+  }
+
+  @override
+  bool get isReachable => _current.reachable;
+
+  @override
+  void booleanLiteral(Expression expression, bool value) {
+    FlowModel<Variable, Type> unreachable = _current.setReachable(false);
+    _storeExpressionInfo(
+        expression,
+        value
+            ? new _ExpressionInfo(_current, _current, unreachable)
+            : new _ExpressionInfo(_current, unreachable, _current));
+  }
+
+  @override
+  void conditional_elseBegin(Expression thenExpression) {
+    _ConditionalContext<Variable, Type> context =
+        _stack.last as _ConditionalContext<Variable, Type>;
+    context._thenInfo = _expressionEnd(thenExpression);
+    _current = context._conditionInfo._ifFalse;
+  }
+
+  @override
+  void conditional_end(
+      Expression conditionalExpression, Expression elseExpression) {
+    _ConditionalContext<Variable, Type> context =
+        _stack.removeLast() as _ConditionalContext<Variable, Type>;
+    _ExpressionInfo<Variable, Type> thenInfo = context._thenInfo;
+    _ExpressionInfo<Variable, Type> elseInfo = _expressionEnd(elseExpression);
+    _storeExpressionInfo(
+        conditionalExpression,
+        new _ExpressionInfo(
+            _join(thenInfo._after, elseInfo._after),
+            _join(thenInfo._ifTrue, elseInfo._ifTrue),
+            _join(thenInfo._ifFalse, elseInfo._ifFalse)));
+  }
+
+  @override
+  void conditional_thenBegin(Expression condition) {
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(condition);
+    _stack.add(new _ConditionalContext(conditionInfo));
+    _current = conditionInfo._ifTrue;
+  }
+
+  @override
+  void doStatement_bodyBegin(Statement doStatement,
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+    _BranchTargetContext<Variable, Type> context =
+        new _BranchTargetContext<Variable, Type>();
+    _stack.add(context);
+    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    _statementToContext[doStatement] = context;
+  }
+
+  @override
+  void doStatement_conditionBegin() {
+    _BranchTargetContext<Variable, Type> context =
+        _stack.last as _BranchTargetContext<Variable, Type>;
+    _current = _join(_current, context._continueModel);
+  }
+
+  @override
+  void doStatement_end(Expression condition) {
+    _BranchTargetContext<Variable, Type> context =
+        _stack.removeLast() as _BranchTargetContext<Variable, Type>;
+    _current = _join(_expressionEnd(condition)._ifFalse, context._breakModel);
+  }
+
+  @override
+  void equalityOp_end(Expression wholeExpression, Expression rightOperand,
+      {bool notEqual = false}) {
+    _BranchContext<Variable, Type> context =
+        _stack.removeLast() as _BranchContext<Variable, Type>;
+    _ExpressionInfo<Variable, Type> lhsInfo = context._conditionInfo;
+    _ExpressionInfo<Variable, Type> rhsInfo = _getExpressionInfo(rightOperand);
+    Variable variable;
+    if (lhsInfo is _NullInfo<Variable, Type> &&
+        rhsInfo is _VariableReadInfo<Variable, Type>) {
+      variable = rhsInfo._variable;
+    } else if (rhsInfo is _NullInfo<Variable, Type> &&
+        lhsInfo is _VariableReadInfo<Variable, Type>) {
+      variable = lhsInfo._variable;
+    } else {
+      return;
+    }
+    FlowModel<Variable, Type> ifNotNull =
+        _current.markNonNullable(typeOperations, variable);
+    _storeExpressionInfo(
+        wholeExpression,
+        notEqual
+            ? new _ExpressionInfo(_current, ifNotNull, _current)
+            : new _ExpressionInfo(_current, _current, ifNotNull));
+  }
+
+  @override
+  void equalityOp_rightBegin(Expression leftOperand) {
+    _stack.add(
+        new _BranchContext<Variable, Type>(_getExpressionInfo(leftOperand)));
+  }
+
+  @override
+  void finish() {
+    assert(_stack.isEmpty);
+  }
+
+  @override
+  void for_bodyBegin(Statement node, Expression condition) {
+    _ExpressionInfo<Variable, Type> conditionInfo = condition == null
+        ? new _ExpressionInfo(_current, _current, _current.setReachable(false))
+        : _expressionEnd(condition);
+    _WhileContext<Variable, Type> context =
+        new _WhileContext<Variable, Type>(conditionInfo);
+    _stack.add(context);
+    if (node != null) {
+      _statementToContext[node] = context;
+    }
+    _current = conditionInfo._ifTrue;
+  }
+
+  @override
+  void for_conditionBegin(
+      Set<Variable> loopAssigned, Set<Variable> loopCaptured) {
+    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+  }
+
+  @override
+  void for_end() {
+    _WhileContext<Variable, Type> context =
+        _stack.removeLast() as _WhileContext<Variable, Type>;
+    // Tail of the stack: falseCondition, break
+    FlowModel<Variable, Type> breakState = context._breakModel;
+    FlowModel<Variable, Type> falseCondition = context._conditionInfo._ifFalse;
+
+    _current = _join(falseCondition, breakState);
+  }
+
+  @override
+  void for_updaterBegin() {
+    _WhileContext<Variable, Type> context =
+        _stack.last as _WhileContext<Variable, Type>;
+    _current = _join(_current, context._continueModel);
+  }
+
+  @override
+  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
+      Iterable<Variable> loopCaptured, Variable loopVariable) {
+    _SimpleStatementContext<Variable, Type> context =
+        new _SimpleStatementContext<Variable, Type>(_current);
+    _stack.add(context);
+    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+    if (loopVariable != null) {
+      _current = _current.write(loopVariable);
+    }
+  }
+
+  @override
+  void forEach_end() {
+    _SimpleStatementContext<Variable, Type> context =
+        _stack.removeLast() as _SimpleStatementContext<Variable, Type>;
+    _current = _join(_current, context._previous);
+  }
+
+  @override
+  void functionExpression_begin(Iterable<Variable> writeCaptured) {
+    ++_functionNestingLevel;
+    _current = _current.removePromotedAll(const [], writeCaptured);
+    _stack.add(new _SimpleContext(_current));
+    _current = _current.removePromotedAll(
+        _variablesWrittenAnywhere, _variablesCapturedAnywhere);
+  }
+
+  @override
+  void functionExpression_end() {
+    --_functionNestingLevel;
+    assert(_functionNestingLevel >= 0);
+    _SimpleContext<Variable, Type> context =
+        _stack.removeLast() as _SimpleContext<Variable, Type>;
+    _current = context._previous;
+  }
+
+  @override
+  void handleBreak(Statement target) {
+    _BranchTargetContext<Variable, Type> context = _statementToContext[target];
+    if (context != null) {
+      context._breakModel = _join(context._breakModel, _current);
+    }
+    _current = _current.setReachable(false);
+  }
+
+  @override
+  void handleContinue(Statement target) {
+    _BranchTargetContext<Variable, Type> context = _statementToContext[target];
+    if (context != null) {
+      context._continueModel = _join(context._continueModel, _current);
+    }
+    _current = _current.setReachable(false);
+  }
+
+  @override
+  void handleExit() {
+    _current = _current.setReachable(false);
+  }
+
+  @override
+  void ifNullExpression_end() {
+    _SimpleContext<Variable, Type> context =
+        _stack.removeLast() as _SimpleContext<Variable, Type>;
+    _current = _join(_current, context._previous);
+  }
+
+  @override
+  void ifNullExpression_rightBegin() {
+    _stack.add(new _SimpleContext<Variable, Type>(_current));
+  }
+
+  @override
+  void ifStatement_elseBegin() {
+    _IfContext<Variable, Type> context =
+        _stack.last as _IfContext<Variable, Type>;
+    context._afterThen = _current;
+    _current = context._conditionInfo._ifFalse;
+  }
+
+  @override
+  void ifStatement_end(bool hasElse) {
+    _IfContext<Variable, Type> context =
+        _stack.removeLast() as _IfContext<Variable, Type>;
+    FlowModel<Variable, Type> afterThen;
+    FlowModel<Variable, Type> afterElse;
+    if (hasElse) {
+      afterThen = context._afterThen;
+      afterElse = _current;
+    } else {
+      afterThen = _current; // no `else`, so `then` is still current
+      afterElse = context._conditionInfo._ifFalse;
+    }
+    _current = _join(afterThen, afterElse);
+  }
+
+  @override
+  void ifStatement_thenBegin(Expression condition) {
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(condition);
+    _stack.add(new _IfContext(conditionInfo));
+    _current = conditionInfo._ifTrue;
+  }
+
+  @override
+  void initialize(Variable variable) {
+    _current = _current.write(variable);
+  }
+
+  @override
+  bool isAssigned(Variable variable) {
+    return _current.infoFor(variable).assigned;
+  }
+
+  @override
+  void isExpression_end(
+      Expression isExpression, Variable variable, bool isNot, Type type) {
+    FlowModel<Variable, Type> promoted =
+        _current.promote(typeOperations, variable, type);
+    _storeExpressionInfo(
+        isExpression,
+        isNot
+            ? new _ExpressionInfo(_current, _current, promoted)
+            : new _ExpressionInfo(_current, promoted, _current));
+  }
+
+  @override
+  void logicalBinaryOp_end(Expression wholeExpression, Expression rightOperand,
+      {@required bool isAnd}) {
+    _BranchContext<Variable, Type> context =
+        _stack.removeLast() as _BranchContext<Variable, Type>;
+    _ExpressionInfo<Variable, Type> rhsInfo = _expressionEnd(rightOperand);
+
+    FlowModel<Variable, Type> trueResult;
+    FlowModel<Variable, Type> falseResult;
+    if (isAnd) {
+      trueResult = rhsInfo._ifTrue;
+      falseResult = _join(context._conditionInfo._ifFalse, rhsInfo._ifFalse);
+    } else {
+      trueResult = _join(context._conditionInfo._ifTrue, rhsInfo._ifTrue);
+      falseResult = rhsInfo._ifFalse;
+    }
+    _storeExpressionInfo(
+        wholeExpression,
+        new _ExpressionInfo(
+            _join(trueResult, falseResult), trueResult, falseResult));
+  }
+
+  @override
+  void logicalBinaryOp_rightBegin(Expression leftOperand,
+      {@required bool isAnd}) {
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(leftOperand);
+    _stack.add(new _BranchContext<Variable, Type>(conditionInfo));
+    _current = isAnd ? conditionInfo._ifTrue : conditionInfo._ifFalse;
+  }
+
+  @override
+  void logicalNot_end(Expression notExpression, Expression operand) {
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(operand);
+    _storeExpressionInfo(
+        notExpression,
+        new _ExpressionInfo(conditionInfo._after, conditionInfo._ifFalse,
+            conditionInfo._ifTrue));
+  }
+
+  @override
+  void nonNullAssert_end(Expression operand) {
+    _ExpressionInfo<Variable, Type> operandInfo = _getExpressionInfo(operand);
+    if (operandInfo is _VariableReadInfo<Variable, Type>) {
+      _current =
+          _current.markNonNullable(typeOperations, operandInfo._variable);
+    }
+  }
+
+  @override
+  void nullLiteral(Expression expression) {
+    _storeExpressionInfo(expression, new _NullInfo(_current));
+  }
+
+  @override
+  void parenthesizedExpression(
+      Expression outerExpression, Expression innerExpression) {
+    if (identical(_expressionWithInfo, innerExpression)) {
+      _expressionWithInfo = outerExpression;
+    }
+  }
+
+  @override
+  Type promotedType(Variable variable) {
+    return _current.infoFor(variable).promotedType;
+  }
+
+  @override
+  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
+      Iterable<Variable> captured) {
+    _SimpleStatementContext<Variable, Type> context =
+        _stack.last as _SimpleStatementContext<Variable, Type>;
+    if (hasLabel) {
+      _current = context._previous.removePromotedAll(notPromoted, captured);
+    } else {
+      _current = context._previous;
+    }
+  }
+
+  @override
+  void switchStatement_end(bool hasDefault) {
+    _SimpleStatementContext<Variable, Type> context =
+        _stack.removeLast() as _SimpleStatementContext<Variable, Type>;
+    FlowModel<Variable, Type> breakState = context._breakModel;
+
+    // It is allowed to "fall off" the end of a switch statement, so join the
+    // current state to any breaks that were found previously.
+    breakState = _join(breakState, _current);
+
+    // And, if there is an implicit fall-through default, join it to any breaks.
+    if (!hasDefault) breakState = _join(breakState, context._previous);
+
+    _current = breakState;
+  }
+
+  @override
+  void switchStatement_expressionEnd(Statement switchStatement) {
+    _SimpleStatementContext<Variable, Type> context =
+        new _SimpleStatementContext<Variable, Type>(_current);
+    _stack.add(context);
+    _statementToContext[switchStatement] = context;
+  }
+
+  @override
+  void tryCatchStatement_bodyBegin() {
+    _stack.add(new _TryContext<Variable, Type>(_current));
+  }
+
+  @override
+  void tryCatchStatement_bodyEnd(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+    _TryContext<Variable, Type> context =
+        _stack.last as _TryContext<Variable, Type>;
+    FlowModel<Variable, Type> beforeBody = context._previous;
+    FlowModel<Variable, Type> beforeCatch =
+        beforeBody.removePromotedAll(assignedInBody, capturedInBody);
+    context._beforeCatch = beforeCatch;
+    context._afterBodyAndCatches = _current;
+  }
+
+  @override
+  void tryCatchStatement_catchBegin() {
+    _TryContext<Variable, Type> context =
+        _stack.last as _TryContext<Variable, Type>;
+    _current = context._beforeCatch;
+  }
+
+  @override
+  void tryCatchStatement_catchEnd() {
+    _TryContext<Variable, Type> context =
+        _stack.last as _TryContext<Variable, Type>;
+    context._afterBodyAndCatches =
+        _join(context._afterBodyAndCatches, _current);
+  }
+
+  @override
+  void tryCatchStatement_end() {
+    _TryContext<Variable, Type> context =
+        _stack.removeLast() as _TryContext<Variable, Type>;
+    _current = context._afterBodyAndCatches;
+  }
+
+  @override
+  void tryFinallyStatement_bodyBegin() {
+    _stack.add(new _TryContext<Variable, Type>(_current));
+  }
+
+  @override
+  void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
+    _TryContext<Variable, Type> context =
+        _stack.removeLast() as _TryContext<Variable, Type>;
+    _current = _current.restrict(
+        typeOperations, context._afterBodyAndCatches, assignedInFinally);
+  }
+
+  @override
+  void tryFinallyStatement_finallyBegin(
+      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+    _TryContext<Variable, Type> context =
+        _stack.last as _TryContext<Variable, Type>;
+    context._afterBodyAndCatches = _current;
+    _current = _join(_current,
+        context._previous.removePromotedAll(assignedInBody, capturedInBody));
+  }
+
+  @override
+  Type variableRead(Expression expression, Variable variable) {
+    _storeExpressionInfo(expression, new _VariableReadInfo(_current, variable));
+    return _current.infoFor(variable).promotedType;
+  }
+
+  @override
+  void whileStatement_bodyBegin(
+      Statement whileStatement, Expression condition) {
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(condition);
+    _WhileContext<Variable, Type> context =
+        new _WhileContext<Variable, Type>(conditionInfo);
+    _stack.add(context);
+    _statementToContext[whileStatement] = context;
+    _current = conditionInfo._ifTrue;
+  }
+
+  @override
+  void whileStatement_conditionBegin(
+      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+    _current = _current.removePromotedAll(loopAssigned, loopCaptured);
+  }
+
+  @override
+  void whileStatement_end() {
+    _WhileContext<Variable, Type> context =
+        _stack.removeLast() as _WhileContext<Variable, Type>;
+    _current = _join(context._conditionInfo._ifFalse, context._breakModel);
+  }
+
+  @override
+  void write(Variable variable) {
+    assert(
+        _variablesWrittenAnywhere.contains(variable),
+        "Variable is written to, but was not included in "
+        "_variablesWrittenAnywhere: $variable");
+    _current = _current.write(variable);
+  }
+
+  /// Gets the [_ExpressionInfo] associated with the [expression] (which should
+  /// be the last expression that was traversed).  If there is no
+  /// [_ExpressionInfo] associated with the [expression], then a fresh
+  /// [_ExpressionInfo] is created recording the current flow analysis state.
+  _ExpressionInfo<Variable, Type> _expressionEnd(Expression expression) =>
+      _getExpressionInfo(expression) ??
+      new _ExpressionInfo(_current, _current, _current);
+
+  /// Gets the [_ExpressionInfo] associated with the [expression] (which should
+  /// be the last expression that was traversed).  If there is no
+  /// [_ExpressionInfo] associated with the [expression], then `null` is
+  /// returned.
+  _ExpressionInfo<Variable, Type> _getExpressionInfo(Expression expression) {
+    if (identical(expression, _expressionWithInfo)) {
+      _ExpressionInfo<Variable, Type> expressionInfo = _expressionInfo;
+      _expressionInfo = null;
+      return expressionInfo;
+    } else {
+      return null;
+    }
+  }
+
+  FlowModel<Variable, Type> _join(
+          FlowModel<Variable, Type> first, FlowModel<Variable, Type> second) =>
+      FlowModel.join(typeOperations, first, second);
+
+  /// Associates [expression], which should be the most recently visited
+  /// expression, with the given [expressionInfo] object, and updates the
+  /// current flow model state to correspond to it.
+  void _storeExpressionInfo(
+      Expression expression, _ExpressionInfo<Variable, Type> expressionInfo) {
+    _expressionWithInfo = expression;
+    _expressionInfo = expressionInfo;
+    _current = expressionInfo._after;
+  }
+}
+
+/// Base class for objects representing constructs in the Dart programming
+/// language for which flow analysis information needs to be tracked.
+class _FlowContext {}
+
+/// [_FlowContext] representing an `if` statement.
+class _IfContext<Variable, Type> extends _BranchContext<Variable, Type> {
+  /// Flow model associated with the state of program execution after the `if`
+  /// statement executes, in the circumstance where the "then" branch is taken.
+  FlowModel<Variable, Type> _afterThen;
+
+  _IfContext(_ExpressionInfo<Variable, Type> conditionInfo)
+      : super(conditionInfo);
+}
+
+/// [_ExpressionInfo] representing a `null` literal.
+class _NullInfo<Variable, Type> implements _ExpressionInfo<Variable, Type> {
+  @override
+  final FlowModel<Variable, Type> _after;
+
+  _NullInfo(this._after);
+
+  @override
+  FlowModel<Variable, Type> get _ifFalse => _after;
+
+  @override
+  FlowModel<Variable, Type> get _ifTrue => _after;
+}
+
+/// [_FlowContext] representing a language construct for which flow analysis
+/// must store a flow model state to be retrieved later, such as a `try`
+/// statement, function expression, or "if-null" (`??`) expression.
+class _SimpleContext<Variable, Type> extends _FlowContext {
+  /// The stored state.  For a `try` statement, this is the state from the
+  /// beginning of the `try` block.  For a function expression, this is the
+  /// state at the point the function expression was created.  For an "if-null"
+  /// expression, this is the state after execution of the expression before the
+  /// `??`.
+  final FlowModel<Variable, Type> _previous;
+
+  _SimpleContext(this._previous);
+}
+
+/// [_FlowContext] representing a language construct that can be targeted by
+/// `break` or `continue` statements, and for which flow analysis must store a
+/// flow model state to be retrieved later.  Examples include "for each" and
+/// `switch` statements.
+class _SimpleStatementContext<Variable, Type>
+    extends _BranchTargetContext<Variable, Type> {
+  /// The stored state.  For a "for each" statement, this is the state after
+  /// evaluation of the iterable.  For a `switch` statement, this is the state
+  /// after evaluation of the switch expression.
+  final FlowModel<Variable, Type> _previous;
+
+  _SimpleStatementContext(this._previous);
+}
+
+/// [_FlowContext] representing a try statement.
+class _TryContext<Variable, Type> extends _SimpleContext<Variable, Type> {
+  /// If the statement is a "try/catch" statement, the flow model representing
+  /// program state at the top of any `catch` block.
+  FlowModel<Variable, Type> _beforeCatch;
+
+  /// If the statement is a "try/catch" statement, the accumulated flow model
+  /// representing program state after the `try` block or one of the `catch`
+  /// blocks has finished executing.  If the statement is a "try/finally"
+  /// statement, the flow model representing program state after the `try` block
+  /// has finished executing.
+  FlowModel<Variable, Type> _afterBodyAndCatches;
+
+  _TryContext(FlowModel<Variable, Type> previous) : super(previous);
+}
+
+/// [_ExpressionInfo] representing an expression that reads the value of a
+/// variable.
+class _VariableReadInfo<Variable, Type>
+    implements _ExpressionInfo<Variable, Type> {
+  @override
+  final FlowModel<Variable, Type> _after;
+
+  /// The variable that is being read.
+  final Variable _variable;
+
+  _VariableReadInfo(this._after, this._variable);
+
+  @override
+  FlowModel<Variable, Type> get _ifFalse => _after;
+
+  @override
+  FlowModel<Variable, Type> get _ifTrue => _after;
+}
+
+/// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
+/// is functionally similar).
+class _WhileContext<Variable, Type>
+    extends _BranchTargetContext<Variable, Type> {
+  /// Flow models associated with the loop condition.
+  final _ExpressionInfo<Variable, Type> _conditionInfo;
+
+  _WhileContext(this._conditionInfo);
 }

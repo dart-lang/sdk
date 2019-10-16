@@ -36,7 +36,7 @@ final List<Function()> functionsToTest = [
   () => highAddressPointer.address,
   () => highAddressPointer.elementAt(1),
   () => highAddressPointer.offsetBy(1),
-  () => highAddressPointer.asExternalTypedData(),
+  () => highAddressPointer.asTypedList(1),
 
   // DynamicLibrary operations.
   doDlopen,

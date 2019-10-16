@@ -93,7 +93,7 @@ static method testTypeAliasAsTypeArgument() → void {
   <Y extends self::Acov<() →* dynamic, dynamic>* = dynamic>() →* void target1 = fsource1;
   self::Acon<(core::Null?) →* dynamic, dynamic>* source2;
   <Y extends self::Acon<(core::Null?) →* dynamic, dynamic>* = dynamic>() →* void fsource2 = self::toF<self::Acon<(core::Null?) →* dynamic, dynamic>*>(source2);
-  <Y extends self::Acon<(core::Null*) →* dynamic, dynamic>* = dynamic>() →* void target2 = fsource2;
+  <Y extends self::Acon<(core::Null?) →* dynamic, dynamic>* = dynamic>() →* void target2 = fsource2;
   self::Ainv<(dynamic) →* dynamic, dynamic>* source3;
   <Y extends self::Ainv<(dynamic) →* dynamic, dynamic>* = dynamic>() →* void fsource3 = self::toF<self::Ainv<(dynamic) →* dynamic, dynamic>*>(source3);
   <Y extends self::Ainv<(dynamic) →* dynamic, dynamic>* = dynamic>() →* void target3 = fsource3;
@@ -102,7 +102,7 @@ static method testTypeAliasAsTypeArgument() → void {
   <Y extends self::AcovBound<() →* core::num*, core::num*>* = dynamic>() →* void target4 = fsource4;
   self::AconBound<(core::Null?) →* dynamic, core::num*>* source5;
   <Y extends self::AconBound<(core::Null?) →* dynamic, core::num*>* = dynamic>() →* void fsource5 = self::toF<self::AconBound<(core::Null?) →* dynamic, core::num*>*>(source5);
-  <Y extends self::AconBound<(core::Null*) →* dynamic, core::num*>* = dynamic>() →* void target5 = fsource5;
+  <Y extends self::AconBound<(core::Null?) →* dynamic, core::num*>* = dynamic>() →* void target5 = fsource5;
   self::AinvBound<(core::num*) →* core::num*, core::num*>* source6;
   <Y extends self::AinvBound<(core::num*) →* core::num*, core::num*>* = dynamic>() →* void fsource6 = self::toF<self::AinvBound<(core::num*) →* core::num*, core::num*>*>(source6);
   <Y extends self::AinvBound<(core::num*) →* core::num*, core::num*>* = dynamic>() →* void target6 = fsource6;
@@ -111,14 +111,14 @@ static method testTypeAliasAsTypeArgument() → void {
   <Y extends self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>* = dynamic>() →* void target7 = fsource7;
   self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* source8;
   <Y extends self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void fsource8 = self::toF<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>(source8);
-  <Y extends self::AconCyclicBound<(core::Null*) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void target8 = fsource8;
+  <Y extends self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>* = dynamic>() →* void target8 = fsource8;
   self::AinvCyclicBound<(self::A<dynamic>*) →* self::A<dynamic>*, self::A<dynamic>*>* source9;
   self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* source10;
   <Y extends self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void fsource10 = self::toF<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>(source10);
-  <Y extends self::AcovCyclicCoBound<() →* (core::Null*) →* dynamic, (core::Null*) →* dynamic>* = dynamic>() →* void target10 = fsource10;
+  <Y extends self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void target10 = fsource10;
   self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* source11;
   <Y extends self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void fsource11 = self::toF<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>(source11);
-  <Y extends self::AconCyclicCoBound<(core::Null*) →* dynamic, (core::Null*) →* dynamic>* = dynamic>() →* void target11 = fsource11;
+  <Y extends self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>* = dynamic>() →* void target11 = fsource11;
   self::AinvCyclicCoBound<((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>* source12;
 }
 static method testNested() → void {
@@ -127,7 +127,7 @@ static method testNested() → void {
   <Y extends self::B<self::Acov<() →* dynamic, dynamic>*>* = dynamic>() →* void target1 = fsource1;
   self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* source2;
   <Y extends self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* = dynamic>() →* void fsource2 = self::toF<self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>*>(source2);
-  <Y extends self::B<self::Acon<(core::Null*) →* dynamic, dynamic>*>* = dynamic>() →* void target2 = fsource2;
+  <Y extends self::B<self::Acon<(core::Null?) →* dynamic, dynamic>*>* = dynamic>() →* void target2 = fsource2;
   self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* source3;
   <Y extends self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* = dynamic>() →* void fsource3 = self::toF<self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>*>(source3);
   <Y extends self::B<self::Ainv<(dynamic) →* dynamic, dynamic>*>* = dynamic>() →* void target3 = fsource3;
@@ -136,7 +136,7 @@ static method testNested() → void {
   <Y extends self::B<self::AcovBound<() →* core::num*, core::num*>*>* = dynamic>() →* void target4 = fsource4;
   self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* source5;
   <Y extends self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* = dynamic>() →* void fsource5 = self::toF<self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>*>(source5);
-  <Y extends self::B<self::AconBound<(core::Null*) →* dynamic, core::num*>*>* = dynamic>() →* void target5 = fsource5;
+  <Y extends self::B<self::AconBound<(core::Null?) →* dynamic, core::num*>*>* = dynamic>() →* void target5 = fsource5;
   self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* source6;
   <Y extends self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* = dynamic>() →* void fsource6 = self::toF<self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>*>(source6);
   <Y extends self::B<self::AinvBound<(core::num*) →* core::num*, core::num*>*>* = dynamic>() →* void target6 = fsource6;
@@ -145,14 +145,14 @@ static method testNested() → void {
   <Y extends self::B<self::AcovCyclicBound<() →* self::A<dynamic>*, self::A<dynamic>*>*>* = dynamic>() →* void target7 = fsource7;
   self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* source8;
   <Y extends self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void fsource8 = self::toF<self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>*>(source8);
-  <Y extends self::B<self::AconCyclicBound<(core::Null*) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void target8 = fsource8;
+  <Y extends self::B<self::AconCyclicBound<(core::Null?) →* dynamic, self::A<dynamic>*>*>* = dynamic>() →* void target8 = fsource8;
   self::B<self::AinvCyclicBound<(self::A<dynamic>*) →* self::A<dynamic>*, self::A<dynamic>*>*>* source9;
   self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source10;
   <Y extends self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void fsource10 = self::toF<self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>*>(source10);
-  <Y extends self::B<self::AcovCyclicCoBound<() →* (core::Null*) →* dynamic, (core::Null*) →* dynamic>*>* = dynamic>() →* void target10 = fsource10;
+  <Y extends self::B<self::AcovCyclicCoBound<() →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void target10 = fsource10;
   self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source11;
   <Y extends self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void fsource11 = self::toF<self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>*>(source11);
-  <Y extends self::B<self::AconCyclicCoBound<(core::Null*) →* dynamic, (core::Null*) →* dynamic>*>* = dynamic>() →* void target11 = fsource11;
+  <Y extends self::B<self::AconCyclicCoBound<(core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* = dynamic>() →* void target11 = fsource11;
   self::B<self::AinvCyclicCoBound<((core::Null?) →* dynamic) →* (core::Null?) →* dynamic, (core::Null?) →* dynamic>*>* source12;
 }
 static method main() → dynamic {

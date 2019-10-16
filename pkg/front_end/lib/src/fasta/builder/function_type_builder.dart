@@ -4,9 +4,6 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart'
-    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
-
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -17,17 +14,13 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypedefType;
 
-import '../fasta_codes.dart'
-    show LocatedMessage, messageSupertypeIsFunction, noLength;
+import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
-import '../problems.dart' show unsupported;
-
-import '../kernel/kernel_builder.dart'
-    show
-        FormalParameterBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeVariableBuilder;
+import 'formal_parameter_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;
@@ -125,11 +118,6 @@ class FunctionTypeBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return buildSupertype(library, charOffset, fileUri);
-  }
-
-  @override
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
-    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {

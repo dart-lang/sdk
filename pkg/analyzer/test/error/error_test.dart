@@ -81,6 +81,7 @@ class ErrorCodeValuesTest extends ParserTestCase {
     List<String> missingCodes = <String>[];
     List<List<String>> declaringPaths = [
       ['lib', 'src', 'analysis_options', 'error', 'option_codes.dart'],
+      ['lib', 'src', 'dart', 'error', 'ffi_code.dart'],
       ['lib', 'src', 'dart', 'error', 'hint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'lint_codes.dart'],
       ['lib', 'src', 'dart', 'error', 'todo_codes.dart'],

@@ -5,5 +5,8 @@ description: >-
 author: Daco Harkes <dacoharkes@google.com>, Samir Jindel <sjindel@google.com>
 environment:
   sdk: '>=2.1.0 <3.0.0'
+dependencies:
+  ffi:
+    path: ../../../third_party/pkg/ffi
 dev_dependencies:
   test: ^1.5.3

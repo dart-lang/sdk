@@ -9,7 +9,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 class LibraryInfo {
   /// The information about the units in the library. The information about the
   /// defining compilation unit is always first.
-  final List<UnitInfo> units;
+  final Set<UnitInfo> units;
 
   /// Initialize a newly created library.
   LibraryInfo(this.units);
@@ -55,6 +55,9 @@ class NavigationTarget extends NavigationRegion {
         other.offset == offset &&
         other.length == length;
   }
+
+  @override
+  String toString() => 'NavigationTarget["$filePath", $offset, $length]';
 }
 
 /// An additional detail related to a region.

@@ -603,12 +603,12 @@ Bytecode {
   Push                 r0
   LoadContextVar       0, 0
   PopLocal             r2
-  Push                 r2
   PushInt              1
+  Push                 r2
   InterfaceCall        CP#0, 2
   JumpIfTrue           L1
-  Push                 r2
   PushInt              2
+  Push                 r2
   InterfaceCall        CP#0, 2
   JumpIfTrue           L2
   Jump                 L3

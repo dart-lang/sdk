@@ -211,6 +211,7 @@ delimit
 demands
 demangle
 demangled
+dep
 deps
 dereferenced
 dereferencing
@@ -446,6 +447,7 @@ json
 juxtaposition
 juxtapositions
 k
+k’s
 kallentu
 kernel's
 kernel2kernel
@@ -453,7 +455,6 @@ klass
 kmillikin
 kustermann
 kv
-k’s
 l
 lacks
 lang
@@ -631,13 +632,13 @@ queries
 quick
 quoted
 r
-r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
+r'$creation
 radix
 raises
 ran

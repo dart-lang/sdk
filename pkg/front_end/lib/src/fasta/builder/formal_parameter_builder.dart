@@ -4,6 +4,8 @@
 
 library fasta.formal_parameter_builder;
 
+import 'package:kernel/ast.dart' show VariableDeclaration;
+
 import '../parser.dart' show FormalParameterKind;
 
 import '../parser/formal_parameter_kind.dart'
@@ -12,15 +14,9 @@ import '../parser/formal_parameter_kind.dart'
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
-import 'builder.dart' show LibraryBuilder, MetadataBuilder, TypeBuilder;
-
-import 'modifier_builder.dart';
-
-import 'package:kernel/ast.dart' show VariableDeclaration;
-
 import '../constant_context.dart' show ConstantContext;
 
-import '../modifier.dart' show finalMask, initializingFormalMask, requiredMask;
+import '../modifier.dart';
 
 import '../scanner.dart' show Token;
 
@@ -32,17 +28,16 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        ConstructorBuilder,
-        FieldBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        TypeBuilder;
-
 import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
+
+import 'builder.dart';
+import 'class_builder.dart';
+import 'constructor_builder.dart';
+import 'field_builder.dart';
+import 'library_builder.dart';
+import 'metadata_builder.dart';
+import 'modifier_builder.dart';
+import 'type_builder.dart';
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
@@ -80,6 +75,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
   // named parameters.
   bool get isRequired => isMandatoryFormalParameterKind(kind);
 
+  // TODO(johnniwinther): Rename to `isRequired`.
   bool get isNamedRequired => (modifiers & requiredMask) != 0;
 
   bool get isPositional {
@@ -92,6 +88,10 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
   bool get isOptional => !isRequired;
 
   bool get isLocal => true;
+
+  bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
+
+  bool get isCovariant => (modifiers & covariantMask) != 0;
 
   @override
   String get fullNameForErrors => name;

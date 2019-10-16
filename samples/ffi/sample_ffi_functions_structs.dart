@@ -24,7 +24,7 @@ main(List<String> arguments) {
 
     Coordinate c1 = Coordinate(10.0, 20.0, null);
     Coordinate c2 = Coordinate(42.0, 84.0, c1);
-    c1.next = c2;
+    c1.next = c2.addressOf;
 
     Coordinate result = f1(c1);
 
@@ -48,13 +48,13 @@ main(List<String> arguments) {
     Coordinate c3 = c1.elementAt(2);
     c1.x = 10.0;
     c1.y = 10.0;
-    c1.next = c3;
+    c1.next = c3.addressOf;
     c2.x = 20.0;
     c2.y = 20.0;
-    c2.next = c1;
+    c2.next = c1.addressOf;
     c3.x = 30.0;
     c3.y = 30.0;
-    c3.next = c2;
+    c3.next = c2.addressOf;
 
     Coordinate result = f1(c1);
 

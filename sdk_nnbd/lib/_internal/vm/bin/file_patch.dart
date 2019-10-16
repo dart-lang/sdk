@@ -296,6 +296,19 @@ class _FileSystemWatcher {
         }
       } else if (event == RawSocketEvent.closed) {
       } else if (event == RawSocketEvent.readClosed) {
+        // If Directory watcher buffer overflows, it will send an readClosed event.
+        // Normal closing will cancel stream subscription so that path is
+        // no longer being watched, not present in _idMap.
+        if (_idMap.containsKey(pathId)) {
+          var path = _pathFromPathId(pathId).path;
+          _idMap.remove(pathId);
+          if (_idMap.isEmpty && _id != null) {
+            _closeWatcher(_id);
+            _id = null;
+          }
+          throw FileSystemException(
+              'Directory watcher closed unexpectedly', path);
+        }
       } else {
         assert(false);
       }

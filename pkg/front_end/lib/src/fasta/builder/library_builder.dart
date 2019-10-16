@@ -25,23 +25,17 @@ import '../messages.dart'
 
 import '../severity.dart' show Severity;
 
-import 'builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        FieldBuilder,
-        MemberBuilder,
-        ModifierBuilder,
-        NameIterator,
-        NullabilityBuilder,
-        PrefixBuilder,
-        Scope,
-        ScopeBuilder,
-        TypeBuilder;
+import '../scope.dart';
 
-import 'declaration.dart';
-
+import 'builder.dart';
+import 'class_builder.dart';
+import 'field_builder.dart';
+import 'member_builder.dart';
 import 'modifier_builder.dart';
+import 'name_iterator.dart';
+import 'nullability_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
 
 abstract class LibraryBuilder implements ModifierBuilder {
   Scope get scope;
@@ -63,7 +57,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   @override
   UnrelatedTarget get target;
 
-  /// Set the langauge version to a specific non-null major and minor version.
+  /// Set the language version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
@@ -231,7 +225,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
       charOffset,
       fileUri);
 
-  /// Set the langauge version to a specific non-null major and minor version.
+  /// Set the language version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
   /// [explicit] set to true), any subsequent call (explicit or not) should be
@@ -414,10 +408,6 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
 
   @override
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
-
-  // TODO(38287): Compute the predicate using the library version instead.
-  @override
-  bool get isNonNullableByDefault => loader.target.enableNonNullable;
 
   @override
   Nullability get nullable {

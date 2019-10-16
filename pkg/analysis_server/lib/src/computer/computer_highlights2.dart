@@ -144,24 +144,24 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    // has dynamic static type
-    DartType staticType = node.staticType;
-    if (staticType == null || !staticType.isDynamic) {
-      return false;
-    }
-    // OK
     Element element = node.staticElement;
     if (element is LocalVariableElement) {
-      HighlightRegionType type = node.inDeclarationContext()
-          ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
-          : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
-      return _addRegion_node(node, type);
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        HighlightRegionType type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
+        return _addRegion_node(node, type);
+      }
     }
     if (element is ParameterElement) {
-      HighlightRegionType type = node.inDeclarationContext()
-          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
-          : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
-      return _addRegion_node(node, type);
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        HighlightRegionType type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+            : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
+        return _addRegion_node(node, type);
+      }
     }
     return false;
   }

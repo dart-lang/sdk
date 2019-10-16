@@ -112,13 +112,12 @@ uword OSThread::GetCurrentStackPointer() {
 
 void OSThread::DisableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
-  AtomicOperations::FetchAndIncrement(&thread_interrupt_disabled_);
+  thread_interrupt_disabled_.fetch_add(1u);
 }
 
 void OSThread::EnableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
-  uintptr_t old =
-      AtomicOperations::FetchAndDecrement(&thread_interrupt_disabled_);
+  uintptr_t old = thread_interrupt_disabled_.fetch_sub(1u);
   if (FLAG_profiler && (old == 1)) {
     // We just decremented from 1 to 0.
     // Make sure the thread interrupter is awake.
@@ -132,7 +131,7 @@ void OSThread::EnableThreadInterrupts() {
 }
 
 bool OSThread::ThreadInterruptsEnabled() {
-  return AtomicOperations::LoadRelaxed(&thread_interrupt_disabled_) == 0;
+  return thread_interrupt_disabled_ == 0;
 }
 
 static void DeleteThread(void* thread) {

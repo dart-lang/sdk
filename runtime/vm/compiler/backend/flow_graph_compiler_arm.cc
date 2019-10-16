@@ -1373,8 +1373,17 @@ void FlowGraphCompiler::EmitMove(Location destination,
       ASSERT(destination.IsStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadFromOffset(kWord, TMP, source.base_reg(), source_offset);
-      __ StoreToOffset(kWord, TMP, destination.base_reg(), dest_offset);
+
+      // LR not used by register allocator.
+      ASSERT(((1 << LR) & kDartAvailableCpuRegs) == 0);
+
+      // StoreToOffset uses TMP in the case where dest_offset is too large or
+      // small in order to calculate a new base. We fall back to using LR as a
+      // temporary as we know we're in a ParallelMove.
+      const Register temp_reg = LR;
+
+      __ LoadFromOffset(kWord, temp_reg, source.base_reg(), source_offset);
+      __ StoreToOffset(kWord, temp_reg, destination.base_reg(), dest_offset);
     }
   } else if (source.IsFpuRegister()) {
     if (destination.IsFpuRegister()) {

@@ -6,7 +6,9 @@ library fasta.builtin_type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
-import 'builder.dart' show LibraryBuilder, NullabilityBuilder, TypeBuilder;
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
 
 import 'type_declaration_builder.dart';
 

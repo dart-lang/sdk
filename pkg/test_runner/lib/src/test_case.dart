@@ -44,7 +44,7 @@ const _excludedEnvironmentVariables = [
 /// for evaluating if the test has passed, failed, crashed, or timed out, and
 /// the TestCase has information about what the expected result of the test
 /// should be.
-class TestCase extends UniqueObject {
+class TestCase {
   /// A list of commands to execute. Most test cases have a single command.
   /// Dart2js tests have two commands, one to compile the source and another
   /// to execute it. Some isolate tests might even have three, if they require

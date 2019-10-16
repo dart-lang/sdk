@@ -197,13 +197,14 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
     ZoneGrowableArray<PushArgumentInstr*>* args =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
-    PushArgumentInstr* arg =
+    PushArgumentInstr* arg1 =
         new (Z) PushArgumentInstr(new (Z) Value(left->ArgumentAt(0)));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
+    InsertBefore(call, arg1, nullptr, FlowGraph::kEffect);
+    args->Add(arg1);
+    PushArgumentInstr* arg2 =
+        new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
+    InsertBefore(call, arg2, nullptr, FlowGraph::kEffect);
+    args->Add(arg2);
     const intptr_t kTypeArgsLen = 0;
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
@@ -211,6 +212,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
     static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
+    static_call->RepairPushArgsInEnvironment();
     return true;
   }
 
@@ -1119,17 +1121,21 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   // Insert all new instructions, except .call() invocation into the
   // graph.
-  for (intptr_t i = 0; i < invoke_get->ArgumentCount(); i++) {
-    InsertBefore(call, invoke_get->PushArgumentAt(i), NULL, FlowGraph::kEffect);
+  Environment* get_env =
+      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+  for (intptr_t i = 0, n = invoke_get->ArgumentCount(); i < n; i++) {
+    PushArgumentInstr* push = invoke_get->PushArgumentAt(i);
+    InsertBefore(call, push, nullptr, FlowGraph::kEffect);
+    get_env->PushValue(new (Z) Value(push));  // add PushArg to getter's env
   }
-  InsertBefore(call, invoke_get, call->env(), FlowGraph::kValue);
-  for (intptr_t i = 0; i < invoke_call->ArgumentCount(); i++) {
-    InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
+  InsertBefore(call, invoke_get, get_env, FlowGraph::kValue);
+  for (intptr_t i = 0, n = invoke_call->ArgumentCount(); i < n; i++) {
+    InsertBefore(call, invoke_call->PushArgumentAt(i), nullptr,
                  FlowGraph::kEffect);
   }
   // Replace original PushArguments in the graph (mainly env uses).
   ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+  for (intptr_t i = 0, n = call->ArgumentCount(); i < n; i++) {
     call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
     call->PushArgumentAt(i)->RemoveFromGraph();
   }
@@ -1237,7 +1243,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   Environment* copy =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0; i < args->length(); ++i) {
-    copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+    copy->PushValue(new (Z) Value((*args)[i]));  // add PushArg to env
   }
   call->RemoveEnvironment();
   ReplaceCall(call, new_call);

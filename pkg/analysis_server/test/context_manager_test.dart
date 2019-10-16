@@ -2525,14 +2525,14 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisDriver driver = driverMap[contextFolder.path];
     if (driver != null) {
-      changeSet.addedSources.forEach((source) {
-        driver.addFile(source.fullName);
+      changeSet.addedFiles.forEach((source) {
+        driver.addFile(source);
       });
-      changeSet.changedSources.forEach((source) {
-        driver.changeFile(source.fullName);
+      changeSet.changedFiles.forEach((source) {
+        driver.changeFile(source);
       });
-      changeSet.removedSources.forEach((source) {
-        driver.removeFile(source.fullName);
+      changeSet.removedFiles.forEach((source) {
+        driver.removeFile(source);
       });
     }
   }

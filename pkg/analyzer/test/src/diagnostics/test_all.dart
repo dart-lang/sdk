@@ -9,6 +9,7 @@ import 'ambiguous_extension_member_access_test.dart'
     as ambiguous_extension_member_access;
 import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
+import 'annotation_on_pointer_field_test.dart' as annotation_on_pointer_field;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
@@ -85,9 +86,14 @@ import 'extension_override_with_cascade_test.dart'
     as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
+import 'extra_annotation_on_struct_field_test.dart'
+    as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
+import 'field_in_struct_with_initializer_test.dart'
+    as field_in_struct_with_initializer;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
+import 'field_initializer_in_struct_test.dart' as field_initializer_in_struct;
 import 'field_initializer_not_assignable_test.dart'
     as field_initializer_not_assignable;
 import 'field_initializing_formal_not_assignable_test.dart'
@@ -97,6 +103,7 @@ import 'final_initialized_in_delcaration_and_constructor_test.dart'
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
+import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
 import 'implements_non_class_test.dart' as implements_non_class;
@@ -119,10 +126,12 @@ import 'instance_access_to_static_member_test.dart'
     as instance_access_to_static_member;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_extension_argument_count_test.dart'
     as invalid_extension_argument_count;
 import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
+import 'invalid_field_type_in_struct_test.dart' as invalid_field_type_in_struct;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
 import 'invalid_literal_annotation_test.dart' as invalid_literal_annotation;
 import 'invalid_optional_parameter_type_test.dart'
@@ -163,11 +172,17 @@ import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
+import 'mismatched_annotation_on_struct_field_test.dart'
+    as mismatched_annotation_on_struct_field;
 import 'mismatched_getter_and_setter_types_test.dart'
     as mismatched_getter_and_setter_types;
+import 'missing_annotation_on_struct_field_test.dart'
+    as missing_annotation_on_struct_field;
 import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_parameter;
 import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
+import 'missing_exception_value_test.dart' as missing_exception_value;
+import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
@@ -176,6 +191,7 @@ import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
+import 'must_be_a_subtype_test.dart' as must_be_a_subtype;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
 import 'new_with_abstract_class_test.dart' as new_with_abstract_class;
@@ -200,6 +216,11 @@ import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
+import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
+import 'non_constant_type_argument_to_pointer_test.dart'
+    as non_constant_type_argument_to_pointer;
+import 'non_native_function_type_argument_to_pointer_test.dart'
+    as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
 import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
@@ -274,7 +295,9 @@ import 'spread_expression_from_deferred_library_test.dart'
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
 import 'strict_raw_type_test.dart' as strict_raw_type;
+import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
+import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
@@ -339,6 +362,7 @@ main() {
     ambiguous_extension_member_access.main();
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
+    annotation_on_pointer_field.main();
     argument_type_not_assignable.main();
     assert_in_redirecting_constructor.main();
     assignment_to_const.main();
@@ -392,13 +416,17 @@ main() {
     extension_override_argument_not_assignable.main();
     extension_override_with_cascade.main();
     extension_override_without_access.main();
+    extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
+    field_in_struct_with_initializer.main();
     field_initialized_in_initializer_and_declaration.main();
+    field_initializer_in_struct.main();
     field_initializer_not_assignable.main();
     field_initializing_formal_not_assignable.main();
     final_initialized_in_delcaration_and_constructor.main();
     final_not_initialized_constructor.main();
     final_not_initialized.main();
+    generic_struct_subclass.main();
     if_element_condition_from_deferred_library.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
@@ -412,9 +440,11 @@ main() {
     instance_access_to_static_member.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_exception_value.main();
     invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
+    invalid_field_type_in_struct.main();
     invalid_immutable_annotation.main();
     invalid_literal_annotation.main();
     invalid_optional_parameter_type.main();
@@ -442,9 +472,13 @@ main() {
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
+    mismatched_annotation_on_struct_field.main();
     mismatched_getter_and_setter_types.main();
+    missing_annotation_on_struct_field.main();
     missing_default_value_for_parameter.main();
     missing_enum_value_in_switch.main();
+    missing_exception_value.main();
+    missing_field_type_in_struct.main();
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
@@ -452,6 +486,7 @@ main() {
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
+    must_be_a_subtype.main();
     must_be_immutable.main();
     must_call_super.main();
     new_with_abstract_class.main();
@@ -470,6 +505,9 @@ main() {
     non_constant_map_value.main();
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
+    non_constant_type_argument.main();
+    non_constant_type_argument_to_pointer.main();
+    non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
     non_type_in_catch_clause.main();
     non_void_return_for_operator.main();
@@ -517,7 +555,9 @@ main() {
     spread_expression_from_deferred_library.main();
     static_access_to_instance_member.main();
     strict_raw_type.main();
+    subtype_of_ffi_class.main();
     subtype_of_sealed_class.main();
+    subtype_of_struct_class.main();
     super_in_extension.main();
     switch_expression_not_assignable.main();
     top_level_instance_getter.main();

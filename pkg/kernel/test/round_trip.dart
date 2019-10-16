@@ -3,73 +3,63 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.round_trip;
 
-import 'dart:async';
 import 'dart:io';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart';
 
 const String usage = '''
-Usage: round_trip.dart FILE.dill
+Usage: round_trip.dart FILE.dill [sdk.dill]
 
 Deserialize and serialize the given component and check that the resulting byte
 sequence is identical to the original.
 ''';
 
-void main(List<String> args) {
-  if (args.length != 1) {
+void main(List<String> args) async {
+  if (args.length == 1) {
+    await testRoundTrip(new File(args[0]).readAsBytesSync(), null);
+  } else if (args.length == 2) {
+    await testRoundTrip(new File(args[0]).readAsBytesSync(),
+        new File(args[1]).readAsBytesSync());
+  } else {
     print(usage);
     exit(1);
   }
-  testRoundTrip(new File(args[0]).readAsBytesSync());
 }
 
-void testRoundTrip(List<int> bytes) {
+void testRoundTrip(List<int> bytes, List<int> sdkBytes) async {
   var component = new Component();
+  if (sdkBytes != null) {
+    var sdk = new Component(nameRoot: component.root);
+    new BinaryBuilder(sdkBytes).readSingleFileComponent(sdk);
+  }
   new BinaryBuilder(bytes).readSingleFileComponent(component);
-  new BinaryPrinterWithExpectedOutput(bytes).writeComponentFile(component);
-}
-
-class DummyStreamConsumer extends StreamConsumer<List<int>> {
-  @override
-  Future addStream(Stream<List<int>> stream) async => null;
-
-  @override
-  Future close() async => null;
-}
-
-/// Variant of the binary serializer that compares the output against an
-/// existing buffer.
-///
-/// As opposed to comparing binary files directly, when this fails, the stack
-/// trace shows what the serializer was doing when the output started to differ.
-class BinaryPrinterWithExpectedOutput extends BinaryPrinter {
-  final List<int> expectedBytes;
-  int offset = 0;
-
-  static const int eof = -1;
-
-  BinaryPrinterWithExpectedOutput(this.expectedBytes)
-      : super(new IOSink(new DummyStreamConsumer()));
-
-  String show(int byte) {
-    if (byte == eof) return 'EOF';
-    return '$byte (0x${byte.toRadixString(16).padLeft(2, "0")})';
+  ByteSink sink = new ByteSink();
+  new BinaryPrinter(sink).writeComponentFile(component);
+  List<int> writtenBytes = sink.builder.takeBytes();
+  if (bytes.length != writtenBytes.length) {
+    throw "Byte-lengths differ: ${bytes.length} vs ${writtenBytes.length}";
   }
-
-  @override
-  void writeByte(int byte) {
-    if (offset == expectedBytes.length || expectedBytes[offset] != byte) {
-      int expected =
-          (offset >= expectedBytes.length) ? eof : expectedBytes[offset];
-      throw 'At offset $offset: '
-          'Expected ${show(expected)} but found ${show(byte)}';
+  for (int i = 0; i < bytes.length; i++) {
+    if (bytes[i] != writtenBytes[i]) {
+      throw "Byte differs at index $i: "
+          "${show(bytes[i])} vs ${show(writtenBytes[i])}";
     }
-    ++offset;
+  }
+  print("OK");
+}
+
+String show(int byte) {
+  return '$byte (0x${byte.toRadixString(16).padLeft(2, "0")})';
+}
+
+/// A [Sink] that directly writes data into a byte builder.
+class ByteSink implements Sink<List<int>> {
+  final BytesBuilder builder = new BytesBuilder();
+
+  void add(List<int> data) {
+    builder.add(data);
   }
 
-  @override
-  void writeBytes(List<int> bytes) {
-    bytes.forEach(writeByte);
-  }
+  void close() {}
 }

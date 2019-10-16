@@ -246,7 +246,7 @@ class LibraryBuilder {
 
   void resolveMetadata() {
     for (CompilationUnitElementImpl unit in element.units) {
-      var resolver = MetadataResolver(linker, element, scope, unit);
+      var resolver = MetadataResolver(linker, scope, unit);
       unit.linkedNode.accept(resolver);
     }
   }

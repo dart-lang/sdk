@@ -3,28 +3,34 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:core' hide MapEntry;
+
 import 'package:kernel/ast.dart';
+
 import '../../base/common.dart';
-import '../builder/declaration.dart';
+
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../scope.dart';
-import '../kernel/kernel_builder.dart';
-import '../problems.dart';
+
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
         templateConflictsWithMember,
-        templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning,
         templateExtensionMemberConflictsWithObjectMember;
+
+import '../problems.dart';
+
+import '../scope.dart';
+
 import 'source_library_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl {
@@ -152,23 +158,26 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
 
     scope.setters.forEach((String name, Builder setter) {
       Builder member = scopeBuilder[name];
-      if (member == null ||
-          !(member.isField && !member.isFinal && !member.isConst ||
-              member.isRegularMethod && member.isStatic && setter.isStatic)) {
+      if (member == null) {
+        // Setter without getter.
         return;
       }
-      if (member.isDeclarationInstanceMember ==
-          setter.isDeclarationInstanceMember) {
+      bool conflict = member.isDeclarationInstanceMember !=
+          setter.isDeclarationInstanceMember;
+      if (member.isField) {
+        if (!member.isConst && !member.isFinal) {
+          // Setter with writable field.
+          conflict = true;
+        }
+      } else if (member.isRegularMethod) {
+        // Setter with method.
+        conflict = true;
+      }
+      if (conflict) {
         addProblem(templateConflictsWithMember.withArguments(name),
             setter.charOffset, noLength);
         // TODO(ahe): Context argument to previous message?
         addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      } else {
-        addProblem(templateConflictsWithMemberWarning.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetterWarning.withArguments(name),
             member.charOffset, noLength);
       }
     });

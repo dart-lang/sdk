@@ -23,6 +23,7 @@ DART_USE_ASAN = "DART_USE_ASAN"  # Use instead of --asan
 DART_USE_LSAN = "DART_USE_LSAN"  # Use instead of --lsan
 DART_USE_MSAN = "DART_USE_MSAN"  # Use instead of --msan
 DART_USE_TSAN = "DART_USE_TSAN"  # Use instead of --tsan
+DART_USE_UBSAN = "DART_USE_UBSAN"  # Use instead of --ubsan
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
@@ -46,6 +47,10 @@ def UseMSAN():
 
 def UseTSAN():
     return DART_USE_TSAN in os.environ
+
+
+def UseUBSAN():
+    return DART_USE_UBSAN in os.environ
 
 
 def ToolchainPrefix(args):
@@ -157,7 +162,7 @@ def ParseStringMap(key, string_map):
 
 
 def UseSanitizer(args):
-    return args.asan or args.lsan or args.msan or args.tsan
+    return args.asan or args.lsan or args.msan or args.tsan or args.ubsan
 
 
 def DontUseClang(args, target_os, host_cpu, target_cpu):
@@ -257,6 +262,7 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     gn_args['is_lsan'] = args.lsan and gn_args['is_clang']
     gn_args['is_msan'] = args.msan and gn_args['is_clang']
     gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
+    gn_args['is_ubsan'] = args.ubsan and gn_args['is_clang']
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk
@@ -428,14 +434,9 @@ def parse_args(args):
     other_group.add_argument(
         '--bytecode',
         '-b',
-        help='Use bytecode in Dart VM',
-        default=True,
+        help='Include bytecode in the VMs platform dill',
+        default=False,
         action="store_true")
-    other_group.add_argument(
-        '--no-bytecode',
-        help='Disable bytecode in Dart VM',
-        dest='bytecode',
-        action="store_false")
     other_group.add_argument(
         '--clang', help='Use Clang', default=True, action='store_true')
     other_group.add_argument(
@@ -504,6 +505,13 @@ def parse_args(args):
         action='store_true')
     other_group.add_argument(
         '--no-tsan', help='Disable TSAN', dest='tsan', action='store_false')
+    other_group.add_argument(
+        '--ubsan',
+        help='Build with UBSAN',
+        default=UseUBSAN(),
+        action='store_true')
+    other_group.add_argument(
+        '--no-ubsan', help='Disable UBSAN', dest='ubsan', action='store_false')
     other_group.add_argument(
         '--wheezy',
         help='This flag is deprecated.',

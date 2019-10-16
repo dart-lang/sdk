@@ -4,14 +4,14 @@
 
 library fasta.mixin_application_builder;
 
-import 'builder.dart'
-    show LibraryBuilder, NullabilityBuilder, TypeBuilder, TypeVariableBuilder;
-
 import 'package:kernel/ast.dart' show InterfaceType, Supertype;
 
-import '../fasta_codes.dart' show LocatedMessage;
-
 import '../problems.dart' show unsupported;
+
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 class MixinApplicationBuilder extends TypeBuilder {
   final TypeBuilder supertype;
@@ -59,11 +59,6 @@ class MixinApplicationBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return unsupported("buildMixedInType", charOffset, fileUri);
-  }
-
-  @override
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
-    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   @override

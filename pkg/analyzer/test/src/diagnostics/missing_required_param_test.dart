@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class MissingRequiredParamTest extends DriverResolutionTest with PackageMixin {
-  test_constructorParam_argumentGiven() async {
+  test_constructor_argumentGiven() async {
     addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -34,7 +34,7 @@ main() {
 ''');
   }
 
-  test_constructorParam_missingArgument() async {
+  test_constructor_hasReason() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -49,7 +49,7 @@ main() {
     ]);
   }
 
-  test_constructorParam_noReason() async {
+  test_constructor_noReason() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -66,7 +66,24 @@ main() {
     ]);
   }
 
-  test_constructorParam_nullReason() async {
+  test_constructor_noReason_generic() async {
+    addMetaPackage();
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C<T> {
+  C({@required int a}) {}
+}
+
+main() {
+  new C();
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM, 91, 1),
+    ]);
+  }
+
+  test_constructor_nullReason() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -83,7 +100,7 @@ main() {
     ]);
   }
 
-  test_constructorParam_redirectingConstructorCall() async {
+  test_constructor_redirectingConstructorCall() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -96,7 +113,7 @@ class C {
     ]);
   }
 
-  test_constructorParam_superCall() async {
+  test_constructor_superCall() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -113,7 +130,7 @@ class D extends C {
     ]);
   }
 
-  test_functionParam() async {
+  test_function() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -128,7 +145,7 @@ main() {
     ]);
   }
 
-  test_methodParam() async {
+  test_method() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -143,7 +160,23 @@ f() {
     ]);
   }
 
-  test_methodParam_inOtherLib() async {
+  test_method_generic() async {
+    addMetaPackage();
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  void m<U>(U a, {@Required('must specify an `b`') int b}) {}
+}
+f() {
+  new A<double>().m(true);
+}
+''', [
+      error(HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS, 135, 1),
+    ]);
+  }
+
+  test_method_inOtherLib() async {
     addMetaPackage();
     newFile('/a_lib.dart', content: r'''
 library a_lib;
@@ -170,7 +203,7 @@ the return type of `C.m` is a structural FunctionType, which does
 not know its elements, and does not know that there was a parameter
 marked `@required`. There is exactly one such typedef in Flutter.
 ''')
-  test_typedef_functionParam() async {
+  test_typedef_function() async {
     addMetaPackage();
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -202,7 +235,7 @@ class MissingRequiredParamWithNnbdTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_constructorParam_argumentGiven() async {
+  test_constructor_argumentGiven() async {
     await assertNoErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -214,7 +247,7 @@ main() {
 ''');
   }
 
-  test_constructorParam_missingArgument() async {
+  test_constructor_missingArgument() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -227,7 +260,7 @@ main() {
     ]);
   }
 
-  test_constructorParam_redirectingConstructorCall() async {
+  test_constructor_redirectingConstructorCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int x});
@@ -238,7 +271,7 @@ class C {
     ]);
   }
 
-  test_constructorParam_superCall() async {
+  test_constructor_superCall() async {
     await assertErrorsInCode(r'''
 class C {
   C({required int a}) {}
@@ -249,6 +282,18 @@ class D extends C {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 66, 7),
+    ]);
+  }
+
+  test_function() async {
+    await assertErrorsInCode(r'''
+void f({required int a}) {}
+
+main() {
+  f();
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1),
     ]);
   }
 
@@ -263,19 +308,7 @@ g() {
     ]);
   }
 
-  test_functionParam() async {
-    await assertErrorsInCode(r'''
-void f({required int a}) {}
-
-main() {
-  f();
-}
-''', [
-      error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1),
-    ]);
-  }
-
-  test_methodParam() async {
+  test_method() async {
     await assertErrorsInCode(r'''
 class A {
   void m({required int a}) {}
@@ -288,7 +321,7 @@ f() {
     ]);
   }
 
-  test_methodParam_inOtherLib() async {
+  test_method_inOtherLib() async {
     newFile('/test/lib/a_lib.dart', content: r'''
 class A {
   void m({required int a}) {}
@@ -304,7 +337,7 @@ f() {
     ]);
   }
 
-  test_typedef_functionParam() async {
+  test_typedef_function() async {
     await assertErrorsInCode(r'''
 String test(C c) => c.m()();
 

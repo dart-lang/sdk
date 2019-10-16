@@ -4,7 +4,7 @@
 
 library fasta.type_promotion_look_ahead_listener;
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
 
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
@@ -1325,11 +1325,6 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables", beginToken);
-  }
-
-  @override
-  void handleVarianceModifier(Token variance) {
-    debugEvent("VarianceModifier", variance);
   }
 
   @override

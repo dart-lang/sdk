@@ -89,6 +89,7 @@ for command; do
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
+      out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
@@ -174,6 +175,7 @@ for command; do
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
+      out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
@@ -254,6 +256,7 @@ EOF
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
+      out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
@@ -358,6 +361,7 @@ EOF
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
+      out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \

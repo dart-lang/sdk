@@ -180,17 +180,17 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     }
 
     local_vars_.EnsureLength(num_bytecode_locals, nullptr);
-    for (intptr_t i = num_param_locals; i < num_bytecode_locals; ++i) {
-      String& name =
-          String::ZoneHandle(Z, Symbols::NewFormatted(thread(), "var%" Pd, i));
+    intptr_t idx = num_param_locals;
+    for (; idx < num_bytecode_locals; ++idx) {
+      String& name = String::ZoneHandle(
+          Z, Symbols::NewFormatted(thread(), "var%" Pd, idx));
       LocalVariable* local = new (Z)
           LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                         name, Object::dynamic_type());
-      local->set_index(VariableIndex(-i));
-      local_vars_[i] = local;
+      local->set_index(VariableIndex(-idx));
+      local_vars_[idx] = local;
     }
 
-    intptr_t idx = num_bytecode_locals;
     if (exception_var_ != nullptr) {
       exception_var_->set_index(VariableIndex(-idx));
       ++idx;
@@ -845,41 +845,48 @@ void BytecodeFlowGraphBuilder::BuildDirectCallCommon(bool is_unchecked_call) {
   const intptr_t argc = DecodeOperandF().value();
 
   const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
-  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
-    BuildFfiAsFunction();
-    return;
-  } else if (FLAG_precompiled_mode &&
-             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
-    BuildFfiNativeCallbackFunction();
-    return;
-  }
-
-  // Recognize identical() call.
-  // Note: similar optimization is performed in AST flow graph builder - see
-  // StreamingFlowGraphBuilder::BuildStaticInvocation, special_case_identical.
-  // TODO(alexmarkov): find a better place for this optimization.
-  if (target.name() == Symbols::Identical().raw()) {
-    const auto& owner = Class::Handle(Z, target.Owner());
-    if (owner.IsTopLevel() && (owner.library() == Library::CoreLibrary())) {
+  switch (recognized_kind) {
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      BuildFfiAsFunction();
+      return;
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+      if (FLAG_precompiled_mode) {
+        BuildFfiNativeCallbackFunction();
+        return;
+      }
+      break;
+    case MethodRecognizer::kObjectIdentical:
+      // Note: similar optimization is performed in AST flow graph builder -
+      // see StreamingFlowGraphBuilder::BuildStaticInvocation,
+      // special_case_identical.
+      // TODO(alexmarkov): find a better place for this optimization.
       ASSERT(argc == 2);
       code_ += B->StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
       return;
-    }
-  }
-
-  if (!FLAG_causal_async_stacks &&
-      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper) {
-    ASSERT(argc == 1);
-    // Drop the ignored parameter to _asyncStackTraceHelper(:async_op).
-    code_ += B->Drop();
-    code_ += B->NullConstant();
-    return;
-  }
-
-  if (recognized_kind == MethodRecognizer::kStringBaseInterpolate) {
-    ASSERT(argc == 1);
-    code_ += B->StringInterpolate(position_);
-    return;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+    case MethodRecognizer::kSetAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 1);
+        // Drop the ignored parameter to _asyncStackTraceHelper(:async_op) or
+        // _setAsyncThreadStackTrace(stackTrace).
+        code_ += B->Drop();
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kClearAsyncThreadStackTrace:
+      if (!FLAG_causal_async_stacks) {
+        ASSERT(argc == 0);
+        code_ += B->NullConstant();
+        return;
+      }
+      break;
+    case MethodRecognizer::kStringBaseInterpolate:
+      ASSERT(argc == 1);
+      code_ += B->StringInterpolate(position_);
+      return;
+    default:
+      break;
   }
 
   const Array& arg_desc_array =
@@ -1289,7 +1296,8 @@ void BytecodeFlowGraphBuilder::BuildLoadTypeArgumentsField() {
 
   LoadStackSlots(1);
   const intptr_t offset =
-      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() * kWordSize;
+      Smi::Cast(ConstantAt(DecodeOperandD()).value()).Value() *
+      compiler::target::kWordSize;
 
   code_ += B->LoadNativeField(Slot::GetTypeArgumentsSlotAt(thread(), offset));
 }
@@ -2143,8 +2151,9 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   object_pool_ = bytecode.object_pool();
   bytecode_instr_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
 
+  scratch_var_ = parsed_function_->EnsureExpressionTemp();
+
   if (KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_)) {
-    scratch_var_ = parsed_function_->EnsureExpressionTemp();
     AllocateParametersAndLocalsForEntryOptional();
   } else if (KernelBytecode::IsEntryOpcode(bytecode_instr_)) {
     AllocateLocalVariables(DecodeOperandD());
@@ -2154,6 +2163,46 @@ void BytecodeFlowGraphBuilder::CreateParameterVariables() {
     AllocateFixedParameters();
   } else {
     UNREACHABLE();
+  }
+
+  if (function().IsGeneric()) {
+    // For recognized methods we generate the IL by hand. Yet we need to find
+    // out which [LocalVariable] is holding the function type arguments. We
+    // scan the bytecode for the CheckFunctionTypeArgs bytecode.
+    //
+    // Note that we cannot add an extra local variable for the type argument
+    // in [AllocateLocalVariables]. We sometimes reuse the same ParsedFunction
+    // multiple times. For non-recognized generic bytecode functions
+    // ParsedFunction::RawTypeArgumentsVariable() is set during flow graph
+    // construction (after local variables are allocated). So the next time,
+    // if ParsedFunction is reused, we would allocate an extra local variable.
+    // TODO(alexmarkov): revise how function type args variable is allocated
+    // and avoid looking at CheckFunctionTypeArgs bytecode.
+    const KBCInstr* instr =
+        reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+    const KBCInstr* end = reinterpret_cast<const KBCInstr*>(
+        bytecode.PayloadStart() + bytecode.Size());
+
+    LocalVariable* type_args_var = nullptr;
+    while (instr < end) {
+      if (KernelBytecode::IsCheckFunctionTypeArgs(instr)) {
+        const intptr_t expected_num_type_args = KernelBytecode::DecodeA(instr);
+        if (expected_num_type_args > 0) {  // Exclude weird closure case.
+          type_args_var = LocalVariableAt(KernelBytecode::DecodeE(instr));
+          break;
+        }
+      }
+      instr = KernelBytecode::Next(instr);
+    }
+
+    // Every generic function *must* have a kCheckFunctionTypeArgs bytecode.
+    ASSERT(type_args_var != nullptr);
+
+    // Normally the flow graph building code of bytecode will, as a side-effect
+    // of building the flow graph, register the function type arguments variable
+    // in the [ParsedFunction] (see [BuildCheckFunctionTypeArgs]).
+    parsed_function_->set_function_type_arguments(type_args_var);
+    parsed_function_->SetRawTypeArgumentsVariable(type_args_var);
   }
 }
 

@@ -4,7 +4,10 @@
 
 library fasta.unresolved_type;
 
-import 'builder.dart' show LibraryBuilder, Scope, TypeBuilder;
+import '../scope.dart';
+
+import 'library_builder.dart';
+import 'type_builder.dart';
 
 /// A wrapper around a type that is yet to be resolved.
 class UnresolvedType {

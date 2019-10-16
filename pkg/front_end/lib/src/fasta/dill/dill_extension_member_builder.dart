@@ -6,7 +6,7 @@ import 'dart:core' hide MapEntry;
 
 import 'package:kernel/ast.dart';
 
-import '../builder/declaration.dart';
+import '../builder/builder.dart';
 
 import '../problems.dart';
 
@@ -25,7 +25,6 @@ class DillExtensionMemberBuilder extends DillMemberBuilder {
   @override
   bool get isStatic => _descriptor.isStatic;
 
-  @override
   bool get isExternal => member.isExternal;
 
   @override

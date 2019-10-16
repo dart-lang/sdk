@@ -40,6 +40,7 @@ class Forest {
       int typeParameterCount,
       Expression receiver,
       {List<DartType> extensionTypeArguments = const <DartType>[],
+      int extensionTypeArgumentOffset,
       List<DartType> typeArguments = const <DartType>[],
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[]}) {
@@ -47,6 +48,7 @@ class Forest {
     return new ArgumentsImpl.forExtensionMethod(
         extensionTypeParameterCount, typeParameterCount, receiver,
         extensionTypeArguments: extensionTypeArguments,
+        extensionTypeArgumentOffset: extensionTypeArgumentOffset,
         typeArguments: typeArguments,
         positionalArguments: positionalArguments,
         namedArguments: namedArguments)

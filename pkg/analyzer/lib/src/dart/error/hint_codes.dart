@@ -1291,7 +1291,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_UI_AS_CODE = const HintCode(
       'SDK_VERSION_UI_AS_CODE',
-      "The for, if, and spread elements weren't supported until version 2.2.2, "
+      "The for, if, and spread elements weren't supported until version 2.3.0, "
           "but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.",
       hasPublishedDocs: true);

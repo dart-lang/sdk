@@ -24,6 +24,14 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         Typedef;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/type_alias_builder.dart';
+
 import '../fasta_codes.dart'
     show
         Message,
@@ -32,20 +40,11 @@ import '../fasta_codes.dart'
         templateTypeNotFound,
         templateUnspecified;
 
+import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
-import '../builder/class_builder.dart';
-
-import '../builder/library_builder.dart';
-
-import '../builder/member_builder.dart';
-
-import '../builder/type_alias_builder.dart';
-
-import '../kernel/kernel_builder.dart'
-    show Builder, DynamicTypeBuilder, InvalidTypeBuilder, Scope;
-
-import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+import '../scope.dart';
 
 import 'dill_class_builder.dart' show DillClassBuilder;
 
@@ -141,6 +140,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   bool get isSynthetic => library.isSynthetic;
 
   @override
+  bool get isNonNullableByDefault => library.isNonNullableByDefault;
+
+  @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length, bool explicit}) {}
 
@@ -230,15 +232,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
     if (builder == other) return builder;
-    if (builder is InvalidTypeBuilder) return builder;
-    if (other is InvalidTypeBuilder) return other;
+    if (builder is InvalidTypeDeclarationBuilder) return builder;
+    if (other is InvalidTypeDeclarationBuilder) return other;
     // For each entry mapping key `k` to declaration `d` in `NS` an entry
     // mapping `k` to `d` is added to the exported namespace of `L` unless a
     // top-level declaration with the name `k` exists in `L`.
     if (builder.parent == this) return builder;
     Message message = templateDuplicatedDeclaration.withArguments(name);
     addProblem(message, charOffset, name.length, fileUri);
-    return new InvalidTypeBuilder(
+    return new InvalidTypeDeclarationBuilder(
         name, message.withLocation(fileUri, charOffset, name.length));
   }
 
@@ -271,7 +273,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
           addProblem(message, -1, noLength, null);
-          declaration = new InvalidTypeBuilder(name, message.withoutLocation());
+          declaration = new InvalidTypeDeclarationBuilder(
+              name, message.withoutLocation());
       }
       exportScopeBuilder.addMember(name, declaration);
     });
@@ -292,6 +295,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         libraryUri = node.enclosingLibrary.importUri;
         name = node.name.name;
       } else if (node is Typedef) {
+        libraryUri = node.enclosingLibrary.importUri;
+        name = node.name;
+      } else if (node is Extension) {
         libraryUri = node.enclosingLibrary.importUri;
         name = node.name;
       } else {

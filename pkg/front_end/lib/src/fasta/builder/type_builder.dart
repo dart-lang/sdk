@@ -6,8 +6,6 @@ library fasta.type_builder;
 
 import 'package:kernel/ast.dart' show DartType, Supertype;
 
-import '../fasta_codes.dart' show LocatedMessage;
-
 import '../scope.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -57,8 +55,6 @@ abstract class TypeBuilder {
   /// are added to [newTypes], so that they can be added to a proper scope and
   /// resolved later.
   TypeBuilder clone(List<TypeBuilder> newTypes);
-
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context});
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 

@@ -759,6 +759,13 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _codegenReader.readJsNode(this);
   }
 
+  @override
+  TypeRecipe readTypeRecipe() {
+    assert(_codegenReader != null,
+        "Can not deserialize a TypeRecipe without a registered codegen reader.");
+    return _codegenReader.readTypeRecipe(this);
+  }
+
   /// Actual deserialization of a section begin tag, implemented by subclasses.
   void _begin(String tag);
 

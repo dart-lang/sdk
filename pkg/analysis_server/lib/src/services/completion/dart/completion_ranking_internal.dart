@@ -72,7 +72,7 @@ bool isStopToken(Token token, int cursorOffset) {
     // token is NOT an identifier, keyword, or literal. The rationale is that
     // we want to keep moving if we have a situation like
     // FooBar foo^ since foo is not a previous token to pass to the model.
-    return token.lexeme[token.lexeme.length - 1]
+    return !token.lexeme[token.lexeme.length - 1]
         .contains(new RegExp(r'[0-9A-Za-z_]'));
   }
   // Stop if the token's location is strictly before the cursor, continue
@@ -144,6 +144,16 @@ bool testFollowingDot(DartCompletionRequest request) {
   return isTokenDot(token) || isTokenDot(token.previous);
 }
 
+/// Tests whether all completion suggestions are for named arguments.
+bool testNamedArgument(List<CompletionSuggestion> suggestions) {
+  if (suggestions == null) {
+    return false;
+  }
+
+  return suggestions.any((CompletionSuggestion suggestion) =>
+      suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT);
+}
+
 /// Finds the previous n tokens occurring before the cursor.
 List<String> constructQuery(DartCompletionRequest request, int n) {
   var token = getCursorToken(request);
@@ -164,6 +174,12 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
       size < n && token != null && !token.isEof;
       token = token.previous) {
     if (!token.isSynthetic && token is! ErrorToken) {
+      // Omit the optional new keyword as we remove it at training time to
+      // prevent model from suggesting it.
+      if (token.lexeme == 'new') {
+        continue;
+      }
+
       result.add(token.lexeme);
       size += 1;
     }

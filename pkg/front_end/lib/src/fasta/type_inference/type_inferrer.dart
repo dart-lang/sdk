@@ -423,7 +423,7 @@ abstract class TypeInferrer {
 
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
-  Uri get uri;
+  Uri get uriForInstrumentation;
 
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer(
@@ -463,7 +463,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   final TypeInferenceEngine engine;
 
   @override
-  final Uri uri;
+  final Uri uriForInstrumentation;
 
   /// Indicates whether the construct we are currently performing inference for
   /// is outside of a method body, and hence top level type inference rules
@@ -495,8 +495,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl.private(
-      this.engine, this.uri, bool topLevel, this.thisType, this.library)
+  TypeInferrerImpl.private(this.engine, this.uriForInstrumentation,
+      bool topLevel, this.thisType, this.library)
       : assert(library != null),
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
@@ -736,7 +736,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (instrumented &&
         receiverType != const DynamicType() &&
         target.isInstanceMember) {
-      instrumentation?.record(uri, fileOffset, 'target',
+      instrumentation?.record(uriForInstrumentation, fileOffset, 'target',
           new InstrumentationValueForMember(target.member));
     }
 
@@ -770,9 +770,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       List<ExtensionAccessCandidate> noneMoreSpecific = [];
       library.scope.forEachExtension((ExtensionBuilder extensionBuilder) {
         MemberBuilder thisBuilder =
-            extensionBuilder.lookupLocalMember(name.name, setter: setter);
+            extensionBuilder.lookupLocalMemberByName(name, setter: setter);
         MemberBuilder otherBuilder = extensionBuilder
-            .lookupLocalMember(otherName.name, setter: otherIsSetter);
+            .lookupLocalMemberByName(otherName, setter: otherIsSetter);
         if ((thisBuilder != null && !thisBuilder.isStatic) ||
             (otherBuilder != null && !otherBuilder.isStatic)) {
           DartType onType;
@@ -816,7 +816,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
                 onType,
                 onTypeInstantiateToBounds,
-                thisBuilder != null
+                thisBuilder != null &&
+                        !thisBuilder.isField &&
+                        !thisBuilder.isStatic
                     ? new ObjectAccessTarget.extensionMember(
                         thisBuilder.procedure,
                         thisBuilder.extensionTearOff,
@@ -948,7 +950,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             }
           }
           if (instrumented && instrumentation != null) {
-            instrumentation.record(uri, methodInvocation.fileOffset, 'target',
+            instrumentation.record(
+                uriForInstrumentation,
+                methodInvocation.fileOffset,
+                'target',
                 new InstrumentationValueForMember(interfaceMember));
           }
         }
@@ -966,7 +971,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return interfaceTarget;
     } else {
       throw unhandled("${methodInvocation.runtimeType}",
-          "findMethodInvocationMember", methodInvocation.fileOffset, uri);
+          "findMethodInvocationMember", null, null);
     }
   }
 
@@ -989,8 +994,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
-          instrumentation.record(uri, propertyGet.fileOffset, 'target',
-              new InstrumentationValueForMember(readTarget.member));
+          instrumentation.record(uriForInstrumentation, propertyGet.fileOffset,
+              'target', new InstrumentationValueForMember(readTarget.member));
         }
         propertyGet.interfaceTarget = readTarget.member;
       }
@@ -1005,8 +1010,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      return unhandled("${propertyGet.runtimeType}", "findPropertyGetMember",
-          propertyGet.fileOffset, uri);
+      return unhandled(
+          "${propertyGet.runtimeType}", "findPropertyGetMember", null, null);
     }
   }
 
@@ -1029,8 +1034,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (instrumented &&
             instrumentation != null &&
             receiverType == const DynamicType()) {
-          instrumentation.record(uri, propertySet.fileOffset, 'target',
-              new InstrumentationValueForMember(writeTarget.member));
+          instrumentation.record(uriForInstrumentation, propertySet.fileOffset,
+              'target', new InstrumentationValueForMember(writeTarget.member));
         }
         propertySet.interfaceTarget = writeTarget.member;
       }
@@ -1045,8 +1050,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw unhandled("${propertySet.runtimeType}", "findPropertySetMember",
-          propertySet.fileOffset, uri);
+      throw unhandled(
+          "${propertySet.runtimeType}", "findPropertySetMember", null, null);
     }
   }
 
@@ -1111,7 +1116,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     throw unhandled('$target', 'getGetterType', null, null);
   }
 
-  /// Returns the getter type of [member] on a receiver of type [receiverType].
+  /// Returns the getter type of [interfaceMember] on a receiver of type
+  /// [receiverType].
   ///
   /// For instance
   ///
@@ -1517,7 +1523,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           int offset = arguments.fileOffset == -1
               ? expression.fileOffset
               : arguments.fileOffset;
-          instrumentation.record(uri, offset, 'checkReturn',
+          instrumentation.record(uriForInstrumentation, offset, 'checkReturn',
               new InstrumentationValueForType(inferredType));
         }
         return replacement;
@@ -1535,7 +1541,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           int offset = arguments.fileOffset == -1
               ? expression.fileOffset
               : arguments.fileOffset;
-          instrumentation.record(uri, offset, 'checkGetterReturn',
+          instrumentation.record(
+              uriForInstrumentation,
+              offset,
+              'checkGetterReturn',
               new InstrumentationValueForType(functionType));
         }
         return replacement;
@@ -1580,8 +1589,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       parent.replaceChild(expressionToReplace, replacedExpression);
     }
     if (instrumentation != null && checkReturn) {
-      instrumentation.record(uri, expression.fileOffset, 'checkReturn',
-          new InstrumentationValueForType(inferredType));
+      instrumentation.record(uriForInstrumentation, expression.fileOffset,
+          'checkReturn', new InstrumentationValueForType(inferredType));
     }
     return replacedExpression;
   }
@@ -1695,7 +1704,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
             .toList());
-    Arguments extensionArguments = helper.forest.createArguments(
+    Arguments extensionArguments = engine.forest.createArguments(
         arguments.fileOffset, [arguments.positional.first],
         types: getExplicitExtensionTypeArguments(arguments));
     _inferInvocation(
@@ -1718,7 +1727,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         typeParameters: targetTypeParameters);
     targetFunctionType =
         extensionSubstitution.substituteType(targetFunctionType);
-    Arguments targetArguments = helper.forest.createArguments(
+    Arguments targetArguments = engine.forest.createArguments(
         arguments.fileOffset, arguments.positional.skip(1).toList(),
         named: arguments.named, types: getExplicitTypeArguments(arguments));
     DartType inferredType = _inferInvocation(
@@ -1898,9 +1907,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           actualTypes,
           typeContext,
           inferredTypes);
+      assert(inferredTypes.every((type) => isKnown(type)),
+          "Unknown type(s) in inferred types: $inferredTypes.");
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
-      instrumentation?.record(uri, offset, 'typeArgs',
+      instrumentation?.record(uriForInstrumentation, offset, 'typeArgs',
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
@@ -2046,8 +2057,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         } else {
           inferredType = const DynamicType();
         }
-        instrumentation?.record(uri, formal.fileOffset, 'type',
-            new InstrumentationValueForType(inferredType));
+        instrumentation?.record(uriForInstrumentation, formal.fileOffset,
+            'type', new InstrumentationValueForType(inferredType));
         formal.type = inferredType;
       }
     }
@@ -2082,7 +2093,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
     // denoted as optional or named parameters, if appropriate).
     if (needToSetReturnType) {
-      instrumentation?.record(uri, fileOffset, 'returnType',
+      instrumentation?.record(uriForInstrumentation, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
     }
@@ -2123,10 +2134,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Expression replacement;
     expression.parent.replaceChild(
         expression,
-        replacement = helper.forest.createStaticInvocation(
+        replacement = engine.forest.createStaticInvocation(
             expression.fileOffset,
             target.member,
-            arguments = helper.forest.createArgumentsForExtensionMethod(
+            arguments = engine.forest.createArgumentsForExtensionMethod(
                 arguments.fileOffset,
                 target.inferredExtensionTypeArguments.length,
                 procedure.function.typeParameters.length -
@@ -2198,9 +2209,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         parent?.replaceChild(node, errorNode);
       }
     }
-    if (target.isExtensionMember) {
-      library.checkBoundsInStaticInvocation(
-          replacement, typeSchemaEnvironment, helper.uri);
+    if (!isTopLevel && target.isExtensionMember) {
+      library.checkBoundsInStaticInvocation(replacement, typeSchemaEnvironment,
+          helper.uri, getTypeArgumentsInfo(node.arguments));
     } else {
       _checkBoundsInMethodInvocation(target, receiverType, calleeType,
           methodName, arguments, node.fileOffset);
@@ -2249,8 +2260,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           interfaceTarget,
           arguments,
           helper.uri,
-          fileOffset,
-          inferred: getExplicitTypeArguments(arguments) == null);
+          fileOffset);
     }
   }
 
@@ -2345,8 +2355,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         includeExtensionMethods: true);
     if (readTarget.isInstanceMember) {
       if (instrumentation != null && receiverType == const DynamicType()) {
-        instrumentation.record(uri, propertyGet.fileOffset, 'target',
-            new InstrumentationValueForMember(readTarget.member));
+        instrumentation.record(uriForInstrumentation, propertyGet.fileOffset,
+            'target', new InstrumentationValueForMember(readTarget.member));
       }
       propertyGet.interfaceTarget = readTarget.member;
     }
@@ -2366,10 +2376,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         case ProcedureKind.Getter:
           expression.parent.replaceChild(
               expression,
-              replacement = expression = helper.forest.createStaticInvocation(
+              replacement = expression = engine.forest.createStaticInvocation(
                   fileOffset,
                   readTarget.member,
-                  helper.forest.createArgumentsForExtensionMethod(
+                  engine.forest.createArgumentsForExtensionMethod(
                       fileOffset,
                       readTarget.inferredExtensionTypeArguments.length,
                       0,
@@ -2380,10 +2390,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         case ProcedureKind.Method:
           expression.parent.replaceChild(
               expression,
-              replacement = expression = helper.forest.createStaticInvocation(
+              replacement = expression = engine.forest.createStaticInvocation(
                   fileOffset,
                   readTarget.tearoffTarget,
-                  helper.forest.createArgumentsForExtensionMethod(
+                  engine.forest.createArgumentsForExtensionMethod(
                       fileOffset,
                       readTarget.inferredExtensionTypeArguments.length,
                       0,
@@ -2396,7 +2406,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         case ProcedureKind.Setter:
         case ProcedureKind.Factory:
         case ProcedureKind.Operator:
-          unhandled('$readTarget', "inferPropertyGet", fileOffset, uri);
+          unhandled('$readTarget', "inferPropertyGet", null, null);
           break;
       }
     }

@@ -47,7 +47,7 @@ class ProfileTrieNode;
   V(failure_native_allocation_sample)
 
 struct ProfilerCounters {
-#define DECLARE_PROFILER_COUNTER(name) ALIGN8 int64_t name;
+#define DECLARE_PROFILER_COUNTER(name) RelaxedAtomic<int64_t> name;
   PROFILER_COUNTERS(DECLARE_PROFILER_COUNTER)
 #undef DECLARE_PROFILER_COUNTER
 };
@@ -677,7 +677,7 @@ class SampleBuffer {
   VirtualMemory* memory_;
   Sample* samples_;
   intptr_t capacity_;
-  uintptr_t cursor_;
+  RelaxedAtomic<uintptr_t> cursor_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);

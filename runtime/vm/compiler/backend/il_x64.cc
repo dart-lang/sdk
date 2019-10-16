@@ -171,7 +171,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   CallingConventions::kCalleeSaveXmmRegisters);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -1037,7 +1037,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame(0);
 
 #if defined(TARGET_OS_FUCHSIA)
-  UNREACHABLE(); // Fuchsia does not allow dart:ffi.
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -3336,13 +3336,20 @@ class CheckedSmiComparisonSlowPath
   static constexpr intptr_t kNumSlowPathArgs = 2;
 
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               Environment* env,
                                intptr_t try_index,
                                BranchLabels labels,
                                bool merged)
       : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
-        merged_(merged) {}
+        merged_(merged),
+        env_(env) {
+    // The environment must either come from the comparison or the environment
+    // was cleared from the comparison (and moved to a branch).
+    ASSERT(env == instruction->env() ||
+           (merged && instruction->env() == nullptr));
+  }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
@@ -3354,10 +3361,9 @@ class CheckedSmiComparisonSlowPath
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction()->env() != NULL) {
-      Environment* env =
-          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
-      compiler->pending_deoptimization_env_ = env;
+    if (env_ != nullptr) {
+      compiler->pending_deoptimization_env_ =
+          compiler->SlowPathEnvironmentFor(env_, locs, kNumSlowPathArgs);
     }
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
@@ -3371,7 +3377,7 @@ class CheckedSmiComparisonSlowPath
         instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = NULL;
+    compiler->pending_deoptimization_env_ = nullptr;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ j(EQUAL, instruction()->is_negated() ? labels_.false_label
@@ -3389,6 +3395,7 @@ class CheckedSmiComparisonSlowPath
   intptr_t try_index_;
   BranchLabels labels_;
   bool merged_;
+  Environment* env_;
 };
 
 LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
@@ -3433,7 +3440,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, branch->env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ true);
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -3454,7 +3461,7 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For this purpose, 'merged' slow path is generated: it tests
   // result of a call and jumps directly to true or false label.
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ is_negated());
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;

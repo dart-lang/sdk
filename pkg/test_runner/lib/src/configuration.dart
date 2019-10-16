@@ -208,7 +208,7 @@ class TestConfiguration {
 
   /// The base directory named for this configuration, like:
   ///
-  ///     none_vm_release_x64
+  ///     ReleaseX64
   String _configurationDirectory;
 
   String get configurationDirectory {
@@ -218,7 +218,7 @@ class TestConfiguration {
 
   /// The build directory path for this configuration, like:
   ///
-  ///     build/none_vm_release_x64
+  ///     build/ReleaseX64
   String get buildDirectory => system.outputDirectory + configurationDirectory;
 
   int _timeout;
@@ -456,15 +456,24 @@ class TestConfiguration {
   /// build_directory).
   String _calculateDirectory() {
     // Capitalize the mode name.
-    var modeName =
+    var result =
         mode.name.substring(0, 1).toUpperCase() + mode.name.substring(1);
 
-    var os = '';
-    if (system == System.android) os = "Android";
+    if (system == System.android) result += "Android";
 
     var arch = architecture.name.toUpperCase();
-    var normal = '$modeName$os$arch';
-    var cross = '$modeName${os}X$arch';
+    var normal = '$result$arch';
+    var cross = '${result}X$arch';
+
+    // TODO(38701): When enabling the NNBD experiment, we need to use the
+    // forked version of the SDK core libraries that have NNBD support. Remove
+    // this once the forked SDK at `<repo>/sdk_nnbd` has been merged back with
+    // `<repo>/sdk`.
+    if (experiments.contains("non-nullable")) {
+      normal += "NNBD";
+      cross += "NNBD";
+    }
+
     var outDir = system.outputDirectory;
     var normalDir = Directory(Path('$outDir$normal').toNativePath());
     var crossDir = Directory(Path('$outDir$cross').toNativePath());
@@ -474,9 +483,7 @@ class TestConfiguration {
           " binary to use.";
     }
 
-    if (crossDir.existsSync()) return cross;
-
-    return normal;
+    return crossDir.existsSync() ? cross : normal;
   }
 }
 

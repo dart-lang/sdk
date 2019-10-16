@@ -734,6 +734,9 @@ class ConstantPool {
 
   int addString(String value) => addObjectRef(new StringConstant(value));
 
+  int addName(String name) =>
+      _add(new ConstantObjectRef(objectTable.getPublicNameHandle(name)));
+
   int addArgDesc(int numArguments,
           {int numTypeArgs = 0, List<String> argNames = const <String>[]}) =>
       _add(new ConstantObjectRef(

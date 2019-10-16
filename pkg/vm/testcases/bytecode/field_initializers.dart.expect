@@ -51,15 +51,14 @@ Bytecode {
   Push                 FP[-6]
   PushInt              42
   StoreFieldTOS        CP#0
-  Push                 FP[-6]
   PushInt              43
-  StoreFieldTOS        CP#2
+  Drop1
   Push                 FP[-6]
   Push                 FP[-5]
-  StoreFieldTOS        CP#4
+  StoreFieldTOS        CP#2
   Push                 FP[-6]
   PushInt              44
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#4
   Push                 FP[-6]
   DirectCall           CP#6, 1
   Drop1
@@ -70,9 +69,9 @@ Nullable fields: [#lib::A::foo1 (field), #lib::A::foo2 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5 (field)
+  [2] = InstanceField #lib::A::foo4 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo4 (field)
+  [4] = InstanceField #lib::A::foo5 (field)
   [5] = Reserved
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
@@ -89,17 +88,16 @@ Bytecode {
   Push                 FP[-7]
   PushInt              42
   StoreFieldTOS        CP#0
-  Push                 FP[-7]
   PushInt              43
-  StoreFieldTOS        CP#2
+  Drop1
   Push                 FP[-7]
   Push                 FP[-6]
-  StoreFieldTOS        CP#4
+  StoreFieldTOS        CP#2
   Push                 FP[-7]
   Push                 FP[-5]
   PushInt              1
   AddInt
-  StoreFieldTOS        CP#2
+  StoreFieldTOS        CP#4
   Push                 FP[-7]
   DirectCall           CP#6, 1
   Drop1
@@ -110,9 +108,9 @@ Nullable fields: [#lib::A::foo2 (field), #lib::A::foo4 (field)]
 ConstantPool {
   [0] = InstanceField #lib::A::foo3 (field)
   [1] = Reserved
-  [2] = InstanceField #lib::A::foo5 (field)
+  [2] = InstanceField #lib::A::foo1 (field)
   [3] = Reserved
-  [4] = InstanceField #lib::A::foo1 (field)
+  [4] = InstanceField #lib::A::foo5 (field)
   [5] = Reserved
   [6] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [7] = Reserved
@@ -205,9 +203,8 @@ Function 'c2', constructor, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  Push                 FP[-7]
   PushInt              46
-  StoreFieldTOS        CP#0
+  Drop1
   Push                 FP[-7]
   PushInt              50
   StoreFieldTOS        CP#0

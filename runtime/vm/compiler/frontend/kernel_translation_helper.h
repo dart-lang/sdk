@@ -755,6 +755,7 @@ class LibraryHelper {
   enum Flag {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
+    kIsNonNullableByDefault = 1 << 2,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -771,6 +772,9 @@ class LibraryHelper {
 
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
+  bool IsNonNullableByDefault() const {
+    return (flags_ & kIsNonNullableByDefault) != 0;
+  }
 
   uint8_t flags_ = 0;
   NameIndex canonical_name_;

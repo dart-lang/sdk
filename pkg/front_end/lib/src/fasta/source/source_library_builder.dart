@@ -6,6 +6,7 @@ library fasta.source_library_builder;
 
 import 'dart:convert' show jsonEncode;
 
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -58,31 +59,34 @@ import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
 import '../../scanner/token.dart' show Token;
 
-import '../builder/builder.dart'
-    show
-        Builder,
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        EnumConstantInfo,
-        FormalParameterBuilder,
-        FunctionTypeBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        NameIterator,
-        PrefixBuilder,
-        FunctionBuilder,
-        NullabilityBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        UnresolvedType,
-        flattenName;
-
+import '../builder/builder.dart';
+import '../builder/builtin_type_builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/dynamic_type_builder.dart';
+import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
-
+import '../builder/field_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/mixin_application_builder.dart';
+import '../builder/name_iterator.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
+import '../builder/void_type_builder.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -151,43 +155,14 @@ import '../fasta_codes.dart'
         templatePatchInjectionFailed,
         templateTypeVariableDuplicatedNameCause;
 
+import '../identifiers.dart' show QualifiedName, flattenName;
+
 import '../import.dart' show Import;
 
 import '../kernel/kernel_builder.dart'
     show
-        AccessErrorBuilder,
-        BuiltinTypeBuilder,
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        Builder,
-        DynamicTypeBuilder,
-        EnumConstantInfo,
-        FormalParameterBuilder,
-        FunctionTypeBuilder,
         ImplicitFieldType,
-        InvalidTypeBuilder,
-        ConstructorBuilder,
-        EnumBuilder,
-        FunctionBuilder,
-        TypeAliasBuilder,
-        FieldBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        RedirectingFactoryBuilder,
-        LibraryBuilder,
         LoadLibraryBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        NameIterator,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        UnresolvedType,
-        VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
@@ -219,6 +194,8 @@ import '../names.dart' show indexSetName;
 
 import '../problems.dart' show unexpected, unhandled;
 
+import '../scope.dart';
+
 import '../severity.dart' show Severity;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
@@ -228,6 +205,10 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart' show SourceExtensionBuilder;
 
 import 'source_loader.dart' show SourceLoader;
+
+// TODO(johnniwinther,jensj): Replace this with the correct scheme.
+const int enableNonNullableDefaultMajorVersion = 2;
+const int enableNonNullableDefaultMinorVersion = 6;
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -382,6 +363,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return type;
   }
 
+  // TODO(38287): Compute the predicate using the library version instead.
+  @override
+  bool get isNonNullableByDefault =>
+      loader.target.enableNonNullable &&
+      library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
+      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion;
+
   @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length: noLength, bool explicit: false}) {
@@ -394,7 +382,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       return;
     }
 
-    // If trying to set a langauge version that is higher than the current sdk
+    // If trying to set a language version that is higher than the current sdk
     // version it's an error.
     if (major > loader.target.currentSdkVersionMajor ||
         (major == loader.target.currentSdkVersionMajor &&
@@ -806,6 +794,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           isConst: true));
     }
 
+    library.isNonNullableByDefault = isNonNullableByDefault;
+
     return library;
   }
 
@@ -1049,7 +1039,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             break;
 
           default:
-            if (member is InvalidTypeBuilder) {
+            if (member is InvalidTypeDeclarationBuilder) {
               unserializableExports ??= <String, String>{};
               unserializableExports[name] = member.message.message;
             } else {
@@ -1314,8 +1304,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // When looking up a constructor, we don't consider type variables or the
     // library scope.
-    Scope constructorScope = new Scope(
-        local: constructors, debugName: className, isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(className, constructors);
     bool isMixinDeclaration = false;
     if (modifiers & mixinDeclarationMask != 0) {
       isMixinDeclaration = true;
@@ -1691,10 +1681,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 parent: scope.withTypeVariables(typeVariables),
                 debugName: "mixin $fullname ",
                 isModifiable: false),
-            new Scope(
-                local: <String, MemberBuilder>{},
-                debugName: fullname,
-                isModifiable: false),
+            new ConstructorScope(fullname, <String, MemberBuilder>{}),
             this,
             <ConstructorReferenceBuilder>[],
             computedStartCharOffset,
@@ -1758,7 +1745,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    FieldBuilder fieldBuilder = new FieldBuilder(
+    FieldBuilderImpl fieldBuilder = new FieldBuilderImpl(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);
@@ -1787,7 +1774,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String nativeMethodName,
       {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    ConstructorBuilder constructorBuilder = new ConstructorBuilder(
+    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         metadata,
         modifiers & ~abstractMask,
         returnType,
@@ -1842,7 +1829,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         returnType = addVoidType(charOffset);
       }
     }
-    ProcedureBuilder procedureBuilder = new ProcedureBuilder(
+    ProcedureBuilder procedureBuilder = new ProcedureBuilderImpl(
         metadata,
         modifiers,
         returnType,
@@ -1916,7 +1903,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           nativeMethodName,
           redirectionTarget);
     } else {
-      procedureBuilder = new ProcedureBuilder(
+      procedureBuilder = new ProcedureBuilderImpl(
           metadata,
           staticMask | modifiers,
           returnType,
@@ -2108,15 +2095,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addNativeDependency(String nativeImportPath) {
-    Builder constructor = loader.getNativeAnnotation();
+    MemberBuilder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeImportPath)]);
     Expression annotation;
     if (constructor.isConstructor) {
-      annotation = new ConstructorInvocation(constructor.target, arguments)
+      annotation = new ConstructorInvocation(constructor.member, arguments)
         ..isConst = true;
     } else {
-      annotation = new StaticInvocation(constructor.target, arguments)
+      annotation = new StaticInvocation(constructor.member, arguments)
         ..isConst = true;
     }
     library.addAnnotation(annotation);
@@ -2175,8 +2162,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool isExport: false, bool isImport: false}) {
     // TODO(ahe): Can I move this to Scope or Prefix?
     if (declaration == other) return declaration;
-    if (declaration is InvalidTypeBuilder) return declaration;
-    if (other is InvalidTypeBuilder) return other;
+    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
+    if (other is InvalidTypeDeclarationBuilder) return other;
     if (declaration is AccessErrorBuilder) {
       AccessErrorBuilder error = declaration;
       declaration = error.builder;
@@ -2265,7 +2252,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // We report the error lazily (setting suppressMessage to false) because the
     // spec 18.1 states that 'It is not an error if N is introduced by two or
     // more imports but never referred to.'
-    return new InvalidTypeBuilder(
+    return new InvalidTypeDeclarationBuilder(
         name, message.withLocation(fileUri, charOffset, name.length),
         suppressMessage: false);
   }
@@ -2360,7 +2347,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeVariableBuilder newVariable = new TypeVariableBuilder(
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
-          isExtensionTypeParameter: isExtensionTypeParameter);
+          isExtensionTypeParameter: isExtensionTypeParameter,
+          variableVariance: variable.variance);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }
@@ -2552,13 +2540,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void reportTypeArgumentIssues(
       List<TypeArgumentIssue> issues, Uri fileUri, int offset,
-      {bool inferred, DartType targetReceiver, String targetName}) {
+      {bool inferred,
+      TypeArgumentsInfo typeArgumentsInfo,
+      DartType targetReceiver,
+      String targetName}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
       TypeParameter typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred = inferred ?? inferredTypes.contains(argument);
+      bool issueInferred = inferred ??
+          typeArgumentsInfo?.isInferred(issue.index) ??
+          inferredTypes.contains(argument);
+      offset =
+          typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (argument is FunctionType && argument.typeParameters.length > 0) {
         if (issueInferred) {
           message = templateGenericFunctionTypeInferredAsActualTypeArgument
@@ -2774,8 +2769,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkBoundsInStaticInvocation(
-      StaticInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
-      {bool inferred = false}) {
+      StaticInvocation node,
+      TypeEnvironment typeEnvironment,
+      Uri fileUri,
+      TypeArgumentsInfo typeArgumentsInfo) {
     // TODO(johnniwinther): Handle partially inferred type arguments in
     // extension method calls. Currently all are considered inferred in the
     // error messages.
@@ -2794,7 +2791,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       String targetName = node.target.name.name;
       reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
-          inferred: inferred,
+          typeArgumentsInfo: typeArgumentsInfo,
           targetReceiver: targetReceiver,
           targetName: targetName);
     }
@@ -2809,8 +2806,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Member interfaceTarget,
       Arguments arguments,
       Uri fileUri,
-      int offset,
-      {bool inferred = false}) {
+      int offset) {
     if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> receiverTypeArguments;
@@ -2854,7 +2850,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         instantiatedMethodParameters, arguments.types, typeEnvironment);
     if (issues != null) {
       reportTypeArgumentIssues(issues, fileUri, offset,
-          inferred: inferred,
+          typeArgumentsInfo: getTypeArgumentsInfo(arguments),
           targetReceiver: receiverType,
           targetName: name.name);
     }
@@ -3114,6 +3110,7 @@ class TypeParameterScopeBuilder {
         // parent declaration.
         parent.addType(type);
       } else if (nameOrQualified is QualifiedName) {
+        NamedTypeBuilder builder = type.builder;
         // Attempt to use a member or type variable as a prefix.
         Message message = templateNotAPrefixInTypeAnnotation.withArguments(
             flattenName(
@@ -3121,10 +3118,9 @@ class TypeParameterScopeBuilder {
             nameOrQualified.name);
         library.addProblem(message, type.charOffset,
             nameOrQualified.endCharOffset - type.charOffset, type.fileUri);
-        type.builder.bind(type.builder.buildInvalidType(message.withLocation(
-            type.fileUri,
-            type.charOffset,
-            nameOrQualified.endCharOffset - type.charOffset)));
+        builder.bind(builder.buildInvalidTypeDeclarationBuilder(
+            message.withLocation(type.fileUri, type.charOffset,
+                nameOrQualified.endCharOffset - type.charOffset)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         type.resolveIn(scope, library);

@@ -24,8 +24,12 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
+import '../builder/library_builder.dart';
+
+import '../kernel/forest.dart';
+
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ImplicitFieldType, LibraryBuilder;
+    show ClassHierarchyBuilder, ImplicitFieldType;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -116,6 +120,9 @@ abstract class TypeInferenceEngine {
 
   CoreTypes coreTypes;
 
+  // TODO(johnniwinther): Shared this with the BodyBuilder.
+  final Forest forest = const Forest();
+
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;
 
@@ -198,10 +205,10 @@ abstract class TypeInferenceEngine {
     if (member is Field) {
       DartType type = member.type;
       if (type is ImplicitFieldType) {
-        if (type.member.target != member) {
-          type.member.inferCopiedType(member);
+        if (type.memberBuilder.member != member) {
+          type.memberBuilder.inferCopiedType(member);
         } else {
-          type.member.inferType();
+          type.memberBuilder.inferType();
         }
       }
     }

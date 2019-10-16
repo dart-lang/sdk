@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show htmlEscape, LineSplitter;
+
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
@@ -14,30 +16,55 @@ mustache.Template _template = mustache.Template(r'''
 <html>
   <head>
     <title>Non-nullable fix instrumentation report</title>
-<!--    <script src="{{ highlightJsPath }}"></script>-->
+    <script src="{{ highlightJsPath }}"></script>
     <script>
-    function highlightTarget() {
-      var url = document.URL;
-      var index = url.lastIndexOf("#");
+    function getHash(location) {
+      var index = location.lastIndexOf("#");
       if (index >= 0) {
-        var name = url.substring(index + 1);
-        var anchor = document.getElementById(name);
+        return location.substring(index + 1);
+      } else {
+        return null;
+      }
+    }
+
+    function highlightTarget(event) {
+      if (event !== undefined && event.oldURL !== undefined) {
+        // Remove the "target" CSS class from the previous anchor.
+        var oldHash = getHash(event.oldURL);
+        if (oldHash != null) {
+          var anchor = document.getElementById(oldHash);
+          if (anchor != null) {
+            anchor.classList.remove("target");
+          }
+        }
+      }
+      var url = document.URL;
+      var hash = getHash(url);
+      if (hash != null) {
+        var anchor = document.getElementById(hash);
         if (anchor != null) {
-          anchor.className = "target";
+          anchor.classList.add("target");
         }
       }
     }
+
+    document.addEventListener("DOMContentLoaded", highlightTarget);
+    window.addEventListener("hashchange", highlightTarget);
     </script>
     <link rel="stylesheet" href="{{ highlightStylePath }}">
     <style>
 a:link {
-  color: #000000;
+  color: inherit;
   text-decoration-line: none;
 }
 
 a:visited {
-  color: #000000;
+  color: inherit;
   text-decoration-line: none;
+}
+
+a:hover {
+  text-decoration-line: underline;
 }
 
 body {
@@ -51,8 +78,9 @@ h2 {
 }
 
 .code {
-  position: absolute;
   left: 0.5em;
+  padding-left: 60px;
+  position: absolute;
   top: 0.5em;
 }
 
@@ -63,12 +91,35 @@ h2 {
 }
 
 .regions {
+  padding: 0.5em;
   position: absolute;
   left: 0.5em;
   top: 0.5em;
   /* The content of the regions is not visible; the user instead will see the
    * highlighted copy of the content. */
   visibility: hidden;
+}
+
+.regions table {
+  border-spacing: 0;
+}
+
+.regions td {
+  border: none;
+  padding: 0;
+  white-space: pre;
+}
+
+.regions td:empty:after {
+  content: "\00a0";
+}
+
+.regions td.line-no {
+  color: #999999;
+  padding-right: 4px;
+  text-align: right;
+  visibility: visible;
+  width: 50px;
 }
 
 .region {
@@ -99,6 +150,10 @@ h2 {
   z-index: 1;
 }
 
+.region .tooltip > * {
+  margin: 1em;
+}
+
 .region:hover .tooltip {
   visibility: visible;
 }
@@ -110,7 +165,7 @@ h2 {
 }
     </style>
   </head>
-  <body onload="highlightTarget()">
+  <body>
     <h1>Non-nullable fix instrumentation report</h1>
     <p><em>Well-written introduction to this report.</em></p>
     <div class="navigation">
@@ -123,37 +178,21 @@ h2 {
     {{# units }}'''
     '<h2>{{{ path }}}</h2>'
     '<div class="content">'
-//    '<div class="highlighting">'
-//    '{{! These regions are written out, unmodified, as they need to be found }}'
-//    '{{! in one simple text string for highlight.js to hightlight them. }}'
-//    '{{# regions }}'
-//    '{{ content }}'
-//    '{{/ regions }}'
-//    '</div>'
-    '<div class ="code">'
+    '<div class="code">'
     '{{! Write the file content, modified to include navigation information, }}'
     '{{! both anchors and links. }}'
     '{{{ navContent }}}'
     '</div>'
     '<div class="regions">'
-    '{{! The regions are then written again, overlaying the first two copies }}'
-    '{{! of the content, to provide tooltips for modified regions. }}'
-    '{{# regions }}'
-    '{{^ modified }}{{ content }}{{/ modified }}'
-    '{{# modified }}<span class="region">{{ content }}'
-    '<span class="tooltip">{{ explanation }}<ul>'
-    '{{# details }}'
-    '<li>'
-    '<a href="{{ target }}">{{ description }}</a>'
-    '</li>'
-    '{{/ details }}</ul></span></span>{{/ modified }}'
-    '{{/ regions }}'
+    '{{! The regions are then written again, overlaying the first copy of }}'
+    '{{! the content, to provide tooltips for modified regions. }}'
+    '{{{ regionContent }}}'
     '</div></div>'
     r'''
     {{/ units }}
     <script lang="javascript">
 document.addEventListener("DOMContentLoaded", (event) => {
-  document.querySelectorAll(".highlighting").forEach((block) => {
+  document.querySelectorAll(".code").forEach((block) => {
     hljs.highlightBlock(block);
   });
 });
@@ -178,10 +217,11 @@ class InstrumentationRenderer {
   /// Creates an output object for the given library info.
   InstrumentationRenderer(this.unitInfo, this.migrationInfo, this.pathMapper);
 
+  /// Return the path context used to manipulate paths.
+  path.Context get pathContext => migrationInfo.pathContext;
+
   /// Builds an HTML view of the instrumentation information in [unitInfo].
   String render() {
-    // TODO(brianwilkerson) Restore syntactic highlighting.
-    // TODO(brianwilkerson) Add line numbers beside the content.
     Map<String, dynamic> mustacheContext = {
       'units': <Map<String, dynamic>>[],
       'links': migrationInfo.unitLinks(unitInfo),
@@ -191,140 +231,156 @@ class InstrumentationRenderer {
     };
     mustacheContext['units'].add({
       'path': unitInfo.path,
-      'regions': _computeRegions(unitInfo),
+      'regionContent': _computeRegionContent(unitInfo),
     });
     return _template.renderString(mustacheContext);
   }
 
   /// Return the content of the file with navigation links and anchors added.
   String _computeNavigationContent(UnitInfo unitInfo) {
+    String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
-    List<NavigationRegion> regions = []
-      ..addAll(unitInfo.sources ?? <NavigationSource>[])
-      ..addAll(unitInfo.targets);
-    regions.sort((first, second) {
-      int offsetComparison = first.offset.compareTo(second.offset);
-      if (offsetComparison == 0) {
-        return first is NavigationSource ? -1 : 1;
-      }
-      return offsetComparison;
-    });
+    Map<int, String> openInsertions = {};
+    Map<int, String> closeInsertions = {};
+    //
+    // Compute insertions for navigation targets.
+    //
+    for (NavigationTarget region in unitInfo.targets) {
+      int openOffset = mapper.map(region.offset);
+      String openInsertion = openInsertions[openOffset] ?? '';
+      openInsertion = '<a id="o${region.offset}">$openInsertion';
+      openInsertions[openOffset] = openInsertion;
 
-    StringBuffer navContent = StringBuffer();
-    int previousOffset = 0;
-    for (int i = 0; i < regions.length; i++) {
-      NavigationRegion region = regions[i];
-      int offset = mapper.map(region.offset);
-      int length = region.length;
-      if (offset > previousOffset) {
-        // Write a non-target region.
-        navContent.write(content.substring(previousOffset, offset));
-        if (region is NavigationSource) {
-          if (i + 1 < regions.length &&
-              regions[i + 1].offset == region.offset) {
-            NavigationTarget target = region.target;
-            if (target == regions[i + 1]) {
-              // Add a target region. We skip the source because it links to
-              // itself, which is pointless.
-              navContent.write('<a id="o${region.offset}">');
-              navContent.write(content.substring(offset, offset + length));
-              navContent.write('</a>');
-            } else {
-              // Add a source and target region.
-              // TODO(brianwilkerson) Map the target's file path to the path of
-              //  the corresponding html file. I'd like to do this by adding a
-              //  `FilePathMapper` object so that it can't become inconsistent
-              //  with the code used to decide where to write the html.
-              String htmlPath = pathMapper.map(target.filePath);
-              navContent.write('<a id="o${region.offset}" ');
-              navContent.write('href="$htmlPath#o${target.offset}">');
-              navContent.write(content.substring(offset, offset + length));
-              navContent.write('</a>');
-            }
-            i++;
-          } else {
-            // Add a source region.
-            NavigationTarget target = region.target;
-            String htmlPath = pathMapper.map(target.filePath);
-            navContent.write('<a href="$htmlPath#o${target.offset}">');
-            navContent.write(content.substring(offset, offset + length));
-            navContent.write('</a>');
-          }
-        } else {
-          // Add a target region.
-          navContent.write('<a id="o${region.offset}">');
-          navContent.write(content.substring(offset, offset + length));
-          navContent.write('</a>');
-        }
-        previousOffset = offset + length;
+      int closeOffset = openOffset + region.length;
+      String closeInsertion = closeInsertions[closeOffset] ?? '';
+      closeInsertion = '$closeInsertion</a>';
+      closeInsertions[closeOffset] = closeInsertion;
+    }
+    //
+    // Compute insertions for navigation sources, but skip the sources that
+    // point at themselves.
+    //
+    for (NavigationSource region in unitInfo.sources ?? <NavigationSource>[]) {
+      int openOffset = mapper.map(region.offset);
+      NavigationTarget target = region.target;
+      if (target.filePath != unitInfo.path || region.offset != target.offset) {
+        String openInsertion = openInsertions[openOffset] ?? '';
+        String htmlPath = pathContext.relative(pathMapper.map(target.filePath),
+            from: unitDir);
+        openInsertion = '<a href="$htmlPath#o${target.offset}">$openInsertion';
+        openInsertions[openOffset] = openInsertion;
+
+        int closeOffset = openOffset + region.length;
+        String closeInsertion = closeInsertions[closeOffset] ?? '';
+        closeInsertion = '$closeInsertion</a>';
+        closeInsertions[closeOffset] = closeInsertion;
       }
     }
-    if (previousOffset < content.length) {
-      // Last non-target region.
-      navContent.write(content.substring(previousOffset));
+    //
+    // Apply the insertions that have been computed.
+    //
+    List<int> offsets = []
+      ..addAll(openInsertions.keys)
+      ..addAll(closeInsertions.keys);
+    offsets.sort();
+    StringBuffer navContent2 = StringBuffer();
+    int previousOffset2 = 0;
+    for (int offset in offsets) {
+      navContent2.write(content.substring(previousOffset2, offset));
+      navContent2.write(closeInsertions[offset] ?? '');
+      navContent2.write(openInsertions[offset] ?? '');
+      previousOffset2 = offset;
     }
-    return navContent.toString();
+    if (previousOffset2 < content.length) {
+      navContent2.write(content.substring(previousOffset2));
+    }
+    return navContent2.toString();
   }
 
-  /// Return a list of Mustache context, based on the [unitInfo] for both
-  /// unmodified and modified regions:
-  ///
-  /// * 'modified': Whether this region represents modified source, or
-  ///   unmodified.
-  /// * 'content': The textual content of this region.
-  /// * 'explanation': The Mustache context for the tooltip explaining why the
-  ///   content in this region was modified.
-  List<Map> _computeRegions(UnitInfo unitInfo) {
+  /// Return the content of regions, based on the [unitInfo] for both
+  /// unmodified and modified regions.
+  String _computeRegionContent(UnitInfo unitInfo) {
+    String unitDir = _directoryContaining(unitInfo);
     String content = unitInfo.content;
-    List<Map> regions = [];
+    StringBuffer regions = StringBuffer();
+    int lineNumber = 1;
+
+    void writeSplitLines(String lines) {
+      Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
+      lineIterator.moveNext();
+
+      while (true) {
+        regions.write(htmlEscape.convert(lineIterator.current));
+        if (lineIterator.moveNext()) {
+          // If we're not on the last element, end this table row, and start a
+          // new table row.
+          lineNumber++;
+          regions.write(
+              '</td></tr>' '<tr><td class="line-no">$lineNumber</td><td>');
+        } else {
+          break;
+        }
+      }
+    }
+
     int previousOffset = 0;
+    regions.write('<table><tbody><tr><td class="line-no">$lineNumber</td><td>');
     for (var region in unitInfo.regions) {
       int offset = region.offset;
       int length = region.length;
       if (offset > previousOffset) {
         // Display a region of unmodified content.
-        regions.add({
-          'modified': false,
-          'content': content.substring(previousOffset, offset),
-        });
+        writeSplitLines(content.substring(previousOffset, offset));
         previousOffset = offset + length;
       }
-      List<Map> details = [];
-      for (var detail in region.details) {
-        details.add({
-          'description': detail.description,
-          'target': _uriForTarget(detail.target),
-        });
+      regions.write('<span class="region">'
+          '${content.substring(offset, offset + length)}'
+          '<span class="tooltip">'
+          '<p>${region.explanation}</p>');
+      if (region.details.isNotEmpty) {
+        regions.write('<ul>');
       }
-      regions.add({
-        'modified': true,
-        'content': content.substring(offset, offset + length),
-        'explanation': region.explanation,
-        'details': details,
-      });
+      for (var detail in region.details) {
+        regions.write('<li>');
+
+        if (detail.target != null) {
+          regions.write('<a href="${_uriForTarget(detail.target, unitDir)}">');
+        }
+        writeSplitLines(detail.description);
+        if (detail.target != null) {
+          regions.write('</a>');
+        }
+        regions.write('</li>');
+      }
+      if (region.details.isNotEmpty) {
+        regions.write('</ul>');
+      }
+      regions.write('</span></span>');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.
-      regions.add({
-        'modified': false,
-        'content': content.substring(previousOffset),
-      });
+      writeSplitLines(content.substring(previousOffset));
     }
-    return regions;
+    regions.write('</td></tr></tbody></table>');
+    return regions.toString();
+  }
+
+  /// Return the path to the directory containing the output generated from the
+  /// [unitInfo].
+  String _directoryContaining(UnitInfo unitInfo) {
+    return pathContext.dirname(pathMapper.map(unitInfo.path));
   }
 
   /// Return the URL that will navigate to the given [target].
-  String _uriForTarget(NavigationTarget target) {
+  String _uriForTarget(NavigationTarget target, String unitDir) {
     if (target == null) {
       // TODO(brianwilkerson) This is temporary support until we can get targets
       //  for all nodes.
       return '';
     }
-    path.Context pathContext = migrationInfo.pathContext;
-    String targetPath = pathContext.setExtension(target.filePath, '.html');
-    String sourceDir = pathContext.dirname(unitInfo.path);
-    String relativePath = pathContext.relative(targetPath, from: sourceDir);
+    String relativePath =
+        pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
     return '$relativePath#o${target.offset.toString()}';
   }
 }
@@ -336,7 +392,7 @@ class InstrumentationRenderer {
 /// instrumentation output.
 class MigrationInfo {
   /// The information about the compilation units that are are migrated.
-  final List<UnitInfo> units;
+  final Set<UnitInfo> units;
 
   /// The resource provider's path context.
   final path.Context pathContext;
@@ -347,14 +403,14 @@ class MigrationInfo {
   MigrationInfo(this.units, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.js script, relative to [unitInfo].
-  String highlightJsPath(UnitInfo unitInfo) =>
-      pathContext.relative(pathContext.join(includedRoot, 'highlight.pack.js'),
-          from: pathContext.dirname(unitInfo.path));
+  String highlightJsPath(UnitInfo unitInfo) => pathContext.relative(
+      pathContext.join(includedRoot, '..', 'highlight.pack.js'),
+      from: pathContext.dirname(unitInfo.path));
 
   /// The path to the highlight.js stylesheet, relative to [unitInfo].
-  String highlightStylePath(UnitInfo unitInfo) =>
-      pathContext.relative(pathContext.join(includedRoot, 'androidstudio.css'),
-          from: pathContext.dirname(unitInfo.path));
+  String highlightStylePath(UnitInfo unitInfo) => pathContext.relative(
+      pathContext.join(includedRoot, '..', 'androidstudio.css'),
+      from: pathContext.dirname(unitInfo.path));
 
   /// Generate mustache context for unit links, for navigation in the
   /// instrumentation document for [thisUnit].

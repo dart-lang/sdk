@@ -69,7 +69,6 @@ ConstAndFinal/part_wrapped_declaration4: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
-ConstConstructorWithNonConstSuper/example: Fail
 ConstEvalCircularity/example: Fail
 ConstEvalContext/analyzerCode: Fail # This is just used for displaying the context.
 ConstEvalContext/example: Fail # This is just used for displaying the context.
@@ -264,11 +263,9 @@ FfiNotStatic/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
-FfiTypeUnsized/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail
-FfiWrongStructInheritance/analyzerCode: Fail
 FfiExpectedExceptionalReturn/analyzerCode: Fail
 FfiExpectedNoExceptionalReturn/analyzerCode: Fail
 FfiExpectedConstant/analyzerCode: Fail

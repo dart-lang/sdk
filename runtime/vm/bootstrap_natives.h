@@ -370,15 +370,33 @@ namespace dart {
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
   V(VMService_spawnUriNotify, 2)                                               \
-  V(Ffi_allocate, 1)                                                           \
-  V(Ffi_free, 1)                                                               \
-  V(Ffi_load, 1)                                                               \
-  V(Ffi_store, 2)                                                              \
+  V(Ffi_loadInt8, 2)                                                           \
+  V(Ffi_loadInt16, 2)                                                          \
+  V(Ffi_loadInt32, 2)                                                          \
+  V(Ffi_loadInt64, 2)                                                          \
+  V(Ffi_loadUint8, 2)                                                          \
+  V(Ffi_loadUint16, 2)                                                         \
+  V(Ffi_loadUint32, 2)                                                         \
+  V(Ffi_loadUint64, 2)                                                         \
+  V(Ffi_loadIntPtr, 2)                                                         \
+  V(Ffi_loadFloat, 2)                                                          \
+  V(Ffi_loadDouble, 2)                                                         \
+  V(Ffi_loadPointer, 2)                                                        \
+  V(Ffi_loadStruct, 2)                                                         \
+  V(Ffi_storeInt8, 3)                                                          \
+  V(Ffi_storeInt16, 3)                                                         \
+  V(Ffi_storeInt32, 3)                                                         \
+  V(Ffi_storeInt64, 3)                                                         \
+  V(Ffi_storeUint8, 3)                                                         \
+  V(Ffi_storeUint16, 3)                                                        \
+  V(Ffi_storeUint32, 3)                                                        \
+  V(Ffi_storeUint64, 3)                                                        \
+  V(Ffi_storeIntPtr, 3)                                                        \
+  V(Ffi_storeFloat, 3)                                                         \
+  V(Ffi_storeDouble, 3)                                                        \
+  V(Ffi_storePointer, 3)                                                       \
   V(Ffi_address, 1)                                                            \
   V(Ffi_fromAddress, 1)                                                        \
-  V(Ffi_elementAt, 2)                                                          \
-  V(Ffi_offsetBy, 2)                                                           \
-  V(Ffi_cast, 1)                                                               \
   V(Ffi_sizeOf, 0)                                                             \
   V(Ffi_asFunctionInternal, 1)                                                 \
   V(Ffi_nativeCallbackFunction, 2)                                             \

@@ -12,6 +12,7 @@ ability
 able
 abort
 aborted
+aborting
 aborts
 about
 above
@@ -41,6 +42,7 @@ account
 accumulate
 accurate
 achieve
+act
 acting
 action
 active
@@ -183,6 +185,7 @@ assignment
 assignments
 associate
 associated
+associates
 associating
 associative
 assume
@@ -255,6 +258,7 @@ between
 beyond
 big
 bigint
+bilateral
 binaries
 binary
 bind
@@ -290,6 +294,7 @@ bracket
 bracketed
 brackets
 branch
+branched
 branches
 break
 breaking
@@ -332,7 +337,9 @@ calls
 can
 can't
 cancel
+cancellation
 cancelled
+cancels
 candidate
 candidates
 cannot
@@ -394,6 +401,7 @@ chosen
 chunk
 circularities
 circularity
+circumstance
 circumstances
 clashing
 class
@@ -479,6 +487,7 @@ complain
 complete
 completed
 completely
+completeness
 completer
 completion
 complex
@@ -569,6 +578,7 @@ continue
 continued
 continues
 continuing
+continuously
 contraposition
 contrast
 contravariance
@@ -668,6 +678,7 @@ deduced
 deep
 default
 defaults
+defeating
 defensive
 defer
 deferred
@@ -878,6 +889,7 @@ encodes
 encoding
 encounter
 encountered
+encountering
 encounters
 end
 ended
@@ -960,6 +972,8 @@ excluding
 exclusive
 executable
 executed
+executes
+executing
 execution
 exercise
 exist
@@ -1063,6 +1077,7 @@ finally
 find
 finding
 finds
+fine
 finish
 finished
 finishes
@@ -1135,6 +1150,7 @@ fully
 fun
 function
 functionality
+functionally
 functions
 further
 furthermore
@@ -1325,6 +1341,7 @@ indices
 indirect
 indirectly
 induce
+induced
 infer
 inference
 inferrable
@@ -1398,6 +1415,7 @@ interaction
 intercept
 interceptors
 interest
+interesting
 interface
 interfaces
 interferes
@@ -1427,6 +1445,8 @@ invalid
 invalidate
 invalidated
 invalidates
+invalidating
+invalidation
 invariant
 invariantly
 invert
@@ -1492,7 +1512,6 @@ labels
 lack
 lacking
 lands
-langauge
 language
 large
 larger
@@ -1669,6 +1688,7 @@ merging
 message
 messages
 messaging
+met
 metadata
 method
 methods
@@ -1905,6 +1925,7 @@ own
 owned
 owner
 package
+packaged
 packages
 pad
 padded
@@ -1949,6 +1970,8 @@ pattern
 peek
 pending
 percent
+percolate
+perfect
 perform
 performance
 performed
@@ -1960,6 +1983,7 @@ periods
 permissible
 permitted
 persistent
+pertaining
 phase
 phased
 phases
@@ -2043,6 +2067,7 @@ presence
 present
 preserve
 preserved
+preserves
 preserving
 presumed
 pretend
@@ -2089,6 +2114,7 @@ project
 project's
 projects
 prologue
+promotable
 promote
 promoted
 promoter
@@ -2213,6 +2239,7 @@ regions
 register
 registered
 registers
+registration
 registry
 regress
 regression
@@ -2495,6 +2522,7 @@ slow
 slower
 slows
 small
+smaller
 smallest
 snapshot
 snapshots
@@ -2557,6 +2585,7 @@ starts
 startup
 state
 statement
+statement's
 statements
 states
 static
@@ -2567,6 +2596,7 @@ step
 steps
 still
 stop
+stopping
 stops
 stopwatch
 store
@@ -2651,6 +2681,7 @@ sure
 surrogate
 surrogates
 surrounding
+survive
 survives
 suspect
 swap
@@ -2730,6 +2761,7 @@ these
 they
 they're
 thin
+thing
 things
 think
 third
@@ -2738,6 +2770,7 @@ those
 though
 three
 threshold
+threw
 throttle
 through
 throughout
@@ -2840,6 +2873,7 @@ uncertain
 unchanged
 unclaimed
 unclear
+undeclared
 undefined
 under
 underlying
@@ -2958,6 +2992,7 @@ very
 via
 view
 viewed
+views
 violate
 violates
 violation
@@ -2981,6 +3016,7 @@ warnings
 was
 wasn't
 way
+ways
 we
 we'd
 we'll

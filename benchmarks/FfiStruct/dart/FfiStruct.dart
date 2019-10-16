@@ -9,6 +9,7 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 //
@@ -17,7 +18,7 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 void doStoreInt32(Pointer<VeryLargeStruct> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).load<VeryLargeStruct>().c = 1;
+    pointer[i].c = 1;
   }
 }
 
@@ -28,7 +29,7 @@ void doStoreInt32(Pointer<VeryLargeStruct> pointer, int length) {
 int doLoadInt32(Pointer<VeryLargeStruct> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<VeryLargeStruct>().c;
+    x += pointer[i].c;
   }
   return x;
 }
@@ -48,8 +49,8 @@ class FieldLoadStore extends BenchmarkBase {
   Pointer<VeryLargeStruct> pointer;
   FieldLoadStore() : super("FfiStruct.FieldLoadStore");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt32(pointer, N);
@@ -74,7 +75,7 @@ main() {
 //
 // Test struct.
 //
-class VeryLargeStruct extends Struct<VeryLargeStruct> {
+class VeryLargeStruct extends Struct {
   @Int8()
   int a;
 

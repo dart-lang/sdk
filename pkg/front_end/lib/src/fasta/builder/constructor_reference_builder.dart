@@ -6,16 +6,15 @@ library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
 
-import 'builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        LibraryBuilder,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        flattenName;
+import '../identifiers.dart' show QualifiedName, flattenName;
+
+import '../scope.dart';
+
+import 'builder.dart';
+import 'class_builder.dart';
+import 'library_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
 
 class ConstructorReferenceBuilder {
   final int charOffset;

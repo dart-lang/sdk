@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
@@ -113,21 +112,17 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   InterfaceType get thisType {
     if (_thisType == null) {
-      // TODO(scheglov) `library` is null in low-level unit tests
-      var nullabilitySuffix = library?.isNonNullableByDefault == true
-          ? NullabilitySuffix.none
-          : NullabilitySuffix.star;
       List<DartType> typeArguments;
       if (typeParameters.isNotEmpty) {
         typeArguments = typeParameters.map<DartType>((t) {
-          return t.instantiate(nullabilitySuffix: nullabilitySuffix);
+          return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
         }).toList();
       } else {
         typeArguments = const <DartType>[];
       }
       return _thisType = instantiate(
         typeArguments: typeArguments,
-        nullabilitySuffix: nullabilitySuffix,
+        nullabilitySuffix: _noneOrStarSuffix,
       );
     }
     return _thisType;
@@ -358,16 +353,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
       }
       classElement = classElement.supertype?.element;
     }
-  }
-
-  /// Return the [AbstractClassElementImpl] of the given [classElement].  May
-  /// throw an exception if the [AbstractClassElementImpl] cannot be provided
-  /// (should not happen though).
-  static AbstractClassElementImpl getImpl(ClassElement classElement) {
-    if (classElement is ClassElementHandle) {
-      return getImpl(classElement.actualElement);
-    }
-    return classElement as AbstractClassElementImpl;
   }
 
   /// Return an iterable containing all of the implementations of a method with
@@ -1054,9 +1039,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superElement =
-            AbstractClassElementImpl.getImpl(supertype.element)
-                as ClassElementImpl;
+        ClassElementImpl superElement = supertype.element;
         constructorsToForward =
             superElement._computeMixinAppConstructors(visitedClasses);
       } finally {
@@ -2235,7 +2218,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType => enclosingElement.thisType;
+  DartType get returnType {
+    if (_returnType != null) return _returnType;
+
+    InterfaceTypeImpl classThisType = enclosingElement.thisType;
+    return _returnType = InterfaceTypeImpl.explicit(
+      classThisType.element,
+      classThisType.typeArguments,
+      nullabilitySuffix: classThisType.nullabilitySuffix,
+    );
+  }
 
   void set returnType(DartType returnType) {
     assert(false);
@@ -2243,7 +2235,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   FunctionType get type {
-    return _type ??= new FunctionTypeImpl(this);
+    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    return _type ??= FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      parameters,
+      element: this,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
   }
 
   void set type(FunctionType type) {
@@ -3117,6 +3116,12 @@ abstract class ElementImpl implements Element {
     throw UnimplementedError();
   }
 
+  NullabilitySuffix get _noneOrStarSuffix {
+    return library?.isNonNullableByDefault == true
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
   @override
   bool operator ==(Object object) {
     if (identical(this, object)) {
@@ -3629,12 +3634,9 @@ class EnumElementImpl extends AbstractClassElementImpl {
   void createToStringMethodElement() {
     var method = new MethodElementImpl('toString', -1);
     method.isSynthetic = true;
-    if (linkedNode != null) {
-      method.returnType = context.typeProvider.stringType;
-      method.type = new FunctionTypeImpl(method);
-    }
     method.enclosingElement = this;
     if (linkedNode != null) {
+      method.returnType = context.typeProvider.stringType;
       method.reference = reference.getChild('@method').getChild('toString');
     }
     _methods = <MethodElement>[method];
@@ -3882,14 +3884,28 @@ abstract class ExecutableElementImpl extends ElementImpl
       linkedContext.setReturnType(linkedNode, returnType);
     }
     _returnType = _checkElementOfType(returnType);
+    // We do this because of return type inference. At the moment when we
+    // create a local function element we don't know yet its return type,
+    // because we have not done static type analysis yet.
+    // It somewhere it between we access the type of this element, so it gets
+    // cached in the element. When we are done static type analysis, we then
+    // should clear this cached type to make it right.
+    // TODO(scheglov) Remove when type analysis is done in the single pass.
+    _type = null;
   }
 
   @override
   FunctionType get type {
-    if (linkedNode != null) {
-      return _type ??= new FunctionTypeImpl(this);
-    }
-    return _type;
+    if (_type != null) return _type;
+
+    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    return _type = FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      parameters,
+      element: this,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
   }
 
   void set type(FunctionType type) {
@@ -4086,7 +4102,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("export ");
-    LibraryElementImpl.getImpl(exportedLibrary).appendTo(buffer);
+    (exportedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 }
 
@@ -4623,8 +4639,6 @@ class FunctionElementImpl extends ExecutableElementImpl
     isSynthetic = true;
     this.returnType = returnType;
     this.parameters = parameters;
-
-    type = new FunctionTypeImpl(this);
   }
 
   @override
@@ -4816,8 +4830,16 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 
   @override
   FunctionType get type {
-    _type ??= new FunctionTypeImpl(this);
-    return _type;
+    if (_type != null) return _type;
+
+    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    return _type = FunctionTypeImpl.synthetic(
+      returnType,
+      typeParameters,
+      parameters,
+      element: this,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
   }
 
   /// Set the function type defined by this function type element to the given
@@ -5366,7 +5388,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void appendTo(StringBuffer buffer) {
     buffer.write("import ");
-    LibraryElementImpl.getImpl(importedLibrary).appendTo(buffer);
+    (importedLibrary as LibraryElementImpl).appendTo(buffer);
   }
 
   @override
@@ -5820,11 +5842,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         // expensive for libraries resynthesized from summaries, since it will
         // require fully resynthesizing all the libraries in the cycle as well
         // as any libraries they import or export.  Try to find a better way.
-        if (lib is LibraryElementHandle) {
-          return lib.actualElement;
-        } else {
-          return lib;
-        }
+        return lib;
       }
 
       void recurse(LibraryElementImpl child) {
@@ -6051,16 +6069,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     function.isSynthetic = true;
     function.enclosingElement = library;
     function.returnType = typeProvider.futureDynamicType;
-    function.type = new FunctionTypeImpl(function);
     return function;
-  }
-
-  /// Return the [LibraryElementImpl] of the given [element].
-  static LibraryElementImpl getImpl(LibraryElement element) {
-    if (element is LibraryElementHandle) {
-      return getImpl(element.actualElement);
-    }
-    return element as LibraryElementImpl;
   }
 
   static List<ImportElement> getImportsWithPrefixFromImports(
@@ -7674,7 +7683,25 @@ class PropertyAccessorElementImpl_ImplicitGetter
 
   @override
   FunctionType get type {
-    return _type ??= new FunctionTypeImpl(this);
+    if (_type != null) return _type;
+
+    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    var type = FunctionTypeImpl.synthetic(
+      returnType,
+      const <TypeParameterElement>[],
+      const <ParameterElement>[],
+      element: this,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
+
+    // Don't cache, because types change during top-level inference.
+    if (enclosingElement != null &&
+        linkedContext != null &&
+        !linkedContext.isLinking) {
+      _type = type;
+    }
+
+    return type;
   }
 
   @override
@@ -7715,7 +7742,25 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   FunctionType get type {
-    return _type ??= new FunctionTypeImpl(this);
+    if (_type != null) return _type;
+
+    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    var type = FunctionTypeImpl.synthetic(
+      returnType,
+      const <TypeParameterElement>[],
+      parameters,
+      element: this,
+      nullabilitySuffix: _noneOrStarSuffix,
+    );
+
+    // Don't cache, because types change during top-level inference.
+    if (enclosingElement != null &&
+        linkedContext != null &&
+        !linkedContext.isLinking) {
+      _type = type;
+    }
+
+    return type;
   }
 
   @override

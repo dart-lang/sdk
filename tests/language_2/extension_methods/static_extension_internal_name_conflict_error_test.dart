@@ -84,7 +84,6 @@ extension E3 on int {
   static void set field2(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
 }
 
 // Check instance members colliding with instance members (of the same kind).
@@ -121,9 +120,11 @@ extension E5 on int {
   static int get property2 => 1;
   //             ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Conflicts with setter 'property2'.
   static void set property3(int x) {}
   //              ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
+  // [cfe] Conflicts with member 'property3'.
   static int field = 3;
   //         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
@@ -142,11 +143,11 @@ extension E5 on int {
   //       ^
   // [cfe] 'property' is already declared in this scope.
   void set property2(int value) {}
-  //       ^^^^^^^^^
-  // [cfe] unspecified
+  //       ^
+  // [cfe] Conflicts with member 'property2'.
   int get property3 => 1;
-  //      ^^^^^^^^^
-  // [cfe] unspecified
+  //      ^
+  // [cfe] Conflicts with setter 'property3'.
   void set field(int value) {}
   //       ^
   // [cfe] Conflicts with member 'field'.
@@ -196,10 +197,12 @@ extension E9 on int {
 // Check an instance method colliding with an instance setter.
 extension E10 on int {
   int method() => 0;
+  //  ^
+  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
   //       ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check a static method colliding with an instance getter.
@@ -217,8 +220,10 @@ extension E12 on int {
   static int method() => 0;
   //         ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with setter 'method'.
   void set method(int value) {}
+  //       ^
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check an instance method colliding with a static getter.
@@ -233,10 +238,12 @@ extension E13 on int {
 // Check an instance method colliding with a static setter.
 extension E14 on int {
   int method() => 0;
+  //  ^
+  // [cfe] Conflicts with setter 'method'.
   static void set method(int value) {}
   //              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE
-  // [cfe] unspecified
+  // [cfe] Conflicts with member 'method'.
 }
 
 // Check an instance method colliding with a static field.

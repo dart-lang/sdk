@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 /// Helper for finding elements declared in the resolved [unit].
@@ -238,10 +237,6 @@ class FindElement {
     return ImportFindElement(import);
   }
 
-  InterfaceType interfaceType(String name) {
-    return class_(name).type;
-  }
-
   FunctionElement localFunction(String name) {
     FunctionElement result;
 
@@ -266,15 +261,21 @@ class FindElement {
   LocalVariableElement localVar(String name) {
     LocalVariableElement result;
 
-    unit.accept(new FunctionAstVisitor(
-      variableDeclaration: (node) {
-        var element = node.declaredElement;
-        if (element is LocalVariableElement && element.name == name) {
-          if (result != null) {
-            throw StateError('Not unique: $name');
-          }
-          result = element;
+    void updateResult(Element element) {
+      if (element is LocalVariableElement && element.name == name) {
+        if (result != null) {
+          throw StateError('Not unique: $name');
         }
+        result = element;
+      }
+    }
+
+    unit.accept(new FunctionAstVisitor(
+      declaredIdentifier: (node) {
+        updateResult(node.declaredElement);
+      },
+      variableDeclaration: (node) {
+        updateResult(node.declaredElement);
       },
     ));
 
@@ -380,6 +381,13 @@ class FindElement {
         findIn(accessor.parameters);
       }
     }
+
+    unit.accept(
+      FunctionAstVisitor(functionDeclarationStatement: (node) {
+        var functionElement = node.functionDeclaration.declaredElement;
+        findIn(functionElement.parameters);
+      }),
+    );
 
     if (result != null) {
       return result;

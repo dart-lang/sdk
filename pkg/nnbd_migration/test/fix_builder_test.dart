@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
@@ -235,6 +236,328 @@ _f(bool/*?*/ x, bool/*?*/ y) => x != null && (x = y) != null;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
+  test_assignmentTarget_indexExpression_compound_dynamic() async {
+    await analyze('''
+_f(dynamic d, int/*?*/ i) => d[i] += 0;
+''');
+    visitAssignmentTarget(findNode.index('d[i]'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_indexExpression_compound_simple() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+  void operator[]=(String s, num n) {}
+}
+_f(_C c) => c['foo'] += 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num');
+  }
+
+  test_assignmentTarget_indexExpression_compound_simple_check_lhs() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+  void operator[]=(String s, num n) {}
+}
+_f(_C/*?*/ c) => c['foo'] += 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num',
+        nullChecked: {findNode.simple('c[')});
+  }
+
+  test_assignmentTarget_indexExpression_compound_simple_check_rhs() async {
+    await analyze('''
+class _C {
+  int operator[](String/*!*/ s) => 1;
+  void operator[]=(String/*?*/ s, num n) {}
+}
+_f(_C c, String/*?*/ s) => c[s] += 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'num',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_assignmentTarget_indexExpression_compound_substituted() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U u, T t) {}
+}
+_f(_C<int, String> c) => c['foo'] += 1;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'int');
+  }
+
+  test_assignmentTarget_indexExpression_compound_substituted_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U/*?*/ u, T t) {}
+}
+_f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] += 1;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'int',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_assignmentTarget_indexExpression_compound_substituted_no_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U u, T t) {}
+}
+_f(_C<int, String/*?*/> c, String/*?*/ s) => c[s] += 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), 'int', 'int');
+  }
+
+  test_assignmentTarget_indexExpression_dynamic() async {
+    await analyze('''
+_f(dynamic d, int/*?*/ i) => d[i] = 0;
+''');
+    visitAssignmentTarget(findNode.index('d[i]'), null, 'dynamic');
+  }
+
+  test_assignmentTarget_indexExpression_simple() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+  void operator[]=(String s, num n) {}
+}
+_f(_C c) => c['foo'] = 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'num');
+  }
+
+  test_assignmentTarget_indexExpression_simple_check_lhs() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+  void operator[]=(String s, num n) {}
+}
+_f(_C/*?*/ c) => c['foo'] = 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'num',
+        nullChecked: {findNode.simple('c[')});
+  }
+
+  test_assignmentTarget_indexExpression_simple_check_rhs() async {
+    await analyze('''
+class _C {
+  int operator[](String/*?*/ s) => 1;
+  void operator[]=(String/*!*/ s, num n) {}
+}
+_f(_C c, String/*?*/ s) => c[s] = 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'num',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_assignmentTarget_indexExpression_substituted() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U u, T t) {}
+}
+_f(_C<int, String> c) => c['foo'] = 1;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'int');
+  }
+
+  test_assignmentTarget_indexExpression_substituted_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U/*?*/ u, T t) {}
+}
+_f(_C<int, String/*!*/> c, String/*?*/ s) => c[s] = 1;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'int',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_assignmentTarget_indexExpression_substituted_no_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+  void operator[]=(U u, T t) {}
+}
+_f(_C<int, String/*?*/> c, String/*?*/ s) => c[s] = 0;
+''');
+    visitAssignmentTarget(findNode.index('c['), null, 'int');
+  }
+
+  test_assignmentTarget_prefixedIdentifier_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d.x += 1;
+''');
+    visitAssignmentTarget(findNode.prefixed('d.x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_dynamic() async {
+    await analyze('''
+_f(dynamic d) => (d).x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('(d).x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_dynamic_notCompound() async {
+    await analyze('''
+_f(dynamic d) => (d).x = 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(d).x'), null, 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nonNullable_notCompound() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x = 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), null, 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'int?');
+  }
+
+  test_assignmentTarget_propertyAccess_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+  void set x(num/*?*/ value);
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int?', 'num?');
+  }
+
+  test_assignmentTarget_propertyAccess_getter_setter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+  void set x(num value);
+}
+_f(_C/*?*/ c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num',
+        nullChecked: {findNode.parenthesized('(c).x')});
+  }
+
+  test_assignmentTarget_propertyAccess_getter_setter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+  void set x(num/*!*/ value);
+}
+_f(_C c) => (c).x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('(c).x'), 'int', 'num');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_dynamic() async {
+    await analyze('''
+_f(dynamic d) => d?.x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('d?.x'), 'dynamic', 'dynamic');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'int');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'int?');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+  void set x(num/*!*/ value);
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int', 'num');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_getter_setter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+  void set x(num/*?*/ value);
+}
+_f(_C/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(findNode.propertyAccess('c?.x'), 'int?', 'num?');
+  }
+
+  test_assignmentTarget_propertyAccess_nullAware_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  _E<T> get x;
+  void set x(_D<T> value);
+}
+class _D<T> implements Iterable<T> {
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  _D<T> operator+(int i) => this;
+}
+class _E<T> extends _D<T> {}
+_f(_C<int>/*?*/ c) => c?.x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('c?.x'), '_E<int>', '_D<int>');
+  }
+
+  test_assignmentTarget_propertyAccess_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  _E<T> get x;
+  void set x(_D<T> value);
+}
+class _D<T> implements Iterable<T> {
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
+  _D<T> operator+(int i) => this;
+}
+class _E<T> extends _D<T> {}
+_f(_C<int> c) => (c).x += 1;
+''');
+    visitAssignmentTarget(
+        findNode.propertyAccess('(c).x'), '_E<int>', '_D<int>');
+  }
+
   test_assignmentTarget_simpleIdentifier_field_generic() async {
     await analyze('''
 abstract class _C<T> {
@@ -337,7 +660,7 @@ class _C {
   _f() => x = 0;
 }
 ''');
-    visitAssignmentTarget(findNode.simple('x '), 'int?', 'int?');
+    visitAssignmentTarget(findNode.simple('x '), null, 'int?');
   }
 
   test_binaryExpression_ampersand_ampersand() async {
@@ -417,6 +740,17 @@ _f(int/*?*/ x, double/*?*/ y) {
 }
 ''');
     visitSubexpression(findNode.binary('??'), 'num?');
+  }
+
+  test_binaryExpression_question_question_flow() async {
+    await analyze('''
+_f(int/*?*/ x, int/*?*/ y) =>
+    <dynamic>[x ?? (y != null ? 1 : throw 'foo'), y + 1];
+''');
+    // The null check on the RHS of the `??` doesn't promote, because it is not
+    // guaranteed to execute.
+    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>',
+        nullChecked: {findNode.simple('y +')});
   }
 
   test_binaryExpression_question_question_nullChecked() async {
@@ -508,11 +842,73 @@ _f(_C<int, String/*?*/> c, String/*?*/ s) => c + s;
     visitSubexpression(findNode.binary('c +'), 'int');
   }
 
+  test_block() async {
+    await analyze('''
+_f(int/*?*/ x, int/*?*/ y) {
+  { // block
+    x + 1;
+    y + 1;
+  }
+}
+''');
+    visitStatement(findNode.statement('{ // block'),
+        nullChecked: {findNode.simple('x + 1'), findNode.simple('y + 1')});
+  }
+
   test_booleanLiteral() async {
     await analyze('''
 f() => true;
 ''');
     visitSubexpression(findNode.booleanLiteral('true'), 'bool');
+  }
+
+  test_conditionalExpression_flow_as_condition() async {
+    await analyze('''
+_f(bool x, int/*?*/ y) => (x ? y != null : y != null) ? y + 1 : 0;
+''');
+    // No explicit check needs to be added to `y + 1`, because both arms of the
+    // conditional can only be true if `y != null`.
+    visitSubexpression(findNode.conditionalExpression('y + 1'), 'int');
+  }
+
+  test_conditionalExpression_flow_condition() async {
+    await analyze('''
+_f(bool/*?*/ x) => x ? (x && true) : (x && true);
+''');
+    // No explicit check needs to be added to either `x && true`, because there
+    // is already an explicit null check inserted for the condition.
+    visitSubexpression(findNode.conditionalExpression('x ?'), 'bool',
+        nullChecked: {findNode.simple('x ?')});
+  }
+
+  test_conditionalExpression_flow_then_else() async {
+    await analyze('''
+_f(bool x, bool/*?*/ y) => (x ? (y && true) : (y && true)) && y;
+''');
+    // No explicit check needs to be added to the final reference to `y`,
+    // because null checks are added to the "then" and "else" branches promoting
+    // y.
+    visitSubexpression(findNode.binary('&& y'), 'bool', nullChecked: {
+      findNode.simple('y && true) '),
+      findNode.simple('y && true))')
+    });
+  }
+
+  test_conditionalExpression_lub() async {
+    await analyze('''
+_f(bool b) => b ? 1 : 1.0;
+''');
+    visitSubexpression(findNode.conditionalExpression('1.0'), 'num');
+  }
+
+  test_conditionalExpression_throw_promotes() async {
+    await analyze('''
+_f(int/*?*/ x) =>
+    <dynamic>[(x != null ? 1 : throw 'foo'), x + 1];
+''');
+    // No null check needs to be added to `x + 1`, because there is already an
+    // explicit null check.
+    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>');
   }
 
   test_doubleLiteral() async {
@@ -522,11 +918,156 @@ f() => 1.0;
     visitSubexpression(findNode.doubleLiteral('1.0'), 'double');
   }
 
+  test_expressionStatement() async {
+    await analyze('''
+_f(int/*!*/ x, int/*?*/ y) {
+  x = y;
+}
+''');
+    visitStatement(findNode.statement('x = y'),
+        nullChecked: {findNode.simple('y;')});
+  }
+
+  test_ifStatement_flow_promote_in_else() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  if (x == null) {
+    x + 1;
+  } else {
+    x + 2;
+  }
+}
+''');
+    visitStatement(findNode.statement('if'),
+        nullChecked: {findNode.simple('x + 1')});
+  }
+
+  test_ifStatement_flow_promote_in_then() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  if (x != null) {
+    x + 1;
+  } else {
+    x + 2;
+  }
+}
+''');
+    visitStatement(findNode.statement('if'),
+        nullChecked: {findNode.simple('x + 2')});
+  }
+
+  test_ifStatement_flow_promote_in_then_no_else() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  if (x != null) {
+    x + 1;
+  }
+}
+''');
+    visitStatement(findNode.statement('if'));
+  }
+
+  test_indexExpression_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d, int/*?*/ i) => d[i];
+''');
+    visitSubexpression(findNode.index('d[i]'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_indexExpression_simple() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+}
+_f(_C c) => c['foo'];
+''');
+    visitSubexpression(findNode.index('c['), 'int');
+  }
+
+  test_indexExpression_simple_check_lhs() async {
+    await analyze('''
+class _C {
+  int operator[](String s) => 1;
+}
+_f(_C/*?*/ c) => c['foo'];
+''');
+    visitSubexpression(findNode.index('c['), 'int',
+        nullChecked: {findNode.simple('c[')});
+  }
+
+  test_indexExpression_simple_check_rhs() async {
+    await analyze('''
+class _C {
+  int operator[](String/*!*/ s) => 1;
+}
+_f(_C c, String/*?*/ s) => c[s];
+''');
+    visitSubexpression(findNode.index('c['), 'int',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_indexExpression_substituted() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+}
+_f(_C<int, String> c) => c['foo'];
+''');
+    visitSubexpression(findNode.index('c['), 'int');
+  }
+
+  test_indexExpression_substituted_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+}
+_f(_C<int, String/*!*/> c, String/*?*/ s) => c[s];
+''');
+    visitSubexpression(findNode.index('c['), 'int',
+        nullChecked: {findNode.simple('s]')});
+  }
+
+  test_indexExpression_substituted_no_check_rhs() async {
+    await analyze('''
+class _C<T, U> {
+  T operator[](U u) => throw 'foo';
+}
+_f(_C<int, String/*?*/> c, String/*?*/ s) => c[s];
+''');
+    visitSubexpression(findNode.index('c['), 'int');
+  }
+
   test_integerLiteral() async {
     await analyze('''
 f() => 1;
 ''');
     visitSubexpression(findNode.integerLiteral('1'), 'int');
+  }
+
+  test_listLiteral_typed() async {
+    await analyze('''
+_f() => <int>[];
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>');
+  }
+
+  test_listLiteral_typed_visit_contents() async {
+    await analyze('''
+_f(int/*?*/ x) => <int/*!*/>[x];
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>',
+        nullChecked: {findNode.simple('x]')});
+  }
+
+  test_nullAssertion_promotes() async {
+    await analyze('''
+_f(bool/*?*/ x) => x && x;
+''');
+    // Only the first `x` is null-checked because thereafter, the type of `x` is
+    // promoted to `bool`.
+    visitSubexpression(findNode.binary('&&'), 'bool',
+        nullChecked: {findNode.simple('x &&')});
   }
 
   test_nullLiteral() async {
@@ -541,6 +1082,513 @@ f() => null;
 f() => (1);
 ''');
     visitSubexpression(findNode.integerLiteral('1'), 'int');
+  }
+
+  test_parenthesizedExpression_flow() async {
+    await analyze('''
+_f(bool/*?*/ x) => ((x) != (null)) && x;
+''');
+    visitSubexpression(findNode.binary('&&'), 'bool');
+  }
+
+  test_postfixExpression_combined_nullable_noProblem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*?*/ value);
+  f() => x++;
+}
+''');
+    visitSubexpression(findNode.postfix('++'), '_C');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38833')
+  test_postfixExpression_combined_nullable_noProblem_dynamic() async {
+    await analyze('''
+abstract class _E {
+  dynamic get x;
+  void set x(Object/*!*/ value);
+  f() => x++;
+}
+''');
+    visitSubexpression(findNode.postfix('++'), 'dynamic');
+  }
+
+  test_postfixExpression_combined_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*!*/ value);
+  f() => x++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    visitSubexpression(postfix, '_C', problems: {
+      postfix: {const CompoundAssignmentCombinedNullable()}
+    });
+  }
+
+  test_postfixExpression_dynamic() async {
+    await analyze('''
+_f(dynamic x) => x++;
+''');
+    visitSubexpression(findNode.postfix('++'), 'dynamic');
+  }
+
+  test_postfixExpression_lhs_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*?*/ get x;
+  void set x(_C/*?*/ value);
+  f() => x++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    visitSubexpression(postfix, '_C?', problems: {
+      postfix: {const CompoundAssignmentReadNullable()}
+    });
+  }
+
+  test_postfixExpression_rhs_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+_f(_C/*!*/ x) => x++;
+''');
+    visitSubexpression(findNode.postfix('++'), '_C');
+  }
+
+  test_prefixedIdentifier_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d.x;
+''');
+    visitSubexpression(findNode.prefixed('d.x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_prefixedIdentifier_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int');
+  }
+
+  test_prefixedIdentifier_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int?');
+  }
+
+  test_prefixedIdentifier_getter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+}
+_f(_C/*?*/ c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int',
+        nullChecked: {findNode.simple('c.x')});
+  }
+
+  test_prefixedIdentifier_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int');
+  }
+
+  test_prefixedIdentifier_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'int?');
+  }
+
+  test_prefixedIdentifier_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c.hashCode;
+''');
+    visitSubexpression(findNode.prefixed('c.hashCode'), 'int');
+  }
+
+  test_prefixedIdentifier_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c.toString;
+''');
+    visitSubexpression(findNode.prefixed('c.toString'), 'String Function()');
+  }
+
+  test_prefixedIdentifier_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int> c) => c.x;
+''');
+    visitSubexpression(findNode.prefixed('c.x'), 'List<int>');
+  }
+
+  test_prefixExpression_bang_flow() async {
+    await analyze('''
+_f(int/*?*/ x) {
+  if (!(x == null)) {
+    x + 1;
+  }
+}
+''');
+    // No null check should be needed on `x + 1` because `!(x == null)` promotes
+    // x's type to `int`.
+    visitStatement(findNode.statement('if'));
+  }
+
+  test_prefixExpression_bang_nonNullable() async {
+    await analyze('''
+_f(bool/*!*/ x) => !x;
+''');
+    visitSubexpression(findNode.prefix('!x'), 'bool');
+  }
+
+  test_prefixExpression_bang_nullable() async {
+    await analyze('''
+_f(bool/*?*/ x) => !x;
+''');
+    visitSubexpression(findNode.prefix('!x'), 'bool',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_combined_nullable_noProblem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*?*/ value);
+  f() => ++x;
+}
+''');
+    visitSubexpression(findNode.prefix('++'), '_D?');
+  }
+
+  test_prefixExpression_combined_nullable_noProblem_dynamic() async {
+    await analyze('''
+abstract class _E {
+  dynamic get x;
+  void set x(Object/*!*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, 'dynamic');
+  }
+
+  test_prefixExpression_combined_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*?*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*!*/ get x;
+  void set x(_C/*!*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, '_D', problems: {
+      prefix: {const CompoundAssignmentCombinedNullable()}
+    });
+  }
+
+  test_prefixExpression_intRules() async {
+    await analyze('''
+_f(int x) => ++x;
+''');
+    visitSubexpression(findNode.prefix('++'), 'int');
+  }
+
+  test_prefixExpression_lhs_nullable_problem() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+abstract class _E {
+  _C/*?*/ get x;
+  void set x(_C/*?*/ value);
+  f() => ++x;
+}
+''');
+    var prefix = findNode.prefix('++');
+    visitSubexpression(prefix, '_D', problems: {
+      prefix: {const CompoundAssignmentReadNullable()}
+    });
+  }
+
+  test_prefixExpression_minus_dynamic() async {
+    await analyze('''
+_f(dynamic x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'dynamic');
+  }
+
+  test_prefixExpression_minus_nonNullable() async {
+    await analyze('''
+_f(int/*!*/ x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'int');
+  }
+
+  test_prefixExpression_minus_nullable() async {
+    await analyze('''
+_f(int/*?*/ x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'int',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_minus_substitution() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> operator-();
+}
+_f(_C<int> x) => -x;
+''');
+    visitSubexpression(findNode.prefix('-x'), 'List<int>');
+  }
+
+  test_prefixExpression_rhs_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  _D/*!*/ operator+(int/*!*/ value);
+}
+abstract class _D extends _C {}
+_f(_C/*!*/ x) => ++x;
+''');
+    visitSubexpression(findNode.prefix('++'), '_D');
+  }
+
+  test_prefixExpression_tilde_dynamic() async {
+    await analyze('''
+_f(dynamic x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'dynamic');
+  }
+
+  test_prefixExpression_tilde_nonNullable() async {
+    await analyze('''
+_f(int/*!*/ x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'int');
+  }
+
+  test_prefixExpression_tilde_nullable() async {
+    await analyze('''
+_f(int/*?*/ x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'int',
+        nullChecked: {findNode.simple('x;')});
+  }
+
+  test_prefixExpression_tilde_substitution() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> operator~();
+}
+_f(_C<int> x) => ~x;
+''');
+    visitSubexpression(findNode.prefix('~x'), 'List<int>');
+  }
+
+  test_propertyAccess_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => (d).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(d).x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_propertyAccess_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
+  }
+
+  test_propertyAccess_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
+  }
+
+  test_propertyAccess_getter_check_lhs() async {
+    await analyze('''
+abstract class _C {
+  int get x;
+}
+_f(_C/*?*/ c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int',
+        nullChecked: {findNode.parenthesized('(c).x')});
+  }
+
+  test_propertyAccess_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int');
+  }
+
+  test_propertyAccess_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('d?.x'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_propertyAccess_nullAware_field_nonNullable() async {
+    await analyze('''
+class _C {
+  int/*!*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_field_nullable() async {
+    await analyze('''
+class _C {
+  int/*?*/ x = 0;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_getter_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int/*!*/ get x;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_getter_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ get x;
+}
+_f(_C/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c?.hashCode;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
+  }
+
+  test_propertyAccess_nullAware_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => c?.toString;
+''');
+    visitSubexpression(
+        findNode.propertyAccess('c?.toString'), 'String Function()?');
+  }
+
+  test_propertyAccess_nullAware_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int>/*?*/ c) => c?.x;
+''');
+    visitSubexpression(findNode.propertyAccess('c?.x'), 'List<int>?');
+  }
+
+  test_propertyAccess_object_getter() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => (c).hashCode;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).hashCode'), 'int');
+  }
+
+  test_propertyAccess_object_tearoff() async {
+    await analyze('''
+class _C {}
+_f(_C/*?*/ c) => (c).toString;
+''');
+    visitSubexpression(
+        findNode.propertyAccess('(c).toString'), 'String Function()');
+  }
+
+  test_propertyAccess_substituted() async {
+    await analyze('''
+abstract class _C<T> {
+  List<T> get x;
+}
+_f(_C<int> c) => (c).x;
+''');
+    visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
   }
 
   test_simpleIdentifier_className() async {
@@ -632,6 +1680,98 @@ f() => #foo;
     visitSubexpression(findNode.symbolLiteral('#foo'), 'Symbol');
   }
 
+  test_throw_flow() async {
+    await analyze('''
+_f(int/*?*/ i) {
+  if (i == null) throw 'foo';
+  i + 1;
+}
+''');
+    visitStatement(findNode.block('{'));
+  }
+
+  test_throw_nullable() async {
+    await analyze('''
+_f(int/*?*/ i) => throw i;
+''');
+    visitSubexpression(findNode.throw_('throw'), 'Never',
+        nullChecked: {findNode.simple('i;')});
+  }
+
+  test_throw_simple() async {
+    await analyze('''
+_f() => throw 'foo';
+''');
+    visitSubexpression(findNode.throw_('throw'), 'Never');
+  }
+
+  test_typeName_dynamic() async {
+    await analyze('''
+void _f() {
+  dynamic d = null;
+}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('dynamic'), 'dynamic');
+  }
+
+  test_typeName_generic_nonNullable() async {
+    await analyze('''
+void _f() {
+  List<int> i = [0];
+}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int>');
+  }
+
+  test_typeName_generic_nullable() async {
+    await analyze('''
+void _f() {
+  List<int> i = null;
+}
+''');
+    var listIntAnnotation = findNode.typeAnnotation('List<int>');
+    visitTypeAnnotation(listIntAnnotation, 'List<int>?',
+        nullable: {listIntAnnotation});
+  }
+
+  test_typeName_generic_nullable_arg() async {
+    await analyze('''
+void _f() {
+  List<int> i = [null];
+}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('List<int>'), 'List<int?>',
+        nullable: {findNode.typeAnnotation('int')});
+  }
+
+  test_typeName_simple_nonNullable() async {
+    await analyze('''
+void _f() {
+  int i = 0;
+}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('int'), 'int');
+  }
+
+  test_typeName_simple_nullable() async {
+    await analyze('''
+void _f() {
+  int i = null;
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    visitTypeAnnotation((intAnnotation), 'int?', nullable: {intAnnotation});
+  }
+
+  test_typeName_void() async {
+    await analyze('''
+void _f() {
+  void v;
+}
+''');
+    visitTypeAnnotation(findNode.typeAnnotation('void v'), 'void');
+  }
+
   test_use_of_dynamic() async {
     // Use of `dynamic` in a context requiring non-null is not explicitly null
     // checked.
@@ -641,45 +1781,146 @@ bool _f(dynamic d, bool b) => d && b;
     visitSubexpression(findNode.binary('&&'), 'bool');
   }
 
+  test_variableDeclaration_typed_initialized_nonNullable() async {
+    await analyze('''
+void _f() {
+  int x = 0;
+}
+''');
+    visitStatement(findNode.statement('int x'));
+  }
+
+  test_variableDeclaration_typed_initialized_nullable() async {
+    await analyze('''
+void _f() {
+  int x = null;
+}
+''');
+    visitStatement(findNode.statement('int x'),
+        nullable: {findNode.typeAnnotation('int')});
+  }
+
+  test_variableDeclaration_typed_uninitialized() async {
+    await analyze('''
+void _f() {
+  int x;
+}
+''');
+    visitStatement(findNode.statement('int x'));
+  }
+
+  test_variableDeclaration_untyped_initialized() async {
+    await analyze('''
+void _f() {
+  var x = 0;
+}
+''');
+    visitStatement(findNode.statement('var x'));
+  }
+
+  test_variableDeclaration_untyped_uninitialized() async {
+    await analyze('''
+void _f() {
+  var x;
+}
+''');
+    visitStatement(findNode.statement('var x'));
+  }
+
+  test_variableDeclaration_visit_initializer() async {
+    await analyze('''
+void _f(bool/*?*/ x, bool/*?*/ y) {
+  bool z = x && y;
+}
+''');
+    visitStatement(findNode.statement('bool z'),
+        nullChecked: {findNode.simple('x &&'), findNode.simple('y;')});
+  }
+
   void visitAssignmentTarget(
       Expression node, String expectedReadType, String expectedWriteType,
       {Set<Expression> nullChecked = const <Expression>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
-    var fixBuilder = _FixBuilder(
-        decoratedClassHierarchy, typeProvider, typeSystem, variables);
-    fixBuilder.createFlowAnalysis(node.thisOrAncestorOfType<FunctionBody>());
-    var targetInfo = fixBuilder.visitAssignmentTarget(node);
-    expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
-        expectedReadType);
+    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var targetInfo =
+        fixBuilder.visitAssignmentTarget(node, expectedReadType != null);
+    if (expectedReadType == null) {
+      expect(targetInfo.readType, null);
+    } else {
+      expect((targetInfo.readType as TypeImpl).toString(withNullability: true),
+          expectedReadType);
+    }
     expect((targetInfo.writeType as TypeImpl).toString(withNullability: true),
         expectedWriteType);
     expect(fixBuilder.nullCheckedExpressions, nullChecked);
     expect(fixBuilder.problems, problems);
   }
 
+  void visitStatement(Statement node,
+      {Set<Expression> nullChecked = const <Expression>{},
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      Set<TypeAnnotation> nullable = const <TypeAnnotation>{}}) {
+    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var type = node.accept(fixBuilder);
+    expect(type, null);
+    expect(fixBuilder.nullCheckedExpressions, nullChecked);
+    expect(fixBuilder.problems, problems);
+    expect(fixBuilder.nullable, nullable);
+  }
+
   void visitSubexpression(Expression node, String expectedType,
       {DartType contextType,
       Set<Expression> nullChecked = const <Expression>{},
-      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      Set<TypeAnnotation> nullable = const <TypeAnnotation>{}}) {
     contextType ??= dynamicType;
-    var fixBuilder = _FixBuilder(
-        decoratedClassHierarchy, typeProvider, typeSystem, variables);
-    fixBuilder.createFlowAnalysis(node.thisOrAncestorOfType<FunctionBody>());
+    _FixBuilder fixBuilder = _createFixBuilder(node);
     var type = fixBuilder.visitSubexpression(node, contextType);
     expect((type as TypeImpl).toString(withNullability: true), expectedType);
     expect(fixBuilder.nullCheckedExpressions, nullChecked);
     expect(fixBuilder.problems, problems);
+    expect(fixBuilder.nullable, nullable);
+  }
+
+  void visitTypeAnnotation(TypeAnnotation node, String expectedType,
+      {Set<Expression> nullChecked = const <Expression>{},
+      Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{},
+      Set<TypeAnnotation> nullable = const <TypeAnnotation>{}}) {
+    _FixBuilder fixBuilder = _createFixBuilder(node);
+    var type = node.accept(fixBuilder);
+    expect((type as TypeImpl).toString(withNullability: true), expectedType);
+    expect(fixBuilder.nullCheckedExpressions, nullChecked);
+    expect(fixBuilder.problems, problems);
+    expect(fixBuilder.nullable, nullable);
+  }
+
+  _FixBuilder _createFixBuilder(AstNode node) {
+    var fixBuilder = _FixBuilder(testSource, decoratedClassHierarchy,
+        typeProvider, typeSystem, variables);
+    var body = node.thisOrAncestorOfType<FunctionBody>();
+    var declaration = body.thisOrAncestorOfType<Declaration>();
+    fixBuilder.createFlowAnalysis(declaration, null);
+    return fixBuilder;
   }
 }
 
 class _FixBuilder extends FixBuilder {
   final Set<Expression> nullCheckedExpressions = {};
 
+  final Set<TypeAnnotation> nullable = {};
+
   final Map<AstNode, Set<Problem>> problems = {};
 
-  _FixBuilder(DecoratedClassHierarchy decoratedClassHierarchy,
+  _FixBuilder(Source source, DecoratedClassHierarchy decoratedClassHierarchy,
       TypeProvider typeProvider, TypeSystem typeSystem, Variables variables)
-      : super(decoratedClassHierarchy, typeProvider, typeSystem, variables);
+      : super(source, decoratedClassHierarchy, typeProvider, typeSystem,
+            variables);
+
+  @override
+  void addNullable(TypeAnnotation node) {
+    var newlyAdded = nullable.add(node);
+    expect(newlyAdded, true);
+  }
 
   @override
   void addNullCheck(Expression subexpression) {

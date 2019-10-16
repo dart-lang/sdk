@@ -299,17 +299,6 @@ bool deepJsonCompare(Object a, Object b) {
   }
 }
 
-class UniqueObject {
-  static int _nextId = 1;
-  final int _hashCode;
-
-  int get hashCode => _hashCode;
-  operator ==(Object other) =>
-      other is UniqueObject && _hashCode == other._hashCode;
-
-  UniqueObject() : _hashCode = ++_nextId;
-}
-
 class LastModifiedCache {
   final Map<String, DateTime> _cache = {};
 

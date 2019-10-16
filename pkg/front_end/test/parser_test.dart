@@ -52,7 +52,8 @@ main([List<String> arguments = const []]) =>
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new Context(environment["updateExpectations"] == "true");
+  return new Context(environment["updateExpectations"] == "true",
+      environment["trace"] == "true");
 }
 
 ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
@@ -61,9 +62,10 @@ ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
     enableNonNullable: true);
 
 class Context extends ChainContext with MatchContext {
-  final updateExpectations;
+  final bool updateExpectations;
+  final bool addTrace;
 
-  Context(this.updateExpectations);
+  Context(this.updateExpectations, this.addTrace);
 
   final List<Step> steps = const <Step>[
     const ListenerStep(),
@@ -95,7 +97,8 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
       return crash(description, StackTrace.current);
     }
 
-    ParserTestListener parserTestListener = new ParserTestListener();
+    ParserTestListener parserTestListener =
+        new ParserTestListener(context.addTrace);
     Parser parser = new Parser(parserTestListener);
     parser.parseUnit(firstToken);
 
@@ -125,8 +128,9 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
       return crash(description, StackTrace.current);
     }
 
-    ParserTestListener2 parserTestListener = new ParserTestListener2();
-    TestParser parser = new TestParser(parserTestListener);
+    ParserTestListener2 parserTestListener =
+        new ParserTestListener2(context.addTrace);
+    TestParser parser = new TestParser(parserTestListener, context.addTrace);
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
     parser.parseUnit(firstToken);
@@ -139,7 +143,12 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
 class ParserTestListener2 extends ParserTestListener {
   TestParser parser;
 
+  ParserTestListener2(bool trace) : super(trace);
+
   void doPrint(String s) {
-    sb.writeln(("  " * parser.indent) + "listener: " + s);
+    int prevIndent = super.indent;
+    super.indent = parser.indent;
+    super.doPrint("listener: " + s);
+    super.indent = prevIndent;
   }
 }

@@ -1,4 +1,8 @@
-## 0.2.0 (Not yet published)
+## 0.2.1
+- Bump maximum supported version of the analyzer to `<0.39.0`.
+- Bug fixes: #37916, #38326.
+
+## 0.2.0
 - Change `DartEditBuilder.writeOverride()` to accept `ExecutableElement`
   instead of `FunctionType`.
 

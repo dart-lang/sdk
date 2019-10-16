@@ -573,11 +573,7 @@ class C extends B with M1, M2 {
     );
   }
 
-  @failingTest
   test_getter_and_setter_fromMixins_property_access() async {
-    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
-    // a SimpleIdentifier that's inside a property access.  This bug should be
-    // fixed.
     await resolveTestCode(r'''
 class B {}
 class M1 {
@@ -774,7 +770,6 @@ class H extends D<W> {
 }
 ''');
     assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    verifyTestResolved();
   }
 
   @failingTest

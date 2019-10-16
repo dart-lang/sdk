@@ -4221,7 +4221,7 @@ int f(int i) {
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
-    assertEdge(never, returnType, hard: false);
+    assertEdge(declaration, returnType, hard: false);
   }
 
   test_postfixExpression_plusPlus() async {
@@ -4236,7 +4236,37 @@ int f(int i) {
     assertNullCheck(use, assertEdge(declaration, never, hard: true));
 
     var returnType = decoratedTypeAnnotation('int f').node;
-    assertEdge(never, returnType, hard: false);
+    assertEdge(declaration, returnType, hard: false);
+  }
+
+  test_postfixExpression_plusPlus_dynamic() async {
+    await analyze('''
+Object f(dynamic d) {
+  return d++;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('dynamic d').node,
+        decoratedTypeAnnotation('Object f').node,
+        hard: false);
+  }
+
+  test_postfixExpression_plusPlus_substituted() async {
+    await analyze('''
+abstract class C<T> {
+  C<T> operator+(int x);
+}
+C<int> f(C<int> c) {
+  return c++;
+}
+''');
+
+    var cType = decoratedTypeAnnotation('C<int> c');
+    var returnType = decoratedTypeAnnotation('C<int> f');
+    assertNullCheck(
+        checkExpression('c++'), assertEdge(cType.node, never, hard: true));
+    assertEdge(cType.node, returnType.node, hard: false);
+    assertEdge(cType.typeArguments[0].node, returnType.typeArguments[0].node,
+        hard: false);
   }
 
   test_prefixedIdentifier_field_type() async {
@@ -4339,6 +4369,16 @@ bool f(bool b) {
     assertEdge(never, return_f, hard: false);
   }
 
+  test_prefixExpression_bang_dynamic() async {
+    await analyze('''
+Object f(dynamic d) {
+  return !d;
+}
+''');
+    var return_f = decoratedTypeAnnotation('Object f').node;
+    assertEdge(never, return_f, hard: false);
+  }
+
   test_prefixExpression_minus() async {
     await analyze('''
 abstract class C {
@@ -4351,6 +4391,35 @@ C test(C c) => -c/*check*/;
         hard: false);
     assertNullCheck(checkExpression('c/*check*/'),
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
+  test_prefixExpression_minus_dynamic() async {
+    await analyze('''
+Object test(dynamic d) => -d;
+''');
+    assertEdge(always, decoratedTypeAnnotation('Object test').node,
+        hard: false);
+    assertEdge(decoratedTypeAnnotation('dynamic d').node, never, hard: true);
+  }
+
+  test_prefixExpression_minus_substituted() async {
+    await analyze('''
+abstract class C<T> {
+  List<T> operator-();
+}
+List<int> test(C<int> c) => -c/*check*/;
+''');
+    var operatorReturnType = decoratedTypeAnnotation('List<T> operator');
+    var cType = decoratedTypeAnnotation('C<int> c');
+    var testReturnType = decoratedTypeAnnotation('List<int> test');
+    assertEdge(operatorReturnType.node, testReturnType.node, hard: false);
+    assertNullCheck(checkExpression('c/*check*/'),
+        assertEdge(cType.node, never, hard: true));
+    assertEdge(
+        substitutionNode(cType.typeArguments[0].node,
+            operatorReturnType.typeArguments[0].node),
+        testReturnType.typeArguments[0].node,
+        hard: false);
   }
 
   test_prefixExpression_minusMinus() async {
@@ -4381,6 +4450,35 @@ int f(int i) {
 
     var returnType = decoratedTypeAnnotation('int f').node;
     assertEdge(never, returnType, hard: false);
+  }
+
+  test_prefixExpression_plusPlus_dynamic() async {
+    await analyze('''
+Object f(dynamic d) {
+  return ++d;
+}
+''');
+    var returnType = decoratedTypeAnnotation('Object f').node;
+    assertEdge(always, returnType, hard: false);
+  }
+
+  test_prefixExpression_plusPlus_substituted() async {
+    await analyze('''
+abstract class C<T> {
+  C<T> operator+(int i);
+}
+C<int> f(C<int> x) => ++x;
+    ''');
+    var xType = decoratedTypeAnnotation('C<int> x');
+    var plusReturnType = decoratedTypeAnnotation('C<T> operator');
+    var fReturnType = decoratedTypeAnnotation('C<int> f');
+    assertEdge(xType.node, never, hard: true);
+    assertEdge(plusReturnType.node, fReturnType.node, hard: false);
+    assertEdge(
+        substitutionNode(
+            xType.typeArguments[0].node, plusReturnType.typeArguments[0].node),
+        fReturnType.typeArguments[0].node,
+        hard: false);
   }
 
   test_propertyAccess_dynamic() async {
@@ -4540,6 +4638,46 @@ class C {
         hard: true);
   }
 
+  test_return_from_async_closureBody_future() async {
+    await analyze('''
+Future<int> f() {
+  return () async {
+    return g();
+  }();
+}
+int g() => 1;
+''');
+    assertEdge(
+        decoratedTypeAnnotation('int g').node,
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+            .sourceNode,
+        hard: false);
+  }
+
+  test_return_from_async_closureExpression_future() async {
+    await analyze('''
+Future<int> Function() f() {
+  return () async => g();
+}
+int g() => 1;
+''');
+    assertEdge(
+        decoratedTypeAnnotation('int g').node,
+        assertEdge(anyNode, decoratedTypeAnnotation('int>').node, hard: false)
+            .sourceNode,
+        hard: false);
+  }
+
+  test_return_from_async_expressionBody_future() async {
+    await analyze('''
+Future<int> f() async => g();
+int g() => 1;
+''');
+    assertEdge(decoratedTypeAnnotation('int g').node,
+        decoratedTypeAnnotation('int>').node,
+        hard: false);
+  }
+
   test_return_from_async_future() async {
     await analyze('''
 Future<int> f() async {
@@ -4547,7 +4685,19 @@ Future<int> f() async {
 }
 int g() => 1;
 ''');
-    // No assertions; just checking that it doesn't crash.
+    assertEdge(decoratedTypeAnnotation('int g').node,
+        decoratedTypeAnnotation('int>').node,
+        hard: false);
+  }
+
+  test_return_from_async_future_void() async {
+    await analyze('''
+Future<void> f() async {
+  return;
+}
+int g() => 1;
+''');
+    assertNoEdge(always, decoratedTypeAnnotation('Future').node);
   }
 
   test_return_from_async_futureOr() async {

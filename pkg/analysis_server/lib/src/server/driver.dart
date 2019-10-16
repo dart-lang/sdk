@@ -348,20 +348,27 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+
+    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
-    if (results[ENABLE_COMPLETION_MODEL] &&
+    if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
+      // This is the case where the user has explicitly turned off model-based
+      // code completion.
+      analysisServerOptions.completionModelFolder = null;
+    }
+    if (enableCompletionModel &&
         analysisServerOptions.completionModelFolder == null) {
-      // The user has enabled ML code completion without explicitly setting
-      // a model for us to choose, so use the default one. We need to walk over
+      // The user has enabled ML code completion without explicitly setting a
+      // model for us to choose, so use the default one. We need to walk over
       // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
-      // $SDK/model/lexeme.
+      // $SDK/bin/model/lexeme.
       analysisServerOptions.completionModelFolder = path.join(
-          File.fromUri(Platform.script).parent.path,
-          '..',
-          '..',
-          'model',
-          'lexeme');
+        File.fromUri(Platform.script).parent.path,
+        '..',
+        'model',
+        'lexeme',
+      );
     }
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -591,13 +598,15 @@ class Driver implements ServerStarter {
       SocketServer socketServer,
       LspSocketServer lspSocketServer,
       AnalysisServerOptions analysisServerOptions) {
+    // If ML completion is not enabled, or we're on a 32-bit machine, don't try
+    // and start the completion model.
     if (analysisServerOptions.completionModelFolder == null ||
         ffi.sizeOf<ffi.IntPtr>() == 4) {
       return;
     }
 
-    // Start completion model isolate if this is a 64 bit system and
-    // analysis server was configured to load a language model on disk.
+    // Start completion model isolate if this is a 64 bit system and analysis
+    // server was configured to load a language model on disk.
     CompletionRanking.instance =
         CompletionRanking(analysisServerOptions.completionModelFolder);
     CompletionRanking.instance.start().catchError((error) {

@@ -28,6 +28,29 @@ class InfoBuilderTest extends AbstractAnalysisTest {
   /// not yet completed.
   List<UnitInfo> infos;
 
+  /// Assert various properties of the given [detail].
+  void assertDetail({@required RegionDetail detail, int offset, int length}) {
+    if (offset != null) {
+      expect(detail.target.offset, offset);
+    }
+    if (length != null) {
+      expect(detail.target.length, length);
+    }
+  }
+
+  /// Assert that some target in [targets] has various properties.
+  void assertInTargets(
+      {@required Iterable<NavigationTarget> targets, int offset, int length}) {
+    String failureReasons = [
+      if (offset != null) 'offset: $offset',
+      if (length != null) 'length: $length',
+    ].join(' and ');
+    expect(targets.any((t) {
+      return (offset == null || offset == t.offset) &&
+          (length == null || length == t.length);
+    }), isTrue, reason: 'Expected one of $targets to contain $failureReasons');
+  }
+
   /// Assert various properties of the given [region]. If an [offset] is
   /// provided but no [length] is provided, a default length of `1` will be
   /// used.
@@ -69,7 +92,53 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
     InfoBuilder builder = InfoBuilder(info, listener);
-    infos = await builder.explainMigration();
+    infos = (await builder.explainMigration()).toList();
+  }
+
+  test_asExpression() async {
+    addTestFile('''
+void f([num a]) {
+  int b = a as int;
+}
+''');
+    await buildInfo();
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+void f([num? a]) {
+  int? b = a as int?;
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    assertRegion(region: regions[0], offset: 11);
+    assertRegion(
+        region: regions[1],
+        offset: 24,
+        details: ["This variable is initialized to a nullable value"]);
+    assertRegion(
+        region: regions[2],
+        offset: 38,
+        details: ["The value of the expression is nullable"]);
+  }
+
+  test_expressionFunctionReturnTarget() async {
+    addTestFile('''
+String g() => 1 == 2 ? "Hello" : null;
+''');
+    await buildInfo();
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+String? g() => 1 == 2 ? "Hello" : null;
+''');
+    assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
+    assertInTargets(targets: unit.targets, offset: 11, length: 2); // "=>"
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 6,
+        details: ["This function returns a nullable value"]);
+    assertDetail(detail: regions[0].details[0], offset: 11, length: 2);
   }
 
   test_field_fieldFormalInitializer_optional() async {
@@ -242,7 +311,45 @@ void g(p) {
         details: ["A nullable value is explicitly passed as an argument"]);
   }
 
-  test_parameter_fromOverriden() async {
+  test_parameter_fromOverriden_explicit() async {
+    addTestFile('''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  void m(Object p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, '''
+class A {
+  void m(int? p) {}
+}
+class B extends A {
+  void m(Object? p) {}
+}
+void f(A a) {
+  a.m(null);
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 22,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 67, details: [
+      "The corresponding parameter in the overridden method is nullable"
+    ]);
+  }
+
+  test_parameter_fromOverriden_implicit() async {
     addTestFile('''
 class A {
   void m(p) {}
@@ -355,6 +462,86 @@ void f([String? s]) {}
         region: regions[0],
         offset: 14,
         details: ["This parameter has an implicit default value of 'null'"]);
+  }
+
+  @failingTest
+  test_return_fromOverriden() async {
+    addTestFile('''
+abstract class A {
+  String m();
+}
+class B implements A {
+  String m() => 1 == 2 ? "Hello" : null;
+}
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, '''
+abstract class A {
+  String? m();
+}
+class B implements A {
+  String? m() => 1 == 2 ? "Hello" : null;
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 27,
+        details: ["An overridding method has a nullable return value"]);
+  }
+
+  test_return_multipleReturns() async {
+    addTestFile('''
+String g() {
+  int x = 1;
+  if (x == 2) return x == 3 ? "Hello" : null;
+  return "Hello";
+}
+''');
+    await buildInfo();
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+String? g() {
+  int x = 1;
+  if (x == 2) return x == 3 ? "Hello" : null;
+  return "Hello";
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 6,
+        details: ["This function returns a nullable value"]);
+    assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
+  }
+
+  test_returnDetailTarget() async {
+    addTestFile('''
+String g() {
+  return 1 == 2 ? "Hello" : null;
+}
+''');
+    await buildInfo();
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+String? g() {
+  return 1 == 2 ? "Hello" : null;
+}
+''');
+    assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
+    assertInTargets(targets: unit.targets, offset: 15, length: 6); // "return"
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 6,
+        details: ["This function returns a nullable value"]);
+    assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
   }
 
   test_returnType_function_expression() async {

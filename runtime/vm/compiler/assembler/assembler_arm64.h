@@ -1641,6 +1641,18 @@ class Assembler : public AssemblerBase {
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  // Special version of ElementAddressForRegIndex for the case when cid and
+  // operand size for the target load don't match (e.g. when loading a few
+  // elements of the array with one load).
+  Address ElementAddressForRegIndexWithSize(bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            OperandSize size,
+                                            intptr_t index_scale,
+                                            Register array,
+                                            Register index);
+
   void LoadElementAddressForRegIndex(Register address,
                                      bool is_load,
                                      bool is_external,
@@ -1648,12 +1660,6 @@ class Assembler : public AssemblerBase {
                                      intptr_t index_scale,
                                      Register array,
                                      Register index);
-
-  void LoadUnaligned(Register dst, Register addr, Register tmp, OperandSize sz);
-  void StoreUnaligned(Register src,
-                      Register addr,
-                      Register tmp,
-                      OperandSize sz);
 
   static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
     const int32_t imm32 = static_cast<int32_t>(imm);

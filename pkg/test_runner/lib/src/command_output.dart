@@ -23,7 +23,7 @@ import 'utils.dart';
 /// and the time the process took to run. It does not contain a pointer to the
 /// [TestCase] this is the output of, so some functions require the test case
 /// to be passed as an argument.
-class CommandOutput extends UniqueObject {
+class CommandOutput {
   final Command command;
 
   final bool hasTimedOut;

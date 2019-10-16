@@ -6,9 +6,9 @@ library fasta.import;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import 'builder/builder.dart' show Builder, LibraryBuilder;
-
-import 'builder/prefix_builder.dart' show PrefixBuilder;
+import 'builder/builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/prefix_builder.dart';
 
 import 'kernel/kernel_builder.dart' show toKernelCombinators;
 

@@ -10,7 +10,9 @@ import 'package:kernel/target/targets.dart' as backend show Target;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
+import 'builder/class_builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/member_builder.dart';
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -41,12 +43,10 @@ abstract class TargetImplementation extends Target {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  Builder cachedAbstractClassInstantiationError;
-  Builder cachedCompileTimeError;
-  Builder cachedDuplicatedFieldInitializerError;
-  Builder cachedFallThroughError;
-  Builder cachedNativeAnnotation;
-  Builder cachedNativeExtensionAnnotation;
+  MemberBuilder cachedAbstractClassInstantiationError;
+  MemberBuilder cachedCompileTimeError;
+  MemberBuilder cachedDuplicatedFieldInitializerError;
+  MemberBuilder cachedNativeAnnotation;
 
   bool enableExtensionMethods;
   bool enableNonNullable;
@@ -85,7 +85,7 @@ abstract class TargetImplementation extends Target {
   /// [AbstractClassInstantiationError] error.  The constructor is expected to
   /// accept a single argument of type String, which is the name of the
   /// abstract class.
-  Builder getAbstractClassInstantiationError(Loader loader) {
+  MemberBuilder getAbstractClassInstantiationError(Loader loader) {
     if (cachedAbstractClassInstantiationError != null) {
       return cachedAbstractClassInstantiationError;
     }
@@ -96,7 +96,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a compile-time
   /// error. The constructor is expected to accept a single argument of type
   /// String, which is the compile-time error message.
-  Builder getCompileTimeError(Loader loader) {
+  MemberBuilder getCompileTimeError(Loader loader) {
     if (cachedCompileTimeError != null) return cachedCompileTimeError;
     return cachedCompileTimeError = loader.coreLibrary
         .getConstructor("_CompileTimeError", bypassLibraryPrivacy: true);
@@ -105,7 +105,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating a runtime error
   /// when a final field is initialized twice. The constructor is expected to
   /// accept a single argument which is the name of the field.
-  Builder getDuplicatedFieldInitializerError(Loader loader) {
+  MemberBuilder getDuplicatedFieldInitializerError(Loader loader) {
     if (cachedDuplicatedFieldInitializerError != null) {
       return cachedDuplicatedFieldInitializerError;
     }
@@ -117,7 +117,7 @@ abstract class TargetImplementation extends Target {
   /// Returns a reference to the constructor used for creating `native`
   /// annotations. The constructor is expected to accept a single argument of
   /// type String, which is the name of the native method.
-  Builder getNativeAnnotation(Loader loader) {
+  MemberBuilder getNativeAnnotation(Loader loader) {
     if (cachedNativeAnnotation != null) return cachedNativeAnnotation;
     LibraryBuilder internal = loader.read(Uri.parse("dart:_internal"), -1,
         accessor: loader.coreLibrary);
@@ -156,9 +156,6 @@ abstract class TargetImplementation extends Target {
 
   Severity fixSeverity(Severity severity, Message message, Uri fileUri) {
     severity ??= message.code.severity;
-    if (severity == Severity.errorLegacyWarning) {
-      severity = Severity.error;
-    }
     return rewriteSeverity(severity, message.code, fileUri);
   }
 

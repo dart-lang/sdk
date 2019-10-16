@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -142,7 +141,7 @@ main() {
   print(C.m);
 }
 ''');
-    expectFunctionType('m);', 'void Function()');
+    assertType(findNode.simple('m);'), 'void Function()');
   }
 
   test_staticMethods_classTypeParameters_genericMethod() async {
@@ -157,39 +156,14 @@ main() {
   print(C.m);
 }
 ''');
-    // C - m
-    TypeParameterType typeS;
-    {
-      FunctionTypeImpl type = expectFunctionType('m);', 'void Function<S>(S)',
-          elementTypeParams: '[S]',
-          typeFormals: '[S]',
-          identifierType: 'void Function<S>(S)');
-
-      typeS = type.typeFormals[0].instantiate(
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
-      type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), 'void Function(dynamic)');
-      expect(type.typeParameters.toString(), '[S]');
-      expect(type.typeArguments, [DynamicTypeImpl.instance]);
-      expect(type.typeFormals, isEmpty);
-    }
-    // C - m - f
-    {
-      FunctionTypeImpl type = expectFunctionType(
-          'f);', 'void Function<U>(S, U)',
-          elementTypeParams: '[U]',
-          typeParams: '[S]',
-          typeArgs: '[S]',
-          typeFormals: '[U]',
-          identifierType: 'void Function<U>(S, U)');
-
-      type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), 'void Function(S, dynamic)');
-      expect(type.typeParameters.toString(), '[S, U]');
-      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
-      expect(type.typeFormals, isEmpty);
-    }
+    assertType(
+      findNode.simple('f);'),
+      'void Function<U>(S, U)',
+    );
+    assertType(
+      findNode.simple('m);'),
+      'void Function<S>(S)',
+    );
   }
 }
 

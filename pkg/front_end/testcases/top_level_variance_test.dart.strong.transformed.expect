@@ -51,11 +51,11 @@ static method testTopLevel() → void {
   <Y extends () →* self::A<dynamic>* = dynamic>() →* void target7 = fsource7;
   (self::A<core::Null?>*) →* dynamic source8;
   <Y extends (self::A<core::Null?>*) →* dynamic = dynamic>() →* void fsource8 = self::toF<(self::A<core::Null?>*) →* dynamic>(source8);
-  <Y extends (self::A<core::Null*>*) →* dynamic = dynamic>() →* void target8 = fsource8;
+  <Y extends (self::A<core::Null?>*) →* dynamic = dynamic>() →* void target8 = fsource8;
   (self::A<dynamic>*) →* self::A<dynamic>* source9;
   () →* (core::Null?) →* dynamic source10;
   <Y extends () →* (core::Null?) →* dynamic = dynamic>() →* void fsource10 = self::toF<() →* (core::Null?) →* dynamic>(source10);
-  <Y extends () →* (core::Null*) →* dynamic = dynamic>() →* void target10 = fsource10;
+  <Y extends () →* (core::Null?) →* dynamic = dynamic>() →* void target10 = fsource10;
   ((dynamic) →* dynamic) →* dynamic source11;
   <Y extends ((dynamic) →* dynamic) →* dynamic = dynamic>() →* void fsource11 = self::toF<((dynamic) →* dynamic) →* dynamic>(source11);
   <Y extends ((dynamic) →* dynamic) →* dynamic = dynamic>() →* void target11 = fsource11;
@@ -87,11 +87,11 @@ static method testNested() → void {
   <Y extends self::B<() →* self::A<dynamic>*>* = dynamic>() →* void target7 = fsource7;
   self::B<(self::A<core::Null?>*) →* dynamic>* source8;
   <Y extends self::B<(self::A<core::Null?>*) →* dynamic>* = dynamic>() →* void fsource8 = self::toF<self::B<(self::A<core::Null?>*) →* dynamic>*>(source8);
-  <Y extends self::B<(self::A<core::Null*>*) →* dynamic>* = dynamic>() →* void target8 = fsource8;
+  <Y extends self::B<(self::A<core::Null?>*) →* dynamic>* = dynamic>() →* void target8 = fsource8;
   self::B<(self::A<dynamic>*) →* self::A<dynamic>*>* source9;
   self::B<() →* (core::Null?) →* dynamic>* source10;
   <Y extends self::B<() →* (core::Null?) →* dynamic>* = dynamic>() →* void fsource10 = self::toF<self::B<() →* (core::Null?) →* dynamic>*>(source10);
-  <Y extends self::B<() →* (core::Null*) →* dynamic>* = dynamic>() →* void target10 = fsource10;
+  <Y extends self::B<() →* (core::Null?) →* dynamic>* = dynamic>() →* void target10 = fsource10;
   self::B<((dynamic) →* dynamic) →* dynamic>* source11;
   <Y extends self::B<((dynamic) →* dynamic) →* dynamic>* = dynamic>() →* void fsource11 = self::toF<self::B<((dynamic) →* dynamic) →* dynamic>*>(source11);
   <Y extends self::B<((dynamic) →* dynamic) →* dynamic>* = dynamic>() →* void target11 = fsource11;

@@ -23,8 +23,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeAbstractClassInstantiation =
     const Code<Message Function(String name)>(
         "AbstractClassInstantiation", templateAbstractClassInstantiation,
-        analyzerCodes: <String>["NEW_WITH_ABSTRACT_CLASS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["NEW_WITH_ABSTRACT_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractClassInstantiation(String name) {
@@ -70,8 +69,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "AbstractRedirectedClassInstantiation",
         templateAbstractRedirectedClassInstantiation,
-        analyzerCodes: <String>["FACTORY_REDIRECTS_TO_ABSTRACT_CLASS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["FACTORY_REDIRECTS_TO_ABSTRACT_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
@@ -936,29 +934,6 @@ Message _withArgumentsConflictsWithMember(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateConflictsWithMemberWarning =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Conflicts with member '#name'.""",
-        withArguments: _withArgumentsConflictsWithMemberWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithMemberWarning =
-    const Code<Message Function(String name)>(
-        "ConflictsWithMemberWarning", templateConflictsWithMemberWarning,
-        analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithMemberWarning(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeConflictsWithMemberWarning,
-      message: """Conflicts with member '${name}'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithSetter =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Conflicts with setter '#name'.""",
@@ -975,29 +950,6 @@ Message _withArgumentsConflictsWithSetter(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeConflictsWithSetter,
-      message: """Conflicts with setter '${name}'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateConflictsWithSetterWarning =
-    const Template<Message Function(String name)>(
-        messageTemplate: r"""Conflicts with setter '#name'.""",
-        withArguments: _withArgumentsConflictsWithSetterWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeConflictsWithSetterWarning =
-    const Code<Message Function(String name)>(
-        "ConflictsWithSetterWarning", templateConflictsWithSetterWarning,
-        analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
-        severity: Severity.errorLegacyWarning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsConflictsWithSetterWarning(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeConflictsWithSetterWarning,
       message: """Conflicts with setter '${name}'.""",
       arguments: {'name': name});
 }
@@ -1102,7 +1054,7 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
     "ConstConstructorWithNonConstSuper",
     analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER"],
     message:
-        r"""Constant constructor can't call non-constant super constructors.""");
+        r"""A constant constructor can't call a non-constant super constructor.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstEvalCircularity = messageConstEvalCircularity;
@@ -1826,8 +1778,7 @@ const Template<Message Function(String name)> templateConstructorNotFound =
 const Code<Message Function(String name)> codeConstructorNotFound =
     const Code<Message Function(String name)>(
         "ConstructorNotFound", templateConstructorNotFound,
-        analyzerCodes: <String>["CONSTRUCTOR_NOT_FOUND"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["CONSTRUCTOR_NOT_FOUND"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstructorNotFound(String name) {
@@ -2112,6 +2063,28 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateDebugTrace =
+    const Template<Message Function(String name, String string)>(
+        messageTemplate: r"""Fatal '#name' at:
+#string""", withArguments: _withArgumentsDebugTrace);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)> codeDebugTrace =
+    const Code<Message Function(String name, String string)>(
+        "DebugTrace", templateDebugTrace,
+        severity: Severity.ignored);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDebugTrace(String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeDebugTrace, message: """Fatal '${name}' at:
+${string}""", arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDeclaredMemberConflictsWithInheritedMember =
     messageDeclaredMemberConflictsWithInheritedMember;
 
@@ -2239,8 +2212,7 @@ const Code<Message Function(DartType _type, String name)>
     codeDeferredTypeAnnotation =
     const Code<Message Function(DartType _type, String name)>(
         "DeferredTypeAnnotation", templateDeferredTypeAnnotation,
-        analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDeferredTypeAnnotation(DartType _type, String name) {
@@ -2520,8 +2492,9 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
 const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedExportInType =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
-        "DuplicatedExportInType", templateDuplicatedExportInType,
-        severity: Severity.errorLegacyWarning);
+  "DuplicatedExportInType",
+  templateDuplicatedExportInType,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
@@ -2573,8 +2546,7 @@ const Code<Message Function(String name, Uri uri_, Uri uri2_)>
     codeDuplicatedImportInType =
     const Code<Message Function(String name, Uri uri_, Uri uri2_)>(
         "DuplicatedImportInType", templateDuplicatedImportInType,
-        analyzerCodes: <String>["AMBIGUOUS_IMPORT"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["AMBIGUOUS_IMPORT"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
@@ -3602,6 +3574,29 @@ Message _withArgumentsExtraneousModifier(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInExtension =
+    const Template<Message Function(Token token)>(
+        messageTemplate: r"""Can't have modifier '#lexeme' in an extension.""",
+        tipTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInExtension);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeExtraneousModifierInExtension =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInExtension", templateExtraneousModifierInExtension,
+        index: 98);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInExtension(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInExtension,
+      message: """Can't have modifier '${lexeme}' in an extension.""",
+      tip: """Try removing '${lexeme}'.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3727,6 +3722,12 @@ const MessageCode messageFastaUsageLong =
     compiler with a non-zero exit-code. In --verbose mode, also display an
     internal stack trace from the compiler. Multiple kinds can be separated by
     commas, for example, --fatal=errors,warnings.
+
+  --fatal-skip=<number>
+  --fatal-skip=trace
+    Skip this many messages that would otherwise be fatal before aborting the
+    compilation. Default is 0, which stops at the first message. Specify
+    'trace' to print a stack trace for every message without stopping.
 
   --enable-experiment=<flag>
     Enable or disable an experimental flag, used to guard features currently
@@ -4060,62 +4061,6 @@ Message _withArgumentsFfiTypeMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        DartType
-            _type)> templateFfiTypeUnsized = const Template<
-        Message Function(String name, DartType _type)>(
-    messageTemplate:
-        r"""Method '#name' cannot be called on something of type '#type' as this type is unsized.""",
-    withArguments: _withArgumentsFfiTypeUnsized);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type)> codeFfiTypeUnsized =
-    const Code<Message Function(String name, DartType _type)>(
-  "FfiTypeUnsized",
-  templateFfiTypeUnsized,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiTypeUnsized,
-      message:
-          """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
-              labeler.originMessages,
-      arguments: {'name': name, 'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateFfiWrongStructInheritance =
-    const Template<Message Function(String name)>(
-        messageTemplate:
-            r"""Struct '#name' must inherit from 'Struct<#name>'.""",
-        withArguments: _withArgumentsFfiWrongStructInheritance);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiWrongStructInheritance =
-    const Code<Message Function(String name)>(
-  "FfiWrongStructInheritance",
-  templateFfiWrongStructInheritance,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiWrongStructInheritance(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeFfiWrongStructInheritance,
-      message: """Struct '${name}' must inherit from 'Struct<${name}>'.""",
-      arguments: {'name': name});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializedOutsideDeclaringClass =
     messageFieldInitializedOutsideDeclaringClass;
 
@@ -4259,8 +4204,7 @@ const Code<Message Function(String name)>
     const Code<Message Function(String name)>(
         "FinalInstanceVariableAlreadyInitialized",
         templateFinalInstanceVariableAlreadyInitialized,
-        analyzerCodes: <String>["FINAL_INITIALIZED_MULTIPLE_TIMES"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["FINAL_INITIALIZED_MULTIPLE_TIMES"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFinalInstanceVariableAlreadyInitialized(String name) {
@@ -4492,8 +4436,7 @@ const Template<Message Function(String name)> templateGetterNotFound =
 const Code<Message Function(String name)> codeGetterNotFound =
     const Code<Message Function(String name)>(
         "GetterNotFound", templateGetterNotFound,
-        analyzerCodes: <String>["UNDEFINED_GETTER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_GETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsGetterNotFound(String name) {
@@ -5594,8 +5537,7 @@ const Code<Message Function(String name, DartType _type, DartType _type2)>
     const Code<Message Function(String name, DartType _type, DartType _type2)>(
         "InitializingFormalTypeMismatch",
         templateInitializingFormalTypeMismatch,
-        analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInitializingFormalTypeMismatch(
@@ -6794,7 +6736,6 @@ const Code<Null> codeListLiteralTooManyTypeArguments =
 const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
     "ListLiteralTooManyTypeArguments",
     analyzerCodes: <String>["EXPECTED_ONE_LIST_TYPE_ARGUMENTS"],
-    severity: Severity.errorLegacyWarning,
     message: r"""List literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6830,7 +6771,6 @@ const Code<Null> codeLoadLibraryTakesNoArguments =
 const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
     "LoadLibraryTakesNoArguments",
     analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
-    severity: Severity.errorLegacyWarning,
     message: r"""'loadLibrary' takes no arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6891,7 +6831,6 @@ const Code<Null> codeMapLiteralTypeArgumentMismatch =
 const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
     "MapLiteralTypeArgumentMismatch",
     analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
-    severity: Severity.errorLegacyWarning,
     message: r"""A map literal requires exactly two type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6923,8 +6862,7 @@ const Template<Message Function(String name)> templateMethodNotFound =
 const Code<Message Function(String name)> codeMethodNotFound =
     const Code<Message Function(String name)>(
         "MethodNotFound", templateMethodNotFound,
-        analyzerCodes: <String>["UNDEFINED_METHOD"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsMethodNotFound(String name) {
@@ -7456,8 +7394,7 @@ const Template<Message Function(String name)> templateNoSuchNamedParameter =
 const Code<Message Function(String name)> codeNoSuchNamedParameter =
     const Code<Message Function(String name)>(
         "NoSuchNamedParameter", templateNoSuchNamedParameter,
-        analyzerCodes: <String>["UNDEFINED_NAMED_PARAMETER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_NAMED_PARAMETER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNoSuchNamedParameter(String name) {
@@ -7564,7 +7501,6 @@ const Code<Null> codeNonInstanceTypeVariableUse =
 const MessageCode messageNonInstanceTypeVariableUse = const MessageCode(
     "NonInstanceTypeVariableUse",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Can only use type variables in instance methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7660,8 +7596,7 @@ const Code<Message Function(String name, String name2)>
     codeNotAPrefixInTypeAnnotation =
     const Code<Message Function(String name, String name2)>(
         "NotAPrefixInTypeAnnotation", templateNotAPrefixInTypeAnnotation,
-        analyzerCodes: <String>["NOT_A_TYPE"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["NOT_A_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
@@ -7684,8 +7619,7 @@ const Template<Message Function(String name)> templateNotAType =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeNotAType =
     const Code<Message Function(String name)>("NotAType", templateNotAType,
-        analyzerCodes: <String>["NOT_A_TYPE"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["NOT_A_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsNotAType(String name) {
@@ -7941,8 +7875,7 @@ const Code<Message Function(String name, String name2)>
     codeOverrideFewerNamedArguments =
     const Code<Message Function(String name, String name2)>(
         "OverrideFewerNamedArguments", templateOverrideFewerNamedArguments,
-        analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerNamedArguments(String name, String name2) {
@@ -7973,8 +7906,7 @@ const Code<Message Function(String name, String name2)>
     const Code<Message Function(String name, String name2)>(
         "OverrideFewerPositionalArguments",
         templateOverrideFewerPositionalArguments,
-        analyzerCodes: <String>["INVALID_OVERRIDE_POSITIONAL"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_OVERRIDE_POSITIONAL"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideFewerPositionalArguments(
@@ -8007,8 +7939,7 @@ const Code<Message Function(String name, String name2, String name3)>
     const Code<Message Function(String name, String name2, String name3)>(
         "OverrideMismatchNamedParameter",
         templateOverrideMismatchNamedParameter,
-        analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMismatchNamedParameter(
@@ -8041,8 +7972,7 @@ const Code<Message Function(String name, String name2)>
     codeOverrideMoreRequiredArguments =
     const Code<Message Function(String name, String name2)>(
         "OverrideMoreRequiredArguments", templateOverrideMoreRequiredArguments,
-        analyzerCodes: <String>["INVALID_OVERRIDE_REQUIRED"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_OVERRIDE_REQUIRED"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideMoreRequiredArguments(String name, String name2) {
@@ -8231,8 +8161,7 @@ const Code<Message Function(String name, String name2)>
     codeOverrideTypeVariablesMismatch =
     const Code<Message Function(String name, String name2)>(
         "OverrideTypeVariablesMismatch", templateOverrideTypeVariablesMismatch,
-        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
@@ -8372,8 +8301,7 @@ const Code<Message Function(Uri uri_, String name, String name2)>
     codePartOfLibraryNameMismatch =
     const Code<Message Function(Uri uri_, String name, String name2)>(
         "PartOfLibraryNameMismatch", templatePartOfLibraryNameMismatch,
-        analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfLibraryNameMismatch(
@@ -8444,8 +8372,7 @@ const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
     codePartOfUriMismatch =
     const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
         "PartOfUriMismatch", templatePartOfUriMismatch,
-        analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
@@ -8477,8 +8404,7 @@ const Code<Message Function(Uri uri_, Uri uri2_, String name)>
     codePartOfUseUri =
     const Code<Message Function(Uri uri_, Uri uri2_, String name)>(
         "PartOfUseUri", templatePartOfUseUri,
-        analyzerCodes: <String>["PART_OF_UNNAMED_LIBRARY"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["PART_OF_UNNAMED_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
@@ -8713,8 +8639,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeRedirectionTargetNotFound =
     const Code<Message Function(String name)>(
         "RedirectionTargetNotFound", templateRedirectionTargetNotFound,
-        analyzerCodes: <String>["REDIRECT_TO_MISSING_CONSTRUCTOR"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["REDIRECT_TO_MISSING_CONSTRUCTOR"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsRedirectionTargetNotFound(String name) {
@@ -8761,7 +8686,6 @@ const Code<Null> codeReturnTypeFunctionExpression =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
     "ReturnTypeFunctionExpression",
-    severity: Severity.errorLegacyWarning,
     message: r"""A function expression can't have a return type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8850,7 +8774,6 @@ const Code<Null> codeSetLiteralTooManyTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
     "SetLiteralTooManyTypeArguments",
-    severity: Severity.errorLegacyWarning,
     message: r"""A set literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8860,7 +8783,6 @@ const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetOrMapLiteralTooManyTypeArguments = const MessageCode(
     "SetOrMapLiteralTooManyTypeArguments",
-    severity: Severity.errorLegacyWarning,
     message:
         r"""A set or map literal requires exactly one or two type arguments, respectively.""");
 
@@ -8874,8 +8796,7 @@ const Template<Message Function(String name)> templateSetterNotFound =
 const Code<Message Function(String name)> codeSetterNotFound =
     const Code<Message Function(String name)>(
         "SetterNotFound", templateSetterNotFound,
-        analyzerCodes: <String>["UNDEFINED_SETTER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_SETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSetterNotFound(String name) {
@@ -9276,10 +9197,9 @@ const Code<Message Function(String name)> codeSuperclassHasNoConstructor =
     const Code<Message Function(String name)>(
         "SuperclassHasNoConstructor", templateSuperclassHasNoConstructor,
         analyzerCodes: <String>[
-          "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER",
-          "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT"
-        ],
-        severity: Severity.errorLegacyWarning);
+      "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER",
+      "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT"
+    ]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoConstructor(String name) {
@@ -9328,8 +9248,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoGetter =
 const Code<Message Function(String name)> codeSuperclassHasNoGetter =
     const Code<Message Function(String name)>(
         "SuperclassHasNoGetter", templateSuperclassHasNoGetter,
-        analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoGetter(String name) {
@@ -9350,8 +9269,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoMethod =
 const Code<Message Function(String name)> codeSuperclassHasNoMethod =
     const Code<Message Function(String name)>(
         "SuperclassHasNoMethod", templateSuperclassHasNoMethod,
-        analyzerCodes: <String>["UNDEFINED_SUPER_METHOD"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_SUPER_METHOD"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoMethod(String name) {
@@ -9372,8 +9290,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoSetter =
 const Code<Message Function(String name)> codeSuperclassHasNoSetter =
     const Code<Message Function(String name)>(
         "SuperclassHasNoSetter", templateSuperclassHasNoSetter,
-        analyzerCodes: <String>["UNDEFINED_SUPER_SETTER"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_SUPER_SETTER"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassHasNoSetter(String name) {
@@ -9397,9 +9314,9 @@ const Template<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeSuperclassMethodArgumentMismatch =
     const Code<Message Function(String name)>(
-        "SuperclassMethodArgumentMismatch",
-        templateSuperclassMethodArgumentMismatch,
-        severity: Severity.errorLegacyWarning);
+  "SuperclassMethodArgumentMismatch",
+  templateSuperclassMethodArgumentMismatch,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
@@ -9469,7 +9386,6 @@ const Code<Null> codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
 const MessageCode messageSwitchCaseFallThrough = const MessageCode(
     "SwitchCaseFallThrough",
     analyzerCodes: <String>["CASE_BLOCK_NOT_TERMINATED"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Switch case may fall through to the next case.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9625,8 +9541,7 @@ const Template<
 const Code<Message Function(int count, int count2)> codeTooFewArguments =
     const Code<Message Function(int count, int count2)>(
         "TooFewArguments", templateTooFewArguments,
-        analyzerCodes: <String>["NOT_ENOUGH_REQUIRED_ARGUMENTS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["NOT_ENOUGH_REQUIRED_ARGUMENTS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments(int count, int count2) {
@@ -9654,8 +9569,7 @@ const Template<
 const Code<Message Function(int count, int count2)> codeTooManyArguments =
     const Code<Message Function(int count, int count2)>(
         "TooManyArguments", templateTooManyArguments,
-        analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments(int count, int count2) {
@@ -9699,8 +9613,7 @@ const Template<Message Function(int count)> templateTypeArgumentMismatch =
 const Code<Message Function(int count)> codeTypeArgumentMismatch =
     const Code<Message Function(int count)>(
         "TypeArgumentMismatch", templateTypeArgumentMismatch,
-        analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentMismatch(int count) {
@@ -9723,7 +9636,7 @@ const Template<Message Function(String name)>
 const Code<Message Function(String name)> codeTypeArgumentsOnTypeVariable =
     const Code<Message Function(String name)>(
         "TypeArgumentsOnTypeVariable", templateTypeArgumentsOnTypeVariable,
-        index: 13, severity: Severity.errorLegacyWarning);
+        index: 13);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
@@ -9755,8 +9668,7 @@ const Template<Message Function(String name)> templateTypeNotFound =
 const Code<Message Function(String name)> codeTypeNotFound =
     const Code<Message Function(String name)>(
         "TypeNotFound", templateTypeNotFound,
-        analyzerCodes: <String>["UNDEFINED_CLASS"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["UNDEFINED_CLASS"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeNotFound(String name) {
@@ -9865,7 +9777,6 @@ const Code<Null> codeTypeVariableInStaticContext =
 const MessageCode messageTypeVariableInStaticContext = const MessageCode(
     "TypeVariableInStaticContext",
     analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
-    severity: Severity.errorLegacyWarning,
     message: r"""Type variables can't be used in static members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10072,8 +9983,7 @@ const Code<Message Function(String name, String name2)>
     const Code<Message Function(String name, String name2)>(
         "UnresolvedPrefixInTypeAnnotation",
         templateUnresolvedPrefixInTypeAnnotation,
-        analyzerCodes: <String>["NOT_A_TYPE"],
-        severity: Severity.errorLegacyWarning);
+        analyzerCodes: <String>["NOT_A_TYPE"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsUnresolvedPrefixInTypeAnnotation(

@@ -37,7 +37,17 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 
 import '../export.dart' show Export;
 
@@ -73,20 +83,7 @@ import '../fasta_codes.dart'
 import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        ClassHierarchyBuilder,
-        Builder,
-        DelayedMember,
-        DelayedOverrideCheck,
-        EnumBuilder,
-        FieldBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        NamedTypeBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
+    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -335,8 +332,8 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilder(null, 0, null, "debugExpr",
-        null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new ProcedureBuilderImpl(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,

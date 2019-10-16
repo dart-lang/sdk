@@ -79,8 +79,8 @@ However, before we can write to C memory from dart, we need to `allocate` some m
 
 ```dart
 Pointer<Uint8> p = allocate(); // Infers type argument allocate<Uint8>(), and allocates 1 byte.
-p.store(123);                  // Stores a Dart int into this C int8.
-int v = p.load();              // Infers type argument p.load<int>(), and loads a value from C memory.
+p.value = 123;                 // Stores a Dart int into this C int8.
+int v = p.value;               // Loads a value from C memory.
 ```
 
 Note that you can only load a Dart `int` from a C `Uint8`.
@@ -92,10 +92,10 @@ We can do this by using `elementAt`.
 
 ```dart
 CString string = allocate(count: 4).cast(); // Allocates 4 bytes and casts it to a string.
-string.store(73);                           // Stores 'F' at index 0.
-string.elementAt(1).store(73);              // Stores 'F' at index 1.
-string.elementAt(2).store(70);              // Stores 'I' at index 2.
-string.elementAt(3).store(0);               // Null terminates the string.
+string.value = 73;                          // Stores 'F' at index 0.
+string[1] = 73;                             // Stores 'F' at index 1.
+string[2] = 70;                             // Stores 'I' at index 2.
+string[3] = 0;                              // Null terminates the string.
 ```
 
 We wrap the above logic of allocating strings in the constructor `CString.allocate`.
@@ -106,14 +106,14 @@ Now we have all ingredients to call `sqlite3_prepare_v2`.
 Pointer<StatementPointer> statementOut = allocate();
 CString queryC = CString.allocate(query);
 int resultCode = sqlite3_prepare_v2(
-    _database, queryC, -1, statementOut, fromAddress(0));
+    _database, queryC, -1, statementOut, nullptr);
 ```
 
 With `dart:ffi` we are responsible for freeing C memory that we allocate.
 So after calling `sqlite3_prepare_v2` we read out the statement pointer, and free the statement pointer pointer and `CString` which held the query string.
 
 ```
-StatementPointer statement = statementOut.load();
+StatementPointer statement = statementOut.value;
 statementOut.free();
 queryC.free();
 ```

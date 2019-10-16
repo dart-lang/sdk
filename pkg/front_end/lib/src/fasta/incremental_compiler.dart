@@ -14,7 +14,8 @@ import 'package:kernel/binary/ast_from_binary.dart'
         BinaryBuilderWithMetadata,
         CanonicalNameError,
         CanonicalNameSdkError,
-        InvalidKernelVersionError;
+        InvalidKernelVersionError,
+        SubComponentView;
 
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
@@ -49,7 +50,9 @@ import '../api_prototype/incremental_kernel_generator.dart'
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
-import 'builder/builder.dart' show Builder, ClassBuilder, LibraryBuilder;
+import 'builder/builder.dart';
+import 'builder/class_builder.dart';
+import 'builder/library_builder.dart';
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -60,6 +63,8 @@ import 'compiler_context.dart' show CompilerContext;
 import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
+
+import 'incremental_serializer.dart' show IncrementalSerializer;
 
 import 'util/error_reporter_file_copier.dart' show saveAsGzip;
 
@@ -106,6 +111,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Uri initializeFromDillUri;
   final Component componentToInitializeFrom;
   bool initializedFromDill = false;
+  bool initializedIncrementalSerializer = false;
   Uri previousPackagesUri;
   Map<String, Uri> previousPackagesMap;
   Map<String, Uri> currentPackagesMap;
@@ -113,6 +119,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
   List<Component> modulesToLoad;
+  IncrementalSerializer incrementalSerializer;
 
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
@@ -121,16 +128,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   IncrementalCompiler.fromComponent(
       this.context, Component this.componentToInitializeFrom,
-      [bool outlineOnly])
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer])
       : ticker = context.options.ticker,
         initializeFromDillUri = null,
-        this.outlineOnly = outlineOnly ?? false;
+        this.outlineOnly = outlineOnly ?? false,
+        this.incrementalSerializer = incrementalSerializer;
 
   IncrementalCompiler(this.context,
-      [this.initializeFromDillUri, bool outlineOnly])
+      [this.initializeFromDillUri,
+      bool outlineOnly,
+      IncrementalSerializer incrementalSerializer])
       : ticker = context.options.ticker,
         componentToInitializeFrom = null,
-        this.outlineOnly = outlineOnly ?? false;
+        this.outlineOnly = outlineOnly ?? false,
+        this.incrementalSerializer = incrementalSerializer;
 
   @override
   Future<Component> computeDelta(
@@ -238,7 +249,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       bool removedDillBuilders = false;
       for (LibraryBuilder builder in notReusedLibraries) {
-        CompilerContext.current.uriToSource.remove(builder.fileUri);
+        cleanupSourcesForBuilder(
+            builder, uriTranslator, CompilerContext.current.uriToSource);
+        incrementalSerializer?.invalidate(builder.fileUri);
 
         LibraryBuilder dillBuilder =
             dillLoadedData.loader.builders.remove(builder.uri);
@@ -672,6 +685,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     LibraryGraph graph = new LibraryGraph(libraryMap);
+    Set<Uri> partsUsed = new Set<Uri>();
     while (worklist.isNotEmpty && potentiallyReferencedLibraries.isNotEmpty) {
       Uri uri = worklist.removeLast();
       if (libraryMap.containsKey(uri)) {
@@ -685,6 +699,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           if (potentiallyReferencedInputLibraries.remove(uri) != null) {
             inputLibrariesFiltered?.add(library);
           }
+          for (LibraryPart part in library.parts) {
+            Uri partFileUri =
+                getPartFileUri(library.fileUri, part, uriTranslator);
+            partsUsed.add(partFileUri);
+          }
+          partsUsed;
         }
       }
     }
@@ -697,10 +717,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         Library lib = builder.library;
         removedLibraries.add(lib);
         dillLoadedData.loader.builders.remove(uri);
-        CompilerContext.current.uriToSource.remove(uri);
-        uriToSource.remove(uri);
+        cleanupSourcesForBuilder(builder, uriTranslator,
+            CompilerContext.current.uriToSource, uriToSource, partsUsed);
         userBuilders?.remove(uri);
-        removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+        removeLibraryFromRemainingComponentProblems(
+            lib, uriTranslator, partsUsed);
+
+        // Technically this isn't necessary as the uri is not a package-uri.
+        incrementalSerializer?.invalidate(builder.fileUri);
       }
     }
     hierarchy?.applyTreeChanges(removedLibraries, const []);
@@ -709,8 +733,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
+  ///
+  /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
+  /// Those parts will not be cleaned up. This is useful when a part has been
+  /// "moved" to be part of another library.
+  void cleanupSourcesForBuilder(LibraryBuilder builder,
+      UriTranslator uriTranslator, Map<Uri, Source> uriToSource,
+      [Map<Uri, Source> uriToSourceExtra, Set<Uri> partsUsed]) {
+    uriToSource.remove(builder.fileUri);
+    uriToSourceExtra?.remove(builder.fileUri);
+    Library lib = builder.library;
+    for (LibraryPart part in lib.parts) {
+      Uri partFileUri = getPartFileUri(lib.fileUri, part, uriTranslator);
+      if (partsUsed != null && partsUsed.contains(partFileUri)) continue;
+      uriToSource.remove(partFileUri);
+      uriToSourceExtra?.remove(partFileUri);
+    }
+  }
+
+  /// Internal method.
+  ///
+  /// [partsUsed] indicates part uris that are used by (other/alive) libraries.
+  /// Those parts will not be removed from the component problems.
+  /// This is useful when a part has been "moved" to be part of another library.
   void removeLibraryFromRemainingComponentProblems(
-      Library lib, UriTranslator uriTranslator) {
+      Library lib, UriTranslator uriTranslator,
+      [Set<Uri> partsUsed]) {
     remainingComponentProblems.remove(lib.fileUri);
     // Remove parts too.
     for (LibraryPart part in lib.parts) {
@@ -753,9 +801,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
         // We're going to output all we read here so lazy loading it
         // doesn't make sense.
-        new BinaryBuilderWithMetadata(initializationBytes,
+        List<SubComponentView> views = new BinaryBuilderWithMetadata(
+                initializationBytes,
                 disableLazyReading: true)
-            .readComponent(data.component, checkCanonicalNames: true);
+            .readComponent(data.component,
+                checkCanonicalNames: true, createView: true);
+        initializedIncrementalSerializer =
+            incrementalSerializer?.initialize(initializationBytes, views) ??
+                false;
 
         // Check the any package-urls still point to the same file
         // (e.g. the package still exists and hasn't been updated).

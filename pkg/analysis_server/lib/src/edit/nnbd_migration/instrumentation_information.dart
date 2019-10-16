@@ -72,6 +72,21 @@ class InstrumentationInformation {
 //    }
     return null;
   }
+
+  /// Return the type annotation associated with the [node] or `null` if the
+  /// node represents an implicit type.
+  TypeAnnotation typeAnnotationForNode(NullabilityNodeInfo node) {
+    for (MapEntry<Source, SourceInformation> sourceEntry
+        in sourceInformation.entries) {
+      for (MapEntry<TypeAnnotation, NullabilityNodeInfo> typeEntry
+          in sourceEntry.value.explicitTypeNullability.entries) {
+        if (typeEntry.value == node) {
+          return typeEntry.key;
+        }
+      }
+    }
+    return null;
+  }
 }
 
 /// The instrumentation information about a [NullabilityNodeInfo].

@@ -4,9 +4,21 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show ProcedureKind, Variance;
+import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
 
-import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/enum_builder.dart';
+import '../builder/fixed_type_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_type_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/mixin_application_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+import '../builder/unresolved_type.dart';
 
 import '../combinator.dart' show Combinator;
 
@@ -35,15 +47,9 @@ import '../fasta_codes.dart'
         templateOperatorParameterMismatch1,
         templateOperatorParameterMismatch2;
 
-import '../ignored_parser_errors.dart' show isIgnoredParserError;
+import '../identifiers.dart' show QualifiedName, flattenName;
 
-// TODO(ahe): The outline isn't supposed to import kernel-specific builders.
-import '../kernel/kernel_builder.dart'
-    show
-        MetadataBuilder,
-        MixinApplicationBuilder,
-        NamedTypeBuilder,
-        TypeBuilder;
+import '../ignored_parser_errors.dart' show isIgnoredParserError;
 
 import '../kernel/type_algorithms.dart';
 
@@ -671,7 +677,10 @@ class OutlineBuilder extends StackListener {
     ]));
     debugEvent("endExtensionDeclaration");
     String documentationComment = getDocumentationComment(extensionKeyword);
-    TypeBuilder supertype = pop();
+    Object onType = pop();
+    if (onType is ParserRecovery) {
+      onType = new FixedTypeBuilder(const InvalidType());
+    }
     List<TypeVariableBuilder> typeVariables = pop(NullValue.TypeVariables);
     int nameOffset = pop();
     String name = pop(NullValue.Name);
@@ -691,7 +700,7 @@ class OutlineBuilder extends StackListener {
         0,
         name,
         typeVariables,
-        supertype,
+        onType,
         startOffset,
         nameOffset,
         endToken.charOffset);
@@ -1583,6 +1592,9 @@ class OutlineBuilder extends StackListener {
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
       if (variance != null) {
+        if (!library.loader.target.enableVariance) {
+          reportVarianceModifierNotEnabled(variance);
+        }
         typeParameters[index].variance = Variance.fromString(variance.lexeme);
       }
     }
@@ -1637,7 +1649,7 @@ class OutlineBuilder extends StackListener {
             addProblem(message, builder.charOffset, builder.name.length);
             builder.bound = new NamedTypeBuilder(
                 builder.name, const NullabilityBuilder.omitted(), null)
-              ..bind(new InvalidTypeBuilder(
+              ..bind(new InvalidTypeDeclarationBuilder(
                   builder.name,
                   message.withLocation(
                       uri, builder.charOffset, builder.name.length)));
@@ -1650,13 +1662,6 @@ class OutlineBuilder extends StackListener {
       addProblem(messageConstructorWithTypeParameters,
           offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
       inConstructorName = false;
-    }
-  }
-
-  @override
-  void handleVarianceModifier(Token variance) {
-    if (!library.loader.target.enableVariance) {
-      reportVarianceModifierNotEnabled(variance);
     }
   }
 

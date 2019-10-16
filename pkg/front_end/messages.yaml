@@ -738,10 +738,6 @@ SuperInitializerNotLast:
   script:
     - "class C { int x; C.bad() : super(), x = 5; }"
 
-ConstConstructorWithNonConstSuper:
-  template: "Constant constructor can't call non-constant super constructors."
-  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
-
 ExtraneousModifier:
   index: 77
   template: "Can't have modifier '#lexeme' here."
@@ -774,6 +770,14 @@ ExtraneousModifier:
     - "static void foo() {}"
     - "abstract typedef foo();"
     - "static typedef foo();"
+
+ExtraneousModifierInExtension:
+  index: 98
+  template: "Can't have modifier '#lexeme' in an extension."
+  tip: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION
+  script:
+    - "extension on String { foo(covariant String child) {} }"
 
 FinalAndCovariant:
   index: 80
@@ -1279,7 +1283,6 @@ MetadataTypeArguments:
 
 ConstructorNotFound:
   template: "Couldn't find constructor '#name'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONSTRUCTOR_NOT_FOUND
 
 ConstructorWithReturnType:
@@ -1336,7 +1339,6 @@ FieldInitializerOutsideConstructor:
 
 RedirectionTargetNotFound:
   template: "Redirection constructor target not found: '#name'"
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: REDIRECT_TO_MISSING_CONSTRUCTOR
 
 CyclicTypedef:
@@ -1345,28 +1347,23 @@ CyclicTypedef:
 
 TypeNotFound:
   template: "Type '#name' not found."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: UNDEFINED_CLASS
 
 NonInstanceTypeVariableUse:
   template: "Can only use type variables in instance methods."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
 
 GetterNotFound:
   template: "Getter not found: '#name'."
   analyzerCode: UNDEFINED_GETTER
-  severity: ERROR_LEGACY_WARNING
 
 SetterNotFound:
   template: "Setter not found: '#name'."
   analyzerCode: UNDEFINED_SETTER
-  severity: ERROR_LEGACY_WARNING
 
 MethodNotFound:
   template: "Method not found: '#name'."
   analyzerCode: UNDEFINED_METHOD
-  severity: ERROR_LEGACY_WARNING
 
 CandidateFound:
   template: "Found this candidate, but the arguments don't match."
@@ -1381,23 +1378,19 @@ MissingArgumentList:
 
 TooFewArguments:
   template: "Too few positional arguments: #count required, #count2 given."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_ENOUGH_REQUIRED_ARGUMENTS
 
 TooManyArguments:
   template: "Too many positional arguments: #count allowed, but #count2 found."
   tip: "Try removing the extra positional arguments."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
 
 NoSuchNamedParameter:
   template: "No named parameter with the name '#name'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: UNDEFINED_NAMED_PARAMETER
 
 AbstractClassInstantiation:
   template: "The class '#name' is abstract and can't be instantiated."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: NEW_WITH_ABSTRACT_CLASS
 
 EnumInstantiation:
@@ -1406,7 +1399,6 @@ EnumInstantiation:
 
 AbstractRedirectedClassInstantiation:
   template: "Factory redirects to class '#name', which is abstract and can't be instantiated."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: FACTORY_REDIRECTS_TO_ABSTRACT_CLASS
 
 MissingImplementationNotAbstract:
@@ -1438,25 +1430,20 @@ ImplicitMixinOverride:
 
 ListLiteralTooManyTypeArguments:
   template: "List literal requires exactly one type argument."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
 
 SetLiteralTooManyTypeArguments:
   template: "A set literal requires exactly one type argument."
-  severity: ERROR_LEGACY_WARNING
 
 MapLiteralTypeArgumentMismatch:
   template: "A map literal requires exactly two type arguments."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: EXPECTED_TWO_MAP_TYPE_ARGUMENTS
 
 SetOrMapLiteralTooManyTypeArguments:
   template: "A set or map literal requires exactly one or two type arguments, respectively."
-  severity: ERROR_LEGACY_WARNING
 
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: LOAD_LIBRARY_TAKES_NO_ARGUMENTS
 
 LoadLibraryHidesMember:
@@ -1466,12 +1453,10 @@ LoadLibraryHidesMember:
 
 TypeArgumentMismatch:
   template: "Expected #count type arguments."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS
 
 NotAType:
   template: "'#name' isn't a type."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
 
 NotATypeContext:
@@ -1480,7 +1465,6 @@ NotATypeContext:
 
 NotAPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
   declaration:
     - |
@@ -1494,7 +1478,6 @@ NotAPrefixInTypeAnnotation:
 
 UnresolvedPrefixInTypeAnnotation:
   template: "'#name.#name2' can't be used as a type because '#name' isn't defined."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: NOT_A_TYPE
   statement: "T.String x;"
 
@@ -1589,6 +1572,12 @@ FastaUsageLong:
         internal stack trace from the compiler. Multiple kinds can be separated by
         commas, for example, --fatal=errors,warnings.
 
+      --fatal-skip=<number>
+      --fatal-skip=trace
+        Skip this many messages that would otherwise be fatal before aborting the
+        compilation. Default is 0, which stops at the first message. Specify
+        'trace' to print a stack trace for every message without stopping.
+
       --enable-experiment=<flag>
         Enable or disable an experimental flag, used to guard features currently
         in development. Prefix an experiment name with 'no-' to disable it.
@@ -1609,7 +1598,6 @@ NativeClauseShouldBeAnnotation:
 
 ReturnTypeFunctionExpression:
   template: "A function expression can't have a return type."
-  severity: ERROR_LEGACY_WARNING
 
 InternalProblemUnhandled:
   template: "Unhandled #string in #string2."
@@ -1706,6 +1694,10 @@ LocalDefinitionHidesImport:
   template: "Local definition of '#name' hides import from '#uri'."
   severity: IGNORED
 
+DebugTrace:
+  template: "Fatal '#name' at:\n#string"
+  severity: IGNORED
+
 ExportHidesExport:
   template: "Export of '#name' (from '#uri') hides export from '#uri2'."
   severity: IGNORED
@@ -1735,7 +1727,6 @@ DuplicateDeferred:
 DeferredTypeAnnotation:
   template: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
   tip: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
 
 DuplicatePrefix:
@@ -1772,7 +1763,6 @@ DuplicatedLibraryExportContext:
 
 DuplicatedExportInType:
   template: "'#name' is exported from both '#uri' and '#uri2'."
-  severity: ERROR_LEGACY_WARNING
 
 DuplicatedImport:
   template: "'#name' is imported from both '#uri' and '#uri2'."
@@ -1793,7 +1783,6 @@ DuplicatedLibraryImportContext:
 
 DuplicatedImportInType:
   template: "'#name' is imported from both '#uri' and '#uri2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: AMBIGUOUS_IMPORT
   script:
     lib1.dart: "class A {}"
@@ -1913,18 +1902,8 @@ ConflictsWithMember:
   template: "Conflicts with member '#name'."
   analyzerCode: CONFLICTS_WITH_MEMBER
 
-ConflictsWithMemberWarning:
-  template: "Conflicts with member '#name'."
-  severity: ERROR_LEGACY_WARNING
-  analyzerCode: CONFLICTS_WITH_MEMBER
-
 ConflictsWithSetter:
   template: "Conflicts with setter '#name'."
-  analyzerCode: CONFLICTS_WITH_MEMBER
-
-ConflictsWithSetterWarning:
-  template: "Conflicts with setter '#name'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CONFLICTS_WITH_MEMBER
 
 ConflictsWithTypeVariable:
@@ -2022,7 +2001,6 @@ IllegalMixin:
 
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
 OverriddenMethodCause:
@@ -2031,22 +2009,18 @@ OverriddenMethodCause:
 
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_NAMED
 
 OverrideFewerNamedArguments:
   template: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_NAMED
 
 OverrideFewerPositionalArguments:
   template: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_POSITIONAL
 
 OverrideMoreRequiredArguments:
   template: "The method '#name' has more required arguments than those of overridden method '#name2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_OVERRIDE_REQUIRED
 
 OverrideTypeMismatchParameter:
@@ -2355,7 +2329,6 @@ TypeArgumentsOnTypeVariable:
   index: 13
   template: "Can't use type arguments with type variable '#name'."
   tip: "Try removing the type arguments."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE
   script:
     - "dynamic<T>(x) => 0"
@@ -2501,18 +2474,15 @@ SupertypeIsTypeVariable:
 PartOfLibraryNameMismatch:
   template: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
   analyzerCode: PART_OF_DIFFERENT_LIBRARY
-  severity: ERROR_LEGACY_WARNING
 
 PartOfUseUri:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
   tip: "Try changing the 'part of' declaration to use a relative file name."
   analyzerCode: PART_OF_UNNAMED_LIBRARY
-  severity: ERROR_LEGACY_WARNING
 
 PartOfUriMismatch:
   template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
   analyzerCode: PART_OF_DIFFERENT_LIBRARY
-  severity: ERROR_LEGACY_WARNING
 
 MissingMain:
   template: "No 'main' method found."
@@ -2599,7 +2569,6 @@ SwitchHasMultipleDefaults:
 
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: CASE_BLOCK_NOT_TERMINATED
 
 FinalInstanceVariableAlreadyInitialized:
@@ -2607,7 +2576,6 @@ FinalInstanceVariableAlreadyInitialized:
   # TODO(ahe): Strictly speaking, as of
   # 3b5874a332b24f326775b3520f32b9a818731aca, this is a compile-time error in
   # legacy mode.
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: FINAL_INITIALIZED_MULTIPLE_TIMES
 
 FinalInstanceVariableAlreadyInitializedCause:
@@ -2616,7 +2584,6 @@ FinalInstanceVariableAlreadyInitializedCause:
 
 TypeVariableInStaticContext:
   template: "Type variables can't be used in static members."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: TYPE_PARAMETER_REFERENCED_BY_STATIC
   declaration:
     - |
@@ -2675,26 +2642,21 @@ TypeVariableInConstantContext:
 
 SuperclassMethodArgumentMismatch:
   template: "Superclass doesn't have a method named '#name' with matching arguments."
-  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoGetter:
   template: "Superclass has no getter named '#name'."
   analyzerCode: UNDEFINED_SUPER_GETTER
-  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoSetter:
   template: "Superclass has no setter named '#name'."
   analyzerCode: UNDEFINED_SUPER_SETTER
-  severity: ERROR_LEGACY_WARNING
 
 SuperclassHasNoMethod:
   template: "Superclass has no method named '#name'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: UNDEFINED_SUPER_METHOD
 
 SuperclassHasNoConstructor:
   template: "Superclass has no constructor named '#name'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode:
     - UNDEFINED_CONSTRUCTOR_IN_INITIALIZER
     - UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
@@ -2735,6 +2697,18 @@ ConstConstructorRedirectionToNonConst:
       class A {
         const A.foo() : this.bar();
         A.bar() {}
+      }
+
+ConstConstructorWithNonConstSuper:
+  template: "A constant constructor can't call a non-constant super constructor."
+  analyzerCode: CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER
+  script:
+    - >-
+      class A {
+        A.bar() {}
+      }
+      class B extends A {
+        const B.foo() : super.bar();
       }
 
 AccessError:
@@ -3030,7 +3004,6 @@ ForInLoopTypeNotIterable:
 InitializingFormalTypeMismatch:
   template: "The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'."
   tip: "Try changing the type of parameter '#name' to a subtype of '#type2'."
-  severity: ERROR_LEGACY_WARNING
   analyzerCode: INVALID_PARAMETER_DECLARATION
   script: >
     class C {
@@ -3502,11 +3475,6 @@ FfiTypeInvalid:
   template: "Expected type '#type' to be a valid and instantiated subtype of 'NativeType'."
   external: test/ffi_test.dart
 
-FfiTypeUnsized:
-  # Used by dart:ffi
-  template: "Method '#name' cannot be called on something of type '#type' as this type is unsized."
-  external: test/ffi_test.dart
-
 FfiFieldAnnotation:
   # Used by dart:ffi
   template: "Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
@@ -3535,11 +3503,6 @@ FfiExtendsOrImplementsSealedClass:
 FfiStructGeneric:
   # Used by dart:ffi
   template: "Struct '#name' should not be generic."
-  external: test/ffi_test.dart
-
-FfiWrongStructInheritance:
-  # Used by dart:ffi
-  template: "Struct '#name' must inherit from 'Struct<#name>'."
   external: test/ffi_test.dart
 
 FfiDartTypeMismatch:

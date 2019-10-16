@@ -391,17 +391,16 @@ class InferenceVisitor
     FunctionType calleeType = node.target != null
         ? node.target.function.functionType
         : new FunctionType([], const DynamicType());
-    bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     DartType inferredType = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments);
     Expression replacement = new StaticInvocation(node.target, node.arguments);
-    if (!inferrer.isTopLevel &&
-        !hadExplicitTypeArguments &&
-        node.target != null) {
+    if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
-          replacement, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
-          inferred: true);
+          replacement,
+          inferrer.typeSchemaEnvironment,
+          inferrer.helper.uri,
+          typeArgumentsInfo);
     }
     node.replaceWith(replacement);
     inferredType =
@@ -570,8 +569,11 @@ class InferenceVisitor
         iterable, elementType, typeNeeded || typeChecksNeeded,
         isAsync: isAsync);
     if (typeNeeded) {
-      inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
-          'type', new InstrumentationValueForType(inferredType));
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          variable.fileOffset,
+          'type',
+          new InstrumentationValueForType(inferredType));
       variable.type = inferredType;
     }
 
@@ -1205,7 +1207,7 @@ class InferenceVisitor
           inferredTypes);
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
-          inferrer.uri,
+          inferrer.uriForInstrumentation,
           node.fileOffset,
           'typeArgs',
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
@@ -1740,7 +1742,7 @@ class InferenceVisitor
             inferredTypesForSet);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         inferrer.instrumentation?.record(
-            inferrer.uri,
+            inferrer.uriForInstrumentation,
             node.fileOffset,
             'typeArgs',
             new InstrumentationValueForTypeArgs([inferredTypeArgument]));
@@ -1794,7 +1796,7 @@ class InferenceVisitor
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       inferrer.instrumentation?.record(
-          inferrer.uri,
+          inferrer.uriForInstrumentation,
           node.fileOffset,
           'typeArgs',
           new InstrumentationValueForTypeArgs(
@@ -2313,7 +2315,10 @@ class InferenceVisitor
           noLength);
     } else {
       assert(indexSetTarget.isInstanceMember);
-      inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
           new InstrumentationValueForMember(node.setter));
       assignment = new SuperMethodInvocation(
           indexSetName,
@@ -2509,8 +2514,11 @@ class InferenceVisitor
 
       if (checkKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.readOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
@@ -2680,7 +2688,10 @@ class InferenceVisitor
           '[]'.length);
     } else {
       assert(readTarget.isInstanceMember);
-      inferrer.instrumentation?.record(inferrer.uri, node.readOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.readOffset,
+          'target',
           new InstrumentationValueForMember(node.getter));
       read = new SuperMethodInvocation(
           indexGetName,
@@ -2710,7 +2721,10 @@ class InferenceVisitor
           '[]='.length);
     } else {
       assert(writeTarget.isInstanceMember);
-      inferrer.instrumentation?.record(inferrer.uri, node.writeOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.writeOffset,
+          'target',
           new InstrumentationValueForMember(node.setter));
       write = new SuperMethodInvocation(
           indexSetName,
@@ -3001,8 +3015,11 @@ class InferenceVisitor
         ..fileOffset = node.readOffset;
       if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.readOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
@@ -3073,8 +3090,11 @@ class InferenceVisitor
 
       if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.binaryOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.binaryOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true
@@ -3239,8 +3259,11 @@ class InferenceVisitor
         ..fileOffset = node.readOffset;
       if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.readOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
@@ -3310,8 +3333,11 @@ class InferenceVisitor
 
       if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.binaryOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.binaryOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true
@@ -3473,7 +3499,10 @@ class InferenceVisitor
           '[]'.length);
     } else {
       assert(readTarget.isInstanceMember);
-      inferrer.instrumentation?.record(inferrer.uri, node.readOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.readOffset,
+          'target',
           new InstrumentationValueForMember(node.getter));
       read = new SuperMethodInvocation(
           indexGetName,
@@ -3547,8 +3576,11 @@ class InferenceVisitor
 
       if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.binaryOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.binaryOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true
@@ -3595,7 +3627,10 @@ class InferenceVisitor
           '[]='.length);
     } else {
       assert(writeTarget.isInstanceMember);
-      inferrer.instrumentation?.record(inferrer.uri, node.writeOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.writeOffset,
+          'target',
           new InstrumentationValueForMember(node.setter));
       write = new SuperMethodInvocation(
           indexSetName,
@@ -3775,8 +3810,11 @@ class InferenceVisitor
 
       if (binaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.binaryOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.binaryOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true
@@ -4017,8 +4055,11 @@ class InferenceVisitor
         ..fileOffset = node.readOffset;
       if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
         if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(inferrer.uri, node.readOffset,
-              'checkReturn', new InstrumentationValueForType(readType));
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              node.readOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
@@ -4244,7 +4285,7 @@ class InferenceVisitor
           inferredTypes);
       inferredTypeArgument = inferredTypes[0];
       inferrer.instrumentation?.record(
-          inferrer.uri,
+          inferrer.uriForInstrumentation,
           node.fileOffset,
           'typeArgs',
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
@@ -4306,16 +4347,15 @@ class InferenceVisitor
     FunctionType calleeType = node.target != null
         ? node.target.function.functionType
         : new FunctionType([], const DynamicType());
-    bool hadExplicitTypeArguments =
-        getExplicitTypeArguments(node.arguments) != null;
+    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     DartType inferredType = inferrer.inferInvocation(
         typeContext, node.fileOffset, calleeType, node.arguments);
-    if (!inferrer.isTopLevel &&
-        !hadExplicitTypeArguments &&
-        node.target != null) {
+    if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
-          node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
-          inferred: true);
+          node,
+          inferrer.typeSchemaEnvironment,
+          inferrer.helper.uri,
+          typeArgumentsInfo);
     }
     return new ExpressionInferenceResult(inferredType);
   }
@@ -4360,7 +4400,10 @@ class InferenceVisitor
   ExpressionInferenceResult visitSuperMethodInvocation(
       SuperMethodInvocation node, DartType typeContext) {
     if (node.interfaceTarget != null) {
-      inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
     ExpressionInferenceResult result = inferrer.inferSuperMethodInvocation(
@@ -4376,7 +4419,10 @@ class InferenceVisitor
   ExpressionInferenceResult visitSuperPropertyGet(
       SuperPropertyGet node, DartType typeContext) {
     if (node.interfaceTarget != null) {
-      inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'target',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'target',
           new InstrumentationValueForMember(node.interfaceTarget));
     }
     return inferrer.inferSuperPropertyGet(
@@ -4438,7 +4484,9 @@ class InferenceVisitor
               noLength,
               context: [
                 messageSwitchExpressionNotAssignableCause.withLocation(
-                    inferrer.uri, node.expression.fileOffset, noLength)
+                    inferrer.uriForInstrumentation,
+                    node.expression.fileOffset,
+                    noLength)
               ]);
         }
       }
@@ -4525,7 +4573,10 @@ class InferenceVisitor
       inferredType = const DynamicType();
     }
     if (node._implicitlyTyped) {
-      inferrer.instrumentation?.record(inferrer.uri, node.fileOffset, 'type',
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'type',
           new InstrumentationValueForType(inferredType));
       node.type = inferredType;
     }
@@ -4557,8 +4608,11 @@ class InferenceVisitor
     DartType promotedType = inferrer.typePromoter
         .computePromotedType(node._fact, node._scope, mutatedInClosure);
     if (promotedType != null) {
-      inferrer.instrumentation?.record(inferrer.uri, node.fileOffset,
-          'promotedType', new InstrumentationValueForType(promotedType));
+      inferrer.instrumentation?.record(
+          inferrer.uriForInstrumentation,
+          node.fileOffset,
+          'promotedType',
+          new InstrumentationValueForType(promotedType));
     }
     node.promotedType = promotedType;
     DartType type = promotedType ?? declaredOrInferredType;

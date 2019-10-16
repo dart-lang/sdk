@@ -692,6 +692,32 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadIntPtr:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreIntPtr:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStorePointer:
+    case MethodRecognizer::kFfiFromAddress:
+    case MethodRecognizer::kFfiGetAddress:
 #endif  // !defined(TARGET_ARCH_DBC)
     // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
     // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
@@ -1020,6 +1046,233 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT(function.NumParameters() == 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
+    case MethodRecognizer::kFfiLoadInt8:
+    case MethodRecognizer::kFfiLoadInt16:
+    case MethodRecognizer::kFfiLoadInt32:
+    case MethodRecognizer::kFfiLoadInt64:
+    case MethodRecognizer::kFfiLoadUint8:
+    case MethodRecognizer::kFfiLoadUint16:
+    case MethodRecognizer::kFfiLoadUint32:
+    case MethodRecognizer::kFfiLoadUint64:
+    case MethodRecognizer::kFfiLoadIntPtr:
+    case MethodRecognizer::kFfiLoadFloat:
+    case MethodRecognizer::kFfiLoadDouble:
+    case MethodRecognizer::kFfiLoadPointer: {
+      const classid_t ffi_type_arg_cid =
+          compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const classid_t typed_data_cid =
+          compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
+      const Representation representation =
+          compiler::ffi::TypeRepresentation(ffi_type_arg_cid);
+
+      // Check Dart signature type.
+      const auto& receiver_type =
+          AbstractType::Handle(function.ParameterTypeAt(0));
+      const auto& type_args = TypeArguments::Handle(receiver_type.arguments());
+      const auto& type_arg = AbstractType::Handle(type_args.TypeAt(0));
+      ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
+
+      ASSERT(function.NumParameters() == 2);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += LoadNativeField(Slot::Pointer_c_memory_address());
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      // We do Pointer.address + index * sizeOf<T> manually because LoadIndexed
+      // does not support Mint index arguments.
+      body += LoadLocal(parsed_function_->RawParameterVariable(1));  // Index.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += UnboxTruncate(kUnboxedIntPtr);
+      // TODO(38831): Implement Shift for Uint32, and use that instead.
+      body +=
+          BinaryIntegerOp(Token::kMUL, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body +=
+          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body += ConvertIntptrToUntagged();
+      body += IntConstant(0);
+      body += LoadIndexedTypedData(typed_data_cid);
+      if (kind == MethodRecognizer::kFfiLoadFloat ||
+          kind == MethodRecognizer::kFfiLoadDouble) {
+        if (kind == MethodRecognizer::kFfiLoadFloat) {
+          body += FloatToDouble();
+        }
+        body += Box(kUnboxedDouble);
+      } else {
+        body += Box(representation);
+        if (kind == MethodRecognizer::kFfiLoadPointer) {
+          const auto class_table = thread_->isolate()->class_table();
+          ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+          const auto& pointer_class =
+              Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+
+          // We find the reified type to use for the pointer allocation.
+          //
+          // Call sites to this recognized method are guaranteed to pass a
+          // Pointer<Pointer<X>> as RawParameterVariable(0). This function
+          // will return a Pointer<X> object - for which we inspect the
+          // reified type on the argument.
+          //
+          // The following is safe to do, as (1) we are guaranteed to have a
+          // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
+          // type parameter guarantees X is an interface type.
+          ASSERT(function.NumTypeParameters() == 1);
+          LocalVariable* address = MakeTemporary();
+          body += LoadLocal(parsed_function_->RawParameterVariable(0));
+          body += LoadNativeField(
+              Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
+          body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
+              thread_, Pointer::kNativeTypeArgPos));
+          body += LoadNativeField(Slot::Type_arguments());
+          body += PushArgument();  // We instantiate a Pointer<X>.
+          body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
+          LocalVariable* pointer = MakeTemporary();
+          body += LoadLocal(pointer);
+          body += LoadLocal(address);
+          body += StoreInstanceField(TokenPosition::kNoSource,
+                                     Slot::Pointer_c_memory_address());
+          body += DropTempsPreserveTop(1);  // Drop [address] keep [pointer].
+        }
+      }
+    } break;
+    case MethodRecognizer::kFfiStoreInt8:
+    case MethodRecognizer::kFfiStoreInt16:
+    case MethodRecognizer::kFfiStoreInt32:
+    case MethodRecognizer::kFfiStoreInt64:
+    case MethodRecognizer::kFfiStoreUint8:
+    case MethodRecognizer::kFfiStoreUint16:
+    case MethodRecognizer::kFfiStoreUint32:
+    case MethodRecognizer::kFfiStoreUint64:
+    case MethodRecognizer::kFfiStoreIntPtr:
+    case MethodRecognizer::kFfiStoreFloat:
+    case MethodRecognizer::kFfiStoreDouble:
+    case MethodRecognizer::kFfiStorePointer: {
+      const classid_t ffi_type_arg_cid =
+          compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const classid_t typed_data_cid =
+          compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
+      const Representation representation =
+          compiler::ffi::TypeRepresentation(ffi_type_arg_cid);
+
+      // Check Dart signature type.
+      const auto& receiver_type =
+          AbstractType::Handle(function.ParameterTypeAt(0));
+      const auto& type_args = TypeArguments::Handle(receiver_type.arguments());
+      const auto& type_arg = AbstractType::Handle(type_args.TypeAt(0));
+      ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
+
+      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      LocalVariable* arg_index = parsed_function_->RawParameterVariable(1);
+      LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
+
+      if (kind == MethodRecognizer::kFfiStorePointer) {
+        // Do type check before anything untagged is on the stack.
+        const auto class_table = thread_->isolate()->class_table();
+        ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+        const auto& pointer_class =
+            Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+        const auto& pointer_type_args =
+            TypeArguments::Handle(pointer_class.type_parameters());
+        const auto& pointer_type_arg =
+            AbstractType::Handle(pointer_type_args.TypeAt(0));
+
+        // The method _storePointer is a top level generic function, not an
+        // instance method on a generic class.
+        ASSERT(!type_arg.IsInstantiated(kFunctions));
+        ASSERT(type_arg.IsInstantiated(kCurrentClass));
+        // But we type check it as a method on a generic class at runtime.
+        body += LoadLocal(arg_value);
+        body += LoadLocal(arg_pointer);
+        body += CheckNullOptimized(TokenPosition::kNoSource,
+                                   String::ZoneHandle(Z, function.name()));
+        // We pass the Pointer type argument as instantiator_type_args.
+        //
+        // Call sites to this recognized method are guaranteed to pass a
+        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
+        // will takes a Pointer<X> object - for which we inspect the
+        // reified type on the argument.
+        //
+        // The following is safe to do, as (1) we are guaranteed to have a
+        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
+        // type parameter guarantees X is an interface type.
+        body += LoadNativeField(
+            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
+        body += NullConstant();  // function_type_args.
+        body += AssertAssignable(TokenPosition::kNoSource, pointer_type_arg,
+                                 Symbols::Empty());
+        body += Drop();
+      }
+
+      ASSERT(function.NumParameters() == 3);
+      body += LoadLocal(arg_pointer);  // Pointer.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += LoadNativeField(Slot::Pointer_c_memory_address());
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      // We do Pointer.address + index * sizeOf<T> manually because LoadIndexed
+      // does not support Mint index arguments.
+      body += LoadLocal(arg_index);  // Index.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      // TODO(38831): Implement Shift for Uint32, and use that instead.
+      body +=
+          BinaryIntegerOp(Token::kMUL, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body +=
+          BinaryIntegerOp(Token::kADD, kUnboxedFfiIntPtr, /* truncate= */ true);
+      body += ConvertIntptrToUntagged();
+      body += IntConstant(0);
+      body += LoadLocal(arg_value);  // Value.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      if (kind == MethodRecognizer::kFfiStorePointer) {
+        body += LoadNativeField(Slot::Pointer_c_memory_address());
+      } else if (kind == MethodRecognizer::kFfiStoreFloat ||
+                 kind == MethodRecognizer::kFfiStoreDouble) {
+        body += UnboxTruncate(kUnboxedDouble);
+        if (kind == MethodRecognizer::kFfiStoreFloat) {
+          body += DoubleToFloat();
+        }
+      } else {
+        body += UnboxTruncate(representation);
+      }
+      body += StoreIndexedTypedData(typed_data_cid);
+      body += NullConstant();
+    } break;
+    case MethodRecognizer::kFfiFromAddress: {
+      const auto class_table = thread_->isolate()->class_table();
+      ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
+      const auto& pointer_class =
+          Class::ZoneHandle(H.zone(), class_table->At(kFfiPointerCid));
+
+      ASSERT(function.NumTypeParameters() == 1);
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+      body += PushArgument();
+      body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
+      body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+#if defined(TARGET_ARCH_IS_32_BIT)
+      // Truncate to 32 bits on 32 bit architecture.
+      body += UnboxTruncate(kUnboxedFfiIntPtr);
+      body += Box(kUnboxedFfiIntPtr);
+#endif  // defined(TARGET_ARCH_IS_32_BIT)
+      body += StoreInstanceField(TokenPosition::kNoSource,
+                                 Slot::Pointer_c_memory_address());
+    } break;
+    case MethodRecognizer::kFfiGetAddress: {
+      ASSERT(function.NumParameters() == 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Pointer.
+      body += CheckNullOptimized(TokenPosition::kNoSource,
+                                 String::ZoneHandle(Z, function.name()));
+      body += LoadNativeField(Slot::Pointer_c_memory_address());
+    } break;
     default: {
       UNREACHABLE();
       break;
@@ -1210,44 +1463,37 @@ Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
       !dst_type.IsVoidType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
-    instructions +=
-        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name, kind);
+    instructions += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
+                                                      dst_type, dst_name, kind);
     instructions += Drop();
   }
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
-                                            const AbstractType& dst_type,
-                                            const String& dst_name,
-                                            AssertAssignableInstr::Kind kind) {
+Fragment FlowGraphBuilder::AssertAssignableLoadTypeArguments(
+    TokenPosition position,
+    const AbstractType& dst_type,
+    const String& dst_name,
+    AssertAssignableInstr::Kind kind) {
   if (!I->should_emit_strong_mode_checks()) {
     return Fragment();
   }
 
   Fragment instructions;
-  Value* value = Pop();
 
   if (!dst_type.IsInstantiated(kCurrentClass)) {
     instructions += LoadInstantiatorTypeArguments();
   } else {
     instructions += NullConstant();
   }
-  Value* instantiator_type_args = Pop();
 
   if (!dst_type.IsInstantiated(kFunctions)) {
     instructions += LoadFunctionTypeArguments();
   } else {
     instructions += NullConstant();
   }
-  Value* function_type_args = Pop();
 
-  AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      position, value, instantiator_type_args, function_type_args, dst_type,
-      dst_name, GetNextDeoptId(), kind);
-  Push(instr);
-
-  instructions += Fragment(instr);
+  instructions += AssertAssignable(position, dst_type, dst_name, kind);
 
   return instructions;
 }
@@ -1936,8 +2182,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
   AbstractType& return_type = AbstractType::Handle(function.result_type());
   if (!return_type.IsDynamicType() && !return_type.IsVoidType() &&
       !return_type.IsObjectType()) {
-    body += AssertAssignable(TokenPosition::kNoSource, return_type,
-                             Symbols::Empty());
+    body += AssertAssignableLoadTypeArguments(TokenPosition::kNoSource,
+                                              return_type, Symbols::Empty());
   }
   body += Return(TokenPosition::kNoSource);
 
@@ -2435,7 +2681,8 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
     body += NullConstant();
   } else {
     const Representation from_rep = native_representation;
-    const Representation to_rep = compiler::ffi::TypeRepresentation(ffi_type);
+    const Representation to_rep =
+        compiler::ffi::TypeRepresentation(ffi_type.type_class_id());
     if (from_rep != to_rep) {
       body += BitCast(from_rep, to_rep);
     } else {
@@ -2453,15 +2700,15 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
   Fragment body;
 
   // Check for 'null'.
-  body += LoadLocal(MakeTemporary());
-  body <<= new (Z) CheckNullInstr(Pop(), String::ZoneHandle(Z, function.name()),
-                                  GetNextDeoptId(), TokenPosition::kNoSource);
+  body += CheckNullOptimized(TokenPosition::kNoSource,
+                             String::ZoneHandle(Z, function.name()));
 
   if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
     body += LoadNativeField(Slot::Pointer_c_memory_address());
     body += UnboxTruncate(kUnboxedFfiIntPtr);
   } else {
-    Representation from_rep = compiler::ffi::TypeRepresentation(ffi_type);
+    Representation from_rep =
+        compiler::ffi::TypeRepresentation(ffi_type.type_class_id());
     body += UnboxTruncate(from_rep);
 
     Representation to_rep = native_representation;

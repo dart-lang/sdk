@@ -8,6 +8,12 @@ Status: Draft
 
 ## CHANGELOG
 
+2019.10.15:
+- Added information about implementing the subtype relation.
+
+2019.10.15:
+- Added description of `DartType.withNullability`.
+
 2019.09.26:
 - Initial version uploaded.
 
@@ -277,10 +283,18 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 
 #### Nullability attribute on types
 
-- `DartType.nullability` is added to `DartType` and the implementations are added to subclasses to subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
+- `DartType.nullability` is added to `DartType` and the implementations are added to the subclasses (fields for InterfaceType, FunctionType, TypedefType, and TypeParameterType, concrete getter for `TypeParameterType`).
 - Nullability parameter is added to constructors of InterfaceType, FunctionType, TypedefType, and TypeParameterType.
-- `TypeParameterType.typeParameterTypeNullability is added.  For details see section **Nullability of Intersection Types** of this document.
-- `TypeParameterType.computeNullabilityFromBound is added.
+- `TypeParameterType.typeParameterTypeNullability` is added.  For details see section **Nullability of Intersection Types** of this document.
+- `TypeParameterType.computeNullabilityFromBound` is added.
+- `DartType.withNullability` method is added to `DartType` and is implemented in its subclasses.  The method takes a single parameter, the desired nullability, and returns the type that is the receiver with the given nullability.  If the receiver already has the nullability that is passed in as the parameter, the receiver object itself is returned, and a copy isn't created.  If the types that are represented by a particular `DartType` subclass always have a certain nullability, like `dynamic` or `void`, invocations of `withNullability` on them always return the receiver.
+
+#### Subtype queries
+
+- `SubtypeCheckMode` enum is added.  It has two values corresponding to the two modes for type checks: `SubtypeCheckMode.withNullabilities` corresponds to the mode where the nullability modifiers on the types are taken into the account according to the [specification for the subtype relation](https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md), and `SubtypeCheckMode.ignoringNullabilities` corresponds to the mode where the nullability markers are ignored as if the check was made on pre-NNBD types.
+- `SubtypeTester.isSubtypeOf` is updated to receive additional parameter, a `SubtypeCheckMode`.
+- `IsSubtypeOf` class is added.  It represents a result of a nullability-aware type check.  Objects of `IsSubtypeOf` can further be queried for whether the checked types are in the subtype relation when the nullability modifiers are taken into account (using `IsSubtypeOf.isSubtypeWhenUsingNullabilities`) or when the modifiers are ignored (using `IsSubtypeOf.isSubtypeWhenIgnoringNullabilities`).
+- `SubtypeTester.performNullabilityAwareSubtypeCheck` method is added.  It takes two types as input and produces a result of type `IsSubtypeOf`.  Using `SubtypeTester.performNullabilityAwareSubtypeCheck` is recommended for performance considerations if a call site needs to differentiate between NNBD and pre-NNBD cases.
 
 #### isRequired and isLate flags
 
@@ -340,6 +354,18 @@ Quick recommendations for updating the described code are listed below.  The exa
 - Replace `new TypedefType.byReference(tdefRef, typeArgs)` with `new TypedefType.byReference(tdefRef, typeArgs, library.nonNullable)`.
 
 The code updated this way will generate nullable and non-nullable types as desired for the opted-in libraries and will generate legacy types for the opted-out libraries.  It should also be easy to deprecate the weak-NNBD mode for such code: `Library.nonNullable` and `Library.nullable` will start returning the corresponding nullability constants.
+
+#### Avoiding SubtypeCheckMode.ignoringNullabilities
+
+As described in section **Subtype queries**, `SubtypeTester.isSubtypeOf` now accepts additional parameter, a `SubtypeCheckMode`.  The parameter is required to clearly indicate the mode of checking, and is initially set to `SubtypeCheckMode.ignoringNullabilities` at all call sites within CFE and in the client code.
+
+As a part of implementing the NNBD feature, all such call sites need to take the nullability attributes into account.  In [the weak null checking mode](https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#errors-as-warnings) all errors that originate from the NNBD-related changes should be treated as warnings.  For some of the call sites it means that they should differentiate between two situations: whether one type is a subtype of the other type with nullabilities taken into account or only if the nullability modifiers are ignored.
+
+One way to make the differentiation is to invoke `isSubtypeOf` twice.  The first time it is invoked with `SubtypeCheckMode.withNullabilities` as the mode.  If it returns `true`, the subtype check succeeds when the nullability modifiers are taken into account and it would have succeeded also if the modifiers were ignored.  It means that neither warning nor error should be reported if it was dependent on the result of the type check.
+
+If `isSubtypeOf` returns `false` when the mode is `SubtypeCheckMode.withNullabilities`, it is still possible that the check fails only because of the nullability modifiers.  To check if it's true, another invocation of `isSubtypeOf` can be made with `SubtypeCheckMode.ignoringNullabilities` as the third parameter.  If the result is `true`, the subtype check fails only because of the nullability modifiers, and a warning should be reported.  If the result is `false`, the check fails in both modes, and an error should be reported.
+
+To save some computations, a single invocation of `performNullabilityAwareSubtypeCheck` can be made instead of the two invocations of `isSubtypeOf`.  The method takes two types as the input and returns an object of `IsSubtypeOf` as the result.  The return value of the method can further be queried to determine if an error or a warning should be reported.  If invocation of `IsSubtypeOf.isSubtypeWhenUsingNullabilities` returns `true`, the two types are in the subtype relation in both modes, and neither error nor warning should be reported.  If it returns `false`, the failure may be due to the nullability modifiers.  To differentiate between the two possibilities, an invocation of `IsSubtypeOf.isSubtypeWhenIgnoringNullabilities` can be made.  If the result is `true`, a warning should be issued; otherwise, an error should be reported.
 
 #### Computing TypeParameterType.nullability
 

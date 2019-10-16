@@ -161,12 +161,16 @@ class BaseFlowGraphBuilder {
   Fragment LoadField(const Field& field);
   Fragment LoadNativeField(const Slot& native_field);
   Fragment LoadIndexed(intptr_t index_scale);
+  // Takes a [class_id] valid for StoreIndexed.
+  Fragment LoadIndexedTypedData(classid_t class_id);
 
   Fragment LoadUntagged(intptr_t offset);
   Fragment StoreUntagged(intptr_t offset);
   Fragment ConvertUntaggedToIntptr();
   Fragment ConvertIntptrToUntagged();
   Fragment UnboxSmiToIntptr();
+  Fragment FloatToDouble();
+  Fragment DoubleToFloat();
 
   Fragment AddIntptrIntegers();
 
@@ -192,7 +196,9 @@ class BaseFlowGraphBuilder {
   Fragment LoadStaticField();
   Fragment RedefinitionWithType(const AbstractType& type);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
-  Fragment StoreIndexed(intptr_t class_id);
+  Fragment StoreIndexed(classid_t class_id);
+  // Takes a [class_id] valid for StoreIndexed.
+  Fragment StoreIndexedTypedData(classid_t class_id);
 
   void Push(Definition* definition);
   Definition* Peek(intptr_t depth = 0);
@@ -241,6 +247,9 @@ class BaseFlowGraphBuilder {
   Fragment NullConstant();
   Fragment SmiRelationalOp(Token::Kind kind);
   Fragment SmiBinaryOp(Token::Kind op, bool is_truncating = false);
+  Fragment BinaryIntegerOp(Token::Kind op,
+                           Representation representation,
+                           bool is_truncating = false);
   Fragment LoadFpRelativeSlot(intptr_t offset, CompileType result_type);
   Fragment StoreFpRelativeSlot(intptr_t offset);
   Fragment BranchIfTrue(TargetEntryInstr** then_entry,
@@ -333,10 +342,22 @@ class BaseFlowGraphBuilder {
   // 'function_name' is a selector which is being called (reported in
   // NoSuchMethod message).
   // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
+  // Note that this does _not_ use the result of the CheckNullInstr, so it does
+  // not create a data depedency and might break with code motion.
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name,
                      bool clear_the_temp = true);
+
+  // Pops the top of the stack, checks it for null, and pushes the result on
+  // the stack to create a data dependency.
+  // 'function_name' is a selector which is being called (reported in
+  // NoSuchMethod message).
+  // Note that the result can currently only be used in optimized code, because
+  // optimized code uses FlowGraph::RemoveRedefinitions to remove the
+  // redefinitions, while unoptimized code does not.
+  Fragment CheckNullOptimized(TokenPosition position,
+                              const String& function_name);
 
   // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
   void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
@@ -360,6 +381,14 @@ class BaseFlowGraphBuilder {
   // Builds StringInterpolate instruction, an equivalent of
   // _StringBase._interpolate call.
   Fragment StringInterpolate(TokenPosition position);
+
+  // Pops function type arguments, instantiator type arguments and value; and
+  // type checks value against the type arguments.
+  Fragment AssertAssignable(
+      TokenPosition position,
+      const AbstractType& dst_type,
+      const String& dst_name,
+      AssertAssignableInstr::Kind kind = AssertAssignableInstr::kUnknown);
 
   // Returns true if we're currently recording deopt_id -> context level
   // mapping.

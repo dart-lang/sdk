@@ -6,7 +6,7 @@ static method map<T extends core::Object* = dynamic>(() →* self::map::T* f1, (
   ;
 static method id<T extends core::Object* = dynamic>(self::id::T* t) → dynamic
   ;
-static method foo() → core::Null*
+static method foo() → core::Null?
   ;
 static method main() → dynamic
   ;

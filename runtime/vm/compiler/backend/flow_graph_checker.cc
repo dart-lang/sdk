@@ -106,6 +106,28 @@ static bool IsControlFlow(Instruction* instruction) {
          instruction->IsStop() || instruction->IsTailCall();
 }
 
+// Asserts push arguments appear in environment at the right place.
+static void AssertPushArgsInEnv(FlowGraph* flow_graph, Definition* call) {
+  Environment* env = call->env();
+  if (env == nullptr) {
+    // An empty environment should only happen pre-SSA.
+    ASSERT(flow_graph->current_ssa_temp_index() == 0);
+  } else if (flow_graph->function().IsIrregexpFunction()) {
+    // TODO(dartbug.com/38577): cleanup regexp pipeline too....
+  } else {
+    // Otherwise, the trailing environment entries must
+    // correspond directly with the PushArguments.
+    const intptr_t env_count = env->Length();
+    const intptr_t arg_count = call->ArgumentCount();
+    ASSERT(arg_count <= env_count);
+    const intptr_t env_base = env_count - arg_count;
+    for (intptr_t i = 0; i < arg_count; i++) {
+      ASSERT(call->PushArgumentAt(i) ==
+             env->ValueAt(env_base + i)->definition());
+    }
+  }
+}
+
 void FlowGraphChecker::VisitBlocks() {
   const GrowableArray<BlockEntryInstr*>& preorder = flow_graph_->preorder();
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph_->postorder();
@@ -225,9 +247,9 @@ void FlowGraphChecker::VisitInstructions(BlockEntryInstr* block) {
 void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   ASSERT(!instruction->IsBlockEntry());
 
+#if !defined(DART_PRECOMPILER)
   // In JIT mode, any instruction which may throw must have a deopt-id, except
   // tail-call because it replaces the stack frame.
-#if !defined(DART_PRECOMPILER)
   ASSERT(!instruction->MayThrow() || instruction->IsTailCall() ||
          instruction->deopt_id() != DeoptId::kNone);
 #endif  // !defined(DART_PRECOMPILER)
@@ -394,7 +416,16 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT(def->value()->definition() != def);
 }
 
+void FlowGraphChecker::VisitClosureCall(ClosureCallInstr* call) {
+  AssertPushArgsInEnv(flow_graph_, call);
+}
+
+void FlowGraphChecker::VisitStaticCall(StaticCallInstr* call) {
+  AssertPushArgsInEnv(flow_graph_, call);
+}
+
 void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
+  AssertPushArgsInEnv(flow_graph_, call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());
@@ -402,6 +433,7 @@ void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
 
 void FlowGraphChecker::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
+  AssertPushArgsInEnv(flow_graph_, call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());

@@ -1337,7 +1337,9 @@ class Parser {
       if (isModifier(next)) {
         if (optional('covariant', next)) {
           if (memberKind != MemberKind.StaticMethod &&
-              memberKind != MemberKind.TopLevelMethod) {
+              memberKind != MemberKind.TopLevelMethod &&
+              memberKind != MemberKind.ExtensionNonStaticMethod &&
+              memberKind != MemberKind.ExtensionStaticMethod) {
             covariantToken = token = next;
             next = token.next;
           }
@@ -3327,9 +3329,13 @@ class Parser {
         token,
         name,
         isGetter,
-        staticToken != null
-            ? MemberKind.StaticMethod
-            : MemberKind.NonStaticMethod);
+        kind == DeclarationKind.Extension
+            ? staticToken != null
+                ? MemberKind.ExtensionStaticMethod
+                : MemberKind.ExtensionNonStaticMethod
+            : staticToken != null
+                ? MemberKind.StaticMethod
+                : MemberKind.NonStaticMethod);
     token = parseInitializersOpt(beforeInitializers);
     if (token == beforeInitializers) beforeInitializers = null;
 
@@ -3939,13 +3945,6 @@ class Parser {
       if (!isModifier(varOrFinal.next)) {
         return parseExpressionStatementOrDeclarationAfterModifiers(
             varOrFinal, token, null, varOrFinal, null, false);
-      }
-      return parseExpressionStatementOrDeclaration(token);
-    } else if (identical(value, 'late')) {
-      Token lateToken = token.next;
-      if (!isModifier(lateToken.next)) {
-        return parseExpressionStatementOrDeclarationAfterModifiers(
-            lateToken, token, lateToken, null, null, false);
       }
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'if')) {

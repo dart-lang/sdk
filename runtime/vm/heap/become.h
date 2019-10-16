@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_HEAP_BECOME_H_
 #define RUNTIME_VM_HEAP_BECOME_H_
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
 #include "vm/raw_object.h"
 
@@ -52,7 +53,7 @@ class ForwardingCorpse {
 
  private:
   // This layout mirrors the layout of RawObject.
-  uint32_t tags_;
+  RelaxedAtomic<uint32_t> tags_;
 #if defined(HASH_IN_OBJECT_HEADER)
   uint32_t hash_;
 #endif

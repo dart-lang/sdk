@@ -1556,11 +1556,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleVarianceModifier(Token variance) {
-    listener?.handleVarianceModifier(variance);
-  }
-
-  @override
   void handleVoidKeyword(Token token) {
     listener?.handleVoidKeyword(token);
   }

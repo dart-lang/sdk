@@ -8,9 +8,10 @@ import 'package:kernel/ast.dart';
 
 import '../builder/extension_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../kernel/kernel_builder.dart';
+
 import '../scope.dart';
 
 import 'dill_class_builder.dart';

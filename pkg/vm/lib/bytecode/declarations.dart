@@ -19,6 +19,7 @@ class LibraryDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
+  static const isNonNullableByDefaultFlag = 1 << 3;
 
   ObjectHandle importUri;
   final int flags;
@@ -76,6 +77,9 @@ class LibraryDeclaration {
     }
     if ((flags & hasExtensionsFlag) != 0) {
       sb.writeln('    extensions: $extensionUris');
+    }
+    if ((flags & isNonNullableByDefaultFlag) != 0) {
+      sb.writeln('    is nnbd');
     }
     sb.writeln();
     for (var cls in classes) {
@@ -1194,7 +1198,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424332; // 'DBC2'
-  static const int numSections = 13;
+  static const int numSections = 14;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -1213,6 +1217,7 @@ class Component {
   final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
   final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
   final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
+  Set<String> protectedNames;
   ObjectHandle mainLibrary;
 
   Component(this.version)
@@ -1224,6 +1229,13 @@ class Component {
 
     // Write sections to their own buffers in reverse order as section may
     // reference data structures from successor sections by offsets.
+
+    final protectedNamesWriter = new BufferedWriter.fromWriter(writer);
+    if (protectedNames != null && protectedNames.isNotEmpty) {
+      for (var name in protectedNames) {
+        protectedNamesWriter.writePackedStringReference(name);
+      }
+    }
 
     final annotationsWriter = new BufferedWriter.fromWriter(writer);
     for (var annot in annotations) {
@@ -1317,6 +1329,8 @@ class Component {
       new _Section(lineStarts.length, lineStartsWriter),
       new _Section(localVariables.length, localVariablesWriter),
       new _Section(annotations.length, annotationsWriter),
+      new _Section(protectedNames != null ? protectedNames.length : 0,
+          protectedNamesWriter),
     ];
     assert(sections.length == numSections);
 
@@ -1405,6 +1419,9 @@ class Component {
     final annotationsNum = reader.readUInt32();
     final annotationsOffset = reader.readUInt32();
 
+    final protectedNamesNum = reader.readUInt32();
+    final protectedNamesOffset = reader.readUInt32();
+
     reader.offset = start + stringTableOffset;
     stringTable = new StringTable.read(reader);
     reader.stringReader = stringTable;
@@ -1415,6 +1432,14 @@ class Component {
 
     // Read sections in the reverse order as section may reference
     // successor sections by offsets.
+
+    if (protectedNamesNum != 0) {
+      protectedNames = new Set<String>();
+      reader.offset = start + protectedNamesOffset;
+      for (int i = 0; i < protectedNamesNum; ++i) {
+        protectedNames.add(reader.readPackedStringReference());
+      }
+    }
 
     final annotationsStart = start + annotationsOffset;
     reader.offset = annotationsStart;

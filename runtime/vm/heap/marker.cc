@@ -4,6 +4,7 @@
 
 #include "vm/heap/marker.h"
 
+#include "platform/atomic.h"
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/heap/pages.h"
@@ -548,7 +549,7 @@ class ParallelMarkTask : public ThreadPool::Task {
                    MarkingStack* marking_stack,
                    ThreadBarrier* barrier,
                    SyncMarkingVisitor* visitor,
-                   uintptr_t* num_busy)
+                   RelaxedAtomic<uintptr_t>* num_busy)
       : marker_(marker),
         isolate_(isolate),
         marking_stack_(marking_stack),
@@ -576,25 +577,24 @@ class ParallelMarkTask : public ThreadPool::Task {
 
           // I can't find more work right now. If no other task is busy,
           // then there will never be more work (NB: 1 is *before* decrement).
-          if (AtomicOperations::FetchAndDecrement(num_busy_) == 1) break;
+          if (num_busy_->fetch_sub(1u) == 1) break;
 
           // Wait for some work to appear.
           // TODO(iposva): Replace busy-waiting with a solution using Monitor,
           // and redraw the boundaries between stack/visitor/task as needed.
-          while (marking_stack_->IsEmpty() &&
-                 AtomicOperations::LoadRelaxed(num_busy_) > 0) {
+          while (marking_stack_->IsEmpty() && num_busy_->load() > 0) {
           }
 
           // If no tasks are busy, there will never be more work.
-          if (AtomicOperations::LoadRelaxed(num_busy_) == 0) break;
+          if (num_busy_->load() == 0) break;
 
           // I saw some work; get busy and compete for it.
-          AtomicOperations::FetchAndIncrement(num_busy_);
+          num_busy_->fetch_add(1u);
         } while (true);
         // Wait for all markers to stop.
         barrier_->Sync();
 #if defined(DEBUG)
-        ASSERT(AtomicOperations::LoadRelaxed(num_busy_) == 0);
+        ASSERT(num_busy_->load() == 0);
         // Caveat: must not allow any marker to continue past the barrier
         // before we checked num_busy, otherwise one of them might rush
         // ahead and increment it.
@@ -605,7 +605,7 @@ class ParallelMarkTask : public ThreadPool::Task {
         more_to_mark = visitor_->ProcessPendingWeakProperties();
         if (more_to_mark) {
           // We have more work to do. Notify others.
-          AtomicOperations::FetchAndIncrement(num_busy_);
+          num_busy_->fetch_add(1u);
         }
 
         // Wait for all other markers to finish processing their pending
@@ -613,10 +613,10 @@ class ParallelMarkTask : public ThreadPool::Task {
         // Caveat: we need two barriers here to make this decision in lock step
         // between all markers and the main thread.
         barrier_->Sync();
-        if (!more_to_mark && (AtomicOperations::LoadRelaxed(num_busy_) > 0)) {
+        if (!more_to_mark && (num_busy_->load() > 0)) {
           // All markers continue to mark as long as any single marker has
           // some work to do.
-          AtomicOperations::FetchAndIncrement(num_busy_);
+          num_busy_->fetch_add(1u);
           more_to_mark = true;
         }
         barrier_->Sync();
@@ -650,7 +650,7 @@ class ParallelMarkTask : public ThreadPool::Task {
   MarkingStack* marking_stack_;
   ThreadBarrier* barrier_;
   SyncMarkingVisitor* visitor_;
-  uintptr_t* num_busy_;
+  RelaxedAtomic<uintptr_t>* num_busy_;
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMarkTask);
 };
@@ -851,7 +851,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
                             heap_->barrier_done());
       ResetRootSlices();
       // Used to coordinate draining among tasks; all start out as 'busy'.
-      uintptr_t num_busy = num_tasks;
+      RelaxedAtomic<uintptr_t> num_busy(num_tasks);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
       for (intptr_t i = 0; i < num_tasks; ++i) {
         SyncMarkingVisitor* visitor;
@@ -872,7 +872,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         // Wait for all markers to stop.
         barrier.Sync();
 #if defined(DEBUG)
-        ASSERT(AtomicOperations::LoadRelaxed(&num_busy) == 0);
+        ASSERT(num_busy.load() == 0);
         // Caveat: must not allow any marker to continue past the barrier
         // before we checked num_busy, otherwise one of them might rush
         // ahead and increment it.
@@ -884,7 +884,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
         // Note: we need to have two barriers here because we want all markers
         // and main thread to make decisions in lock step.
         barrier.Sync();
-        more_to_mark = AtomicOperations::LoadRelaxed(&num_busy) > 0;
+        more_to_mark = num_busy.load() > 0;
         barrier.Sync();
       } while (more_to_mark);
 

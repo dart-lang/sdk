@@ -8,11 +8,12 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Class, Component, DartType, Library;
 
+import '../builder/class_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/type_builder.dart';
+
 import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
-
-import '../kernel/kernel_builder.dart'
-    show ClassBuilder, TypeBuilder, LibraryBuilder;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 

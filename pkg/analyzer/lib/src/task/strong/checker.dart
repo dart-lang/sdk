@@ -1356,6 +1356,11 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
+    if (loopVariable.staticElement is! VariableElement) {
+      return;
+    }
+    VariableElement loopVariableElement = loopVariable.staticElement;
+
     // Safely handle malformed statements.
     if (loopVariable == null) {
       return;
@@ -1396,7 +1401,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (elementType != null) {
       // Insert a cast from the sequence's element type to the loop variable's
       // if needed.
-      _checkImplicitCast(loopVariable, _getExpressionType(loopVariable),
+      _checkImplicitCast(loopVariable, loopVariableElement.type,
           from: elementType);
     }
   }

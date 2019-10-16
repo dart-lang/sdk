@@ -1,3 +1,29 @@
+From 6fefdfc884fb7858bd8cd981e1fdb493da8088b4 Mon Sep 17 00:00:00 2001
+From: Alexander Aprelev <aam@google.com>
+Date: Mon, 7 Oct 2019 23:13:33 -0700
+Subject: [PATCH] 2
+
+---
+ BUILD.gn                                      |  2 +-
+ ci/analyze.sh                                 |  6 +-
+ .../.gitignore                                |  0
+ flutter_frontend_server/BUILD.gn              | 63 +++++++++++++++++
+ .../README.md                                 |  0
+ .../bin/starter.dart                          |  2 +-
+ .../lib/server.dart                           |  2 +-
+ .../package_incremental.py                    |  8 +--
+ .../pubspec.yaml                              |  0
+ frontend_server/BUILD.gn                      | 68 ++-----------------
+ tools/generate_package_files.py               |  2 +-
+ 11 files changed, 80 insertions(+), 73 deletions(-)
+ rename {frontend_server => flutter_frontend_server}/.gitignore (100%)
+ create mode 100644 flutter_frontend_server/BUILD.gn
+ rename {frontend_server => flutter_frontend_server}/README.md (100%)
+ rename {frontend_server => flutter_frontend_server}/bin/starter.dart (76%)
+ rename {frontend_server => flutter_frontend_server}/lib/server.dart (98%)
+ rename {frontend_server => flutter_frontend_server}/package_incremental.py (94%)
+ rename {frontend_server => flutter_frontend_server}/pubspec.yaml (100%)
+
 diff --git a/BUILD.gn b/BUILD.gn
 index b894fe26f..e4ce1dea1 100644
 --- a/BUILD.gn
@@ -11,6 +37,25 @@ index b894fe26f..e4ce1dea1 100644
          "//third_party/dart:create_sdk",
        ]
  
+diff --git a/ci/analyze.sh b/ci/analyze.sh
+index 9ee12a913..6b48c9447 100755
+--- a/ci/analyze.sh
++++ b/ci/analyze.sh
+@@ -18,11 +18,11 @@ if [ -n "$RESULTS" ]; then
+   exit 1;
+ fi
+ 
+-echo "Analyzing frontend_server..."
++echo "Analyzing flutter_frontend_server..."
+ RESULTS=`dartanalyzer                                                          \
+-  --packages=flutter/frontend_server/.packages                                 \
++  --packages=flutter/flutter_frontend_server/.packages                                 \
+   --options flutter/analysis_options.yaml                                      \
+-  flutter/frontend_server                                                      \
++  flutter/flutter_frontend_server                                                      \
+   2>&1                                                                         \
+   | grep -Ev "No issues found!"                                                \
+   | grep -Ev "Analyzing.+frontend_server"`
 diff --git a/frontend_server/.gitignore b/flutter_frontend_server/.gitignore
 similarity index 100%
 rename from frontend_server/.gitignore
@@ -280,3 +325,6 @@ index 13399b126..1eb1e6f6c 100644
  }
  
  SRC_DIR = os.getcwd()
+-- 
+2.23.0.581.g78d2f28ef7-goog
+

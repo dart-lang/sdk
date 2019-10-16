@@ -157,6 +157,7 @@ class _SyntheticAccessor implements MethodMirror {
   bool get isExternal => false;
   bool get isRedirectingConstructor => false;
   bool get isAbstract => false;
+  bool get isExtensionMember => false;
 
   bool get isSetter => !isGetter;
   bool get isPrivate => _n(simpleName).startsWith('_');
@@ -193,6 +194,7 @@ class _SyntheticSetterParameter implements ParameterMirror {
   bool get isConst => false;
   bool get isFinal => true;
   bool get isPrivate => false;
+  bool get isExtensionMember => false;
   bool get hasDefaultValue => false;
   InstanceMirror get defaultValue => null;
   SourceLocation get location => null;
@@ -1168,6 +1170,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
   static const kFactoryCtor = 7;
   static const kExternal = 8;
   static const kSynthetic = 9;
+  static const kExtensionMember = 10;
 
   // These offsets much be kept in sync with those in mirrors.h.
   bool get isAbstract => 0 != (_kindFlags & (1 << kAbstract));
@@ -1182,6 +1185,7 @@ class _MethodMirror extends _DeclarationMirror implements MethodMirror {
   bool get isFactoryConstructor => 0 != (_kindFlags & (1 << kFactoryCtor));
   bool get isExternal => 0 != (_kindFlags & (1 << kExternal));
   bool get isSynthetic => 0 != (_kindFlags & (1 << kSynthetic));
+  bool get isExtensionMember => 0 != (_kindFlags & (1 << kExtensionMember));
 
   static const _operators = const [
     "%", "&", "*", "+", "-", "/", "<", "<<", //
@@ -1281,9 +1285,10 @@ class _VariableMirror extends _DeclarationMirror implements VariableMirror {
   final bool isStatic;
   final bool isFinal;
   final bool isConst;
+  final bool isExtensionMember;
 
   _VariableMirror._(reflectee, String simpleName, this.owner, this._type,
-      this.isStatic, this.isFinal, this.isConst)
+      this.isStatic, this.isFinal, this.isConst, this.isExtensionMember)
       : super._(reflectee, _s(simpleName));
 
   bool get isTopLevel => owner is LibraryMirror;
@@ -1339,7 +1344,8 @@ class _ParameterMirror extends _VariableMirror implements ParameterMirror {
             null, // We override the type.
             false, // isStatic does not apply.
             isFinal,
-            false // Not const.
+            false, // Not const.
+            false // Not extension member.
             );
 
   Object _defaultValueReflectee;

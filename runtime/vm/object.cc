@@ -104,7 +104,7 @@ RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
 RawArray* SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::handle_vtable_ = 0;
-cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {0};
+RelaxedAtomic<cpp_vtable> Object::builtin_vtables_[kNumPredefinedCids] = {};
 cpp_vtable Smi::handle_vtable_ = 0;
 
 // These are initialized to a value that will force a illegal memory access if
@@ -153,7 +153,8 @@ RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_source_map_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
-RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::compressed_stackmaps_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
@@ -252,7 +253,15 @@ RawString* String::RemovePrivateKey(const String& name) {
 //   _MyClass@6328321. -> _MyClass
 //   _MyClass@6328321.named -> _MyClass.named
 //
-RawString* String::ScrubName(const String& name) {
+// For extension methods the following demangling is done
+//   ext|func -> ext.func (instance extension method)
+//   ext|get#prop -> ext.prop (instance extension getter)
+//   ext|set#prop -> ext.prop= (instance extension setter)
+//   ext|sfunc -> ext.sfunc (static extension method)
+//   get:ext|sprop -> ext.sprop (static extension getter)
+//   set:ext|sprop -> ext.sprop= (static extension setter)
+//
+RawString* String::ScrubName(const String& name, bool is_extension) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -266,7 +275,8 @@ RawString* String::ScrubName(const String& name) {
   const char* cname = name.ToCString();
   ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
   const intptr_t name_len = name.Length();
-  // First remove all private name mangling.
+  // First remove all private name mangling and if 'is_extension' is true
+  // substitute the first '|' character with '.'.
   intptr_t start_pos = 0;
   GrowableArray<const char*> unmangled_segments;
   intptr_t sum_segment_len = 0;
@@ -286,6 +296,15 @@ RawString* String::ScrubName(const String& name) {
       }
       start_pos = i;
       i--;  // Account for for-loop increment.
+    } else if (is_extension && cname[i] == '|') {
+      // Append the current segment to the unmangled name.
+      const intptr_t segment_len = i - start_pos;
+      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+      // Append the '.' character (replaces '|' with '.').
+      AppendSubString(zone, &unmangled_segments, ".", 0, 1);
+      start_pos = i + 1;
+      // Account for length of segments added so far.
+      sum_segment_len += (segment_len + 1);
     }
   }
 
@@ -305,13 +324,41 @@ RawString* String::ScrubName(const String& name) {
     unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  intptr_t len = sum_segment_len;
+  unmangled_segments.Clear();
   intptr_t start = 0;
-  intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
+  intptr_t final_len = 0;
+  intptr_t len = sum_segment_len;
   bool is_setter = false;
+  if (is_extension) {
+    // First scan till we see the '.' character.
+    for (intptr_t i = 0; i < len; i++) {
+      if (unmangled_name[i] == '.') {
+        intptr_t slen = i + 1;
+        intptr_t plen = slen - start;
+        AppendSubString(zone, &unmangled_segments, unmangled_name, start, plen);
+        final_len = plen;
+        unmangled_name += slen;
+        len -= slen;
+        break;
+      } else if (unmangled_name[i] == ':') {
+        if (start != 0) {
+          // Reset and break.
+          start = 0;
+          is_setter = false;
+          break;
+        }
+        if (unmangled_name[0] == 's') {
+          is_setter = true;
+        }
+        start = i + 1;
+      }
+    }
+  }
+  intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
+  start = 0;
   for (intptr_t i = start; i < len; i++) {
-    if (unmangled_name[i] == ':') {
+    if (unmangled_name[i] == ':' ||
+        (is_extension && unmangled_name[i] == '#')) {
       if (start != 0) {
         // Reset and break.
         start = 0;
@@ -320,6 +367,7 @@ RawString* String::ScrubName(const String& name) {
       }
       ASSERT(start == 0);  // Only one : is possible in getters or setters.
       if (unmangled_name[0] == 's') {
+        ASSERT(!is_setter);
         is_setter = true;
       }
       start = i + 1;
@@ -335,7 +383,7 @@ RawString* String::ScrubName(const String& name) {
     }
   }
 
-  if ((start == 0) && (dot_pos == -1)) {
+  if (!is_extension && (start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
     return Symbols::New(thread, unmangled_name, sum_segment_len);
   }
@@ -343,9 +391,9 @@ RawString* String::ScrubName(const String& name) {
   // Drop the trailing dot if needed.
   intptr_t end = ((dot_pos + 1) == len) ? dot_pos : len;
 
-  unmangled_segments.Clear();
-  intptr_t final_len = end - start;
-  AppendSubString(zone, &unmangled_segments, unmangled_name, start, final_len);
+  intptr_t substr_len = end - start;
+  final_len += substr_len;
+  AppendSubString(zone, &unmangled_segments, unmangled_name, start, substr_len);
   if (is_setter) {
     const char* equals = Symbols::Equals().ToCString();
     const intptr_t equals_len = strlen(equals);
@@ -354,22 +402,50 @@ RawString* String::ScrubName(const String& name) {
   }
 
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   return Symbols::New(thread, unmangled_name);
 }
 
-RawString* String::ScrubNameRetainPrivate(const String& name) {
+RawString* String::ScrubNameRetainPrivate(const String& name,
+                                          bool is_extension) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   intptr_t len = name.Length();
   intptr_t start = 0;
   intptr_t at_pos = -1;  // Position of '@' in the name, if any.
   bool is_setter = false;
 
+  String& result = String::Handle();
+
+  // If extension strip out the leading prefix e.g" ext|func would strip out
+  // 'ext|'.
+  if (is_extension) {
+    // First scan till we see the '|' character.
+    for (intptr_t i = 0; i < len; i++) {
+      if (name.CharAt(i) == '|') {
+        result = String::SubString(name, start, (i - start));
+        result = String::Concat(result, Symbols::Dot());
+        start = i + 1;
+        break;
+      } else if (name.CharAt(i) == ':') {
+        if (start != 0) {
+          // Reset and break.
+          start = 0;
+          is_setter = false;
+          break;
+        }
+        if (name.CharAt(0) == 's') {
+          is_setter = true;
+        }
+        start = i + 1;
+      }
+    }
+  }
+
   for (intptr_t i = start; i < len; i++) {
-    if (name.CharAt(i) == ':') {
-      ASSERT(start == 0);  // Only one : is possible in getters or setters.
-      if (name.CharAt(0) == 's') {
+    if (name.CharAt(i) == ':' || (is_extension && name.CharAt(i) == '#')) {
+      // Only one : is possible in getters or setters.
+      ASSERT(is_extension || start == 0);
+      if (name.CharAt(start) == 's') {
         is_setter = true;
       }
       start = i + 1;
@@ -385,8 +461,13 @@ RawString* String::ScrubNameRetainPrivate(const String& name) {
     return name.raw();
   }
 
-  String& result =
-      String::Handle(String::SubString(name, start, (len - start)));
+  if (is_extension) {
+    const String& fname =
+        String::Handle(String::SubString(name, start, (len - start)));
+    result = String::Concat(result, fname);
+  } else {
+    result = String::SubString(name, start, (len - start));
+  }
 
   if (is_setter) {
     // Setters need to end with '='.
@@ -642,8 +723,8 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<CodeSourceMap>(isolate);
   code_source_map_class_ = cls.raw();
 
-  cls = Class::New<StackMap>(isolate);
-  stackmap_class_ = cls.raw();
+  cls = Class::New<CompressedStackMaps>(isolate);
+  compressed_stackmaps_class_ = cls.raw();
 
   cls = Class::New<LocalVarDescriptors>(isolate);
   var_descriptors_class_ = cls.raw();
@@ -1035,7 +1116,7 @@ void Object::Cleanup() {
   object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   code_source_map_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
-  stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  compressed_stackmaps_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   var_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   exception_handlers_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1135,7 +1216,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
-  SET_CLASS_NAME(stackmap, StackMap);
+  SET_CLASS_NAME(compressed_stackmaps, CompressedStackMaps);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
@@ -1222,12 +1303,12 @@ void Object::FinalizeReadOnlyObject(RawObject* object) {
     ASSERT(size <= map->HeapSize());
     memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
            map->HeapSize() - size);
-  } else if (cid == kStackMapCid) {
-    RawStackMap* map = StackMap::RawCast(object);
-    intptr_t size = StackMap::UnroundedSize(map);
-    ASSERT(size <= map->HeapSize());
-    memset(reinterpret_cast<void*>(RawObject::ToAddr(map) + size), 0,
-           map->HeapSize() - size);
+  } else if (cid == kCompressedStackMapsCid) {
+    RawCompressedStackMaps* maps = CompressedStackMaps::RawCast(object);
+    intptr_t size = CompressedStackMaps::UnroundedSize(maps);
+    ASSERT(size <= maps->HeapSize());
+    memset(reinterpret_cast<void*>(RawObject::ToAddr(maps) + size), 0,
+           maps->HeapSize() - size);
   } else if (cid == kPcDescriptorsCid) {
     RawPcDescriptors* desc = PcDescriptors::RawCast(object);
     intptr_t size = PcDescriptors::UnroundedSize(desc);
@@ -1279,9 +1360,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
-                                                      old_tags, new_tags);
-      } while (tags != old_tags);
+      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
 
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
@@ -1310,9 +1389,7 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
         old_tags = tags;
         // We can't use obj.CompareAndSwapTags here because we don't have a
         // handle for the new object.
-        tags = AtomicOperations::CompareAndSwapUint32(&raw->ptr()->tags_,
-                                                      old_tags, new_tags);
-      } while (tags != old_tags);
+      } while (!raw->ptr()->tags_.compare_exchange_weak(old_tags, new_tags));
     }
   }
 }
@@ -2333,7 +2410,8 @@ RawClass* Class::Mixin() const {
 
 bool Class::IsInFullSnapshot() const {
   NoSafepointScope no_safepoint;
-  return raw_ptr()->library_->ptr()->is_in_fullsnapshot_;
+  return RawLibrary::InFullSnapshotBit::decode(
+      raw_ptr()->library_->ptr()->flags_);
 }
 
 RawAbstractType* Class::RareType() const {
@@ -4008,8 +4086,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::CodeSourceMap().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
-    case kStackMapCid:
-      return Symbols::StackMap().raw();
+    case kCompressedStackMapsCid:
+      return Symbols::CompressedStackMaps().raw();
     case kLocalVarDescriptorsCid:
       return Symbols::LocalVarDescriptors().raw();
     case kExceptionHandlersCid:
@@ -5477,7 +5555,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   TypeArguments& result = TypeArguments::Handle();
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
                            kAllFree, NULL, Heap::kOld);
-  // Instantiation did not result in bound error. Canonicalize type arguments.
+  // Canonicalize type arguments.
   result = result.Canonicalize();
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
@@ -6623,6 +6701,15 @@ void Function::SetIsOptimizable(bool value) const {
 }
 
 bool Function::CanBeInlined() const {
+  // Our force-optimized functions cannot deoptimize to an unoptimized frame.
+  // If the instructions of the force-optimized function body get moved via
+  // code motion, we might attempt do deoptimize a frame where the force-
+  // optimized function has only partially finished. Since force-optimized
+  // functions cannot deoptimize to unoptimized frames we prevent them from
+  // being inlined (for now).
+  if (ForceOptimize()) {
+    return FLAG_precompiled_mode;
+  }
 #if defined(PRODUCT)
   return is_inlinable() && !is_external() && !is_generated_body();
 #else
@@ -7883,7 +7970,7 @@ RawString* Function::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
   }
-  return String::ScrubName(String::Handle(name()));
+  return String::ScrubName(String::Handle(name()), is_extension_member());
 }
 
 RawString* Function::QualifiedName(NameVisibility name_visibility) const {
@@ -8673,7 +8760,7 @@ RawString* Field::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
   }
-  return String::ScrubName(String::Handle(name()));
+  return String::ScrubName(String::Handle(name()), is_extension_member());
 }
 
 intptr_t Field::guarded_list_length() const {
@@ -11083,7 +11170,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
+  result.set_flags(0);
   result.set_is_in_fullsnapshot(false);
+  result.set_is_nnbd(false);
   if (dart_private_scheme) {
     // Never debug dart:_ libraries.
     result.set_debuggable(false);
@@ -11117,6 +11206,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
 
 RawLibrary* Library::New(const String& url) {
   return NewLibraryHelper(url, false);
+}
+
+void Library::set_flags(uint8_t flags) const {
+  StoreNonPointer(&raw_ptr()->flags_, flags);
 }
 
 void Library::InitCoreLibrary(Isolate* isolate) {
@@ -12808,84 +12901,70 @@ const char* CodeSourceMap::ToCString() const {
   return "CodeSourceMap";
 }
 
-bool StackMap::GetBit(intptr_t bit_index) const {
-  ASSERT(InRange(bit_index));
-  int byte_index = bit_index >> kBitsPerByteLog2;
-  int bit_remainder = bit_index & (kBitsPerByte - 1);
-  uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t byte = raw_ptr()->data()[byte_index];
-  return (byte & byte_mask) != 0;
+intptr_t CompressedStackMaps::Hash() const {
+  uint32_t hash = 0;
+  for (intptr_t i = 0; i < payload_size(); i++) {
+    uint8_t byte = Payload()[i];
+    hash = CombineHashes(hash, byte);
+  }
+  return FinalizeHash(hash, kHashBits);
 }
 
-void StackMap::SetBit(intptr_t bit_index, bool value) const {
-  ASSERT(InRange(bit_index));
-  int byte_index = bit_index >> kBitsPerByteLog2;
-  int bit_remainder = bit_index & (kBitsPerByte - 1);
-  uint8_t byte_mask = 1U << bit_remainder;
-  NoSafepointScope no_safepoint;
-  uint8_t* byte_addr = UnsafeMutableNonPointer(&raw_ptr()->data()[byte_index]);
-  if (value) {
-    *byte_addr |= byte_mask;
-  } else {
-    *byte_addr &= ~byte_mask;
-  }
-}
+RawCompressedStackMaps* CompressedStackMaps::New(
+    const GrowableArray<uint8_t>& payload) {
+  ASSERT(Object::compressed_stackmaps_class() != Class::null());
+  auto& result = CompressedStackMaps::Handle();
 
-RawStackMap* StackMap::New(BitmapBuilder* bmap, intptr_t slow_path_bit_count) {
-  ASSERT(Object::stackmap_class() != Class::null());
-  ASSERT(bmap != NULL);
-  StackMap& result = StackMap::Handle();
-  // Guard against integer overflow of the instance size computation.
-  intptr_t length = bmap->Length();
-  intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((length < 0) || (length > kMaxUint16) ||
-      (payload_size > kMaxLengthInBytes)) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
-  }
-  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
-           "\n",
-           slow_path_bit_count);
+  const uintptr_t payload_size = payload.length();
+  if (payload_size > kMaxInt32) {
+    FATAL1(
+        "Fatal error in CompressedStackMaps::New: "
+        "invalid payload size %" Pu "\n",
+        payload_size);
   }
   {
-    // StackMap data objects are associated with a code object, allocate them
-    // in old generation.
+    // CompressedStackMaps data objects are associated with a code object,
+    // allocate them in old generation.
     RawObject* raw = Object::Allocate(
-        StackMap::kClassId, StackMap::InstanceSize(length), Heap::kOld);
+        CompressedStackMaps::kClassId,
+        CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetLength(length);
+    result.set_payload_size(payload_size);
   }
-  if (payload_size > 0) {
-    // Ensure leftover bits are deterministic.
-    result.raw()->ptr()->data()[payload_size - 1] = 0;
-  }
-  for (intptr_t i = 0; i < length; ++i) {
-    result.SetBit(i, bmap->Get(i));
-  }
-  result.SetSlowPathBitCount(slow_path_bit_count);
+  result.SetPayload(payload);
+
   return result.raw();
 }
 
-const char* StackMap::ToCString() const {
-  if (IsNull()) return "{null}";
-  // Guard against integer overflow in the computation of alloc_size.
-  //
-  // TODO(kmillikin): We could just truncate the string if someone
-  // tries to print a 2 billion plus entry stackmap.
-  if (Length() > kIntptrMax) {
-    FATAL1("Length() is unexpectedly large (%" Pd ")", Length());
+void CompressedStackMaps::SetPayload(
+    const GrowableArray<uint8_t>& payload) const {
+  auto const array_length = payload.length();
+  ASSERT(array_length <= payload_size());
+
+  NoSafepointScope no_safepoint;
+  uint8_t* payload_start = UnsafeMutableNonPointer(raw_ptr()->data());
+  for (intptr_t i = 0; i < array_length; i++) {
+    payload_start[i] = payload.At(i);
   }
-  Thread* thread = Thread::Current();
-  intptr_t alloc_size = Length() + 1;
-  char* chars = thread->zone()->Alloc<char>(alloc_size);
-  for (intptr_t i = 0; i < Length(); i++) {
-    chars[i] = IsObject(i) ? '1' : '0';
+}
+
+const char* CompressedStackMaps::ToCString() const {
+  ZoneTextBuffer b(Thread::Current()->zone(), 100);
+  CompressedStackMapsIterator it(*this);
+  bool first_entry = true;
+  while (it.MoveNext()) {
+    if (first_entry) {
+      first_entry = false;
+    } else {
+      b.AddString("\n");
+    }
+    b.Printf("0x%08x: ", it.pc_offset());
+    for (intptr_t i = 0, n = it.length(); i < n; i++) {
+      b.AddString(it.IsObject(i) ? "1" : "0");
+    }
   }
-  chars[alloc_size - 1] = '\0';
-  return chars;
+  return b.buffer();
 }
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
@@ -14449,9 +14528,9 @@ void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
 }
 
-void Code::set_stackmaps(const Array& maps) const {
+void Code::set_compressed_stackmaps(const CompressedStackMaps& maps) const {
   ASSERT(maps.IsOld());
-  StorePointer(&raw_ptr()->stackmaps_, maps.raw());
+  StorePointer(&raw_ptr()->compressed_stackmaps_, maps.raw());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
@@ -15116,39 +15195,6 @@ void Code::SetActiveInstructions(const Instructions& instructions) const {
       &raw_ptr()->monomorphic_unchecked_entry_point_,
       Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()));
 #endif
-}
-
-RawStackMap* Code::GetStackMap(uint32_t pc_offset,
-                               Array* maps,
-                               StackMap* map) const {
-  // This code is used during iterating frames during a GC and hence it
-  // should not in turn start a GC.
-  NoSafepointScope no_safepoint;
-  if (stackmaps() == Array::null()) {
-    // No stack maps are present in the code object which means this
-    // frame relies on tagged pointers.
-    return StackMap::null();
-  }
-  // A stack map is present in the code object, use the stack map to visit
-  // frame slots which are marked as having objects.
-  *maps = stackmaps();
-  *map = StackMap::null();
-  for (intptr_t i = 0; i < maps->Length(); i += 2) {
-    // The reinterpret_cast from Smi::RawCast is inlined here because in
-    // debug mode, it creates Handles due to the ASSERT.
-    const uint32_t offset =
-        ValueFromRawSmi(reinterpret_cast<RawSmi*>(maps->At(i)));
-    if (offset != pc_offset) continue;
-    *map ^= maps->At(i + 1);
-    ASSERT(!map->IsNull());
-    return map->raw();
-  }
-  // If we are missing a stack map, this must either be unoptimized code, or
-  // the entry to an osr function. (In which case all stack slots are
-  // considered to have tagged pointers.)
-  // Running with --verify-on-transition should hit this.
-  ASSERT(!is_optimized() || (pc_offset == EntryPoint() - PayloadStart()));
-  return StackMap::null();
 }
 
 void Code::GetInlinedFunctionsAtInstruction(
@@ -16641,7 +16687,6 @@ bool Instance::IsInstanceOf(
       return true;
     }
     AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
-    // Note that we may encounter a bound error in checked mode.
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
@@ -16684,7 +16729,6 @@ bool Instance::IsInstanceOf(
   Class& other_class = Class::Handle(zone);
   TypeArguments& other_type_arguments = TypeArguments::Handle(zone);
   AbstractType& instantiated_other = AbstractType::Handle(zone, other.raw());
-  // Note that we may encounter a bound error in checked mode.
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
@@ -17373,7 +17417,6 @@ bool AbstractType::IsSubtypeOf(const AbstractType& other,
     if (!bound.IsFinalized()) {
       return false;  // TODO(regis): Return "maybe after instantiation".
     }
-    // The current bound_trail cannot be used, because operands are swapped.
     if (bound.IsSubtypeOf(other, space)) {
       return true;
     }
@@ -20820,7 +20863,7 @@ void Array::Truncate(intptr_t new_len) const {
   Object::MakeUnusedSpaceTraversable(array, old_size, new_size);
 
   // Update the size in the header field and length of the array object.
-  uword tags = array.raw_ptr()->tags_;
+  uint32_t tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
   uint32_t old_tags;
   do {
@@ -21485,7 +21528,6 @@ RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
 }
 
 bool Pointer::IsPointer(const Instance& obj) {
-  ASSERT(!obj.IsNull());
   return RawObject::IsFfiPointerClassId(obj.raw()->GetClassId());
 }
 

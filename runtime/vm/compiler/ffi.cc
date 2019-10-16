@@ -8,6 +8,7 @@
 
 #include "platform/globals.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/compiler/stub_code_compiler.h"
 #include "vm/growable_array.h"
@@ -51,6 +52,56 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   }
   intptr_t index = class_id - kFfiPointerCid;
   return element_size_table[index];
+}
+
+classid_t ElementTypedDataCid(classid_t class_id) {
+  ASSERT(class_id >= kFfiPointerCid);
+  ASSERT(class_id < kFfiVoidCid);
+  ASSERT(class_id != kFfiNativeFunctionCid);
+  switch (class_id) {
+    case kFfiInt8Cid:
+      return kTypedDataInt8ArrayCid;
+    case kFfiUint8Cid:
+      return kTypedDataUint8ArrayCid;
+    case kFfiInt16Cid:
+      return kTypedDataInt16ArrayCid;
+    case kFfiUint16Cid:
+      return kTypedDataUint16ArrayCid;
+    case kFfiInt32Cid:
+      return kTypedDataInt32ArrayCid;
+    case kFfiUint32Cid:
+      return kTypedDataUint32ArrayCid;
+    case kFfiInt64Cid:
+      return kTypedDataInt64ArrayCid;
+    case kFfiUint64Cid:
+      return kTypedDataUint64ArrayCid;
+    case kFfiIntPtrCid:
+      return target::kWordSize == 4 ? kTypedDataInt32ArrayCid
+                                    : kTypedDataInt64ArrayCid;
+    case kFfiPointerCid:
+      return target::kWordSize == 4 ? kTypedDataUint32ArrayCid
+                                    : kTypedDataUint64ArrayCid;
+    case kFfiFloatCid:
+      return kTypedDataFloat32ArrayCid;
+    case kFfiDoubleCid:
+      return kTypedDataFloat64ArrayCid;
+    default:
+      UNREACHABLE();
+  }
+}
+
+classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
+  switch (kind) {
+#define LOAD_STORE(type)                                                       \
+  case MethodRecognizer::kFfiLoad##type:                                       \
+  case MethodRecognizer::kFfiStore##type:                                      \
+    return kFfi##type##Cid;
+    CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
+    LOAD_STORE(Pointer)
+#undef LOAD_STORE
+    default:
+      UNREACHABLE();
+  }
 }
 
 // See pkg/vm/lib/transformations/ffi.dart, which makes these assumptions.
@@ -124,8 +175,8 @@ Abi TargetAbi() {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-Representation TypeRepresentation(const AbstractType& result_type) {
-  switch (result_type.type_class_id()) {
+Representation TypeRepresentation(classid_t class_id) {
+  switch (class_id) {
     case kFfiFloatCid:
       return kUnboxedFloat;
     case kFfiDoubleCid:
@@ -142,6 +193,7 @@ Representation TypeRepresentation(const AbstractType& result_type) {
     case kFfiUint64Cid:
       return kUnboxedInt64;
     case kFfiIntPtrCid:
+      return kUnboxedIntPtr;
     case kFfiPointerCid:
     case kFfiVoidCid:
       return kUnboxedFfiIntPtr;
@@ -183,7 +235,7 @@ ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
   for (intptr_t i = 0; i < num_arguments; i++) {
     AbstractType& arg_type =
         AbstractType::Handle(signature.ParameterTypeAt(i + 1));
-    Representation rep = TypeRepresentation(arg_type);
+    Representation rep = TypeRepresentation(arg_type.type_class_id());
     // In non simulator mode host::CallingConventions == CallingConventions.
     // In simulator mode convert arguments to host representation.
     if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
@@ -199,7 +251,7 @@ ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
 template <class CallingConventions>
 Representation ResultRepresentationBase(const Function& signature) {
   AbstractType& arg_type = AbstractType::Handle(signature.result_type());
-  Representation rep = TypeRepresentation(arg_type);
+  Representation rep = TypeRepresentation(arg_type.type_class_id());
   if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
     rep = kUnboxedInt32;
   } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {

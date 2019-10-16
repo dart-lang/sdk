@@ -20,6 +20,7 @@ general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/bug32629: InstrumentationMismatch # Test has an intentional error
 general/call: TypeCheckError
+general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_generic: RuntimeError

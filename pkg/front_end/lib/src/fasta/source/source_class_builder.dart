@@ -7,7 +7,18 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
+import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
@@ -19,30 +30,16 @@ import '../fasta_codes.dart'
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
-        templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning,
         templateSupertypeIsIllegal;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ConstructorReferenceBuilder,
-        Builder,
-        FieldBuilder,
-        FunctionBuilder,
-        InvalidTypeBuilder,
-        NamedTypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        NullabilityBuilder,
-        Scope,
-        TypeBuilder,
-        TypeVariableBuilder,
-        compareProcedures;
+import '../kernel/kernel_builder.dart' show compareProcedures;
 
 import '../kernel/type_algorithms.dart' show Variance, computeVariance;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../scope.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -92,7 +89,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       List<TypeBuilder> interfaces,
       List<TypeBuilder> onTypes,
       Scope scope,
-      Scope constructors,
+      ConstructorScope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
@@ -217,20 +214,11 @@ class SourceClassBuilder extends ClassBuilderImpl
               member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
       }
-      if (member.isDeclarationInstanceMember ==
-          setter.isDeclarationInstanceMember) {
-        addProblem(templateConflictsWithMember.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      } else {
-        addProblem(templateConflictsWithMemberWarning.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetterWarning.withArguments(name),
-            member.charOffset, noLength);
-      }
+      addProblem(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, noLength);
+      // TODO(ahe): Context argument to previous message?
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, noLength);
     });
 
     scope.setters.forEach((String name, Builder setter) {
@@ -251,8 +239,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
       int variance = computeVariance(typeVariables[i], supertype);
-      if (variance == Variance.contravariant ||
-          variance == Variance.invariant) {
+      if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
         message = templateBadTypeVariableInSupertype.withArguments(
             typeVariables[i].name, supertype.name);
         library.addProblem(message, charOffset, noLength, fileUri);
@@ -261,7 +248,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (message != null) {
       return new NamedTypeBuilder(
           supertype.name, const NullabilityBuilder.omitted(), null)
-        ..bind(new InvalidTypeBuilder(supertype.name,
+        ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;

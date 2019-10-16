@@ -99,6 +99,9 @@ class _IsKnownVisitor extends DartTypeVisitor<bool> {
     for (NamedType namedParameterType in node.namedParameters) {
       if (!namedParameterType.type.accept(this)) return false;
     }
+    if (node.typedefType != null && !node.typedefType.accept(this)) {
+      return false;
+    }
     return true;
   }
 

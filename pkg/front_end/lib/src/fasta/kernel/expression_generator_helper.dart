@@ -6,6 +6,12 @@ library fasta.expression_generator_helper;
 
 import '../../scanner/token.dart' show Token;
 
+import '../builder/builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/unresolved_type.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' show LocatedMessage;
@@ -22,7 +28,7 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show Builder, PrefixBuilder, UnresolvedType;
+import '../scope.dart';
 
 import 'kernel_ast_api.dart'
     show
@@ -38,9 +44,6 @@ import 'kernel_ast_api.dart'
         StaticGet,
         TypeParameter,
         VariableDeclaration;
-
-import 'kernel_builder.dart'
-    show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get libraryBuilder;

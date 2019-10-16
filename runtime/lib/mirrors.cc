@@ -246,7 +246,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
 
   String& name = String::Handle(func.name());
-  name = String::ScrubNameRetainPrivate(name);
+  name = String::ScrubNameRetainPrivate(name, func.is_extension_member());
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, instantiator);
@@ -274,6 +274,8 @@ static RawInstance* CreateMethodMirror(const Function& func,
       (static_cast<intptr_t>(func.is_external()) << Mirrors::kExternal);
   bool is_synthetic = func.is_no_such_method_forwarder();
   kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
+  kind_flags |= (static_cast<intptr_t>(func.is_extension_member())
+                 << Mirrors::kExtensionMember);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_MethodMirror(), args);
@@ -286,7 +288,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
 
   const String& name = String::Handle(field.name());
 
-  const Array& args = Array::Handle(Array::New(7));
+  const Array& args = Array::Handle(Array::New(8));
   args.SetAt(0, field_ref);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
@@ -294,6 +296,7 @@ static RawInstance* CreateVariableMirror(const Field& field,
   args.SetAt(4, Bool::Get(field.is_static()));
   args.SetAt(5, Bool::Get(field.is_final()));
   args.SetAt(6, Bool::Get(field.is_const()));
+  args.SetAt(7, Bool::Get(field.is_extension_member()));
 
   return CreateMirror(Symbols::_VariableMirror(), args);
 }
@@ -1320,12 +1323,16 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 0, 1) {
   Function& function = Function::Handle();
   bool callable = closure.IsCallable(&function);
   if (callable) {
-    if (function.IsImplicitClosureFunction()) {
+    const Function& parent = Function::Handle(function.parent_function());
+    if (function.IsImplicitClosureFunction() || parent.is_extension_member()) {
       // The VM uses separate Functions for tear-offs, but the mirrors consider
       // the tear-offs to be the same as the torn-off methods. Avoid handing out
       // a reference to the tear-off here to avoid a special case in the
       // the equality test.
-      function = function.parent_function();
+      // In the case of extension methods also we avoid handing out a reference
+      // to the tear-off and instead get the parent function of the
+      // anonymous closure.
+      function = parent.raw();
     }
 
     Type& instantiator = Type::Handle();

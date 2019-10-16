@@ -176,10 +176,11 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = CodeSourceMap::InstanceSize(length);
       break;
     }
-    case kStackMapCid: {
-      const RawStackMap* map = reinterpret_cast<const RawStackMap*>(this);
-      intptr_t length = map->ptr()->length_;
-      instance_size = StackMap::InstanceSize(length);
+    case kCompressedStackMapsCid: {
+      const RawCompressedStackMaps* maps =
+          reinterpret_cast<const RawCompressedStackMaps*>(this);
+      intptr_t length = maps->ptr()->payload_size_;
+      instance_size = CompressedStackMaps::InstanceSize(length);
       break;
     }
     case kLocalVarDescriptorsCid: {
@@ -227,7 +228,7 @@ intptr_t RawObject::HeapSizeFromClass() const {
       if (!class_table->IsValidIndex(class_id) ||
           (!class_table->HasValidClassAt(class_id) && !use_saved_class_table)) {
         FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?",
-               class_id, this, ptr()->tags_);
+               class_id, this, ptr()->tags_.load());
       }
 #endif  // DEBUG
       instance_size = isolate->GetClassSizeForHeapWalkAt(class_id);
@@ -344,7 +345,7 @@ intptr_t RawObject::VisitPointersPredefined(ObjectPointerVisitor* visitor,
       break;
     default:
       FATAL3("Invalid cid: %" Pd ", obj: %p, tags: %x. Corrupt heap?", class_id,
-             this, ptr()->tags_);
+             this, ptr()->tags_.load());
       break;
   }
 
@@ -531,7 +532,7 @@ NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)
-VARIABLE_NULL_VISITOR(StackMap, raw_obj->ptr()->length_)
+VARIABLE_NULL_VISITOR(CompressedStackMaps, raw_obj->ptr()->payload_size_)
 VARIABLE_NULL_VISITOR(OneByteString, Smi::Value(raw_obj->ptr()->length_))
 VARIABLE_NULL_VISITOR(TwoByteString, Smi::Value(raw_obj->ptr()->length_))
 // Abstract types don't have their visitor called.

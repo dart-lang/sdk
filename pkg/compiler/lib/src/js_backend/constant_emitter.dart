@@ -12,6 +12,7 @@ import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
+import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
@@ -503,9 +504,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression _reifiedTypeNewRti(DartType type) {
     assert(_options.experimentNewRti);
     assert(!type.containsTypeVariables);
-    jsAst.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
-        _emitter, TypeExpressionRecipe(type));
-    return js(r'#(#)', [getHelperProperty(_commonElements.findType), recipe]);
+    return TypeReference(TypeExpressionRecipe(type))..forConstant = true;
   }
 
   @override

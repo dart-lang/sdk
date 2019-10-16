@@ -22,9 +22,9 @@ library;
 //   factory D() = Missing;
 //                 ^
 //
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:11: Error: Redirection constructor target not found: 'Missing'
+// pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
 //   factory D() = Missing;
-//           ^
+//                 ^
 //
 import self as self;
 import "dart:core" as core;

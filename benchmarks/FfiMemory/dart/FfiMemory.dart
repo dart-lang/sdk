@@ -11,6 +11,7 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
 //
@@ -19,74 +20,74 @@ import 'package:benchmark_harness/benchmark_harness.dart';
 
 void doStoreInt8(Pointer<Int8> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint8(Pointer<Uint8> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt16(Pointer<Int16> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint16(Pointer<Uint16> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt32(Pointer<Int32> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint32(Pointer<Uint32> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreInt64(Pointer<Int64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreUint64(Pointer<Uint64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1);
+    pointer[i] = 1;
   }
 }
 
 void doStoreFloat(Pointer<Float> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1.0);
+    pointer[i] = 1.0;
   }
 }
 
 void doStoreDouble(Pointer<Double> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(1.0);
+    pointer[i] = 1.0;
   }
 }
 
 void doStorePointer(
     Pointer<Pointer<Int8>> pointer, int length, Pointer<Int8> data) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(data);
+    pointer[i] = data;
   }
 }
 
 void doStoreInt64Mint(Pointer<Int64> pointer, int length) {
   for (int i = 0; i < length; i++) {
-    pointer.elementAt(i).store(0x7FFFFFFFFFFFFFFF);
+    pointer[i] = 0x7FFFFFFFFFFFFFFF;
   }
 }
 
@@ -97,7 +98,7 @@ void doStoreInt64Mint(Pointer<Int64> pointer, int length) {
 int doLoadInt8(Pointer<Int8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -105,7 +106,7 @@ int doLoadInt8(Pointer<Int8> pointer, int length) {
 int doLoadUint8(Pointer<Uint8> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -113,7 +114,7 @@ int doLoadUint8(Pointer<Uint8> pointer, int length) {
 int doLoadInt16(Pointer<Int16> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -121,7 +122,7 @@ int doLoadInt16(Pointer<Int16> pointer, int length) {
 int doLoadUint16(Pointer<Uint16> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -129,7 +130,7 @@ int doLoadUint16(Pointer<Uint16> pointer, int length) {
 int doLoadInt32(Pointer<Int32> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -137,7 +138,7 @@ int doLoadInt32(Pointer<Int32> pointer, int length) {
 int doLoadUint32(Pointer<Uint32> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -145,7 +146,7 @@ int doLoadUint32(Pointer<Uint32> pointer, int length) {
 int doLoadInt64(Pointer<Int64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -153,7 +154,7 @@ int doLoadInt64(Pointer<Int64> pointer, int length) {
 int doLoadUint64(Pointer<Uint64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -161,7 +162,7 @@ int doLoadUint64(Pointer<Uint64> pointer, int length) {
 double doLoadFloat(Pointer<Float> pointer, int length) {
   double x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<double>();
+    x += pointer[i];
   }
   return x;
 }
@@ -169,7 +170,7 @@ double doLoadFloat(Pointer<Float> pointer, int length) {
 double doLoadDouble(Pointer<Double> pointer, int length) {
   double x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<double>();
+    x += pointer[i];
   }
   return x;
 }
@@ -179,7 +180,7 @@ int doLoadPointer(Pointer<Pointer<Int8>> pointer, int length) {
   Pointer<Int8> x;
   int address_xor = 0;
   for (int i = 0; i < length; i++) {
-    x = pointer.elementAt(i).load();
+    x = pointer[i];
     address_xor ^= x.address;
   }
   return address_xor;
@@ -188,7 +189,7 @@ int doLoadPointer(Pointer<Pointer<Int8>> pointer, int length) {
 int doLoadInt64Mint(Pointer<Int64> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
-    x += pointer.elementAt(i).load<int>();
+    x += pointer[i];
   }
   return x;
 }
@@ -211,8 +212,8 @@ class PointerInt8 extends BenchmarkBase {
   Pointer<Int8> pointer;
   PointerInt8() : super("FfiMemory.PointerInt8");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt8(pointer, N);
@@ -227,8 +228,8 @@ class PointerUint8 extends BenchmarkBase {
   Pointer<Uint8> pointer;
   PointerUint8() : super("FfiMemory.PointerUint8");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint8(pointer, N);
@@ -243,8 +244,8 @@ class PointerInt16 extends BenchmarkBase {
   Pointer<Int16> pointer;
   PointerInt16() : super("FfiMemory.PointerInt16");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt16(pointer, N);
@@ -259,8 +260,8 @@ class PointerUint16 extends BenchmarkBase {
   Pointer<Uint16> pointer;
   PointerUint16() : super("FfiMemory.PointerUint16");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint16(pointer, N);
@@ -275,8 +276,8 @@ class PointerInt32 extends BenchmarkBase {
   Pointer<Int32> pointer;
   PointerInt32() : super("FfiMemory.PointerInt32");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt32(pointer, N);
@@ -291,8 +292,8 @@ class PointerUint32 extends BenchmarkBase {
   Pointer<Uint32> pointer;
   PointerUint32() : super("FfiMemory.PointerUint32");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint32(pointer, N);
@@ -307,8 +308,8 @@ class PointerInt64 extends BenchmarkBase {
   Pointer<Int64> pointer;
   PointerInt64() : super("FfiMemory.PointerInt64");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt64(pointer, N);
@@ -323,8 +324,8 @@ class PointerUint64 extends BenchmarkBase {
   Pointer<Uint64> pointer;
   PointerUint64() : super("FfiMemory.PointerUint64");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreUint64(pointer, N);
@@ -339,8 +340,8 @@ class PointerFloat extends BenchmarkBase {
   Pointer<Float> pointer;
   PointerFloat() : super("FfiMemory.PointerFloat");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreFloat(pointer, N);
@@ -355,8 +356,8 @@ class PointerDouble extends BenchmarkBase {
   Pointer<Double> pointer;
   PointerDouble() : super("FfiMemory.PointerDouble");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreDouble(pointer, N);
@@ -373,13 +374,13 @@ class PointerPointer extends BenchmarkBase {
   PointerPointer() : super("FfiMemory.PointerPointer");
 
   void setup() {
-    pointer = Pointer.allocate(count: N);
-    data = Pointer.allocate();
+    pointer = allocate(count: N);
+    data = allocate();
   }
 
   void teardown() {
-    pointer.free();
-    data.free();
+    free(pointer);
+    free(data);
   }
 
   void run() {
@@ -395,8 +396,8 @@ class PointerInt64Mint extends BenchmarkBase {
   Pointer<Int64> pointer;
   PointerInt64Mint() : super("FfiMemory.PointerInt64Mint");
 
-  void setup() => pointer = Pointer.allocate(count: N);
-  void teardown() => pointer.free();
+  void setup() => pointer = allocate(count: N);
+  void teardown() => free(pointer);
 
   void run() {
     doStoreInt64Mint(pointer, N);

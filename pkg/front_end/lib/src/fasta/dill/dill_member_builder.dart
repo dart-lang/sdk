@@ -7,10 +7,11 @@ library fasta.dill_member_builder;
 import 'package:kernel/ast.dart'
     show Constructor, Field, Member, Procedure, ProcedureKind;
 
+import '../builder/builder.dart';
 import '../builder/member_builder.dart';
 
 import '../kernel/kernel_builder.dart'
-    show Builder, isRedirectingGenerativeConstructorImplementation;
+    show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;

@@ -874,8 +874,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ClassElementImpl enclosingClass =
-        AbstractClassElementImpl.getImpl(_resolver.enclosingClass);
+    ClassElementImpl enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return;
@@ -1660,9 +1659,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             if (element != null) {
               propertyName.staticElement = element;
               ClassElementImpl receiverSuperClass =
-                  AbstractClassElementImpl.getImpl(
-                staticType.element.supertype.element,
-              );
+                  staticType.element.supertype.element;
               if (!receiverSuperClass.hasNoSuchMethod) {
                 _resolver.errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
@@ -1697,9 +1694,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             if (element != null) {
               propertyName.staticElement = element;
               ClassElementImpl receiverSuperClass =
-                  AbstractClassElementImpl.getImpl(
-                staticType.element.supertype.element,
-              );
+                  staticType.element.supertype.element;
               if (!receiverSuperClass.hasNoSuchMethod) {
                 _resolver.errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
@@ -1771,6 +1766,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
         var setter = result.setter;
         if (setter != null) {
           propertyName.staticElement = setter;
+          propertyName.auxiliaryElements =
+              AuxiliaryElements(result.getter, null);
         } else {
           var getter = result.getter;
           propertyName.staticElement = getter;

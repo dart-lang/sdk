@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -649,9 +648,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedSupertype = supertype.accept(this);
       }
       var class_ = (decoratedSupertype.type as InterfaceType).element;
-      if (class_ is ClassElementHandle) {
-        class_ = (class_ as ClassElementHandle).actualElement;
-      }
       decoratedSupertypes[class_] = decoratedSupertype;
     }
     _variables.recordDecoratedDirectSupertypes(

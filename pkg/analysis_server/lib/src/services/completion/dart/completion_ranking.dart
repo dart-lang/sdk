@@ -12,7 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/language_model.dart
 import 'package:analyzer/dart/analysis/features.dart';
 
 /// Number of lookback tokens.
-const int _LOOKBACK = 100;
+const int _LOOKBACK = 50;
 
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
@@ -128,7 +128,8 @@ class CompletionRanking {
       entries.retainWhere((MapEntry entry) => !isLiteral(entry.key));
     }
 
-    var isRequestFollowingDot = testFollowingDot(request);
+    var allowModelOnlySuggestions =
+        !testNamedArgument(suggestions) && !testFollowingDot(request);
     entries.forEach((MapEntry entry) {
       // There may be multiple like
       // CompletionSuggestion and CompletionSuggestion().
@@ -143,7 +144,7 @@ class CompletionRanking {
       } else {
         includedSuggestions = [];
       }
-      if (!isRequestFollowingDot && entry.value > _MODEL_RELEVANCE_CUTOFF) {
+      if (allowModelOnlySuggestions && entry.value > _MODEL_RELEVANCE_CUTOFF) {
         final relevance = high--;
         if (completionSuggestions.isNotEmpty ||
             includedSuggestions.isNotEmpty) {
@@ -170,7 +171,7 @@ class CompletionRanking {
         includedSuggestions.forEach((includedSuggestion) {
           includedSuggestion.relevanceBoost = relevance;
         });
-      } else if (!isRequestFollowingDot) {
+      } else if (allowModelOnlySuggestions) {
         final relevance = low--;
         suggestions
             .add(createCompletionSuggestion(entry.key, featureSet, relevance));

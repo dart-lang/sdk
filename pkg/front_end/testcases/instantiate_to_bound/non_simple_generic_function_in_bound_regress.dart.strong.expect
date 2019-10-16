@@ -14,7 +14,7 @@ class Hest<TypeX extends self::Hest<self::Hest::TypeX*>* = self::Hest<dynamic>*>
     : super core::Object::•()
     ;
 }
-class Fisk<TypeY extends <TypeZ extends self::Hest<core::Null*>* = dynamic>(TypeZ*) →* dynamic = dynamic> extends core::Object {
+class Fisk<TypeY extends <TypeZ extends self::Hest<core::Null?>* = dynamic>(TypeZ*) →* dynamic = dynamic> extends core::Object {
   synthetic constructor •() → self::Fisk<self::Fisk::TypeY*>*
     : super core::Object::•()
     ;

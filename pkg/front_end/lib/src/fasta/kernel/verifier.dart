@@ -13,8 +13,10 @@ import 'package:kernel/ast.dart'
         ExpressionStatement,
         Field,
         FunctionType,
+        InterfaceType,
         Library,
         Member,
+        Nullability,
         Procedure,
         StaticInvocation,
         SuperMethodInvocation,
@@ -185,6 +187,19 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
         }
       }
     }
+    super.visitFunctionType(node);
+  }
+
+  @override
+  visitInterfaceType(InterfaceType node) {
+    Uri importUri = node.classNode.enclosingLibrary.importUri;
+    if (node.classNode.name == "Null" &&
+        importUri.scheme == "dart" &&
+        importUri.path == "core" &&
+        node.nullability != Nullability.nullable) {
+      problem(null, "Found a not nullable Null type: ${node}");
+    }
+    super.visitInterfaceType(node);
   }
 
   @override

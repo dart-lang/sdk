@@ -2599,40 +2599,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
               "methods or before non-final instance fields.",
           correction: "Try removing the 'covariant' keyword.");
 
-  /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when a member declared inside an
-  // extension uses the keyword `covariant` in the declaration of a parameter.
-  // Extensions aren't classes and don't have subclasses, so the keyword serves
-  // no purpose.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic:
-  //
-  // ```dart
-  // extension E on String {
-  //   void a([!covariant!] int i) {}
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Remove the 'covariant' keyword:
-  //
-  // ```dart
-  // extension E on String {
-  //   void a(int i) {}
-  // }
-  // ```
-  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
-      const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
-          "The 'covariant' keyword can't be used in an extension.",
-          correction: "Try removing the 'covariant' keyword.",
-          hasPublishedDocs: true);
+  @Deprecated('Use ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION')
+  static const ParserErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
+      ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION;
 
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at

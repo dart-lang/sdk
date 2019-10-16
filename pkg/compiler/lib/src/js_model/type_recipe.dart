@@ -8,6 +8,8 @@ import '../elements/entities.dart' show ClassEntity;
 import '../elements/types.dart';
 import '../diagnostics/invariant.dart';
 import '../diagnostics/spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
+import '../serialization/serialization.dart';
+import '../util/util.dart' show Hashing;
 
 abstract class TypeRecipeDomain {
   /// Detect if a recipe evaluates to its input environment.
@@ -132,6 +134,48 @@ class FullTypeEnvironmentStructure extends TypeEnvironmentStructure {
 /// A TypeRecipe is evaluated against a type environment to produce either a
 /// type, or another type environment.
 abstract class TypeRecipe {
+  /// Tag used for identifying serialized [TypeRecipe] objects in a debugging
+  /// data stream.
+  static const String tag = 'type-recipe';
+
+  int /*?*/ _hashCode;
+
+  TypeRecipe();
+
+  @override
+  int get hashCode => _hashCode ??= _computeHashCode();
+
+  int _computeHashCode();
+
+  factory TypeRecipe.readFromDataSource(DataSource source) {
+    TypeRecipe recipe;
+    source.begin(tag);
+    _TypeRecipeKind kind = source.readEnum(_TypeRecipeKind.values);
+    switch (kind) {
+      case _TypeRecipeKind.expression:
+        recipe = TypeExpressionRecipe._readFromDataSource(source);
+        break;
+      case _TypeRecipeKind.singletonEnvironment:
+        recipe = SingletonTypeEnvironmentRecipe._readFromDataSource(source);
+        break;
+      case _TypeRecipeKind.fullEnvironment:
+        recipe = FullTypeEnvironmentRecipe._readFromDataSource(source);
+        break;
+    }
+    source.end(tag);
+    return recipe;
+  }
+
+  void writeToDataSink(DataSink sink) {
+    sink.begin(tag);
+    sink.writeEnum(_kind);
+    _writeToDataSink(sink);
+    sink.end(tag);
+  }
+
+  _TypeRecipeKind get _kind;
+  void _writeToDataSink(DataSink sink);
+
   /// Returns `true` is [recipeB] evaluated in an environment described by
   /// [structureB] gives the same type as [recipeA] evaluated in environment
   /// described by [structureA].
@@ -151,11 +195,28 @@ abstract class TypeRecipe {
   }
 }
 
+enum _TypeRecipeKind { expression, singletonEnvironment, fullEnvironment }
+
 /// A recipe that yields a reified type.
 class TypeExpressionRecipe extends TypeRecipe {
   final DartType type;
 
   TypeExpressionRecipe(this.type);
+
+  static TypeExpressionRecipe _readFromDataSource(DataSource source) {
+    return TypeExpressionRecipe(source.readDartType());
+  }
+
+  @override
+  _TypeRecipeKind get _kind => _TypeRecipeKind.expression;
+
+  @override
+  void _writeToDataSink(DataSink sink) {
+    sink.writeDartType(type);
+  }
+
+  @override
+  int _computeHashCode() => type.hashCode * 7;
 
   @override
   bool operator ==(other) {
@@ -175,6 +236,21 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   final DartType type;
 
   SingletonTypeEnvironmentRecipe(this.type);
+
+  static SingletonTypeEnvironmentRecipe _readFromDataSource(DataSource source) {
+    return SingletonTypeEnvironmentRecipe(source.readDartType());
+  }
+
+  @override
+  _TypeRecipeKind get _kind => _TypeRecipeKind.singletonEnvironment;
+
+  @override
+  void _writeToDataSink(DataSink sink) {
+    sink.writeDartType(type);
+  }
+
+  @override
+  int _computeHashCode() => type.hashCode * 11;
 
   @override
   bool operator ==(other) {
@@ -200,6 +276,27 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   final List<DartType> types;
 
   FullTypeEnvironmentRecipe({this.classType, this.types = const []});
+
+  static FullTypeEnvironmentRecipe _readFromDataSource(DataSource source) {
+    InterfaceType classType =
+        source.readDartType(allowNull: true) as InterfaceType;
+    List<DartType> types = source.readDartTypes(emptyAsNull: true) ?? const [];
+    return FullTypeEnvironmentRecipe(classType: classType, types: types);
+  }
+
+  @override
+  _TypeRecipeKind get _kind => _TypeRecipeKind.fullEnvironment;
+
+  @override
+  void _writeToDataSink(DataSink sink) {
+    sink.writeDartType(classType, allowNull: true);
+    sink.writeDartTypes(types, allowNull: false);
+  }
+
+  @override
+  int _computeHashCode() {
+    return Hashing.listHash(types, Hashing.objectHash(classType, 0));
+  }
 
   @override
   bool operator ==(other) {

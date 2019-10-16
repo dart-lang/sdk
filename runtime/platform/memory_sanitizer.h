@@ -15,7 +15,7 @@ extern "C" void __msan_poison(const volatile void*, size_t);
 extern "C" void __msan_unpoison(const volatile void*, size_t);
 #define MSAN_POISON(ptr, len) __msan_poison(ptr, len)
 #define MSAN_UNPOISON(ptr, len) __msan_unpoison(ptr, len)
-#define NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
+#define NO_SANITIZE_MEMORY __attribute__((no_sanitize("memory")))
 #else  // __has_feature(memory_sanitizer)
 #define MSAN_POISON(ptr, len)                                                  \
   do {                                                                         \

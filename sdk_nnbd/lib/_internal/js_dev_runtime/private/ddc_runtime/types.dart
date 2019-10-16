@@ -21,7 +21,7 @@ final metadata = JS('', 'Symbol("metadata")');
 ///
 ///   - All other types are represented as instances of class [DartType],
 ///     defined in this module.
-///     - Dynamic, Void, and Bottom are singleton instances of sentinal
+///     - Dynamic, Void, and Bottom are singleton instances of sentinel
 ///       classes.
 ///     - Function types are instances of subclasses of AbstractFunctionType.
 ///
@@ -202,6 +202,74 @@ anonymousJSType(String name) {
   return ret;
 }
 
+/// Returns a nullable version of [type].
+///
+/// The resulting type will be normalized to avoid nesting the use of nullable
+/// (question) and legacy (star).
+@notNull
+DartType nullable(type) {
+  // Normalize and / or wrap the type.
+  // Given: T? -> T | Null
+  // Then: T?? -> T? | Null -> T | Null | Null -> T?
+  if (type is NullableType) return type;
+  // Then T*? -> (T? | T)? -> T?? | T? -> T?
+  if (type is LegacyType) return nullable(type.type);
+
+  return NullableType(type);
+}
+
+/// Returns a legacy version of [type].
+///
+/// The resulting type will be normalized to avoid nesting the use of nullable
+/// (question) and legacy (star).
+@notNull
+DartType legacy(type) {
+  // Normalize and / or wrap the type.
+  // Given: T* -> T? | T
+  // Then: T** -> T*? | T* ->  (T? | T)? | T? | T -> T? | T -> T*
+  // Then: T?* -> T?? | T? -> T?
+  if (type is LegacyType || type is NullableType) return type;
+
+  return LegacyType(type);
+}
+
+// TODO(nshahan) Revisit this representation to support caching of the subtype
+// check results.
+class NullableType extends DartType {
+  final Type type;
+
+  NullableType(this.type);
+
+  @override
+  String get name => '$type?';
+
+  @override
+  String toString() => name;
+}
+
+// TODO(nshahan) Revisit this representation to support caching of the subtype
+// check results.
+class LegacyType extends DartType {
+  final Type type;
+
+  LegacyType(this.type);
+
+  @override
+  String get name => '$type*';
+
+  @override
+  String toString() => name;
+}
+
+// TODO(nshahan) Add override optimizations for is, as and _check?
+class NeverType extends DartType {
+  @override
+  toString() => 'Never';
+}
+
+@JSExportName('Never')
+final never_ = NeverType();
+
 @JSExportName('dynamic')
 final _dynamic = DynamicType();
 
@@ -212,13 +280,12 @@ class VoidType extends DartType {
 @JSExportName('void')
 final void_ = VoidType();
 
+// TODO(nshahan): Cleanup and consolidate NeverType, BottomType, bottom, never_.
 class BottomType extends DartType {
   toString() => 'bottom';
 }
 
-// TODO(vsm): We reify bottom as Null.  We will revisit this with
-// non-nullable types.
-final bottom = unwrapType(Null);
+final bottom = never_;
 
 class JSObjectType extends DartType {
   toString() => 'NativeJavaScriptObject';
@@ -847,51 +914,115 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
-  Object map;
-  if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
-    _cacheMaps.add(map);
-  } else {
-    map = JS('', '#[#]', t1, _subtypeCache);
-    bool result = JS('', '#.get(#)', map, t2);
-    if (JS('!', '# !== void 0', result)) return result;
-  }
+  // Object map;
+  // if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
+  //   JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+  //   _cacheMaps.add(map);
+  // } else {
+  //   map = JS('', '#[#]', t1, _subtypeCache);
+  //   bool result = JS('', '#.get(#)', map, t2);
+  //   if (JS('!', '# !== void 0', result)) return result;
+  // }
+  // TODO(nshahan) Read and write cache when it's stored on nnbd-wrapper type.
+  // TODO(nshahan): Add support for strict/weak mode.
   var result = _isSubtype(t1, t2);
-  JS('', '#.set(#, #)', map, t2, result);
+  // JS('', '#.set(#, #)', map, t2, result);
   return result;
 }
 
 final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
+// TODO(nshahan): Add support for strict/weak mode.
 @notNull
-bool _isBottom(type) => JS('!', '# == # || # == #', type, bottom, type, Null);
+bool _isBottom(type) => JS('!', '# == #', type, bottom);
 
+// TODO(nshahan): Add support for strict/weak mode.
 @notNull
 bool _isTop(type) {
   if (_isFutureOr(type)) {
     return _isTop(JS('', '#[0]', getGenericArgs(type)));
   }
-  return JS('!', '# == # || # == # || # == #', type, Object, type, dynamic,
-      type, void_);
+
+  if (_isNullable(type)) {
+    if (JS('!', '# == #', type.type, Object)) {
+      return true;
+    }
+    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
+    // TODO(nshahan): Handle Object* in a way that ensures
+    // instanceOf(null, Object*) returns true.
+    return _isTop(type.type);
+  }
+
+  if (_isLegacy(type)) {
+    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
+    return _isTop(type.type);
+  }
+
+  return JS('!', '# == # || # == #', type, dynamic, type, void_);
 }
+
+_isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
+_isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
 
 @notNull
 bool _isFutureOr(type) =>
     identical(getGenericClass(type), getGenericClass(FutureOr));
 
-bool _isSubtype(t1, t2) => JS('', '''(() => {
+bool _isSubtype(t1, t2) => JS('bool', '''(() => {
   if ($t1 === $t2) {
     return true;
   }
 
-  // Trivially true.
+  // Trivially true, "Right Top" or "Left Bottom".
   if (${_isTop(t2)} || ${_isBottom(t1)}) {
     return true;
   }
 
-  // Trivially false.
-  if (${_isTop(t1)} || ${_isBottom(t2)}) {
-    return false;
+  // "Left Top".
+  if ($t1 == $dynamic || $t1 == $void_) {
+    return $_isSubtype($nullable($Object), $t2);
+  }
+
+  // "Right Object".
+  if ($t2 == $Object) {
+    // TODO(nshahan) Need to handle type variables.
+    // https://github.com/dart-lang/sdk/issues/38816
+    if (${_isFutureOr(t1)}) {
+      let t1TypeArg = ${getGenericArgs(t1)}[0];
+      return $_isSubtype(t1TypeArg, $Object);
+    }
+
+    if (${_isLegacy(t1)}) {
+      return $_isSubtype(t1.type, t2);
+    }
+
+    if ($t1 == $dynamic || $t1 == $void_ || $t1 == $Null
+        || ${_isNullable(t1)}) {
+      return false;
+    }
+    return true;
+  }
+
+  // "Left Null".
+  if ($t1 == $Null) {
+    // TODO(nshahan) Need to handle type variables.
+    // https://github.com/dart-lang/sdk/issues/38816
+    if (${_isFutureOr(t2)}) {
+      let t2TypeArg = ${getGenericArgs(t2)}[0];
+      return $_isSubtype($Null, t2TypeArg);
+    }
+
+    return $t2 == $Null || ${_isLegacy(t2)} || ${_isNullable(t2)};
+  }
+
+  // "Left Legacy".
+  if (${_isLegacy(t1)}) {
+    return $_isSubtype(t1.type, t2);
+  }
+
+  // "Right Legacy".
+  if (${_isLegacy(t2)}) {
+    return $_isSubtype(t1, $nullable(t2.type));
   }
 
   // Handle FutureOr<T> union type.
@@ -900,6 +1031,8 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     if (${_isFutureOr(t2)}) {
       let t2TypeArg = ${getGenericArgs(t2)}[0];
       // FutureOr<A> <: FutureOr<B> iff A <: B
+      // TODO(nshahan): Proven to not actually be true and needs cleanup.
+      // https://github.com/dart-lang/sdk/issues/38818
       return $_isSubtype(t1TypeArg, t2TypeArg);
     }
 
@@ -910,12 +1043,28 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     return $_isSubtype(t1Future, $t2) && $_isSubtype(t1TypeArg, $t2);
   }
 
+  // "Left Nullable".
+  if (${_isNullable(t1)}) {
+    // TODO(nshahan) Need to handle type variables.
+    // https://github.com/dart-lang/sdk/issues/38816
+    return $_isSubtype(t1.type, t2) && $_isSubtype($Null, t2);
+  }
+
   if ($_isFutureOr($t2)) {
     // given t2 is Future<A> | A, then:
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
     let t2TypeArg = ${getGenericArgs(t2)}[0];
     let t2Future = ${getGenericClass(Future)}(t2TypeArg);
+    // TODO(nshahan) Need to handle type variables on the left.
+    // https://github.com/dart-lang/sdk/issues/38816
     return $_isSubtype($t1, t2Future) || $_isSubtype($t1, t2TypeArg);
+  }
+
+  // "Right Nullable".
+  if (${_isNullable(t2)}) {
+    // TODO(nshahan) Need to handle type variables.
+    // https://github.com/dart-lang/sdk/issues/38816
+    return $_isSubtype(t1, t2.type) || $_isSubtype(t1, $Null);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing

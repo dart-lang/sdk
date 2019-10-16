@@ -17,12 +17,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
+import 'package:meta/meta.dart';
 
 /**
  * A contributor for calculating suggestions for declarations in the local
@@ -116,16 +118,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   List<CompletionSuggestion> get suggestions => suggestionMap.values.toList();
 
+  TypeProvider get typeProvider => request.libraryElement.context.typeProvider;
+
   @override
   void declaredClass(ClassDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          NO_RETURN_TYPE,
-          protocol.ElementKind.CLASS,
-          isAbstract: declaration.isAbstract,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        NO_RETURN_TYPE,
+        protocol.ElementKind.CLASS,
+        isAbstract: declaration.isAbstract,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateClassElement(declaration.declaredElement),
+      );
     }
   }
 
@@ -133,12 +139,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     if (optype.includeTypeNameSuggestions) {
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          NO_RETURN_TYPE,
-          protocol.ElementKind.CLASS_TYPE_ALIAS,
-          isAbstract: true,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        NO_RETURN_TYPE,
+        protocol.ElementKind.CLASS_TYPE_ALIAS,
+        isAbstract: true,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateClassElement(declaration.declaredElement),
+      );
     }
   }
 
@@ -146,16 +154,20 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredEnum(EnumDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          NO_RETURN_TYPE,
-          protocol.ElementKind.ENUM,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        NO_RETURN_TYPE,
+        protocol.ElementKind.ENUM,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateClassElement(declaration.declaredElement),
+      );
       for (EnumConstantDeclaration enumConstant in declaration.constants) {
         if (!enumConstant.isSynthetic) {
           _addLocalSuggestion_includeReturnValueSuggestions_enumConstant(
-              enumConstant, declaration,
-              isDeprecated: isDeprecated(declaration));
+            enumConstant,
+            declaration,
+            isDeprecated: isDeprecated(declaration),
+          );
         }
       }
     }
@@ -163,13 +175,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredExtension(ExtensionDeclaration declaration) {
-    if (optype.includeReturnValueSuggestions) {
+    if (optype.includeReturnValueSuggestions && declaration.name != null) {
       _addLocalSuggestion_includeReturnValueSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          NO_RETURN_TYPE,
-          protocol.ElementKind.EXTENSION,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        NO_RETURN_TYPE,
+        protocol.ElementKind.EXTENSION,
+        isDeprecated: isDeprecated(declaration),
+        type: null,
+      );
     }
   }
 
@@ -181,13 +195,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool deprecated = isDeprecated(fieldDecl) || isDeprecated(varDecl);
       TypeAnnotation typeName = fieldDecl.fields.type;
       _addLocalSuggestion_includeReturnValueSuggestions(
-          fieldDecl.documentationComment,
-          varDecl.name,
-          typeName,
-          protocol.ElementKind.FIELD,
-          isDeprecated: deprecated,
-          relevance: DART_RELEVANCE_LOCAL_FIELD,
-          classDecl: fieldDecl.parent);
+        fieldDecl.documentationComment,
+        varDecl.name,
+        typeName,
+        protocol.ElementKind.FIELD,
+        isDeprecated: deprecated,
+        relevance: DART_RELEVANCE_LOCAL_FIELD,
+        classDecl: fieldDecl.parent,
+        type: varDecl.declaredElement.type,
+      );
     }
   }
 
@@ -216,13 +232,15 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         relevance = DART_RELEVANCE_LOCAL_FUNCTION;
       }
       _addLocalSuggestion_includeReturnValueSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          typeName,
-          elemKind,
-          isDeprecated: isDeprecated(declaration),
-          param: declaration.functionExpression.parameters,
-          relevance: relevance);
+        declaration.documentationComment,
+        declaration.name,
+        typeName,
+        elemKind,
+        isDeprecated: isDeprecated(declaration),
+        param: declaration.functionExpression.parameters,
+        relevance: relevance,
+        type: declaration.declaredElement.type,
+      );
     }
   }
 
@@ -231,12 +249,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (optype.includeTypeNameSuggestions) {
       // TODO (danrubel) determine parameters and return type
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          declaration.returnType,
-          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
-          isAbstract: true,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        declaration.returnType,
+        protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+        isAbstract: true,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateFunctionTypeAlias(declaration.declaredElement),
+      );
     }
   }
 
@@ -245,12 +265,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (optype.includeTypeNameSuggestions) {
       // TODO (danrubel) determine parameters and return type
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          declaration.functionType?.returnType,
-          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
-          isAbstract: true,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        declaration.functionType?.returnType,
+        protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+        isAbstract: true,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateFunctionTypeAlias(declaration.declaredElement),
+      );
     }
   }
 
@@ -263,8 +285,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredLocalVar(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
-          null, id, typeName, protocol.ElementKind.LOCAL_VARIABLE,
-          relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+        null,
+        id,
+        typeName,
+        protocol.ElementKind.LOCAL_VARIABLE,
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE,
+        type: (id.staticElement as LocalVariableElement)?.type ??
+            typeProvider.dynamicType,
+      );
     }
   }
 
@@ -297,15 +325,17 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         relevance = DART_RELEVANCE_LOCAL_METHOD;
       }
       _addLocalSuggestion_includeReturnValueSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          typeName,
-          elemKind,
-          isAbstract: declaration.isAbstract,
-          isDeprecated: isDeprecated(declaration),
-          classDecl: declaration.parent,
-          param: param,
-          relevance: relevance);
+        declaration.documentationComment,
+        declaration.name,
+        typeName,
+        elemKind,
+        isAbstract: declaration.isAbstract,
+        isDeprecated: isDeprecated(declaration),
+        classDecl: declaration.parent,
+        param: param,
+        relevance: relevance,
+        type: declaration.declaredElement.type,
+      );
     }
   }
 
@@ -313,12 +343,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredMixin(MixinDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
       _addLocalSuggestion_includeTypeNameSuggestions(
-          declaration.documentationComment,
-          declaration.name,
-          NO_RETURN_TYPE,
-          protocol.ElementKind.MIXIN,
-          isAbstract: true,
-          isDeprecated: isDeprecated(declaration));
+        declaration.documentationComment,
+        declaration.name,
+        NO_RETURN_TYPE,
+        protocol.ElementKind.MIXIN,
+        isAbstract: true,
+        isDeprecated: isDeprecated(declaration),
+        type: _instantiateClassElement(declaration.declaredElement),
+      );
     }
   }
 
@@ -326,8 +358,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredParam(SimpleIdentifier id, TypeAnnotation typeName) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
-          null, id, typeName, protocol.ElementKind.PARAMETER,
-          relevance: DART_RELEVANCE_PARAMETER);
+        null,
+        id,
+        typeName,
+        protocol.ElementKind.PARAMETER,
+        relevance: DART_RELEVANCE_PARAMETER,
+        type: (id.staticElement as VariableElement).type,
+      );
     }
   }
 
@@ -336,12 +373,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (optype.includeReturnValueSuggestions) {
       _addLocalSuggestion_includeReturnValueSuggestions(
-          varDecl.documentationComment,
-          varDecl.name,
-          varList.type,
-          protocol.ElementKind.TOP_LEVEL_VARIABLE,
-          isDeprecated: isDeprecated(varList) || isDeprecated(varDecl),
-          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+        varDecl.documentationComment,
+        varDecl.name,
+        varList.type,
+        protocol.ElementKind.TOP_LEVEL_VARIABLE,
+        isDeprecated: isDeprecated(varList) || isDeprecated(varDecl),
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
+        type: varDecl.declaredElement.type,
+      );
     }
   }
 
@@ -438,9 +477,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool isDeprecated = false,
       ClassOrMixinDeclaration classDecl,
       FormalParameterList param,
-      int relevance = DART_RELEVANCE_DEFAULT}) {
-    relevance = optype.returnValueSuggestionsFilter(
-        _staticTypeOfIdentifier(id), relevance);
+      int relevance = DART_RELEVANCE_DEFAULT,
+      @required DartType type}) {
+    relevance = optype.returnValueSuggestionsFilter(type, relevance);
     if (relevance != null) {
       _addLocalSuggestion(documentationComment, id, typeName, elemKind,
           isAbstract: isAbstract,
@@ -477,9 +516,9 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       bool isDeprecated = false,
       ClassDeclaration classDecl,
       FormalParameterList param,
-      int relevance = DART_RELEVANCE_DEFAULT}) {
-    relevance = optype.typeNameSuggestionsFilter(
-        _staticTypeOfIdentifier(id), relevance);
+      int relevance = DART_RELEVANCE_DEFAULT,
+      @required DartType type}) {
+    relevance = optype.typeNameSuggestionsFilter(type, relevance);
     if (relevance != null) {
       _addLocalSuggestion(documentationComment, id, typeName, elemKind,
           isAbstract: isAbstract,
@@ -542,7 +581,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
-      var typeProvider = request.libraryElement.context.typeProvider;
       typeArguments = typeParameters.map((t) {
         return typeProvider.dynamicType;
       }).toList();
@@ -558,6 +596,25 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     );
   }
 
+  FunctionType _instantiateFunctionTypeAlias(FunctionTypeAliasElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      typeArguments = typeParameters.map((t) {
+        return typeProvider.dynamicType;
+      }).toList();
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate2(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   bool _isVoid(TypeAnnotation returnType) {
     if (returnType is TypeName) {
       Identifier id = returnType.name;
@@ -566,14 +623,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
-  }
-
-  DartType _staticTypeOfIdentifier(Identifier id) {
-    if (id.staticElement is ClassElement) {
-      return _instantiateClassElement(id.staticElement as ClassElement);
-    } else {
-      return id.staticType;
-    }
   }
 
   /**

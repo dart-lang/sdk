@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_HEAP_PAGES_H_
 #define RUNTIME_VM_HEAP_PAGES_H_
 
+#include "platform/atomic.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/spaces.h"
@@ -375,8 +376,7 @@ class PageSpace {
 #endif  // PRODUCT
 
   void AllocateBlack(intptr_t size) {
-    AtomicOperations::IncrementBy(&allocated_black_in_words_,
-                                  size >> kWordSizeLog2);
+    allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
   void AllocateExternal(intptr_t cid, intptr_t size);
@@ -512,7 +512,7 @@ class PageSpace {
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;
-  intptr_t allocated_black_in_words_;
+  RelaxedAtomic<intptr_t> allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
   mutable Monitor tasks_lock_;
