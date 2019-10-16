@@ -614,6 +614,8 @@ Future writeOutputSplitByPackages(
   final packages = new List<String>();
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
+    // When loading a kernel file list, flutter_runner and dart_runner expect
+    // 'main' to be last.
     await forEachPackage(component,
         (String package, List<Library> libraries) async {
       packages.add(package);
@@ -638,7 +640,7 @@ Future writeOutputSplitByPackages(
       printer.writeComponentFile(partComponent);
 
       await sink.close();
-    });
+    }, mainFirst: false);
   });
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
@@ -680,32 +682,35 @@ void sortComponent(Component component) {
   }
 }
 
-Future<Null> forEachPackage<T>(Component component,
-    T action(String package, List<Library> libraries)) async {
+Future<Null> forEachPackage<T>(
+    Component component, T action(String package, List<Library> libraries),
+    {bool mainFirst}) async {
   sortComponent(component);
 
   final packages = new Map<String, List<Library>>();
+  packages['main'] = new List<Library>(); // Always create 'main'.
   for (Library lib in component.libraries) {
     packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
   }
-  if (packages.containsKey(null)) {
-    packages.remove(null);
+  packages.remove(null); // Ignore external libraries.
+
+  final mainLibraries = packages.remove('main');
+  if (mainFirst) {
+    await action('main', mainLibraries);
   }
-  // Make sure main package is last.
-  packages['main'] = packages.remove('main') ?? const <Library>[];
 
+  final mainMethod = component.mainMethod;
+  final problemsAsJson = component.problemsAsJson;
+  component.mainMethod = null;
+  component.problemsAsJson = null;
   for (String package in packages.keys) {
-    final main = component.mainMethod;
-    final problems = component.problemsAsJson;
-    if (package != 'main') {
-      component.mainMethod = null;
-      component.problemsAsJson = null;
-    }
-
     await action(package, packages[package]);
+  }
+  component.mainMethod = mainMethod;
+  component.problemsAsJson = problemsAsJson;
 
-    component.mainMethod = main;
-    component.problemsAsJson = problems;
+  if (!mainFirst) {
+    await action('main', mainLibraries);
   }
 }
 

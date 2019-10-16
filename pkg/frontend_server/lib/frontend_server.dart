@@ -528,10 +528,12 @@ class FrontendCompiler implements CompilerInterface {
         await runWithFrontEndCompilerContext(
             _mainSource, _compilerOptions, component, () async {
           if (_options['incremental']) {
+            // When loading a single kernel buffer with multiple sub-components,
+            // the VM expects 'main' to be the first sub-component.
             await forEachPackage(component,
                 (String package, List<Library> libraries) async {
               _writePackage(results, package, libraries, sink);
-            });
+            }, mainFirst: true);
           } else {
             _writePackage(results, 'main', component.libraries, sink);
           }
