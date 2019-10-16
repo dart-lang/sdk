@@ -3999,13 +3999,9 @@ D d = throw '';
 C<Object> c = throw '';
 C cD = throw '';
 C<Null> cNu = throw '';
-C<Never> cN = throw '';
 F<Object> f = throw '';
-F<Never> fN = throw '';
 R<F<Object>> rf = throw '';
-R<F<Never>> rfN = throw '';
 R<R<F<Object>>> rrf = throw '';
-R<R<F<Never>>> rrfN = throw '';
 Object obj = throw '';
 F<int> fi = throw '';
 R<F<int>> rfi = throw '';
@@ -4017,13 +4013,6 @@ casts() {
   c.m1;
   c.m1();
   c.m2();
-
-  fN = c.f;
-  fN = c.g;
-  rfN = c.m1;
-  rrfN = c.m2;
-  fN = c.m1();
-  rfN = c.m2();
 
   f = c.f;
   f = c.g;
@@ -4067,7 +4056,56 @@ noCasts() {
   (d.g)(42);
   d.m1()(42);
   d.m2()()(42);
+}
+''');
+    var unit = (await computeAnalysisResult(source)).unit;
+    assertNoErrors(source);
 
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
+      _expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
+      _expectCast(s, true);
+    }
+    for (var s in AstFinder.getStatementsInMethod(unit, 'D', 'noCasts')) {
+      _expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'noCasts')) {
+      _expectCast(s, false);
+    }
+    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
+      _expectCast(s, true);
+    }
+  }
+
+  test_covarianceChecks_returnFunction_never() async {
+    var source = addSource(r'''
+typedef F<T>(T t);
+typedef T R<T>();
+class C<T> {
+  F<T> f = throw '';
+
+  F<T> get g => throw '';
+  F<T> m1() => throw '';
+  R<F<T>> m2() => throw '';
+}
+
+C<Object> c = throw '';
+C<Never> cN = throw '';
+F<Never> fN = throw '';
+R<F<Never>> rfN = throw '';
+R<R<F<Never>>> rrfN = throw '';
+
+casts() {
+  fN = c.f;
+  fN = c.g;
+  rfN = c.m1;
+  rrfN = c.m2;
+  fN = c.m1();
+  rfN = c.m2();
+
+  // The cases below used to be noCasts().
+  // This is a DDC optimization that we do not support anymore.
   cN.f;
   cN.g;
   cN.m1;
@@ -4078,44 +4116,32 @@ noCasts() {
     var unit = (await computeAnalysisResult(source)).unit;
     assertNoErrors(source);
 
-    void expectCast(Statement statement, bool hasCast) {
-      var value = (statement as ExpressionStatement).expression;
-      if (value is AssignmentExpression) {
-        value = (value as AssignmentExpression).rightHandSide;
-      }
-      while (value is FunctionExpressionInvocation) {
-        value = (value as FunctionExpressionInvocation).function;
-      }
-      while (value is ParenthesizedExpression) {
-        value = (value as ParenthesizedExpression).expression;
-      }
-      var isCallingGetter =
-          value is MethodInvocation && !value.methodName.name.startsWith('m');
-      var cast = isCallingGetter
-          ? getImplicitOperationCast(value)
-          : getImplicitCast(value);
-      var castKind = isCallingGetter ? 'special cast' : 'cast';
-      expect(cast, hasCast ? isNotNull : isNull,
-          reason: '`$statement` should ' +
-              (hasCast ? '' : 'not ') +
-              'have a $castKind on `$value`.');
-    }
-
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'noCasts')) {
-      expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'C', 'casts')) {
-      expectCast(s, true);
-    }
-    for (var s in AstFinder.getStatementsInMethod(unit, 'D', 'noCasts')) {
-      expectCast(s, false);
-    }
-    for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'noCasts')) {
-      expectCast(s, false);
-    }
     for (var s in AstFinder.getStatementsInTopLevelFunction(unit, 'casts')) {
-      expectCast(s, true);
+      _expectCast(s, true);
     }
+  }
+
+  void _expectCast(Statement statement, bool hasCast) {
+    var value = (statement as ExpressionStatement).expression;
+    if (value is AssignmentExpression) {
+      value = (value as AssignmentExpression).rightHandSide;
+    }
+    while (value is FunctionExpressionInvocation) {
+      value = (value as FunctionExpressionInvocation).function;
+    }
+    while (value is ParenthesizedExpression) {
+      value = (value as ParenthesizedExpression).expression;
+    }
+    var isCallingGetter =
+        value is MethodInvocation && !value.methodName.name.startsWith('m');
+    var cast = isCallingGetter
+        ? getImplicitOperationCast(value)
+        : getImplicitCast(value);
+    var castKind = isCallingGetter ? 'special cast' : 'cast';
+    expect(cast, hasCast ? isNotNull : isNull,
+        reason: '`$statement` should ' +
+            (hasCast ? '' : 'not ') +
+            'have a $castKind on `$value`.');
   }
 }
 
