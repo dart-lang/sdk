@@ -36,13 +36,6 @@ abstract class RecipeEncoder {
 
   jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
-  /// Return the recipe with type variables replaced with <any>. This is a hack
-  /// until DartType contains <any> and the parameter stub emitter is replaced
-  /// with an SSA path.
-  // TODO(37715): Remove this.
-  jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
-      ModularEmitter emitter, DartType dartType);
-
   /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
   /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
   /// [TypeVariableType]s appearing in [supertypeArgument] which are declared by
@@ -86,15 +79,6 @@ class RecipeEncoderImpl implements RecipeEncoder {
   }
 
   @override
-  jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
-      ModularEmitter emitter, DartType dartType) {
-    return _RecipeGenerator(this, emitter, null, TypeExpressionRecipe(dartType),
-            hackTypeVariablesToAny: true)
-        .run()
-        .recipe;
-  }
-
-  @override
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument) {
     return _RecipeGenerator(
@@ -132,7 +116,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final TypeEnvironmentStructure _environment;
   final TypeRecipe _recipe;
   final bool metadata;
-  final bool hackTypeVariablesToAny;
 
   final List<FunctionTypeVariable> functionTypeVariables = [];
   final Set<TypeVariableType> typeVariables = {};
@@ -143,7 +126,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   _RecipeGenerator(
       this._encoder, this._emitter, this._environment, this._recipe,
-      {this.metadata = false, this.hackTypeVariablesToAny = false});
+      {this.metadata = false});
 
   JClosedWorld get _closedWorld => _encoder._closedWorld;
   NativeBasicData get _nativeData => _encoder._nativeData;
@@ -244,12 +227,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, _) {
-    if (hackTypeVariablesToAny) {
-      // Emit 'any' type.
-      _emitExtensionOp(Recipe.pushAnyExtension);
-      return;
-    }
-
     TypeEnvironmentStructure environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {
       if (type == environment.variable) {
