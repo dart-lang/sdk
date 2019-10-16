@@ -421,7 +421,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
       new FieldFormalParameterImpl(comment, metadata, null, null, keyword, type,
-          thisKeyword, period, identifier, typeParameters, parameters);
+          thisKeyword, period, identifier, typeParameters, parameters, null);
 
   @override
   FieldFormalParameter fieldFormalParameter2(
@@ -435,7 +435,8 @@ class AstFactoryImpl extends AstFactory {
           @required Token period,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters}) =>
+          FormalParameterList parameters,
+          Token question}) =>
       new FieldFormalParameterImpl(
           comment,
           metadata,
@@ -447,7 +448,8 @@ class AstFactoryImpl extends AstFactory {
           period,
           identifier,
           typeParameters,
-          parameters);
+          parameters,
+          question);
 
   @override
   ForEachPartsWithDeclaration forEachPartsWithDeclaration(

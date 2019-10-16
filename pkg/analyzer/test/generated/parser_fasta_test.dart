@@ -61,6 +61,31 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
   final tripleShift = FeatureSet.forTesting(
       sdkVersion: '2.0.0', additionalFeatures: [Feature.triple_shift]);
 
+  void test_parse_member_called_late() {
+    CompilationUnitImpl unit = parseCompilationUnit(
+        'class C { void late() { new C().late(); } }',
+        featureSet: nonNullable);
+    ClassDeclaration declaration = unit.declarations[0];
+    MethodDeclaration method = declaration.members[0];
+
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.modifierKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, 'late');
+    expect(method.operatorKeyword, isNull);
+    expect(method.typeParameters, isNull);
+    expect(method.parameters, isNotNull);
+    expect(method.body, isNotNull);
+
+    BlockFunctionBody body = method.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.operator.lexeme, '.');
+    expect(invocation.toSource(), 'new C().late()');
+  }
+
   void test_parseClassMember_operator_gtgtgt() {
     CompilationUnitImpl unit = parseCompilationUnit(
         'class C { bool operator >>>(other) => false; }',
@@ -297,31 +322,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
     expect(variables, hasLength(1));
     VariableDeclaration variable = variables[0];
     expect(variable.name, isNotNull);
-  }
-
-  void test_parse_member_called_late() {
-    CompilationUnitImpl unit = parseCompilationUnit(
-        'class C { void late() { new C().late(); } }',
-        featureSet: nonNullable);
-    ClassDeclaration declaration = unit.declarations[0];
-    MethodDeclaration method = declaration.members[0];
-
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.modifierKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.name, 'late');
-    expect(method.operatorKeyword, isNull);
-    expect(method.typeParameters, isNull);
-    expect(method.parameters, isNotNull);
-    expect(method.body, isNotNull);
-
-    BlockFunctionBody body = method.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.operator.lexeme, '.');
-    expect(invocation.toSource(), 'new C().late()');
   }
 }
 
@@ -1640,25 +1640,6 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
             ));
   }
 
-  void test_parse_toplevel_member_called_late_calling_self() {
-    CompilationUnitImpl unit = parseCompilationUnit('void late() { late(); }',
-        featureSet: nonNullable);
-    FunctionDeclaration method = unit.declarations[0];
-
-    expect(method.documentationComment, isNull);
-    expect(method.externalKeyword, isNull);
-    expect(method.propertyKeyword, isNull);
-    expect(method.returnType, isNotNull);
-    expect(method.name.name, 'late');
-    expect(method.functionExpression, isNotNull);
-
-    BlockFunctionBody body = method.functionExpression.body;
-    ExpressionStatement statement = body.block.statements[0];
-    MethodInvocation invocation = statement.expression;
-    expect(invocation.operator, isNull);
-    expect(invocation.toSource(), 'late()');
-  }
-
   void test_complex_extends() {
     var unit = parseCompilationUnit(
         'extension E extends A with B, C implements D { }',
@@ -1790,6 +1771,25 @@ class C {}
     expect(extension.onKeyword.lexeme, 'on');
     expect((extension.extendedType as NamedType).name.name, 'C');
     expect(extension.members, hasLength(0));
+  }
+
+  void test_parse_toplevel_member_called_late_calling_self() {
+    CompilationUnitImpl unit = parseCompilationUnit('void late() { late(); }',
+        featureSet: nonNullable);
+    FunctionDeclaration method = unit.declarations[0];
+
+    expect(method.documentationComment, isNull);
+    expect(method.externalKeyword, isNull);
+    expect(method.propertyKeyword, isNull);
+    expect(method.returnType, isNotNull);
+    expect(method.name.name, 'late');
+    expect(method.functionExpression, isNotNull);
+
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.operator, isNull);
+    expect(invocation.toSource(), 'late()');
   }
 
   void test_simple() {
@@ -2422,6 +2422,20 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
         _parserProxy.parseFormalParameterList(inFunctionType: false);
     assertErrors(errors: errors);
     return list.parameters.single;
+  }
+
+  void test_fieldFormalParameter_function_nullable() {
+    var parameter =
+        parseNNBDFormalParameter('void this.a()?', ParameterKind.REQUIRED);
+    expect(parameter, isNotNull);
+    assertNoErrors();
+    expect(parameter, isFieldFormalParameter);
+    FieldFormalParameter functionParameter = parameter;
+    expect(functionParameter.type, isNotNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.question, isNotNull);
   }
 
   void test_parseFormalParameter_covariant_required_named() {

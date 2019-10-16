@@ -489,7 +489,8 @@ class AstCloner implements AstVisitor<AstNode> {
           period: cloneToken(node.period),
           identifier: cloneNode(node.identifier),
           typeParameters: cloneNode(node.typeParameters),
-          parameters: cloneNode(node.parameters));
+          parameters: cloneNode(node.parameters),
+          question: cloneToken(node.question));
 
   @override
   ForEachPartsWithDeclaration visitForEachPartsWithDeclaration(

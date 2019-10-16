@@ -4134,6 +4134,9 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /// function-typed field formal parameter.
   FormalParameterListImpl _parameters;
 
+  @override
+  Token question;
+
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [keyword] can be `null` if there is a type.
@@ -4152,7 +4155,8 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
       this.period,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(
             comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _type = _becomeParentOf(type);

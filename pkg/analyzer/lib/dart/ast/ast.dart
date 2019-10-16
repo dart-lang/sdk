@@ -2249,6 +2249,11 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
   /// is not a function-typed field formal parameter.
   FormalParameterList get parameters;
 
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token get question;
+
   /// Set the parameters of the function-typed parameter to the given
   /// [parameters].
   void set parameters(FormalParameterList parameters);

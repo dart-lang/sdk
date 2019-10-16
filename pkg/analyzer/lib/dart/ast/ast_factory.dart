@@ -407,7 +407,8 @@ abstract class AstFactory {
       @required Token period,
       @required SimpleIdentifier identifier,
       TypeParameterList typeParameters,
-      FormalParameterList parameters});
+      FormalParameterList parameters,
+      Token question});
 
   /// Returns a newly created for each part that includes a declaration.
   ForEachPartsWithDeclaration forEachPartsWithDeclaration(

@@ -1295,7 +1295,8 @@ class AstBuilder extends StackListener {
             thisKeyword: thisKeyword,
             period: periodAfterThis,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters);
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
       }
     } else {
       TypeAnnotation type = typeOrFunctionTypedParameter;

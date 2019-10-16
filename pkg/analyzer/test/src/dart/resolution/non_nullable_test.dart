@@ -293,9 +293,6 @@ void f3({void p3()?}) {}
     );
   }
 
-  @FailingTest(
-    reason: 'The question token is not added to FieldFormalParameter yet',
-  )
   test_parameter_functionTyped_fieldFormal() async {
     await assertNoErrorsInCode('''
 class A {

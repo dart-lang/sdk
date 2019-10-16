@@ -672,6 +672,8 @@ class AstBinaryReader {
       comment: _readDocumentationComment(data),
       type: _readNodeLazy(data.fieldFormalParameter_type),
       parameters: _readNodeLazy(data.fieldFormalParameter_formalParameters),
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
       requiredKeyword:
           AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );

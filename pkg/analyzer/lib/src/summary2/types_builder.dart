@@ -151,7 +151,7 @@ class TypesBuilder {
         node.typeParameters,
         node.type,
         parameterList,
-        _nullability(node, true), // TODO(scheglov) use 'question' token
+        _nullability(node, node.question != null),
       );
       LazyAst.setType(node, type);
     } else {
