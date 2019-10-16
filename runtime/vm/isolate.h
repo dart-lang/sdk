@@ -220,7 +220,7 @@ class IsolateGroupSource {
 };
 
 // Represents an isolate group and is shared among all isolates within a group.
-class IsolateGroup {
+class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
   IsolateGroup(std::unique_ptr<IsolateGroupSource> source, void* embedder_data);
   ~IsolateGroup();
@@ -282,6 +282,29 @@ class IsolateGroup {
     RunWithStoppedMutators(function, function);
   }
 
+#ifndef PRODUCT
+  void PrintJSON(JSONStream* stream, bool ref = true);
+  void PrintToJSONObject(JSONObject* jsobj, bool ref);
+
+  // Creates an object with the total heap memory usage statistics for this
+  // isolate group.
+  void PrintMemoryUsageJSON(JSONStream* stream);
+#endif
+
+  uint64_t id() { return id_; }
+
+  static void Init();
+  static void Cleanup();
+
+  static void ForEach(std::function<void(IsolateGroup*)> action);
+  static void RunWithIsolateGroup(uint64_t id,
+                                  std::function<void(IsolateGroup*)> action,
+                                  std::function<void()> not_found);
+
+  // Manage list of existing isolate groups.
+  static void RegisterIsolateGroup(IsolateGroup* isolate_group);
+  static void UnregisterIsolateGroup(IsolateGroup* isolate_group);
+
  private:
   void* embedder_data_ = nullptr;
 
@@ -294,6 +317,12 @@ class IsolateGroup {
   std::unique_ptr<IsolateGroupSource> source_;
   std::unique_ptr<ThreadRegistry> thread_registry_;
   std::unique_ptr<SafepointHandler> safepoint_handler_;
+
+  static RwLock* isolate_groups_rwlock_;
+  static IntrusiveDList<IsolateGroup> isolate_groups_;
+
+  Random isolate_group_random_;
+  uint64_t id_ = isolate_group_random_.NextUInt64();
 };
 
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
