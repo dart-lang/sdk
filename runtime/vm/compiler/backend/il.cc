@@ -903,16 +903,6 @@ Representation LoadFieldInstr::representation() const {
   return kTagged;
 }
 
-AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
-    TokenPosition token_pos,
-    intptr_t num_context_variables)
-    : token_pos_(token_pos),
-      num_context_variables_(num_context_variables),
-      identity_(AliasIdentity::Unknown()) {
-  // This instruction is not used in AOT for code size reasons.
-  ASSERT(!FLAG_precompiled_mode);
-}
-
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_numeric_fields && slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
@@ -945,12 +935,11 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
 Instruction* StoreInstanceFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   // Dart objects are allocated null-initialized, which means we can eliminate
   // all initializing stores which store null value.
-  // Context objects can be allocated uninitialized as a performance
-  // optimization in JIT mode - however in AOT mode we always allocate them
-  // null initialized.
-  if (is_initialization_ &&
-      (!slot().IsContextSlot() ||
-       !instance()->definition()->IsAllocateUninitializedContext()) &&
+  // TODO(dartbug.com/38454) Context objects can be allocated uninitialized
+  // as a performance optimization (all initializing stores are inlined into
+  // the caller, which allocates the context). Investigate if this can be
+  // changed to align with normal Dart objects for code size reasons.
+  if (is_initialization_ && slot().IsDartField() &&
       value()->BindsToConstantNull()) {
     return nullptr;
   }

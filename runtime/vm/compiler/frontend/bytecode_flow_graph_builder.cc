@@ -1218,15 +1218,13 @@ void BytecodeFlowGraphBuilder::BuildStoreFieldTOS() {
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Stores to _Closure fields are lower-level.
-    code_ +=
-        B->StoreInstanceField(position_, ClosureSlotByField(field),
-                              StoreInstanceFieldInstr::Kind::kInitializing);
+    code_ += B->StoreInstanceField(position_, ClosureSlotByField(field));
   } else {
     // The rest of the StoreFieldTOS are for field initializers.
     // TODO(alexmarkov): Consider adding a flag to StoreFieldTOS or even
     // adding a separate bytecode instruction.
-    code_ += B->StoreInstanceFieldGuarded(
-        field, StoreInstanceFieldInstr::Kind::kInitializing);
+    code_ += B->StoreInstanceFieldGuarded(field,
+                                          /* is_initialization_store = */ true);
   }
 }
 
@@ -1253,8 +1251,7 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 void BytecodeFlowGraphBuilder::BuildStoreContextParent() {
   LoadStackSlots(2);
 
-  code_ += B->StoreInstanceField(position_, Slot::Context_parent(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+  code_ += B->StoreInstanceField(position_, Slot::Context_parent());
 }
 
 void BytecodeFlowGraphBuilder::BuildLoadContextParent() {

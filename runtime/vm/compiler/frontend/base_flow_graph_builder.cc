@@ -478,22 +478,19 @@ const Field& BaseFlowGraphBuilder::MayCloneField(const Field& field) {
 Fragment BaseFlowGraphBuilder::StoreInstanceField(
     TokenPosition position,
     const Slot& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
-    StoreBarrierType emit_store_barrier /* = kEmitStoreBarrier */) {
+    StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, Pop(), value, emit_store_barrier, position, kind);
+      field, Pop(), value, emit_store_barrier, position);
   return Fragment(store);
 }
 
 Fragment BaseFlowGraphBuilder::StoreInstanceField(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */,
+    bool is_initialization_store,
     StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
   if (value->BindsToConstant()) {
@@ -502,15 +499,16 @@ Fragment BaseFlowGraphBuilder::StoreInstanceField(
 
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
       MayCloneField(field), Pop(), value, emit_store_barrier,
-      TokenPosition::kNoSource, parsed_function_, kind);
+      TokenPosition::kNoSource, parsed_function_,
+      is_initialization_store ? StoreInstanceFieldInstr::Kind::kInitializing
+                              : StoreInstanceFieldInstr::Kind::kOther);
 
   return Fragment(store);
 }
 
 Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
     const Field& field,
-    StoreInstanceFieldInstr::Kind
-        kind /* = StoreInstanceFieldInstr::Kind::kOther */) {
+    bool is_initialization_store) {
   Fragment instructions;
   const Field& field_clone = MayCloneField(field);
   if (I->use_field_guards()) {
@@ -539,7 +537,7 @@ Fragment BaseFlowGraphBuilder::StoreInstanceFieldGuarded(
           new (Z) GuardFieldTypeInstr(Pop(), field_clone, GetNextDeoptId());
     }
   }
-  instructions += StoreInstanceField(field_clone, kind);
+  instructions += StoreInstanceField(field_clone, is_initialization_store);
   return instructions;
 }
 
@@ -935,13 +933,12 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
 
   code += LoadLocal(closure);
   code += LoadLocal(context);
-  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context(),
-                             StoreInstanceFieldInstr::Kind::kInitializing);
+  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context());
 
   code += LoadLocal(closure);
   code += Constant(target);
-  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function(),
-                             StoreInstanceFieldInstr::Kind::kInitializing);
+  code +=
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function());
 
   // Drop address and context.
   code += DropTempsPreserveTop(2);
