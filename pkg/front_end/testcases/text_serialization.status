@@ -100,6 +100,7 @@ general/bug34511: TextSerializationFailure # Was: Pass
 general/bug35470: TextSerializationFailure # Was: Pass
 general/bug37476: TextSerializationFailure
 general/call: TypeCheckError
+general/candidate_found: TypeCheckError
 general/cascade: TextSerializationFailure # Was: RuntimeError
 general/casts: TextSerializationFailure # Was: Pass
 general/check_deferred_allocation: TextSerializationFailure # Was: Pass

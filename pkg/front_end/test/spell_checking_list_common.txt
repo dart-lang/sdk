@@ -1971,6 +1971,7 @@ peek
 pending
 percent
 percolate
+perfect
 perform
 performance
 performed

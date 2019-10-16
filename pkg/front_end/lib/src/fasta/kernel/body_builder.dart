@@ -1619,7 +1619,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
       } else {
-        length = name.length;
+        if (candidate is Constructor) {
+          if (candidate.name.name == '') {
+            length = candidate.enclosingClass.name.length;
+          } else {
+            // Assume no spaces around the dot. Not perfect, but probably the
+            // best we can do with the information available.
+            length = candidate.enclosingClass.name.length + 1 + name.length;
+          }
+        } else {
+          length = name.length;
+        }
         contextMessage = fasta.messageCandidateFound;
       }
       context = [contextMessage.withLocation(uri, offset, length)];
