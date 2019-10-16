@@ -72,6 +72,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
     {bool keepFields: true,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy}) {
@@ -85,6 +86,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       typeEnvironment, errorReporter,
       keepFields: keepFields,
       desugarSets: desugarSets,
+      enableTripleShift: enableTripleShift,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
   return component;
@@ -100,6 +102,7 @@ void transformLibraries(
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
+    bool enableTripleShift: false,
     bool errorOnUnevaluatedConstant: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
@@ -108,6 +111,7 @@ void transformLibraries(
       keepVariables,
       evaluateAnnotations,
       desugarSets,
+      enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
       errorReporter);
@@ -126,6 +130,7 @@ class ConstantsTransformer extends Transformer {
   final bool keepVariables;
   final bool evaluateAnnotations;
   final bool desugarSets;
+  final bool enableTripleShift;
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
@@ -135,12 +140,14 @@ class ConstantsTransformer extends Transformer {
       this.keepVariables,
       this.evaluateAnnotations,
       this.desugarSets,
+      this.enableTripleShift,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
       ErrorReporter errorReporter)
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
             desugarSets: desugarSets,
+            enableTripleShift: enableTripleShift,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
 
   // Transform the library/class members:
@@ -493,6 +500,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final bool desugarSets;
   final Field unmodifiableSetMap;
 
+  final bool enableTripleShift;
+
   final bool Function(DartType) isInstantiated =
       new IsInstantiatedVisitor().isInstantiated;
 
@@ -522,7 +531,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
       this.errorReporter,
-      {this.desugarSets = false, this.errorOnUnevaluatedConstant = false})
+      {this.desugarSets = false,
+      this.enableTripleShift = false,
+      this.errorOnUnevaluatedConstant = false})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
@@ -1021,6 +1032,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       '~',
       '<<',
       '>>',
+      '>>>',
       '<',
       '<=',
       '>',
@@ -1043,7 +1055,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
     String last = parts.last;
     if (operatorNames.contains(last)) {
-      return true;
+      return enableTripleShift || last != '>>>';
     }
     if (last.endsWith('=')) {
       last = last.substring(0, last.length - 1);

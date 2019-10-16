@@ -793,6 +793,7 @@ class KernelTarget extends TargetImplementation {
         environment,
         new KernelConstantErrorReporter(loader),
         desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
     ticker.logMs("Evaluated constants");
 

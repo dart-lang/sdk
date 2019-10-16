@@ -781,7 +781,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return _constantEvaluator ??= new Dart2jsConstantEvaluator(typeEnvironment,
         (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
-    }, environment: _environment.toMap());
+    },
+        environment: _environment.toMap(),
+        enableTripleShift:
+            options.languageExperiments[ir.ExperimentalFlag.tripleShift]);
   }
 
   @override
