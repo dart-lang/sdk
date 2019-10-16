@@ -33,7 +33,7 @@ class ProgramVisitor : public AllStatic {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void BindStaticCalls();
   static void ShareMegamorphicBuckets();
-  static void DedupStackMaps();
+  static void DedupCompressedStackMaps();
   static void DedupPcDescriptors();
   static void DedupDeoptEntries();
 #if defined(DART_PRECOMPILER)

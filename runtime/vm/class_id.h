@@ -31,7 +31,7 @@ namespace dart {
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \
-  V(StackMap)                                                                  \
+  V(CompressedStackMaps)                                                       \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
