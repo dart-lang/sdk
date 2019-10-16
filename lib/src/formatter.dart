@@ -9,7 +9,6 @@ import 'package:analyzer/error/error.dart';
 
 import 'analyzer.dart';
 
-
 const benchmarkRuns = 10;
 final int _pipeCodeUnit = '|'.codeUnitAt(0);
 
