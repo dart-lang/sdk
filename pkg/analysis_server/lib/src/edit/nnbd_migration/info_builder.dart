@@ -114,7 +114,7 @@ class InfoBuilder {
 
     /// If the [node] is the return expression for a function body, return the
     /// function body. Otherwise return `null`.
-    AstNode findFunctionBody() {
+    FunctionBody findFunctionBody() {
       if (parent is ExpressionFunctionBody) {
         return parent;
       } else {
@@ -126,16 +126,18 @@ class InfoBuilder {
       }
     }
 
-    AstNode functionBody = findFunctionBody();
+    FunctionBody functionBody = findFunctionBody();
     if (functionBody != null) {
+      CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+      int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
       AstNode function = functionBody.parent;
       if (function is MethodDeclaration) {
         if (function.isGetter) {
-          return "This getter returns a nullable value";
+          return "This getter returns a nullable value on line $lineNumber";
         }
-        return "This method returns a nullable value";
+        return "This method returns a nullable value on line $lineNumber";
       }
-      return "This function returns a nullable value";
+      return "This function returns a nullable value on line $lineNumber";
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
@@ -198,7 +200,8 @@ class InfoBuilder {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _targetForNode(unit.declaredElement.source.fullName, type);
           return RegionDetail(
-              "The corresponding parameter in the overridden method is nullable",
+              "The corresponding parameter in the overridden method is "
+              "nullable",
               target);
           // TODO(srawlins): Also, this could be where a return type in an
           //  overridden method is made nullable because an overriding method
