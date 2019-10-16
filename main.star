@@ -525,8 +525,6 @@ dart_ci_sandbox_builder(
 dart_vm_extra_builder(
     "vm-kernel-checked-linux-release-x64", category="vm|kernel|rc")
 dart_vm_extra_builder("vm-kernel-linux-debug-ia32", category="vm|kernel|d32")
-dart_vm_extra_builder(
-    "vm-kernel-mac-debug-simdbc64", category="vm|kernel|mds", dimensions=mac())
 dart_ci_sandbox_builder(
     "vm-kernel-mac-debug-x64", category="vm|kernel|md", dimensions=mac())
 dart_ci_sandbox_builder(
@@ -625,10 +623,6 @@ dart_vm_extra_builder(
     "vm-kernel-reload-linux-debug-x64", category="vm|reload-kernel|d")
 dart_vm_extra_builder(
     "vm-kernel-reload-linux-release-x64", category="vm|reload-kernel|r")
-dart_vm_extra_builder(
-    "vm-kernel-reload-mac-release-simdbc64",
-    category="vm|reload-kernel|mr",
-    dimensions=mac())
 dart_vm_extra_builder(
     "vm-kernel-reload-rollback-linux-debug-x64",
     category="vm|reload-kernel|drb")
