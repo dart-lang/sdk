@@ -213,6 +213,7 @@ part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'namespace_impl.dart';
+part 'network_profiling.dart';
 part 'overrides.dart';
 part 'platform.dart';
 part 'platform_impl.dart';
