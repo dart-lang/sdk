@@ -35,18 +35,6 @@ final Pointer<Null> nullptr = Pointer.fromAddress(0);
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> extends NativeType {
-  /// Allocate [count] elements of type [T] on the native heap via malloc() and
-  /// return a pointer to the newly allocated memory.
-  ///
-  /// Note that the memory is uninitialized.
-  ///
-  /// On Windows, this memory may only be freed via [Pointer.free].
-  ///
-  /// This method is deprecated. Please resolve allocation methods via
-  /// [DynamicLibrary] instead, or use "package:ffi".
-  @deprecated
-  external factory Pointer.allocate({int count: 1});
-
   /// Construction from raw integer.
   external factory Pointer.fromAddress(int ptr);
 
@@ -70,31 +58,6 @@ class Pointer<T extends NativeType> extends NativeType {
       @DartRepresentationOf("T") Function f,
       [Object exceptionalReturn]);
 
-  /// Store a Dart value into this location.
-  ///
-  /// The `value` is automatically marshalled into its native representation.
-  /// Note that ints which do not fit in [T] are truncated and sign extended,
-  /// and doubles stored into Pointer<[Float]> lose precision.
-  ///
-  /// Note that `this.address` needs to be aligned to the size of `T`.
-  ///
-  /// Deprecated, use `pointer[...] =` and `pointer.value =` instead, or use
-  /// "package:ffi".
-  @deprecated
-  external void store(@DartRepresentationOf("T") Object value);
-
-  /// Load a Dart value from this location.
-  ///
-  /// The value is automatically unmarshalled from its native representation.
-  /// Loading a [Struct] reference returns a reference backed by native memory
-  /// (the same pointer as it's loaded from).
-  ///
-  /// Note that `this.address` needs to be aligned to the size of `T`.
-  ///
-  /// Deprecated, use `pointer[...]` and `pointer.value` instead.
-  @deprecated
-  external R load<@DartRepresentationOf("T") R>();
-
   /// Access to the raw pointer value.
   /// On 32-bit systems, the upper 32-bits of the result are 0.
   external int get address;
@@ -111,44 +74,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Can only be called on [Pointer]<[NativeFunction]>. Does not accept dynamic
   /// invocations -- where the type of the receiver is [dynamic].
   external R asFunction<@DartRepresentationOf("T") R extends Function>();
-
-  /// Free memory on the C heap pointed to by this pointer with free().
-  ///
-  /// On Windows, this method may only be used with a pointer allocated via
-  /// [Pointer.allocate].
-  ///
-  /// This method is deprecated. Please resolve allocation methods via
-  /// [DynamicLibrary] instead.
-  @deprecated
-  external void free();
-
-  /// Creates an *external* typed data array backed by this pointer.
-  ///
-  /// The typed data array returned is only valid for as long as the backing
-  /// [Pointer]. Accessing any element of the type data array after this
-  /// [Pointer] has been [Pointer.free()]d will cause undefined behavior.
-  ///
-  /// Since [Pointer]s do not know their length, the size of the typed data is
-  /// controlled by `count`, in units of the size of the native type for this
-  /// [Pointer] (similarly to [Pointer.allocate]).
-  ///
-  /// The kind of TypedData produced depends on the native type:
-  ///
-  ///   Pointer<Int8> -> Int8List
-  ///   Pointer<Uint8> -> Uint8List
-  ///   etc. up to Int64/Uint64
-  ///   Pointer<IntPtr> -> Int32List/Int64List depending on platform word size
-  ///   Pointer<Float> -> Float32List
-  ///   Pointer<Double> -> Float64List
-  ///
-  /// Creation of a [Uint8ClampedList] is not supported. Creation of a typed
-  /// data from a [Pointer] to any other native type is not supported.
-  ///
-  /// The pointer must be aligned to a multiple of the native type's size.
-  ///
-  /// Deprecated, replace with `asTypedList()`.
-  @deprecated
-  external TypedData asExternalTypedData({int count: 1});
 
   /// Equality for Pointers only depends on their address.
   bool operator ==(other) {

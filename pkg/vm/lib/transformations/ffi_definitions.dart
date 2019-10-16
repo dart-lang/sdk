@@ -298,6 +298,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       pointer = MethodInvocation(pointer, offsetByMethod.name,
           Arguments([_runtimeBranchOnLayout(offsets)]), offsetByMethod);
     }
+
+    final Class nativeClass = (nativeType as InterfaceType).classNode;
+    final NativeType nt = getType(nativeClass);
+    final typeArguments = [
+      if (nt == NativeType.kPointer && pointerType is InterfaceType)
+        pointerType.typeArguments[0]
+    ];
+
     final Procedure pointerGetter = Procedure(
         pointerName,
         ProcedureKind.Getter,
@@ -307,20 +315,24 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             returnType: pointerType));
 
     // Sample output:
-    // double get x => _xPtr.load<double>();
+    // double get x => _xPtr.value;
+    final loadMethod =
+        optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod;
     final Procedure getter = Procedure(
         field.name,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
-                PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                loadMethod.name,
-                Arguments([], types: [field.type]),
-                loadMethod)),
+            ReturnStatement(StaticInvocation(
+                loadMethod,
+                Arguments([
+                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
+                  ConstantExpression(IntConstant(0))
+                ], types: typeArguments))),
             returnType: field.type));
 
     // Sample output:
-    // set x(double v) => _xPtr.store(v);
+    // set x(double v) { _xPtr.value = v; };
+    final storeMethod = storeMethods[nt];
     Procedure setter = null;
     if (!field.isFinal) {
       final VariableDeclaration argument =
@@ -329,11 +341,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           field.name,
           ProcedureKind.Setter,
           FunctionNode(
-              ReturnStatement(MethodInvocation(
-                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                  storeMethod.name,
-                  Arguments([VariableGet(argument)]),
-                  storeMethod)),
+              ReturnStatement(StaticInvocation(
+                  storeMethod,
+                  Arguments([
+                    PropertyGet(ThisExpression(), pointerName, pointerGetter),
+                    ConstantExpression(IntConstant(0)),
+                    VariableGet(argument)
+                  ], types: typeArguments))),
               returnType: VoidType(),
               positionalParameters: [argument]));
     }

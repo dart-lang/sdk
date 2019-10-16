@@ -140,7 +140,7 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test-v1.6.4",
-  "tflite_native_rev": "4e8216d8fd3d5ccc8a56a056ec43d44cf99bf5c0",
+  "tflite_native_rev": "ff18d205bb4eb4db98439658066e72a238044e28",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",

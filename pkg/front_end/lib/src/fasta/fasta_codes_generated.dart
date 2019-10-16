@@ -4061,38 +4061,6 @@ Message _withArgumentsFfiTypeMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        DartType
-            _type)> templateFfiTypeUnsized = const Template<
-        Message Function(String name, DartType _type)>(
-    messageTemplate:
-        r"""Method '#name' cannot be called on something of type '#type' as this type is unsized.""",
-    withArguments: _withArgumentsFfiTypeUnsized);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, DartType _type)> codeFfiTypeUnsized =
-    const Code<Message Function(String name, DartType _type)>(
-  "FfiTypeUnsized",
-  templateFfiTypeUnsized,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  TypeLabeler labeler = new TypeLabeler();
-  List<Object> typeParts = labeler.labelType(_type);
-  String type = typeParts.join();
-  return new Message(codeFfiTypeUnsized,
-      message:
-          """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
-              labeler.originMessages,
-      arguments: {'name': name, 'type': _type});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFieldInitializedOutsideDeclaringClass =
     messageFieldInitializedOutsideDeclaringClass;
 

@@ -263,7 +263,6 @@ FfiNotStatic/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
-FfiTypeUnsized/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
 FfiStructGeneric/analyzerCode: Fail

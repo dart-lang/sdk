@@ -370,8 +370,6 @@ namespace dart {
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
   V(VMService_spawnUriNotify, 2)                                               \
-  V(Ffi_allocate, 1)                                                           \
-  V(Ffi_free, 1)                                                               \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \

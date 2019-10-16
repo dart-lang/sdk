@@ -191,8 +191,6 @@ class FfiTransformer extends Transformer {
   final Class pointerClass;
   final Class structClass;
   final Procedure castMethod;
-  final Procedure loadMethod;
-  final Procedure storeMethod;
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
   final Procedure asFunctionMethod;
@@ -227,8 +225,6 @@ class FfiTransformer extends Transformer {
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
-        loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
-        storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
         elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),

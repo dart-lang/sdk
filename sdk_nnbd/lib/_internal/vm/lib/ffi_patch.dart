@@ -39,8 +39,6 @@ int sizeOf<T extends NativeType>() {
 
 int _sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
-Pointer<T> _allocate<T extends NativeType>(int count) native "Ffi_allocate";
-
 // Implemented in the method recognizer, bytecode interpreter uses runtime.
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
@@ -76,9 +74,6 @@ Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(Object function)
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
   @patch
-  factory Pointer.allocate({int count: 1}) => _allocate<T>(count);
-
-  @patch
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
   // All static calls to this method are replaced by the FE into
@@ -93,18 +88,6 @@ class Pointer<T extends NativeType> {
     throw UnsupportedError(
         "Pointer.fromFunction cannot be called dynamically.");
   }
-
-  // TODO(sjindel): When NNBD is available, we should change `value` to be
-  // non-null.
-  // For statically known types, this is rewired.
-  @patch
-  void store(Object value) =>
-      throw UnsupportedError("Pointer.store cannot be called dynamically.");
-
-  // For statically known types, this is rewired.
-  @patch
-  R load<R>() =>
-      throw UnsupportedError("Pointer.load cannot be called dynamically.");
 
   // Implemented in the method recognizer, bytecode interpreter uses runtime.
   @patch
@@ -127,13 +110,6 @@ class Pointer<T extends NativeType> {
   R asFunction<R extends Function>() {
     throw UnsupportedError("Pointer.asFunction cannot be called dynamically.");
   }
-
-  @patch
-  void free() native "Ffi_free";
-
-  @patch
-  TypedData asExternalTypedData({int count: 1}) =>
-      _asExternalTypedData(this, count);
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
