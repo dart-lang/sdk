@@ -494,6 +494,32 @@ class B implements A {
         details: ["An overridding method has a nullable return value"]);
   }
 
+  test_return_multipleReturns() async {
+    addTestFile('''
+String g() {
+  int x = 1;
+  if (x == 2) return x == 3 ? "Hello" : null;
+  return "Hello";
+}
+''');
+    await buildInfo();
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+String? g() {
+  int x = 1;
+  if (x == 2) return x == 3 ? "Hello" : null;
+  return "Hello";
+}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 6,
+        details: ["This function returns a nullable value"]);
+    assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
+  }
+
   test_returnDetailTarget() async {
     addTestFile('''
 String g() {

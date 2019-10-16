@@ -117,11 +117,13 @@ class InfoBuilder {
     AstNode findFunctionBody() {
       if (parent is ExpressionFunctionBody) {
         return parent;
-      } else if (parent is ReturnStatement &&
-          parent.parent?.parent is BlockFunctionBody) {
-        return parent.parent.parent;
+      } else {
+        ReturnStatement returnNode =
+            parent.thisOrAncestorOfType<ReturnStatement>();
+        BlockFunctionBody bodyNode =
+            returnNode?.thisOrAncestorOfType<BlockFunctionBody>();
+        return bodyNode;
       }
-      return null;
     }
 
     AstNode functionBody = findFunctionBody();
