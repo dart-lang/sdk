@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../util/dart_type_utilities.dart';
@@ -66,7 +68,7 @@ class AvoidInitToNull extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);
   }
@@ -74,13 +76,22 @@ class AvoidInitToNull extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  final bool nnbdEnabled;
+  _Visitor(this.rule, this.context)
+      : nnbdEnabled = context.analysisOptions.contextFeatures
+            .isEnabled(Feature.non_nullable);
+
+  bool isNullable(DartType type) =>
+      !nnbdEnabled || (type != null && context.typeSystem.isNullable(type));
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (DartTypeUtilities.isNullLiteral(node.defaultValue)) {
-      rule.reportLint(node);
+      if (isNullable(node.declaredElement.type)) {
+        rule.reportLint(node);
+      }
     }
   }
 
@@ -89,7 +100,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isConst &&
         !node.isFinal &&
         DartTypeUtilities.isNullLiteral(node.initializer)) {
-      rule.reportLint(node);
+      if (isNullable(node.declaredElement.type)) {
+        rule.reportLint(node);
+      }
     }
   }
 }
