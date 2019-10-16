@@ -207,23 +207,32 @@ class CompletionRanking {
     return suggestions;
   }
 
-  /// Spins up the model isolate and tells it to load the tflite model.
+  /// Spin up the model isolates and load the tflite model.
   Future<void> start() async {
     this._writes = [];
     this._index = 0;
     final initializations = <Future<void>>[];
-    for (var i = 0; i < _ISOLATE_COUNT; i++) {
+
+    // Start the first isolate.
+    await _startIsolate();
+
+    // Start the 2nd and later isolates.
+    for (int i = 1; i < _ISOLATE_COUNT; i++) {
       initializations.add(_startIsolate());
     }
 
-    await Future.wait(initializations);
+    return Future.wait(initializations);
   }
 
   Future<void> _startIsolate() async {
+    final Stopwatch timer = Stopwatch()..start();
     final port = ReceivePort();
     await Isolate.spawn(entrypoint, port.sendPort);
     this._writes.add(await port.first);
-    await makeRequest('load', [_directory]);
+    return makeRequest('load', [_directory]).whenComplete(() {
+      timer.stop();
+      performanceMetrics._isolateInitTimes.add(timer.elapsed);
+    });
   }
 }
 
@@ -232,8 +241,11 @@ class PerformanceMetrics {
 
   final Queue<PredictionResult> _predictionResults = Queue();
   int _predictionRequestCount = 0;
+  final List<Duration> _isolateInitTimes = [];
 
   PerformanceMetrics._();
+
+  List<Duration> get isolateInitTimes => _isolateInitTimes;
 
   /// An iterable of the last `n` prediction results;
   Iterable<PredictionResult> get predictionResults => _predictionResults;

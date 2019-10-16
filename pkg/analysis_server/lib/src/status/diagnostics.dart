@@ -394,8 +394,20 @@ class MLCompletionPage extends DiagnosticPageWithNav {
   Future<void> generateContent(Map<String, String> params) async {
     final bool hasMLComplete = CompletionRanking.instance != null;
     if (!hasMLComplete) {
+      blankslate('''ML code completion is not enabled (see <a
+href="https://github.com/dart-lang/sdk/wiki/Previewing-Dart-code-completions-powered-by-machine-learning"
+>previewing Dart ML completion</a> for how to enable it).''');
       return;
     }
+
+    buf.writeln('ML completion enabled.<br>');
+
+    final String isolateTimes = CompletionRanking
+        .instance.performanceMetrics.isolateInitTimes
+        .map((Duration time) {
+      return '${time.inMilliseconds}ms';
+    }).join(', ');
+    p('ML isolate init times: $isolateTimes');
 
     final List<PredictionResult> predictions = CompletionRanking
         .instance.performanceMetrics.predictionResults
