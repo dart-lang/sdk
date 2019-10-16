@@ -17,13 +17,6 @@ final GeneratedFile target = javaGeneratedFile(
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);
 
-  /**
-   * Get the name of the consumer class for responses to this request.
-   */
-  String consumerName(Request request) {
-    return camelJoin([request.method, 'consumer'], doCapitalize: true);
-  }
-
   @override
   void visitApi() {
     outputHeader(javaStyle: true);
