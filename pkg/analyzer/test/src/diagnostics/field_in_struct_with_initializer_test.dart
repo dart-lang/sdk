@@ -38,7 +38,7 @@ class C extends Struct {
   test_static_withInitializer() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-class C extends Struct<C> {
+class C extends Struct {
   static String str = '';
 }
 ''');

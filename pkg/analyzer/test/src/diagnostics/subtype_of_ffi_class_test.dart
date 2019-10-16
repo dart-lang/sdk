@@ -208,9 +208,9 @@ class C implements Pointer {}
   test_Struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C implements Struct<C> {}
+class C implements Struct {}
 ''', [
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 9),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 38, 6),
     ]);
   }
 
@@ -344,10 +344,10 @@ class C with Pointer {}
   test_Struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-class C with Struct<C> {}
+class C with Struct {}
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 9),
-      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 9),
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 32, 6),
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH, 32, 6),
     ]);
   }
 

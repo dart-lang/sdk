@@ -524,7 +524,7 @@ class Pointer<T extends NativeType> extends NativeType {
       [Object exceptionalReturn]);
   R asFunction<@DartRepresentationOf("T") R extends Function>();
 }
-class Struct<S extends NativeType> extends NativeType {}
+class Struct extends NativeType {}
 
 abstract class DynamicLibrary {
   F lookupFunction<T extends Function, F extends Function>(String symbolName);
