@@ -216,7 +216,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
 #endif
   Isolate::InitVM();
-  IsolateGroup::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -253,7 +252,6 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
         new IsolateGroupSource(nullptr, "vm-isolate", nullptr, nullptr, nullptr,
                                nullptr, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
-    IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
         Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
     group->set_initial_spawn_successful();
@@ -583,7 +581,6 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
-  IsolateGroup::Cleanup();
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();

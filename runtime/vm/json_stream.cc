@@ -346,11 +346,6 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   isolate->PrintJSON(this, ref);
 }
 
-void JSONStream::PrintValue(IsolateGroup* isolate_group, bool ref) {
-  PrintCommaIfNeeded();
-  isolate_group->PrintJSON(this, ref);
-}
-
 void JSONStream::PrintValue(ThreadRegistry* reg) {
   PrintCommaIfNeeded();
   reg->PrintJSON(this);

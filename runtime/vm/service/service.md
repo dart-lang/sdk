@@ -37,7 +37,6 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getInstances](#getinstances)
   - [getInboundReferences](#getinboundreferences)
   - [getIsolate](#getisolate)
-  - [getIsolateGroup](#getisolategroup)
   - [getMemoryUsage](#getmemoryusage)
   - [getObject](#getobject)
   - [getRetainingPath](#getretainingpath)
@@ -93,7 +92,6 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Instance](#instance)
   - [InstanceSet](#instanceset)
   - [Isolate](#isolate)
-  - [IsolateGroup](#isolategroup)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
   - [LogRecord](#logrecord)
@@ -762,22 +760,6 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
 
-### getIsolateGroup
-
-```
-IsolateGroup|Sentinel getIsolateGroup(string isolateGroupId)
-```
-
-The _getIsolateGroup_ RPC is used to lookup an _IsolateGroup_ object by its _id_.
-
-If _isolateGroupId_ refers to an isolate group which has exited, then the
-_Expired_ [Sentinel](#sentinel) is returned.
-
-_IsolateGroup_ _id_ is an opaque identifier that can be fetched from an
- _IsolateGroup_. List of active _IsolateGroup_'s, for example, is available on _VM_ object.
-
-See [IsolateGroup](#isolategroup), [VM](#vm).
-
 ### getMemoryUsage
 
 ```
@@ -791,19 +773,6 @@ If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
-
-### getIsolateGroupMemoryUsage
-
-```
-MemoryUsage|Sentinel getIsolateGroupMemoryUsage(string isolateGroupId)
-```
-
-The _getIsolateGroupMemoryUsage_ RPC is used to lookup an isolate
-group's memory usage statistics by its _id_.
-
-If _isolateGroupId_ refers to an isolate group which has exited, then the _Expired_ [Sentinel](#sentinel) is returned.
-
-See [IsolateGroup](#isolategroup).
 
 ### getScripts
 
@@ -2629,42 +2598,6 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
-### IsolateGroup
-
-```
-class @IsolateGroup extends Response {
-  // The id which is passed to the getIsolateGroup RPC to load this isolate group.
-  string id;
-
-  // A numeric id for this isolate group, represented as a string. Unique.
-  string number;
-
-  // A name identifying this isolate group. Not guaranteed to be unique.
-  string name;
-}
-```
-
-_@IsolateGroup_ is a reference to an _IsolateGroup_ object.
-
-```
-class IsolateGroup extends Response {
-  // The id which is passed to the getIsolate RPC to reload this
-  // isolate.
-  string id;
-
-  // A numeric id for this isolate, represented as a string. Unique.
-  string number;
-
-  // A name identifying this isolate. Not guaranteed to be unique.
-  string name;
-
-  // A list of all isolates in this isolate group.
-  @Isolate[] isolates;
-}
-```
-
-An _Isolate_ object provides information about one isolate in the VM.
-
 ### InboundReferences
 
 ```
@@ -3505,9 +3438,6 @@ class VM extends Response {
 
   // A list of isolates running in the VM.
   @Isolate[] isolates;
-
-  // A list of isolate groups running in the VM.
-  @IsolateGroup[] isolateGroups;
 }
 ```
 

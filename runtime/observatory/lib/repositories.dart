@@ -30,7 +30,6 @@ part 'src/repositories/icdata.dart';
 part 'src/repositories/inbound_references.dart';
 part 'src/repositories/instance.dart';
 part 'src/repositories/isolate.dart';
-part 'src/repositories/isolate_group.dart';
 part 'src/repositories/library.dart';
 part 'src/repositories/megamorphiccache.dart';
 part 'src/repositories/metric.dart';
