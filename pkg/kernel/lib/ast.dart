@@ -6118,10 +6118,20 @@ class TypeParameter extends TreeNode {
   DartType defaultType;
 
   /// Describes variance of the type parameter w.r.t. declaration on which it is
-  /// defined.  It's always [Variance.covariant] for classes, and for typedefs
-  /// it's the variance of the type parameters in the type term on the r.h.s. of
-  /// the typedef.
-  int variance = Variance.covariant;
+  /// defined. For classes, if variance is not explicitly set, the type
+  /// parameter has legacy covariance defined by [isLegacyCovariant] which
+  /// on the lattice is equivalent to [Variance.covariant]. For typedefs, it's
+  /// the variance of the type parameters in the type term on the r.h.s. of the
+  /// typedef.
+  int _variance;
+
+  int get variance => _variance ?? Variance.covariant;
+
+  void set variance(int newVariance) => _variance = newVariance;
+
+  bool get isLegacyCovariant => _variance == null;
+
+  static const int legacyCovariantSerializationMarker = 4;
 
   TypeParameter([this.name, this.bound, this.defaultType]);
 

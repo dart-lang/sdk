@@ -69,8 +69,8 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 0x6d3cec71)                                      \
   V(_Double, _mul, DoubleMul, 0x648e67af)                                      \
   V(_Double, _div, DoubleDiv, 0x6d72d7d4)                                      \
-  V(::, min, MathMin, 0x3ccbc098)                                              \
-  V(::, max, MathMax, 0x4e398e7f)                                              \
+  V(::, min, MathMin, 0xddeb5e75)                                              \
+  V(::, max, MathMax, 0xe152dd1c)                                              \
   V(::, _doublePow, MathDoublePow, 0x5ae04e61)                                 \
   V(::, _intPow, MathIntPow, 0x569ffd3f)                                       \
   V(Float32x4, Float32x4., Float32x4Constructor, 0xdf9f0693)                   \
@@ -143,8 +143,8 @@ namespace dart {
   V(::, _classRangeCheck, ClassRangeCheck, 0xca52e30a)                         \
   V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0xaeaed5cb)             \
   V(::, _abi, FfiAbi, 0xf2e89620)                                              \
-  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92a67518)                \
-  V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x59cc5edb)        \
+  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x77414ede)                \
+  V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x5bd261b8)        \
   V(::, _loadInt8, FfiLoadInt8, 0x9b1e4a8d)                                    \
   V(::, _loadInt16, FfiLoadInt16, 0x2824dc24)                                  \
   V(::, _loadInt32, FfiLoadInt32, 0x3f9bf49d)                                  \
@@ -156,7 +156,7 @@ namespace dart {
   V(::, _loadIntPtr, FfiLoadIntPtr, 0x1ad8e69f)                                \
   V(::, _loadFloat, FfiLoadFloat, 0x234b92dc)                                  \
   V(::, _loadDouble, FfiLoadDouble, 0x97c755b3)                                \
-  V(::, _loadPointer, FfiLoadPointer, 0xd478c108)                              \
+  V(::, _loadPointer, FfiLoadPointer, 0xd9d293a5)                              \
   V(::, _storeInt8, FfiStoreInt8, 0x9a637adf)                                  \
   V(::, _storeInt16, FfiStoreInt16, 0x7c5ad40b)                                \
   V(::, _storeInt32, FfiStoreInt32, 0xc729a9da)                                \
@@ -168,8 +168,8 @@ namespace dart {
   V(::, _storeIntPtr, FfiStoreIntPtr, 0xc75ef10f)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x34a22e07)                                \
   V(::, _storeDouble, FfiStoreDouble, 0x09226ca7)                              \
-  V(::, _storePointer, FfiStorePointer, 0x2641a44b)                            \
-  V(::, _fromAddress, FfiFromAddress, 0x8eb74eb8)                              \
+  V(::, _storePointer, FfiStorePointer, 0x3c7143a8)                            \
+  V(::, _fromAddress, FfiFromAddress, 0x612a64d5)                              \
   V(Pointer, get:address, FfiGetAddress, 0x29a505a1)                           \
 
 // List of intrinsics:

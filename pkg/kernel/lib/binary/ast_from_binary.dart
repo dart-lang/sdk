@@ -2231,7 +2231,12 @@ class BinaryBuilder {
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
-    node.variance = readByte();
+    int variance = readByte();
+    if (variance == TypeParameter.legacyCovariantSerializationMarker) {
+      node.variance = null;
+    } else {
+      node.variance = variance;
+    }
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();

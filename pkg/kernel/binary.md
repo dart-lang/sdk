@@ -1236,7 +1236,7 @@ type FunctionDeclaration extends Statement {
 
 enum Nullability { nullable = 0, nonNullable = 1, neither = 2, legacy = 3, }
 
-enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, }
+enum Variance { unrelated = 0, covariant = 1, contravariant = 2, invariant = 3, legacyCovariant = 4, }
 
 abstract type DartType extends Node {}
 

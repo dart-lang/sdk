@@ -5,7 +5,7 @@
 library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, Nullability, TypeParameter, TypeParameterType, Variance;
+    show DartType, Nullability, TypeParameter, TypeParameterType;
 
 import '../fasta_codes.dart'
     show
@@ -38,9 +38,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
 
   TypeVariableBuilder(
       String name, SourceLibraryBuilder compilationUnit, int charOffset,
-      {this.bound,
-      this.isExtensionTypeParameter: false,
-      int variableVariance: Variance.covariant})
+      {this.bound, this.isExtensionTypeParameter: false, int variableVariance})
       : actualParameter = new TypeParameter(name, null)
           ..fileOffset = charOffset
           ..variance = variableVariance,

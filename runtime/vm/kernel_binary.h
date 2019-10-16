@@ -176,6 +176,7 @@ enum Variance {
   kCovariant = 1,
   kContravariant = 2,
   kInvariant = 3,
+  kLegacyCovariant = 4,
 };
 
 static const int SpecializedIntLiteralBias = 3;

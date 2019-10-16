@@ -2125,7 +2125,11 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
-    writeByte(node.variance);
+    if (node.isLegacyCovariant) {
+      writeByte(TypeParameter.legacyCovariantSerializationMarker);
+    } else {
+      writeByte(node.variance);
+    }
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
     writeOptionalNode(node.defaultType);
