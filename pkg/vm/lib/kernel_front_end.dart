@@ -109,7 +109,7 @@ void declareCompilerOptions(ArgParser args) {
       allowed: BytecodeOptions.commandLineFlags.keys,
       allowedHelp: BytecodeOptions.commandLineFlags);
   args.addFlag('drop-ast',
-      help: 'Include only bytecode into the output file', defaultsTo: false);
+      help: 'Include only bytecode into the output file', defaultsTo: true);
   args.addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features to enable.');
   args.addFlag('help',
