@@ -478,13 +478,22 @@ class Place : public ValueObject {
     if ((index_constant != NULL) && index_constant->value().IsSmi()) {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
       const ElementSize size = ElementSizeFor(class_id);
-      const bool is_typed_data = (size != kNoSize);
-      const bool can_be_view_or_external =
-          is_typed_data && instance_->IsLoadUntagged();
+      const bool is_typed_access = (size != kNoSize);
+      // Indexing into [RawTypedDataView]/[RawExternalTypedData happens via a
+      // untagged load of the `_data` field (which points to C memory).
+      //
+      // Indexing into dart:ffi's [RawPointer] happens via loading of the
+      // `c_memory_address_`, converting it to an integer, doing some arithmetic
+      // and finally using IntConverterInstr to convert to a untagged
+      // representation.
+      //
+      // In both cases the array used for load/store has untagged
+      // representation.
+      const bool can_be_view = instance_->representation() == kUntagged;
 
       // If we are writing into the typed data scale the index to
       // get byte offset. Otherwise ignore the scale.
-      if (!is_typed_data) {
+      if (!is_typed_access) {
         scale = 1;
       }
 
@@ -494,8 +503,8 @@ class Place : public ValueObject {
 
         // Guard against unaligned byte offsets and access through raw
         // memory pointer (which can be pointing into another typed data).
-        if (!is_typed_data ||
-            (!can_be_view_or_external &&
+        if (!is_typed_access ||
+            (!can_be_view &&
              Utils::IsAligned(scaled_index, ElementSizeMultiplier(size)))) {
           set_kind(kConstantIndexed);
           set_element_size(size);
