@@ -4,6 +4,12 @@
 
 // test w/ `pub run test -N avoid_init_to_null`
 
+int i = null; //OK (compilation error)
+int? ii = null; //LINT
+dynamic iii = null; //LINT
+
+// todo (pq): mock and add FutureOr examples
+
 var x = null; //LINT
 var y; //OK
 var z = 1; //OK
@@ -18,12 +24,20 @@ class X {
 
   // TODO(pq): ints are not nullable so we'll want to update the lint here
   // since it will produce a compilation error.
-  // int x = null; //LINT
+  int x = null; //OK (compilation error)
+  int? xx = null; //LINT
   int y; //OK
-  int z;
+  int z; //OK
 
-  X({int a: null}); //LINT
-  X.b({this.z: null}); //LINT
+  X({int a: null}) //OK (compilation error)
+    : y = 1, z = 1;
+
+  X.b({this.z: null}) //OK (compilation error)
+    : y = 1;
+
+  X.c({this.xx: null}) //LINT
+      : y = 1, z = 1;
+
 
   fooNamed({
     p: null, //LINT
