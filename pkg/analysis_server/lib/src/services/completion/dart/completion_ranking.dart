@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:isolate';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking_internal.dart';
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,6 +19,8 @@ const int _LOOKBACK = 50;
 /// Minimum probability to prioritize model-only suggestion.
 const double _MODEL_RELEVANCE_CUTOFF = 0.5;
 
+// TODO(devoncarew): We need to explore the memory costs of running multiple ML
+// isolates.
 /// Number of code completion isolates.
 const int _ISOLATE_COUNT = 4;
 
@@ -53,6 +57,9 @@ class CompletionRanking {
   /// Pointer for round robin load balancing over isolates.
   int _index;
 
+  /// General performance metrics around ML completion.
+  final PerformanceMetrics performanceMetrics = PerformanceMetrics._();
+
   CompletionRanking(this._directory);
 
   /// Send an RPC to the isolate worker and wait for it to respond.
@@ -68,17 +75,32 @@ class CompletionRanking {
     return await port.first;
   }
 
-  /// Makes a next-token prediction starting at the completion request
-  /// cursor and walking back to find previous input tokens.
+  /// Makes a next-token prediction starting at the completion request cursor
+  /// and walking back to find previous input tokens.
   Future<Map<String, double>> predict(DartCompletionRequest request) async {
     final query = constructQuery(request, _LOOKBACK);
     if (query == null) {
-      return Future.value(null);
+      return Future.value();
     }
 
     request.checkAborted();
+
+    performanceMetrics._incrementPredictionRequestCount();
+
+    final Stopwatch timer = Stopwatch()..start();
     final response = await makeRequest('predict', query);
-    return response['data'];
+    timer.stop();
+
+    final Map<String, double> result = response['data'];
+
+    performanceMetrics._addPredictionResult(PredictionResult(
+      result,
+      timer.elapsed,
+      request.source.fullName,
+      computeCompletionSnippet(request.sourceContents, request.offset),
+    ));
+
+    return result;
   }
 
   /// Transforms [CompletionSuggestion] relevances and
@@ -203,4 +225,40 @@ class CompletionRanking {
     this._writes.add(await port.first);
     await makeRequest('load', [_directory]);
   }
+}
+
+class PerformanceMetrics {
+  static const int _maxResultBuffer = 50;
+
+  final Queue<PredictionResult> _predictionResults = Queue();
+  int _predictionRequestCount = 0;
+
+  PerformanceMetrics._();
+
+  /// An iterable of the last `n` prediction results;
+  Iterable<PredictionResult> get predictionResults => _predictionResults;
+
+  /// The total prediction requests to ML Complete.
+  int get predictionRequestCount => _predictionRequestCount;
+
+  void _addPredictionResult(PredictionResult request) {
+    _predictionResults.addFirst(request);
+    if (_predictionResults.length > _maxResultBuffer) {
+      _predictionResults.removeLast();
+    }
+  }
+
+  void _incrementPredictionRequestCount() {
+    _predictionRequestCount++;
+  }
+}
+
+class PredictionResult {
+  final Map<String, double> results;
+  final Duration elapsedTime;
+  final String sourcePath;
+  final String snippet;
+
+  PredictionResult(
+      this.results, this.elapsedTime, this.sourcePath, this.snippet);
 }
