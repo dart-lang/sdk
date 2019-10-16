@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.61';
+const String version = '1.62';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -190,13 +190,11 @@ class DartFuzz {
   void emitZero() => emit('0');
 
   void emitTryCatchFinally(Function tryBody, Function catchBody,
-      {Function finallyBody, bool catchOOM = true}) {
+      {Function finallyBody}) {
     emitLn('try ', newline: false);
     emitBraceWrapped(() => tryBody());
-    if (catchOOM) {
-      emit(' on OutOfMemoryError ');
-      emitBraceWrapped(() => emitLn("exit(${oomExitCode});", newline: false));
-    }
+    emit(' on OutOfMemoryError ');
+    emitBraceWrapped(() => emitLn("exit(${oomExitCode});", newline: false));
     emit(' catch (e, st) ');
     emitBraceWrapped(catchBody);
     if (finallyBody != null) {
@@ -269,6 +267,7 @@ class DartFuzz {
       {bool Function() elseBodyEmitter}) {
     emitLn('if ', newline: false);
     emitParenWrapped(ifConditionEmitter);
+    emit(' ');
     final bool b1 = emitBraceWrapped(ifBodyEmitter);
     bool b2 = false;
     if (elseBodyEmitter != null) {
@@ -592,6 +591,7 @@ class DartFuzz {
       emitLn('// which, in turn, flags the problem prominently');
       emitIfStatement(() => emit('ffiTestFunctions == null'),
           () => emitPrint('Did not load ffi test functions'));
+      emitNewline();
     }
   }
 
@@ -604,7 +604,7 @@ class DartFuzz {
           emitTryCatchFinally(() {
             emitCall(1, outputName, globalMethods[i], includeSemicolon: true);
           }, () {
-            emitPrint('$outputName throws');
+            emitPrint('$outputName() throws');
           });
           emitNewline();
         }
@@ -654,7 +654,7 @@ class DartFuzz {
             body += '\$$varName$i\\n';
           }
           emitPrint('$body');
-        }, () => emitPrint('print throws'));
+        }, () => emitPrint('print() throws'));
       });
 
   //
@@ -1027,6 +1027,8 @@ class DartFuzz {
     final emitStatementsClosure = () => emitStatements(depth + 1);
     emitLn('try ', newline: false);
     emitBraceWrapped(emitStatementsClosure);
+    emit(' on OutOfMemoryError ');
+    emitBraceWrapped(() => emitLn("exit(${oomExitCode});", newline: false));
     emit(' catch (exception, stackTrace) ', newline: false);
     emitBraceWrapped(emitStatementsClosure);
     if (coinFlip()) {
