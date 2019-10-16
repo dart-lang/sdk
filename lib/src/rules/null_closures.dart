@@ -7,8 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'; // ignore: implementation_imports
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
+import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
 

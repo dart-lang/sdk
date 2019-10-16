@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:linter/src/util/boolean_expression_utilities.dart';
+import '../util/boolean_expression_utilities.dart';
 
 void _addNodeComparisons(Expression node, Set<Expression> comparisons) {
   if (_isComparison(node)) {

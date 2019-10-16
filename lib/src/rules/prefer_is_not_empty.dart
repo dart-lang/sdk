@@ -13,8 +13,8 @@ import 'package:analyzer/dart/ast/ast.dart'
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' show Element;
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
+import '../analyzer.dart';
+import '../ast.dart';
 
 const _desc = r'Use `isNotEmpty` for Iterables and Maps.';
 

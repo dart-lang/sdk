@@ -6,8 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/utils.dart';
+
+import '../analyzer.dart';
+import '../utils.dart';
 
 const _desc = r'Specify type annotations.';
 
@@ -123,12 +124,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     checkLiteral(literal);
   }
 
-  @override
-  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
-    checkLiteral(literal);
-  }
-
-  // Future kernel API.
   visitNamedType(NamedType namedType) {
     DartType type = namedType.type;
     if (type is ParameterizedType) {
@@ -139,6 +134,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(namedType);
       }
     }
+  }
+
+  // Future kernel API.
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
+    checkLiteral(literal);
   }
 
   @override

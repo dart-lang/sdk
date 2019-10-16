@@ -6,10 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 import 'package:meta/meta.dart';
+
+import '../analyzer.dart';
+import '../ast.dart';
+import '../util/dart_type_utilities.dart';
 
 _PredicateBuilder _hasConstructorFieldInitializers = (VariableDeclaration v) =>
     (AstNode n) =>

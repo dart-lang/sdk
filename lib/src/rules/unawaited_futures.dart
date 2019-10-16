@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:linter/src/analyzer.dart';
+import '../analyzer.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
     '`await`ed or marked `unawaited` using `package:pedantic`.';

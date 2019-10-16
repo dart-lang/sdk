@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
-import 'package:linter/src/util/leak_detector_visitor.dart';
+import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
+import '../util/leak_detector_visitor.dart';
 
 const _desc = r'Close instances of `dart.core.Sink`.';
 

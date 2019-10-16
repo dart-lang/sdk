@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/analyzer.dart';
+import '../analyzer.dart';
 
 const _desc =
     r'Prefer an 8-digit hexadecimal integer(0xFFFFFFFF) to instantiate Color.';

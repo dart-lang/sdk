@@ -14,8 +14,9 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/util.dart' as util;
 import 'package:analyzer/src/services/lint.dart' as lint_service;
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/version.dart';
+
+import 'analyzer.dart';
+import 'version.dart';
 
 export 'package:analyzer/src/dart/ast/token.dart';
 export 'package:analyzer/src/dart/constant/evaluation.dart'
@@ -89,6 +90,11 @@ class Analyzer {
   /// Returns currently registered lint rules.
   Iterable<LintRule> get registeredRules => Registry.ruleRegistry;
 
+  /// Cache linter version; used in summary signatures.
+  void cacheLinterVersion() {
+    lint_service.linterVersion = version;
+  }
+
   /// Create a library name prefix based on [libraryPath], [projectRoot] and
   /// current [packageName].
   String createLibraryNamePrefix(
@@ -101,11 +107,6 @@ class Analyzer {
   /// Register this [lint] with the analyzer's rule registry.
   void register(LintRule lint) {
     Registry.ruleRegistry.register(lint);
-  }
-
-  /// Cache linter version; used in summary signatures.
-  void cacheLinterVersion() {
-    lint_service.linterVersion = version;
   }
 }
 

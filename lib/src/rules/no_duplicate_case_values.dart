@@ -8,7 +8,7 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:linter/src/analyzer.dart';
+import '../analyzer.dart';
 
 const _desc = r"Don't use more than one case with same value.";
 

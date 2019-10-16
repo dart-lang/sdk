@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/analyzer.dart';
+import '../analyzer.dart';
 
 const _desc = r'Avoid single cascade in expression statements.';
 
