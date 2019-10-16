@@ -4,9 +4,10 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
+
+import '../analyzer.dart';
+import '../ast.dart';
+import '../util/dart_type_utilities.dart';
 
 const _desc = r'Avoid setters without getters.';
 

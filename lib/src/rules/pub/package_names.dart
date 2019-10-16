@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/utils.dart';
+import '../../analyzer.dart';
+import '../../utils.dart';
 
 const _desc = r'Use `lowercase_with_underscores` for package names.';
 

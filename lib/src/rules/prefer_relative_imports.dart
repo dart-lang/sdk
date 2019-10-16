@@ -5,10 +5,11 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/ast.dart';
-import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:yaml/yaml.dart';
+
+import '../analyzer.dart';
+import '../ast.dart';
+import '../rules/implementation_imports.dart';
 
 const _desc = r'Prefer relative imports for files in `lib/`.';
 
@@ -32,6 +33,22 @@ import 'package:my_package/bar.dart';
 ```
 
 ''';
+
+YamlMap _parseYaml(String content) {
+  if (content == null) {
+    return YamlMap();
+  }
+  try {
+    YamlNode doc = loadYamlNode(content);
+    if (doc is YamlMap) {
+      return doc;
+    }
+    return YamlMap();
+    // ignore: avoid_catches_without_on_clauses
+  } catch (_) {
+    return YamlMap();
+  }
+}
 
 class PreferRelativeImports extends LintRule implements NodeLintRule {
   PreferRelativeImports()
@@ -106,21 +123,5 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (isPackageSelfReference(node)) {
       rule.reportLint(node.uri);
     }
-  }
-}
-
-YamlMap _parseYaml(String content) {
-  if (content == null) {
-    return YamlMap();
-  }
-  try {
-    YamlNode doc = loadYamlNode(content);
-    if (doc is YamlMap) {
-      return doc;
-    }
-    return YamlMap();
-    // ignore: avoid_catches_without_on_clauses
-  } catch (_) {
-    return YamlMap();
   }
 }

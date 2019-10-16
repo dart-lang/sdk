@@ -12,9 +12,10 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/generated/resolver.dart'; // ignore: implementation_imports
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/utils.dart';
 import 'package:path/path.dart' as path;
+
+import 'analyzer.dart';
+import 'utils.dart';
 
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
@@ -31,6 +32,17 @@ List<Element> getChildren(Element parent, [String name]) {
 /// Return the compilation unit of a node
 CompilationUnit getCompilationUnit(AstNode node) =>
     node.thisOrAncestorOfType<CompilationUnit>();
+
+/// Returns a field identifier with the given [name] in the given [decl]'s
+/// variable declaration list or `null` if none is found.
+SimpleIdentifier getFieldIdentifier(FieldDeclaration decl, String name) {
+  for (var v in decl.fields.variables) {
+    if (v.name?.name == name) {
+      return v.name;
+    }
+  }
+  return null;
+}
 
 /// Returns the most specific AST node appropriate for associating errors.
 AstNode getNodeToAnnotate(Declaration node) {
@@ -124,34 +136,6 @@ bool isDefinedInLib(CompilationUnit compilationUnit) {
   return false;
 }
 
-/// Return the nearest enclosing pubspec file.
-File locatePubspecFile(CompilationUnit compilationUnit) {
-  String fullName = compilationUnit?.declaredElement?.source?.fullName;
-  if (fullName == null) {
-    return null;
-  }
-
-  final resourceProvider =
-      compilationUnit?.declaredElement?.session?.resourceProvider;
-  if (resourceProvider == null) {
-    return null;
-  }
-
-  File file = resourceProvider.getFile(fullName);
-  Folder folder = file.parent;
-
-  // Look for a pubspec.yaml file.
-  while (folder != null) {
-    File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
-    if (pubspecFile.exists) {
-      return pubspecFile;
-    }
-    folder = folder.parent;
-  }
-
-  return null;
-}
-
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
     element is MethodDeclaration && element.name?.name == '==';
@@ -166,17 +150,6 @@ bool isHashCode(ClassMember element) =>
     (element is MethodDeclaration && element.name?.name == 'hashCode') ||
     (element is FieldDeclaration &&
         getFieldIdentifier(element, 'hashCode') != null);
-
-/// Returns a field identifier with the given [name] in the given [decl]'s
-/// variable declaration list or `null` if none is found.
-SimpleIdentifier getFieldIdentifier(FieldDeclaration decl, String name) {
-  for (var v in decl.fields.variables) {
-    if (v.name?.name == name) {
-      return v.name;
-    }
-  }
-  return null;
-}
 
 /// Returns `true` if the keyword associated with the given [token] matches
 /// [keyword].
@@ -264,6 +237,34 @@ bool isValidDartIdentifier(String id) => !isKeyWord(id) && isIdentifier(id);
 
 /// Returns `true` if the keyword associated with this token is `var`.
 bool isVar(Token token) => isKeyword(token, Keyword.VAR);
+
+/// Return the nearest enclosing pubspec file.
+File locatePubspecFile(CompilationUnit compilationUnit) {
+  String fullName = compilationUnit?.declaredElement?.source?.fullName;
+  if (fullName == null) {
+    return null;
+  }
+
+  final resourceProvider =
+      compilationUnit?.declaredElement?.session?.resourceProvider;
+  if (resourceProvider == null) {
+    return null;
+  }
+
+  File file = resourceProvider.getFile(fullName);
+  Folder folder = file.parent;
+
+  // Look for a pubspec.yaml file.
+  while (folder != null) {
+    File pubspecFile = folder.getChildAssumingFile('pubspec.yaml');
+    if (pubspecFile.exists) {
+      return pubspecFile;
+    }
+    folder = folder.parent;
+  }
+
+  return null;
+}
 
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.

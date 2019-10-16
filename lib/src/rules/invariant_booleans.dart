@@ -5,11 +5,12 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/boolean_expression_utilities.dart';
-import 'package:linter/src/util/condition_scope_visitor.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
-import 'package:linter/src/util/tested_expressions.dart';
+
+import '../analyzer.dart';
+import '../util/boolean_expression_utilities.dart';
+import '../util/condition_scope_visitor.dart';
+import '../util/dart_type_utilities.dart';
+import '../util/tested_expressions.dart';
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';

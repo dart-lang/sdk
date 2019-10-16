@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/analyzer.dart';
 
+import '../analyzer.dart';
 import '../ast.dart';
 
 const _desc = r'Prefer const with constant constructors.';

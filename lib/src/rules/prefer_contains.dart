@@ -9,8 +9,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
+
+import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
 
 const alwaysFalse =
     'Always false because indexOf is always greater or equal -1.';

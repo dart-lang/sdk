@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
-import 'package:linter/src/util/unrelated_types_visitor.dart';
+import '../analyzer.dart';
+import '../util/dart_type_utilities.dart';
+import '../util/unrelated_types_visitor.dart';
 
 const _desc = r'Invocation of `remove` with references of unrelated types.';
 

@@ -5,7 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:linter/src/analyzer.dart';
+
+import '../analyzer.dart';
 
 const _desc = r'Use `=` to separate a named parameter from its default value.';
 

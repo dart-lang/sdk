@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
+import '../util/dart_type_utilities.dart';
 
 var _collectionInterfaces = <InterfaceTypeDefinition>[
   InterfaceTypeDefinition('List', 'dart.core'),

@@ -6,7 +6,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
-import 'package:linter/src/analyzer.dart';
+
+import 'analyzer.dart';
 
 const benchmarkRuns = 10;
 final int _pipeCodeUnit = '|'.codeUnitAt(0);
