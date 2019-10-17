@@ -323,4 +323,31 @@ VM_UNIT_TEST_CASE(DoublesBitEqual) {
   EXPECT(Utils::DoublesBitEqual(NAN, NAN));
 }
 
+VM_UNIT_TEST_CASE(NBitMask) {
+#if defined(ARCH_IS_64_BIT)
+  EXPECT_EQ(0ull, Utils::NBitMask(0));
+  EXPECT_EQ(0x1ull, Utils::NBitMask(1));
+  EXPECT_EQ(0x3ull, Utils::NBitMask(2));
+  EXPECT_EQ(0xfull, Utils::NBitMask(4));
+  EXPECT_EQ(0xffull, Utils::NBitMask(8));
+  EXPECT_EQ(0xffffull, Utils::NBitMask(16));
+  EXPECT_EQ(0x1ffffull, Utils::NBitMask(17));
+  EXPECT_EQ(0x7fffffffull, Utils::NBitMask(31));
+  EXPECT_EQ(0xffffffffull, Utils::NBitMask(32));
+  EXPECT_EQ(0x1ffffffffull, Utils::NBitMask(33));
+  EXPECT_EQ(0x7fffffffffffffffull, Utils::NBitMask(kBitsPerWord - 1));
+  EXPECT_EQ(0xffffffffffffffffull, Utils::NBitMask(kBitsPerWord));
+#else
+  EXPECT_EQ(0u, Utils::NBitMask(0));
+  EXPECT_EQ(0x1u, Utils::NBitMask(1));
+  EXPECT_EQ(0x3u, Utils::NBitMask(2));
+  EXPECT_EQ(0xfu, Utils::NBitMask(4));
+  EXPECT_EQ(0xffu, Utils::NBitMask(8));
+  EXPECT_EQ(0xffffu, Utils::NBitMask(16));
+  EXPECT_EQ(0x1ffffu, Utils::NBitMask(17));
+  EXPECT_EQ(0x7fffffffu, Utils::NBitMask(kBitsPerWord - 1));
+  EXPECT_EQ(0xffffffffu, Utils::NBitMask(kBitsPerWord));
+#endif
+}
+
 }  // namespace dart
