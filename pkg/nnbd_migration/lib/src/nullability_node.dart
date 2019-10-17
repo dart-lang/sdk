@@ -50,6 +50,13 @@ class NullabilityEdge implements EdgeInfo {
   bool get isUnion => _kind == _NullabilityEdgeKind.union;
 
   @override
+  bool get isUpstreamTriggered {
+    if (!isHard) return false;
+    if (destinationNode._state != NullabilityState.nonNullable) return false;
+    return true;
+  }
+
+  @override
   NullabilityNode get sourceNode => upstreamNodes.first;
 
   @override
@@ -277,6 +284,9 @@ class NullabilityGraph {
     _pendingEdges.addAll(never._upstreamEdges);
     while (_pendingEdges.isNotEmpty) {
       var edge = _pendingEdges.removeLast();
+      // We only propagate for nodes that are "upstream triggered".  At this
+      // point of propagation, a node is upstream triggered if it is hard.
+      assert(edge.isUpstreamTriggered == edge.isHard);
       if (!edge.isHard) continue;
       var node = edge.sourceNode;
       if (node is NullabilityNodeMutable &&
