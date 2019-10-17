@@ -4711,6 +4711,7 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
 
   @override
   Token get beginToken => initialization?.beginToken ?? super.beginToken;
+
   @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(_initialization)
@@ -5996,7 +5997,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 
   @override
   bool get isNullAware =>
-      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
+      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET ||
+      (leftBracket.type == TokenType.OPEN_SQUARE_BRACKET &&
+          period != null &&
+          period.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -7193,7 +7197,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
           operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
-  bool get isNullAware => operator?.type == TokenType.QUESTION_PERIOD;
+  bool get isNullAware =>
+      operator != null &&
+      (operator.type == TokenType.QUESTION_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -8456,7 +8463,9 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   bool get isNullAware =>
-      operator != null && operator.type == TokenType.QUESTION_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.QUESTION_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
 
   @override
   Precedence get precedence => Precedence.postfix;

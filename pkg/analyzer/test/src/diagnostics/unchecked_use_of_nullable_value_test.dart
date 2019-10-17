@@ -215,7 +215,47 @@ m() {
 ''');
   }
 
-  test_cascade_nullable() async {
+  test_cascade_nullable_indexed_assignment() async {
+    await assertErrorsInCode(r'''
+m() {
+  List<int>? x;
+  x..[0] = 1;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 24, 1),
+    ]);
+  }
+
+  test_cascade_nullable_indexed_assignment_null_aware() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  List<int>? x;
+  x?..[0] = 1;
+}
+''');
+  }
+
+  test_cascade_nullable_method_invocation() async {
+    await assertErrorsInCode(r'''
+m() {
+  int? x;
+  x..abs();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
+  }
+
+  test_cascade_nullable_method_invocation_null_aware() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  int? x;
+  x?..abs();
+}
+''');
+  }
+
+  test_cascade_nullable_property_access() async {
     await assertErrorsInCode(r'''
 m() {
   int? x;
@@ -224,6 +264,15 @@ m() {
 ''', [
       error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
     ]);
+  }
+
+  test_cascade_nullable_property_access_null_aware() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  int? x;
+  x?..isEven;
+}
+''');
   }
 
   test_eqEq_nullable() async {

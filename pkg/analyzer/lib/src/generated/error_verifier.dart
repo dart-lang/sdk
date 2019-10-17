@@ -507,11 +507,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void visitCascadeExpression(CascadeExpression node) {
-    _checkForNullableDereference(node.target);
-    super.visitCascadeExpression(node);
-  }
-
   @override
   void visitCatchClause(CatchClause node) {
     _duplicateDefinitionVerifier.checkCatchClause(node);
@@ -990,7 +985,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkForArgumentTypeNotAssignableForArgument(node.index);
     if (!node.isNullAware) {
-      _checkForNullableDereference(node.target);
+      _checkForNullableDereference(node.realTarget);
     }
     super.visitIndexExpression(node);
   }
@@ -1213,7 +1208,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         typeReference, node.target, propertyName);
     if (!node.isNullAware &&
         !_objectPropertyNames.contains(propertyName.name)) {
-      _checkForNullableDereference(node.target);
+      _checkForNullableDereference(node.realTarget);
     }
     _checkForUnnecessaryNullAware(node.target, node.operator);
     super.visitPropertyAccess(node);

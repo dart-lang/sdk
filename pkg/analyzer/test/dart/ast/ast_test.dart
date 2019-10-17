@@ -325,6 +325,32 @@ class IndexExpressionTest {
     expect(expression.inSetterContext(), isTrue);
   }
 
+  void test_isNullAware_cascade_false() {
+    final expression = AstTestFactory.indexExpressionForCascade(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.PERIOD_PERIOD,
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_cascade_true() {
+    final expression = AstTestFactory.indexExpressionForCascade(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.QUESTION_PERIOD_PERIOD,
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isTrue);
+  }
+
+  void test_isNullAware_false() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
+  }
+
   void test_isNullAware_regularIndex() {
     final expression = AstTestFactory.indexExpression(
         AstTestFactory.nullLiteral(),
@@ -386,6 +412,16 @@ class MethodInvocationTest extends ParserTestCase {
     final invocation = AstTestFactory.methodInvocation3(
         AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD_PERIOD);
     expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_cascade_true() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(),
+        'foo',
+        null,
+        [],
+        TokenType.QUESTION_PERIOD_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularInvocation() {
@@ -760,6 +796,12 @@ class PropertyAccessTest extends ParserTestCase {
     final invocation = AstTestFactory.propertyAccess2(
         AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD_PERIOD);
     expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_cascade_true() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 
   void test_isNullAware_regularPropertyAccess() {
