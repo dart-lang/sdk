@@ -698,7 +698,10 @@ class KernelTarget extends TargetImplementation {
           if (formal.isFieldFormal) {
             Builder fieldBuilder = builder.scope.local[formal.name] ??
                 builder.origin.scope.local[formal.name];
-            if (fieldBuilder is FieldBuilder) {
+            // If next is not null it's a duplicated field,
+            // and it doesn't need to be initialized to null below
+            // (and doing it will crash serialization).
+            if (fieldBuilder?.next == null && fieldBuilder is FieldBuilder) {
               myInitializedFields.add(fieldBuilder.field);
             }
           }

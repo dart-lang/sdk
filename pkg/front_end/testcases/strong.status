@@ -41,6 +41,7 @@ general/invalid_type: TypeCheckError
 general/invocations: RuntimeError
 general/issue34899: TypeCheckError
 general/issue37776: RuntimeError
+general/issue38938: RuntimeError # no main and compile time errors.
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.
 general/mixin_application_override: TypeCheckError
