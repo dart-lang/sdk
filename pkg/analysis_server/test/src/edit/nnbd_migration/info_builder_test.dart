@@ -221,11 +221,77 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
         details: ["This field is initialized to a nullable value"]);
+  }
+
+  test_listAndSetLiteralTypeArgument() async {
+    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
+    addTestFile('''
+void f() {
+  String s = null;
+  List<String> x = <String>["hello", s];
+  Set<String> y = <String>{"hello", s};
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+void f() {
+  String? s = null;
+  List<String?> x = <String?>["hello", s];
+  Set<String?> y = <String?>{"hello", s};
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(5));
+    // regions[0] is the `String? s` fix.
+    // regions[1] is the `List<String?> x` fix.
+    assertRegion(
+        region: regions[2],
+        offset: 58,
+        details: ["This list is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[2].details[0], offset: 67, length: 1);
+    // regions[3] is the `Set<String?> y` fix.
+    assertRegion(
+        region: regions[4],
+        offset: 100,
+        details: ["This set is initialized with a nullable value on line 4"]);
+    assertDetail(detail: regions[4].details[0], offset: 107, length: 1);
+  }
+
+  test_listLiteralTypeArgument_collectionIf() async {
+    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
+    addTestFile('''
+void f() {
+  String s = null;
+  List<String> x = <String>[
+    "hello",
+    if (1 == 2) s
+  ];
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+void f() {
+  String? s = null;
+  List<String?> x = <String?>[
+    "hello",
+    if (1 == 2) s
+  ];
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `String? s` fix.
+    // regions[1] is the `List<String?> x` fix.
+    assertRegion(
+        region: regions[2],
+        offset: 58,
+        details: ["This list is initialized with a nullable value on line 5"]);
+    assertDetail(detail: regions[2].details[0], offset: 88, length: 1);
   }
 
   test_localVariable() async {
@@ -250,11 +316,45 @@ void f() {
     assertRegion(
         region: regions[0],
         offset: 16,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 35,
         details: ["This variable is initialized to a nullable value"]);
+  }
+
+  test_mapLiteralTypeArgument() async {
+    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
+    addTestFile('''
+void f() {
+  String s = null;
+  Map<String, bool> x = <String, bool>{"hello": false, s: true};
+  Map<bool, String> y = <bool, String>{false: "hello", true: s};
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+void f() {
+  String? s = null;
+  Map<String?, bool> x = <String?, bool>{"hello": false, s: true};
+  Map<bool, String?> y = <bool, String?>{false: "hello", true: s};
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(5));
+    // regions[0] is the `String? s` fix.
+    // regions[1] is the `Map<String?, bool> x` fix.
+    assertRegion(
+        region: regions[2],
+        offset: 63,
+        details: ["This map is initialized with a nullable value on line 3"]);
+    assertDetail(detail: regions[2].details[0], offset: 85, length: 1);
+    // regions[3] is the `Map<bool, String?> y` fix.
+    assertRegion(
+        region: regions[4],
+        offset: 136,
+        details: ["This map is initialized with a nullable value on line 4"]);
+    assertDetail(detail: regions[4].details[0], offset: 156, length: 1);
   }
 
   test_parameter_fromInvocation_explicit() async {
@@ -562,7 +662,7 @@ int? f() => _f;
     assertRegion(
         region: regions[0],
         offset: 3,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 19,
@@ -595,7 +695,7 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
@@ -624,11 +724,45 @@ class A {
     assertRegion(
         region: regions[0],
         offset: 15,
-        details: ["This field is initialized to null"]);
+        details: ["This field is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 33,
         details: ["This getter returns a nullable value on line 3"]);
+  }
+
+  test_setLiteralTypeArgument_nestedList() async {
+    // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
+    addTestFile('''
+void f() {
+  String s = null;
+  Set<List<String>> x = <List<String>>{
+    ["hello"],
+    if (1 == 2) [s]
+  };
+''');
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.content, '''
+void f() {
+  String? s = null;
+  Set<List<String?>> x = <List<String?>>{
+    ["hello"],
+    if (1 == 2) [s]
+  };
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is the `String? s` fix.
+    // regions[1] is the `Set<List<String?>> x` fix.
+    assertRegion(
+        region: regions[2],
+        offset: 68,
+        details: ["This set is initialized with a nullable value on line 5"]);
+    // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
+    //  `s` should be marked. Minor bug for now.
+    assertDetail(detail: regions[2].details[0], offset: 101, length: 3);
   }
 
   test_topLevelVariable() async {
@@ -649,7 +783,7 @@ int? _f2 = _f;
     assertRegion(
         region: regions[0],
         offset: 3,
-        details: ["This variable is initialized to null"]);
+        details: ["This variable is initialized to an explicit 'null'"]);
     assertRegion(
         region: regions[1],
         offset: 19,

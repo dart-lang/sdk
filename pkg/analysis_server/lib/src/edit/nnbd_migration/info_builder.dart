@@ -104,16 +104,17 @@ class InfoBuilder {
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
     }
+    String nullableValue =
+        node is NullLiteral ? "an explicit 'null'" : "a nullable value";
+    String nullableValue2 =
+        node is NullLiteral ? "An explicit 'null'" : "A nullable value";
     AstNode parent = node.parent;
     if (parent is ArgumentList) {
-      if (node is NullLiteral) {
-        return "An explicit 'null' is passed as an argument";
-      }
-      return "A nullable value is explicitly passed as an argument";
+      return "$nullableValue2 is passed as an argument";
     }
 
-    /// If the [node] is the return expression for a function body, return the
-    /// function body. Otherwise return `null`.
+    /// If the [node] is inside the return expression for a function body,
+    /// return the function body. Otherwise return `null`.
     FunctionBody findFunctionBody() {
       if (parent is ExpressionFunctionBody) {
         return parent;
@@ -126,37 +127,51 @@ class InfoBuilder {
       }
     }
 
+    /// If the [node] is inside a collection literal, return it. Otherwise
+    /// return `null`.
+    TypedLiteral findCollectionLiteral() {
+      AstNode ancestor = parent;
+      // Walk up collection elements, except for collection literals.
+      while (ancestor is CollectionElement && ancestor is! TypedLiteral) {
+        ancestor = ancestor.parent;
+      }
+      return (ancestor is TypedLiteral) ? ancestor : null;
+    }
+
+    CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
+    int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
     FunctionBody functionBody = findFunctionBody();
     if (functionBody != null) {
-      CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
-      int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
       AstNode function = functionBody.parent;
       if (function is MethodDeclaration) {
         if (function.isGetter) {
-          return "This getter returns a nullable value on line $lineNumber";
+          return "This getter returns $nullableValue on line $lineNumber";
         }
-        return "This method returns a nullable value on line $lineNumber";
+        return "This method returns $nullableValue on line $lineNumber";
       }
-      return "This function returns a nullable value on line $lineNumber";
+      return "This function returns $nullableValue on line $lineNumber";
+    }
+
+    TypedLiteral collectionLiteral = findCollectionLiteral();
+    if (collectionLiteral != null) {
+      if (collectionLiteral is ListLiteral) {
+        return "This list is initialized with $nullableValue on line "
+            "$lineNumber";
+      } else if (collectionLiteral is SetOrMapLiteral) {
+        var mapOrSet = collectionLiteral.isMap ? 'map' : 'set';
+        return "This $mapOrSet is initialized with $nullableValue on line "
+            "$lineNumber";
+      }
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
-        if (node is NullLiteral) {
-          return "This field is initialized to null";
-        }
-        return "This field is initialized to a nullable value";
+        return "This field is initialized to $nullableValue";
       }
-      if (node is NullLiteral) {
-        return "This variable is initialized to null";
-      }
-      return "This variable is initialized to a nullable value";
+      return "This variable is initialized to $nullableValue";
     } else if (parent is AsExpression) {
       return "The value of the expression is nullable";
     }
-    if (node is NullLiteral) {
-      return "An explicit 'null' is assigned";
-    }
-    return "A nullable value is assigned";
+    return "$nullableValue2 is assigned";
   }
 
   /// Return details for a fix built from the given [edge], or `null` if the
