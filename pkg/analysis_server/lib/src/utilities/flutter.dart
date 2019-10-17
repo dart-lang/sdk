@@ -333,6 +333,8 @@ class Flutter {
         }
 
         if (parent is ArgumentList ||
+            parent is ConditionalExpression && parent.thenExpression == node ||
+            parent is ConditionalExpression && parent.elseExpression == node ||
             parent is ExpressionFunctionBody && parent.expression == node ||
             parent is ForElement && parent.body == node ||
             parent is IfElement && parent.thenElement == node ||
