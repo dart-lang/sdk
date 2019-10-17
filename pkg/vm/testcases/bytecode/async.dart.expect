@@ -23,11 +23,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#24
-  StoreFieldTOS        CP#25
-  Push                 r2
   PushConstant         CP#0
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#24
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -58,20 +55,17 @@ ConstantPool {
   [21] = Reserved
   [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [23] = Reserved
-  [24] = EmptyTypeArguments
-  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [26] = Reserved
-  [27] = InstanceField dart:core::_Closure::_function (field)
-  [28] = Reserved
-  [29] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [30] = Reserved
-  [31] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [32] = Reserved
-  [33] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [34] = Reserved
-  [35] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [36] = Reserved
-  [37] = EndClosureFunctionScope
+  [24] = InstanceField dart:core::_Closure::_function (field)
+  [25] = Reserved
+  [26] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [27] = Reserved
+  [28] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [29] = Reserved
+  [30] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [31] = Reserved
+  [32] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [33] = Reserved
+  [34] = EndClosureFunctionScope
 }
 Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
 ClosureCode {
@@ -133,11 +127,8 @@ L1:
   PushNull
   StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#24
-  StoreFieldTOS        CP#25
-  Push                 r2
   PushConstant         CP#10
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#24
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -147,22 +138,22 @@ L1:
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           CP#29, 1
+  DirectCall           CP#26, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           CP#31, 1
+  DirectCall           CP#28, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          CP#33, 2
+  DynamicCall          CP#30, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        CP#35, 1
+  InterfaceCall        CP#32, 1
   ReturnTOS
 }
 
@@ -296,11 +287,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#16
   Push                 r2
-  PushConstant         CP#18
-  StoreFieldTOS        CP#19
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#21
+  StoreFieldTOS        CP#18
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
@@ -308,19 +296,19 @@ Bytecode {
   PushNull
   PopLocal             r3
   Push                 r6
-  DirectCall           CP#23, 1
+  DirectCall           CP#20, 1
   PopLocal             r4
   Push                 r6
-  DirectCall           CP#25, 1
+  DirectCall           CP#22, 1
   PopLocal             r5
   Push                 r0
   LoadContextVar       0, 0
   Push                 r6
-  DynamicCall          CP#27, 2
+  DynamicCall          CP#24, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  InterfaceCall        CP#29, 1
+  InterfaceCall        CP#26, 1
   ReturnTOS
 }
 ConstantPool {
@@ -342,19 +330,16 @@ ConstantPool {
   [15] = Reserved
   [16] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [17] = Reserved
-  [18] = EmptyTypeArguments
-  [19] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [20] = Reserved
-  [21] = InstanceField dart:core::_Closure::_function (field)
-  [22] = Reserved
-  [23] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [24] = Reserved
-  [25] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [26] = Reserved
-  [27] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [28] = Reserved
-  [29] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [30] = Reserved
+  [18] = InstanceField dart:core::_Closure::_function (field)
+  [19] = Reserved
+  [20] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [21] = Reserved
+  [22] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [23] = Reserved
+  [24] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [25] = Reserved
+  [26] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [27] = Reserved
 }
 Closure #lib::foo::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
 ClosureCode {
@@ -471,11 +456,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#20
   Push                 r2
-  PushConstant         CP#22
-  StoreFieldTOS        CP#23
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#25
+  StoreFieldTOS        CP#22
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
@@ -485,22 +467,22 @@ Bytecode {
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           CP#27, 1
+  DirectCall           CP#24, 1
   StoreContextVar      0, 4
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           CP#29, 1
+  DirectCall           CP#26, 1
   StoreContextVar      0, 5
   Push                 r0
   LoadContextVar       0, 2
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          CP#31, 2
+  DynamicCall          CP#28, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  InterfaceCall        CP#33, 1
+  InterfaceCall        CP#30, 1
   ReturnTOS
 }
 ConstantPool {
@@ -526,19 +508,16 @@ ConstantPool {
   [19] = Reserved
   [20] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [21] = Reserved
-  [22] = EmptyTypeArguments
-  [23] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [24] = Reserved
-  [25] = InstanceField dart:core::_Closure::_function (field)
-  [26] = Reserved
-  [27] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [28] = Reserved
-  [29] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [30] = Reserved
-  [31] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [32] = Reserved
-  [33] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [34] = Reserved
+  [22] = InstanceField dart:core::_Closure::_function (field)
+  [23] = Reserved
+  [24] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [25] = Reserved
+  [26] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [27] = Reserved
+  [28] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [29] = Reserved
+  [30] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [31] = Reserved
 }
 Closure #lib::simpleAsyncAwait::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
 ClosureCode {
@@ -722,11 +701,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#28
   Push                 r2
-  PushConstant         CP#30
-  StoreFieldTOS        CP#31
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#33
+  StoreFieldTOS        CP#30
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
@@ -736,22 +712,22 @@ Bytecode {
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           CP#35, 1
+  DirectCall           CP#32, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 10
-  DirectCall           CP#37, 1
+  DirectCall           CP#34, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 10
-  DynamicCall          CP#39, 2
+  DynamicCall          CP#36, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        CP#41, 1
+  InterfaceCall        CP#38, 1
   ReturnTOS
 }
 ConstantPool {
@@ -785,19 +761,16 @@ ConstantPool {
   [27] = Reserved
   [28] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [29] = Reserved
-  [30] = EmptyTypeArguments
-  [31] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [32] = Reserved
-  [33] = InstanceField dart:core::_Closure::_function (field)
-  [34] = Reserved
-  [35] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [36] = Reserved
-  [37] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [38] = Reserved
-  [39] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [40] = Reserved
-  [41] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [42] = Reserved
+  [30] = InstanceField dart:core::_Closure::_function (field)
+  [31] = Reserved
+  [32] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [33] = Reserved
+  [34] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [35] = Reserved
+  [36] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [37] = Reserved
+  [38] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [39] = Reserved
 }
 Closure #lib::loops::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
 ClosureCode {
@@ -1118,11 +1091,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#26
   Push                 r2
-  PushConstant         CP#28
-  StoreFieldTOS        CP#29
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#31
+  StoreFieldTOS        CP#28
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
@@ -1132,22 +1102,22 @@ Bytecode {
   Push                 r0
   Push                 r0
   LoadContextVar       0, 17
-  DirectCall           CP#33, 1
+  DirectCall           CP#30, 1
   StoreContextVar      0, 5
   Push                 r0
   Push                 r0
   LoadContextVar       0, 17
-  DirectCall           CP#35, 1
+  DirectCall           CP#32, 1
   StoreContextVar      0, 6
   Push                 r0
   LoadContextVar       0, 3
   Push                 r0
   LoadContextVar       0, 17
-  DynamicCall          CP#37, 2
+  DynamicCall          CP#34, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        CP#39, 1
+  InterfaceCall        CP#36, 1
   ReturnTOS
 }
 ConstantPool {
@@ -1179,19 +1149,16 @@ ConstantPool {
   [25] = Reserved
   [26] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [27] = Reserved
-  [28] = EmptyTypeArguments
-  [29] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [30] = Reserved
-  [31] = InstanceField dart:core::_Closure::_function (field)
-  [32] = Reserved
-  [33] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [34] = Reserved
-  [35] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [36] = Reserved
-  [37] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [38] = Reserved
-  [39] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [40] = Reserved
+  [28] = InstanceField dart:core::_Closure::_function (field)
+  [29] = Reserved
+  [30] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [31] = Reserved
+  [32] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [33] = Reserved
+  [34] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [35] = Reserved
+  [36] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [37] = Reserved
 }
 Closure #lib::tryCatchRethrow::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
 ClosureCode {
@@ -1637,11 +1604,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#22
   Push                 r3
-  PushConstant         CP#24
-  StoreFieldTOS        CP#25
-  Push                 r3
   PushConstant         CP#0
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#24
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1674,20 +1638,17 @@ ConstantPool {
   [21] = Reserved
   [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [23] = Reserved
-  [24] = EmptyTypeArguments
-  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [26] = Reserved
-  [27] = InstanceField dart:core::_Closure::_function (field)
-  [28] = Reserved
-  [29] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [30] = Reserved
-  [31] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [32] = Reserved
-  [33] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [34] = Reserved
-  [35] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [36] = Reserved
-  [37] = EndClosureFunctionScope
+  [24] = InstanceField dart:core::_Closure::_function (field)
+  [25] = Reserved
+  [26] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [27] = Reserved
+  [28] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [29] = Reserved
+  [30] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [31] = Reserved
+  [32] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [33] = Reserved
+  [34] = EndClosureFunctionScope
 }
 Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int >
 ClosureCode {
@@ -1744,11 +1705,8 @@ ClosureCode {
   PushNull
   StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#24
-  StoreFieldTOS        CP#25
-  Push                 r2
   PushConstant         CP#7
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#24
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#1
@@ -1758,22 +1716,22 @@ ClosureCode {
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           CP#29, 1
+  DirectCall           CP#26, 1
   StoreContextVar      1, 2
   Push                 r0
   Push                 r0
   LoadContextVar       1, 8
-  DirectCall           CP#31, 1
+  DirectCall           CP#28, 1
   StoreContextVar      1, 3
   Push                 r0
   LoadContextVar       1, 0
   Push                 r0
   LoadContextVar       1, 8
-  DynamicCall          CP#33, 2
+  DynamicCall          CP#30, 2
   Drop1
   Push                 r0
   LoadContextVar       1, 0
-  InterfaceCall        CP#35, 1
+  InterfaceCall        CP#32, 1
   ReturnTOS
 }
 
@@ -1986,11 +1944,8 @@ Bytecode {
   PushNull
   StoreFieldTOS        CP#22
   Push                 r2
-  PushConstant         CP#24
-  StoreFieldTOS        CP#25
-  Push                 r2
   PushConstant         CP#4
-  StoreFieldTOS        CP#27
+  StoreFieldTOS        CP#24
   Push                 r2
   Push                 r0
   StoreFieldTOS        CP#6
@@ -2000,22 +1955,22 @@ Bytecode {
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           CP#29, 1
+  DirectCall           CP#26, 1
   StoreContextVar      0, 3
   Push                 r0
   Push                 r0
   LoadContextVar       0, 8
-  DirectCall           CP#31, 1
+  DirectCall           CP#28, 1
   StoreContextVar      0, 4
   Push                 r0
   LoadContextVar       0, 1
   Push                 r0
   LoadContextVar       0, 8
-  DynamicCall          CP#33, 2
+  DynamicCall          CP#30, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  InterfaceCall        CP#35, 1
+  InterfaceCall        CP#32, 1
   ReturnTOS
 }
 ConstantPool {
@@ -2043,19 +1998,16 @@ ConstantPool {
   [21] = Reserved
   [22] = InstanceField dart:core::_Closure::_function_type_arguments (field)
   [23] = Reserved
-  [24] = EmptyTypeArguments
-  [25] = InstanceField dart:core::_Closure::_delayed_type_arguments (field)
-  [26] = Reserved
-  [27] = InstanceField dart:core::_Closure::_function (field)
-  [28] = Reserved
-  [29] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [30] = Reserved
-  [31] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
-  [32] = Reserved
-  [33] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
-  [34] = Reserved
-  [35] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
-  [36] = Reserved
+  [24] = InstanceField dart:core::_Closure::_function (field)
+  [25] = Reserved
+  [26] = DirectCall 'dart:async::_asyncThenWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [27] = Reserved
+  [28] = DirectCall 'dart:async::_asyncErrorWrapperHelper', ArgDesc num-args 1, num-type-args 0, names []
+  [29] = Reserved
+  [30] = DynamicCall 'start', ArgDesc num-args 2, num-type-args 0, names []
+  [31] = Reserved
+  [32] = InterfaceCall 'dart:async::Completer::get:future', ArgDesc num-args 1, num-type-args 0, names []
+  [33] = Reserved
 }
 Closure #lib::testAssert::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
 ClosureCode {

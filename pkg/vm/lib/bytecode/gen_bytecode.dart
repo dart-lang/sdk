@@ -2614,9 +2614,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genPushFunctionTypeArguments();
     asm.emitStoreFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
 
-    asm.emitPush(temp);
-    asm.emitPushConstant(cp.addEmptyTypeArguments());
-    asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+    // Delayed type arguments are only used by generic closures.
+    if (function.typeParameters.isNotEmpty) {
+      asm.emitPush(temp);
+      asm.emitPushConstant(cp.addEmptyTypeArguments());
+      asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+    }
 
     asm.emitPush(temp);
     asm.emitPushConstant(closureFunctionIndex);
