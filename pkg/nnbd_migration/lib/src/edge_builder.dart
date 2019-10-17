@@ -190,6 +190,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// nullable.
   final Map<Expression, NullabilityNode> _conditionalNodes = {};
 
+  /// If we are visiting a cascade expression, the decorated type of the target
+  /// of the cascade.  Otherwise `null`.
+  DecoratedType _currentCascadeTargetType;
+
   EdgeBuilder(this.typeProvider, this._typeSystem, this._variables, this._graph,
       this.source, this.listener, this._decoratedClassHierarchy,
       {this.instrumentation})
@@ -419,9 +423,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitCascadeExpression(CascadeExpression node) {
-    var type = node.target.accept(this);
-    node.cascadeSections.accept(this);
-    return type;
+    var oldCascadeTargetType = _currentCascadeTargetType;
+    try {
+      _currentCascadeTargetType = _checkExpressionNotNull(node.target);
+      node.cascadeSections.accept(this);
+      return _currentCascadeTargetType;
+    } finally {
+      _currentCascadeTargetType = oldCascadeTargetType;
+    }
   }
 
   @override
@@ -750,8 +759,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitIndexExpression(IndexExpression node) {
     DecoratedType targetType;
-    var target = node.realTarget;
-    if (target != null) {
+    var target = node.target;
+    if (node.isCascaded) {
+      targetType = _currentCascadeTargetType;
+    } else if (target != null) {
       targetType = _checkExpressionNotNull(target);
     }
     var callee = node.staticElement;
@@ -904,12 +915,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
-    var target = node.realTarget;
+    var target = node.target;
     var operator = node.operator;
     bool isNullAware = operator != null && isNullAwareToken(operator.type);
     var callee = node.methodName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
-    if (target != null) {
+    if (node.isCascaded) {
+      targetType = _currentCascadeTargetType;
+    } else if (target != null) {
       if (_isPrefix(target)) {
         // Nothing to do.
       } else if (calleeIsStatic) {
@@ -996,7 +1009,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry)
       _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
-      return _handlePropertyAccess(node, node.prefix, node.identifier, false);
+      return _handlePropertyAccess(
+          node, node.prefix, node.identifier, false, false);
     }
   }
 
@@ -1028,8 +1042,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.realTarget, node.propertyName,
-        isNullAwareToken(node.operator.type));
+    return _handlePropertyAccess(node, node.target, node.propertyName,
+        isNullAwareToken(node.operator.type), node.isCascaded);
   }
 
   @override
@@ -1960,11 +1974,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   DecoratedType _handlePropertyAccess(Expression node, Expression target,
-      SimpleIdentifier propertyName, bool isNullAware) {
+      SimpleIdentifier propertyName, bool isNullAware, bool isCascaded) {
     DecoratedType targetType;
     var callee = propertyName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
-    if (_isPrefix(target)) {
+    if (isCascaded) {
+      targetType = _currentCascadeTargetType;
+    } else if (_isPrefix(target)) {
       return propertyName.accept(this);
     } else if (calleeIsStatic) {
       target.accept(this);

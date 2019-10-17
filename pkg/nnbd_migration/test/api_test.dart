@@ -2352,6 +2352,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_null_check_in_cascade_target() async {
+    var content = '''
+class _C {
+  f() {}
+}
+_C g(int/*!*/ i) => _C();
+test(int/*?*/ j) {
+  g(j)..f();
+}
+''';
+    var expected = '''
+class _C {
+  f() {}
+}
+_C g(int/*!*/ i) => _C();
+test(int?/*?*/ j) {
+  g(j!)..f();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
   test_operator_eq_with_inferred_parameter_type() async {
     var content = '''
