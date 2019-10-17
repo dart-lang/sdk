@@ -2416,10 +2416,10 @@ DEFINE_RUNTIME_ENTRY(CompileInterpretedFunction, 1) {
       // Ensure background compiler is running, if not start it.
       BackgroundCompiler::Start(isolate);
       // Reduce the chance of triggering a compilation while the function is
-      // being compiled in the background. INT_MIN should ensure that it
+      // being compiled in the background. INT32_MIN should ensure that it
       // takes long time to trigger a compilation.
       // Note that the background compilation queue rejects duplicate entries.
-      function.SetUsageCounter(INT_MIN);
+      function.SetUsageCounter(INT32_MIN);
       isolate->background_compiler()->Compile(function);
       return;
     }
@@ -2462,10 +2462,10 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // Ensure background compiler is running, if not start it.
         BackgroundCompiler::Start(isolate);
         // Reduce the chance of triggering a compilation while the function is
-        // being compiled in the background. INT_MIN should ensure that it
+        // being compiled in the background. INT32_MIN should ensure that it
         // takes long time to trigger a compilation.
         // Note that the background compilation queue rejects duplicate entries.
-        function.SetUsageCounter(INT_MIN);
+        function.SetUsageCounter(INT32_MIN);
         isolate->optimizing_background_compiler()->Compile(function);
         // Continue in the same code.
         arguments.SetReturn(function);

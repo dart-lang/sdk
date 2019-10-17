@@ -6696,7 +6696,7 @@ void Function::SetIsOptimizable(bool value) const {
   set_is_optimizable(value);
   if (!value) {
     set_is_inlinable(false);
-    set_usage_counter(INT_MIN);
+    set_usage_counter(INT32_MIN);
   }
 }
 

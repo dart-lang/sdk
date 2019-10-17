@@ -2744,17 +2744,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 float sm_val = get_sregister(sm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtus'cond 'sd, 'sm");
-                  if (sm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (sm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(sm_val);
                   }
                 } else {
                   // Format(instr, "vcvtis'cond 'sd, 'sm");
-                  if (sm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (sm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (sm_val <= static_cast<float>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else {
                     id_val = static_cast<int32_t>(sm_val);
                   }
@@ -2765,17 +2765,17 @@ void Simulator::DecodeType7(Instr* instr) {
                 double dm_val = get_dregister(dm);
                 if (instr->Bit(16) == 0) {
                   // Format(instr, "vcvtud'cond 'sd, 'dm");
-                  if (dm_val >= INT_MAX) {
-                    ud_val = INT_MAX;
+                  if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
                   } else if (dm_val > 0.0) {
                     ud_val = static_cast<uint32_t>(dm_val);
                   }
                 } else {
                   // Format(instr, "vcvtid'cond 'sd, 'dm");
-                  if (dm_val <= INT_MIN) {
-                    id_val = INT_MIN;
-                  } else if (dm_val >= INT_MAX) {
-                    id_val = INT_MAX;
+                  if (dm_val <= static_cast<double>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    id_val = INT32_MAX;
                   } else if (isnan(dm_val)) {
                     id_val = 0;
                   } else {

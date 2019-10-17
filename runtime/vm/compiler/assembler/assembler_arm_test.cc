@@ -528,10 +528,10 @@ ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
     typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
     EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
                                             12.8f));
-    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                 test->entry(), -FLT_MAX));
-    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                 test->entry(), FLT_MAX));
+    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                   test->entry(), -FLT_MAX));
+    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                   test->entry(), FLT_MAX));
   }
 }
 
@@ -549,10 +549,10 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
     EXPECT(test != NULL);
     EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
                                             test->entry(), 12.8));
-    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                 test->entry(), -DBL_MAX));
-    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                 test->entry(), DBL_MAX));
+    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                   test->entry(), -DBL_MAX));
+    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                   test->entry(), DBL_MAX));
   }
 }
 

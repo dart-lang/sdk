@@ -2246,7 +2246,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.set_usage_counter(INT_MIN);
+    function.set_usage_counter(INT32_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);

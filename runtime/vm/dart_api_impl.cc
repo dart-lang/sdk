@@ -4737,7 +4737,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
               " type Integer.",
               CURRENT_FUNC, i);
         }
-        if (value < INT_MIN || value > INT_MAX) {
+        if (value < INT32_MIN || value > INT32_MAX) {
           return Api::NewArgumentError(
               "%s: argument value at index %d is out of range", CURRENT_FUNC,
               i);
@@ -4754,7 +4754,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
               " type Integer.",
               CURRENT_FUNC, i);
         }
-        if (value < 0 || value > UINT_MAX) {
+        if (value < 0 || value > UINT32_MAX) {
           return Api::NewArgumentError(
               "%s: argument value at index %d is out of range", CURRENT_FUNC,
               i);

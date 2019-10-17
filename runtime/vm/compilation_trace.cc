@@ -523,8 +523,8 @@ void TypeFeedbackSaver::Visit(const Function& function) {
   code_ = function.CurrentCode();
   intptr_t usage = function.usage_counter();
   if (usage < 0) {
-    // Usage is set to INT_MIN while in the background compilation queue ...
-    usage = (usage - INT_MIN) + FLAG_optimization_counter_threshold;
+    // Usage is set to INT32_MIN while in the background compilation queue ...
+    usage = (usage - INT32_MIN) + FLAG_optimization_counter_threshold;
   } else if (code_.is_optimized()) {
     // ... and set to 0 when an optimizing compile completes.
     usage = usage + FLAG_optimization_counter_threshold;
