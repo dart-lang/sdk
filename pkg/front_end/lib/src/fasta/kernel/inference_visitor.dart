@@ -296,7 +296,9 @@ class InferenceVisitor
           judgment, const UnknownType(), !inferrer.isTopLevel,
           isVoidAllowed: true);
     }
-    Expression replacement = node.replace();
+    Expression replacement;
+    node.replaceWith(replacement = new Let(node.variable, node.firstCascade)
+      ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
@@ -488,7 +490,10 @@ class InferenceVisitor
     ExpressionInferenceResult result = inferrer.inferExpression(
         node.expression, typeContext, true,
         isVoidAllowed: true);
-    Expression replacement = node.replace();
+
+    Expression replacement;
+    node.replaceWith(replacement = new Let(node.variable, node.expression)
+      ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
@@ -2054,7 +2059,11 @@ class InferenceVisitor
     inferrer.inferStatement(node.read);
     inferrer.inferStatement(node.write);
     DartType inferredType = node.read.type;
-    Expression replacement = node.replace();
+
+    Expression replacement;
+    node.replaceWith(replacement =
+        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
+          ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -2063,7 +2072,11 @@ class InferenceVisitor
     inferrer.inferStatement(node.read);
     inferrer.inferStatement(node.write);
     DartType inferredType = node.read.type;
-    Expression replacement = node.replace();
+
+    Expression replacement;
+    node.replaceWith(replacement =
+        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
+          ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -2072,7 +2085,10 @@ class InferenceVisitor
     inferrer.inferStatement(node.read);
     inferrer.inferStatement(node.write);
     DartType inferredType = node.read.type;
-    Expression replacement = node.replace();
+    Expression replacement;
+    node.replaceWith(replacement =
+        new Let(node.read, createLet(node.write, createVariableGet(node.read)))
+          ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -2082,7 +2098,19 @@ class InferenceVisitor
     inferrer.inferStatement(node.read);
     inferrer.inferStatement(node.write);
     DartType inferredType = node.read.type;
-    Expression replacement = node.replace();
+
+    Expression replacement;
+    if (node.variable != null) {
+      node.replaceWith(replacement = new Let(
+          node.variable,
+          createLet(
+              node.read, createLet(node.write, createVariableGet(node.read))))
+        ..fileOffset = node.fileOffset);
+    } else {
+      node.replaceWith(replacement = new Let(
+          node.read, createLet(node.write, createVariableGet(node.read)))
+        ..fileOffset = node.fileOffset);
+    }
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
@@ -2091,7 +2119,9 @@ class InferenceVisitor
     inferrer.inferStatement(node.variable);
     ExpressionInferenceResult writeResult = inferrer
         .inferExpression(node.write, typeContext, true, isVoidAllowed: true);
-    Expression replacement = node.replace();
+    Expression replacement;
+    node.replaceWith(replacement = new Let(node.variable, node.write)
+      ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(writeResult.inferredType, replacement);
   }
 
@@ -4679,7 +4709,9 @@ class InferenceVisitor
       LoadLibraryTearOff node, DartType typeContext) {
     DartType inferredType = new FunctionType(
         [], inferrer.typeSchemaEnvironment.futureType(const DynamicType()));
-    Expression replacement = node.replace();
+    Expression replacement;
+    node.replaceWith(
+        replacement = new StaticGet(node.target)..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 

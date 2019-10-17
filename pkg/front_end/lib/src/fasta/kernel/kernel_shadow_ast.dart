@@ -287,15 +287,6 @@ enum InternalExpressionKind {
 abstract class InternalExpression extends Expression {
   InternalExpressionKind get kind;
 
-  /// Replaces this [InternalExpression] with a semantically equivalent
-  /// [Expression] and returns the replacing [Expression].
-  ///
-  /// This method most be called after inference has been performed to ensure
-  /// that [InternalExpression] nodes do not leak.
-  Expression replace() {
-    throw new UnsupportedError('$runtimeType.replace()');
-  }
-
   @override
   R accept<R>(ExpressionVisitor<R> visitor) => visitor.defaultExpression(this);
 
@@ -421,6 +412,8 @@ class Cascade extends InternalExpression {
   /// The initial expression of the cascade, i.e. `e` in `e..e1..e2..e3`.
   Expression get expression => variable.initializer;
 
+  Let get firstCascade => _firstCascade;
+
   /// Returns the cascade expressions of the cascade, i.e. `e1`, `e2`, and `e3`
   /// in `e..e1..e2..e3`.
   Iterable<Expression> get cascades sync* {
@@ -452,16 +445,6 @@ class Cascade extends InternalExpression {
   }
 
   @override
-  Expression replace() {
-    Expression replacement;
-    parent.replaceChild(
-        this,
-        replacement = new Let(variable, _firstCascade)
-          ..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
     _firstCascade?.accept(v);
@@ -482,37 +465,29 @@ class Cascade extends InternalExpression {
 
 /// Internal expression representing a deferred check.
 // TODO(johnniwinther): Change the representation to be direct and perform
-// the [Let] encoding in [replace].
+// the [Let] encoding in the replacement.
 class DeferredCheck extends InternalExpression {
-  VariableDeclaration _variable;
+  VariableDeclaration variable;
   Expression expression;
 
-  DeferredCheck(this._variable, this.expression) {
-    _variable?.parent = this;
+  DeferredCheck(this.variable, this.expression) {
+    variable?.parent = this;
     expression?.parent = this;
   }
 
   InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    parent.replaceChild(this,
-        replacement = new Let(_variable, expression)..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
-    _variable?.accept(v);
+    variable?.accept(v);
     expression?.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    if (_variable != null) {
-      _variable = _variable.accept<TreeNode>(v);
-      _variable?.parent = this;
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
     }
     if (expression != null) {
       expression = expression.accept<TreeNode>(v);
@@ -1159,14 +1134,6 @@ class LoadLibraryTearOff extends InternalExpression {
   InternalExpressionKind get kind => InternalExpressionKind.LoadLibraryTearOff;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    parent.replaceChild(
-        this, replacement = new StaticGet(target)..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     import?.accept(v);
     target?.accept(v);
@@ -1326,14 +1293,6 @@ class CompoundPropertySet extends InternalExpression {
   InternalExpressionKind get kind => InternalExpressionKind.CompoundPropertySet;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    replaceWith(
-        replacement = new Let(variable, write)..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
     write?.accept(v);
@@ -1387,21 +1346,6 @@ class PropertyPostIncDec extends InternalExpression {
   InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    if (variable != null) {
-      replaceWith(replacement = new Let(
-          variable, createLet(read, createLet(write, createVariableGet(read))))
-        ..fileOffset = fileOffset);
-    } else {
-      replaceWith(
-          replacement = new Let(read, createLet(write, createVariableGet(read)))
-            ..fileOffset = fileOffset);
-    }
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
     read?.accept(v);
@@ -1443,15 +1387,6 @@ class LocalPostIncDec extends InternalExpression {
 
   @override
   InternalExpressionKind get kind => InternalExpressionKind.LocalPostIncDec;
-
-  @override
-  Expression replace() {
-    Expression replacement;
-    replaceWith(
-        replacement = new Let(read, createLet(write, createVariableGet(read)))
-          ..fileOffset = fileOffset);
-    return replacement;
-  }
 
   @override
   void visitChildren(Visitor<dynamic> v) {
@@ -1496,15 +1431,6 @@ class StaticPostIncDec extends InternalExpression {
   InternalExpressionKind get kind => InternalExpressionKind.StaticPostIncDec;
 
   @override
-  Expression replace() {
-    Expression replacement;
-    replaceWith(
-        replacement = new Let(read, createLet(write, createVariableGet(read)))
-          ..fileOffset = fileOffset);
-    return replacement;
-  }
-
-  @override
   void visitChildren(Visitor<dynamic> v) {
     read?.accept(v);
     write?.accept(v);
@@ -1545,15 +1471,6 @@ class SuperPostIncDec extends InternalExpression {
 
   @override
   InternalExpressionKind get kind => InternalExpressionKind.SuperPostIncDec;
-
-  @override
-  Expression replace() {
-    Expression replacement;
-    replaceWith(
-        replacement = new Let(read, createLet(write, createVariableGet(read)))
-          ..fileOffset = fileOffset);
-    return replacement;
-  }
 
   @override
   void visitChildren(Visitor<dynamic> v) {
