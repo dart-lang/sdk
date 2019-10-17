@@ -855,4 +855,31 @@ DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
 
 #endif  // defined(TARGET_OS_LINUX)
 
+// Receives some pointer (Pointer<NativeType> in Dart) and writes some bits.
+DART_EXPORT void NativeTypePointerParam(void* p) {
+  uint8_t* p2 = reinterpret_cast<uint8_t*>(p);
+  p2[0] = 42;
+}
+
+// Manufactures some pointer (Pointer<NativeType> in Dart) with a bogus address.
+DART_EXPORT void* NativeTypePointerReturn() {
+  uint64_t bogus_address = 0x13370000;
+  return reinterpret_cast<void*>(bogus_address);
+}
+
+// Passes some pointer (Pointer<NativeType> in Dart) to Dart as argument.
+DART_EXPORT void CallbackNativeTypePointerParam(void (*f)(void*)) {
+  void* pointer = malloc(sizeof(int64_t));
+  f(pointer);
+  free(pointer);
+}
+
+// Receives some pointer (Pointer<NativeType> in Dart) from Dart as return
+// value.
+DART_EXPORT void CallbackNativeTypePointerReturn(void* (*f)()) {
+  void* p = f();
+  uint8_t* p2 = reinterpret_cast<uint8_t*>(p);
+  p2[0] = 42;
+}
+
 }  // namespace dart
