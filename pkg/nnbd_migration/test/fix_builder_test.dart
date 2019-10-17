@@ -1074,6 +1074,103 @@ _f(int/*?*/ x) => <int/*!*/>[x];
         changes: {findNode.simple('x]'): NullCheck()});
   }
 
+  test_methodInvocation_dynamic() async {
+    await analyze('''
+Object/*!*/ _f(dynamic d) => d.f();
+''');
+    visitSubexpression(findNode.methodInvocation('d.f'), 'dynamic',
+        contextType: objectType);
+  }
+
+  test_methodInvocation_namedParameter() async {
+    await analyze('''
+abstract class _C {
+  int f({int/*!*/ x});
+}
+_f(_C c, int/*?*/ y) => c.f(x: y);
+''');
+    visitSubexpression(findNode.methodInvocation('c.f'), 'int',
+        changes: {findNode.simple('y);'): NullCheck()});
+  }
+
+  test_methodInvocation_ordinaryParameter() async {
+    await analyze('''
+abstract class _C {
+  int f(int/*!*/ x);
+}
+_f(_C c, int/*?*/ y) => c.f(y);
+''');
+    visitSubexpression(findNode.methodInvocation('c.f'), 'int',
+        changes: {findNode.simple('y);'): NullCheck()});
+  }
+
+  test_methodInvocation_return_nonNullable() async {
+    await analyze('''
+abstract class _C {
+  int f();
+}
+_f(_C c) => c.f();
+''');
+    visitSubexpression(findNode.methodInvocation('c.f'), 'int');
+  }
+
+  test_methodInvocation_return_nonNullable_check_target() async {
+    await analyze('''
+abstract class _C {
+  int f();
+}
+_f(_C/*?*/ c) => c.f();
+''');
+    visitSubexpression(findNode.methodInvocation('c.f'), 'int',
+        changes: {findNode.simple('c.f'): NullCheck()});
+  }
+
+  test_methodInvocation_return_nonNullable_nullAware() async {
+    await analyze('''
+abstract class _C {
+  int f();
+}
+_f(_C/*?*/ c) => c?.f();
+''');
+    visitSubexpression(findNode.methodInvocation('c?.f'), 'int?');
+  }
+
+  test_methodInvocation_return_nullable() async {
+    await analyze('''
+abstract class _C {
+  int/*?*/ f();
+}
+_f(_C c) => c.f();
+''');
+    visitSubexpression(findNode.methodInvocation('c.f'), 'int?');
+  }
+
+  test_methodInvocation_static() async {
+    await analyze('''
+_f() => _C.g();
+class _C {
+  static int g() => 1;
+}
+''');
+    visitSubexpression(findNode.methodInvocation('_C.g();'), 'int');
+  }
+
+  test_methodInvocation_topLevel() async {
+    await analyze('''
+_f() => _g();
+int _g() => 1;
+''');
+    visitSubexpression(findNode.methodInvocation('_g();'), 'int');
+  }
+
+  test_methodInvocation_toString() async {
+    await analyze('''
+abstract class _C {}
+_f(_C/*?*/ c) => c.toString();
+''');
+    visitSubexpression(findNode.methodInvocation('c.toString'), 'String');
+  }
+
   test_nullAssertion_promotes() async {
     await analyze('''
 _f(bool/*?*/ x) => x && x;

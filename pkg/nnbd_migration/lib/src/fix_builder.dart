@@ -122,6 +122,20 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   }
 
   @override
+  DartType visitArgumentList(ArgumentList node) {
+    for (var argument in node.arguments) {
+      Expression expression;
+      if (argument is NamedExpression) {
+        expression = argument.expression;
+      } else {
+        expression = argument;
+      }
+      visitSubexpression(expression, UnknownInferredType.instance);
+    }
+    return null;
+  }
+
+  @override
   DartType visitAssignmentExpression(AssignmentExpression node) {
     var operatorType = node.operator.type;
     var targetInfo =
@@ -376,6 +390,44 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
     }
     return (node.staticType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
+  }
+
+  @override
+  DartType visitMethodInvocation(MethodInvocation node) {
+    var target = node.realTarget;
+    var callee = node.methodName.staticElement;
+    bool isNullAware = node.isNullAware;
+    DartType targetType;
+    if (target != null) {
+      if (callee is ExecutableElement && callee.isStatic) {
+        target.accept(this);
+      } else {
+        targetType = visitSubexpression(
+            target,
+            isNullAware || isDeclaredOnObject(node.methodName.name)
+                ? typeProvider.dynamicType
+                : typeProvider.objectType);
+      }
+    }
+    if (callee == null) {
+      // Dynamic dispatch.  The return type is `dynamic`.
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
+      return typeProvider.dynamicType;
+    }
+    var calleeType = _computeMigratedType(callee, targetType: targetType);
+    var expressionType = _handleInvocationArguments(
+        node,
+        node.argumentList.arguments,
+        node.typeArguments,
+        node.typeArgumentTypes,
+        calleeType as FunctionType,
+        null,
+        invokeType: node.staticInvokeType);
+    if (isNullAware) {
+      expressionType = _typeSystem.makeNullable(expressionType as TypeImpl);
+    }
+    return expressionType;
   }
 
   @override
@@ -663,6 +715,51 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
     }
     return combinedType;
+  }
+
+  DartType _handleInvocationArguments(
+      AstNode node,
+      Iterable<AstNode> arguments,
+      TypeArgumentList typeArguments,
+      List<DartType> typeArgumentTypes,
+      FunctionType calleeType,
+      List<TypeParameterElement> constructorTypeParameters,
+      {DartType invokeType}) {
+    var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
+    if (typeFormals.isNotEmpty) {
+      throw UnimplementedError('TODO(paulberry): Invocation of generic method');
+    }
+    int i = 0;
+    var namedParameterTypes = <String, DartType>{};
+    var positionalParameterTypes = <DartType>[];
+    for (var parameter in calleeType.parameters) {
+      if (parameter.isNamed) {
+        namedParameterTypes[parameter.name] = parameter.type;
+      } else {
+        positionalParameterTypes.add(parameter.type);
+      }
+    }
+    for (var argument in arguments) {
+      String name;
+      Expression expression;
+      if (argument is NamedExpression) {
+        name = argument.name.label.name;
+        expression = argument.expression;
+      } else {
+        expression = argument as Expression;
+      }
+      DartType parameterType;
+      if (name != null) {
+        parameterType = namedParameterTypes[name];
+        assert(parameterType != null, 'Missing type for named parameter');
+      } else {
+        assert(i < positionalParameterTypes.length,
+            'Missing positional parameter at $i');
+        parameterType = positionalParameterTypes[i++];
+      }
+      visitSubexpression(expression, parameterType);
+    }
+    return calleeType.returnType;
   }
 
   DartType _handlePropertyAccess(Expression node, Expression target,
