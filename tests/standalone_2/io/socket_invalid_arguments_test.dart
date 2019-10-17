@@ -13,16 +13,10 @@ class NotAnInteger {
   operator +(other) => 1;
 }
 
-class NotAList {
-  get length => 10;
-  operator [](index) => 1;
-}
-
 testSocketCreation(host, port) {
   asyncStart();
   try {
-    Socket
-        .connect(host, port)
+    Socket.connect(host, port)
         .then((socket) => Expect.fail("Shouldn't get connected"))
         .catchError((e) {
       Expect.isTrue(e is ArgumentError || e is SocketException);
@@ -71,22 +65,20 @@ testServerSocketCreation(address, port, backlog) {
 }
 
 main() {
-  testSocketCreation(123, 123);
+  asyncStart();
   testSocketCreation("string", null);
   testSocketCreation(null, null);
   testSocketCreation("localhost", -1);
   testSocketCreation("localhost", 65536);
   testAdd(null);
-  testAdd(new NotAList());
-  testAdd(42);
   // TODO(8233): Throw ArgumentError from API implementation.
   // testAdd([-1]);
   // testAdd([2222222222222222222222222222222]);
   // testAdd([1, 2, 3, null]);
   // testAdd([new NotAnInteger()]);
-  testServerSocketCreation(123, 123, 123);
   testServerSocketCreation("string", null, null);
   testServerSocketCreation("string", 123, null);
   testServerSocketCreation("localhost", -1, 123);
   testServerSocketCreation("localhost", 65536, 123);
+  asyncEnd();
 }

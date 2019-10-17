@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
@@ -69,8 +70,8 @@ class FileMock extends FileSystemEntity implements File {
   Stream<List<int>> openRead([int start, int end]) => null;
   IOSink openWrite({FileMode mode: FileMode.write, Encoding encoding: utf8}) =>
       null;
-  Future<List<int>> readAsBytes() => null;
-  List<int> readAsBytesSync() => null;
+  Future<Uint8List> readAsBytes() => null;
+  Uint8List readAsBytesSync() => null;
   Future<String> readAsString({Encoding encoding: utf8}) => null;
   String readAsStringSync({Encoding encoding: utf8}) => null;
   Future<List<String>> readAsLines({Encoding encoding: utf8}) => null;
@@ -140,7 +141,7 @@ class LinkMock extends FileSystemEntity implements Link {
 
   LinkMock(String path);
 
-  static createLink(String path) => new LinkMock(path);
+  static Link createLink(String path) => new LinkMock(path);
 
   Future<Link> create(String target, {bool recursive: false}) => null;
   void createSync(String target, {bool recursive: false}) {}

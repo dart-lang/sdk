@@ -38,7 +38,6 @@ final TEST_SUITE_DIRECTORIES = [
   Path('tests/kernel'),
   Path('tests/language_2'),
   Path('tests/lib_2'),
-  Path('tests/standalone'),
   Path('tests/standalone_2'),
   Path('tests/ffi'),
   Path('utils/tests/peg'),

@@ -15,10 +15,10 @@ abstract class Priority implements Comparable {
   /**
    * Return < 0 if other is bigger, >0 if other is smaller, 0 if they are equal.
    */
-  int compareTo(Priority other);
-  bool operator <(Priority other) => compareTo(other) < 0;
-  bool operator >(Priority other) => compareTo(other) > 0;
-  bool operator ==(Priority other) => compareTo(other) == 0;
+  int compareTo(dynamic other);
+  bool operator <(dynamic other) => compareTo(other) < 0;
+  bool operator >(dynamic other) => compareTo(other) > 0;
+  bool operator ==(dynamic other) => compareTo(other) == 0;
 }
 
 /**
@@ -28,7 +28,7 @@ class IntPriority extends Priority {
   int priority;
   IntPriority(int this.priority);
 
-  int compareTo(IntPriority other) {
+  int compareTo(dynamic other) {
     return priority - other.priority;
   }
 
@@ -47,7 +47,7 @@ class StringTypedElement<V> extends TypedElement {
   String type;
   V value;
   StringTypedElement(String this.type, V this.value);
-  bool typeEquals(String otherType) => otherType == type;
+  bool typeEquals(dynamic otherType) => otherType == type;
   String toString() => "<Type: $type, Value: $value>";
 }
 
@@ -175,7 +175,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
 
   void add(N value, P priority) {
     for (var queue in restrictedQueues) {
-      if (queue.first.value == value) {
+      if ((queue.first as StringTypedElement).value == value) {
         queue.add(value, priority);
       }
     }
@@ -219,7 +219,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
    * If the queue is not empty, but no node exists that adheres to the
    * restrictions we return null.
    */
-  N removeFirst({List restrictions: const []}) {
+  N removeFirst({List<N> restrictions: const []}) {
     if (isEmpty) throw "Trying to remove node from empty queue";
     var candidate = getRestricted(restrictions);
 
@@ -237,7 +237,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
         return current;
       } else {
         var restrictedQueue = restrictedQueues.firstWhere(
-            (e) => current.typeEquals(e.first.type),
+            (e) => current.typeEquals((e.first as StringTypedElement).type),
             orElse: () => null);
         if (restrictedQueue == null) {
           restrictedQueue = new PriorityQueue<N, P>();
@@ -283,7 +283,7 @@ void stress(queue) {
     new StringTypedElement('drt', 'fisk')
   ];
 
-  var restricted = ['safari', 'chrome'];
+  var restricted = [values[0], values[4]];
 
   void addRandom() {
     queue.add(values[random.nextInt(values.length)],
