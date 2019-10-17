@@ -2698,7 +2698,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(CheckReceiverForNull, D);
+    BYTECODE(NullCheck, D);
     SP -= 1;
 
     if (UNLIKELY(SP[0] == null_value)) {

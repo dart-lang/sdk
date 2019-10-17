@@ -1289,6 +1289,11 @@ class _Allocator extends RecursiveVisitor<Null> {
   visitInstantiation(Instantiation node) {
     _visit(node, temps: 3);
   }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    _visit(node, temps: 1);
+  }
 }
 
 class LocalVariableIndexOverflowException

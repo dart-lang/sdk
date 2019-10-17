@@ -258,8 +258,8 @@ enum Opcode {
 
   // Null operations.
   kEqualsNull,
-  kCheckReceiverForNull,
-  kCheckReceiverForNull_Wide,
+  kNullCheck,
+  kNullCheck_Wide,
 
   // Int operations.
   kNegateInt,
@@ -468,7 +468,7 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kEqualsNull: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
-  Opcode.kCheckReceiverForNull: const Format(
+  Opcode.kNullCheck: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kNegateInt: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),

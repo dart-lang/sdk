@@ -689,8 +689,8 @@ namespace dart {
   V(MoveSpecial_Wide,                    A_Y, WIDE, num, xeg, ___)             \
   V(BooleanNegateTOS,                      0, ORDN, ___, ___, ___)             \
   V(EqualsNull,                            0, ORDN, ___, ___, ___)             \
-  V(CheckReceiverForNull,                  D, ORDN, lit, ___, ___)             \
-  V(CheckReceiverForNull_Wide,             D, WIDE, lit, ___, ___)             \
+  V(NullCheck,                             D, ORDN, lit, ___, ___)             \
+  V(NullCheck_Wide,                        D, WIDE, lit, ___, ___)             \
   V(NegateInt,                             0, ORDN, ___, ___, ___)             \
   V(AddInt,                                0, ORDN, ___, ___, ___)             \
   V(SubInt,                                0, ORDN, ___, ___, ___)             \

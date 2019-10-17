@@ -1611,7 +1611,7 @@ Bytecode {
   InterfaceCall        CP#2, 1
   PopLocal             r2
   Push                 r0
-  CheckReceiverForNull CP#4
+  NullCheck            CP#4
   InterfaceCall        CP#5, 1
   Push                 r1
   Push                 r2
@@ -1648,7 +1648,7 @@ Bytecode {
   InterfaceCall        CP#3, 1
   PopLocal             r2
   Push                 r0
-  CheckReceiverForNull CP#5
+  NullCheck            CP#5
   InterfaceCall        CP#6, 1
   Push                 r1
   Push                 r2
@@ -1687,7 +1687,7 @@ Bytecode {
   InterfaceCall        CP#5, 1
   PopLocal             r2
   Push                 r0
-  CheckReceiverForNull CP#7
+  NullCheck            CP#7
   InterfaceCall        CP#8, 1
   Push                 r1
   Push                 r2

@@ -3251,8 +3251,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // correct noSuchMethod for method call.
     if (checkForNull) {
       asm.emitPush(receiverTemp);
-      asm.emitCheckReceiverForNull(
-          cp.addSelectorName(node.name, InvocationKind.method));
+      asm.emitNullCheck(cp.addSelectorName(node.name, InvocationKind.method));
     }
 
     _genInstanceCall(null, InvocationKind.getter, node.interfaceTarget,
@@ -3309,8 +3308,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       final int receiverTemp = locals.tempIndexInFrame(node);
       _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
       asm.emitPush(receiverTemp);
-      asm.emitCheckReceiverForNull(
-          cp.addSelectorName(node.name, InvocationKind.method));
+      asm.emitNullCheck(cp.addSelectorName(node.name, InvocationKind.method));
     } else {
       _genArguments(node.receiver, args);
     }
@@ -3344,8 +3342,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         final int receiverTemp = locals.tempIndexInFrame(node);
         asm.emitStoreLocal(receiverTemp);
         asm.emitPush(receiverTemp);
-        asm.emitCheckReceiverForNull(
-            cp.addSelectorName(node.name, InvocationKind.getter));
+        asm.emitNullCheck(cp.addSelectorName(node.name, InvocationKind.getter));
       }
       _genDirectCall(directCall.target, argDesc, 1, isGet: true, node: node);
     } else {
@@ -3367,8 +3364,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       asm.emitStoreLocal(temp);
       _generateNode(node.value);
       asm.emitPush(temp);
-      asm.emitCheckReceiverForNull(
-          cp.addSelectorName(node.name, InvocationKind.setter));
+      asm.emitNullCheck(cp.addSelectorName(node.name, InvocationKind.setter));
     } else {
       _generateNode(node.value);
     }
@@ -3475,6 +3471,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!negated) {
       asm.emitBooleanNegateTOS();
     }
+  }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    _generateNode(node.operand);
+    final operandTemp = locals.tempIndexInFrame(node);
+    asm.emitStoreLocal(operandTemp);
+    asm.emitPush(operandTemp);
+    asm.emitNullCheck(cp.addObjectRef(null));
   }
 
   @override

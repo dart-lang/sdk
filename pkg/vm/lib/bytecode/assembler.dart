@@ -571,8 +571,8 @@ class BytecodeAssembler {
     _emitInstructionD(Opcode.kAllocateClosure, rd);
   }
 
-  void emitCheckReceiverForNull(int rd) {
+  void emitNullCheck(int rd) {
     emitSourcePosition();
-    _emitInstructionD(Opcode.kCheckReceiverForNull, rd);
+    _emitInstructionD(Opcode.kNullCheck, rd);
   }
 }

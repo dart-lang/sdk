@@ -1427,7 +1427,7 @@ void BytecodeFlowGraphBuilder::BuildAssertSubtype() {
   code_ <<= instr;
 }
 
-void BytecodeFlowGraphBuilder::BuildCheckReceiverForNull() {
+void BytecodeFlowGraphBuilder::BuildNullCheck() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
