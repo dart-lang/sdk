@@ -2562,17 +2562,11 @@ abstract class Closure implements Function {
 
   String toString() {
     String name;
-    if (JS_GET_FLAG('USE_NEW_RTI')) {
-      var constructor = JS('', '#.constructor', this);
-      name =
-          constructor == null ? null : JS('String|Null', '#.name', constructor);
-      if (name == null) name = 'unknown';
-    } else {
-      name = Primitives.objectTypeName(this);
-      // Mirrors puts a space in front of some names, so remove it.
-      name = JS('String', '#.trim()', name);
-    }
-    return "Closure '$name'";
+    var constructor = JS('', '#.constructor', this);
+    name =
+        constructor == null ? null : JS('String|Null', '#.name', constructor);
+    if (name == null) name = 'unknown';
+    return "Closure '${unminifyOrTag(name)}'";
   }
 }
 
