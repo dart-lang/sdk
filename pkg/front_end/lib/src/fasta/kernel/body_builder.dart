@@ -1496,53 +1496,73 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (optional(".", token) ||
         optional("..", token) ||
         optional("?..", token)) {
-      return doDotOrCascadeExpression(token);
+      doDotOrCascadeExpression(token);
+    } else if (optional("&&", token) || optional("||", token)) {
+      doLogicalExpression(token);
+    } else if (optional("??", token)) {
+      doIfNull(token);
+    } else if (optional("?.", token)) {
+      doIfNotNull(token);
+    } else {
+      doBinaryExpression(token);
     }
-    if (optional("&&", token) || optional("||", token)) {
-      return doLogicalExpression(token);
-    }
-    if (optional("??", token)) return doIfNull(token);
-    if (optional("?.", token)) return doIfNotNull(token);
-    Expression argument = popForValue();
-    Object receiver = pop();
-    bool isSuper = false;
-    if (receiver is ThisAccessGenerator && receiver.isSuper) {
-      ThisAccessGenerator thisAccessorReceiver = receiver;
-      isSuper = true;
-      receiver = forest.createThisExpression(thisAccessorReceiver.fileOffset);
-    }
-    push(buildBinaryOperator(toValue(receiver), token, argument, isSuper));
   }
 
-  Expression buildBinaryOperator(
-      Expression a, Token token, Expression b, bool isSuper) {
+  void doBinaryExpression(Token token) {
+    assert(checkState(token, <ValueKind>[
+      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+      unionOfKinds([ValueKind.Expression, ValueKind.Generator]),
+    ]));
+    Expression right = popForValue();
+    Object left = pop();
     bool negate = false;
     String operator = token.stringValue;
     if (identical("!=", operator)) {
       operator = "==";
       negate = true;
     }
+    int fileOffset = offsetForToken(token);
+    Name name = new Name(operator);
     if (!isBinaryOperator(operator) && !isMinusOperator(operator)) {
       if (isUserDefinableOperator(operator)) {
-        return buildProblem(
-            fasta.templateNotBinaryOperator.withArguments(token),
-            token.charOffset,
-            token.length);
+        push(buildProblem(fasta.templateNotBinaryOperator.withArguments(token),
+            token.charOffset, token.length));
       } else {
-        return buildProblem(fasta.templateInvalidOperator.withArguments(token),
-            token.charOffset, token.length);
+        push(buildProblem(fasta.templateInvalidOperator.withArguments(token),
+            token.charOffset, token.length));
       }
+    } else if (left is ExplicitExtensionAccessGenerator) {
+      // TODO(johnniwinther): Use this code path for all generators. Currently
+      // TypeUseGenerator starts complaining about `Map<` not being a method
+      // instead of `<` not defined on `Type`.
+      Object result = left.buildPropertyAccess(
+          new SendAccessGenerator(this, token, name,
+              forest.createArguments(fileOffset, <Expression>[right]),
+              isPotentiallyConstant: true),
+          fileOffset,
+          false);
+      push(negate ? forest.createNot(fileOffset, toValue(result)) : result);
     } else {
+      bool isSuper = false;
+      Expression leftValue;
+      if (left is ThisAccessGenerator && left.isSuper) {
+        ThisAccessGenerator thisAccessorReceiver = left;
+        isSuper = true;
+        leftValue =
+            forest.createThisExpression(thisAccessorReceiver.fileOffset);
+      } else {
+        leftValue = toValue(left);
+      }
       Expression result = buildMethodInvocation(
-          a,
-          new Name(operator),
-          forest.createArguments(token.charOffset, <Expression>[b]),
+          leftValue,
+          name,
+          forest.createArguments(fileOffset, <Expression>[right]),
           token.charOffset,
           // This *could* be a constant expression, we can't know without
-          // evaluating [a] and [b].
+          // evaluating [left] and [right].
           isConstantExpression: !isSuper,
           isSuper: isSuper);
-      return negate ? forest.createNot(token.charOffset, result) : result;
+      push(negate ? forest.createNot(fileOffset, result) : result);
     }
   }
 
@@ -3341,29 +3361,51 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleUnaryPrefixExpression(Token token) {
+    assert(checkState(token, <ValueKind>[
+      unionOfKinds(<ValueKind>[
+        ValueKind.Expression,
+        ValueKind.Generator,
+      ]),
+    ]));
     debugEvent("UnaryPrefixExpression");
     Object receiver = pop();
     if (optional("!", token)) {
       push(forest.createNot(offsetForToken(token), toValue(receiver)));
     } else {
       String operator = token.stringValue;
-      Expression receiverValue;
       if (optional("-", token)) {
         operator = "unary-";
       }
-      bool isSuper = false;
-      if (receiver is ThisAccessGenerator && receiver.isSuper) {
-        isSuper = true;
-        receiverValue = forest.createThisExpression(receiver.fileOffset);
+      int fileOffset = offsetForToken(token);
+      Name name = new Name(operator);
+      if (receiver is ExplicitExtensionAccessGenerator) {
+        // TODO(johnniwinther): Use this code path for all generators. Currently
+        // TypeUseGenerator starts complaining about `-Map` not being a method
+        // instead of `unary-` not defined on `Type`.
+        push(receiver.buildPropertyAccess(
+            new SendAccessGenerator(
+                this, token, name, forest.createArgumentsEmpty(fileOffset),
+                isPotentiallyConstant: true),
+            fileOffset,
+            false));
       } else {
-        receiverValue = toValue(receiver);
+        bool isSuper = false;
+        Expression receiverValue;
+        if (receiver is ThisAccessGenerator && receiver.isSuper) {
+          ThisAccessGenerator thisAccessorReceiver = receiver;
+          isSuper = true;
+          receiverValue =
+              forest.createThisExpression(thisAccessorReceiver.fileOffset);
+        } else {
+          receiverValue = toValue(receiver);
+        }
+        push(buildMethodInvocation(receiverValue, name,
+            forest.createArgumentsEmpty(fileOffset), fileOffset,
+            // This *could* be a constant expression, we can't know without
+            // evaluating [receiver].
+            isConstantExpression: !isSuper,
+            isSuper: isSuper));
       }
-      push(buildMethodInvocation(receiverValue, new Name(operator),
-          forest.createArgumentsEmpty(noLocation), token.charOffset,
-          // This *could* be a constant expression, we can't know without
-          // evaluating [receiver].
-          isConstantExpression: !isSuper,
-          isSuper: isSuper));
     }
   }
 
