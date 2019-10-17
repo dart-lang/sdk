@@ -5108,11 +5108,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       TokenPosition::kNoSource, Slot::Closure_function_type_arguments(),
       StoreInstanceFieldInstr::Kind::kInitializing);
 
-  instructions += LoadLocal(closure);
-  instructions += Constant(Object::empty_type_arguments());
-  instructions += flow_graph_builder_->StoreInstanceField(
-      TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
-      StoreInstanceFieldInstr::Kind::kInitializing);
+  if (function.IsGeneric()) {
+    // Only generic functions need to have properly initialized
+    // delayed_type_arguments.
+    instructions += LoadLocal(closure);
+    instructions += Constant(Object::empty_type_arguments());
+    instructions += flow_graph_builder_->StoreInstanceField(
+        TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
+  }
 
   // Store the function and the context in the closure.
   instructions += LoadLocal(closure);

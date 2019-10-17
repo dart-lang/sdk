@@ -157,24 +157,22 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
                             /*expected_stores=*/{"f"});
   RunInitializingStoresTest(root_library, "f2", CompilerPass::kJIT,
                             /*expected_stores=*/{"g"});
-  RunInitializingStoresTest(
-      root_library, "f3", CompilerPass::kJIT,
-      /*expected_stores=*/
-      {"Closure.delayed_type_arguments", "Closure.function"});
+  RunInitializingStoresTest(root_library, "f3", CompilerPass::kJIT,
+                            /*expected_stores=*/
+                            {"Closure.function"});
 
   // Note that in JIT mode we lower context allocation in a way that hinders
   // removal of initializing moves so there would be some redundant stores of
   // null left in the graph. In AOT mode we don't apply this optimization
   // which enables us to remove more stores.
-  RunInitializingStoresTest(
-      root_library, "f4", CompilerPass::kJIT, /*expected_stores=*/
-      {"value", "Context.parent", "Context.parent", "value",
-       "Closure.function_type_arguments", "Closure.delayed_type_arguments",
-       "Closure.function", "Closure.context"});
+  RunInitializingStoresTest(root_library, "f4",
+                            CompilerPass::kJIT, /*expected_stores=*/
+                            {"value", "Context.parent", "Context.parent",
+                             "value", "Closure.function_type_arguments",
+                             "Closure.function", "Closure.context"});
   RunInitializingStoresTest(root_library, "f4",
                             CompilerPass::kAOT, /*expected_stores=*/
                             {"value", "Closure.function_type_arguments",
-                             "Closure.delayed_type_arguments",
                              "Closure.function", "Closure.context"});
 }
 

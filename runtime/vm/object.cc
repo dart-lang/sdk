@@ -21696,7 +21696,9 @@ RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,
                          const Context& context,
                          Heap::Space space) {
   return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      Object::empty_type_arguments(), function, context, space);
+                      function.IsGeneric() ? Object::empty_type_arguments()
+                                           : Object::null_type_arguments(),
+                      function, context, space);
 }
 
 RawClosure* Closure::New(const TypeArguments& instantiator_type_arguments,

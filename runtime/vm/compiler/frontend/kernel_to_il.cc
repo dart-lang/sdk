@@ -1398,11 +1398,15 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
       StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context(),
                          StoreInstanceFieldInstr::Kind::kInitializing);
 
-  fragment += LoadLocal(closure);
-  fragment += Constant(Object::empty_type_arguments());
-  fragment += StoreInstanceField(TokenPosition::kNoSource,
-                                 Slot::Closure_delayed_type_arguments(),
-                                 StoreInstanceFieldInstr::Kind::kInitializing);
+  if (target.IsGeneric()) {
+    // Only generic functions need to have properly initialized
+    // delayed_type_arguments.
+    fragment += LoadLocal(closure);
+    fragment += Constant(Object::empty_type_arguments());
+    fragment += StoreInstanceField(
+        TokenPosition::kNoSource, Slot::Closure_delayed_type_arguments(),
+        StoreInstanceFieldInstr::Kind::kInitializing);
+  }
 
   // The context is on top of the operand stack.  Store `this`.  The context
   // doesn't need a parent pointer because it doesn't close over anything
