@@ -176,6 +176,9 @@ general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
 general/ignore_function: TypeCheckError
+general/if_null_in_cascade: TextSerializationFailure
+general/if_null_in_list_literal: TextSerializationFailure
+general/if_null_in_set_literal: TextSerializationFailure
 general/illegal_named_function_expression: TextSerializationFailure # Was: Pass
 general/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass

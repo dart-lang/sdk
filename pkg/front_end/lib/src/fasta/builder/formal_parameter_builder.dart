@@ -4,7 +4,7 @@
 
 library fasta.formal_parameter_builder;
 
-import 'package:kernel/ast.dart' show VariableDeclaration;
+import 'package:kernel/ast.dart' show Expression, VariableDeclaration;
 
 import '../parser.dart' show FormalParameterKind;
 
@@ -168,10 +168,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      variable.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
-        ..parent = variable;
-      bodyBuilder.typeInferrer?.inferParameterInitializer(
-          bodyBuilder, variable.initializer, variable.type);
+      Expression initializer =
+          bodyBuilder.parseFieldInitializer(initializerToken);
+      initializer = bodyBuilder.typeInferrer
+          ?.inferParameterInitializer(bodyBuilder, initializer, variable.type);
+      variable.initializer = initializer..parent = variable;
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
         loader.transformPostInference(variable,

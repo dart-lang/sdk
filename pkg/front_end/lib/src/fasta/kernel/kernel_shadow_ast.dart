@@ -57,6 +57,7 @@ import '../fasta_codes.dart'
         templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
         templateUndefinedMethod,
+        templateUndefinedSetter,
         templateWebLiteralCannotBeRepresentedExactly;
 
 import '../names.dart';
@@ -88,7 +89,6 @@ import 'body_builder.dart' show combineStatements;
 
 import 'collections.dart'
     show
-        ControlFlowMapEntry,
         ForElement,
         ForInElement,
         ForInMapEntry,
@@ -633,8 +633,8 @@ class ShadowInvalidInitializer extends LocalInitializer
 /// Concrete shadow object representing an invalid initializer in kernel form.
 class ShadowInvalidFieldInitializer extends LocalInitializer
     implements InitializerJudgment {
-  final Field field;
-  final Expression value;
+  Field field;
+  Expression value;
 
   ShadowInvalidFieldInitializer(
       this.field, this.value, VariableDeclaration variable)
@@ -854,11 +854,6 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // `UnknownType` should be used instead.
     assert(typeContext != null);
 
-    // It isn't safe to do type inference on an expression without a parent,
-    // because type inference might cause us to have to replace one expression
-    // with another, and we can only replace a node if it has a parent pointer.
-    assert(expression.parent != null);
-
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     assert(isTopLevel || helper != null);
@@ -866,7 +861,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded) return const ExpressionInferenceResult(null);
+    if (!typeNeeded) return new ExpressionInferenceResult(null, expression);
 
     InferenceVisitor visitor = new InferenceVisitor(this);
     ExpressionInferenceResult result;
@@ -2511,6 +2506,15 @@ Let createLet(VariableDeclaration variable, Expression body) {
 VariableDeclaration createVariable(Expression expression, DartType type) {
   return new VariableDeclaration.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
+}
+
+/// Creates a [VariableDeclaration] for the expression inference [result]
+/// using `result.expression.fileOffset` as the file offset for the declaration.
+///
+/// This is useful for creating let variables for expressions in replacement
+/// code.
+VariableDeclaration createVariableForResult(ExpressionInferenceResult result) {
+  return createVariable(result.expression, result.inferredType);
 }
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the

@@ -207,10 +207,8 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
               library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
-      initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
-        ..parent = field;
-      bodyBuilder.typeInferrer
-          ?.inferFieldInitializer(bodyBuilder, field.type, field.initializer);
+      initializer = bodyBuilder.typeInferrer?.inferFieldInitializer(bodyBuilder,
+          field.type, bodyBuilder.parseFieldInitializer(constInitializerToken));
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
         loader.transformPostInference(field, bodyBuilder.transformSetLiterals,

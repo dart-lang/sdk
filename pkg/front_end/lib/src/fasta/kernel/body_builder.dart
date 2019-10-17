@@ -526,9 +526,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return new JumpTarget(kind, functionNestingLevel, member, charOffset);
   }
 
-  void inferAnnotations(List<Expression> annotations) {
+  void inferAnnotations(TreeNode parent, List<Expression> annotations) {
     if (annotations != null) {
-      typeInferrer?.inferMetadata(this, annotations);
+      typeInferrer?.inferMetadata(this, parent, annotations);
       libraryBuilder.loader.transformListPostInference(
           annotations, transformSetLiterals, transformCollections);
     }
@@ -655,8 +655,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // outline, like constant field initializers) so we do not need to
           // perform type inference or transformations.
         } else {
-          fieldBuilder.initializer = initializer;
-          typeInferrer?.inferFieldInitializer(
+          fieldBuilder.initializer = typeInferrer?.inferFieldInitializer(
               this, fieldBuilder.builtType, initializer);
           libraryBuilder.loader.transformPostInference(
               fieldBuilder.field, transformSetLiterals, transformCollections);
@@ -824,9 +823,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 noLocation);
           }
           VariableDeclaration originParameter = builder.getFormalParameter(i);
-          originParameter.initializer = initializer..parent = originParameter;
-          typeInferrer?.inferParameterInitializer(
+          initializer = typeInferrer?.inferParameterInitializer(
               this, initializer, originParameter.type);
+          originParameter.initializer = initializer..parent = originParameter;
           libraryBuilder.loader.transformPostInference(
               originParameter, transformSetLiterals, transformCollections);
 
@@ -1115,14 +1114,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     if (variablesWithMetadata != null) {
       for (int i = 0; i < variablesWithMetadata.length; i++) {
-        inferAnnotations(variablesWithMetadata[i].annotations);
+        inferAnnotations(
+            variablesWithMetadata[i], variablesWithMetadata[i].annotations);
       }
     }
     if (multiVariablesWithMetadata != null) {
       for (int i = 0; i < multiVariablesWithMetadata.length; i++) {
         List<VariableDeclaration> variables = multiVariablesWithMetadata[i];
         List<Expression> annotations = variables.first.annotations;
-        inferAnnotations(annotations);
+        inferAnnotations(variables.first, annotations);
         for (int i = 1; i < variables.length; i++) {
           cloner ??= new CloneVisitor();
           VariableDeclaration variable = variables[i];
@@ -1137,7 +1137,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   List<Expression> finishMetadata(TreeNode parent) {
     List<Expression> expressions = pop();
-    inferAnnotations(expressions);
+    inferAnnotations(parent, expressions);
 
     // The invocation of [resolveRedirectingFactoryTargets] below may change the
     // root nodes of the annotation expressions.  We need to have a parent of
@@ -3114,7 +3114,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (annotations != null) {
       if (functionNestingLevel == 0) {
-        inferAnnotations(annotations);
+        inferAnnotations(variable, annotations);
       }
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
@@ -4880,7 +4880,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     TypeVariableBuilder variable =
         new TypeVariableBuilder(name.name, libraryBuilder, name.charOffset);
     if (annotations != null) {
-      inferAnnotations(annotations);
+      inferAnnotations(variable.parameter, annotations);
       for (Expression annotation in annotations) {
         variable.parameter.addAnnotation(annotation);
       }

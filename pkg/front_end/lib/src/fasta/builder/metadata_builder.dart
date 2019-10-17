@@ -43,7 +43,7 @@ class MetadataBuilder {
       parent.addAnnotation(
           bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
     }
-    bodyBuilder.inferAnnotations(parent.annotations);
+    bodyBuilder.inferAnnotations(parent, parent.annotations);
     bodyBuilder.resolveRedirectingFactoryTargets();
   }
 }

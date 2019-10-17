@@ -190,7 +190,7 @@ abstract class FileUriNode extends TreeNode {
   Uri get fileUri;
 }
 
-abstract class Annotatable {
+abstract class Annotatable extends TreeNode {
   List<Expression> get annotations;
   void addAnnotation(Expression node);
 }
