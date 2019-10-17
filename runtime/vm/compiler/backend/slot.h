@@ -181,6 +181,10 @@ class Slot : public ZoneAllocated {
 
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
+  bool IsContextSlot() const {
+    return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
+  }
+
  private:
   friend class FlowGraphDeserializer;  // For GetNativeSlot.
 

@@ -1559,6 +1559,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
     // R3: next object start.
     // R4: allocation stats address.
     __ LoadObject(R8, NullObject());
+    __ MoveRegister(R9, R8);  // Needed for InitializeFieldsNoBarrier.
     __ StoreIntoObjectNoBarrier(
         R0, FieldAddress(R0, target::Context::parent_offset()), R8);
 

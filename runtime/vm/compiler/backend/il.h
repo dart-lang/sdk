@@ -5332,10 +5332,7 @@ class AllocateUninitializedContextInstr
     : public TemplateAllocation<0, NoThrow> {
  public:
   AllocateUninitializedContextInstr(TokenPosition token_pos,
-                                    intptr_t num_context_variables)
-      : token_pos_(token_pos),
-        num_context_variables_(num_context_variables),
-        identity_(AliasIdentity::Unknown()) {}
+                                    intptr_t num_context_variables);
 
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
