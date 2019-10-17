@@ -42,6 +42,7 @@ void main() {
   testLookupFunctionGeneric2();
   testLookupFunctionWrongNativeFunctionSignature();
   testLookupFunctionTypeMismatch();
+  testLookupFunctionPointerNativeType();
   testNativeFunctionSignatureInvalidReturn();
   testNativeFunctionSignatureInvalidParam();
   testNativeFunctionSignatureInvalidOptionalNamed();
@@ -286,6 +287,14 @@ void testLookupFunctionWrongNativeFunctionSignature() {
 void testLookupFunctionTypeMismatch() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos"); //# 18: compile-time error
+}
+
+typedef NativeTypeNFT = Pointer<NativeType> Function(Pointer<Pointer<NativeType>>, Int8);
+typedef NativeTypeFT = Pointer<NativeType> Function(Pointer<Pointer<NativeType>>, int);
+
+void testLookupFunctionPointerNativeType() {
+  final DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  l.lookupFunction<NativeTypeNFT, NativeTypeFT>("LargePointer"); //# 19: ok
 }
 
 // TODO(dacoharkes): make the next 4 test compile errors
