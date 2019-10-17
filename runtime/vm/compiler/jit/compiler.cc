@@ -108,6 +108,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = true;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_use_bytecode_compiler = true;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
     // Not present with DART_PRECOMPILED_RUNTIME

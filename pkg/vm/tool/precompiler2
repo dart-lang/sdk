@@ -31,6 +31,8 @@ for arg in "$@"; do
     ;;
     --tfa | \
     --no-tfa | \
+    --gen-bytecode | \
+    --no-gen-bytecode | \
     -D* )
     GEN_KERNEL_OPTIONS+=("$arg")
     ;;

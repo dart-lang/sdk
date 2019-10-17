@@ -148,7 +148,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('track-widget-creation',
       help: 'Run a kernel transformer to track creation locations for widgets.',
       defaultsTo: false)
-  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false)
+  ..addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: null)
   ..addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
       valueHelp: 'opt1,opt2,...',
@@ -374,12 +374,13 @@ class FrontendCompiler implements CompilerInterface {
       return false;
     }
 
-    compilerOptions.bytecode = options['gen-bytecode'];
+    compilerOptions.bytecode = options['gen-bytecode'] ?? options['aot'];
     final BytecodeOptions bytecodeOptions = BytecodeOptions(
-        enableAsserts: options['enable-asserts'],
-        emitSourceFiles: options['embed-source-text'],
-        environmentDefines: environmentDefines)
-      ..parseCommandLineFlags(options['bytecode-options']);
+      enableAsserts: options['enable-asserts'],
+      emitSourceFiles: options['embed-source-text'],
+      environmentDefines: environmentDefines,
+      aot: options['aot'],
+    )..parseCommandLineFlags(options['bytecode-options']);
 
     compilerOptions.target = createFrontEndTarget(
       options['target'],

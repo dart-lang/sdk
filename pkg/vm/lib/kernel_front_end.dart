@@ -102,7 +102,7 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Split resulting kernel file into multiple files (one per package).',
       defaultsTo: false);
-  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
+  args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: null);
   args.addMultiOption('bytecode-options',
       help: 'Specify options for bytecode generation:',
       valueHelp: 'opt1,opt2,...',
@@ -153,7 +153,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool tfa = options['tfa'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
-  final bool genBytecode = options['gen-bytecode'];
+  final bool genBytecode = options['gen-bytecode'] ?? aot;
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
@@ -166,10 +166,11 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final BytecodeOptions bytecodeOptions = new BytecodeOptions(
-      enableAsserts: enableAsserts,
-      emitSourceFiles: embedSources,
-      environmentDefines: environmentDefines)
-    ..parseCommandLineFlags(options['bytecode-options']);
+    enableAsserts: enableAsserts,
+    emitSourceFiles: embedSources,
+    environmentDefines: environmentDefines,
+    aot: aot,
+  )..parseCommandLineFlags(options['bytecode-options']);
 
   final target = createFrontEndTarget(targetName);
   if (target == null) {
