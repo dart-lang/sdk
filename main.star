@@ -743,6 +743,8 @@ dart_ci_sandbox_builder(
     location_regexp=to_location_regexp(DDC_PATHS),
     on_cq=True)
 dart_ci_sandbox_builder(
+    "ddc-nnbd-linux-release-chrome", category="ddc|nn", channels=["try"])
+dart_ci_sandbox_builder(
     "ddc-mac-release-chrome", category="ddc|m", dimensions=mac())
 dart_ci_sandbox_builder(
     "ddc-win-release-chrome", category="ddc|w", dimensions=windows())
