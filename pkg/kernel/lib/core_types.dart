@@ -488,7 +488,7 @@ class CoreTypes {
         return objectNullableRawType;
       case Nullability.nonNullable:
         return objectNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -525,7 +525,7 @@ class CoreTypes {
         return boolNullableRawType;
       case Nullability.nonNullable:
         return boolNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -556,7 +556,7 @@ class CoreTypes {
         return intNullableRawType;
       case Nullability.nonNullable:
         return intNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -587,7 +587,7 @@ class CoreTypes {
         return numNullableRawType;
       case Nullability.nonNullable:
         return numNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -619,7 +619,7 @@ class CoreTypes {
         return doubleNullableRawType;
       case Nullability.nonNullable:
         return doubleNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -651,7 +651,7 @@ class CoreTypes {
         return stringNullableRawType;
       case Nullability.nonNullable:
         return stringNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -684,7 +684,7 @@ class CoreTypes {
         return listNullableRawType;
       case Nullability.nonNullable:
         return listNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -717,7 +717,7 @@ class CoreTypes {
         return setNullableRawType;
       case Nullability.nonNullable:
         return setNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -756,7 +756,7 @@ class CoreTypes {
         return mapNullableRawType;
       case Nullability.nonNullable:
         return mapNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -789,7 +789,7 @@ class CoreTypes {
         return iterableNullableRawType;
       case Nullability.nonNullable:
         return iterableNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -822,7 +822,7 @@ class CoreTypes {
         return iteratorNullableRawType;
       case Nullability.nonNullable:
         return iteratorNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -854,7 +854,7 @@ class CoreTypes {
         return symbolNullableRawType;
       case Nullability.nonNullable:
         return symbolNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -885,7 +885,7 @@ class CoreTypes {
         return typeNullableRawType;
       case Nullability.nonNullable:
         return typeNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -918,7 +918,7 @@ class CoreTypes {
         return functionNullableRawType;
       case Nullability.nonNullable:
         return functionNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -951,7 +951,7 @@ class CoreTypes {
         return invocationNullableRawType;
       case Nullability.nonNullable:
         return invocationNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -984,7 +984,7 @@ class CoreTypes {
         return invocationMirrorNullableRawType;
       case Nullability.nonNullable:
         return invocationMirrorNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1017,7 +1017,7 @@ class CoreTypes {
         return futureNullableRawType;
       case Nullability.nonNullable:
         return futureNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1050,7 +1050,7 @@ class CoreTypes {
         return stackTraceNullableRawType;
       case Nullability.nonNullable:
         return stackTraceNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1083,7 +1083,7 @@ class CoreTypes {
         return streamNullableRawType;
       case Nullability.nonNullable:
         return streamNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1122,7 +1122,7 @@ class CoreTypes {
         return asyncAwaitCompleterNullableRawType;
       case Nullability.nonNullable:
         return asyncAwaitCompleterNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1155,7 +1155,7 @@ class CoreTypes {
         return futureOrNullableRawType;
       case Nullability.nonNullable:
         return futureOrNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1187,7 +1187,7 @@ class CoreTypes {
         return pragmaNullableRawType;
       case Nullability.nonNullable:
         return pragmaNonNullableRawType;
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");
@@ -1229,7 +1229,7 @@ class CoreTypes {
         return nullableRawType(klass);
       case Nullability.nonNullable:
         return nonNullableRawType(klass);
-      case Nullability.neither:
+      case Nullability.undetermined:
       default:
         throw new StateError(
             "Unsupported nullability $nullability on an InterfaceType.");

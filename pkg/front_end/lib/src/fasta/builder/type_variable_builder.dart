@@ -199,7 +199,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
           if (current.parameter.bound is TypeParameterType) {
             next = current.parameter.bound;
             if (next.typeParameterTypeNullability == marker) {
-              next.typeParameterTypeNullability = Nullability.neither;
+              next.typeParameterTypeNullability = Nullability.undetermined;
               libraryBuilder.addProblem(
                   templateCycleInTypeVariables.withArguments(
                       next.parameter.name, current.parameter.name),

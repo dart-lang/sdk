@@ -587,7 +587,7 @@ String nullabilityToText(Nullability nullability) {
       return '!';
     case Nullability.nullable:
       return '?';
-    case Nullability.neither:
+    case Nullability.undetermined:
       return '%';
     case Nullability.legacy:
       return '';

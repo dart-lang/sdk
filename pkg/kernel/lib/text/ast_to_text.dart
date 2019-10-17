@@ -2063,7 +2063,7 @@ class Printer extends Visitor<Null> {
           state = WORD; // Disallow a word immediately after the '?'.
         }
         break;
-      case Nullability.neither:
+      case Nullability.undetermined:
         writeSymbol('%');
         if (!inComment) {
           state = WORD; // Disallow a word immediately after the '%'.
@@ -2079,7 +2079,7 @@ class Printer extends Visitor<Null> {
 
   void writeDartTypeNullability(DartType type, {bool inComment = false}) {
     if (type is InvalidType) {
-      writeNullability(Nullability.neither);
+      writeNullability(Nullability.undetermined);
     } else {
       writeNullability(type.nullability, inComment: inComment);
     }

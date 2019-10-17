@@ -980,7 +980,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Internal. Should *ONLY* be used from within kernel.
   ///
   /// If non-null, the function that will have to be called to fill-out the
-  /// content of this class. Note that this should not be called directly though.
+  /// content of this class. Note that this should not be called directly
+  /// though.
   void Function() lazyBuilder;
 
   /// Makes sure the class is loaded, i.e. the fields, procedures etc have been
@@ -5350,7 +5351,7 @@ enum Nullability {
   /// be something else rather than non-nullable.
   nonNullable,
 
-  /// Non-legacy types that are neither nullable, nor non-nullable.
+  /// Non-legacy types not known to be nullable or non-nullable statically.
   ///
   /// An example of such type is type T in the example below.  Note that both
   /// int and int? can be passed in for T, so an attempt to assign null to x is
@@ -5362,7 +5363,7 @@ enum Nullability {
   ///       Object y = x;  // Compile-time error.
   ///     }
   ///   }
-  neither,
+  undetermined,
 
   /// Types in opt-out libraries are 'legacy' types.
   ///
@@ -5853,10 +5854,10 @@ class TypeParameterType extends DartType {
   /// nullability of [promotedBound] if it's present.
   ///
   /// For example, in the following program [typeParameterTypeNullability] of
-  /// both `x` and `y` is [Nullability.neither], because it's copied from that
-  /// of `bar` and T has a nullable type as its bound.  However, despite
-  /// [nullability] of `x` is [Nullability.neither], [nullability] of `y` is
-  /// [Nullability.nonNullable] because of its [promotedBound].
+  /// both `x` and `y` is [Nullability.undetermined], because it's copied from
+  /// that of `bar` and T has a nullable type as its bound.  However, despite
+  /// [nullability] of `x` is [Nullability.undetermined], [nullability] of `y`
+  /// is [Nullability.nonNullable] because of its [promotedBound].
   ///
   ///     class A<T extends Object?> {
   ///       foo(T bar) {
@@ -5891,19 +5892,19 @@ class TypeParameterType extends DartType {
   /// is changing or is being set for the first time, and the update on some
   /// type-parameter types is required.
   static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
-    // If the bound is nullable or 'neither', both nullable and non-nullable
-    // types can be passed in for the type parameter, making the corresponding
-    // type parameter types 'neither.'  Otherwise, the nullability matches that
-    // of the bound.
+    // If the bound is nullable or 'undetermined', both nullable and
+    // non-nullable types can be passed in for the type parameter, making the
+    // corresponding type parameter types 'undetermined.'  Otherwise, the
+    // nullability matches that of the bound.
     DartType bound = typeParameter.bound;
     if (bound == null) {
       throw new StateError("Can't compute nullability from an absent bound.");
     }
     Nullability boundNullability =
-        bound is InvalidType ? Nullability.neither : bound.nullability;
+        bound is InvalidType ? Nullability.undetermined : bound.nullability;
     return boundNullability == Nullability.nullable ||
-            boundNullability == Nullability.neither
-        ? Nullability.neither
+            boundNullability == Nullability.undetermined
+        ? Nullability.undetermined
         : boundNullability;
   }
 
@@ -5940,7 +5941,7 @@ class TypeParameterType extends DartType {
     //
     // In the table, LHS corresponds to lhsNullability in the code below; RHS
     // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
-    // nonNullable, nullable, legacy, and neither values of the Nullability
+    // nonNullable, nullable, legacy, and undetermined values of the Nullability
     // enum.
     //
     // Whenever there's N/A in the table, it means that the corresponding
@@ -5965,8 +5966,8 @@ class TypeParameterType extends DartType {
       return Nullability.nonNullable;
     }
 
-    // If the nullability of LHS is 'neither,' the nullability of the
-    // intersection is also 'neither' if RHS is 'neither' or nullable.
+    // If the nullability of LHS is 'undetermined', the nullability of the
+    // intersection is also 'undetermined' if RHS is 'undetermined' or nullable.
     //
     // Consider the following example:
     //
@@ -5982,9 +5983,9 @@ class TypeParameterType extends DartType {
     //         }
     //       }
     //     }
-    if (lhsNullability == Nullability.neither ||
-        promotedBound.nullability == Nullability.neither) {
-      return Nullability.neither;
+    if (lhsNullability == Nullability.undetermined ||
+        promotedBound.nullability == Nullability.undetermined) {
+      return Nullability.undetermined;
     }
 
     return Nullability.legacy;
