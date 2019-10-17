@@ -5530,9 +5530,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       FormalParameter parameter = parameters[i];
       if (parameter.isOptional) {
         DartType type = parameter.declaredElement.type;
-        if (type.isDartAsyncFutureOr) {
-          type = (type as ParameterizedType).typeArguments[0];
-        }
         if ((parameter as DefaultFormalParameter).defaultValue == null) {
           if (_typeSystem.isPotentiallyNonNullable(type)) {
             SimpleIdentifier parameterName = _parameterName(parameter);
