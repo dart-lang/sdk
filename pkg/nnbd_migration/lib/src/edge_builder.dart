@@ -916,8 +916,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitMethodInvocation(MethodInvocation node) {
     DecoratedType targetType;
     var target = node.target;
-    var operator = node.operator;
-    bool isNullAware = operator != null && isNullAwareToken(operator.type);
+    bool isNullAware = node.isNullAware;
     var callee = node.methodName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
     if (node.isCascaded) {
@@ -1043,7 +1042,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
     return _handlePropertyAccess(node, node.target, node.propertyName,
-        isNullAwareToken(node.operator.type), node.isCascaded);
+        node.isNullAware, node.isCascaded);
   }
 
   @override

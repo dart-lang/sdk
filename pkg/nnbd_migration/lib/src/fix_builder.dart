@@ -218,8 +218,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       visitSubexpression(node.index, indexContext);
       return AssignmentTargetInfo(readType, writeType);
     } else if (node is PropertyAccess) {
-      return _handleAssignmentTargetForPropertyAccess(node, node.target,
-          node.propertyName, isNullAwareToken(node.operator.type), isCompound);
+      return _handleAssignmentTargetForPropertyAccess(
+          node, node.target, node.propertyName, node.isNullAware, isCompound);
     } else if (node is PrefixedIdentifier) {
       if (node.prefix.staticElement is ImportElement) {
         // TODO(paulberry)
@@ -505,8 +505,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
 
   @override
   DartType visitPropertyAccess(PropertyAccess node) {
-    return _handlePropertyAccess(node, node.target, node.propertyName,
-        isNullAwareToken(node.operator.type));
+    return _handlePropertyAccess(
+        node, node.target, node.propertyName, node.isNullAware);
   }
 
   @override
