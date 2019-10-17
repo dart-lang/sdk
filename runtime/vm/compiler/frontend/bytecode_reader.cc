@@ -457,6 +457,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kIsAsyncStarFlag = 1 << 5;
   const int kIsSyncStarFlag = 1 << 6;
   const int kIsDebuggableFlag = 1 << 7;
+  const int kHasAttributesFlag = 1 << 8;
 
   const intptr_t flags = reader_.ReadUInt();
 
@@ -508,6 +509,10 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
                                /* has_positional_param_names = */ true));
 
   closure.SetSignatureType(signature_type);
+
+  if ((flags & kHasAttributesFlag) != 0) {
+    ReadAttributes(closure);
+  }
 
   I->AddClosureFunction(closure);
 }

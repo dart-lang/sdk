@@ -433,7 +433,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return new Annotations(decl, hasPragma);
   }
 
-  ObjectHandle getMemberAttributes(Member member) {
+  ObjectHandle getMemberAttributes() {
     if (procedureAttributesMetadata == null && inferredTypesAttribute == null) {
       return null;
     }
@@ -450,6 +450,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       attrs.add(StringConstant(InferredTypeMetadataRepository.repositoryTag));
       attrs.add(ListConstant(const DynamicType(), inferredTypesAttribute));
     }
+    return objectTable.getHandle(ListConstant(const DynamicType(), attrs));
+  }
+
+  ObjectHandle getClosureAttributes() {
+    if (inferredTypesAttribute == null) {
+      return null;
+    }
+    final attrs = <Constant>[
+      StringConstant(InferredTypeMetadataRepository.repositoryTag),
+      ListConstant(const DynamicType(), inferredTypesAttribute),
+    ];
     return objectTable.getHandle(ListConstant(const DynamicType(), attrs));
   }
 
@@ -621,7 +632,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FieldDeclaration.hasPragmaFlag;
       }
     }
-    final ObjectHandle attributes = getMemberAttributes(field);
+    final ObjectHandle attributes = getMemberAttributes();
     if (attributes != null) {
       flags |= FieldDeclaration.hasAttributesFlag;
     }
@@ -737,7 +748,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FunctionDeclaration.hasPragmaFlag;
       }
     }
-    final ObjectHandle attributes = getMemberAttributes(member);
+    final ObjectHandle attributes = getMemberAttributes();
     if (attributes != null) {
       flags |= FunctionDeclaration.hasAttributesFlag;
     }
@@ -2354,6 +2365,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = function;
     final savedLoopDepth = currentLoopDepth;
     currentLoopDepth = 0;
+    final savedInferredTypesAttribute = inferredTypesAttribute;
+    inferredTypesAttribute = null;
 
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new List<TypeParameter>();
@@ -2430,6 +2443,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     parentFunction = savedParentFunction;
     isClosure = savedIsClosure;
     currentLoopDepth = savedLoopDepth;
+
+    final attributes = getClosureAttributes();
+    if (attributes != null) {
+      closure.attributes = attributes;
+      closure.flags |= ClosureDeclaration.hasAttributesFlag;
+    }
+    inferredTypesAttribute = savedInferredTypesAttribute;
 
     locals.leaveScope();
 

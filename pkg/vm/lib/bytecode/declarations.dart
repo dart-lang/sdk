@@ -949,16 +949,17 @@ class Code {
 }
 
 class ClosureDeclaration {
-  static const int hasOptionalPositionalParamsFlag = 1 << 0;
-  static const int hasOptionalNamedParamsFlag = 1 << 1;
-  static const int hasTypeParamsFlag = 1 << 2;
-  static const int hasSourcePositionsFlag = 1 << 3;
-  static const int isAsyncFlag = 1 << 4;
-  static const int isAsyncStarFlag = 1 << 5;
-  static const int isSyncStarFlag = 1 << 6;
-  static const int isDebuggableFlag = 1 << 7;
+  static const hasOptionalPositionalParamsFlag = 1 << 0;
+  static const hasOptionalNamedParamsFlag = 1 << 1;
+  static const hasTypeParamsFlag = 1 << 2;
+  static const hasSourcePositionsFlag = 1 << 3;
+  static const isAsyncFlag = 1 << 4;
+  static const isAsyncStarFlag = 1 << 5;
+  static const isSyncStarFlag = 1 << 6;
+  static const isDebuggableFlag = 1 << 7;
+  static const hasAttributesFlag = 1 << 8;
 
-  final int flags;
+  int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -968,6 +969,7 @@ class ClosureDeclaration {
   final int numNamedParams;
   final List<NameAndType> parameters;
   final ObjectHandle returnType;
+  ObjectHandle attributes;
   ClosureCode code;
 
   ClosureDeclaration(
@@ -980,7 +982,8 @@ class ClosureDeclaration {
       this.numRequiredParams,
       this.numNamedParams,
       this.parameters,
-      this.returnType);
+      this.returnType,
+      [this.attributes]);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1012,6 +1015,9 @@ class ClosureDeclaration {
       writer.writePackedObject(param.type);
     }
     writer.writePackedObject(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
+    }
   }
 
   factory ClosureDeclaration.read(BufferedReader reader) {
@@ -1051,8 +1057,20 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(flags, parent, name, position, endPosition,
-        typeParams, numRequiredParams, numNamedParams, parameters, returnType);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new ClosureDeclaration(
+        flags,
+        parent,
+        name,
+        position,
+        endPosition,
+        typeParams,
+        numRequiredParams,
+        numNamedParams,
+        parameters,
+        returnType,
+        attributes);
   }
 
   @override
@@ -1088,6 +1106,9 @@ class ClosureDeclaration {
     }
     sb.write(') -> ');
     sb.writeln(returnType);
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
+    }
     if (code != null) {
       sb.write(code.toString());
     }
