@@ -275,10 +275,33 @@ testRelativeLinksSync() {
   tempDirectory.deleteSync(recursive: true);
 }
 
+testIsDir() async {
+  Directory sandbox = Directory.systemTemp.createTempSync();
+  Directory dir = new Directory(sandbox.path + Platform.pathSeparator + "dir");
+  dir.createSync();
+  File target = new File(sandbox.path + Platform.pathSeparator + "target");
+  target.createSync();
+
+  final eventCompleter = new Completer<FileSystemEvent>();
+  var subscription;
+  subscription = dir.watch().listen((FileSystemEvent event) {
+    eventCompleter.complete(event);
+    subscription.cancel();
+  });
+  Link link = new Link(dir.path + Platform.pathSeparator + "link");
+  link.createSync(target.path);
+  final event = await eventCompleter.future;
+  // Link should not be marked as Dir.
+  Expect.isFalse(event.isDirectory);
+
+  sandbox.deleteSync(recursive: true);
+}
+
 main() {
   testCreateSync();
   testCreateLoopingLink();
   testRenameSync();
   testLinkErrorSync();
   testRelativeLinksSync();
+  testIsDir();
 }
