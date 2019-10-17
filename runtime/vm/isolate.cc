@@ -417,7 +417,7 @@ void IsolateGroup::Cleanup() {
   delete isolate_groups_rwlock_;
   isolate_groups_rwlock_ = nullptr;
   ASSERT(isolate_groups_->IsEmpty());
-  delete (isolate_groups_);
+  delete isolate_groups_;
   isolate_groups_ = nullptr;
 }
 
