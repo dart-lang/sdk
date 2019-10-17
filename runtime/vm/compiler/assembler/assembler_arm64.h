@@ -1327,31 +1327,25 @@ class Assembler : public AssemblerBase {
   void tst(Register rn, Operand o) { ands(ZR, rn, o); }
   void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
 
-  // We use an alias of add, where ARM recommends an alias of ubfm.
   void LslImmediate(Register rd,
                     Register rn,
                     int shift,
                     OperandSize sz = kDoubleWord) {
-    if (sz == kDoubleWord) {
-      add(rd, ZR, Operand(rn, LSL, shift));
-    } else {
-      addw(rd, ZR, Operand(rn, LSL, shift));
-    }
+    const int reg_size =
+        (sz == kDoubleWord) ? kXRegSizeInBits : kWRegSizeInBits;
+    ubfm(rd, rn, (reg_size - shift) % reg_size, reg_size - shift - 1, sz);
   }
-  // We use an alias of add, where ARM recommends an alias of ubfm.
   void LsrImmediate(Register rd,
                     Register rn,
                     int shift,
                     OperandSize sz = kDoubleWord) {
-    if (sz == kDoubleWord) {
-      add(rd, ZR, Operand(rn, LSR, shift));
-    } else {
-      addw(rd, ZR, Operand(rn, LSR, shift));
-    }
+    const int reg_size =
+        (sz == kDoubleWord) ? kXRegSizeInBits : kWRegSizeInBits;
+    ubfm(rd, rn, shift, reg_size - 1, sz);
   }
-  // We use an alias of add, where ARM recommends an alias of sbfm.
   void AsrImmediate(Register rd, Register rn, int shift) {
-    add(rd, ZR, Operand(rn, ASR, shift));
+    const int reg_size = kXRegSizeInBits;
+    sbfm(rd, rn, shift, reg_size - 1);
   }
 
   void VRecps(VRegister vd, VRegister vn);
