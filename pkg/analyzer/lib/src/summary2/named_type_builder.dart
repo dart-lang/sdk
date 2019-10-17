@@ -98,7 +98,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString() {
+  String toString({bool withNullability = false}) {
     var buffer = StringBuffer();
     buffer.write(element.displayName);
     if (arguments.isNotEmpty) {
@@ -107,6 +107,15 @@ class NamedTypeBuilder extends TypeBuilder {
       buffer.write('>');
     }
     return buffer.toString();
+  }
+
+  @override
+  TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
+    if (this.nullabilitySuffix == nullabilitySuffix) {
+      return this;
+    }
+
+    return NamedTypeBuilder(element, arguments, nullabilitySuffix, node: node);
   }
 
   /// Build arguments that correspond to the type [parameters].

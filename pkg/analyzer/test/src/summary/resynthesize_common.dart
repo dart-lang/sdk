@@ -7589,6 +7589,21 @@ dynamic Function(num) f;
 ''');
   }
 
+  test_instantiateToBounds_genericFunctionAsBound() async {
+    var library = await checkLibrary('''
+class A<T> {}
+class B<T extends int Function(), U extends A<T>> {}
+B b;
+''');
+    checkElementText(library, r'''
+class A<T> {
+}
+notSimplyBounded class B<T extends int Function(), U extends A<T>> {
+}
+B<int Function(), A<int Function()>> b;
+''');
+  }
+
   test_instantiateToBounds_genericTypeAlias_simple() async {
     var library = await checkLibrary('''
 typedef F<T extends num> = S Function<S>(T p);

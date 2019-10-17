@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -496,7 +497,15 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(TypeParameterType type) {
-    return getSubstitute(type.element) ?? type;
+    var argument = getSubstitute(type.element);
+    if (argument == null) {
+      return type;
+    }
+
+    var parameterSuffix = (type as TypeImpl).nullabilitySuffix;
+    var argumentSuffix = (argument as TypeImpl).nullabilitySuffix;
+    var nullability = _computeNullability(parameterSuffix, argumentSuffix);
+    return (argument as TypeImpl).withNullability(nullability);
   }
 
   @override
@@ -504,6 +513,30 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  ///  1. Substituting T=X! into T! yields X!
+  ///  2. Substituting T=X* into T! yields X*
+  ///  3. Substituting T=X? into T! yields X?
+  ///  4. Substituting T=X! into T* yields X*
+  ///  5. Substituting T=X* into T* yields X*
+  ///  6. Substituting T=X? into T* yields X?
+  ///  7. Substituting T=X! into T? yields X?
+  ///  8. Substituting T=X* into T? yields X?
+  ///  9. Substituting T=X? into T? yields X?
+  static NullabilitySuffix _computeNullability(
+    NullabilitySuffix parameterSuffix,
+    NullabilitySuffix argumentSuffix,
+  ) {
+    if (parameterSuffix == NullabilitySuffix.question ||
+        argumentSuffix == NullabilitySuffix.question) {
+      return NullabilitySuffix.question;
+    }
+    if (parameterSuffix == NullabilitySuffix.star ||
+        argumentSuffix == NullabilitySuffix.star) {
+      return NullabilitySuffix.star;
+    }
+    return NullabilitySuffix.none;
+  }
 
   static ParameterElementImpl _parameterElement(
     ParameterElement parameter,

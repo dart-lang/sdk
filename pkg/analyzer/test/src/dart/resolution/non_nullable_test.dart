@@ -173,7 +173,6 @@ main<T>(T a) {
     assertType(findNode.typeName('T? y'), 'T?');
   }
 
-  @failingTest
   test_local_variable_genericFunctionType() async {
     await resolveTestCode('''
 main() {
@@ -184,7 +183,7 @@ main() {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -340,7 +339,6 @@ f() {
     );
   }
 
-  @failingTest
   test_parameter_genericFunctionType() async {
     await resolveTestCode('''
 main(int? Function(bool, String?)? a) {
@@ -350,7 +348,7 @@ main(int? Function(bool, String?)? a) {
 
     assertType(
       findNode.genericFunctionType('Function('),
-      '(bool!, String?) → int??',
+      'int? Function(bool, String?)?',
     );
   }
 
@@ -468,7 +466,6 @@ main() {
     assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
-  @failingTest
   test_typedef_function() async {
     await resolveTestCode('''
 typedef F<T> = int? Function(bool, T, T?);
@@ -481,7 +478,7 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      'int? Function(bool!, String!, String?)?',
+      'int? Function(bool, String, String?)?',
     );
   }
 }
