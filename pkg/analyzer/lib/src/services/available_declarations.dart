@@ -195,7 +195,7 @@ class DeclarationsContext {
     }
 
     if (_pathPrefixToDependencyPathList.isEmpty) {
-      _addLibrariesWithPaths(dependencyLibraries, _knownPathList);
+      _addKnownLibraries(dependencyLibraries);
     }
 
     _Package package;
@@ -276,6 +276,26 @@ class DeclarationsContext {
   void _addContextFile(String path) {
     if (!_contextPathList.contains(path)) {
       _contextPathList.add(path);
+    }
+  }
+
+  /// Add known libraries, other then in the context itself, or the SDK.
+  void _addKnownLibraries(List<Library> libraries) {
+    var contextPathSet = _contextPathList.toSet();
+    var sdkPathSet = _sdkLibraryPathList.toSet();
+
+    for (var path in _knownPathList) {
+      if (contextPathSet.contains(path) || sdkPathSet.contains(path)) {
+        continue;
+      }
+
+      var file = _tracker._pathToFile[path];
+      if (file != null && file.isLibrary) {
+        var library = _tracker._idToLibrary[file.id];
+        if (library != null) {
+          libraries.add(library);
+        }
+      }
     }
   }
 
@@ -500,7 +520,7 @@ class DeclarationsTracker {
     var now = DateTime.now();
     if (now.difference(_whenKnownFilesPulled).inSeconds > 1) {
       _whenKnownFilesPulled = now;
-      _pullKnownFiles();
+      pullKnownFiles();
     }
     return _changedPaths.isNotEmpty || _scheduledFiles.isNotEmpty;
   }
@@ -608,6 +628,17 @@ class DeclarationsTracker {
   /// Return the library with the given [id], or `null` if there is none.
   Library getLibrary(int id) {
     return _idToLibrary[id];
+  }
+
+  /// Pull known files into [DeclarationsContext]s.
+  ///
+  /// This is a temporary support for Bazel repositories, because IDEA
+  /// does not yet give us dependencies for them.
+  @visibleForTesting
+  void pullKnownFiles() {
+    for (var context in _contexts.values) {
+      context._scheduleKnownFiles();
+    }
   }
 
   void _addFile(DeclarationsContext context, String path) {
@@ -751,16 +782,6 @@ class DeclarationsTracker {
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
     );
-  }
-
-  /// Pull known files into [DeclarationsContext]s.
-  ///
-  /// This is a temporary support for Bazel repositories, because IDEA
-  /// does not yet give us dependencies for them.
-  void _pullKnownFiles() {
-    for (var context in _contexts.values) {
-      context._scheduleKnownFiles();
-    }
   }
 }
 
