@@ -33,18 +33,15 @@ class TestingVmTarget extends VmTarget {
 }
 
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
-    {Target target,
-    bool enableSuperMixins = false,
-    Map<String, String> environmentDefines}) async {
+    {Target target, bool enableSuperMixins: false}) async {
   final platformKernel =
       computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   target ??= new TestingVmTarget(new TargetFlags())
     ..enableSuperMixins = enableSuperMixins;
-  environmentDefines ??= <String, String>{};
   final options = new CompilerOptions()
     ..target = target
     ..linkedDependencies = <Uri>[platformKernel]
-    ..environmentDefines = environmentDefines
+    ..environmentDefines = <String, String>{}
     ..onDiagnostic = (DiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
