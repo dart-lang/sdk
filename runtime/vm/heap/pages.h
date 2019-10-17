@@ -65,7 +65,7 @@ class HeapPage {
   void WriteProtect(bool read_only);
 
   static intptr_t ObjectStartOffset() {
-    return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
+    return Utils::RoundUp(sizeof(HeapPage), kMaxObjectAlignment);
   }
 
   // Warning: This does not work for objects on image pages because image pages

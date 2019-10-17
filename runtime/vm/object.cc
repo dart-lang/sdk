@@ -12587,6 +12587,21 @@ const char* Instructions::ToCString() const {
   return "Instructions";
 }
 
+CodeStatistics* Instructions::stats() const {
+#if defined(DART_PRECOMPILER)
+  return reinterpret_cast<CodeStatistics*>(
+      Thread::Current()->heap()->GetPeer(raw()));
+#else
+  return nullptr;
+#endif
+}
+
+void Instructions::set_stats(CodeStatistics* stats) const {
+#if defined(DART_PRECOMPILER)
+  Thread::Current()->heap()->SetPeer(raw(), stats);
+#endif
+}
+
 // Encode integer |value| in SLEB128 format and store into |data|.
 static void EncodeSLEB128(GrowableArray<uint8_t>* data, intptr_t value) {
   bool is_last_part = false;
