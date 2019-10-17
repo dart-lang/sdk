@@ -258,11 +258,11 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
     enable_code_coverage = args.code_coverage and gn_args['is_clang']
     gn_args['dart_vm_code_coverage'] = enable_code_coverage
 
-    gn_args['is_asan'] = args.asan and gn_args['is_clang']
-    gn_args['is_lsan'] = args.lsan and gn_args['is_clang']
-    gn_args['is_msan'] = args.msan and gn_args['is_clang']
-    gn_args['is_tsan'] = args.tsan and gn_args['is_clang']
-    gn_args['is_ubsan'] = args.ubsan and gn_args['is_clang']
+    gn_args['is_asan'] = args.asan
+    gn_args['is_lsan'] = args.lsan
+    gn_args['is_msan'] = args.msan
+    gn_args['is_tsan'] = args.tsan
+    gn_args['is_ubsan'] = args.ubsan
 
     if not args.platform_sdk and not gn_args['target_cpu'].startswith('arm'):
         gn_args['dart_platform_sdk'] = args.platform_sdk

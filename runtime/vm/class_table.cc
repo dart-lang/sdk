@@ -252,9 +252,12 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
   memmove(new_table, table_, top_ * sizeof(intptr_t));
   memset(new_table + top_, 0, (new_capacity - top_) * sizeof(intptr_t));
 #ifndef PRODUCT
-  auto new_stats_table = static_cast<ClassHeapStats*>(
-      realloc(class_heap_stats_table_,
-              new_capacity * sizeof(ClassHeapStats)));  // NOLINT
+  auto new_stats_table = reinterpret_cast<ClassHeapStats*>(
+      malloc(new_capacity * sizeof(ClassHeapStats)));
+  for (intptr_t i = 0; i < capacity_; i++) {
+    new_stats_table[i] = class_heap_stats_table_[i];
+  }
+  free(class_heap_stats_table_);
 #endif
   for (intptr_t i = capacity_; i < new_capacity; i++) {
     new_table[i] = 0;

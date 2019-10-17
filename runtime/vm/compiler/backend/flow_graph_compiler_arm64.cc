@@ -1297,7 +1297,7 @@ void FlowGraphCompiler::EmitTestAndCallLoadCid(Register class_id_reg) {
 int FlowGraphCompiler::EmitTestAndCallCheckCid(compiler::Assembler* assembler,
                                                compiler::Label* label,
                                                Register class_id_reg,
-                                               const CidRange& range,
+                                               const CidRangeValue& range,
                                                int bias,
                                                bool jump_on_miss) {
   const intptr_t cid_start = range.cid_start;

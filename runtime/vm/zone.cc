@@ -92,7 +92,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   Segment* result = reinterpret_cast<Segment*>(memory->start());
 #ifdef DEBUG
   // Zap the entire allocated segment (including the header).
-  memset(result, kZapUninitializedByte, size);
+  memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
 #endif
   result->next_ = next;
   result->size_ = size;
@@ -114,7 +114,7 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
     VirtualMemory* memory = current->memory();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
-    memset(current, kZapDeletedByte, current->size());
+    memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
 #endif
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
 

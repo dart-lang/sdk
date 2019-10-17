@@ -872,7 +872,7 @@ class FlowGraphCompiler : public ValueObject {
   static int EmitTestAndCallCheckCid(compiler::Assembler* assembler,
                                      compiler::Label* label,
                                      Register class_id_reg,
-                                     const CidRange& range,
+                                     const CidRangeValue& range,
                                      int bias,
                                      bool jump_on_miss = true);
 

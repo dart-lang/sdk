@@ -281,7 +281,9 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
   lists_ = new_lists;
 
   if (old_lists != NULL) {
-    memmove(lists_, old_lists, old_size * sizeof(HashMapListElement));
+    for (intptr_t i = 0; i < old_size; i++) {
+      lists_[i] = old_lists[i];
+    }
   }
   for (intptr_t i = old_size; i < lists_size_; ++i) {
     lists_[i].next = free_list_head_;
@@ -383,7 +385,7 @@ bool BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Remove(
 
   // Finally, iterate through the rest of the bucket to see if we can find the
   // entry that matches our key.
-  intptr_t previous;
+  intptr_t previous = -1;
   while (!KeyValueTrait::IsKeyEqual(lists_[current].kv, key)) {
     previous = current;
     current = lists_[current].next;

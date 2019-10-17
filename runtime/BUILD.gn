@@ -168,6 +168,9 @@ config("dart_config") {
       "-fno-exceptions",
       "-Wimplicit-fallthrough",
     ]
+    if (!is_clang) {
+      cflags += [ "-Wno-cast-function-type" ]
+    }
 
     ldflags = []
     if (is_clang && dart_vm_code_coverage) {

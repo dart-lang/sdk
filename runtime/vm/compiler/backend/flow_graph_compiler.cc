@@ -2270,7 +2270,7 @@ void FlowGraphCompiler::GenerateCidRangesCheck(
 
   int bias = 0;
   for (intptr_t i = 0; i < cid_ranges.length(); ++i) {
-    const CidRange& range = cid_ranges[i];
+    const CidRangeValue& range = cid_ranges[i];
     RELEASE_ASSERT(!range.IsIllegalRange());
     const bool last_round = i == (cid_ranges.length() - 1);
 

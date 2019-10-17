@@ -16,6 +16,9 @@
 #include <unistd.h>
 
 // Only OK to use here because this is test code.
+#include <condition_variable>  // NOLINT(build/c++11)
+#include <functional>          // NOLINT(build/c++11)
+#include <mutex>               // NOLINT(build/c++11)
 #include <thread>  // NOLINT(build/c++11)
 #endif
 

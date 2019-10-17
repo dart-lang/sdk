@@ -71,7 +71,7 @@ DEFINE_FLAG(
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 AllocationSampleBuffer* Profiler::allocation_sample_buffer_ = NULL;
-ProfilerCounters Profiler::counters_;
+ProfilerCounters Profiler::counters_ = {};
 
 void Profiler::Init() {
   // Place some sane restrictions on user controlled flags.
@@ -85,8 +85,6 @@ void Profiler::Init() {
   intptr_t capacity = CalculateSampleBufferCapacity();
   sample_buffer_ = new SampleBuffer(capacity);
   Profiler::InitAllocationSampleBuffer();
-  // Zero counters.
-  memset(&counters_, 0, sizeof(counters_));
   ThreadInterrupter::Init();
   ThreadInterrupter::Startup();
   initialized_ = true;

@@ -2274,13 +2274,12 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   ASSERT(FLAG_precompiled_mode);
-  const Function& function = parsed_function()->function();
-  if (optimized() && !function.IsOptimizable()) {
+  if (optimized() && !parsed_function()->function().IsOptimizable()) {
     // All functions compiled by precompiler must be optimizable.
     UNREACHABLE();
     return false;
   }
-  bool is_compiled = false;
+  volatile bool is_compiled = false;
   Zone* const zone = thread()->zone();
   HANDLESCOPE(thread());
 
@@ -2301,6 +2300,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = nullptr;
       ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
+      const Function& function = parsed_function()->function();
 
       CompilerState compiler_state(thread());
 
@@ -2314,7 +2314,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
 
       if (optimized()) {
-        flow_graph->PopulateWithICData(parsed_function()->function());
+        flow_graph->PopulateWithICData(function);
       }
 
       const bool print_flow_graph =

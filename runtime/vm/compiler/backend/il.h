@@ -177,17 +177,32 @@ class Value : public ZoneAllocated {
 // Represents a range of class-ids for use in class checks and polymorphic
 // dispatches.  The range includes both ends, i.e. it is [cid_start, cid_end].
 struct CidRange : public ZoneAllocated {
-  CidRange(const CidRange& o)
-      : ZoneAllocated(), cid_start(o.cid_start), cid_end(o.cid_end) {}
   CidRange(intptr_t cid_start_arg, intptr_t cid_end_arg)
       : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
   CidRange() : cid_start(kIllegalCid), cid_end(kIllegalCid) {}
 
-  const CidRange& operator=(const CidRange& other) {
-    cid_start = other.cid_start;
-    cid_end = other.cid_end;
-    return *this;
+  bool IsSingleCid() const { return cid_start == cid_end; }
+  bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
+  int32_t Extent() const { return cid_end - cid_start; }
+
+  // The number of class ids this range covers.
+  intptr_t size() const { return cid_end - cid_start + 1; }
+
+  bool IsIllegalRange() const {
+    return cid_start == kIllegalCid && cid_end == kIllegalCid;
   }
+
+  intptr_t cid_start;
+  intptr_t cid_end;
+
+  DISALLOW_COPY_AND_ASSIGN(CidRange);
+};
+
+struct CidRangeValue {
+  CidRangeValue(intptr_t cid_start_arg, intptr_t cid_end_arg)
+      : cid_start(cid_start_arg), cid_end(cid_end_arg) {}
+  CidRangeValue(const CidRange& other)  // NOLINT
+      : cid_start(other.cid_start), cid_end(other.cid_end) {}
 
   bool IsSingleCid() const { return cid_start == cid_end; }
   bool Contains(intptr_t cid) { return cid_start <= cid && cid <= cid_end; }
@@ -204,7 +219,7 @@ struct CidRange : public ZoneAllocated {
   intptr_t cid_end;
 };
 
-typedef MallocGrowableArray<CidRange> CidRangeVector;
+typedef MallocGrowableArray<CidRangeValue> CidRangeVector;
 
 class HierarchyInfo : public ThreadStackResource {
  public:
@@ -576,6 +591,8 @@ struct TargetInfo : public CidRange {
   const Function* target;
   intptr_t count;
   StaticTypeExactnessState exactness;
+
+  DISALLOW_COPY_AND_ASSIGN(TargetInfo);
 };
 
 // A set of class-ids, arranged in ranges. Used for the CheckClass
@@ -3716,7 +3733,7 @@ class InstanceCallInstr : public TemplateDartCall<0> {
   const CallTargets& Targets();
   void SetTargets(const CallTargets* targets) { targets_ = targets; }
 
-  const BinaryFeedback& BinaryFeedback();
+  const class BinaryFeedback& BinaryFeedback();
   void SetBinaryFeedback(const class BinaryFeedback* binary) {
     binary_ = binary;
   }
@@ -4248,7 +4265,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
   const CallTargets& Targets();
-  const BinaryFeedback& BinaryFeedback();
+  const class BinaryFeedback& BinaryFeedback();
 
   PRINT_OPERANDS_TO_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
@@ -7810,13 +7827,13 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
 class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  CheckClassIdInstr(Value* value, CidRange cids, intptr_t deopt_id)
+  CheckClassIdInstr(Value* value, CidRangeValue cids, intptr_t deopt_id)
       : TemplateInstruction(deopt_id), cids_(cids) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  const CidRange& cids() const { return cids_; }
+  const CidRangeValue& cids() const { return cids_; }
 
   DECLARE_INSTRUCTION(CheckClassId)
 
@@ -7834,7 +7851,7 @@ class CheckClassIdInstr : public TemplateInstruction<1, NoThrow> {
  private:
   bool Contains(intptr_t cid) const;
 
-  CidRange cids_;
+  CidRangeValue cids_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };

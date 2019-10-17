@@ -1061,6 +1061,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       // Restore stream position after the relocation was patched.
       instructions_blob_stream_.SetPosition(current_stream_position);
     }
+#else
+    USE(payload_stream_start);
 #endif
 
     ASSERT((text_offset - instr_start) ==

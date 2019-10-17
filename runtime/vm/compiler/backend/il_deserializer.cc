@@ -1768,7 +1768,7 @@ bool FlowGraphDeserializer::ParseType(SExpression* sexp, Object* out) {
   // This isn't necessary the hash value we will have in the new FlowGraph, but
   // it will be how this type is referred to by TypeRefs in the serialized one.
   auto const old_hash = is_recursive ? hash_sexp->value() : 0;
-  ZoneGrowableArray<TypeRef*>* pending_typerefs;
+  ZoneGrowableArray<TypeRef*>* pending_typerefs = nullptr;
   if (is_recursive) {
     if (pending_typeref_map_.LookupValue(old_hash) != nullptr) {
       StoreError(sexp, "already parsing a type with hash %" Pd64 "",

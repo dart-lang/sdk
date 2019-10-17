@@ -466,7 +466,7 @@ bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                               /*include_abstract=*/false,
                               /*exclude_null=*/true);
     if (ranges.length() == 1) {
-      const CidRange& range = ranges[0];
+      const CidRangeValue& range = ranges[0];
       if (!range.IsIllegalRange()) {
         *lower_limit = range.cid_start;
         *upper_limit = range.cid_end;
