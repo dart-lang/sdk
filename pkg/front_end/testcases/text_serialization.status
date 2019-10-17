@@ -159,7 +159,7 @@ general/export_test: TextSerializationFailure # Was: Pass
 general/expressions: TextSerializationFailure # Was: RuntimeError
 general/external: TextSerializationFailure # Was: Pass
 general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
-general/fallthrough: ExpectationFileMismatch
+general/fallthrough: TextSerializationFailure
 general/fibonacci: TextSerializationFailure # Was: Pass
 general/for_in_scope: TextSerializationFailure # Was: Pass
 general/for_in_without_declaration: TextSerializationFailure
@@ -302,7 +302,7 @@ general/uninitialized_fields: TextSerializationFailure # Was: Pass
 general/unsound_promotion: TextSerializationFailure
 general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
-general/void_methods: ExpectationFileMismatch
+general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/assert: TextSerializationFailure # Was: Pass

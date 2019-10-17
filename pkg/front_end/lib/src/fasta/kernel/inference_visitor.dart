@@ -288,16 +288,26 @@ class InferenceVisitor
 
   ExpressionInferenceResult visitCascade(Cascade node, DartType typeContext) {
     ExpressionInferenceResult result = inferrer.inferExpression(
-        node.expression, typeContext, true,
+        node.variable.initializer, typeContext, true,
         isVoidAllowed: false);
     node.variable.type = result.inferredType;
-    for (Expression judgment in node.cascades) {
-      inferrer.inferExpression(
-          judgment, const UnknownType(), !inferrer.isTopLevel,
-          isVoidAllowed: true);
+    List<ExpressionInferenceResult> expressionResults =
+        <ExpressionInferenceResult>[];
+    for (Expression expression in node.expressions) {
+      expressionResults.add(inferrer.inferExpression(
+          expression, const UnknownType(), !inferrer.isTopLevel,
+          isVoidAllowed: true));
     }
-    Expression replacement;
-    node.replaceWith(replacement = new Let(node.variable, node.firstCascade)
+    Expression replacement = createVariableGet(node.variable);
+    for (int index = expressionResults.length - 1; index >= 0; index--) {
+      replacement = createLet(
+          createVariable(
+              expressionResults[index].replacement ?? node.expressions[index],
+              const VoidType()),
+          replacement);
+    }
+
+    node.replaceWith(replacement = new Let(node.variable, replacement)
       ..fileOffset = node.fileOffset);
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }

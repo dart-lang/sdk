@@ -99,8 +99,6 @@ import 'collections.dart'
         SpreadMapEntry,
         convertToElement;
 
-import 'expression_generator.dart' show makeLet;
-
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 part "inference_visitor.dart";
@@ -376,78 +374,35 @@ class ArgumentsImpl extends Arguments {
 /// In the documentation that follows, `v` is referred to as the "cascade
 /// variable"--this is the variable that remembers the value of the expression
 /// preceding the first `..` while the cascades are being evaluated.
-///
-/// After constructing a [Cascade], the caller should
-/// call [finalize] with an expression representing the expression after the
-/// `..`.  If a further `..` follows that expression, the caller should call
-/// [extend] followed by [finalize] for each subsequent cascade.
-// TODO(johnniwinther): Change the representation to be direct and perform
-// the [Let] encoding in [replace].
 class Cascade extends InternalExpression {
+  /// The temporary variable holding the cascade receiver expression in its
+  /// initializer;
   VariableDeclaration variable;
 
-  /// Pointer to the first "let" expression in the cascade, i.e. `e1` in
-  /// `e..e1..e2..e3`;
-  Let _firstCascade;
-
-  /// Pointer to the last "let" expression in the cascade, i.e. `e3` in
-  //  /// `e..e1..e2..e3`;
-  Let _lastCascade;
+  /// The expressions performed on [variable].
+  final List<Expression> expressions = <Expression>[];
 
   /// Creates a [Cascade] using [variable] as the cascade
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
   Cascade(this.variable) {
-    _lastCascade = _firstCascade = makeLet(
-        new VariableDeclaration.forValue(new _UnfinishedCascade()),
-        new VariableGet(variable));
     variable?.parent = this;
-    _firstCascade.parent = this;
   }
 
   @override
   InternalExpressionKind get kind => InternalExpressionKind.Cascade;
 
-  /// The initial expression of the cascade, i.e. `e` in `e..e1..e2..e3`.
-  Expression get expression => variable.initializer;
-
-  Let get firstCascade => _firstCascade;
-
-  /// Returns the cascade expressions of the cascade, i.e. `e1`, `e2`, and `e3`
-  /// in `e..e1..e2..e3`.
-  Iterable<Expression> get cascades sync* {
-    Let section = _firstCascade;
-    while (true) {
-      yield section.variable.initializer;
-      if (section.body is! Let) break;
-      section = section.body;
-    }
-  }
-
-  /// Adds a new unfinalized section to the end of the cascade.  Should be
-  /// called after the previous cascade section has been finalized.
-  void extend() {
-    assert(_lastCascade.variable.initializer is! _UnfinishedCascade);
-    Let newCascade = makeLet(
-        new VariableDeclaration.forValue(new _UnfinishedCascade()),
-        _lastCascade.body);
-    _lastCascade.body = newCascade;
-    newCascade.parent = _lastCascade;
-    _lastCascade = newCascade;
-  }
-
-  /// Finalizes the last cascade section with the given [expression].
-  void finalize(Expression expression) {
-    assert(_lastCascade.variable.initializer is _UnfinishedCascade);
-    _lastCascade.variable.initializer = expression;
-    expression.parent = _lastCascade.variable;
+  /// Adds [expression] to the list of [expressions] performed on [variable].
+  void addCascadeExpression(Expression expression) {
+    expressions.add(expression);
+    expression.parent = this;
   }
 
   @override
   void visitChildren(Visitor<dynamic> v) {
     variable?.accept(v);
-    _firstCascade?.accept(v);
+    visitList(expressions, v);
   }
 
   @override
@@ -456,10 +411,7 @@ class Cascade extends InternalExpression {
       variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
-    if (_firstCascade != null) {
-      _firstCascade = _firstCascade.accept<TreeNode>(v);
-      _firstCascade?.parent = this;
-    }
+    transformList(expressions, v, this);
   }
 }
 
@@ -1148,18 +1100,6 @@ class LoadLibraryTearOff extends InternalExpression {
       target = target.accept<TreeNode>(v);
     }
   }
-}
-
-class _UnfinishedCascade extends Expression {
-  R accept<R>(v) => unsupported("accept", -1, null);
-
-  R accept1<R, A>(v, arg) => unsupported("accept1", -1, null);
-
-  DartType getStaticType(types) => unsupported("getStaticType", -1, null);
-
-  void transformChildren(v) => unsupported("transformChildren", -1, null);
-
-  void visitChildren(v) => unsupported("visitChildren", -1, null);
 }
 
 /// Internal expression representing an if-null property set.

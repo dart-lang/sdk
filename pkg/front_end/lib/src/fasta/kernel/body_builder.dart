@@ -1448,7 +1448,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (expression is Cascade) {
       push(expression);
       push(new VariableUseGenerator(this, token, expression.variable));
-      expression.extend();
     } else {
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
@@ -1462,7 +1461,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("endCascade");
     Expression expression = popForEffect();
     Cascade cascadeReceiver = pop();
-    cascadeReceiver.finalize(expression);
+    cascadeReceiver.addCascadeExpression(expression);
     push(cascadeReceiver);
   }
 
