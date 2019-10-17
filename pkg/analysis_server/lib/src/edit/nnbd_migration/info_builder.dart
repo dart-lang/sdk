@@ -10,6 +10,7 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_information.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -106,11 +107,9 @@ class InfoBuilder {
     }
     String nullableValue =
         node is NullLiteral ? "an explicit 'null'" : "a nullable value";
-    String nullableValue2 =
-        node is NullLiteral ? "An explicit 'null'" : "A nullable value";
     AstNode parent = node.parent;
     if (parent is ArgumentList) {
-      return "$nullableValue2 is passed as an argument";
+      return capitalize("$nullableValue is passed as an argument");
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -171,7 +170,7 @@ class InfoBuilder {
     } else if (parent is AsExpression) {
       return "The value of the expression is nullable";
     }
-    return "$nullableValue2 is assigned";
+    return capitalize("$nullableValue is assigned");
   }
 
   /// Return details for a fix built from the given [edge], or `null` if the

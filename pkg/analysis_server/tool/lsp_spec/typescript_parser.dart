@@ -4,8 +4,7 @@
 
 import 'dart:math';
 
-import 'package:analysis_server/src/services/correction/strings.dart'
-    show capitalize;
+import 'package:analysis_server/src/utilities/strings.dart' show capitalize;
 
 import 'codegen_dart.dart';
 import 'typescript.dart';

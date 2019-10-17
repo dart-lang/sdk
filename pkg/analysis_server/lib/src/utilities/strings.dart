@@ -6,14 +6,10 @@ import 'dart:math';
 
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 
-/**
- * "$"
- */
+/// "$"
 const int CHAR_DOLLAR = 0x24;
 
-/**
- * "_"
- */
+/// "_"
 const int CHAR_UNDERSCORE = 0x5F;
 
 String capitalize(String str) {
@@ -36,9 +32,7 @@ int compareStrings(String a, String b) {
   return a.compareTo(b);
 }
 
-/**
- * Return a simple difference between the given [oldStr] and [newStr].
- */
+/// Return a simple difference between the given [oldStr] and [newStr].
 SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
   int prefixLength = findCommonPrefix(oldStr, newStr);
   int suffixLength = findCommonSuffix(oldStr, newStr);
@@ -65,9 +59,7 @@ int countLeadingWhitespaces(String str) {
   return i;
 }
 
-/**
- * Counts how many times [sub] appears in [str].
- */
+/// Counts how many times [sub] appears in [str].
 int countMatches(String str, String sub) {
   if (isEmpty(str) || isEmpty(sub)) {
     return 0;
@@ -92,9 +84,7 @@ int countTrailingWhitespaces(String str) {
   return i;
 }
 
-/**
- * Return the number of characters common to the start of [a] and [b].
- */
+/// Returns the number of characters common to the start of [a] and [b].
 int findCommonPrefix(String a, String b) {
   int n = min(a.length, b.length);
   for (int i = 0; i < n; i++) {
@@ -105,9 +95,7 @@ int findCommonPrefix(String a, String b) {
   return n;
 }
 
-/**
- * Return the number of characters common to the end of [a] and [b].
- */
+/// Returns the number of characters common to the end of [a] and [b].
 int findCommonSuffix(String a, String b) {
   int a_length = a.length;
   int b_length = b.length;
@@ -120,9 +108,7 @@ int findCommonSuffix(String a, String b) {
   return n;
 }
 
-/**
- * Checks if [str] is `null`, empty or is whitespace.
- */
+/// Checks if [str] is `null`, empty or is whitespace.
 bool isBlank(String str) {
   if (str == null) {
     return true;
@@ -173,9 +159,7 @@ String repeat(String s, int n) {
   return sb.toString();
 }
 
-/**
- * If the [text] length is above the [limit], replace the middle with `...`.
- */
+/// If the [text] length is above the [limit], replace the middle with `...`.
 String shorten(String text, int limit) {
   if (text.length > limit) {
     int headLength = limit ~/ 2 - 1;
@@ -187,10 +171,8 @@ String shorten(String text, int limit) {
   return text;
 }
 
-/**
- * Information about a single replacement that should be made to convert the
- * "old" string to the "new" one.
- */
+/// Information about a single replacement that should be made to convert the
+/// "old" string to the "new" one.
 class SimpleDiff {
   final int offset;
   final int length;
