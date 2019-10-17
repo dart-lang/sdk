@@ -77,9 +77,12 @@ class InfoBuilder {
     return units;
   }
 
-  /// Return details for a fix built from the given [edge], or `null` if the
-  /// edge does not have an origin.
-  String _baseDescriptionForOrigin(AstNode node) {
+  /// Return detail text for a fix built from an edge with [node] as a
+  /// destination.
+  String _baseDescriptionForOrigin(EdgeOriginInfo origin) {
+    AstNode node = origin.node;
+    AstNode parent = node.parent;
+
     if (node is DefaultFormalParameter) {
       Expression defaultValue = node.defaultValue;
       if (defaultValue == null) {
@@ -104,10 +107,11 @@ class InfoBuilder {
       }
       return "This field is initialized by a field formal parameter and a "
           "nullable value is passed as an argument";
+    } else if (parent is AsExpression) {
+      return "The value of the expression is nullable";
     }
     String nullableValue =
         node is NullLiteral ? "an explicit 'null'" : "a nullable value";
-    AstNode parent = node.parent;
     if (parent is ArgumentList) {
       return capitalize("$nullableValue is passed as an argument");
     }
@@ -161,20 +165,21 @@ class InfoBuilder {
         return "This $mapOrSet is initialized with $nullableValue on line "
             "$lineNumber";
       }
+    } else if (node is InvocationExpression &&
+        origin.kind == EdgeOriginKind.namedParameterNotSupplied) {
+      return "This named parameter was omitted in a call to this function";
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
         return "This field is initialized to $nullableValue";
       }
       return "This variable is initialized to $nullableValue";
-    } else if (parent is AsExpression) {
-      return "The value of the expression is nullable";
     }
     return capitalize("$nullableValue is assigned");
   }
 
-  /// Return details for a fix built from the given [edge], or `null` if the
-  /// edge does not have an origin.
+  /// Return detail text for a fix built from an edge with [node] as a
+  /// destination.
   String _buildDescriptionForDestination(AstNode node) {
     // Other found types:
     // - ConstructorDeclaration
@@ -186,9 +191,9 @@ class InfoBuilder {
   }
 
   /// Return a description of the given [origin].
-  String _buildDescriptionForOrigin(AstNode origin) {
+  String _buildDescriptionForOrigin(EdgeOriginInfo origin) {
     String description = _baseDescriptionForOrigin(origin);
-    if (_inTestCode(origin)) {
+    if (_inTestCode(origin.node)) {
       // TODO(brianwilkerson) Don't add this if the graph node with which the
       //  origin is associated is also in test code.
       description += " in test code";
@@ -225,7 +230,7 @@ class InfoBuilder {
       }
       target = _targetForNode(origin.source.fullName, node);
     }
-    return RegionDetail(_buildDescriptionForOrigin(node), target);
+    return RegionDetail(_buildDescriptionForOrigin(origin), target);
   }
 
   /// Compute the details for the fix with the given [fixInfo].

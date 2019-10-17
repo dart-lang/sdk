@@ -95,22 +95,34 @@ class InfoBuilderTest extends AbstractAnalysisTest {
     infos = (await builder.explainMigration()).toList();
   }
 
+  /// Uses the InfoBuilder to build information for a single test file.
+  ///
+  /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
+  /// the singular UnitInfo which was built.
+  Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
+      {@required String migratedContent}) async {
+    addTestFile(originalContent);
+    await buildInfo();
+    expect(infos, hasLength(1));
+    UnitInfo unit = infos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, migratedContent);
+    return unit;
+  }
+
   test_asExpression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([num a]) {
   int b = a as int;
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 void f([num? a]) {
   int? b = a as int?;
 }
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
-    assertRegion(region: regions[0], offset: 11);
+    // regions[0] is `num? a`.
     assertRegion(
         region: regions[1],
         offset: 24,
@@ -121,13 +133,30 @@ void f([num? a]) {
         details: ["The value of the expression is nullable"]);
   }
 
-  test_expressionFunctionReturnTarget() async {
-    addTestFile('''
-String g() => 1 == 2 ? "Hello" : null;
+  test_asExpression_insideReturn() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f([num a]) {
+  return a as int;
+}
+''', migratedContent: '''
+int? f([num? a]) {
+  return a as int?;
+}
 ''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(3));
+    // regions[0] is `inf? f`.
+    // regions[1] is `num? a`.
+    assertRegion(
+        region: regions[2],
+        offset: 36,
+        details: ["The value of the expression is nullable"]);
+  }
+
+  test_expressionFunctionReturnTarget() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+String g() => 1 == 2 ? "Hello" : null;
+''', migratedContent: '''
 String? g() => 1 == 2 ? "Hello" : null;
 ''');
     assertInTargets(targets: unit.targets, offset: 7, length: 1); // "g"
@@ -142,17 +171,12 @@ String? g() => 1 == 2 ? "Hello" : null;
   }
 
   test_field_fieldFormalInitializer_optional() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
   A([this._f]);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f;
   A([this._f]);
@@ -167,7 +191,7 @@ class A {
   }
 
   test_field_fieldFormalInitializer_required() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
   A(this._f);
@@ -175,12 +199,7 @@ class A {
 void g() {
   A(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f;
   A(this._f);
@@ -200,17 +219,12 @@ void g() {
   }
 
   test_field_initializer() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int _f2 = _f;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? _f2 = _f;
@@ -230,20 +244,18 @@ class A {
 
   test_listAndSetLiteralTypeArgument() async {
     // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
   List<String> x = <String>["hello", s];
   Set<String> y = <String>{"hello", s};
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+}
+''', migratedContent: '''
 void f() {
   String? s = null;
   List<String?> x = <String?>["hello", s];
   Set<String?> y = <String?>{"hello", s};
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(5));
@@ -264,24 +276,22 @@ void f() {
 
   test_listLiteralTypeArgument_collectionIf() async {
     // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
   List<String> x = <String>[
     "hello",
     if (1 == 2) s
   ];
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+}
+''', migratedContent: '''
 void f() {
   String? s = null;
   List<String?> x = <String?>[
     "hello",
     if (1 == 2) s
   ];
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
@@ -295,17 +305,12 @@ void f() {
   }
 
   test_localVariable() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   int _v1 = null;
   int _v2 = _v1;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f() {
   int? _v1 = null;
   int? _v2 = _v1;
@@ -325,20 +330,18 @@ void f() {
 
   test_mapLiteralTypeArgument() async {
     // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
   Map<String, bool> x = <String, bool>{"hello": false, s: true};
   Map<bool, String> y = <bool, String>{false: "hello", true: s};
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+}
+''', migratedContent: '''
 void f() {
   String? s = null;
   Map<String?, bool> x = <String?, bool>{"hello": false, s: true};
   Map<bool, String?> y = <bool, String?>{false: "hello", true: s};
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(5));
@@ -358,17 +361,12 @@ void f() {
   }
 
   test_parameter_fromInvocation_explicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g() {
   f(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f(String? s) {}
 void g() {
   f(null);
@@ -387,17 +385,12 @@ void g() {
     // Failing because the upstream edge ("always -(hard)-> type(13)")
     // associated with the reason (a _NullabilityNodeSimple) had a `null` origin
     // when the listener's `graphEdge` method was called.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g(p) {
   f(p);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f(String? s) {}
 void g(p) {
   f(p);
@@ -412,7 +405,7 @@ void g(p) {
   }
 
   test_parameter_fromOverriden_explicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(int p) {}
 }
@@ -422,12 +415,7 @@ class B extends A {
 void f(A a) {
   a.m(null);
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   void m(int? p) {}
 }
@@ -450,19 +438,14 @@ void f(A a) {
   }
 
   test_parameter_fromOverriden_implicit() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(p) {}
 }
 class B extends A {
   void m(Object p) {}
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   void m(p) {}
 }
@@ -480,18 +463,32 @@ class B extends A {
         details: ["A nullable value is assigned"]);
   }
 
+  test_parameter_named_omittedInCall() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f() { g(); }
+
+void g({int i}) {}
+''', migratedContent: '''
+void f() { g(); }
+
+void g({int? i}) {}
+''');
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 30, details: [
+      "This named parameter was omitted in a call to this function",
+      "This parameter has an implicit default value of 'null'",
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
+  }
+
   @failingTest
   test_parameter_optional_explicitDefault_null() async {
     // Failing because we appear to never get an origin when the upstream node
     // for an edge is 'always'.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s = null}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f({String? s = null}) {}
 ''');
     List<RegionInfo> regions = unit.regions;
@@ -506,15 +503,10 @@ void f({String? s = null}) {}
   test_parameter_optional_explicitDefault_nullable() async {
     // Failing because we appear to never get an origin when the upstream node
     // for an edge is 'always'.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 const sd = null;
 void f({String s = sd}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 const sd = null;
 void f({String? s = sd}) {}
 ''');
@@ -527,14 +519,9 @@ void f({String? s = sd}) {}
   }
 
   test_parameter_optional_implicitDefault_named() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s}) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f({String? s}) {}
 ''');
     List<RegionInfo> regions = unit.regions;
@@ -546,14 +533,9 @@ void f({String? s}) {}
   }
 
   test_parameter_optional_implicitDefault_positional() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([String s]) {}
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 void f([String? s]) {}
 ''');
     List<RegionInfo> regions = unit.regions;
@@ -566,19 +548,14 @@ void f([String? s]) {}
 
   @failingTest
   test_return_fromOverriden() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 abstract class A {
   String m();
 }
 class B implements A {
   String m() => 1 == 2 ? "Hello" : null;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 abstract class A {
   String? m();
 }
@@ -595,16 +572,13 @@ class B implements A {
   }
 
   test_return_multipleReturns() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   int x = 1;
   if (x == 2) return x == 3 ? "Hello" : null;
   return "Hello";
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 String? g() {
   int x = 1;
   if (x == 2) return x == 3 ? "Hello" : null;
@@ -621,14 +595,11 @@ String? g() {
   }
 
   test_returnDetailTarget() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   return 1 == 2 ? "Hello" : null;
 }
-''');
-    await buildInfo();
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+''', migratedContent: '''
 String? g() {
   return 1 == 2 ? "Hello" : null;
 }
@@ -645,15 +616,10 @@ String? g() {
   }
 
   test_returnType_function_expression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int f() => _f;
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 int? _f = null;
 int? f() => _f;
 ''');
@@ -670,19 +636,14 @@ int? f() => _f;
   }
 
   test_returnType_getter_block() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int get f {
     return _f;
   }
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? get f {
@@ -703,17 +664,12 @@ class A {
   }
 
   test_returnType_getter_expression() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
   int get f => _f;
 }
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 class A {
   int? _f = null;
   int? get f => _f;
@@ -733,24 +689,22 @@ class A {
 
   test_setLiteralTypeArgument_nestedList() async {
     // TODO(srawlins): Simplify this test with `var x` once #38341 is fixed.
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
   Set<List<String>> x = <List<String>>{
     ["hello"],
     if (1 == 2) [s]
   };
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.content, '''
+}
+''', migratedContent: '''
 void f() {
   String? s = null;
   Set<List<String?>> x = <List<String?>>{
     ["hello"],
     if (1 == 2) [s]
   };
+}
 ''');
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(3));
@@ -766,15 +720,10 @@ void f() {
   }
 
   test_topLevelVariable() async {
-    addTestFile('''
+    UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int _f2 = _f;
-''');
-    await buildInfo();
-    expect(infos, hasLength(1));
-    UnitInfo unit = infos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, '''
+''', migratedContent: '''
 int? _f = null;
 int? _f2 = _f;
 ''');
