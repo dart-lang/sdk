@@ -39,6 +39,46 @@ static method Operators|-(final self::Complex* #this, self::Complex* other) → 
 static method Operators|unary-(final self::Complex* #this) → self::Complex*
   return #this.{self::Complex::negate}();
 static method main() → dynamic {
+  self::implicit();
+  self::explicit();
+}
+static method implicit() → dynamic {
+  self::Complex* c_m2 = new self::Complex::•(-2.0, 2.0);
+  self::Complex* c_m1 = new self::Complex::•(-1.0, 1.0);
+  self::Complex* c0 = new self::Complex::•(0.0, 0.0);
+  self::Complex* c1 = new self::Complex::•(1.0, -1.0);
+  self::Complex* c2 = new self::Complex::•(2.0, -2.0);
+  self::expect(c_m2, self::Operators|+(c0, c_m2));
+  self::expect(c_m2, self::Operators|+(c_m2, c0));
+  self::expect(c_m2, self::Operators|+(c_m1, c_m1));
+  self::expect(c_m1, self::Operators|+(c0, c_m1));
+  self::expect(c_m1, self::Operators|+(c_m1, c0));
+  self::expect(c0, self::Operators|+(c_m2, c2));
+  self::expect(c0, self::Operators|+(c2, c_m2));
+  self::expect(c0, self::Operators|+(c_m1, c1));
+  self::expect(c0, self::Operators|+(c1, c_m1));
+  self::expect(c0, self::Operators|+(c0, c0));
+  self::expect(c1, self::Operators|+(c0, c1));
+  self::expect(c1, self::Operators|+(c1, c0));
+  self::expect(c2, self::Operators|+(c0, c2));
+  self::expect(c2, self::Operators|+(c2, c0));
+  self::expect(c2, self::Operators|+(c1, c1));
+  self::expect(c_m2, self::Operators|-(c0, c2));
+  self::expect(c2, self::Operators|-(c2, c0));
+  self::expect(c_m2, self::Operators|unary-(c2));
+  self::expect(c_m1, self::Operators|-(c1, c2));
+  self::expect(c1, self::Operators|-(c2, c1));
+  self::expect(c_m1, self::Operators|-(c0, c1));
+  self::expect(c1, self::Operators|-(c1, c0));
+  self::expect(c_m1, self::Operators|unary-(c1));
+  self::expect(c0, self::Operators|-(c2, c2));
+  self::expect(c0, self::Operators|-(c1, c1));
+  self::expect(c0, self::Operators|-(c0, c0));
+  self::expect(c0, self::Operators|-(c_m1, c_m1));
+  self::expect(c0, self::Operators|-(c_m2, c_m2));
+  self::expect(c0, self::Operators|unary-(c0));
+}
+static method explicit() → dynamic {
   self::Complex* c_m2 = new self::Complex::•(-2.0, 2.0);
   self::Complex* c_m1 = new self::Complex::•(-1.0, 1.0);
   self::Complex* c0 = new self::Complex::•(0.0, 0.0);

@@ -34,5 +34,9 @@ static method Operators|unary-(final self::Complex* #this) → self::Complex*
   ;
 static method main() → dynamic
   ;
+static method implicit() → dynamic
+  ;
+static method explicit() → dynamic
+  ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;

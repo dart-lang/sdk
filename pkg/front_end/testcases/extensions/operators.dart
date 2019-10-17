@@ -39,6 +39,11 @@ extension Operators on Complex {
 }
 
 main() {
+  implicit();
+  explicit();
+}
+
+implicit() {
   Complex c_m2 = new Complex(-2, 2);
   Complex c_m1 = new Complex(-1, 1);
   Complex c0 = new Complex(0, 0);
@@ -74,6 +79,45 @@ main() {
   expect(c0, c0 - c0);
   expect(c0, c_m1 - c_m1);
   expect(c0, c_m2 - c_m2);
+  expect(c0, -c0);
+}
+
+explicit() {
+  Complex c_m2 = new Complex(-2, 2);
+  Complex c_m1 = new Complex(-1, 1);
+  Complex c0 = new Complex(0, 0);
+  Complex c1 = new Complex(1, -1);
+  Complex c2 = new Complex(2, -2);
+
+  expect(c_m2, Operators(c0) + c_m2);
+  expect(c_m2, Operators(c_m2) + c0);
+  expect(c_m2, Operators(c_m1) + c_m1);
+  expect(c_m1, Operators(c0) + c_m1);
+  expect(c_m1, Operators(c_m1) + c0);
+  expect(c0, Operators(c_m2) + c2);
+  expect(c0, Operators(c2) + c_m2);
+  expect(c0, Operators(c_m1) + c1);
+  expect(c0, Operators(c1) + c_m1);
+  expect(c0, Operators(c0) + c0);
+  expect(c1, Operators(c0) + c1);
+  expect(c1, Operators(c1) + c0);
+  expect(c2, Operators(c0) + c2);
+  expect(c2, Operators(c2) + c0);
+  expect(c2, Operators(c1) + c1);
+
+  expect(c_m2, Operators(c0) - c2);
+  expect(c2, Operators(c2) - c0);
+  expect(c_m2, -Operators(c2));
+  expect(c_m1, Operators(c1) - c2);
+  expect(c1, Operators(c2) - c1);
+  expect(c_m1, Operators(c0) - c1);
+  expect(c1, Operators(c1) - c0);
+  expect(c_m1, -Operators(c1));
+  expect(c0, Operators(c2) - c2);
+  expect(c0, Operators(c1) - c1);
+  expect(c0, Operators(c0) - c0);
+  expect(c0, Operators(c_m1) - c_m1);
+  expect(c0, Operators(c_m2) - c_m2);
   expect(c0, -c0);
 }
 
