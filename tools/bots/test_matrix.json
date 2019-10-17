@@ -1353,9 +1353,7 @@
           "arguments": [
             "-ndartdevc-strong-linux-release-chrome",
             "dartdevc_native"
-          ],
-          "shards": 1,
-          "fileset": "dart2js_nnbd"
+          ]
         }
       ]
     },
