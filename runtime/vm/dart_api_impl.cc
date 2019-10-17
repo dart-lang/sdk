@@ -1236,6 +1236,7 @@ Dart_CreateIsolateGroup(const char* script_uri,
       script_uri, non_null_name, snapshot_data, snapshot_instructions,
       shared_data, shared_instructions, nullptr, -1, *flags));
   auto group = new IsolateGroup(std::move(source), isolate_group_data);
+  IsolateGroup::RegisterIsolateGroup(group);
   Dart_Isolate isolate =
       CreateIsolate(group, non_null_name, isolate_data, error);
   if (isolate != nullptr) {
@@ -1266,6 +1267,7 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
       script_uri, non_null_name, nullptr, nullptr, nullptr, nullptr,
       kernel_buffer, kernel_buffer_size, *flags));
   auto group = new IsolateGroup(std::move(source), isolate_group_data);
+  IsolateGroup::RegisterIsolateGroup(group);
   Dart_Isolate isolate =
       CreateIsolate(group, non_null_name, isolate_data, error);
   if (isolate != nullptr) {

@@ -10,40 +10,41 @@ import 'package:observatory/service_io.dart' as S;
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-Future<String> getIsolateId(io.HttpClient httpClient, Uri serverUri) async {
+Future<String> getIsolateGroupId(
+    io.HttpClient httpClient, Uri serverUri) async {
   // Build the request.
   final pathSegments = <String>[]..addAll(serverUri.pathSegments);
-  String method = 'getVM';
+  const method = 'getVM';
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
   } else {
     pathSegments.add(method);
   }
   final requestUri = serverUri.replace(pathSegments: pathSegments);
-  var request = await httpClient.getUrl(requestUri);
-  Map response = await (await request.close())
+  final request = await httpClient.getUrl(requestUri);
+  final Map response = await (await request.close())
       .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
       .first;
-  Map result = response['result'];
-  return result['isolates'][0]['id'];
+  final result = response['result'];
+  return result['isolateGroups'][0]['id'];
 }
 
 Future<Null> testeeBefore() async {
   print('testee before');
   print(await Service.getInfo());
   // Start the web server.
-  ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
+  final ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
   expect(info.serverUri, isNotNull);
-  var httpClient = new io.HttpClient();
+  final httpClient = new io.HttpClient();
 
   // Build the request.
   final params = <String, String>{
-    'isolateId': await getIsolateId(httpClient, info.serverUri),
+    'isolateGroupId': await getIsolateGroupId(httpClient, info.serverUri),
   };
 
-  String method = 'getIsolate';
+  const method = 'getIsolateGroup';
   final pathSegments = <String>[]..addAll(info.serverUri.pathSegments);
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
@@ -54,31 +55,19 @@ Future<Null> testeeBefore() async {
       .replace(pathSegments: pathSegments, queryParameters: params);
 
   try {
-    var request = await httpClient.getUrl(requestUri);
-    Map response = await (await request.close())
+    final request = await httpClient.getUrl(requestUri);
+    final response = await request.close();
+    final Map jsonResponse = await response
         .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
         .first;
-    Map result = response['result'];
-    expect(result['type'], equals('Isolate'));
-    expect(result['id'], startsWith('isolates/'));
+    final result = jsonResponse['result'];
+    expect(result['type'], equals('IsolateGroup'));
+    expect(result['id'], startsWith('isolateGroups/'));
     expect(result['number'], new isInstanceOf<String>());
-    expect(result['_originNumber'], equals(result['number']));
-    expect(result['startTime'], isPositive);
-    expect(result['livePorts'], isPositive);
-    expect(result['pauseOnExit'], isFalse);
-    expect(result['pauseEvent']['type'], equals('Event'));
-    expect(result['error'], isNull);
-    expect(result['_numZoneHandles'], isPositive);
-    expect(result['_numScopedHandles'], isPositive);
-    expect(result['rootLib']['type'], equals('@Library'));
-    expect(result['libraries'].length, isPositive);
-    expect(result['libraries'][0]['type'], equals('@Library'));
-    expect(result['breakpoints'].length, isZero);
-    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
-    expect(result['isolate_group']['type'], equals('@IsolateGroup'));
+    expect(result['isolates'].length, isPositive);
+    expect(result['isolates'][0]['type'], equals('@Isolate'));
   } catch (e) {
     fail('invalid request: $e');
   }

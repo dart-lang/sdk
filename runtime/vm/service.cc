@@ -556,6 +556,34 @@ class Int64Parameter : public MethodParameter {
   }
 };
 
+class UInt64Parameter : public MethodParameter {
+ public:
+  UInt64Parameter(const char* name, bool required)
+      : MethodParameter(name, required) {}
+
+  virtual bool Validate(const char* value) const {
+    if (value == NULL) {
+      return false;
+    }
+    for (const char* cp = value; *cp != '\0'; cp++) {
+      if ((*cp < '0' || *cp > '9') && (*cp != '-')) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static uint64_t Parse(const char* value, uint64_t default_value = 0) {
+    if ((value == NULL) || (*value == '\0')) {
+      return default_value;
+    }
+    char* end_ptr = NULL;
+    uint64_t result = strtoull(value, &end_ptr, 10);
+    ASSERT(*end_ptr == '\0');  // Parsed full string
+    return result;
+  }
+};
+
 class IdParameter : public MethodParameter {
  public:
   IdParameter(const char* name, bool required)
@@ -591,6 +619,7 @@ class RunnableIsolateParameter : public MethodParameter {
 };
 
 #define ISOLATE_PARAMETER new IdParameter("isolateId", true)
+#define ISOLATE_GROUP_PARAMETER new IdParameter("isolateGroupId", true)
 #define NO_ISOLATE_PARAMETER new NoSuchParameter("isolateId")
 #define RUNNABLE_ISOLATE_PARAMETER new RunnableIsolateParameter("isolateId")
 
@@ -1370,6 +1399,65 @@ static bool GetIsolate(Thread* thread, JSONStream* js) {
   return true;
 }
 
+static const MethodParameter* get_isolate_group_params[] = {
+    ISOLATE_GROUP_PARAMETER,
+    NULL,
+};
+
+enum SentinelType {
+  kCollectedSentinel,
+  kExpiredSentinel,
+  kFreeSentinel,
+};
+
+static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Sentinel");
+  switch (sentinel_type) {
+    case kCollectedSentinel:
+      jsobj.AddProperty("kind", "Collected");
+      jsobj.AddProperty("valueAsString", "<collected>");
+      break;
+    case kExpiredSentinel:
+      jsobj.AddProperty("kind", "Expired");
+      jsobj.AddProperty("valueAsString", "<expired>");
+      break;
+    case kFreeSentinel:
+      jsobj.AddProperty("kind", "Free");
+      jsobj.AddProperty("valueAsString", "<free>");
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
+static void ActOnIsolateGroup(JSONStream* js,
+                              std::function<void(IsolateGroup*)> visitor) {
+  const String& prefix =
+      String::Handle(String::New(ISOLATE_GROUP_SERVICE_ID_PREFIX));
+
+  const String& s =
+      String::Handle(String::New(js->LookupParam("isolateGroupId")));
+  if (!s.StartsWith(prefix)) {
+    PrintInvalidParamError(js, "isolateGroupId");
+    return;
+  }
+  uint64_t isolate_group_id = UInt64Parameter::Parse(
+      String::Handle(String::SubString(s, prefix.Length())).ToCString());
+  IsolateGroup::RunWithIsolateGroup(
+      isolate_group_id,
+      [&visitor](IsolateGroup* isolate_group) { visitor(isolate_group); },
+      /*if_not_found=*/[&js]() { PrintSentinel(js, kExpiredSentinel); });
+}
+
+static bool GetIsolateGroup(Thread* thread, JSONStream* js) {
+  ActOnIsolateGroup(js, [&](IsolateGroup* isolate_group) {
+    isolate_group->PrintJSON(js, false);
+  });
+  return true;
+}
+
 static const MethodParameter* get_memory_usage_params[] = {
     ISOLATE_PARAMETER,
     NULL,
@@ -1377,6 +1465,18 @@ static const MethodParameter* get_memory_usage_params[] = {
 
 static bool GetMemoryUsage(Thread* thread, JSONStream* js) {
   thread->isolate()->PrintMemoryUsageJSON(js);
+  return true;
+}
+
+static const MethodParameter* get_isolate_group_memory_usage_params[] = {
+    ISOLATE_GROUP_PARAMETER,
+    NULL,
+};
+
+static bool GetIsolateGroupMemoryUsage(Thread* thread, JSONStream* js) {
+  ActOnIsolateGroup(js, [&](IsolateGroup* isolate_group) {
+    isolate_group->PrintMemoryUsageJSON(js);
+  });
   return true;
 }
 
@@ -1934,34 +2034,6 @@ static RawObject* LookupHeapObject(Thread* thread,
 
   // Not found.
   return Object::sentinel().raw();
-}
-
-enum SentinelType {
-  kCollectedSentinel,
-  kExpiredSentinel,
-  kFreeSentinel,
-};
-
-static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Sentinel");
-  switch (sentinel_type) {
-    case kCollectedSentinel:
-      jsobj.AddProperty("kind", "Collected");
-      jsobj.AddProperty("valueAsString", "<collected>");
-      break;
-    case kExpiredSentinel:
-      jsobj.AddProperty("kind", "Expired");
-      jsobj.AddProperty("valueAsString", "<expired>");
-      break;
-    case kFreeSentinel:
-      jsobj.AddProperty("kind", "Free");
-      jsobj.AddProperty("valueAsString", "<free>");
-      break;
-    default:
-      UNIMPLEMENTED();
-      break;
-  }
 }
 
 static Breakpoint* LookupBreakpoint(Isolate* isolate,
@@ -4336,11 +4408,17 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
       "startTime", OS::GetCurrentTimeMillis() - Dart::UptimeMillis());
   MallocHooks::PrintToJSONObject(&jsobj);
   PrintJSONForEmbedderInformation(&jsobj);
-  // Construct the isolate list.
+  // Construct the isolate and isolate_groups list.
   {
     JSONArray jsarr(&jsobj, "isolates");
     ServiceIsolateVisitor visitor(&jsarr);
     Isolate::VisitIsolates(&visitor);
+  }
+  {
+    JSONArray jsarr_isolate_groups(&jsobj, "isolateGroups");
+    IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
+      jsarr_isolate_groups.AddValue(isolate_group);
+    });
   }
 }
 
@@ -4687,8 +4765,12 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
+  { "getIsolateGroup", GetIsolateGroup,
+    get_isolate_group_params },
   { "getMemoryUsage", GetMemoryUsage,
     get_memory_usage_params },
+  { "getIsolateGroupMemoryUsage", GetIsolateGroupMemoryUsage,
+    get_isolate_group_memory_usage_params },
   { "_getIsolateMetric", GetIsolateMetric,
     get_isolate_metric_params },
   { "_getIsolateMetricList", GetIsolateMetricList,

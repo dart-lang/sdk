@@ -229,6 +229,9 @@ abstract class ServiceObject implements M.ObjectRef {
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
         break;
+      case 'IsolateGroup':
+        obj = new IsolateGroup._empty(owner.vm);
+        break;
       case 'Library':
         obj = new Library._empty(owner);
         break;
@@ -661,9 +664,12 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   // TODO(johnmccutchan): Ensure that isolates do not end up in _cache.
   Map<String, ServiceObject> _cache = new Map<String, ServiceObject>();
   final Map<String, Isolate> _isolateCache = <String, Isolate>{};
+  final Map<String, IsolateGroup> _isolateGroupCache = <String, IsolateGroup>{};
 
   // The list of live isolates, ordered by isolate start time.
   final List<Isolate> isolates = <Isolate>[];
+
+  final List<IsolateGroup> isolateGroups = <IsolateGroup>[];
 
   final List<Service> services = <Service>[];
 
@@ -771,6 +777,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   }
 
   static final String _isolateIdPrefix = 'isolates/';
+  static final String _isolateGroupIdPrefix = 'isolateGroups/';
 
   ServiceObject getFromMap(Map map) {
     if (map == null) {
@@ -784,23 +791,44 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     }
 
     String id = map['id'];
-    if ((id != null) && id.startsWith(_isolateIdPrefix)) {
-      // Check cache.
-      var isolate = _isolateCache[id];
-      if (isolate == null) {
-        // Add new isolate to the cache.
-        isolate = new ServiceObject._fromMap(this, map);
-        _isolateCache[id] = isolate;
-        _buildIsolateList();
+    if ((id != null)) {
+      if (id.startsWith(_isolateIdPrefix)) {
+        // Check cache.
+        var isolate = _isolateCache[id];
+        if (isolate == null) {
+          // Add new isolate to the cache.
+          isolate = ServiceObject._fromMap(this, map);
+          _isolateCache[id] = isolate;
+          _buildIsolateList();
 
-        // Eagerly load the isolate.
-        isolate.load().catchError((e, stack) {
-          Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
-        });
-      } else {
-        isolate.updateFromServiceMap(map);
+          // Eagerly load the isolate.
+          isolate.load().catchError((e, stack) {
+            Logger.root.info('Eagerly loading an isolate failed: $e\n$stack');
+          });
+        } else {
+          isolate.updateFromServiceMap(map);
+        }
+        return isolate;
       }
-      return isolate;
+      if (id.startsWith(_isolateGroupIdPrefix)) {
+        // Check cache.
+        var isolateGroup = _isolateGroupCache[id];
+        if (isolateGroup == null) {
+          // Add new isolate to the cache.
+          isolateGroup = new ServiceObject._fromMap(this, map);
+          _isolateGroupCache[id] = isolateGroup;
+          _buildIsolateGroupList();
+
+          // Eagerly load the isolate.
+          isolateGroup.load().catchError((e, stack) {
+            Logger.root
+                .info('Eagerly loading an isolate group failed: $e\n$stack');
+          });
+        } else {
+          isolateGroup.updateFromServiceMap(map);
+        }
+        return isolateGroup;
+      }
     }
 
     // Build the object from the map directly.
@@ -815,6 +843,27 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return load().then((_) => getIsolate(isolateId)).catchError(_ignoreError);
     }
     return new Future.value(_isolateCache[isolateId]);
+  }
+
+  int _compareIsolateGroups(IsolateGroup a, IsolateGroup b) {
+    return a.id.compareTo(b.id);
+  }
+
+  void _buildIsolateGroupList() {
+    final isolateGroupList = _isolateGroupCache.values.toList();
+    isolateGroupList.sort(_compareIsolateGroups);
+    isolateGroups.clear();
+    isolateGroups.addAll(isolateGroupList);
+  }
+
+  void _removeDeadIsolateGroups(List newIsolateGroups) {
+    // Build a set of new isolates.
+    final Set newIsolateGroupSet =
+        newIsolateGroups.map((iso) => iso.id).toSet();
+
+    // Remove any old isolates which no longer exist.
+    _isolateGroupCache.removeWhere((id, _) => !newIsolateGroupSet.contains(id));
+    _buildIsolateGroupList();
   }
 
   // Implemented in subclass.
@@ -989,6 +1038,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     assertsEnabled = map['_assertsEnabled'];
     typeChecksEnabled = map['_typeChecksEnabled'];
     _removeDeadIsolates(map['isolates']);
+    _removeDeadIsolateGroups(map['isolateGroups']);
   }
 
   // Reload all isolates.
@@ -1218,6 +1268,77 @@ class HeapSpace implements M.HeapSpace {
     totalCollectionTimeInSeconds = heapMap['time'];
     averageCollectionPeriodInMillis = heapMap['avgCollectionPeriodMillis'];
   }
+}
+
+class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
+  IsolateGroup._empty(ServiceObjectOwner owner)
+      : assert(owner is VM),
+        super._empty(owner);
+
+  @override
+  void _update(Map map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
+    number = int.tryParse(map['number']);
+    if (mapIsRef) {
+      return;
+    }
+    _loaded = true;
+    isolates.clear();
+    isolates.addAll(map['isolates'] as List<Isolate>);
+    isolates.sort(ServiceObject.LexicalSortName);
+    vm._buildIsolateGroupList();
+  }
+
+  @override
+  ServiceObject getFromMap(Map map) {
+    if (map == null) {
+      return null;
+    }
+    final mapType = _stripRef(map['type']);
+    if (mapType == 'IsolateGroup') {
+      // There are sometimes isolate group refs in ServiceEvents.
+      return vm.getFromMap(map);
+    }
+    String mapId = map['id'];
+    var obj = (mapId != null) ? _cache[mapId] : null;
+    if (obj != null) {
+      obj.updateFromServiceMap(map);
+      return obj;
+    }
+    // Build the object from the map directly.
+    obj = new ServiceObject._fromMap(this, map);
+    if ((obj != null) && obj.canCache) {
+      _cache[mapId] = obj;
+    }
+    return obj;
+  }
+
+  Future<Map> invokeRpcNoUpgrade(String method, Map params) {
+    params['isolateGroupId'] = id;
+    return vm.invokeRpcNoUpgrade(method, params);
+  }
+
+  Future<ServiceObject> invokeRpc(String method, Map params) {
+    return invokeRpcNoUpgrade(method, params)
+        .then((Map response) => getFromMap(response));
+  }
+
+  @override
+  Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) {
+    Map params = {
+      'isolateGroupId': id,
+    };
+    return vm.invokeRpcNoUpgrade('getIsolateGroup', params);
+  }
+
+  @override
+  final List<Isolate> isolates = <Isolate>[];
+
+  @override
+  int number;
+
+  final Map<String, ServiceObject> _cache = Map<String, ServiceObject>();
 }
 
 /// State for a running isolate.

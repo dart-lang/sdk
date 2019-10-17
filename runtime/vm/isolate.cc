@@ -173,6 +173,7 @@ void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
         group_shutdown_callback(embedder_data());
       }
     }
+    UnregisterIsolateGroup(this);
     delete this;
   }
 }
@@ -314,6 +315,110 @@ void IsolateGroup::UnscheduleThread(Thread* thread,
   // no_safepoint_scope_depth increments/decrements.
   MonitorLocker ml(threads_lock(), false);
   UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
+}
+
+#ifndef PRODUCT
+void IsolateGroup::PrintJSON(JSONStream* stream, bool ref) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  JSONObject jsobj(stream);
+  PrintToJSONObject(&jsobj, ref);
+}
+
+void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  jsobj->AddProperty("type", (ref ? "@IsolateGroup" : "IsolateGroup"));
+  jsobj->AddServiceId(ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, id());
+
+  jsobj->AddProperty("name", "isolate_group");
+  jsobj->AddPropertyF("number", "%" Pu64 "", id());
+  if (ref) {
+    return;
+  }
+
+  {
+    JSONArray isolate_array(jsobj, "isolates");
+    for (auto it = isolates_.Begin(); it != isolates_.End(); ++it) {
+      Isolate* isolate = *it;
+      isolate_array.AddValue(isolate, /*ref=*/true);
+    }
+  }
+}
+
+void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
+  int64_t used = 0;
+  int64_t capacity = 0;
+  int64_t external_used = 0;
+
+  for (auto it = isolates_.Begin(); it != isolates_.End(); ++it) {
+    Isolate* isolate = *it;
+    used += isolate->heap()->TotalUsedInWords();
+    capacity += isolate->heap()->TotalCapacityInWords();
+    external_used += isolate->heap()->TotalExternalInWords();
+  }
+
+  JSONObject jsobj(stream);
+  // This is the same "MemoryUsage" that the isolate-specific "getMemoryUsage"
+  // rpc method returns.
+  // TODO(dartbug.com/36097): Once the heap moves from Isolate to IsolateGroup
+  // this code needs to be adjusted to not double-count memory.
+  jsobj.AddProperty("type", "MemoryUsage");
+  jsobj.AddProperty64("heapUsage", used * kWordSize);
+  jsobj.AddProperty64("heapCapacity", capacity * kWordSize);
+  jsobj.AddProperty64("externalUsage", external_used * kWordSize);
+}
+#endif
+
+void IsolateGroup::ForEach(std::function<void(IsolateGroup*)> action) {
+  ReadRwLocker wl(Thread::Current(), isolate_groups_rwlock_);
+  for (auto isolate_group : *isolate_groups_) {
+    action(isolate_group);
+  }
+}
+
+void IsolateGroup::RunWithIsolateGroup(
+    uint64_t id,
+    std::function<void(IsolateGroup*)> action,
+    std::function<void()> not_found) {
+  ReadRwLocker wl(Thread::Current(), isolate_groups_rwlock_);
+  for (auto isolate_group : *isolate_groups_) {
+    if (isolate_group->id() == id) {
+      action(isolate_group);
+      return;
+    }
+  }
+  not_found();
+}
+
+void IsolateGroup::RegisterIsolateGroup(IsolateGroup* isolate_group) {
+  WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+  isolate_groups_->Append(isolate_group);
+}
+
+void IsolateGroup::UnregisterIsolateGroup(IsolateGroup* isolate_group) {
+  WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
+  isolate_groups_->Remove(isolate_group);
+}
+
+void IsolateGroup::Init() {
+  ASSERT(isolate_groups_rwlock_ == nullptr);
+  isolate_groups_rwlock_ = new RwLock();
+  ASSERT(isolate_groups_ == nullptr);
+  isolate_groups_ = new IntrusiveDList<IsolateGroup>();
+}
+
+void IsolateGroup::Cleanup() {
+  delete isolate_groups_rwlock_;
+  isolate_groups_rwlock_ = nullptr;
+  ASSERT(isolate_groups_->IsEmpty());
+  delete (isolate_groups_);
+  isolate_groups_ = nullptr;
 }
 
 bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
@@ -2124,6 +2229,9 @@ Monitor* Isolate::isolates_list_monitor_ = nullptr;
 Isolate* Isolate::isolates_list_head_ = nullptr;
 bool Isolate::creation_enabled_ = false;
 
+RwLock* IsolateGroup::isolate_groups_rwlock_ = nullptr;
+IntrusiveDList<IsolateGroup>* IsolateGroup::isolate_groups_ = nullptr;
+
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   ValidationPolicy validate_frames) {
   ASSERT(visitor != nullptr);
@@ -2487,6 +2595,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
 
   jsobj.AddProperty("_threads", thread_registry());
+
+  {
+    JSONObject isolate_group(&jsobj, "isolate_group");
+    group()->PrintToJSONObject(&isolate_group, /*ref=*/true);
+  }
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
