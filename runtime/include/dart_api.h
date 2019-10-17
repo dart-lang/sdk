@@ -3443,6 +3443,10 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *  provided directly as bytes that the embedder can load with mmap. The
  *  instructions pieces must be loaded with read and execute permissions; the
  *  other pieces may be loaded as read-only.
+ *
+ *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
+ *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
+ *  available in the target //runtime/bin:elf_loader.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,

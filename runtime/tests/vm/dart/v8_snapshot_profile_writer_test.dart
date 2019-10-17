@@ -52,8 +52,18 @@ test(String sdkRoot, {bool useElf: false}) async {
   print(result.stdout);
 
   Expect.equals(result.exitCode, 0);
-  Expect.equals(result.stderr, "");
-  Expect.equals(result.stdout, "");
+  if (!useElf) {
+    Expect.equals(
+        "WARNING: app-aot-blobs snapshots have been deprecated and support for "
+        "generating them will be removed soon. Please use the app-aot-elf or "
+        "app-aot-assembly snapshot kinds in conjunction with the portable ELF "
+        "loader from //runtime/bin:elf_loader if necessary. See "
+        "http://dartbug.com/38764 for more details.\x0A",
+        result.stderr);
+  } else {
+    Expect.equals("", result.stderr);
+  }
+  Expect.equals("", result.stdout);
 
   final V8SnapshotProfile profile = V8SnapshotProfile.fromJson(JsonDecoder()
       .convert(File("${temp.path}/profile.heapsnapshot").readAsStringSync()));

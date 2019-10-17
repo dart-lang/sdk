@@ -171,17 +171,6 @@ static void PrintUsage() {
 "--isolate_snapshot_data=<output-file>                                       \n"
 "<dart-kernel-file>                                                          \n"
 "                                                                            \n"
-"To create an AOT application snapshot as blobs suitable for loading with    \n"
-"mmap:                                                                       \n"
-"--snapshot_kind=app-aot-blobs                                               \n"
-"--vm_snapshot_data=<output-file>                                            \n"
-"--vm_snapshot_instructions=<output-file>                                    \n"
-"--isolate_snapshot_data=<output-file>                                       \n"
-"--isolate_snapshot_instructions=<output-file>                               \n"
-"[--obfuscate]                                                               \n"
-"[--save-obfuscation-map=<map-filename>]                                     \n"
-"<dart-kernel-file>                                                          \n"
-"                                                                            \n"
 "To create an AOT application snapshot as assembly suitable for compilation  \n"
 "as a static or dynamic library:                                             \n"
 "--snapshot_kind=app-aot-assembly                                            \n"
@@ -651,6 +640,13 @@ static void CreateAndWritePrecompiledSnapshot() {
         Dart_CreateAppAOTSnapshotAsElf(StreamingWriteCallback, file, strip);
     CHECK_RESULT(result);
   } else if (snapshot_kind == kAppAOTBlobs) {
+    Syslog::PrintErr(
+        "WARNING: app-aot-blobs snapshots have been deprecated and support for "
+        "generating them will be removed soon. Please use the app-aot-elf or "
+        "app-aot-assembly snapshot kinds in conjunction with the portable ELF "
+        "loader from //runtime/bin:elf_loader if necessary. See "
+        "http://dartbug.com/38764 for more details.\n");
+
     const uint8_t* shared_data = NULL;
     const uint8_t* shared_instructions = NULL;
     std::unique_ptr<MappedMemory> mapped_shared_data;
