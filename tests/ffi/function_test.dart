@@ -13,8 +13,6 @@
 // VMOptions=--write-protect-code --no-dual-map-code --stacktrace-every=100
 // SharedObjects=ffi_test_functions
 
-library FfiTest;
-
 import 'dart:ffi';
 
 import 'dylib_utils.dart';
@@ -44,6 +42,7 @@ void main() {
     testVoidReturn();
     testNoArgs();
     testException();
+    testLookupFunctionPointerNativeType();
   }
 }
 
@@ -403,6 +402,17 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
+}
+
+typedef NativeTypeNFT = Pointer<NativeType> Function(
+    Pointer<Pointer<NativeType>>, Int8);
+typedef NativeTypeFT = Pointer<NativeType> Function(
+    Pointer<Pointer<NativeType>>, int);
+
+void testLookupFunctionPointerNativeType() {
+  // The function signature does not match up, but that does not matter since
+  // this test does not use the trampoline.
+  ffiTestFunctions.lookupFunction<NativeTypeNFT, NativeTypeFT>("LargePointer");
 }
 
 // Throw an exception from within the trampoline and collect a stacktrace

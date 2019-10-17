@@ -344,17 +344,18 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeToDartType(
-      DartType containerTypeArg, DartType elementType, Expression node,
+      DartType nativeType, DartType dartType, Expression node,
       {bool allowStructs: false}) {
-    final DartType shouldBeElementType =
-        convertNativeTypeToDartType(containerTypeArg, allowStructs);
-    if (elementType == shouldBeElementType) return;
-    // We disable implicit downcasts, they will go away when NNBD lands.
-    if (env.isSubtypeOf(elementType, shouldBeElementType,
-        SubtypeCheckMode.ignoringNullabilities)) return;
+    final DartType correspondingDartType =
+        convertNativeTypeToDartType(nativeType, allowStructs);
+    if (dartType == correspondingDartType) return;
+    if (env.isSubtypeOf(correspondingDartType, dartType,
+        SubtypeCheckMode.ignoringNullabilities)) {
+      return;
+    }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(
-            elementType, shouldBeElementType, containerTypeArg),
+            dartType, correspondingDartType, nativeType),
         node.fileOffset,
         1,
         node.location.file);
