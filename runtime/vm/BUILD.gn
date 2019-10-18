@@ -71,6 +71,7 @@ library_for_all_configs("libdart_vm") {
       extra_deps += [
         "$fuchsia_sdk_root/fidl:fuchsia.deprecatedtimezone",
         "$fuchsia_sdk_root/pkg:sys_cpp",
+        "$fuchsia_sdk_root/pkg:trace-engine",
       ]
     } else {
       extra_deps += [
@@ -97,7 +98,9 @@ library_for_all_configs("libdart_vm") {
 library_for_all_configs("libdart_lib") {
   target_type = "source_set"
   if (is_fuchsia) {
-    if (!using_fuchsia_sdk) {
+    if (using_fuchsia_sdk) {
+      extra_deps = [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
       extra_deps = [
         "//zircon/public/lib/fbl",
         "//zircon/public/lib/trace-engine",

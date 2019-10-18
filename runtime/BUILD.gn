@@ -226,7 +226,10 @@ library_for_all_configs("libdart") {
   }
   if (is_fuchsia) {
     if (using_fuchsia_sdk) {
-      extra_deps += [ "$fuchsia_sdk_root/pkg:fdio" ]
+      extra_deps += [
+        "$fuchsia_sdk_root/pkg:fdio",
+        "$fuchsia_sdk_root/pkg:trace-engine",
+      ]
     } else {
       extra_deps += [
         "//zircon/public/lib/fbl",
