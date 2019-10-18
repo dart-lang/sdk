@@ -4,35 +4,7 @@
 
 // test w/ `pub run test -N diagnostic_describe_all_properties`
 
-class DiagnosticPropertiesBuilder {
-  void add(DiagnosticsProperty property) {}
-}
-
-class DiagnosticsProperty<T> {}
-
-class StringProperty extends DiagnosticsProperty<String> {
-  StringProperty(
-    String name,
-    String value, {
-    String description,
-    String tooltip,
-    bool showName = true,
-    Object defaultValue,
-    bool quoted,
-    String ifEmpty,
-    //DiagnosticLevel level = DiagnosticLevel.info,
-  });
-}
-
-abstract class Diagnosticable {
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) { }
-
-  List<DiagnosticsNode> debugDescribeChildren() => <DiagnosticsNode>[];
-}
-
-class DiagnosticsNode {}
-
-class Widget {}
+import 'package:flutter/widgets.dart';
 
 class MyWidget extends Diagnosticable {
   Widget p0; //Skipped
