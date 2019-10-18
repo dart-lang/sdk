@@ -124,8 +124,9 @@ const _details = r'''
 ''';
 
 class $className extends LintRule implements NodeLintRule {
-  $className() : super(
-          name: '$ruleName',
+  $className() 
+      : super(
+            name: '$ruleName',
             description: _desc,
             details: _details,
             group: Group.style);
