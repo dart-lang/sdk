@@ -4,6 +4,7 @@
 
 // test w/ `pub run test -N diagnostic_describe_all_properties`
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends Diagnosticable {
