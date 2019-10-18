@@ -722,6 +722,11 @@ static inline void StoreUnaligned(T* ptr, T value) {
 #define STDERR_FILENO 2
 #endif
 
+#ifndef PATH_MAX
+// Most platforms use PATH_MAX, but in Windows it's called MAX_PATH.
+#define PATH_MAX MAX_PATH
+#endif
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_GLOBALS_H_

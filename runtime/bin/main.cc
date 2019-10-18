@@ -1083,16 +1083,21 @@ void main(int argc, char** argv) {
   // snapshot, load and run that.
   // Any arguments passed to such an executable are meant for the actual
   // application so skip all Dart VM flag parsing.
-  app_snapshot = Snapshot::TryReadAppendedAppSnapshotElf(argv[0]);
-  if (app_snapshot != nullptr) {
-    script_name = argv[0];
 
-    // Store the executable name.
-    Platform::SetExecutableName(argv[0]);
+  const size_t kPathBufSize = PATH_MAX + 1;
+  char executable_path[kPathBufSize];
+  if (Platform::ResolveExecutablePathInto(executable_path, kPathBufSize) > 0) {
+    app_snapshot = Snapshot::TryReadAppendedAppSnapshotElf(executable_path);
+    if (app_snapshot != nullptr) {
+      script_name = argv[0];
 
-    // Parse out options to be passed to dart main.
-    for (int i = 1; i < argc; i++) {
-      dart_options.AddArgument(argv[i]);
+      // Store the executable name.
+      Platform::SetExecutableName(argv[0]);
+
+      // Parse out options to be passed to dart main.
+      for (int i = 1; i < argc; i++) {
+        dart_options.AddArgument(argv[i]);
+      }
     }
   }
 #endif
