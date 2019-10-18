@@ -1697,7 +1697,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _appendInferredType(TreeNode node, int pc) {
     final InferredType md = inferredTypeMetadata[node];
-    if (md == null) {
+    if (md == null || (pc >= 0 && asm.isUnreachable)) {
       return;
     }
     inferredTypesAttribute ??= <Constant>[];
