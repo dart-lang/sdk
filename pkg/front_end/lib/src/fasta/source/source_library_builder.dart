@@ -1757,7 +1757,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);
-    if (type == null && initializerToken != null) {
+    if (type == null && initializerToken != null && fieldBuilder.next == null) {
+      // Only the first one (the last one in the linked list of next pointers)
+      // are added to the tree, had parent pointers and can infer correctly.
       fieldBuilder.field.type =
           new ImplicitFieldType(fieldBuilder, initializerToken);
       (implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
