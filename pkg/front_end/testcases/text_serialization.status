@@ -202,6 +202,7 @@ general/issue37381: TextSerializationFailure
 general/issue37776: TextSerializationFailure
 general/issue38812: TextSerializationFailure
 general/issue38938: TextSerializationFailure
+general/issue38943: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/magic_const: TextSerializationFailure # Was: Pass

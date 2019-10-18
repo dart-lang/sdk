@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-  int v;
-  int v;
-  A(this.v);
-  A.second();
+class D<X extends void Function()> {
+  factory D.foo() => new D._();
+  D._() {}
+}
+
+main() {
+  print(new D.foo());
 }

@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class D<X extends () →* void = () →* void> extends core::Object {
+  constructor _() → self::D<self::D::X*>*
+    : super core::Object::•() {}
+  static factory foo<X extends () →* void = dynamic>() → self::D<self::D::foo::X*>*
+    return new self::D::_<self::D::foo::X*>();
+}
+static method main() → dynamic {
+  core::print(self::D::foo<() →* void>());
+}

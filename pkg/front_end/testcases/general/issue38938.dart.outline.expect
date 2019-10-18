@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue38938.dart:3:7: Error: 'v' is already declared in this scope.
+// pkg/front_end/testcases/general/issue38938.dart:7:7: Error: 'v' is already declared in this scope.
 //   int v;
 //       ^
-// pkg/front_end/testcases/general/issue38938.dart:2:7: Context: Previous declaration of 'v'.
+// pkg/front_end/testcases/general/issue38938.dart:6:7: Context: Previous declaration of 'v'.
 //   int v;
 //       ^
 //
