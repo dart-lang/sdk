@@ -83,6 +83,22 @@ main() {}
     );
   }
 
+  Future test_keep_unresolvedDirectives() {
+    var code = r'''
+import 'dart:noSuchImportSdkLibrary';
+
+import 'package:noSuchImportPackage/andLib.dart';
+
+export 'dart:noSuchExportSdkLibrary';
+
+export 'package:noSuchExportPackage/andLib.dart';
+
+part 'no_such_part.dart';
+''';
+    addTestFile(code);
+    return _assertOrganized(code);
+  }
+
   Future test_OK_remove_duplicateImports_withSamePrefix() {
     addTestFile('''
 library lib;
@@ -101,48 +117,6 @@ import 'dart:async' as async;
 
 main() {
   async.Future f;
-}
-''');
-  }
-
-  Future test_OK_remove_unresolvedDirectives() {
-    newFile(join(testFolder, 'existing_part1.dart'), content: 'part of lib;');
-    newFile(join(testFolder, 'existing_part2.dart'), content: 'part of lib;');
-    addTestFile('''
-library lib;
-
-export 'dart:noSuchExportSdkLibrary';
-export 'dart:async';
-export 'package:noSuchExportPackage/andLib.dart';
-export 'dart:math';
-
-import 'dart:async';
-import 'dart:noSuchImportSdkLibrary';
-import 'dart:math';
-import 'package:noSuchImportPackage/andLib.dart';
-
-part 'existing_part1.dart';
-part 'no_such_part.dart';
-part 'existing_part2.dart';
-
-main(Future f) {
-  print(PI);
-}
-''');
-    return _assertOrganized(r'''
-library lib;
-
-import 'dart:async';
-import 'dart:math';
-
-export 'dart:async';
-export 'dart:math';
-
-part 'existing_part1.dart';
-part 'existing_part2.dart';
-
-main(Future f) {
-  print(PI);
 }
 ''');
   }
