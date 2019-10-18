@@ -349,7 +349,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root",
-    rebase_path("../../sdk"),
+    rebase_path(sdk_root),
     "--libraries-file",
     "file:///" + rebase_path("$sdk_root/lib/libraries.json"),
     "--output",
@@ -357,6 +357,11 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "--source",
     "dart:core",
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
 
 copy("dartdevc_kernel_sdk_libraries_json") {
@@ -424,4 +429,9 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "-o",
     rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
   ]
+
+  # TODO(38701): Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
