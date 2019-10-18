@@ -25,11 +25,6 @@ class Loader {
 
   static Dart_Handle ReloadNativeExtensions();
 
-  // Loads contents of the specified url.
-  static Dart_Handle LoadUrlContents(Dart_Handle url,
-                                     uint8_t** payload,
-                                     intptr_t* payload_length);
-
   static void ResolveDependenciesAsFilePaths();
 
   // A static tag handler that hides all usage of a loader for an isolate.
@@ -121,13 +116,6 @@ class Loader {
 
   /// Returns false if an error occurred and the loader should quit.
   bool ProcessQueueLocked(ProcessResult process_result);
-
-  // Special inner tag handler for dart: uris.
-  static Dart_Handle DartColonLibraryTagHandler(Dart_LibraryTag tag,
-                                                Dart_Handle library,
-                                                Dart_Handle url,
-                                                const char* library_url_string,
-                                                const char* url_string);
 
   // We use one native message handler callback for N loaders. The native
   // message handler callback provides us with the Dart_Port which we use as a

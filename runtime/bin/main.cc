@@ -408,11 +408,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    if (kernel_buffer == NULL) {
-      result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
-      CHECK_RESULT(result);
-    } else {
-      // Various core-library parts will send requests to the Loader to resolve
+    if (kernel_buffer != NULL) {
       // relative URIs and perform other related tasks. We need Loader to be
       // initialized for this to work because loading from Kernel binary
       // bypasses normal source code loading paths that initialize it.
@@ -421,7 +417,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       CHECK_RESULT(result);
       Loader::InitForSnapshot(resolved_script_uri, isolate_data);
     }
-
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
                        NULL, NULL);

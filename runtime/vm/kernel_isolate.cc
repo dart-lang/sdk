@@ -61,7 +61,7 @@ const int KernelIsolate::kNotifyIsolateShutdown = 6;
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
-KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kStopped;
+KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kNotStarted;
 Isolate* KernelIsolate::isolate_ = NULL;
 Dart_Port KernelIsolate::kernel_port_ = ILLEGAL_PORT;
 
@@ -217,22 +217,37 @@ class RunKernelTask : public ThreadPool::Task {
   }
 };
 
-void KernelIsolate::Run() {
-  {
-    MonitorLocker ml(monitor_);
-    ASSERT(state_ == kStopped);
-    state_ = kStarting;
-    ml.NotifyAll();
-  }
+void KernelIsolate::InitializeState() {
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
+  if (FLAG_trace_kernel) {
+    OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": InitializeState\n");
+  }
   create_group_callback_ = Isolate::CreateGroupCallback();
   if (create_group_callback_ == NULL) {
     KernelIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run<RunKernelTask>();
-  ASSERT(task_started);
+}
+
+bool KernelIsolate::Start() {
+  bool start_task = false;
+  {
+    MonitorLocker ml(monitor_);
+    if (state_ == kNotStarted) {
+      if (FLAG_trace_kernel) {
+        OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Start\n");
+      }
+      start_task = true;
+      state_ = kStarting;
+      ml.NotifyAll();
+    }
+  }
+  bool task_started = true;
+  if (start_task) {
+    task_started = Dart::thread_pool()->Run<RunKernelTask>();
+  }
+  return task_started;
 }
 
 void KernelIsolate::Shutdown() {
@@ -240,7 +255,7 @@ void KernelIsolate::Shutdown() {
   while (state_ == kStarting) {
     ml.Wait();
   }
-  if (state_ == kStopped) {
+  if (state_ == kStopped || state_ == kNotStarted) {
     return;
   }
   ASSERT(state_ == kStarted);
@@ -824,6 +839,14 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme) {
+  // Start the kernel Isolate if it is not already running.
+  if (!Start()) {
+    Dart_KernelCompilationResult result = {};
+    result.status = Dart_KernelCompilationStatus_Unknown;
+    result.error = strdup("Error while starting Kernel isolate task");
+    return result;
+  }
+
   // This must be the main script to be loaded. Wait for Kernel isolate
   // to finish initialization.
   Dart_Port kernel_port = WaitForKernelPort();

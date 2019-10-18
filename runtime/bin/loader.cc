@@ -26,6 +26,7 @@ extern DFE dfe;
 #endif
 
 // Keep in sync with loader.dart.
+static const intptr_t _Dart_kInitLoader = 4;
 static const intptr_t _Dart_kImportExtension = 9;
 static const intptr_t _Dart_kResolveAsFilePath = 10;
 
@@ -135,9 +136,6 @@ void Loader::Init(const char* package_root,
   // This port delivers loading messages to the service isolate.
   Dart_Port loader_port = Builtin::LoadPort();
   ASSERT(loader_port != ILLEGAL_PORT);
-
-  // Keep in sync with loader.dart.
-  const intptr_t _Dart_kInitLoader = 4;
 
   Dart_Handle request = Dart_NewList(9);
   Dart_ListSetAt(request, 0, trace_loader ? Dart_True() : Dart_False());
@@ -552,12 +550,6 @@ Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
   return Dart_Null();
 }
 
-Dart_Handle Loader::LoadUrlContents(Dart_Handle url,
-                                    uint8_t** payload,
-                                    intptr_t* payload_length) {
-  return SendAndProcessReply(Dart_kScriptTag, url, payload, payload_length);
-}
-
 Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
                                       uint8_t** payload,
                                       intptr_t* payload_length) {
@@ -575,14 +567,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle url) {
   return Dart_Null();
 }
-
-Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
-                                               Dart_Handle library,
-                                               Dart_Handle url,
-                                               const char* library_url_string,
-                                               const char* url_string) {
-  return Dart_Null();
-}
 #else
 static void MallocFinalizer(void* isolate_callback_data,
                             Dart_WeakPersistentHandle handle,
@@ -593,17 +577,27 @@ static void MallocFinalizer(void* isolate_callback_data,
 Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
+  const char* url_string = NULL;
+  Dart_Handle result = Dart_StringToCString(url, &url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
   if (tag == Dart_kCanonicalizeUrl) {
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
       return library_url;
     }
+    const char* library_url_string = NULL;
+    result = Dart_StringToCString(library_url, &library_url_string);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
+    bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
+    if (is_dart_scheme_url || is_dart_library) {
+      return url;
+    }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
-  }
-  const char* url_string = NULL;
-  Dart_Handle result = Dart_StringToCString(url, &url_string);
-  if (Dart_IsError(result)) {
-    return result;
   }
   if (tag == Dart_kKernelTag) {
     uint8_t* kernel_buffer = NULL;
@@ -650,27 +644,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     free(lib_path);
     return result;
   }
-  if (tag != Dart_kScriptTag) {
-    // Special case for handling dart: imports and parts.
-    // Grab the library's url.
-    Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (Dart_IsError(library_url)) {
-      return library_url;
-    }
-    const char* library_url_string = NULL;
-    result = Dart_StringToCString(library_url, &library_url_string);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-
-    bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
-    bool is_dart_library = DartUtils::IsDartSchemeURL(library_url_string);
-
-    if (is_dart_scheme_url || is_dart_library) {
-      return DartColonLibraryTagHandler(tag, library, url, library_url_string,
-                                        url_string);
-    }
-  }
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     // Handle early error cases for dart-ext: imports.
     if (tag != Dart_kImportTag) {
@@ -685,15 +658,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
 
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
-  if ((tag == Dart_kScriptTag) && Dart_IsString(library)) {
-    // Update packages file for isolate.
-    const char* packages_file = NULL;
-    Dart_Handle result = Dart_StringToCString(library, &packages_file);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    isolate_data->UpdatePackagesFile(packages_file);
-  }
+
   // Grab this isolate's loader.
   Loader* loader = NULL;
 
@@ -712,10 +677,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     loader = new Loader(isolate_data);
     loader->Init(isolate_data->isolate_group_data()->package_root,
                  isolate_data->packages_file(),
-                 DartUtils::original_working_directory,
-                 (tag == Dart_kScriptTag) ? url_string : NULL);
+                 DartUtils::original_working_directory, NULL);
   } else {
-    ASSERT(tag != Dart_kScriptTag);
     // The isolate has a loader -- this is an inner invocation that will queue
     // work with the service isolate.
     // Use the existing loader.
@@ -791,21 +754,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
       return error;
     }
   }
-  return Dart_Null();
-}
-
-Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
-                                               Dart_Handle library,
-                                               Dart_Handle url,
-                                               const char* library_url_string,
-                                               const char* url_string) {
-  // Handle canonicalization, 'import' and 'part' of 'dart:' libraries.
-  if (tag == Dart_kCanonicalizeUrl) {
-    // These will be handled internally.
-    return url;
-  }
-  // All cases should have been handled above.
-  UNREACHABLE();
   return Dart_Null();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

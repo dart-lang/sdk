@@ -401,7 +401,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
 
 #ifndef DART_PRECOMPILED_RUNTIME
   if (start_kernel_isolate) {
-    KernelIsolate::Run();
+    KernelIsolate::InitializeState();
   }
 #endif  // DART_PRECOMPILED_RUNTIME
 

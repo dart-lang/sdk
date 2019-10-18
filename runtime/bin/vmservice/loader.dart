@@ -952,9 +952,6 @@ void shutdownLoaders() {
 
 // See Dart_LibraryTag in dart_api.h
 const _Dart_kCanonicalizeUrl = 0; // Canonicalize the URL.
-const _Dart_kScriptTag = 1; // Load the root script.
-const _Dart_kSourceTag = 2; // Load a part source.
-const _Dart_kImportTag = 3; // Import a library.
 
 // Extra requests. Keep these in sync between loader.dart and builtin.dart.
 const _Dart_kInitLoader = 4; // Initialize the loader.

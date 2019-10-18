@@ -359,11 +359,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     }
     return Dart_DefaultCanonicalizeUrl(library_url, url);
   }
-  if (tag == Dart_kScriptTag) {
-    // Reload request.
-    UNREACHABLE();
-    return Dart_Null();
-  }
   if (!Dart_IsLibrary(library)) {
     return Dart_NewApiError("not a library");
   }
@@ -428,14 +423,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   // Do sync loading since unit_test doesn't support async.
   Dart_Handle source = DartUtils::ReadStringFromFile(resolved_url_chars);
   EXPECT_VALID(source);
-  if (tag == Dart_kImportTag) {
-    UNREACHABLE();
-    return Dart_Null();
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    UNREACHABLE();
-    return Dart_Null();
-  }
+  UNREACHABLE();
+  return Dart_Null();
 }
 
 static intptr_t BuildSourceFilesArray(

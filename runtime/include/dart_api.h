@@ -2908,8 +2908,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
 
 typedef enum {
   Dart_kCanonicalizeUrl = 0,
-  Dart_kScriptTag,
-  Dart_kSourceTag,
   Dart_kImportTag,
   Dart_kKernelTag,
   Dart_kImportExtensionTag,
@@ -2929,14 +2927,6 @@ typedef enum {
  * Dart_DefaultCanonicalizeUrl function is a sufficient implementation
  * of this tag.  The return value should be a string holding the
  * canonicalized url.
- *
- * Dart_kScriptTag
- *
- * No longer used.
- *
- * Dart_kSourceTag
- *
- * No longer used.
  *
  * Dart_kImportTag
  *
