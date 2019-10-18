@@ -164,9 +164,9 @@ enum ConstantTag {
 
 // Keep in sync with package:kernel/lib/ast.dart
 enum Nullability {
-  kNullable = 0,
-  kNonNullable = 1,
-  kNeither = 2,
+  kUndetermined = 0,
+  kNullable = 1,
+  kNonNullable = 2,
   kLegacy = 3,
 };
 
