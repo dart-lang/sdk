@@ -40,6 +40,7 @@ import 'rules/avoid_single_cascade_in_expression_statements.dart';
 import 'rules/avoid_slow_async_io.dart';
 import 'rules/avoid_types_as_parameter_names.dart';
 import 'rules/avoid_types_on_closure_parameters.dart';
+import 'rules/avoid_unnecessary_containers.dart';
 import 'rules/avoid_unused_constructor_parameters.dart';
 import 'rules/avoid_void_async.dart';
 import 'rules/avoid_web_libraries_in_flutter.dart';
@@ -197,6 +198,7 @@ void registerLintRules() {
     ..register(AvoidSlowAsyncIo())
     ..register(AvoidTypesAsParameterNames())
     ..register(AvoidTypesOnClosureParameters())
+    ..register(AvoidUnnecessaryContainers())
     ..register(AvoidUnusedConstructorParameters())
     ..register(AvoidVoidAsync())
     ..register(AvoidWebLibrariesInFlutter())

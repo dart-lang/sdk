@@ -15,6 +15,8 @@ class Column extends Widget {
 class Container extends Widget {
   Container({
     Widget child,
+    double width,
+    double height,
   });
 }
 

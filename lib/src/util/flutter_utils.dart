@@ -17,6 +17,10 @@ var _collectionInterfaces = <InterfaceTypeDefinition>[
 bool isWidgetType(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Widget', '');
 
+bool isContainerType(DartType type) =>
+    DartTypeUtilities.implementsInterface(type, 'Container', '');
+
+
 bool isWidgetProperty(DartType type) {
   if (isWidgetType(type)) {
     return true;
