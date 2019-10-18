@@ -1584,6 +1584,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               }
             }
           }
+          List<TypeVariableBuilder> typeVariables = type.typeVariables;
+          if (typeVariables != null) {
+            for (TypeVariableBuilder variable in typeVariables) {
+              if (usesTypeVariables(variable.bound)) {
+                return true;
+              }
+            }
+          }
           return usesTypeVariables(type.returnType);
         }
         return false;
