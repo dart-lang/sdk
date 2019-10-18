@@ -4934,7 +4934,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitNullCheck(NullCheck node) {
-    throw UnimplementedError('Unimplemented null check expression: $node');
+    var expr = node.operand;
+    // If the expression is non-nullable already, this is a no-op.
+    return isNullable(expr) ? notNull(expr) : _visitExpression(expr);
   }
 
   @override
