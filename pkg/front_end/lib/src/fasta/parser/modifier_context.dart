@@ -116,11 +116,9 @@ class ModifierRecoveryContext {
     if (memberKind == MemberKind.StaticMethod ||
         memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
-      this.covariantToken = null;
     } else if (memberKind == MemberKind.ExtensionNonStaticMethod ||
         memberKind == MemberKind.ExtensionStaticMethod) {
       reportExtraneousModifierInExtension(this.covariantToken);
-      this.covariantToken = null;
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
