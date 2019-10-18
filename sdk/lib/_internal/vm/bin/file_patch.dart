@@ -217,7 +217,9 @@ class _FileSystemWatcher {
         bool getIsDir(event) {
           if (Platform.isWindows) {
             // Windows does not get 'isDir' as part of the event.
-            return FileSystemEntity.isDirectorySync(getPath(event));
+            // Links should also be skipped.
+            return FileSystemEntity.isDirectorySync(getPath(event)) &&
+                !FileSystemEntity.isLinkSync(getPath(event));
           }
           return (event[0] & FileSystemEvent._isDir) != 0;
         }
