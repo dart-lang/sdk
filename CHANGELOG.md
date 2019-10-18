@@ -80,6 +80,26 @@ main() { foo(() {}); }
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
 
+### `dart:ffi`
+
+*   **Breaking change**: The API now makes use of static extension members.
+    Static extension members enable the `dart:ffi` API to be more precise with
+    types, and provide convenient access to memory through extension getters and
+    setters. The extension members on `Pointer` provide `.value` and `.value =`
+    for accessing the value in native memory and `[]` and `[]=` for indexed access.
+    The method `asExternalTypedData` has been replaced with `asTypedList` extension
+    methods. And finally, `Structs` do no longer have a type argument and are
+    accessed the extension member `.ref` on `Pointer`.
+    These changes makes the code using `dart:ffi` much more concise.
+*   **Breaking change**: The memory management has been removed (`Pointer.allocate`
+    and `Pointer.free`). Instead, memory management is available in
+    [package:ffi](https://pub.dev/packages/ffi).
+*   **Breaking change**: `Pointer.offsetBy` was removed, use `cast` and `elementAt`
+    instead.
+*   Faster memory load and stores.
+*   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
+*   Callbacks are now supported in AOT (ahead-of-time).
+
 ### Dart VM
 
 * Added a new tool for AOT compiling Dart programs to native, self-contained
