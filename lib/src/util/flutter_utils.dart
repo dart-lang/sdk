@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+
 import '../util/dart_type_utilities.dart';
 
 var _collectionInterfaces = <InterfaceTypeDefinition>[
@@ -14,12 +15,8 @@ var _collectionInterfaces = <InterfaceTypeDefinition>[
 ];
 
 // todo (pq): consider caching lookups
-bool isWidgetType(DartType type) =>
-    DartTypeUtilities.implementsInterface(type, 'Widget', '');
-
 bool isContainerType(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Container', '');
-
 
 bool isWidgetProperty(DartType type) {
   if (isWidgetType(type)) {
@@ -32,3 +29,6 @@ bool isWidgetProperty(DartType type) {
   }
   return false;
 }
+
+bool isWidgetType(DartType type) =>
+    DartTypeUtilities.implementsInterface(type, 'Widget', '');
