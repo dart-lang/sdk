@@ -24,8 +24,6 @@ dependencies:
 dev_dependencies:
   cli_util: ^0.1.2
   dart_style: ^1.2.5
-  flutter:
-    path: test/mock_packages/flutter
   github: ^5.0.0
   grinder: ^0.8.0
   http: ^0.12.0
