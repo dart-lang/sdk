@@ -73,10 +73,10 @@ Future<Result> runGenSnapshot(String prefix, List<String> arguments) {
 }
 
 Future<Result> runBinary(String prefix, String binary, List<String> arguments,
-    {Map<String, String> environment}) async {
+    {Map<String, String> environment, bool runInShell: false}) async {
   print("+ $binary " + arguments.join(" "));
-  final processResult =
-      await Process.run(binary, arguments, environment: environment);
+  final processResult = await Process.run(binary, arguments,
+      environment: environment, runInShell: runInShell);
   final result =
       new Result('[$prefix] ${binary} ${arguments.join(' ')}', processResult);
 
