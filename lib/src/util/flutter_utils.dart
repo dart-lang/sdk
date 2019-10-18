@@ -14,7 +14,6 @@ var _collectionInterfaces = <InterfaceTypeDefinition>[
   InterfaceTypeDefinition('LinkedHashSet', 'dart.collection'),
 ];
 
-// todo (pq): consider caching lookups
 bool isContainerType(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Container', '');
 
@@ -30,5 +29,6 @@ bool isWidgetProperty(DartType type) {
   return false;
 }
 
+/// todo (pq): consider caching lookups
 bool isWidgetType(DartType type) =>
     DartTypeUtilities.implementsInterface(type, 'Widget', '');
