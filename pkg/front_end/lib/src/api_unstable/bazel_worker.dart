@@ -68,6 +68,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     FileSystem fileSystem,
     Iterable<String> experiments,
     bool outlineOnly,
+    Map<String, String> environmentDefines,
     {bool trackNeededDillLibraries: false}) async {
   List<Component> outputLoadedInputSummaries =
       new List<Component>(summaryInputs.length);
@@ -88,7 +89,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       experimentalFlags: experimentalFlags,
       outlineOnly: outlineOnly,
       omitPlatform: true,
-      trackNeededDillLibraries: trackNeededDillLibraries);
+      trackNeededDillLibraries: trackNeededDillLibraries,
+      environmentDefines: environmentDefines);
 }
 
 Future<InitializedCompilerState> initializeCompiler(
@@ -100,7 +102,8 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> linkedInputs,
     Target target,
     FileSystem fileSystem,
-    Iterable<String> experiments) async {
+    Iterable<String> experiments,
+    Map<String, String> environmentDefines) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -114,7 +117,7 @@ Future<InitializedCompilerState> initializeCompiler(
     ..linkedDependencies = linkedInputs
     ..target = target
     ..fileSystem = fileSystem
-    ..environmentDefines = const {}
+    ..environmentDefines = environmentDefines
     ..experimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e);
