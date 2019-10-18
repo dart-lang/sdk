@@ -4,15 +4,7 @@
 
 // test w/ `pub run test -N prefer_const_constructors`
 
-
-/// Inlined for testing.
-library meta;
-
-class _Literal {
-  const _Literal();
-}
-
-const _Literal literal = _Literal();
+import 'package:meta/meta.dart';
 
 class A {
   const A({A parent});

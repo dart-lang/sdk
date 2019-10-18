@@ -4,16 +4,7 @@
 
 // test w/ `pub run test -N unnecessary_getters_setters`
 
-// Hack to work around issues importing `meta.dart` in tests.
-// Ideally, remove:
-library meta;
-
-class _Protected {
-  const _Protected();
-}
-
-const _Protected protected = const _Protected();
-
+import 'package:meta/meta.dart';
 
 class Box {
   var _contents;

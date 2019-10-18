@@ -4,15 +4,7 @@
 
 // test w/ `pub run test -N always_require_non_null_named_parameters`
 
-// Hack to work around issues importing `meta.dart` in tests.
-// Ideally, remove:
-library meta;
-
-class _Required {
-  const _Required();
-}
-
-const _Required required = const _Required();
+import 'package:meta/meta.dart';
 
 m1(
   a,
