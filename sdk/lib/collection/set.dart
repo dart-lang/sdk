@@ -299,7 +299,11 @@ abstract class SetMixin<E> implements Set<E> {
 /// `clear` in constant time. The default implementation works by removing every
 /// element.
 abstract class SetBase<E> extends Object with SetMixin<E> {
-  /// Convert a `Set` to a string as `{each, element, as, string}`.
+  /// Converts a [Set] to a [String].
+  ///
+  /// Converts [set] to a string by converting each element to a string (by
+  /// calling [Object.toString]), joining them with ", ", and wrapping the
+  /// result in "{" and "}".
   ///
   /// Handles circular references where converting one of the elements
   /// to a string ends up converting [set] to a string again.
