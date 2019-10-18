@@ -1742,80 +1742,72 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              Register array,
                                              intptr_t index) const {
   const int64_t offset =
-      index * index_scale +
-      (is_external ? 0
-                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * index_scale + HeapDataOffset(is_external, cid);
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
 }
 
-void Assembler::LoadElementAddressForIntIndex(Register address,
-                                              bool is_external,
-                                              intptr_t cid,
-                                              intptr_t index_scale,
-                                              Register array,
-                                              intptr_t index) {
+void Assembler::ComputeElementAddressForIntIndex(Register address,
+                                                 bool is_external,
+                                                 intptr_t cid,
+                                                 intptr_t index_scale,
+                                                 Register array,
+                                                 intptr_t index) {
   const int64_t offset =
-      index * index_scale +
-      (is_external ? 0
-                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      index * index_scale + HeapDataOffset(is_external, cid);
   AddImmediate(address, array, offset);
 }
 
-Address Assembler::ElementAddressForRegIndex(bool is_load,
-                                             bool is_external,
+Address Assembler::ElementAddressForRegIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
                                              Register array,
-                                             Register index) {
-  return ElementAddressForRegIndexWithSize(is_load,
-                                           is_external,
+                                             Register index,
+                                             Register temp) {
+  return ElementAddressForRegIndexWithSize(is_external,
                                            cid,
                                            Address::OperandSizeFor(cid),
                                            index_scale,
                                            array,
-                                           index);
+                                           index,
+                                           temp);
 }
 
-Address Assembler::ElementAddressForRegIndexWithSize(bool is_load,
-                                                     bool is_external,
+Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
                                                      intptr_t cid,
                                                      OperandSize size,
                                                      intptr_t index_scale,
                                                      Register array,
-                                                     Register index) {
+                                                     Register index,
+                                                     Register temp) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset =
-      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
-  ASSERT(array != TMP);
-  ASSERT(index != TMP);
-  const Register base = is_load ? TMP : index;
+  const int32_t offset = HeapDataOffset(is_external, cid);
+  ASSERT(array != temp);
+  ASSERT(index != temp);
   if ((offset == 0) && (shift == 0)) {
     return Address(array, index, UXTX, Address::Unscaled);
   } else if (shift < 0) {
     ASSERT(shift == -1);
-    add(base, array, Operand(index, ASR, 1));
+    add(temp, array, Operand(index, ASR, 1));
   } else {
-    add(base, array, Operand(index, LSL, shift));
+    add(temp, array, Operand(index, LSL, shift));
   }
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(base, offset, Address::Offset, size);
+  return Address(temp, offset, Address::Offset, size);
 }
 
-void Assembler::LoadElementAddressForRegIndex(Register address,
-                                              bool is_load,
-                                              bool is_external,
-                                              intptr_t cid,
-                                              intptr_t index_scale,
-                                              Register array,
-                                              Register index) {
+void Assembler::ComputeElementAddressForRegIndex(Register address,
+                                                 bool is_external,
+                                                 intptr_t cid,
+                                                 intptr_t index_scale,
+                                                 Register array,
+                                                 Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset =
-      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const int32_t offset = HeapDataOffset(is_external, cid);
   if (shift == 0) {
     add(address, array, Operand(index));
   } else if (shift < 0) {

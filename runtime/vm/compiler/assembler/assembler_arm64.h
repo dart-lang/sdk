@@ -1623,37 +1623,44 @@ class Assembler : public AssemblerBase {
                                     intptr_t index_scale,
                                     Register array,
                                     intptr_t index) const;
-  void LoadElementAddressForIntIndex(Register address,
-                                     bool is_external,
-                                     intptr_t cid,
-                                     intptr_t index_scale,
-                                     Register array,
-                                     intptr_t index);
-  Address ElementAddressForRegIndex(bool is_load,
-                                    bool is_external,
+  void ComputeElementAddressForIntIndex(Register address,
+                                        bool is_external,
+                                        intptr_t cid,
+                                        intptr_t index_scale,
+                                        Register array,
+                                        intptr_t index);
+  Address ElementAddressForRegIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
-                                    Register index);
+                                    Register index,
+                                    Register temp);
 
   // Special version of ElementAddressForRegIndex for the case when cid and
   // operand size for the target load don't match (e.g. when loading a few
   // elements of the array with one load).
-  Address ElementAddressForRegIndexWithSize(bool is_load,
-                                            bool is_external,
+  Address ElementAddressForRegIndexWithSize(bool is_external,
                                             intptr_t cid,
                                             OperandSize size,
                                             intptr_t index_scale,
                                             Register array,
-                                            Register index);
+                                            Register index,
+                                            Register temp);
 
-  void LoadElementAddressForRegIndex(Register address,
-                                     bool is_load,
-                                     bool is_external,
-                                     intptr_t cid,
-                                     intptr_t index_scale,
-                                     Register array,
-                                     Register index);
+  void ComputeElementAddressForRegIndex(Register address,
+                                        bool is_external,
+                                        intptr_t cid,
+                                        intptr_t index_scale,
+                                        Register array,
+                                        Register index);
+
+  // Returns object data offset for address calculation; for heap objects also
+  // accounts for the tag.
+  static int32_t HeapDataOffset(bool is_external, intptr_t cid) {
+    return is_external ?
+          0 :
+          (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  }
 
   static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
     const int32_t imm32 = static_cast<int32_t>(imm);

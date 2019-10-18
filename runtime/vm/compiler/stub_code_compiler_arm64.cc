@@ -385,12 +385,12 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ LoadFieldFromOffset(R9, R9,
                          compiler::target::GrowableObjectArray::data_offset());
   __ ldr(R9, __ ElementAddressForRegIndex(
-                 /*is_load=*/true,
                  /*external=*/false,
                  /*array_cid=*/kArrayCid,
                  /*index, smi-tagged=*/compiler::target::kWordSize * 2,
                  /*array=*/R9,
-                 /*index=*/R8));
+                 /*index=*/R8,
+                 /*temp=*/TMP));
   __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
 
   // Clobbers all volatile registers, including the callback ID in R8.
@@ -1430,7 +1430,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
 
 #if defined(TARGET_OS_FUCHSIA)
-  __ mov (R3, THR);
+  __ mov(R3, THR);
 #endif
 
   __ PopNativeCalleeSavedRegisters();  // Clobbers THR
@@ -1569,7 +1569,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
 #if defined(TARGET_OS_FUCHSIA)
-  __ mov (R3, THR);
+  __ mov(R3, THR);
 #endif
 
   __ PopNativeCalleeSavedRegisters();  // Clobbers THR
