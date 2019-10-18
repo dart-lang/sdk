@@ -67,6 +67,8 @@ abstract class Timer {
    * a `duration` after either when the previous callback ended,
    * when the previous callback started, or when the previous callback was
    * scheduled for - even if the actual callback was delayed.
+   *
+   * [duration] must a non-negative [Duration].
    */
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
