@@ -4,18 +4,7 @@
 
 // test w/ `pub run test -N always_specify_types`
 
-// Hack to work around issues importing `meta.dart` in tests.
-// Ideally, remove:
-library meta;
-
-class _OptionalTypeArgs {
-  const _OptionalTypeArgs();
-}
-
-const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
-
-// ... and replace w/:
-// import 'package:meta/meta.dart';
+import 'package:meta/meta.dart';
 
 Map<String, String> map = {}; //LINT
 List<String> strings = []; //LINT

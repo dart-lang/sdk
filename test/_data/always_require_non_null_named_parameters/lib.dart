@@ -1,10 +1,4 @@
-library meta;
-
-class _Required {
-  const _Required();
-}
-
-const _Required required = const _Required();
+import 'package:meta/meta.dart';
 
 class A {
   var a;

@@ -1,10 +1,4 @@
-library meta;
-
-class _Immutable {
-  const _Immutable();
-}
-
-const _Immutable immutable = const _Immutable();
+import 'package:meta/meta.dart';
 
 @immutable
 class D {

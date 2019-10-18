@@ -4,15 +4,7 @@
 
 // test w/ `pub run test -N avoid_equals_and_hash_code_on_mutable_classes`
 
-// Hack to work around issues importing `meta.dart` in tests.
-// Ideally, remove:
-library meta;
-
-class _Immutable {
-  const _Immutable();
-}
-
-const _Immutable immutable = _Immutable();
+import 'package:meta/meta.dart';
 
 @immutable
 class A {

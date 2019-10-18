@@ -572,7 +572,9 @@ defineTests() {
       test('only throw errors', () async {
         await cli.runLinter([
           'test/_data/always_require_non_null_named_parameters',
-          '--rules=always_require_non_null_named_parameters'
+          '--rules=always_require_non_null_named_parameters',
+          '--packages',
+          'test/rules/.mock_packages',
         ], LinterOptions());
         expect(
             collectingOut.trim(),
@@ -624,7 +626,9 @@ defineTests() {
       test('only throw errors', () async {
         await cli.runLinter([
           'test/_data/prefer_const_constructors_in_immutables',
-          '--rules=prefer_const_constructors_in_immutables'
+          '--rules=prefer_const_constructors_in_immutables',
+          '--packages',
+          'test/rules/.mock_packages',
         ], LinterOptions());
         expect(
             collectingOut.trim(),
