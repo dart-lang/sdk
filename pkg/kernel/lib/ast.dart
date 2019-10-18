@@ -97,6 +97,12 @@ abstract class Node {
   /// (possibly synthesized) name, whereas other AST nodes return the complete
   /// textual representation of their subtree.
   String toString() => debugNodeToString(this);
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// Note that this adds some nodes to a static map to ensure consistent
+  /// naming, but that it thus also leaks memory.
+  String leakingDebugToString() => debugNodeToString(this);
 }
 
 /// A mutable AST node with a parent pointer.
@@ -5301,6 +5307,12 @@ abstract class Name implements Node {
   visitChildren(Visitor v) {
     // DESIGN TODO: Should we visit the library as a library reference?
   }
+
+  /// Returns the textual representation of this node for use in debugging.
+  ///
+  /// Note that this adds some nodes to a static map to ensure consistent
+  /// naming, but that it thus also leaks memory.
+  String leakingDebugToString() => debugNodeToString(this);
 }
 
 class _PrivateName extends Name {
