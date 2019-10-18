@@ -63,7 +63,7 @@ Future<void> main(List<String> args) async {
       Map<String, String> environment = {'PATH': tmp};
       final runResult = await runBinary(
           'run appended aot snapshot from PATH', exeName, ['--child'],
-          environment: environment);
+          environment: environment, runInShell: true);
       expectOutput('Hello, Appended AOT', runResult);
     }
 
@@ -76,7 +76,8 @@ Future<void> main(List<String> args) async {
           'run appended aot snapshot without extension',
           exeNameWithoutExt,
           ['--child'],
-          environment: environment);
+          environment: environment,
+          runInShell: true);
       expectOutput('Hello, Appended AOT', runResult);
     }
   });
