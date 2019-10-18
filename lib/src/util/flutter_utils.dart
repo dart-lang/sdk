@@ -19,6 +19,9 @@ _Flutter _flutterInstance = _Flutter('flutter', 'package:flutter');
 
 _Flutter get _flutter => _flutterInstance;
 
+bool isExactWidgetTypeContainer(DartType type) =>
+    _flutter.isExactWidgetTypeContainer(type);
+
 bool isWidgetProperty(DartType type) {
   if (isWidgetType(type)) {
     return true;
