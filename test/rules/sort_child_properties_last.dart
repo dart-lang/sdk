@@ -6,6 +6,8 @@
 
 // ignore_for_file: prefer_expression_function_bodies
 
+import 'package:flutter/widgets.dart';
+
 class W0 extends Widget {
   @override
   Widget build(BuildContext context) {
@@ -73,36 +75,5 @@ class W4 extends Widget {
       ),
     );
   }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-class BuildContext {}
-
-abstract class Widget {
-  const Widget();
-  Widget build(BuildContext context) => null;
-}
-
-class Scaffold extends Widget {
-  const Scaffold({
-    int key,
-    Widget body,
-    // ...
-  });
-}
-
-class Center extends Widget {
-  const Center(
-      {int key, double widthFactor, double heightFactor, Widget child});
-}
-
-class Column extends Widget {
-  Column({
-    int key,
-    List<Widget> children = const <Widget>[],
-  });
 }
 
