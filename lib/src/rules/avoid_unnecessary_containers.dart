@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor {
         final parentCreation =
             parent.thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
-          if (isContainerType(parentCreation.staticType)) {
+          if (isExactWidgetTypeContainer(parentCreation.staticType)) {
             rule.reportLint(parentCreation.constructorName);
           }
         }
