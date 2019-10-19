@@ -589,6 +589,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     assert(formals.isNotEmpty);
     var name = getTopLevelName(c);
     var jsFormals = _emitTypeFormals(formals);
+
+    // Checks for explicitly set variance to avoid emitting legacy covariance
+    // Variance annotations are not necessary when variance experiment flag is
+    // not enabled or when no type parameters have explicitly defined
+    // variances.
+    var hasOnlyLegacyCovariance = formals.every((t) => t.isLegacyCovariant);
+    if (!hasOnlyLegacyCovariance) {
+      var varianceList = formals.map(_emitVariance);
+      var varianceStatement = runtimeStatement(
+          'setGenericArgVariances(#, [#])', [className, varianceList]);
+      body = js_ast.Statement.from([body, varianceStatement]);
+    }
+
     var typeConstructor = js.call('(#) => { #; #; return #; }', [
       jsFormals,
       _typeTable.discharge(formals),
@@ -607,6 +620,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
     return js.statement('{ # = #; # = #(); }',
         [genericName, genericCall, _emitTopLevelName(c), genericName]);
+  }
+
+  js_ast.Expression _emitVariance(TypeParameter typeParameter) {
+    switch (typeParameter.variance) {
+      case Variance.contravariant:
+        return runtimeCall('Variance.contravariant');
+      case Variance.invariant:
+        return runtimeCall('Variance.invariant');
+      case Variance.unrelated:
+        return runtimeCall('Variance.unrelated');
+      case Variance.covariant:
+      default:
+        return runtimeCall('Variance.covariant');
+    }
   }
 
   js_ast.Statement _emitClassStatement(Class c, js_ast.Expression className,

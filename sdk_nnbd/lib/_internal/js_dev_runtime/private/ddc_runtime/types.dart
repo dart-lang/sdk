@@ -585,6 +585,13 @@ class TypeVariable extends DartType {
   toString() => name;
 }
 
+class Variance {
+  static const int unrelated = 0;
+  static const int covariant = 1;
+  static const int contravariant = 2;
+  static const int invariant = 3;
+}
+
 class GenericFunctionType extends AbstractFunctionType {
   final _instantiateTypeParts;
   final int formalCount;
