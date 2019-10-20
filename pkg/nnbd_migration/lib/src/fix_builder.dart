@@ -313,6 +313,22 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   }
 
   @override
+  DartType visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    var targetType = visitSubexpression(node.function, typeProvider.objectType);
+    if (targetType is FunctionType) {
+      return _handleInvocationArguments(node, node.argumentList.arguments,
+          node.typeArguments, node.typeArgumentTypes, targetType, null,
+          invokeType: node.staticInvokeType);
+    } else {
+      // Dynamic dispatch.  The return type is `dynamic`.
+      node.typeArguments?.accept(this);
+      node.argumentList.accept(this);
+      return typeProvider.dynamicType;
+    }
+  }
+
+  @override
   DartType visitIfStatement(IfStatement node) {
     visitSubexpression(node.condition, typeProvider.boolType);
     _flowAnalysis.ifStatement_thenBegin(node.condition);
