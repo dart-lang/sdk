@@ -24,6 +24,8 @@ if (!(foo is Foo)) {
 if (foo is! Foo) {
   ...
 }
+```
+
 ''';
 
 class PreferIsNotOperator extends LintRule implements NodeLintRule {
