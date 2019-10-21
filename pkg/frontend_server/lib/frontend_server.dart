@@ -435,6 +435,7 @@ class FrontendCompiler implements CompilerInterface {
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
           environmentDefines: environmentDefines,
+          enableAsserts: options['enable-asserts'],
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
     }
     if (results.component != null) {
