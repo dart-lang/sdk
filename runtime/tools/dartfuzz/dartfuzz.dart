@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.62';
+const String version = '1.63';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1218,13 +1218,8 @@ class DartFuzz {
     switch (r) {
       // Favors elements over control-flow collections.
       case 0:
-        // TODO (ajcbik): Remove restriction once compiler is fixed.
-        if (depth < 2) {
-          emitLn('...', newline: false); // spread
-          emitCollection(depth + 1, tp, rhsFilter: rhsFilter);
-        } else {
-          emitElement(depth, tp, rhsFilter: rhsFilter);
-        }
+        emitLn('...', newline: false); // spread
+        emitCollection(depth + 1, tp, rhsFilter: rhsFilter);
         break;
       case 1:
         emitLn('if ', newline: false);
