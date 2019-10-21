@@ -45,15 +45,18 @@ class BufferedWriter {
 
   int get offset => bytes.length;
 
+  @pragma('vm:prefer-inline')
   void writeByte(int value) {
     assert((value >> 8) == 0);
     bytes.addByte(value);
   }
 
+  @pragma('vm:prefer-inline')
   void writeBytes(List<int> values) {
     bytes.add(values);
   }
 
+  @pragma('vm:prefer-inline')
   void writeUInt32(int value) {
     if ((value >> 32) != 0) {
       throw 'Unable to write $value as 32-bit unsigned integer';
@@ -65,6 +68,7 @@ class BufferedWriter {
     bytes.addByte(value & 0xFF);
   }
 
+  @pragma('vm:prefer-inline')
   void writePackedUInt30(int value) {
     if ((value >> 30) != 0) {
       throw 'Unable to write $value as 30-bit unsigned integer';
@@ -82,6 +86,7 @@ class BufferedWriter {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void writeSLEB128(int value) {
     bool last = false;
     do {
@@ -97,14 +102,17 @@ class BufferedWriter {
     } while (!last);
   }
 
+  @pragma('vm:prefer-inline')
   void writePackedStringReference(String value) {
     writePackedUInt30(stringWriter.put(value));
   }
 
+  @pragma('vm:prefer-inline')
   void writePackedObject(BytecodeObject object) {
     objectWriter.writeObject(object, this);
   }
 
+  @pragma('vm:prefer-inline')
   void writePackedList(List<BytecodeObject> objects) {
     writePackedUInt30(objects.length);
     for (var obj in objects) {
@@ -112,6 +120,7 @@ class BufferedWriter {
     }
   }
 
+  @pragma('vm:prefer-inline')
   void writeLinkOffset(Object target) {
     final offset = linkWriter.getOffset(target);
     writePackedUInt30(offset);
