@@ -82,7 +82,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.3.1",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.2",  # Please see the note above before updating.
 
   "args_tag" : "1.5.2",
   "dartdoc_tag" : "v0.28.8",
