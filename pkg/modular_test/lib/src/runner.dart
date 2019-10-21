@@ -87,7 +87,8 @@ class Options {
               ' and `shards - 1`.')
       ..addOption('output-directory',
           help: 'location where to emit the jsonl result and log files')
-      ..addOption('configuration-name',
+      ..addOption('named-configuration',
+          abbr: 'n',
           help: 'configuration name to use for emitting jsonl result files.');
     ArgResults argResults = parser.parse(args);
     int shards = int.tryParse(argResults['shards']) ?? 1;
@@ -108,7 +109,7 @@ class Options {
       ..filter = argResults['filter']
       ..shards = shards
       ..shard = shard
-      ..configurationName = argResults['configuration-name']
+      ..configurationName = argResults['named-configuration']
       ..outputDirectory = toUri(argResults['output-directory']);
   }
 }

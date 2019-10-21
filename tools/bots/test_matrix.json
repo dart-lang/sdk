@@ -1218,8 +1218,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_ddc_suite.dart",
-            "--configuration-name",
-            "dartdevc-${system}-release",
+            "-ndartdevc-${system}-release",
             "--verbose",
             "--use-sdk"
           ]
@@ -1230,8 +1229,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_suite.dart",
-            "--configuration-name",
-            "dartdevk-${system}-release",
+            "-ndartdevk-${system}-release",
             "--verbose",
             "--use-sdk"
           ]
@@ -1385,8 +1383,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/dev_compiler/test/modular_suite.dart",
-            "--configuration-name",
-            "dartdevk-${system}-release",
+            "-ndartdevk-${system}-release",
             "--verbose",
             "--use-sdk"
           ]
@@ -1521,8 +1518,7 @@
           "testRunner": true,
           "arguments": [
             "pkg/compiler/tool/modular_test_suite.dart",
-            "--configuration-name",
-            "dart2js-${system}-release-d8",
+            "-ndart2js-${system}-release-d8",
             "--verbose",
             "--use-sdk"
           ]
