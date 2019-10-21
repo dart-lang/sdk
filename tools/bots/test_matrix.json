@@ -493,7 +493,9 @@
       "options": {
         "checked": true,
         "use-sdk": true,
-        "enable-experiment": ["non-nullable"]
+        "enable-experiment": ["non-nullable"],
+        "enable-asserts": true
+
     }},
     "fasta-(linux|mac|win)": { },
     "analyzer-(linux|mac|win)": {

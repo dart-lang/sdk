@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
+// Requirements=nnbd-strong
+
 import 'dart:_runtime' as dart;
 import 'dart:async';
 
-import 'package:expect/expect.dart';
-
-// Requirements=nnbd-strong
+import 'runtime_utils.dart';
 
 class A {}
 
@@ -21,89 +20,6 @@ class D<T extends B> {}
 class E<T, S> {}
 
 class F extends E<B, B> {}
-
-// Returns sWrapped<tWrapped> as a wrapped type.
-Type generic1(Type sWrapped, Type tWrapped) {
-  var s = dart.unwrapType(sWrapped);
-  var t = dart.unwrapType(tWrapped);
-  var sGeneric = dart.getGenericClass(s);
-  return dart.wrapType(JS('', '#(#)', sGeneric, t));
-}
-
-// Returns sWrapped<tWrapped, rWrapped> as a wrapped type.
-Type generic2(Type sWrapped, Type tWrapped, Type rWrapped) {
-  var s = dart.unwrapType(sWrapped);
-  var t = dart.unwrapType(tWrapped);
-  var r = dart.unwrapType(rWrapped);
-  var sGeneric = dart.getGenericClass(s);
-  return dart.wrapType(JS('', '#(#, #)', sGeneric, t, r));
-}
-
-// Returns a function type of argWrapped -> returnWrapped as a wrapped type.
-Type function1(Type returnWrapped, Type argWrapped) {
-  var returnType = dart.unwrapType(returnWrapped);
-  var argType = dart.unwrapType(argWrapped);
-  var fun = dart.fnType(returnType, [argType]);
-  return dart.wrapType(fun);
-}
-
-// Returns a function type with a bounded type argument that takes no argument
-// and returns void as a wrapped type.
-Type genericFunction(Type boundWrapped) => dart.wrapType(dart.gFnType(
-    (T) => [dart.VoidType, []], (T) => [dart.unwrapType(boundWrapped)]));
-
-// Returns a function type with a bounded generic return type of
-// <T extends boundWrapped> argWrapped -> T as a wrapped type.
-Type functionGenericReturn(Type boundWrapped, Type argWrapped) =>
-    dart.wrapType(dart.gFnType(
-        (T) => [
-              T,
-              [dart.unwrapType(argWrapped)]
-            ],
-        (T) => [dart.unwrapType(boundWrapped)]));
-
-// Returns a function with a bounded generic argument type of
-// <T extends boundWrapped> T -> returnWrapped as a wrapped type.
-Type functionGenericArg(Type boundWrapped, Type returnWrapped) =>
-    dart.wrapType(dart.gFnType(
-        (T) => [
-              dart.unwrapType(returnWrapped),
-              [T]
-            ],
-        (T) => [dart.unwrapType(boundWrapped)]));
-
-void checkSubtype(Type sWrapped, Type tWrapped) {
-  var s = dart.unwrapType(sWrapped);
-  var t = dart.unwrapType(tWrapped);
-  Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
-}
-
-void checkProperSubtype(Type sWrapped, Type tWrapped) {
-  var s = dart.unwrapType(sWrapped);
-  var t = dart.unwrapType(tWrapped);
-  Expect.isTrue(dart.isSubtypeOf(s, t), '$s should be subtype of $t.');
-  checkSubtypeFailure(tWrapped, sWrapped);
-}
-
-void checkSubtypeFailure(Type sWrapped, Type tWrapped) {
-  var s = dart.unwrapType(sWrapped);
-  var t = dart.unwrapType(tWrapped);
-  Expect.isFalse(dart.isSubtypeOf(s, t), '$s should not be subtype of $t.');
-}
-
-// Returns tWrapped? as a wrapped type.
-Type nullable(Type tWrapped) {
-  var t = dart.unwrapType(tWrapped);
-  var tNullable = dart.nullable(t);
-  return dart.wrapType(tNullable);
-}
-
-// Returns tWrapped* as a wrapped type.
-Type legacy(Type tWrapped) {
-  var t = dart.unwrapType(tWrapped);
-  var tLegacy = dart.legacy(t);
-  return dart.wrapType(tLegacy);
-}
 
 void main() {
   // dynamic <\: A

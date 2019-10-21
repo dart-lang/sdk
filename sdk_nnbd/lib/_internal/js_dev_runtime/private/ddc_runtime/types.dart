@@ -202,43 +202,60 @@ anonymousJSType(String name) {
   return ret;
 }
 
-/// Returns a nullable version of [type].
-///
-/// The resulting type will be normalized to avoid nesting the use of nullable
-/// (question) and legacy (star).
-@notNull
-DartType nullable(type) {
-  // Normalize and / or wrap the type.
-  // Given: T? -> T | Null
-  // Then: T?? -> T? | Null -> T | Null | Null -> T?
-  if (type is NullableType) return type;
-  // Then T*? -> (T? | T)? -> T?? | T? -> T?
-  if (type is LegacyType) return nullable(type.type);
+/// A javascript Symbol used to store a canonical version of T? on T.
+final _cachedNullable = JS('', 'Symbol("cachedNullable")');
 
-  return NullableType(type);
+/// A javascript Symbol used to store a canonical version of T* on T.
+final _cachedLegacy = JS('', 'Symbol("cachedLegacy")');
+
+/// Returns a nullable (question, ?) version of [type].
+///
+/// The resulting type returned in a normalized form based on the rules from the
+/// normalization doc: https://github.com/dart-lang/language/pull/456
+// TODO(nshahan): Update after the normalization doc PR lands.
+@notNull
+Object nullable(type) {
+  if (_isNullable(type) || _isTop(type) || _isNullType(type)) return type;
+  if (type == never_) return unwrapType(Null);
+  if (_isLegacy(type)) type = type.type;
+
+  // Check if a nullable version of this type has already been created.
+  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedNullable)) {
+    return JS<NullableType>('!', '#[#]', type, _cachedNullable);
+  }
+  // Cache a canonical nullable version of this type on this type.
+  var cachedType = NullableType(type);
+  JS('', '#[#] = #', type, _cachedNullable, cachedType);
+  return cachedType;
 }
 
-/// Returns a legacy version of [type].
+/// Returns a legacy (star, *) version of [type].
 ///
-/// The resulting type will be normalized to avoid nesting the use of nullable
-/// (question) and legacy (star).
+/// The resulting type returned in a normalized form based on the rules from the
+/// normalization doc: https://github.com/dart-lang/language/pull/456
+// TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
 DartType legacy(type) {
-  // Normalize and / or wrap the type.
-  // Given: T* -> T? | T
-  // Then: T** -> T*? | T* ->  (T? | T)? | T? | T -> T? | T -> T*
-  // Then: T?* -> T?? | T? -> T?
-  if (type is LegacyType || type is NullableType) return type;
+  // TODO(nshahan) Maybe normailize never*,  Null*.
+  if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
 
-  return LegacyType(type);
+  // Check if a legacy version of this type has already been created.
+  if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedLegacy)) {
+    return JS<NullableType>('!', '#[#]', type, _cachedLegacy);
+  }
+  // Cache a canonical legacy version of this type on this type.
+  var cachedType = LegacyType(type);
+  JS('', '#[#] = #', type, _cachedLegacy, cachedType);
+  return cachedType;
 }
 
-// TODO(nshahan) Revisit this representation to support caching of the subtype
-// check results.
+/// A wrapper to identify a nullable (question, ?) type of the form [type]?.
 class NullableType extends DartType {
   final Type type;
 
-  NullableType(this.type);
+  NullableType(this.type)
+      : assert(type is! NullableType),
+        assert(type is! LegacyType);
 
   @override
   String get name => '$type?';
@@ -247,12 +264,13 @@ class NullableType extends DartType {
   String toString() => name;
 }
 
-// TODO(nshahan) Revisit this representation to support caching of the subtype
-// check results.
+/// A wrapper to identify a legacy (star, *) type of the form [type]*.
 class LegacyType extends DartType {
   final Type type;
 
-  LegacyType(this.type);
+  LegacyType(this.type)
+      : assert(type is! LegacyType),
+        assert(type is! NullableType);
 
   @override
   String get name => '$type*';
@@ -921,19 +939,18 @@ _isFunctionSubtype(ft1, ft2) => JS('', '''(() => {
 bool isSubtypeOf(Object t1, Object t2) {
   // TODO(jmesserly): we've optimized `is`/`as`/implicit type checks, so they're
   // dispatched on the type. Can we optimize the subtype relation too?
-  // Object map;
-  // if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
-  //   JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
-  //   _cacheMaps.add(map);
-  // } else {
-  //   map = JS('', '#[#]', t1, _subtypeCache);
-  //   bool result = JS('', '#.get(#)', map, t2);
-  //   if (JS('!', '# !== void 0', result)) return result;
-  // }
-  // TODO(nshahan) Read and write cache when it's stored on nnbd-wrapper type.
+  Object map;
+  if (JS('!', '!#.hasOwnProperty(#)', t1, _subtypeCache)) {
+    JS('', '#[#] = # = new Map()', t1, _subtypeCache, map);
+    _cacheMaps.add(map);
+  } else {
+    map = JS('', '#[#]', t1, _subtypeCache);
+    bool result = JS('', '#.get(#)', map, t2);
+    if (JS('!', '# !== void 0', result)) return result;
+  }
   // TODO(nshahan): Add support for strict/weak mode.
   var result = _isSubtype(t1, t2);
-  // JS('', '#.set(#, #)', map, t2, result);
+  JS('', '#.set(#, #)', map, t2, result);
   return result;
 }
 
@@ -946,30 +963,25 @@ bool _isBottom(type) => JS('!', '# == #', type, bottom);
 // TODO(nshahan): Add support for strict/weak mode.
 @notNull
 bool _isTop(type) {
-  if (_isFutureOr(type)) {
-    return _isTop(JS('', '#[0]', getGenericArgs(type)));
-  }
-
-  if (_isNullable(type)) {
-    if (JS('!', '# == #', type.type, Object)) {
-      return true;
-    }
-    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
-    // TODO(nshahan): Handle Object* in a way that ensures
-    // instanceOf(null, Object*) returns true.
-    return _isTop(type.type);
-  }
-
-  if (_isLegacy(type)) {
-    // TODO(nshahan): Revisit after deciding on normalization of NNBD top types.
-    return _isTop(type.type);
-  }
+  // TODO(nshahan): Handle Object* in a way that ensures
+  // instanceOf(null, Object*) returns true.
+  if (_isFutureOr(type)) return _isTop(JS('', '#[0]', getGenericArgs(type)));
+  if (_isNullable(type)) return (JS('!', '# == #', type.type, Object));
 
   return JS('!', '# == # || # == #', type, dynamic, type, void_);
 }
 
-_isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
-_isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
+/// Returns `true` if [type] represents a nullable (question, ?) type.
+@notNull
+bool _isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
+
+/// Returns `true` if [type] represents a legacy (star, *) type.
+@notNull
+bool _isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
+
+/// Returns `true` if [type] is the [Null] type.
+@notNull
+bool _isNullType(Object type) => identical(type, unwrapType(Null));
 
 @notNull
 bool _isFutureOr(type) =>
@@ -1364,8 +1376,6 @@ class _TypeInferrer {
     return true;
   }
 
-  bool _isNull(Object type) => identical(type, unwrapType(Null));
-
   /// Attempts to match [subtype] as a subtype of [supertype], gathering any
   /// constraints discovered in the process.
   ///
@@ -1398,7 +1408,7 @@ class _TypeInferrer {
     if (_isTop(supertype)) return true;
     // `Null` is a subtype match for any type `Q` under no constraints.
     // Note that nullable types will change this.
-    if (_isNull(subtype)) return true;
+    if (_isNullType(subtype)) return true;
 
     // Handle FutureOr<T> union type.
     if (_isFutureOr(subtype)) {
