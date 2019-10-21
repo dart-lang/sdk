@@ -1071,7 +1071,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   Procedure _asyncAwaitCompleterGetFuture;
   Procedure get asyncAwaitCompleterGetFuture =>
-      _asyncAwaitCompleterGetFuture ??= libraryIndex.getMember(
+      _asyncAwaitCompleterGetFuture ??= libraryIndex.tryGetMember(
           'dart:async', '_AsyncAwaitCompleter', 'get:future');
 
   Procedure _setAsyncThreadStackTrace;
