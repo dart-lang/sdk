@@ -23,6 +23,13 @@ String kernelSummary;
 /// packages will be placed in a "pkg" subdirectory of this.
 String outputDirectory;
 
+/// List of language experiments to enable when building.
+List<String> experiments;
+
+/// Whether to force the analyzer backend to generate code even if there are
+/// errors.
+bool unsafeForceCompile;
+
 /// Compiles the packages that the DDC tests use to JS into the given output
 /// directory.
 ///
@@ -46,6 +53,10 @@ Future main(List<String> arguments) async {
       abbr: "o", help: "Directory to write output to.");
   argParser.addFlag("travis",
       help: "Build the additional packages tested on Travis.");
+  argParser.addMultiOption("enable-experiment",
+      help: "Enable experimental language features.");
+  argParser.addFlag("unsafe-force-compile",
+      help: "Generate output even if compile errors are reported.");
 
   ArgResults argResults;
   try {
@@ -63,6 +74,8 @@ Future main(List<String> arguments) async {
   analyzerSummary = argResults["analyzer-sdk"] as String;
   kernelSummary = argResults["kernel-sdk"] as String;
   outputDirectory = argResults["output"] as String;
+  experiments = argResults["enable-experiment"] as List<String>;
+  unsafeForceCompile = argResults["unsafe-force-compile"] as bool;
 
   // Build leaf packages. These have no other package dependencies.
 
@@ -126,21 +139,18 @@ Future compileModule(String module,
   makeArgs({bool kernel = false}) {
     var pkgDirectory = p.join(outputDirectory, kernel ? 'pkg_kernel' : 'pkg');
     Directory(pkgDirectory).createSync(recursive: true);
-    var args = <String>[];
-    if (kernel) args.add('-k');
 
-    args.addAll([
+    return [
+      if (kernel) '-k',
+      if (experiments.isNotEmpty)
+        '--enable-experiment=${experiments.join(",")}',
+      if (unsafeForceCompile && !kernel) '--unsafe-force-compile',
       '--dart-sdk-summary=${kernel ? kernelSummary : analyzerSummary}',
       '-o${pkgDirectory}/$module.js',
-      'package:$module/$module.dart'
-    ]);
-    for (var lib in libs) {
-      args.add('package:$module/$lib.dart');
-    }
-    for (var dep in deps) {
-      args.add('-s${pkgDirectory}/$dep.${kernel ? "dill" : "sum"}');
-    }
-    return args;
+      'package:$module/$module.dart',
+      for (var lib in libs) 'package:$module/$lib.dart',
+      for (var dep in deps) '-s${pkgDirectory}/$dep.${kernel ? "dill" : "sum"}',
+    ];
   }
 
   if (analyzerSummary != null) {
