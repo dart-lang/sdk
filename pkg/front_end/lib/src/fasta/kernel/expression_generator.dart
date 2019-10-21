@@ -14,6 +14,7 @@ import '../../scanner/token.dart' show Token;
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -230,7 +231,8 @@ abstract class Generator {
     if (send is SendAccessGenerator) {
       return _helper.buildMethodInvocation(buildSimpleRead(), send.name,
           send.arguments, offsetForToken(send.token),
-          isNullAware: isNullAware);
+          isNullAware: isNullAware,
+          isConstantExpression: send.isPotentiallyConstant);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
           send.name != lengthName) {
@@ -1645,7 +1647,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
       this.extensionThis,
       this.extensionTypeParameters)
       : assert(targetName != null),
-        assert(readTarget != null || writeTarget != null),
+        assert(
+            readTarget != null || invokeTarget != null || writeTarget != null),
         assert(extensionThis != null),
         super(helper, token);
 
@@ -1682,6 +1685,9 @@ class ExtensionInstanceAccessGenerator extends Generator {
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
+      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+        assert(!getterBuilder.isStatic);
+        invokeTarget = getterBuilder.target;
       }
     }
     Procedure writeTarget;
@@ -1956,7 +1962,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       this.extensionTypeParameterCount,
       {this.isNullAware})
       : assert(targetName != null),
-        assert(readTarget != null || writeTarget != null),
+        assert(
+            readTarget != null || invokeTarget != null || writeTarget != null),
         assert(receiver != null),
         assert(isNullAware != null),
         super(helper, token);
@@ -1995,6 +2002,11 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         readTarget = procedureBuilder.extensionTearOff;
         invokeTarget = procedureBuilder.procedure;
         targetName = procedureBuilder.name;
+      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+        assert(!getterBuilder.isStatic);
+        MemberBuilder memberBuilder = getterBuilder;
+        invokeTarget = memberBuilder.member;
+        targetName = memberBuilder.name;
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
@@ -4386,8 +4398,11 @@ class SendAccessGenerator extends Generator with IncompleteSendGenerator {
   @override
   final Arguments arguments;
 
+  final bool isPotentiallyConstant;
+
   SendAccessGenerator(
-      ExpressionGeneratorHelper helper, Token token, this.name, this.arguments)
+      ExpressionGeneratorHelper helper, Token token, this.name, this.arguments,
+      {this.isPotentiallyConstant: false})
       : super(helper, token) {
     assert(arguments != null);
   }

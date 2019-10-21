@@ -22,9 +22,10 @@ Future<void> main(List<String> args) async {
       'runtime', 'tests', 'vm', 'dart', 'run_appended_aot_snapshot_test.dart');
 
   await withTempDir((String tmp) async {
+    final String exeName = 'test.exe';
     final String dillPath = path.join(tmp, 'test.dill');
     final String aotPath = path.join(tmp, 'test.aot');
-    final String exePath = path.join(tmp, 'test.exe');
+    final String exePath = path.join(tmp, exeName);
 
     {
       final result = await generateAotKernel(checkedInDartVM, genKernel,
@@ -51,8 +52,33 @@ Future<void> main(List<String> args) async {
       Expect.equals(result.stdout, '');
     }
 
-    final runResult =
-        await runBinary('run appended aot snapshot', exePath, ['--child']);
-    expectOutput('Hello, Appended AOT', runResult);
+    {
+      final runResult =
+          await runBinary('run appended aot snapshot', exePath, ['--child']);
+      expectOutput('Hello, Appended AOT', runResult);
+    }
+
+    {
+      // Test that it runs when invoked via PATH as well.
+      Map<String, String> environment = {'PATH': tmp};
+      final runResult = await runBinary(
+          'run appended aot snapshot from PATH', exeName, ['--child'],
+          environment: environment, runInShell: true);
+      expectOutput('Hello, Appended AOT', runResult);
+    }
+
+    // Windows allows leaving out .exe. Make sure we can load that as well.
+    if (Platform.isWindows) {
+      final String exeNameWithoutExt =
+          exeName.replaceFirst(new RegExp(r'.exe$'), '');
+      Map<String, String> environment = {'PATH': tmp};
+      final runResult = await runBinary(
+          'run appended aot snapshot without extension',
+          exeNameWithoutExt,
+          ['--child'],
+          environment: environment,
+          runInShell: true);
+      expectOutput('Hello, Appended AOT', runResult);
+    }
   });
 }

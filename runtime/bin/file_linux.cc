@@ -590,10 +590,15 @@ intptr_t File::ReadLinkInto(const char* pathname,
     errno = ENOENT;
     return -1;
   }
-  const size_t target_size =
+  size_t target_size =
       TEMP_FAILURE_RETRY(readlink(pathname, result, result_size));
   if (target_size <= 0) {
     return -1;
+  }
+  // readlink returns non-zero terminated strings. Append.
+  if (target_size < result_size) {
+    result[target_size] = '\0';
+    target_size++;
   }
   return target_size;
 }
@@ -608,10 +613,9 @@ const char* File::ReadLink(const char* pathname) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  char* target_name = DartUtils::ScopedCString(target_size);
   ASSERT(target_name != NULL);
   memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
   return target_name;
 }
 

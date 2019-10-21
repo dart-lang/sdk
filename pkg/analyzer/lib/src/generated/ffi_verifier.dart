@@ -488,7 +488,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (_isPointerInterfaceType(nativeType)) {
         final nativeArgumentType = nativeType.typeArguments.single;
         return _isValidFfiNativeType(nativeArgumentType, true) ||
-            _isStructClass(nativeArgumentType);
+            _isStructClass(nativeArgumentType) ||
+            _isNativeTypeInterfaceType(nativeArgumentType);
       }
     } else if (nativeType is FunctionType) {
       return _isValidFfiNativeFunctionType(nativeType);
@@ -534,6 +535,17 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (element.library.name == 'dart.ffi') {
         return element.name == 'Pointer' &&
             nativeType.typeArguments?.length == 1;
+      }
+    }
+    return false;
+  }
+
+  // Returns `true` iff [nativeType] is a `ffi.NativeType` type.
+  bool _isNativeTypeInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'NativeType';
       }
     }
     return false;
