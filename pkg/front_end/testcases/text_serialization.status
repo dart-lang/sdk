@@ -1147,5 +1147,6 @@ runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializati
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
 top_level_variance_test: TextSerializationFailure
+unified_collections/mixed_entries: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure
 variance/mixin_type_parameter_modifier: TextSerializationFailure

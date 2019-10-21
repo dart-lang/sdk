@@ -55,6 +55,11 @@ mixin ControlFlowElement on Expression {
   @override
   R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.defaultExpression(this, arg);
+
+  /// Returns this control flow element as a [MapEntry], or `null` if this
+  /// control flow element cannot be converted into a [MapEntry].
+  // TODO(johnniwinther): Merge this with [convertToMapEntry].
+  MapEntry toMapEntry();
 }
 
 /// A spread element in a list or set literal.
@@ -83,6 +88,11 @@ class SpreadElement extends Expression with ControlFlowElement {
       expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
+  }
+
+  @override
+  SpreadMapEntry toMapEntry() {
+    return new SpreadMapEntry(expression, isNullAware)..fileOffset = fileOffset;
   }
 }
 
@@ -120,6 +130,26 @@ class IfElement extends Expression with ControlFlowElement {
       otherwise?.parent = this;
     }
   }
+
+  @override
+  MapEntry toMapEntry() {
+    MapEntry thenEntry;
+    if (then is ControlFlowElement) {
+      ControlFlowElement thenElement = then;
+      thenEntry = thenElement.toMapEntry();
+    }
+    if (thenEntry == null) return null;
+    MapEntry otherwiseEntry;
+    if (otherwise != null) {
+      if (otherwise is ControlFlowElement) {
+        ControlFlowElement otherwiseElement = otherwise;
+        otherwiseEntry = otherwiseElement.toMapEntry();
+      }
+      if (otherwiseEntry == null) return null;
+    }
+    return new IfMapEntry(condition, thenEntry, otherwiseEntry)
+      ..fileOffset = fileOffset;
+  }
 }
 
 /// A 'for' element in a list or set literal.
@@ -156,6 +186,18 @@ class ForElement extends Expression with ControlFlowElement {
       body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
+  }
+
+  @override
+  MapEntry toMapEntry() {
+    MapEntry bodyEntry;
+    if (body is ControlFlowElement) {
+      ControlFlowElement bodyElement = body;
+      bodyEntry = bodyElement.toMapEntry();
+    }
+    if (bodyEntry == null) return null;
+    return new ForMapEntry(variables, condition, updates, bodyEntry)
+      ..fileOffset = fileOffset;
   }
 }
 
@@ -207,6 +249,18 @@ class ForInElement extends Expression with ControlFlowElement {
       problem = problem.accept<TreeNode>(v);
       problem?.parent = this;
     }
+  }
+
+  @override
+  MapEntry toMapEntry() {
+    MapEntry bodyEntry;
+    if (body is ControlFlowElement) {
+      ControlFlowElement bodyElement = body;
+      bodyEntry = bodyElement.toMapEntry();
+    }
+    if (bodyEntry == null) return null;
+    return new ForInMapEntry(variable, iterable, prologue, bodyEntry, problem)
+      ..fileOffset = fileOffset;
   }
 }
 

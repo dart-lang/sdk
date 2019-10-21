@@ -107,12 +107,7 @@ import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromotionFact, TypePromotionScope;
 
-import 'collections.dart'
-    show
-        SpreadElement,
-        SpreadMapEntry,
-        convertToMapEntry,
-        isConvertibleToMapEntry;
+import 'collections.dart';
 
 import 'constness.dart' show Constness;
 
@@ -3961,12 +3956,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       if (elseEntry is MapEntry) {
         push(forest.createIfMapEntry(
             offsetForToken(ifToken), toValue(condition), thenEntry, elseEntry));
-      } else if (elseEntry is SpreadElement) {
-        push(forest.createIfMapEntry(
-            offsetForToken(ifToken),
-            toValue(condition),
-            thenEntry,
-            new SpreadMapEntry(elseEntry.expression, elseEntry.isNullAware)));
+      } else if (elseEntry is ControlFlowElement) {
+        MapEntry elseMapEntry = elseEntry.toMapEntry();
+        if (elseMapEntry != null) {
+          push(forest.createIfMapEntry(offsetForToken(ifToken),
+              toValue(condition), thenEntry, elseMapEntry));
+        } else {
+          int offset = elseEntry is Expression
+              ? elseEntry.fileOffset
+              : offsetForToken(ifToken);
+          push(new MapEntry(
+              buildProblem(
+                  fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
+              new NullLiteral())
+            ..fileOffset = offsetForToken(ifToken));
+        }
       } else {
         int offset = elseEntry is Expression
             ? elseEntry.fileOffset
@@ -3978,12 +3982,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = offsetForToken(ifToken));
       }
     } else if (elseEntry is MapEntry) {
-      if (thenEntry is SpreadElement) {
-        push(forest.createIfMapEntry(
-            offsetForToken(ifToken),
-            toValue(condition),
-            new SpreadMapEntry(thenEntry.expression, thenEntry.isNullAware),
-            elseEntry));
+      if (thenEntry is ControlFlowElement) {
+        MapEntry thenMapEntry = thenEntry.toMapEntry();
+        if (thenMapEntry != null) {
+          push(forest.createIfMapEntry(offsetForToken(ifToken),
+              toValue(condition), thenMapEntry, elseEntry));
+        } else {
+          int offset = thenEntry is Expression
+              ? thenEntry.fileOffset
+              : offsetForToken(ifToken);
+          push(new MapEntry(
+              buildProblem(
+                  fasta.messageCantDisambiguateAmbiguousInformation, offset, 1),
+              new NullLiteral())
+            ..fileOffset = offsetForToken(ifToken));
+        }
       } else {
         int offset = thenEntry is Expression
             ? thenEntry.fileOffset
