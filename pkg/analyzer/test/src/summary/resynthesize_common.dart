@@ -11269,7 +11269,7 @@ const A<int> a;
         type: TypeName
           name: SimpleIdentifier
             staticElement: self::@class::A
-            staticType: A<dynamic>
+            staticType: null
             token: A
           type: A<int>
       staticElement: ConstructorMember

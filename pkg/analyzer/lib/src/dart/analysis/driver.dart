@@ -287,7 +287,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       SummaryDataStore externalSummaries,
       bool retainDataForTesting: false})
       : _logger = logger,
-        _sourceFactory = sourceFactory.clone(),
+        _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
     _createNewSession(null);

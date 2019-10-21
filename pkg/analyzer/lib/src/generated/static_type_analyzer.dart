@@ -545,14 +545,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // we only need to handle local functions.
       if (node.returnType == null) {
         _inferLocalFunctionReturnType(node.functionExpression);
-        _recordStaticTypeWhereItShouldNotBe(node.name, functionElement.type);
         return;
       }
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
     _recordStaticType(function, functionElement.type);
-    _recordStaticTypeWhereItShouldNotBe(node.name, functionElement.type);
   }
 
   /**
@@ -877,17 +875,21 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     DartType staticType = _dynamicType;
     if (staticElement is ClassElement) {
-      if (_isNotTypeLiteral(node)) {
-        staticType = staticElement.type;
-      } else {
-        staticType = _nonNullable(_typeProvider.typeType);
+      if (_isExpressionIdentifier(node)) {
+        var type = _nonNullable(_typeProvider.typeType);
+        node.staticType = type;
+        node.identifier.staticType = type;
       }
+      return;
     } else if (staticElement is FunctionTypeAliasElement) {
-      if (_isNotTypeLiteral(node)) {
-        staticType = staticElement.type;
+      if (node.parent is TypeName) {
+        // no type
       } else {
-        staticType = _nonNullable(_typeProvider.typeType);
+        var type = _nonNullable(_typeProvider.typeType);
+        node.staticType = type;
+        node.identifier.staticType = type;
       }
+      return;
     } else if (staticElement is MethodElement) {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
@@ -1109,17 +1111,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     DartType staticType = _dynamicType;
     if (element is ClassElement) {
-      if (_isNotTypeLiteral(node)) {
-        staticType = element.type;
-      } else {
-        staticType = _nonNullable(_typeProvider.typeType);
+      if (_isExpressionIdentifier(node)) {
+        node.staticType = _nonNullable(_typeProvider.typeType);
       }
+      return;
     } else if (element is FunctionTypeAliasElement) {
-      if (_isNotTypeLiteral(node)) {
-        staticType = element.type;
+      if (node.inDeclarationContext() || node.parent is TypeName) {
+        // no type
       } else {
-        staticType = _nonNullable(_typeProvider.typeType);
+        node.staticType = _nonNullable(_typeProvider.typeType);
       }
+      return;
     } else if (element is MethodElement) {
       staticType = element.type;
     } else if (element is PropertyAccessorElement) {
@@ -1610,7 +1612,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (element != null && iteratedType != null) {
           DartType elementType = iteratedType.typeArguments.single;
           element.type = elementType;
-          loopVariable.identifier.staticType = elementType;
         }
       }
     }
@@ -1788,7 +1789,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           VariableElement element = node.declaredElement;
           if (element is LocalVariableElementImpl) {
             element.type = initializer.staticType;
-            node.name.staticType = initializer.staticType;
           }
         }
       }
@@ -1994,17 +1994,24 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   /**
    * Return `true` if the given [node] is not a type literal.
    */
-  bool _isNotTypeLiteral(Identifier node) {
-    AstNode parent = node.parent;
-    return parent is TypeName ||
-        (parent is PrefixedIdentifier &&
-            (parent.parent is TypeName || identical(parent.prefix, node))) ||
-        (parent is PropertyAccess &&
-            identical(parent.target, node) &&
-            parent.operator.type == TokenType.PERIOD) ||
-        (parent is MethodInvocation &&
-            identical(node, parent.target) &&
-            parent.operator.type == TokenType.PERIOD);
+  bool _isExpressionIdentifier(Identifier node) {
+    var parent = node.parent;
+    if (node is SimpleIdentifier && node.inDeclarationContext()) {
+      return false;
+    }
+    if (parent is ConstructorDeclaration) {
+      if (parent.name == node || parent.returnType == node) {
+        return false;
+      }
+    }
+    if (parent is ConstructorName ||
+        parent is MethodInvocation ||
+        parent is PrefixedIdentifier && parent.prefix == node ||
+        parent is PropertyAccess ||
+        parent is TypeName) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -2049,11 +2056,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       expression.staticType = type;
     }
-  }
-
-  /// Remove when https://dart-review.googlesource.com/c/sdk/+/119761 lands.
-  void _recordStaticTypeWhereItShouldNotBe(Expression node, DartType type) {
-    node.staticType = type;
   }
 
   void _setExtensionIdentifierType(Identifier node) {

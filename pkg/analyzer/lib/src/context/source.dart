@@ -21,9 +21,6 @@ import 'package:package_config/packages.dart';
  * against an existing [Source].
  */
 class SourceFactoryImpl implements SourceFactory {
-  @override
-  AnalysisContext context;
-
   /**
    * URI processor used to find mappings for `package:` URIs found in a
    * `.packages` config file.
@@ -39,11 +36,6 @@ class SourceFactoryImpl implements SourceFactory {
    * The resolvers used to resolve absolute URI's.
    */
   final List<UriResolver> resolvers;
-
-  /**
-   * The predicate to determine is [Source] is local.
-   */
-  LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
 
   /**
    * Cache of mapping of absolute [Uri]s to [Source]s.
@@ -72,11 +64,6 @@ class SourceFactoryImpl implements SourceFactory {
       }
     }
     return null;
-  }
-
-  @override
-  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
-    this._localSourcePredicate = localSourcePredicate;
   }
 
   @override
@@ -109,14 +96,6 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  SourceFactory clone() {
-    SourceFactory factory =
-        new SourceFactory(resolvers, _packages, _resourceProvider);
-    factory.localSourcePredicate = _localSourcePredicate;
-    return factory;
-  }
-
-  @override
   Source forUri(String absoluteUri) {
     try {
       Uri uri = Uri.parse(absoluteUri);
@@ -144,18 +123,6 @@ class SourceFactoryImpl implements SourceFactory {
     }
     return null;
   }
-
-  @override
-  Source fromEncoding(String encoding) {
-    Source source = forUri(encoding);
-    if (source == null) {
-      throw new ArgumentError("Invalid source encoding: '$encoding'");
-    }
-    return source;
-  }
-
-  @override
-  bool isLocalSource(Source source) => _localSourcePredicate.isLocal(source);
 
   @override
   Source resolveUri(Source containingSource, String containedUri) {

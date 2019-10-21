@@ -732,11 +732,10 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
     }
 
     SimpleIdentifier identifier = findNode.simple(name);
-    // Element is either ExecutableElement or ParameterElement.
     var element = identifier.staticElement;
-    FunctionTypeImpl functionType = (element as dynamic).type;
+    var functionType = _getFunctionTypedElementType(identifier);
     expect(functionType.toString(), type);
-    expect(identifier.staticType.toString(), identifierType);
+    expect(identifier.staticType, isNull);
     expect(typeParameters(element).toString(), elementTypeParams);
     expect(functionType.typeParameters.toString(), typeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
@@ -745,13 +744,13 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   }
 
   /**
-   * Looks up the identifier with [name] and validates that its type type
+   * Looks up the identifier with [name] and validates that its element type
    * stringifies to [type] and that its generics match the given stringified
    * output.
    */
   FunctionTypeImpl expectFunctionType2(String name, String type) {
-    SimpleIdentifier identifier = findNode.simple(name);
-    FunctionTypeImpl functionType = identifier.staticType;
+    var identifier = findNode.simple(name);
+    var functionType = _getFunctionTypedElementType(identifier);
     expect('$functionType', type);
     return functionType;
   }
@@ -795,6 +794,17 @@ class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
       expect(type.toString(), expected);
     } else {
       expect(type, expected);
+    }
+  }
+
+  FunctionTypeImpl _getFunctionTypedElementType(SimpleIdentifier identifier) {
+    var element = identifier.staticElement;
+    if (element is ExecutableElement) {
+      return element.type;
+    } else if (element is VariableElement) {
+      return element.type;
+    } else {
+      fail('Unexpected element: (${element.runtimeType}) $element');
     }
   }
 }

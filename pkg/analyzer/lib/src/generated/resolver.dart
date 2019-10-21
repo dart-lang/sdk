@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/ast_factory.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,7 +18,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -46,7 +45,6 @@ import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
 export 'package:analyzer/src/dart/resolver/exit_detector.dart';
-export 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 export 'package:analyzer/src/dart/resolver/scope.dart';
 export 'package:analyzer/src/generated/type_system.dart';
 
@@ -1921,474 +1919,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-/// A visitor that resolves directives in an AST structure to already built
-/// elements.
-///
-/// The resulting AST must have everything resolved that would have been
-/// resolved by a [DirectiveElementBuilder].
-class DirectiveResolver extends SimpleAstVisitor {
-  final Map<Source, int> sourceModificationTimeMap;
-  final Map<Source, SourceKind> importSourceKindMap;
-  final Map<Source, SourceKind> exportSourceKindMap;
-  final List<AnalysisError> errors = <AnalysisError>[];
-
-  LibraryElement _enclosingLibrary;
-
-  DirectiveResolver(this.sourceModificationTimeMap, this.importSourceKindMap,
-      this.exportSourceKindMap);
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    _enclosingLibrary = node.declaredElement.library;
-    for (Directive directive in node.directives) {
-      directive.accept(this);
-    }
-  }
-
-  @override
-  void visitExportDirective(ExportDirective node) {
-    int nodeOffset = node.offset;
-    node.element = null;
-    for (ExportElement element in _enclosingLibrary.exports) {
-      if (element.nameOffset == nodeOffset) {
-        node.element = element;
-        // Verify the exported source kind.
-        LibraryElement exportedLibrary = element.exportedLibrary;
-        if (exportedLibrary != null) {
-          Source exportedSource = exportedLibrary.source;
-          int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
-          if (exportedTime >= 0 &&
-              exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
-            StringLiteral uriLiteral = node.uri;
-            errors.add(new AnalysisError(
-                _enclosingLibrary.source,
-                uriLiteral.offset,
-                uriLiteral.length,
-                CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
-                [uriLiteral.toSource()]));
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {
-    int nodeOffset = node.offset;
-    node.element = null;
-    for (ImportElement element in _enclosingLibrary.imports) {
-      if (element.nameOffset == nodeOffset) {
-        node.element = element;
-        // Verify the imported source kind.
-        LibraryElement importedLibrary = element.importedLibrary;
-        if (importedLibrary != null) {
-          Source importedSource = importedLibrary.source;
-          int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
-          if (importedTime >= 0 &&
-              importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
-            StringLiteral uriLiteral = node.uri;
-            errors.add(new AnalysisError(
-                _enclosingLibrary.source,
-                uriLiteral.offset,
-                uriLiteral.length,
-                CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-                [uriLiteral.toSource()]));
-          }
-        }
-        break;
-      }
-    }
-  }
-
-  @override
-  void visitLibraryDirective(LibraryDirective node) {
-    node.element = _enclosingLibrary;
-  }
-}
-
-/// Instances of the class `ElementHolder` hold on to elements created while
-/// traversing an AST structure so that they can be accessed when creating their
-/// enclosing element.
-class ElementHolder {
-  List<PropertyAccessorElement> _accessors;
-
-  List<ConstructorElement> _constructors;
-
-  List<ClassElement> _enums;
-
-  List<FieldElement> _fields;
-
-  List<FunctionElement> _functions;
-
-  List<LabelElement> _labels;
-
-  List<LocalVariableElement> _localVariables;
-
-  List<MethodElement> _methods;
-
-  List<ClassElement> _mixins;
-
-  List<ParameterElement> _parameters;
-
-  List<TopLevelVariableElement> _topLevelVariables;
-
-  List<ClassElement> _types;
-
-  List<FunctionTypeAliasElement> _typeAliases;
-
-  List<TypeParameterElement> _typeParameters;
-
-  List<PropertyAccessorElement> get accessors {
-    if (_accessors == null) {
-      return const <PropertyAccessorElement>[];
-    }
-    List<PropertyAccessorElement> result = _accessors;
-    _accessors = null;
-    return result;
-  }
-
-  List<ConstructorElement> get constructors {
-    if (_constructors == null) {
-      return const <ConstructorElement>[];
-    }
-    List<ConstructorElement> result = _constructors;
-    _constructors = null;
-    return result;
-  }
-
-  List<ClassElement> get enums {
-    if (_enums == null) {
-      return const <ClassElement>[];
-    }
-    List<ClassElement> result = _enums;
-    _enums = null;
-    return result;
-  }
-
-  List<FieldElement> get fields {
-    if (_fields == null) {
-      return const <FieldElement>[];
-    }
-    List<FieldElement> result = _fields;
-    _fields = null;
-    return result;
-  }
-
-  List<FieldElement> get fieldsWithoutFlushing {
-    if (_fields == null) {
-      return const <FieldElement>[];
-    }
-    List<FieldElement> result = _fields;
-    return result;
-  }
-
-  List<FunctionElement> get functions {
-    if (_functions == null) {
-      return const <FunctionElement>[];
-    }
-    List<FunctionElement> result = _functions;
-    _functions = null;
-    return result;
-  }
-
-  List<LabelElement> get labels {
-    if (_labels == null) {
-      return const <LabelElement>[];
-    }
-    List<LabelElement> result = _labels;
-    _labels = null;
-    return result;
-  }
-
-  List<LocalVariableElement> get localVariables {
-    if (_localVariables == null) {
-      return const <LocalVariableElement>[];
-    }
-    List<LocalVariableElement> result = _localVariables;
-    _localVariables = null;
-    return result;
-  }
-
-  List<MethodElement> get methods {
-    if (_methods == null) {
-      return const <MethodElement>[];
-    }
-    List<MethodElement> result = _methods;
-    _methods = null;
-    return result;
-  }
-
-  List<ClassElement> get mixins {
-    if (_mixins == null) {
-      return const <ClassElement>[];
-    }
-    List<ClassElement> result = _mixins;
-    _mixins = null;
-    return result;
-  }
-
-  List<ParameterElement> get parameters {
-    if (_parameters == null) {
-      return const <ParameterElement>[];
-    }
-    List<ParameterElement> result = _parameters;
-    _parameters = null;
-    return result;
-  }
-
-  List<TopLevelVariableElement> get topLevelVariables {
-    if (_topLevelVariables == null) {
-      return const <TopLevelVariableElement>[];
-    }
-    List<TopLevelVariableElement> result = _topLevelVariables;
-    _topLevelVariables = null;
-    return result;
-  }
-
-  List<FunctionTypeAliasElement> get typeAliases {
-    if (_typeAliases == null) {
-      return const <FunctionTypeAliasElement>[];
-    }
-    List<FunctionTypeAliasElement> result = _typeAliases;
-    _typeAliases = null;
-    return result;
-  }
-
-  List<TypeParameterElement> get typeParameters {
-    if (_typeParameters == null) {
-      return const <TypeParameterElement>[];
-    }
-    List<TypeParameterElement> result = _typeParameters;
-    _typeParameters = null;
-    return result;
-  }
-
-  List<ClassElement> get types {
-    if (_types == null) {
-      return const <ClassElement>[];
-    }
-    List<ClassElement> result = _types;
-    _types = null;
-    return result;
-  }
-
-  void addAccessor(PropertyAccessorElement element) {
-    if (_accessors == null) {
-      _accessors = new List<PropertyAccessorElement>();
-    }
-    _accessors.add(element);
-  }
-
-  void addConstructor(ConstructorElement element) {
-    if (_constructors == null) {
-      _constructors = new List<ConstructorElement>();
-    }
-    _constructors.add(element);
-  }
-
-  void addEnum(ClassElement element) {
-    if (_enums == null) {
-      _enums = new List<ClassElement>();
-    }
-    _enums.add(element);
-  }
-
-  void addField(FieldElement element) {
-    if (_fields == null) {
-      _fields = new List<FieldElement>();
-    }
-    _fields.add(element);
-  }
-
-  void addFunction(FunctionElement element) {
-    if (_functions == null) {
-      _functions = new List<FunctionElement>();
-    }
-    _functions.add(element);
-  }
-
-  void addLabel(LabelElement element) {
-    if (_labels == null) {
-      _labels = new List<LabelElement>();
-    }
-    _labels.add(element);
-  }
-
-  void addLocalVariable(LocalVariableElement element) {
-    if (_localVariables == null) {
-      _localVariables = new List<LocalVariableElement>();
-    }
-    _localVariables.add(element);
-  }
-
-  void addMethod(MethodElement element) {
-    if (_methods == null) {
-      _methods = new List<MethodElement>();
-    }
-    _methods.add(element);
-  }
-
-  void addMixin(ClassElement element) {
-    if (_mixins == null) {
-      _mixins = new List<ClassElement>();
-    }
-    _mixins.add(element);
-  }
-
-  void addParameter(ParameterElement element) {
-    if (_parameters == null) {
-      _parameters = new List<ParameterElement>();
-    }
-    _parameters.add(element);
-  }
-
-  void addTopLevelVariable(TopLevelVariableElement element) {
-    if (_topLevelVariables == null) {
-      _topLevelVariables = new List<TopLevelVariableElement>();
-    }
-    _topLevelVariables.add(element);
-  }
-
-  void addType(ClassElement element) {
-    if (_types == null) {
-      _types = new List<ClassElement>();
-    }
-    _types.add(element);
-  }
-
-  void addTypeAlias(FunctionTypeAliasElement element) {
-    if (_typeAliases == null) {
-      _typeAliases = new List<FunctionTypeAliasElement>();
-    }
-    _typeAliases.add(element);
-  }
-
-  void addTypeParameter(TypeParameterElement element) {
-    if (_typeParameters == null) {
-      _typeParameters = new List<TypeParameterElement>();
-    }
-    _typeParameters.add(element);
-  }
-
-  FieldElement getField(String fieldName, {bool synthetic: false}) {
-    if (_fields == null) {
-      return null;
-    }
-    int length = _fields.length;
-    for (int i = 0; i < length; i++) {
-      FieldElement field = _fields[i];
-      if (field.name == fieldName && field.isSynthetic == synthetic) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  TopLevelVariableElement getTopLevelVariable(String variableName) {
-    if (_topLevelVariables == null) {
-      return null;
-    }
-    int length = _topLevelVariables.length;
-    for (int i = 0; i < length; i++) {
-      TopLevelVariableElement variable = _topLevelVariables[i];
-      if (variable.name == variableName) {
-        return variable;
-      }
-    }
-    return null;
-  }
-
-  void validate() {
-    StringBuffer buffer = new StringBuffer();
-    if (_accessors != null) {
-      buffer.write(_accessors.length);
-      buffer.write(" accessors");
-    }
-    if (_constructors != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_constructors.length);
-      buffer.write(" constructors");
-    }
-    if (_fields != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_fields.length);
-      buffer.write(" fields");
-    }
-    if (_functions != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_functions.length);
-      buffer.write(" functions");
-    }
-    if (_labels != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_labels.length);
-      buffer.write(" labels");
-    }
-    if (_localVariables != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_localVariables.length);
-      buffer.write(" local variables");
-    }
-    if (_methods != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_methods.length);
-      buffer.write(" methods");
-    }
-    if (_parameters != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_parameters.length);
-      buffer.write(" parameters");
-    }
-    if (_topLevelVariables != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_topLevelVariables.length);
-      buffer.write(" top-level variables");
-    }
-    if (_types != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_types.length);
-      buffer.write(" types");
-    }
-    if (_typeAliases != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_typeAliases.length);
-      buffer.write(" type aliases");
-    }
-    if (_typeParameters != null) {
-      if (buffer.length > 0) {
-        buffer.write("; ");
-      }
-      buffer.write(_typeParameters.length);
-      buffer.write(" type parameters");
-    }
-    if (buffer.length > 0) {
-      AnalysisEngine.instance.logger
-          .logError("Failed to capture elements: $buffer");
-    }
-  }
-}
-
 /// An [AstVisitor] that fills [UsedLocalElements].
 class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
   final UsedLocalElements usedElements = new UsedLocalElements();
@@ -3108,13 +2638,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [inheritanceManager] should be an instance of either [InheritanceManager2]
-  /// or [InheritanceManager3].  If an [InheritanceManager2] is supplied, it
-  /// will be converted into an [InheritanceManager3] internally.  The ability
-  /// to pass in [InheritanceManager2] exists for backward compatibility; in a
-  /// future major version of the analyzer, an [InheritanceManager3] will
-  /// be required.
-  ///
   /// The [definingLibrary] is the element for the library containing the node
   /// being visited. The [source] is the source representing the compilation
   /// unit containing the node being visited. The [typeProvider] is the object
@@ -3128,7 +2651,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
   ResolverVisitor(
-      InheritanceManagerBase inheritanceManager,
+      InheritanceManager3 inheritanceManager,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3139,7 +2662,7 @@ class ResolverVisitor extends ScopedVisitor {
       reportConstEvaluationErrors: true,
       FlowAnalysisHelper flowAnalysisHelper})
       : this._(
-            inheritanceManager.asInheritanceManager3,
+            inheritanceManager,
             definingLibrary,
             source,
             typeProvider,
@@ -4483,6 +4006,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+
     if (_flowAnalysis != null &&
         _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
       errorReporter.reportErrorForNode(
@@ -6038,12 +5565,10 @@ class TypeNameResolver {
 //          // TODO(brianwilkerson) Report this error
 //          reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
 //        }
-        typeName.staticType = voidType;
         node.type = voidType;
         return;
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = dynamicType;
         node.type = dynamicType;
         return;
       }
@@ -6064,7 +5589,6 @@ class TypeNameResolver {
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
             if (nameScope.shouldIgnoreUndefined(typeName)) {
-              typeName.staticType = dynamicType;
               node.type = dynamicType;
               return;
             }
@@ -6104,7 +5628,6 @@ class TypeNameResolver {
         }
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = dynamicType;
         node.type = dynamicType;
         return;
       }
@@ -6178,25 +5701,23 @@ class TypeNameResolver {
               argumentList,
               [prefix.name, identifier.name]);
           prefix.staticElement = prefixElement;
-          prefix.staticType = classElement.instantiate(
-            typeArguments: List.filled(
-              classElement.typeParameters.length,
-              dynamicType,
-            ),
-            nullabilitySuffix: _noneOrStarSuffix,
-          );
           identifier.staticElement = constructorElement;
-          identifier.staticType = constructorElement.type;
-          typeName.staticType = prefix.staticType;
           AstNode grandParent = node.parent.parent;
           if (grandParent is InstanceCreationExpressionImpl) {
+            var instanceType = classElement.instantiate(
+              typeArguments: List.filled(
+                classElement.typeParameters.length,
+                dynamicType,
+              ),
+              nullabilitySuffix: _noneOrStarSuffix,
+            );
             grandParent.staticElement = constructorElement;
-            grandParent.staticType = typeName.staticType;
+            grandParent.staticType = instanceType;
             //
             // Re-write the AST to reflect the resolution.
             //
-            AstFactory astFactory = new AstFactoryImpl();
             TypeName newTypeName = astFactory.typeName(prefix, null);
+            newTypeName.type = instanceType;
             ConstructorName newConstructorName = astFactory.constructorName(
                 newTypeName,
                 (typeName as PrefixedIdentifier).period,
@@ -6225,7 +5746,6 @@ class TypeNameResolver {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       }
-      typeName.staticType = dynamicType;
       node.type = dynamicType;
       return;
     }
@@ -6291,7 +5811,6 @@ class TypeNameResolver {
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
-      typeName.staticType = dynamicType;
       node.type = dynamicType;
       return;
     }
@@ -6345,7 +5864,6 @@ class TypeNameResolver {
       }
     }
 
-    typeName.staticType = type;
     node.type = type;
   }
 
@@ -6613,7 +6131,6 @@ class TypeNameResolver {
       }
     }
 
-    typeName.staticType = type;
     node.type = type;
   }
 
@@ -6650,131 +6167,6 @@ class TypeNameResolver {
       return identical(parent.type, typeName);
     }
     return false;
-  }
-}
-
-/// This class resolves bounds of type parameters of classes, class and function
-/// type aliases.
-class TypeParameterBoundsResolver {
-  final TypeSystem typeSystem;
-  final LibraryElement library;
-  final Source source;
-  final AnalysisErrorListener errorListener;
-
-  Scope libraryScope;
-  TypeNameResolver typeNameResolver;
-
-  TypeParameterBoundsResolver(this.typeSystem, this.library, this.source,
-      this.errorListener, FeatureSet featureSet)
-      : libraryScope = new LibraryScope(library),
-        typeNameResolver = new TypeNameResolver(
-            typeSystem,
-            typeSystem.typeProvider,
-            featureSet.isEnabled(Feature.non_nullable),
-            library,
-            source,
-            errorListener);
-
-  /// Resolve bounds of type parameters of classes, class and function type
-  /// aliases.
-  void resolveTypeBounds(CompilationUnit unit) {
-    for (CompilationUnitMember unitMember in unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        _resolveTypeParameters(
-            unitMember.typeParameters,
-            () => new TypeParameterScope(
-                libraryScope, unitMember.declaredElement));
-      } else if (unitMember is ClassTypeAlias) {
-        _resolveTypeParameters(
-            unitMember.typeParameters,
-            () => new TypeParameterScope(
-                libraryScope, unitMember.declaredElement));
-      } else if (unitMember is FunctionTypeAlias) {
-        _resolveTypeParameters(
-            unitMember.typeParameters,
-            () => new FunctionTypeScope(
-                libraryScope, unitMember.declaredElement));
-      } else if (unitMember is GenericTypeAlias) {
-        _resolveTypeParameters(
-            unitMember.typeParameters,
-            () => new FunctionTypeScope(
-                libraryScope, unitMember.declaredElement));
-      }
-    }
-  }
-
-  void _resolveTypeName(TypeAnnotation type) {
-    if (type is TypeName) {
-      type.typeArguments?.arguments?.forEach(_resolveTypeName);
-      typeNameResolver.resolveTypeName(type);
-      // TODO(scheglov) report error when don't apply type bounds for type bounds
-    } else if (type is GenericFunctionType) {
-      // While GenericFunctionTypes with free types are not allowed as bounds,
-      // those free types *should* ideally be recognized as type parameter types
-      // rather than classnames. Create a scope to accomplish that.
-      Scope previousScope = typeNameResolver.nameScope;
-
-      try {
-        Scope typeParametersScope = new TypeParameterScope(
-            typeNameResolver.nameScope, type.type.element);
-        typeNameResolver.nameScope = typeParametersScope;
-
-        void resolveTypeParameter(TypeParameter t) {
-          _resolveTypeName(t.bound);
-        }
-
-        void resolveParameter(FormalParameter p) {
-          if (p is SimpleFormalParameter) {
-            _resolveTypeName(p.type);
-          } else if (p is DefaultFormalParameter) {
-            resolveParameter(p.parameter);
-          } else if (p is FieldFormalParameter) {
-            _resolveTypeName(p.type);
-          } else if (p is FunctionTypedFormalParameter) {
-            _resolveTypeName(p.returnType);
-            p.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
-            p.parameters?.parameters?.forEach(resolveParameter);
-          }
-        }
-
-        _resolveTypeName(type.returnType);
-        type.typeParameters?.typeParameters?.forEach(resolveTypeParameter);
-        type.parameters?.parameters?.forEach(resolveParameter);
-      } finally {
-        typeNameResolver.nameScope = previousScope;
-      }
-    }
-  }
-
-  void _resolveTypeParameters(
-      TypeParameterList typeParameters, Scope createTypeParametersScope()) {
-    if (typeParameters != null) {
-      Scope typeParametersScope;
-      for (TypeParameter typeParameter in typeParameters.typeParameters) {
-        TypeAnnotation bound = typeParameter.bound;
-        if (bound != null) {
-          Element typeParameterElement = typeParameter.name.staticElement;
-          if (typeParameterElement is TypeParameterElementImpl) {
-            if (LibraryElementImpl.hasResolutionCapability(
-                library, LibraryResolutionCapability.resolvedTypeNames)) {
-              if (bound is TypeName) {
-                bound.type = typeParameterElement.bound;
-              } else if (bound is GenericFunctionTypeImpl) {
-                bound.type = typeParameterElement.bound;
-              }
-            } else {
-              typeParametersScope ??= createTypeParametersScope();
-              // _resolveTypeParameters is the entry point into each declaration
-              // with a separate scope. We can safely, and should, clobber the
-              // old scope here.
-              typeNameResolver.nameScope = typeParametersScope;
-              _resolveTypeName(bound);
-              typeParameterElement.bound = bound.type;
-            }
-          }
-        }
-      }
-    }
   }
 }
 
@@ -6949,733 +6341,6 @@ abstract class TypeProvider {
   /// Return the instantiation of the built-in class 'Stream' with the
   /// given [elementType]. The type has the nullability suffix of this provider.
   InterfaceType streamType2(DartType elementType);
-}
-
-/// Modes in which [TypeResolverVisitor] works.
-enum TypeResolverMode {
-  /// Resolve all names types of all nodes.
-  everything,
-
-  /// Resolve only type names outside of function bodies, variable initializers,
-  /// and parameter default values.
-  api,
-
-  /// Resolve only type names that would be skipped during [api].
-  ///
-  /// Resolution must start from a unit member or a class member. For example
-  /// it is not allowed to resolve types in a separate statement, or a function
-  /// body.
-  local
-}
-
-/// Instances of the class `TypeResolverVisitor` are used to resolve the types
-/// associated with the elements in the element model. This includes the types
-/// of superclasses, mixins, interfaces, fields, methods, parameters, and local
-/// variables. As a side-effect, this also finishes building the type hierarchy.
-class TypeResolverVisitor extends ScopedVisitor {
-  /// The type representing the type 'dynamic'.
-  DartType _dynamicType;
-
-  /// The flag specifying if currently visited class references 'super'
-  /// expression.
-  bool _hasReferenceToSuper = false;
-
-  /// True if we're analyzing in strong mode.
-  final bool _strongMode = true;
-
-  /// Type type system in use for this resolver pass.
-  TypeSystem _typeSystem;
-
-  /// Whether the compilation unit is non-nullable.
-  final bool isNonNullableUnit;
-
-  /// The helper to resolve types.
-  TypeNameResolver _typeNameResolver;
-
-  final TypeResolverMode mode;
-
-  /// Is `true` when we are visiting all nodes in [TypeResolverMode.local] mode.
-  bool _localModeVisitAll = false;
-
-  /// Is `true` if we are in [TypeResolverMode.local] mode, and the initial
-  /// [nameScope] was computed.
-  bool _localModeScopeReady = false;
-
-  /// Initialize a newly created visitor to resolve the nodes in an AST node.
-  ///
-  /// [definingLibrary] is the element for the library containing the node being
-  /// visited.
-  /// [source] is the source representing the compilation unit containing the
-  /// node being visited.
-  /// [typeProvider] is the object used to access the types from the core
-  /// library.
-  /// [errorListener] is the error listener that will be informed of any errors
-  /// that are found during resolution.
-  /// [nameScope] is the scope used to resolve identifiers in the node that will
-  /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
-  /// created based on [definingLibrary] and [typeProvider].
-  ///
-  /// Note: in a future release of the analyzer, the [featureSet] parameter will
-  /// be required.
-  TypeResolverVisitor(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      @Deprecated('Use featureSet instead') bool isNonNullableUnit: false,
-      FeatureSet featureSet,
-      this.mode: TypeResolverMode.everything,
-      bool shouldUseWithClauseInferredTypes: true})
-      : isNonNullableUnit = featureSet?.isEnabled(Feature.non_nullable) ??
-            // ignore: deprecated_member_use_from_same_package
-            isNonNullableUnit,
-        super(definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope) {
-    _dynamicType = typeProvider.dynamicType;
-    _typeSystem = TypeSystem.create(definingLibrary.context);
-    _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
-        this.isNonNullableUnit, definingLibrary, source, errorListener,
-        shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
-  }
-
-  @override
-  void visitAnnotation(Annotation node) {
-    //
-    // Visit annotations, if the annotation is @proxy, on a class, and "proxy"
-    // resolves to the proxy annotation in dart.core, then resolve the
-    // ElementAnnotation.
-    //
-    // Element resolution is done in the ElementResolver, and this work will be
-    // done in the general case for all annotations in the ElementResolver.
-    // The reason we resolve this particular element early is so that
-    // ClassElement.isProxy() returns the correct information during all
-    // phases of the ElementResolver.
-    //
-    super.visitAnnotation(node);
-    Identifier identifier = node.name;
-    if (identifier.name.endsWith(ElementAnnotationImpl.PROXY_VARIABLE_NAME) &&
-        node.parent is ClassDeclaration) {
-      Element element = nameScope.lookup(identifier, definingLibrary);
-      if (element != null &&
-          element.library.isDartCore &&
-          element is PropertyAccessorElement) {
-        // This is the @proxy from dart.core
-        ElementAnnotationImpl elementAnnotation = node.elementAnnotation;
-        elementAnnotation.element = element;
-      }
-    }
-  }
-
-  @override
-  void visitCatchClause(CatchClause node) {
-    super.visitCatchClause(node);
-    SimpleIdentifier exception = node.exceptionParameter;
-    if (exception != null) {
-      // If an 'on' clause is provided the type of the exception parameter is
-      // the type in the 'on' clause. Otherwise, the type of the exception
-      // parameter is 'Object'.
-      TypeAnnotation exceptionTypeName = node.exceptionType;
-      DartType exceptionType;
-      if (exceptionTypeName == null) {
-        exceptionType = typeProvider.dynamicType;
-      } else {
-        exceptionType = _typeNameResolver._getType(exceptionTypeName);
-      }
-      _recordType(exception, exceptionType);
-      Element element = exception.staticElement;
-      if (element is VariableElementImpl) {
-        element.declaredType = exceptionType;
-      } else {
-        // TODO(brianwilkerson) Report the internal error
-      }
-    }
-    SimpleIdentifier stackTrace = node.stackTraceParameter;
-    if (stackTrace != null) {
-      _recordType(stackTrace, typeProvider.stackTraceType);
-      Element element = stackTrace.staticElement;
-      if (element is VariableElementImpl) {
-        element.declaredType = typeProvider.stackTraceType;
-      } else {
-        // TODO(brianwilkerson) Report the internal error
-      }
-    }
-  }
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    _hasReferenceToSuper = false;
-    super.visitClassDeclaration(node);
-    ClassElementImpl classElement = _getClassElement(node.name);
-    if (classElement != null) {
-      // Clear this flag, as we just invalidated any inferred member types.
-      classElement.hasBeenInferred = false;
-      classElement.hasReferenceToSuper = _hasReferenceToSuper;
-    }
-  }
-
-  @override
-  void visitClassDeclarationInScope(ClassDeclaration node) {
-    super.visitClassDeclarationInScope(node);
-    ExtendsClause extendsClause = node.extendsClause;
-    WithClause withClause = node.withClause;
-    ImplementsClause implementsClause = node.implementsClause;
-    ClassElementImpl classElement = _getClassElement(node.name);
-    if (extendsClause != null) {
-      ErrorCode errorCode = (withClause == null
-          ? CompileTimeErrorCode.EXTENDS_NON_CLASS
-          : CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS);
-      _resolveType(extendsClause.superclass, errorCode, asClass: true);
-    }
-    _resolveWithClause(classElement, withClause);
-    _resolveImplementsClause(classElement, implementsClause);
-  }
-
-  @override
-  void visitClassMembersInScope(ClassDeclaration node) {
-    node.documentationComment?.accept(this);
-    node.metadata.accept(this);
-    //
-    // Process field declarations before constructors and methods so that the
-    // types of field formal parameters can be correctly resolved.
-    //
-    List<ClassMember> nonFields = new List<ClassMember>();
-    NodeList<ClassMember> members = node.members;
-    int length = members.length;
-    for (int i = 0; i < length; i++) {
-      ClassMember member = members[i];
-      if (member is ConstructorDeclaration) {
-        nonFields.add(member);
-      } else {
-        member.accept(this);
-      }
-    }
-    int count = nonFields.length;
-    for (int i = 0; i < count; i++) {
-      nonFields[i].accept(this);
-    }
-  }
-
-  @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    super.visitClassTypeAlias(node);
-    _resolveType(
-      node.superclass,
-      CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
-      asClass: true,
-    );
-    ClassElementImpl classElement = _getClassElement(node.name);
-    _resolveWithClause(classElement, node.withClause);
-    _resolveImplementsClause(classElement, node.implementsClause);
-  }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    super.visitConstructorDeclaration(node);
-    if (node.declaredElement == null) {
-      ClassDeclaration classNode =
-          node.thisOrAncestorOfType<ClassDeclaration>();
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("The element for the constructor ");
-      buffer.write(node.name == null ? "<unnamed>" : node.name.name);
-      buffer.write(" in ");
-      if (classNode == null) {
-        buffer.write("<unknown class>");
-      } else {
-        buffer.write(classNode.name.name);
-      }
-      buffer.write(" in ");
-      buffer.write(source.fullName);
-      buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError(buffer.toString(),
-          new CaughtException(new AnalysisException(), null));
-    }
-  }
-
-  @override
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    super.visitDeclaredIdentifier(node);
-    DartType declaredType;
-    TypeAnnotation typeName = node.type;
-    if (typeName == null) {
-      declaredType = _dynamicType;
-    } else {
-      declaredType = _typeNameResolver._getType(typeName);
-    }
-    LocalVariableElementImpl element =
-        node.declaredElement as LocalVariableElementImpl;
-    element.declaredType = declaredType;
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    super.visitFieldFormalParameter(node);
-    Element element = node.identifier.staticElement;
-    if (element is ParameterElementImpl) {
-      FormalParameterList parameterList = node.parameters;
-      if (parameterList == null) {
-        DartType type;
-        TypeAnnotation typeName = node.type;
-        if (typeName == null) {
-          element.hasImplicitType = true;
-          if (element is FieldFormalParameterElement) {
-            FieldElement fieldElement =
-                (element as FieldFormalParameterElement).field;
-            type = fieldElement?.type;
-          }
-        } else {
-          type = _typeNameResolver._getType(typeName);
-        }
-        element.declaredType = type ?? _dynamicType;
-      } else {
-        _setFunctionTypedParameterType(element, node.type, node.parameters);
-      }
-    } else {
-      // TODO(brianwilkerson) Report this internal error
-    }
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    super.visitFunctionDeclaration(node);
-    ExecutableElementImpl element =
-        node.declaredElement as ExecutableElementImpl;
-    if (element == null) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("The element for the top-level function ");
-      buffer.write(node.name);
-      buffer.write(" in ");
-      buffer.write(source.fullName);
-      buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError(buffer.toString(),
-          new CaughtException(new AnalysisException(), null));
-    }
-    element.declaredReturnType = _computeReturnType(node.returnType);
-    _inferSetterReturnType(element);
-  }
-
-  @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    var element = node.declaredElement as GenericTypeAliasElementImpl;
-    super.visitFunctionTypeAlias(node);
-    element.function.returnType = _computeReturnType(node.returnType);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    super.visitFunctionTypedFormalParameter(node);
-    Element element = node.identifier.staticElement;
-    if (element is ParameterElementImpl) {
-      _setFunctionTypedParameterType(element, node.returnType, node.parameters);
-    } else {
-      // TODO(brianwilkerson) Report this internal error
-    }
-  }
-
-  @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element =
-        (node as GenericFunctionTypeImpl).declaredElement;
-    if (node.type != null) {
-      var nullability =
-          _typeNameResolver._getNullability(node.question != null);
-      (node as GenericFunctionTypeImpl).type =
-          (node.type as TypeImpl).withNullability(nullability);
-    }
-    if (element != null) {
-      super.visitGenericFunctionType(node);
-      element.returnType =
-          _computeReturnType(node.returnType) ?? DynamicTypeImpl.instance;
-    }
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    super.visitMethodDeclaration(node);
-    ExecutableElementImpl element =
-        node.declaredElement as ExecutableElementImpl;
-    if (element == null) {
-      ClassDeclaration classNode =
-          node.thisOrAncestorOfType<ClassDeclaration>();
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("The element for the method ");
-      buffer.write(node.name.name);
-      buffer.write(" in ");
-      if (classNode == null) {
-        buffer.write("<unknown class>");
-      } else {
-        buffer.write(classNode.name.name);
-      }
-      buffer.write(" in ");
-      buffer.write(source.fullName);
-      buffer.write(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError(buffer.toString(),
-          new CaughtException(new AnalysisException(), null));
-    }
-
-    // When the library is resynthesized, types of all of its elements are
-    // already set - statically or inferred. We don't want to overwrite them.
-    if (LibraryElementImpl.hasResolutionCapability(
-        definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
-      return;
-    }
-
-    element.declaredReturnType = _computeReturnType(node.returnType);
-    _inferSetterReturnType(element);
-    _inferOperatorReturnType(element);
-    if (element is PropertyAccessorElement) {
-      PropertyAccessorElement accessor = element as PropertyAccessorElement;
-      PropertyInducingElementImpl variable =
-          accessor.variable as PropertyInducingElementImpl;
-      if (accessor.isGetter) {
-        variable.declaredType = element.returnType;
-      } else if (variable.type == null) {
-        List<ParameterElement> parameters = element.parameters;
-        DartType type = parameters != null && parameters.isNotEmpty
-            ? parameters[0].type
-            : _dynamicType;
-        variable.declaredType = type;
-      }
-    }
-  }
-
-  @override
-  void visitMixinDeclarationInScope(MixinDeclaration node) {
-    super.visitMixinDeclarationInScope(node);
-    MixinElementImpl element = node.declaredElement;
-    _resolveOnClause(element, node.onClause);
-    _resolveImplementsClause(element, node.implementsClause);
-  }
-
-  @override
-  void visitNode(AstNode node) {
-    // In API mode we need to skip:
-    //   - function bodies;
-    //   - default values of parameters;
-    //   - initializers of top-level variables.
-    if (mode == TypeResolverMode.api) {
-      if (node is FunctionBody) {
-        return;
-      }
-      if (node is DefaultFormalParameter) {
-        node.parameter.accept(this);
-        return;
-      }
-      if (node is VariableDeclaration) {
-        return;
-      }
-    }
-
-    // In local mode we need to resolve only:
-    //   - function bodies;
-    //   - default values of parameters;
-    //   - initializers of top-level variables.
-    // So, we carefully visit only nodes that are, or contain, these nodes.
-    // The client may choose to start visiting any node, but we still want to
-    // resolve only type names that are local.
-    if (mode == TypeResolverMode.local) {
-      // We are in the state of visiting all nodes.
-      if (_localModeVisitAll) {
-        super.visitNode(node);
-        return;
-      }
-
-      // Ensure that the name scope is ready.
-      if (!_localModeScopeReady) {
-        void fillNameScope(AstNode node) {
-          if (node is FunctionBody ||
-              node is FormalParameterList ||
-              node is VariableDeclaration) {
-            throw new StateError(
-                'Local type resolution must start from a class or unit member.');
-          }
-          // Create enclosing name scopes.
-          AstNode parent = node.parent;
-          if (parent != null) {
-            fillNameScope(parent);
-          }
-          // Create the name scope for the node.
-          if (node is ClassDeclaration) {
-            ClassElement classElement = node.declaredElement;
-            nameScope = new TypeParameterScope(nameScope, classElement);
-            nameScope = new ClassScope(nameScope, classElement);
-          }
-        }
-
-        fillNameScope(node);
-        _localModeScopeReady = true;
-      }
-
-      /// Visit the given [node] and all its children.
-      void visitAllNodes(AstNode node) {
-        if (node != null) {
-          bool wasVisitAllInLocalMode = _localModeVisitAll;
-          try {
-            _localModeVisitAll = true;
-            node.accept(this);
-          } finally {
-            _localModeVisitAll = wasVisitAllInLocalMode;
-          }
-        }
-      }
-
-      // Visit only nodes that may contain type names to resolve.
-      if (node is CompilationUnit) {
-        node.declarations.forEach(visitNode);
-      } else if (node is ClassDeclaration) {
-        node.members.forEach(visitNode);
-      } else if (node is DefaultFormalParameter) {
-        visitAllNodes(node.defaultValue);
-      } else if (node is FieldDeclaration) {
-        visitNode(node.fields);
-      } else if (node is FunctionBody) {
-        visitAllNodes(node);
-      } else if (node is FunctionDeclaration) {
-        visitNode(node.functionExpression.parameters);
-        visitAllNodes(node.functionExpression.body);
-      } else if (node is FormalParameterList) {
-        node.parameters.accept(this);
-      } else if (node is MethodDeclaration) {
-        visitNode(node.parameters);
-        visitAllNodes(node.body);
-      } else if (node is TopLevelVariableDeclaration) {
-        visitNode(node.variables);
-      } else if (node is VariableDeclaration) {
-        visitAllNodes(node.initializer);
-      } else if (node is VariableDeclarationList) {
-        node.variables.forEach(visitNode);
-      }
-      return;
-    }
-    // The mode in which we visit all nodes.
-    super.visitNode(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    super.visitSimpleFormalParameter(node);
-    DartType declaredType;
-    TypeAnnotation typeName = node.type;
-    if (typeName == null) {
-      declaredType = _dynamicType;
-    } else {
-      declaredType = _typeNameResolver._getType(typeName);
-    }
-    Element element = node.declaredElement;
-    if (element is ParameterElementImpl) {
-      element.declaredType = declaredType;
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
-    }
-  }
-
-  @override
-  void visitSuperExpression(SuperExpression node) {
-    _hasReferenceToSuper = true;
-    super.visitSuperExpression(node);
-  }
-
-  @override
-  void visitTypeName(TypeName node) {
-    super.visitTypeName(node);
-    _typeNameResolver.nameScope = this.nameScope;
-    _typeNameResolver.resolveTypeName(node);
-  }
-
-  @override
-  void visitTypeParameter(TypeParameter node) {
-    super.visitTypeParameter(node);
-    AstNode parent2 = node.parent?.parent;
-    if (parent2 is ClassDeclaration ||
-        parent2 is ClassTypeAlias ||
-        parent2 is FunctionTypeAlias ||
-        parent2 is GenericTypeAlias) {
-      // Bounds of parameters of classes and function type aliases are
-      // already resolved.
-    } else {
-      TypeAnnotation bound = node.bound;
-      if (bound != null) {
-        TypeParameterElementImpl typeParameter =
-            node.name.staticElement as TypeParameterElementImpl;
-        if (typeParameter != null) {
-          typeParameter.bound = bound.type;
-        }
-      }
-    }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    super.visitVariableDeclaration(node);
-    var variableList = node.parent as VariableDeclarationList;
-    // When the library is resynthesized, the types of field elements are
-    // already set - statically or inferred. We don't want to overwrite them.
-    if (variableList.parent is FieldDeclaration &&
-        LibraryElementImpl.hasResolutionCapability(
-            definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
-      return;
-    }
-    // Resolve the type.
-    DartType declaredType;
-    TypeAnnotation typeName = variableList.type;
-    if (typeName == null) {
-      declaredType = _dynamicType;
-    } else {
-      declaredType = _typeNameResolver._getType(typeName);
-    }
-    Element element = node.name.staticElement;
-    if (element is VariableElementImpl) {
-      element.declaredType = declaredType;
-    }
-  }
-
-  /// Given the [returnType] of a function, compute the return type of the
-  /// function.
-  DartType _computeReturnType(TypeAnnotation returnType) {
-    if (returnType == null) {
-      return _dynamicType;
-    } else {
-      return _typeNameResolver._getType(returnType);
-    }
-  }
-
-  /// Return the class element that represents the class whose name was
-  /// provided.
-  ///
-  /// @param identifier the name from the declaration of a class
-  /// @return the class element that represents the class
-  ClassElementImpl _getClassElement(SimpleIdentifier identifier) {
-    // TODO(brianwilkerson) Seems like we should be using
-    // ClassDeclaration.getElement().
-    if (identifier == null) {
-      // TODO(brianwilkerson) Report this
-      // Internal error: We should never build a class declaration without a
-      // name.
-      return null;
-    }
-    Element element = identifier.staticElement;
-    if (element is ClassElementImpl) {
-      return element;
-    }
-    // TODO(brianwilkerson) Report this
-    // Internal error: Failed to create an element for a class declaration.
-    return null;
-  }
-
-  /// In strong mode we infer "void" as the return type of operator []= (as void
-  /// is the only legal return type for []=). This allows us to give better
-  /// errors later if an invalid type is returned.
-  void _inferOperatorReturnType(ExecutableElementImpl element) {
-    if (_strongMode &&
-        element.isOperator &&
-        element.name == '[]=' &&
-        element.hasImplicitReturnType) {
-      element.declaredReturnType = VoidTypeImpl.instance;
-    }
-  }
-
-  /// In strong mode we infer "void" as the setter return type (as void is the
-  /// only legal return type for a setter). This allows us to give better
-  /// errors later if an invalid type is returned.
-  void _inferSetterReturnType(ExecutableElementImpl element) {
-    if (_strongMode &&
-        element is PropertyAccessorElementImpl &&
-        element.isSetter &&
-        element.hasImplicitReturnType) {
-      element.declaredReturnType = VoidTypeImpl.instance;
-    }
-  }
-
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  Object _recordType(Expression expression, DartType type) {
-    if (type == null) {
-      expression.staticType = _dynamicType;
-    } else {
-      expression.staticType = type;
-    }
-    return null;
-  }
-
-  void _resolveImplementsClause(
-      ClassElementImpl classElement, ImplementsClause clause) {
-    if (clause != null) {
-      _resolveTypes(
-          clause.interfaces, CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
-    }
-  }
-
-  void _resolveOnClause(MixinElementImpl classElement, OnClause clause) {
-    List<InterfaceType> types;
-    if (clause != null) {
-      _resolveTypes(clause.superclassConstraints,
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE);
-    }
-    if (types == null || types.isEmpty) {
-      types = [typeProvider.objectType];
-    }
-  }
-
-  /// Return the [InterfaceType] of the given [typeName].
-  ///
-  /// If the resulting type is not a valid interface type, return `null`.
-  ///
-  /// The flag [asClass] specifies if the type will be used as a class, so mixin
-  /// declarations are not valid (they declare interfaces and mixins, but not
-  /// classes).
-  void _resolveType(TypeName typeName, ErrorCode errorCode,
-      {bool asClass: false}) {
-    DartType type = typeName.type;
-    if (type is InterfaceType) {
-      ClassElement element = type.element;
-      if (element != null) {
-        if (element.isEnum || element.isMixin && asClass) {
-          errorReporter.reportErrorForNode(errorCode, typeName);
-          return;
-        }
-      }
-      return;
-    }
-    // If the type is not an InterfaceType, then visitTypeName() sets the type
-    // to be a DynamicTypeImpl
-    Identifier name = typeName.name;
-    if (!nameScope.shouldIgnoreUndefined(name)) {
-      errorReporter.reportErrorForNode(errorCode, name, [name.name]);
-    }
-  }
-
-  /// Resolve the types in the given list of type names.
-  ///
-  /// @param typeNames the type names to be resolved
-  /// @param nonTypeError the error to produce if the type name is defined to be
-  ///        something other than a type
-  /// @param enumTypeError the error to produce if the type name is defined to
-  ///        be an enum
-  /// @param dynamicTypeError the error to produce if the type name is "dynamic"
-  /// @return an array containing all of the types that were resolved.
-  void _resolveTypes(NodeList<TypeName> typeNames, ErrorCode errorCode) {
-    for (TypeName typeName in typeNames) {
-      _resolveType(typeName, errorCode);
-    }
-  }
-
-  void _resolveWithClause(ClassElementImpl classElement, WithClause clause) {
-    if (clause != null) {
-      _resolveTypes(clause.mixinTypes, CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
-    }
-  }
-
-  /// Given a function typed [parameter] with [FunctionType] based on a
-  /// [GenericFunctionTypeElementImpl], compute and set the return type for the
-  /// function element.
-  void _setFunctionTypedParameterType(ParameterElementImpl parameter,
-      TypeAnnotation returnType, FormalParameterList parameterList) {
-    DartType type = parameter.type;
-    GenericFunctionTypeElementImpl typeElement = type.element;
-    // With summary2 we use synthetic FunctionType(s).
-    if (typeElement != null) {
-      typeElement.returnType = _computeReturnType(returnType);
-    }
-  }
 }
 
 /// Instances of the class [UnusedLocalElementsVerifier] traverse an AST

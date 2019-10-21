@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -64,10 +63,6 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitConstructorElement(this);
-
-  @deprecated
-  @override
-  ConstructorDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -303,14 +298,6 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   bool get isEnumConstant => baseElement.isEnumConstant;
 
-  @deprecated
-  @override
-  bool get isVirtual => baseElement.isVirtual;
-
-  @deprecated
-  @override
-  DartType get propagatedType => null;
-
   @override
   PropertyAccessorElement get setter {
     var baseSetter = baseElement.setter;
@@ -322,10 +309,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
-
-  @deprecated
-  @override
-  VariableDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() => '$type $displayName';
@@ -442,37 +425,13 @@ abstract class Member implements Element {
   int get id => _baseElement.id;
 
   @override
-  bool get isAlwaysThrows => _baseElement.hasAlwaysThrows;
-
-  @override
-  bool get isDeprecated => _baseElement.hasDeprecated;
-
-  @override
-  bool get isFactory => _baseElement.hasFactory;
-
-  @override
-  bool get isJS => _baseElement.hasJS;
-
-  @override
-  bool get isOverride => _baseElement.hasOverride;
-
-  @override
   bool get isPrivate => _baseElement.isPrivate;
-
-  @override
-  bool get isProtected => _baseElement.hasProtected;
 
   @override
   bool get isPublic => _baseElement.isPublic;
 
   @override
-  bool get isRequired => _baseElement.hasRequired;
-
-  @override
   bool get isSynthetic => _baseElement.isSynthetic;
-
-  @override
-  bool get isVisibleForTesting => _baseElement.hasVisibleForTesting;
 
   @override
   ElementKind get kind => _baseElement.kind;
@@ -508,17 +467,6 @@ abstract class Member implements Element {
    * The substitution for type parameters referenced in the base element.
    */
   MapSubstitution get substitution => _substitution;
-
-  @deprecated
-  @override
-  CompilationUnit get unit => _baseElement.unit;
-
-  @override
-  String computeDocumentationComment() => documentationComment;
-
-  @deprecated
-  @override
-  AstNode computeNode() => _baseElement.computeNode();
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) =>
@@ -572,10 +520,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
-
-  @deprecated
-  @override
-  MethodDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -729,14 +673,7 @@ class ParameterMember extends VariableMember
   }
 
   @override
-  SourceRange get visibleRange => baseElement.visibleRange;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
-
-  @deprecated
-  @override
-  FormalParameter computeNode() => baseElement.computeNode();
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
@@ -1061,16 +998,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isLate => baseElement.isLate;
-
-  @override
-  @deprecated
-  bool get isPotentiallyMutatedInClosure =>
-      baseElement.isPotentiallyMutatedInClosure;
-
-  @override
-  @deprecated
-  bool get isPotentiallyMutatedInScope =>
-      baseElement.isPotentiallyMutatedInScope;
 
   @override
   bool get isStatic => baseElement.isStatic;

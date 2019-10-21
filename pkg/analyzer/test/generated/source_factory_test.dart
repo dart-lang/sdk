@@ -223,24 +223,6 @@ class SourceFactoryTest with ResourceProviderMixin {
     expect(new SourceFactory([]), isNotNull);
   }
 
-  void test_fromEncoding_invalidUri() {
-    SourceFactory factory = new SourceFactory([]);
-    expect(() => factory.fromEncoding("<:&%>"), throwsArgumentError);
-  }
-
-  void test_fromEncoding_noResolver() {
-    SourceFactory factory = new SourceFactory([]);
-    expect(() => factory.fromEncoding("foo:/does/not/exist.dart"),
-        throwsArgumentError);
-  }
-
-  void test_fromEncoding_valid() {
-    String encoding = "file:///does/not/exist.dart";
-    SourceFactory factory = new SourceFactory(
-        [new UriResolver_SourceFactoryTest_test_fromEncoding_valid(encoding)]);
-    expect(factory.fromEncoding(encoding), isNotNull);
-  }
-
   void test_resolveUri_absolute() {
     UriResolver_absolute resolver = new UriResolver_absolute();
     SourceFactory factory = new SourceFactory([resolver]);

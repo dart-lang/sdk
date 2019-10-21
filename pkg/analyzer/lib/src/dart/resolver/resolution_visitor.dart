@@ -176,7 +176,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         }
 
         _setCodeRange(element, exceptionNode);
-        element.setVisibleRange(node.offset, node.length);
       }
 
       var stackTraceNode = node.stackTraceParameter;
@@ -191,7 +190,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         stackTraceNode.staticType = _typeProvider.stackTraceType;
 
         _setCodeRange(element, stackTraceNode);
-        element.setVisibleRange(node.offset, node.length);
       }
 
       node.body.accept(this);
@@ -312,12 +310,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
 
     _setCodeRange(element, node);
-
-    var parent = node.parent;
-    if (parent is ForEachPartsWithDeclaration) {
-      var statement = parent.parent;
-      element.setVisibleRange(statement.offset, statement.length);
-    }
   }
 
   @override
@@ -338,7 +330,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element.isFinal = node.isFinal;
       // ignore: deprecated_member_use_from_same_package
       element.parameterKind = node.kind;
-      _setParameterVisibleRange(node, element);
 
       if (normalParameter is SimpleFormalParameter &&
           normalParameter.type == null) {
@@ -503,12 +494,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (node.returnType == null) {
         element.hasImplicitReturnType = true;
       }
-
-      var enclosingBlock = node.thisOrAncestorOfType<Block>();
-      if (enclosingBlock != null) {
-        (element as FunctionElementImpl)
-            .setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      }
     }
 
     FunctionExpressionImpl expression = node.functionExpression;
@@ -579,11 +564,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     });
 
     _setCodeRange(element, node);
-
-    var enclosingBlock = node.thisOrAncestorOfType<Block>();
-    if (enclosingBlock != null) {
-      element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-    }
   }
 
   @override
@@ -622,7 +602,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
         _setCodeRange(element, node);
-        _setParameterVisibleRange(node, element);
       }
       nameNode.staticElement = element;
     }
@@ -841,7 +820,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element.isFinal = node.isFinal;
         // ignore: deprecated_member_use_from_same_package
         element.parameterKind = node.kind;
-        _setParameterVisibleRange(node, element);
         if (node.type == null) {
           element.hasImplicitType = true;
         }
@@ -952,8 +930,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       VariableDeclarationList varList = node.parent;
       localElement.hasImplicitType = varList.type == null;
       localElement.type = varList.type?.type ?? _dynamicType;
-
-      _setVariableVisibleRange(localElement, node);
     }
 
     if (initializerNode != null) {
@@ -1091,20 +1067,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Return the body of the function that contains the given [parameter], or
-  /// `null` if no function body could be found.
-  FunctionBody _getFunctionBody(FormalParameter parameter) {
-    AstNode parent = parameter?.parent?.parent;
-    if (parent is ConstructorDeclaration) {
-      return parent.body;
-    } else if (parent is FunctionExpression) {
-      return parent.body;
-    } else if (parent is MethodDeclaration) {
-      return parent.body;
-    }
-    return null;
-  }
-
   NullabilitySuffix _getNullability(bool hasQuestion) {
     NullabilitySuffix nullability;
     if (_nonNullableEnabled) {
@@ -1192,27 +1154,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   void _setCodeRange(ElementImpl element, AstNode node) {
     element.setCodeRange(node.offset, node.length);
-  }
-
-  /// Sets the visible source range for formal parameter.
-  void _setParameterVisibleRange(
-      FormalParameter node, ParameterElementImpl element) {
-    FunctionBody body = _getFunctionBody(node);
-    if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
-      element.setVisibleRange(body.offset, body.length);
-    }
-  }
-
-  void _setVariableVisibleRange(
-      LocalVariableElementImpl element, VariableDeclaration node) {
-    AstNode scopeNode;
-    AstNode parent2 = node.parent.parent;
-    if (parent2 is ForPartsWithDeclarations) {
-      scopeNode = parent2.parent;
-    } else {
-      scopeNode = node.thisOrAncestorOfType<Block>();
-    }
-    element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
 
   /// Make the given [holder] be the current one while running [f].

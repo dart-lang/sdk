@@ -134,8 +134,8 @@ class LintDriver {
     ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
 
     DartSdk sdk = options.mockSdk ??
-        new FolderBasedDartSdk(resourceProvider,
-            resourceProvider.getFolder(sdkDir), options.strongMode);
+        new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 

@@ -1,3 +1,55 @@
+## 0.39.0
+* Removed deprecated `DartType.isEquivalentTo`.
+* Removed `useDart2jsPaths` argument in `FolderBasedDartSdk` constructor.
+  Dartium does not exist anymore, so there is just one `dart:html`.
+* Removed several unused members of `SourceFactory`: `context`,
+  `localSourcePredicate`, `clone`, `fromEncoding`, `isLocalSource`.
+* Removed deprecated method `Element.computeNode`.
+* Removed deprecated getter `CompilationUnitElement.unit`.
+* Removed deprecated method `Element.computeDocumentationComment`.
+* Removed unused `wrapped.dart` with `WrappedLibraryElement`, etc.
+* Removed deprecated 'bestElement', 'bestType', 'propagatedElement',
+  'propagatedType', etc. Use 'staticElement' and 'staticType' instead.
+* Removed deprecated 'Declaration.element'.
+  Use 'Declaration.declaredElement' instead.
+* Removed deprecated 'Expression.precedence2'. Use 'precedence' instead.
+* Removed `ResolutionMap resolutionMap`. Use corresponding accessors
+  on AstNode(s) directly to get elements and types.
+* Removed 'InheritanceManager2'. Use 'InheritanceManager3' instead.
+* Removed 'InheritanceManager'. Use 'InheritanceManager3' instead.
+* Removed deprecated methods in `DartType`: `flattenFutures`,
+  `isAssignableTo`, `isEquivalentTo`, `isMoreSpecificThan`,
+  `isSubtypeOf`, `isSupertypeOf`, `isDirectSupertypeOf`.
+  Use corresponding methods of `TypeSystem` instead.
+* Removed deprecated getters for checking a specific annotations on
+  'Element': `isAlwaysThrows`, `isDeprecated`, `isFactory`, `isJS`,
+  `isOverride`, `isProtected`, `isRequired`, `isVisibleForTesting`.
+  Use corresponding `hasXyz` getters.
+* Removed 'LocalElement.visibleRange'.
+  Visible ranges of local variables and functions can be computed when
+  AST is available.
+* Removed unused `LibraryElement.libraryCycle`.
+* Removed `ElementHandle` and `ElementResynthesizer`.
+* Remove `ElementBuilder`, `DeclarationResolver`, `DirectiveResolver`,
+  `TypeParameterBoundsResolver`, `TypeResolverVisitor`, etc.
+  Use `ResolutionVisitor` instead, it combines all these operations.
+* Removed `FunctionTypeAliasElement.instantiate`, use `instantiate2` for now.
+  In the next version `instantiate` will be re-introduced with the same
+  signature and semantics as `instantiate2`, and `instantiate2` will be
+  deprecated and removed in the next breaking change version.
+* Stop setting types for identifiers where they are not expressions.
+  Specifically, where a SimpleIdentifier is the name of a declaration,
+  or Identifier is the name of the class in a TypeName.
+* Removed transitional `InheritanceManagerBase`.
+* Removed deprecated method `ArgumentList.correspondingPropagatedParameters`.
+  Use `ArgumentList.correspondingStaticParameters` instead.
+* Removed deprecated getter `PrefixElement.importedLibraries`.  It was never
+  implemented.
+* Removed deprecated getter `VariableElement.isPotentiallyMutatedInClosure` and
+  `VariableElement.isPotentiallyMutatedInScope`.  Please use the corresponding
+  methods in `FunctionBody` instead.
+* Bug fixes: 33441, 35777, 35993, 37898, 38560, 38803, 38811, 38900, 38911.
+
 ## 0.38.5
 * Added the interface `PromotableElement`, which representing
   variables that can be type promoted (local variables and parameters,

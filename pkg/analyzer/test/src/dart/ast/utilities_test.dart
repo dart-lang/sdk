@@ -504,8 +504,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
         AstTestFactory.identifier3("a"), AstTestFactory.integer(0));
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceType(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, null);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceType(ElementFactory.classElement2('C'));
@@ -785,8 +784,7 @@ class ResolutionCopierTest with ElementsTypesMixin {
     SimpleIdentifier fromNode = AstTestFactory.identifier3("x");
     MethodElement staticElement = ElementFactory.methodElement(
         "m", interfaceType(ElementFactory.classElement2('C')));
-    AuxiliaryElements auxiliaryElements =
-        new AuxiliaryElements(staticElement, null);
+    AuxiliaryElements auxiliaryElements = new AuxiliaryElements(staticElement);
     fromNode.auxiliaryElements = auxiliaryElements;
     fromNode.staticElement = staticElement;
     DartType staticType = interfaceType(ElementFactory.classElement2('C'));

@@ -306,23 +306,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Initialize a newly created error verifier.
-   *
-   * [inheritanceManager] should be an instance of either [InheritanceManager2]
-   * or [InheritanceManager3].  If an [InheritanceManager2] is supplied, it
-   * will be converted into an [InheritanceManager3] internally.  The ability
-   * to pass in [InheritanceManager2] exists for backward compatibility; in a
-   * future major version of the analyzer, an [InheritanceManager3] will
-   * be required.
    */
-  ErrorVerifier(
-      ErrorReporter errorReporter,
-      this._currentLibrary,
-      this._typeProvider,
-      InheritanceManagerBase inheritanceManager,
-      bool enableSuperMixins,
+  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
+      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
       {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
-        _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),

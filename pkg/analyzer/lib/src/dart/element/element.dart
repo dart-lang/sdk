@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
-import 'dart:math' show min;
 
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -130,17 +128,6 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
-
-  @deprecated
-  @override
-  NamedCompilationUnitMember computeNode() {
-    if (isEnum) {
-      return getNodeMatching((node) => node is EnumDeclaration);
-    } else {
-      return getNodeMatching(
-          (node) => node is ClassDeclaration || node is ClassTypeAlias);
-    }
-  }
 
   @override
   ElementImpl getChild(String identifier) {
@@ -418,22 +405,13 @@ abstract class AbstractClassElementImpl extends ElementImpl
 
 /// For AST nodes that could be in both the getter and setter contexts
 /// ([IndexExpression]s and [SimpleIdentifier]s), the additional resolved
-/// elements are stored in the AST node, in an [AuxiliaryElements]. Because
-/// resolved elements are either statically resolved or resolved using
-/// propagated type information, this class is a wrapper for a pair of
-/// [ExecutableElement]s, not just a single [ExecutableElement].
+/// element (getter) is stored in the AST node, in an [AuxiliaryElements].
 class AuxiliaryElements {
   /// The element based on static type information, or `null` if the AST
   /// structure has not been resolved or if the node could not be resolved.
   final ExecutableElement staticElement;
 
-  /// Initialize a newly created pair to have both the [staticElement] and
-  /// `null`.
-  AuxiliaryElements(this.staticElement, ExecutableElement propagatedElement);
-
-  /// The element based on propagated type information, or `null` if the AST
-  /// structure has not been resolved or if the node could not be resolved.
-  ExecutableElement get propagatedElement => null;
+  AuxiliaryElements(this.staticElement);
 }
 
 /// An [AbstractClassElementImpl] which is a class.
@@ -1647,10 +1625,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
   }
 
-  @deprecated
-  @override
-  CompilationUnit computeNode() => unit;
-
   /// Return the annotations associated with the directive at the given
   /// [offset], or an empty list if the directive has no annotations or if
   /// there is no directive at the given offset.
@@ -2285,11 +2259,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
           context.declaredVariables, [this], analysisOptions.experimentStatus);
     }
   }
-
-  @deprecated
-  @override
-  ConstructorDeclaration computeNode() =>
-      getNodeMatching((node) => node is ConstructorDeclaration);
 }
 
 /// A [TopLevelVariableElement] for a top-level 'const' variable that has an
@@ -2401,11 +2370,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
 
   /// Initialize a newly created parameter element to have the given [name].
   DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
-
-  @deprecated
-  @override
-  DefaultFormalParameter computeNode() =>
-      getNodeMatching((node) => node is DefaultFormalParameter);
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -2987,21 +2951,6 @@ abstract class ElementImpl implements Element {
   String get identifier => name;
 
   @override
-  bool get isAlwaysThrows => hasAlwaysThrows;
-
-  @override
-  bool get isDeprecated => hasDeprecated;
-
-  @override
-  bool get isFactory => hasFactory;
-
-  @override
-  bool get isJS => hasJS;
-
-  @override
-  bool get isOverride => hasOverride;
-
-  @override
   bool get isPrivate {
     String name = displayName;
     if (name == null) {
@@ -3011,13 +2960,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  bool get isProtected => hasProtected;
-
-  @override
   bool get isPublic => !isPrivate;
-
-  @override
-  bool get isRequired => hasRequired;
 
   @override
   bool get isSynthetic {
@@ -3031,9 +2974,6 @@ abstract class ElementImpl implements Element {
   void set isSynthetic(bool isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
-
-  @override
-  bool get isVisibleForTesting => hasVisibleForTesting;
 
   @override
   LibraryElement get library =>
@@ -3110,12 +3050,6 @@ abstract class ElementImpl implements Element {
     return _enclosingElement?.typeParameterContext;
   }
 
-  @deprecated
-  @override
-  CompilationUnit get unit {
-    throw UnimplementedError();
-  }
-
   NullabilitySuffix get _noneOrStarSuffix {
     return library?.isNonNullableByDefault == true
         ? NullabilitySuffix.none
@@ -3162,13 +3096,6 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  @override
-  String computeDocumentationComment() => documentationComment;
-
-  @deprecated
-  @override
-  AstNode computeNode() => getNodeMatching((node) => node is AstNode);
-
   /// Set this element as the enclosing element for given [element].
   void encloseElement(ElementImpl element) {
     element.enclosingElement = this;
@@ -3200,21 +3127,6 @@ abstract class ElementImpl implements Element {
       return "$shortName (${source.fullName})";
     }
     return shortName;
-  }
-
-  /// Return the resolved [AstNode] of the given type enclosing [getNameOffset].
-  @deprecated
-  AstNode getNodeMatching(Predicate<AstNode> predicate) {
-    CompilationUnit unit = this.unit;
-    if (unit == null) {
-      return null;
-    }
-    int offset = nameOffset;
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
-    if (node == null) {
-      return null;
-    }
-    return node.thisOrAncestorMatching(predicate);
   }
 
   /// Return `true` if this element has the given [modifier] associated with it.
@@ -4525,25 +4437,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.STATIC, isStatic);
   }
 
-  @deprecated
-  @override
-  bool get isVirtual => true;
-
   @override
   ElementKind get kind => ElementKind.FIELD;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFieldElement(this);
-
-  @deprecated
-  @override
-  AstNode computeNode() {
-    if (isEnumConstant) {
-      return getNodeMatching((node) => node is EnumConstantDeclaration);
-    } else {
-      return getNodeMatching((node) => node is VariableDeclaration);
-    }
-  }
 }
 
 /// A [ParameterElementImpl] that has the additional information of the
@@ -4609,13 +4507,6 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement, FunctionTypedElementImpl {
-  /// The offset to the beginning of the visible range for this element.
-  int _visibleRangeOffset = 0;
-
-  /// The length of the visible range for this element, or `-1` if this element
-  /// does not have a visible range.
-  int _visibleRangeLength = -1;
-
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionElementImpl(String name, int offset) : super(name, offset);
@@ -4684,27 +4575,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-
-  @deprecated
-  @override
-  FunctionDeclaration computeNode() =>
-      getNodeMatching((node) => node is FunctionDeclaration);
-
-  /// Set the visible range for this element to the range starting at the given
-  /// [offset] with the given [length].
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
-  }
 
   /// Set the parameters defined by this type alias to the given [parameters]
   /// without becoming the parent of the parameters. This should only be used by
@@ -5118,11 +4989,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
     }
   }
 
-  @deprecated
-  @override
-  GenericTypeAlias computeNode() =>
-      getNodeMatching((node) => node is GenericTypeAlias);
-
   @override
   ElementImpl getChild(String identifier) {
     for (TypeParameterElement typeParameter in typeParameters) {
@@ -5132,14 +4998,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       }
     }
     return null;
-  }
-
-  @override
-  FunctionType instantiate(List<DartType> argumentTypes) {
-    return instantiate2(
-      typeArguments: argumentTypes,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
   }
 
   @override
@@ -5489,13 +5347,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /// library.
   List<ExportElement> _exports;
 
-  /// A list containing the strongly connected component in the import/export
-  /// graph in which the current library resides.  Computed on demand, null
-  /// if not present.  If _libraryCycle is set, then the _libraryCycle field
-  /// for all libraries reachable from this library in the import/export graph
-  /// is also set.
-  List<LibraryElement> _libraryCycle;
-
   /// A list containing all of the compilation units that are included in this
   /// library using a `part` directive.
   List<CompilationUnitElement> _parts = const <CompilationUnitElement>[];
@@ -5816,82 +5667,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElement get library => this;
 
   @override
-  List<LibraryElement> get libraryCycle {
-    if (_libraryCycle != null) {
-      return _libraryCycle;
-    }
-
-    // Global counter for this run of the algorithm
-    int counter = 0;
-    // The discovery times of each library
-    Map<LibraryElementImpl, int> indices = {};
-    // The set of scc candidates
-    Set<LibraryElementImpl> active = new Set();
-    // The stack of discovered elements
-    List<LibraryElementImpl> stack = [];
-    // For a given library that has not yet been processed by this run of the
-    // algorithm, compute the strongly connected components.
-    int scc(LibraryElementImpl library) {
-      int index = counter++;
-      int root = index;
-      indices[library] = index;
-      active.add(library);
-      stack.add(library);
-      LibraryElementImpl getActualLibrary(LibraryElement lib) {
-        // TODO(paulberry): this means that computing a library cycle will be
-        // expensive for libraries resynthesized from summaries, since it will
-        // require fully resynthesizing all the libraries in the cycle as well
-        // as any libraries they import or export.  Try to find a better way.
-        return lib;
-      }
-
-      void recurse(LibraryElementImpl child) {
-        if (!indices.containsKey(child)) {
-          // We haven't visited this child yet, so recurse on the child,
-          // returning the lowest numbered node reachable from the child.  If
-          // the child can reach a root which is lower numbered than anything
-          // we've reached so far, update the root.
-          root = min(root, scc(child));
-        } else if (active.contains(child)) {
-          // The child has been visited, but has not yet been placed into a
-          // component.  If the child is higher than anything we've seen so far
-          // update the root appropriately.
-          root = min(root, indices[child]);
-        }
-      }
-
-      // Recurse on all of the children in the import/export graph, filtering
-      // out those for which library cycles have already been computed.
-      library.exportedLibraries
-          .map(getActualLibrary)
-          .where((l) => l._libraryCycle == null)
-          .forEach(recurse);
-      library.importedLibraries
-          .map(getActualLibrary)
-          .where((l) => l._libraryCycle == null)
-          .forEach(recurse);
-
-      if (root == index) {
-        // This is the root of a strongly connected component.
-        // Pop the elements, and share the component across all
-        // of the elements.
-        List<LibraryElement> component = <LibraryElement>[];
-        LibraryElementImpl cur;
-        do {
-          cur = stack.removeLast();
-          active.remove(cur);
-          component.add(cur);
-          cur._libraryCycle = component;
-        } while (cur != library);
-      }
-      return root;
-    }
-
-    scc(library);
-    return _libraryCycle;
-  }
-
-  @override
   FunctionElement get loadLibraryFunction {
     assert(_loadLibraryFunction != null);
     return _loadLibraryFunction;
@@ -6149,13 +5924,6 @@ abstract class LibraryResynthesizerContext {
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
-  /// The offset to the beginning of the visible range for this element.
-  int _visibleRangeOffset = 0;
-
-  /// The length of the visible range for this element, or `-1` if this element
-  /// does not have a visible range.
-  int _visibleRangeLength = -1;
-
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableElementImpl(String name, int offset) : super(name, offset);
@@ -6180,21 +5948,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
   }
 
   @override
-  bool get isPotentiallyMutatedInClosure => true;
-
-  @override
-  bool get isPotentiallyMutatedInScope => true;
-
-  @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
-
-  @override
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
 
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
@@ -6205,18 +5959,6 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     buffer.write(type);
     buffer.write(" ");
     buffer.write(displayName);
-  }
-
-  @deprecated
-  @override
-  Declaration computeNode() => getNodeMatching(
-      (node) => node is DeclaredIdentifier || node is VariableDeclaration);
-
-  /// Set the visible range for this element to the range starting at the given
-  /// [offset] with the given [length].
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
   }
 }
 
@@ -6291,11 +6033,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
-
-  @deprecated
-  @override
-  MethodDeclaration computeNode() =>
-      getNodeMatching((node) => node is MethodDeclaration);
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
@@ -6608,21 +6345,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasVisibleForTesting => false;
 
   @override
-  bool get isAlwaysThrows => false;
-
-  @override
-  bool get isDeprecated => false;
-
-  @override
-  bool get isFactory => false;
-
-  @override
-  bool get isJS => false;
-
-  @override
-  bool get isOverride => false;
-
-  @override
   bool get isPrivate {
     String name = displayName;
     if (name == null) {
@@ -6632,21 +6354,12 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
-  bool get isProtected => false;
-
-  @override
   bool get isPublic => !isPrivate;
-
-  @override
-  bool get isRequired => false;
 
   @override
   bool get isSynthetic => true;
 
   bool get isVisibleForTemplate => false;
-
-  @override
-  bool get isVisibleForTesting => false;
 
   @override
   ElementKind get kind => ElementKind.ERROR;
@@ -6676,18 +6389,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   DartType get type => DynamicTypeImpl.instance;
 
   @override
-  CompilationUnit get unit => null;
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitMultiplyDefinedElement(this);
-
-  @override
-  String computeDocumentationComment() => null;
-
-  @deprecated
-  @override
-  AstNode computeNode() => null;
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) => null;
@@ -6951,13 +6654,6 @@ class ParameterElementImpl extends VariableElementImpl
   /// The Dart code of the default value.
   String _defaultValueCode;
 
-  /// The offset to the beginning of the visible range for this element.
-  int _visibleRangeOffset = 0;
-
-  /// The length of the visible range for this element, or `-1` if this element
-  /// does not have a visible range.
-  int _visibleRangeLength = -1;
-
   bool _inheritsCovariant = false;
 
   /// Initialize a newly created parameter element to have the given [name] and
@@ -7118,12 +6814,6 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isLate => false;
 
   @override
-  bool get isPotentiallyMutatedInClosure => true;
-
-  @override
-  bool get isPotentiallyMutatedInScope => true;
-
-  @override
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
@@ -7244,14 +6934,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  SourceRange get visibleRange {
-    if (_visibleRangeLength < 0) {
-      return null;
-    }
-    return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
-  }
-
-  @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitParameterElement(this);
 
   @override
@@ -7270,18 +6952,6 @@ class ParameterElementImpl extends VariableElementImpl
     } else {
       appendToWithoutDelimiters(buffer);
     }
-  }
-
-  @deprecated
-  @override
-  FormalParameter computeNode() =>
-      getNodeMatching((node) => node is FormalParameter);
-
-  /// Set the visible range for this element to the range starting at the given
-  /// [offset] with the given [length].
-  void setVisibleRange(int offset, int length) {
-    _visibleRangeOffset = offset;
-    _visibleRangeLength = length;
   }
 
   @override
@@ -7476,9 +7146,6 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
       super.enclosingElement as LibraryElement;
 
   @override
-  List<LibraryElement> get importedLibraries => const <LibraryElement>[];
-
-  @override
   ElementKind get kind => ElementKind.PREFIX;
 
   @override
@@ -7639,20 +7306,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     super.appendToWithName(
         buffer, (isGetter ? 'get ' : 'set ') + variable.displayName);
   }
-
-  @deprecated
-  @override
-  AstNode computeNode() {
-    if (isSynthetic) {
-      return null;
-    }
-    if (enclosingElement is ClassElement) {
-      return getNodeMatching((node) => node is MethodDeclaration);
-    } else if (enclosingElement is CompilationUnitElement) {
-      return getNodeMatching((node) => node is FunctionDeclaration);
-    }
-    return null;
-  }
 }
 
 /// Implicit getter for a [PropertyInducingElementImpl].
@@ -7801,13 +7454,6 @@ abstract class PropertyInducingElementImpl
     }
     return hasModifier(Modifier.LATE);
   }
-
-  @deprecated
-  @override
-  DartType get propagatedType => null;
-
-  @deprecated
-  void set propagatedType(DartType propagatedType) {}
 
   @override
   DartType get type {
@@ -7963,11 +7609,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitTopLevelVariableElement(this);
-
-  @deprecated
-  @override
-  VariableDeclaration computeNode() =>
-      getNodeMatching((node) => node is VariableDeclaration);
 }
 
 /// A concrete implementation of a [TypeParameterElement].
@@ -8389,12 +8030,6 @@ abstract class VariableElementImpl extends ElementImpl
   void set isFinal(bool isFinal) {
     setModifier(Modifier.FINAL, isFinal);
   }
-
-  @override
-  bool get isPotentiallyMutatedInClosure => false;
-
-  @override
-  bool get isPotentiallyMutatedInScope => false;
 
   @override
   bool get isStatic => hasModifier(Modifier.STATIC);

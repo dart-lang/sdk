@@ -248,52 +248,6 @@ class LineInfo_Location {
 }
 
 /**
- * Instances of interface `LocalSourcePredicate` are used to determine if the given
- * [Source] is "local" in some sense, so can be updated.
- */
-abstract class LocalSourcePredicate {
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `false`.
-   */
-  static final LocalSourcePredicate FALSE = new LocalSourcePredicate_FALSE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that always returns `true`.
-   */
-  static final LocalSourcePredicate TRUE = new LocalSourcePredicate_TRUE();
-
-  /**
-   * Instance of [LocalSourcePredicate] that returns `true` for all [Source]s
-   * except of SDK.
-   */
-  static final LocalSourcePredicate NOT_SDK =
-      new LocalSourcePredicate_NOT_SDK();
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocal(Source source);
-}
-
-class LocalSourcePredicate_FALSE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => false;
-}
-
-class LocalSourcePredicate_NOT_SDK implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => source.uriKind != UriKind.DART_URI;
-}
-
-class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
-  @override
-  bool isLocal(Source source) => true;
-}
-
-/**
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
@@ -529,11 +483,6 @@ abstract class SourceContainer {
  */
 abstract class SourceFactory {
   /**
-   * The analysis context that this source factory is associated with.
-   */
-  AnalysisContext context;
-
-  /**
    * Initialize a newly created source factory with the given absolute URI
    * [resolvers] and optional [packages] resolution helper.
    */
@@ -550,13 +499,6 @@ abstract class SourceFactory {
    */
   DartSdk get dartSdk;
 
-  /**
-   * Sets the [LocalSourcePredicate].
-   *
-   * @param localSourcePredicate the predicate to determine is [Source] is local
-   */
-  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate);
-
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>> get packageMap;
@@ -566,12 +508,6 @@ abstract class SourceFactory {
    * and also ask each [UriResolver]s to clear its caches.
    */
   void clearCache();
-
-  /**
-   * Return a source factory that will resolve URI's in the same way that this
-   * source factory does.
-   */
-  SourceFactory clone();
 
   /**
    * Return a source object representing the given absolute URI, or `null` if
@@ -590,24 +526,6 @@ abstract class SourceFactory {
    * @return a source object representing the absolute URI
    */
   Source forUri2(Uri absoluteUri);
-
-  /**
-   * Return a source object that is equal to the source object used to obtain
-   * the given encoding.
-   *
-   * @param encoding the encoding of a source object
-   * @return a source object that is described by the given encoding
-   * @throws IllegalArgumentException if the argument is not a valid encoding
-   */
-  Source fromEncoding(String encoding);
-
-  /**
-   * Determines if the given [Source] is local.
-   *
-   * @param source the [Source] to analyze
-   * @return `true` if the given [Source] is local
-   */
-  bool isLocalSource(Source source);
 
   /**
    * Return a source representing the URI that results from resolving the given

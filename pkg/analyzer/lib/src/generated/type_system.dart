@@ -2883,23 +2883,6 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    // T is S
-    if (identical(this, type)) {
-      return true;
-    }
-    // else
-    return withDynamic;
-  }
-
-  @override
-  bool isSubtypeOf(DartType type) => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => true;
-
-  @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override

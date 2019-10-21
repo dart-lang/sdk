@@ -97,17 +97,6 @@ class BottomTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  bool isMoreSpecificThan(DartType type,
-          [bool withDynamic = false, Set<Element> visitedElements]) =>
-      true;
-
-  @override
-  bool isSubtypeOf(DartType type) => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => false;
-
-  @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
@@ -346,23 +335,6 @@ class DynamicTypeImpl extends TypeImpl {
 
   @override
   bool operator ==(Object object) => identical(object, this);
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    // T is S
-    if (identical(this, type)) {
-      return true;
-    }
-    // else
-    return withDynamic;
-  }
-
-  @override
-  bool isSubtypeOf(DartType type) => true;
-
-  @override
-  bool isSupertypeOf(DartType type) => true;
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
@@ -661,35 +633,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   FunctionTypeImpl instantiate(List<DartType> argumentTypes);
-
-  @override
-  bool isAssignableTo(DartType type) {
-    // A function type T may be assigned to a function type S, written T <=> S,
-    // iff T <: S.
-    return isSubtypeOf(type);
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    // Note: visitedElements is only used for breaking recursion in the type
-    // hierarchy; we don't use it when recursing into the function type.
-    return FunctionTypeImpl.relate(
-        this,
-        type,
-        (DartType t, DartType s) =>
-            (t as TypeImpl).isMoreSpecificThan(s, withDynamic));
-  }
-
-  @override
-  bool isSubtypeOf(DartType type) {
-    var typeSystem = new Dart2TypeSystem(null);
-    return FunctionTypeImpl.relate(
-        typeSystem.instantiateToBounds(this),
-        typeSystem.instantiateToBounds(type),
-        // ignore: deprecated_member_use_from_same_package
-        (DartType t, DartType s) => t.isAssignableTo(s));
-  }
 
   @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
@@ -1480,39 +1423,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  DartType flattenFutures(TypeSystem typeSystem) {
-    // Implement the cases:
-    //  - "If T = FutureOr<S> then flatten(T) = S."
-    //  - "If T = Future<S> then flatten(T) = S."
-    if (isDartAsyncFutureOr || isDartAsyncFuture) {
-      return typeArguments.isNotEmpty
-          ? typeArguments[0]
-          : DynamicTypeImpl.instance;
-    }
-
-    // Implement the case: "Otherwise if T <: Future then let S be a type
-    // such that T << Future<S> and for all R, if T << Future<R> then S << R.
-    // Then flatten(T) = S."
-    //
-    // In other words, given the set of all types R such that T << Future<R>,
-    // let S be the most specific of those types, if any such S exists.
-    //
-    // Since we only care about the most specific type, it is sufficient to
-    // look at the types appearing as a parameter to Future in the type
-    // hierarchy of T.  We don't need to consider the supertypes of those
-    // types, since they are by definition less specific.
-    List<DartType> candidateTypes =
-        _searchTypeHierarchyForFutureTypeParameters();
-    DartType flattenResult = findMostSpecificType(candidateTypes, typeSystem);
-    if (flattenResult != null) {
-      return flattenResult;
-    }
-
-    // Implement the case: "In any other circumstance, flatten(T) = T."
-    return this;
-  }
-
-  @override
   PropertyAccessorElement getGetter(String getterName) =>
       PropertyAccessorMember.from(element.getGetter(getterName), this);
 
@@ -1527,178 +1437,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InterfaceTypeImpl instantiate(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
-
-  @override
-  bool isDirectSupertypeOf(InterfaceType type) {
-    InterfaceType i = this;
-    InterfaceType j = type;
-    var substitution = Substitution.fromInterfaceType(j);
-    ClassElement jElement = j.element;
-    //
-    // If J is Object, then it has no direct supertypes.
-    //
-    if (j.isObject) {
-      return false;
-    }
-    //
-    // I is listed in the extends clause of J.
-    //
-    InterfaceType supertype = jElement.supertype;
-    if (supertype != null) {
-      supertype = substitution.substituteType(supertype);
-      if (supertype == i) {
-        return true;
-      }
-    }
-    //
-    // I is listed in the on clause of J.
-    //
-    for (InterfaceType interfaceType in jElement.superclassConstraints) {
-      interfaceType = substitution.substituteType(interfaceType);
-      if (interfaceType == i) {
-        return true;
-      }
-    }
-    //
-    // I is listed in the implements clause of J.
-    //
-    for (InterfaceType interfaceType in jElement.interfaces) {
-      interfaceType = substitution.substituteType(interfaceType);
-      if (interfaceType == i) {
-        return true;
-      }
-    }
-    //
-    // I is listed in the with clause of J.
-    //
-    for (InterfaceType mixinType in jElement.mixins) {
-      mixinType = substitution.substituteType(mixinType);
-      if (mixinType == i) {
-        return true;
-      }
-    }
-    //
-    // J is a mixin application of the mixin of I.
-    //
-    // TODO(brianwilkerson) Determine whether this needs to be implemented or
-    // whether it is covered by the case above.
-    return false;
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    //
-    // T is Null and S is not Bottom.
-    //
-    if (isDartCoreNull && !type.isBottom) {
-      return true;
-    }
-
-    // S is dynamic.
-    // The test to determine whether S is dynamic is done here because dynamic
-    // is not an instance of InterfaceType.
-    //
-    if (type.isDynamic) {
-      return true;
-    }
-    //
-    // A type T is more specific than a type S, written T << S,
-    // if one of the following conditions is met:
-    //
-    // Reflexivity: T is S.
-    //
-    if (this == type) {
-      return true;
-    }
-    if (type is InterfaceType) {
-      //
-      // T is bottom. (This case is handled by the class BottomTypeImpl.)
-      //
-      // Direct supertype: S is a direct supertype of T.
-      //
-      // ignore: deprecated_member_use_from_same_package
-      if (type.isDirectSupertypeOf(this)) {
-        return true;
-      }
-      //
-      // Covariance: T is of the form I<T1, ..., Tn> and S is of the form
-      // I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
-      //
-      ClassElement tElement = this.element;
-      ClassElement sElement = type.element;
-      if (tElement == sElement) {
-        List<DartType> tArguments = typeArguments;
-        List<DartType> sArguments = type.typeArguments;
-        if (tArguments.length != sArguments.length) {
-          return false;
-        }
-        for (int i = 0; i < tArguments.length; i++) {
-          if (!(tArguments[i] as TypeImpl)
-              .isMoreSpecificThan(sArguments[i], withDynamic)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }
-    //
-    // Transitivity: T << U and U << S.
-    //
-    // First check for infinite loops
-    if (element == null) {
-      return false;
-    }
-    if (visitedElements == null) {
-      visitedElements = new HashSet<ClassElement>();
-    } else if (visitedElements.contains(element)) {
-      return false;
-    }
-    visitedElements.add(element);
-    try {
-      // Iterate over all of the types U that are more specific than T because
-      // they are direct supertypes of T and return true if any of them are more
-      // specific than S.
-      InterfaceTypeImpl supertype = superclass;
-      if (supertype != null &&
-          supertype.isMoreSpecificThan(type, withDynamic, visitedElements)) {
-        return true;
-      }
-      for (InterfaceType interfaceType in interfaces) {
-        if ((interfaceType as InterfaceTypeImpl)
-            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
-          return true;
-        }
-      }
-      for (InterfaceType mixinType in mixins) {
-        if ((mixinType as InterfaceTypeImpl)
-            .isMoreSpecificThan(type, withDynamic, visitedElements)) {
-          return true;
-        }
-      }
-      if (element.isMixin) {
-        for (InterfaceType constraint in superclassConstraints) {
-          if ((constraint as InterfaceTypeImpl)
-              .isMoreSpecificThan(type, withDynamic, visitedElements)) {
-            return true;
-          }
-        }
-      }
-      // If a type I includes an instance method named `call`, and the type of
-      // `call` is the function type F, then I is considered to be more specific
-      // than F.
-      MethodElement callMethod = getMethod('call');
-      if (callMethod != null && !callMethod.isStatic) {
-        FunctionTypeImpl callType = callMethod.type;
-        if (callType.isMoreSpecificThan(type, withDynamic, visitedElements)) {
-          return true;
-        }
-      }
-      return false;
-    } finally {
-      visitedElements.remove(element);
-    }
-  }
 
   @override
   ConstructorElement lookUpConstructor(
@@ -2155,32 +1893,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   /**
-   * Starting from this type, search its class hierarchy for types of the form
-   * Future<R>, and return a list of the resulting R's.
-   */
-  List<DartType> _searchTypeHierarchyForFutureTypeParameters() {
-    List<DartType> result = <DartType>[];
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    void recurse(InterfaceTypeImpl type) {
-      if (type.isDartAsyncFuture && type.typeArguments.isNotEmpty) {
-        result.add(type.typeArguments[0]);
-      }
-      if (visitedClasses.add(type.element)) {
-        if (type.superclass != null) {
-          recurse(type.superclass);
-        }
-        for (InterfaceType interface in type.interfaces) {
-          recurse(interface);
-        }
-        visitedClasses.remove(type.element);
-      }
-    }
-
-    recurse(this);
-    return result;
-  }
-
-  /**
    * If there is a single type which is at least as specific as all of the
    * types in [types], return it.  Otherwise return `null`.
    */
@@ -2486,68 +2198,6 @@ abstract class TypeImpl implements DartType {
     }
   }
 
-  @override
-  DartType flattenFutures(TypeSystem typeSystem) => this;
-
-  /**
-   * Return `true` if this type is assignable to the given [type] (written in
-   * the spec as "T <=> S", where T=[this] and S=[type]).
-   *
-   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
-   * function type aliases that have been expanded so far in the process of
-   * reaching [this] and [type], respectively.  These are used to avoid
-   * infinite regress when analyzing invalid code; since the language spec
-   * forbids a typedef from referring to itself directly or indirectly, we can
-   * use these as sets of function type aliases that don't need to be expanded.
-   */
-  @override
-  bool isAssignableTo(DartType type) {
-    // An interface type T may be assigned to a type S, written T <=> S, iff
-    // either T <: S or S <: T.
-    return isSubtypeOf(type) || type.isSubtypeOf(this);
-  }
-
-  @override
-  bool isEquivalentTo(DartType other) => this == other;
-
-  /**
-   * Return `true` if this type is more specific than the given [type] (written
-   * in the spec as "T << S", where T=[this] and S=[type]).
-   *
-   * If [withDynamic] is `true`, then "dynamic" should be considered as a
-   * subtype of any type (as though "dynamic" had been replaced with bottom).
-   *
-   * The set [visitedElements], if given, is the set of classes and type
-   * parameters that have been visited so far while examining the class
-   * hierarchy of [this].  This is used to avoid infinite regress when
-   * analyzing invalid code; since the language spec forbids loops in the class
-   * hierarchy, we can use this as a set of classes that don't need to be
-   * examined when walking the class hierarchy.
-   */
-  @override
-  bool isMoreSpecificThan(DartType type,
-      [bool withDynamic = false, Set<Element> visitedElements]);
-
-  /**
-   * Return `true` if this type is a subtype of the given [type] (written in
-   * the spec as "T <: S", where T=[this] and S=[type]).
-   *
-   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
-   * function type aliases that have been expanded so far in the process of
-   * reaching [this] and [type], respectively.  These are used to avoid
-   * infinite regress when analyzing invalid code; since the language spec
-   * forbids a typedef from referring to itself directly or indirectly, we can
-   * use these as sets of function type aliases that don't need to be expanded.
-   */
-  @override
-  bool isSubtypeOf(DartType type) {
-    // For non-function types, T <: S iff [_|_/dynamic]T << S.
-    return isMoreSpecificThan(type, true);
-  }
-
-  @override
-  bool isSupertypeOf(DartType type) => type.isSubtypeOf(this);
-
   /**
    * Create a new [TypeImpl] that is identical to [this] except that when
    * visiting type parameters, function parameter types, and function return
@@ -2710,63 +2360,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  bool isMoreSpecificThan(DartType s,
-      [bool withDynamic = false, Set<Element> visitedElements]) {
-    //
-    // A type T is more specific than a type S, written T << S,
-    // if one of the following conditions is met:
-    //
-    // Reflexivity: T is S.
-    //
-    if (this == s) {
-      return true;
-    }
-    // S is dynamic.
-    //
-    if (s.isDynamic) {
-      return true;
-    }
-    //
-    // T is a type parameter and S is the upper bound of T.
-    //
-    TypeImpl bound = element.bound;
-    if (s == bound) {
-      return true;
-    }
-    //
-    // T is a type parameter and S is Object.
-    //
-    if (s.isObject) {
-      return true;
-    }
-    // We need upper bound to continue.
-    if (bound == null) {
-      return false;
-    }
-    //
-    // Transitivity: T << U and U << S.
-    //
-    // First check for infinite loops
-    if (element == null) {
-      return false;
-    }
-    if (visitedElements == null) {
-      visitedElements = new HashSet<Element>();
-    } else if (visitedElements.contains(element)) {
-      return false;
-    }
-    visitedElements.add(element);
-    try {
-      return bound.isMoreSpecificThan(s, withDynamic, visitedElements);
-    } finally {
-      visitedElements.remove(element);
-    }
-  }
-
-  @override
-  bool isSubtypeOf(DartType type) => isMoreSpecificThan(type, true);
-
-  @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
@@ -2905,20 +2498,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
 
   @override
   bool operator ==(Object object) => identical(object, this);
-
-  @override
-  bool isMoreSpecificThan(DartType type,
-          [bool withDynamic = false, Set<Element> visitedElements]) =>
-      isSubtypeOf(type);
-
-  @override
-  bool isSubtypeOf(DartType type) {
-    // The only subtype relations that pertain to void are therefore:
-    // void <: void (by reflexivity)
-    // bottom <: void (as bottom is a subtype of all types).
-    // void <: dynamic (as dynamic is a supertype of all types)
-    return identical(type, this) || type.isDynamic;
-  }
 
   @override
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;

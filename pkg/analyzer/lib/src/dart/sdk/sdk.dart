@@ -484,13 +484,12 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   /**
    * Initialize a newly created SDK to represent the Dart SDK installed in the
-   * [sdkDirectory]. The flag [useDart2jsPaths] is `true` if the dart2js path
-   * should be used when it is available
+   * [sdkDirectory].
    */
-  FolderBasedDartSdk(ResourceProvider resourceProvider, this._sdkDirectory,
-      [bool useDart2jsPaths = false]) {
+  FolderBasedDartSdk(ResourceProvider resourceProvider, Folder sdkDirectory)
+      : _sdkDirectory = sdkDirectory {
     this.resourceProvider = resourceProvider;
-    libraryMap = initialLibraryMap(useDart2jsPaths);
+    libraryMap = initialLibraryMap();
   }
 
   /**
@@ -610,18 +609,17 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   }
 
   /**
-   * Read all of the configuration files to initialize the library maps. The
-   * flag [useDart2jsPaths] is `true` if the dart2js path should be used when it
-   * is available. Return the initialized library map.
+   * Read all of the configuration files to initialize the library maps.
+   * Return the initialized library map.
    */
-  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
+  LibraryMap initialLibraryMap() {
     List<String> searchedPaths = <String>[];
     StackTrace lastStackTrace;
     Object lastException;
     for (File librariesFile in _libraryMapLocations) {
       try {
         String contents = librariesFile.readAsStringSync();
-        return new SdkLibrariesReader().readFromFile(librariesFile, contents);
+        return SdkLibrariesReader().readFromFile(librariesFile, contents);
       } catch (exception, stackTrace) {
         searchedPaths.add(librariesFile.path);
         lastException = exception;
@@ -872,8 +870,6 @@ class SdkExtensionFinder {
  *     };
  */
 class SdkLibrariesReader {
-  SdkLibrariesReader([@deprecated bool useDart2jsPaths]);
-
   /**
    * Return the library map read from the given [file], given that the content
    * of the file is already known to be [libraryFileContents].

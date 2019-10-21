@@ -42,7 +42,7 @@ Annotation
           type: TypeName
             name: SimpleIdentifier
               staticElement: self::@class::A
-              staticType: A
+              staticType: null
               token: A
             type: A
         staticElement: self::@class::A::@constructor::•

@@ -42,6 +42,8 @@ class NotATypeWithExtensionMethodsTest extends NotATypeTest {
 extension E on int {}
 E a;
 ''', [error(StaticWarningCode.NOT_A_TYPE, 22, 1)]);
-    assertTypeDynamic(findNode.simple('E a;'));
+    var typeName = findNode.typeName('E a;');
+    assertElementTypeDynamic(typeName.type);
+    assertTypeNull(typeName.name);
   }
 }
