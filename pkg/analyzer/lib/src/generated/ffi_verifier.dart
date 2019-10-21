@@ -141,7 +141,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       element.name == 'DynamicLibrary' && element.library.name == 'dart.ffi';
 
   /// Return `true` if the given [element] represents the class `Pointer`.
-  bool _isPointer(ClassElement element) =>
+  bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
 
   /// Return `true` if the [typeName] represents a subtype of `Struct`.
