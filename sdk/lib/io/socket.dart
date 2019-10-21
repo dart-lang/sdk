@@ -149,7 +149,7 @@ abstract class InternetAddress {
 
   /**
    * Lookup a host, returning a Future of a list of
-   * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
+   * [InternetAddress]s. If [type] is [InternetAddressType.any], it
    * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
    * addresses. If [type] is either [InternetAddressType.IPv4] or
    * [InternetAddressType.IPv6] it will only lookup addresses of the
