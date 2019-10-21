@@ -546,7 +546,6 @@
         },
         {
           "name": "unit tests",
-          "script": "tools/disguised_test.py",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
