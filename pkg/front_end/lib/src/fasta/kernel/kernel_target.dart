@@ -732,23 +732,26 @@ class KernelTarget extends TargetImplementation {
     // set their initializer to `null`.
     for (Field field in uninitializedFields) {
       if (initializedFields == null || !initializedFields.contains(field)) {
-        field.initializer = new NullLiteral()..parent = field;
-        if (field.isFinal &&
-            (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
-          String uri = '${field.enclosingLibrary.importUri}';
-          String file = field.fileUri.pathSegments.last;
-          if (uri == 'dart:html' ||
-              uri == 'dart:svg' ||
-              uri == 'dart:_native_typed_data' ||
-              uri == 'dart:_interceptors' && file == 'js_string.dart') {
-            // TODO(johnniwinther): Use external getters instead of final
-            // fields. See https://github.com/dart-lang/sdk/issues/33762
-          } else {
-            builder.library.addProblem(
-                templateFinalFieldNotInitialized.withArguments(field.name.name),
-                field.fileOffset,
-                field.name.name.length,
-                field.fileUri);
+        if (!field.isLate) {
+          field.initializer = new NullLiteral()..parent = field;
+          if (field.isFinal &&
+              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+            String uri = '${field.enclosingLibrary.importUri}';
+            String file = field.fileUri.pathSegments.last;
+            if (uri == 'dart:html' ||
+                uri == 'dart:svg' ||
+                uri == 'dart:_native_typed_data' ||
+                uri == 'dart:_interceptors' && file == 'js_string.dart') {
+              // TODO(johnniwinther): Use external getters instead of final
+              // fields. See https://github.com/dart-lang/sdk/issues/33762
+            } else {
+              builder.library.addProblem(
+                  templateFinalFieldNotInitialized
+                      .withArguments(field.name.name),
+                  field.fileOffset,
+                  field.name.name.length,
+                  field.fileUri);
+            }
           }
         }
       }

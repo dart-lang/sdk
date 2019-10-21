@@ -38,10 +38,12 @@ import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
 import 'type_builder.dart';
+import 'variable_builder.dart';
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends ModifierBuilderImpl {
+class FormalParameterBuilder extends ModifierBuilderImpl
+    implements VariableBuilder {
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder> metadata;
 
@@ -92,6 +94,11 @@ class FormalParameterBuilder extends ModifierBuilderImpl {
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
   bool get isCovariant => (modifiers & covariantMask) != 0;
+
+  // An initializing formal parameter might be final without its
+  // VariableDeclaration being final. See
+  // [ProcedureBuilder.computeFormalParameterInitializerScope]..
+  bool get isAssignable => variable.isAssignable && !isInitializingFormal;
 
   @override
   String get fullNameForErrors => name;

@@ -57,4 +57,7 @@ class DillExtensionMemberBuilder extends DillMemberBuilder {
     }
     return null;
   }
+
+  @override
+  bool get isAssignable => member is Field && member.hasSetter;
 }

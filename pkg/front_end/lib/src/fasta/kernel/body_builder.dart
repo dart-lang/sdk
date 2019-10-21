@@ -31,6 +31,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/unresolved_type.dart';
+import '../builder/variable_builder.dart';
 import '../builder/void_type_builder.dart';
 
 import '../constant_context.dart' show ConstantContext;
@@ -501,7 +502,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     LocatedMessage context = scope.declare(
         variable.name,
-        new VariableBuilder(
+        new VariableBuilderImpl(
             variable, member ?? classBuilder ?? libraryBuilder, uri),
         uri);
     if (context != null) {
@@ -570,7 +571,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
       ConstantContext savedConstantContext = pop();
       if (expression is! StaticAccessGenerator &&
-          expression is! VariableUseGenerator) {
+          expression is! VariableUseGenerator &&
+          // TODO(johnniwinther): Stop using the type of the generator here.
+          // Ask a property instead.
+          (expression is! ReadOnlyAccessGenerator ||
+              expression is TypeUseGenerator ||
+              expression is ParenthesizedExpressionGenerator)) {
         push(wrapInProblem(
             toValue(expression), fasta.messageExpressionNotMetadata, noLength));
       } else {
@@ -601,7 +607,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token beginToken,
       Token endToken) {
     debugEvent("TopLevelFields");
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
     push(count);
@@ -611,7 +617,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
     push(count);
@@ -1442,12 +1448,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Expression expression = popForValue();
     if (expression is Cascade) {
       push(expression);
-      push(new VariableUseGenerator(this, token, expression.variable));
+      push(_createReadOnlyVariableAccess(
+          expression.variable, token, expression.fileOffset, null));
     } else {
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
       push(new Cascade(variable)..fileOffset = expression.fileOffset);
-      push(new VariableUseGenerator(this, token, variable));
+      push(_createReadOnlyVariableAccess(
+          variable, token, expression.fileOffset, null));
     }
   }
 
@@ -1881,21 +1889,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (declaration.isTypeDeclaration) {
       return new TypeUseGenerator(this, token, declaration, name);
     } else if (declaration.isLocal) {
+      VariableBuilder variableBuilder = declaration;
       if (constantContext != ConstantContext.none &&
-          !declaration.isConst &&
+          !variableBuilder.isConst &&
           !member.isConstructor) {
         return new IncompleteErrorGenerator(
             this, token, fasta.messageNotAConstantExpression);
       }
-      // An initializing formal parameter might be final without its
-      // VariableDeclaration being final. See
-      // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
-      // wasn't the case, we could always use [VariableUseGenerator].
-      if (declaration.isFinal) {
-        return _createReadOnlyVariableAccess(
-            declaration.target, token, charOffset, name);
+      VariableDeclaration variable = variableBuilder.variable;
+      if (!variableBuilder.isAssignable) {
+        return _createReadOnlyVariableAccess(variable, token, charOffset, name);
       } else {
-        return new VariableUseGenerator(this, token, declaration.target);
+        return new VariableUseGenerator(this, token, variable);
       }
     } else if (declaration.isClassInstanceMember) {
       if (constantContext != ConstantContext.none &&
@@ -2183,6 +2188,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("NoVariableInitializer");
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
+    bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
     Expression initializer;
     if (!optional("in", token)) {
       // A for-in loop-variable can't have an initializer. So let's remain
@@ -2194,7 +2200,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 .withArguments(token.lexeme),
             token.charOffset,
             token.length);
-      } else if (isFinal) {
+      } else if (isFinal && !isLate) {
         initializer = buildProblem(
             fasta.templateFinalFieldWithoutInitializer
                 .withArguments(token.lexeme),
@@ -2275,7 +2281,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginVariablesDeclaration(
       Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
     UnresolvedType type = pop();
@@ -2829,7 +2835,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(checkState(bang, [
       unionOfKinds([ValueKind.Expression, ValueKind.Generator])
     ]));
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullAssertExpressionNotEnabled(bang);
     }
     Object operand = pop();
@@ -2847,7 +2853,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleType(Token beginToken, Token questionMark) {
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(questionMark);
     }
     bool isMarkedAsNullable = questionMark != null;
@@ -2928,7 +2934,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType");
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(questionMark);
     }
     FormalParameters formals = pop();
@@ -3029,7 +3035,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
     // TODO(danrubel): handle required token
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(requiredToken);
     }
     push((covariantToken != null ? covariantMask : 0) |
@@ -3156,7 +3162,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     UnresolvedType returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
-    if (!libraryBuilder.loader.target.enableNonNullable) {
+    if (!libraryBuilder.isNonNullableByDefault) {
       reportErrorIfNullableType(question);
     }
     UnresolvedType type = formals.toFunctionType(returnType,

@@ -115,6 +115,7 @@ bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
 abstract class ClassMember {
   bool get isStatic;
   bool get isField;
+  bool get isAssignable;
   bool get isSetter;
   bool get isGetter;
   bool get isFinal;
@@ -145,7 +146,7 @@ bool isInheritanceConflict(ClassMember a, ClassMember b) {
 }
 
 bool impliesSetter(ClassMember declaration) {
-  return declaration.isField && !(declaration.isFinal || declaration.isConst);
+  return declaration.isAssignable;
 }
 
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
@@ -2155,10 +2156,10 @@ abstract class DelayedMember implements ClassMember {
 
   bool get isStatic => false;
   bool get isField => false;
-
   bool get isGetter => false;
   bool get isFinal => false;
   bool get isConst => false;
+  bool get isAssignable => false;
   bool get isDuplicate => false;
 
   void addAllDeclarationsTo(List<ClassMember> declarations) {

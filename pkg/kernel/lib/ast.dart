@@ -1653,7 +1653,7 @@ class Field extends Member {
   bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
   bool get hasGetter => true;
-  bool get hasSetter => isMutable;
+  bool get hasSetter => isMutable || isLate && initializer == null;
 
   bool get isExternal => false;
   void set isExternal(bool value) {
@@ -1681,7 +1681,7 @@ class Field extends Member {
   }
 
   DartType get getterType => type;
-  DartType get setterType => isMutable ? type : const BottomType();
+  DartType get setterType => hasSetter ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
     return _getLocationInComponent(enclosingComponent, fileUri, offset);
@@ -5165,6 +5165,19 @@ class VariableDeclaration extends Statement {
   /// The `required` modifier is only supported on named parameters and not on
   /// positional parameters and local variables.
   bool get isRequired => flags & FlagRequired != 0;
+
+  /// Whether the variable is assignable.
+  ///
+  /// This is `true` if the variable is neither constant nor final, or if it
+  /// is late final without an initializer.
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) return initializer == null;
+      return false;
+    }
+    return true;
+  }
 
   void set isFinal(bool value) {
     flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);

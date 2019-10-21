@@ -135,6 +135,18 @@ class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
     return type == null && (hasInitializer || isClassInstanceMember);
   }
 
+  @override
+  bool get isAssignable {
+    if (isConst) return false;
+    if (isFinal) {
+      if (isLate) {
+        return !hasInitializer;
+      }
+      return false;
+    }
+    return true;
+  }
+
   Field build(SourceLibraryBuilder libraryBuilder) {
     field
       ..isCovariant = isCovariant

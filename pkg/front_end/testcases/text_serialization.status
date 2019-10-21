@@ -77,6 +77,7 @@ general/argument: TextSerializationFailure # Was: Pass
 general/argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general/arithmetic: TextSerializationFailure # Was: Pass
 general/arrow_function: TextSerializationFailure # Was: Pass
+general/assign_to_initializing_formal: TextSerializationFailure
 general/async_function: TextSerializationFailure # Was: Pass
 general/async_nested: TextSerializationFailure # Was: Pass
 general/await: TextSerializationFailure # Was: Pass
@@ -295,6 +296,7 @@ general/tabs: TextSerializationFailure # Was: Pass
 general/top_level_accessors: TextSerializationFailure # Was: Pass
 general/top_level_accessors_part: TextSerializationFailure # Was: Pass
 general/top_level_library_method: TextSerializationFailure # Was: Pass
+general/type_literal_as_metadata: TextSerializationFailure
 general/type_of_null: TextSerializationFailure
 general/type_parameter_type_named_int: TextSerializationFailure
 general/type_variable_as_super: TextSerializationFailure # Was: RuntimeError

@@ -321,7 +321,8 @@ class VariableUseGenerator extends Generator {
   VariableUseGenerator(
       ExpressionGeneratorHelper helper, Token token, this.variable,
       [this.promotedType])
-      : super(helper, token);
+      : assert(variable.isAssignable, 'Variable $variable is not assignable'),
+        super(helper, token);
 
   @override
   String get _debugName => "VariableUseGenerator";
@@ -346,13 +347,7 @@ class VariableUseGenerator extends Generator {
   Expression _createWrite(int offset, Expression value) {
     _helper.typePromoter
         ?.mutateVariable(variable, _helper.functionNestingLevel);
-    Expression write;
-    if (variable.isFinal || variable.isConst) {
-      write = _makeInvalidWrite(value);
-    } else {
-      write = new VariableSet(variable, value)..fileOffset = offset;
-    }
-    return write;
+    return new VariableSet(variable, value)..fileOffset = offset;
   }
 
   @override

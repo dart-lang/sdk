@@ -556,6 +556,9 @@ class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
 
   bool get isNative => false;
 
+  @override
+  bool get isAssignable => false;
+
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 
   void set parent(Builder value) {

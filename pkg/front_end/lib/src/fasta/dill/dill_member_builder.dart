@@ -60,6 +60,9 @@ class DillMemberBuilder extends MemberBuilderImpl {
   }
 
   bool get isField => member is Field;
+
+  @override
+  bool get isAssignable => member is Field && member.hasSetter;
 }
 
 int computeModifiers(Member member) {
