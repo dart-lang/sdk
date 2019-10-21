@@ -16,6 +16,7 @@ import("../../sdk/lib/mirrors/mirrors_sources.gni")
 import("../../sdk/lib/typed_data/typed_data_sources.gni")
 import("../../sdk/lib/vmservice/vmservice_sources.gni")
 import("../../sdk/lib/wasm/wasm_sources.gni")
+import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
 import("../bin/cli_sources.gni")
 import("../bin/io_sources.gni")
@@ -146,6 +147,9 @@ template("gen_vm_platform") {
       "-Ddart.developer.causal_async_stacks=$allow_causal_async_stacks",
       "-Ddart.isVM=true",
     ]
+    if (use_nnbd) {
+      args += [ "--enable-experiment=non-nullable" ]
+    }
     if (defined(invoker.exclude_source) && invoker.exclude_source) {
       args += [ "--exclude-source" ]
     }

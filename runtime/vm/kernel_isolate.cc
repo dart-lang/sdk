@@ -395,6 +395,15 @@ void KernelIsolate::AddExperimentalFlag(const char* value) {
   experimental_flags_->Add(strdup(value));
 }
 
+bool KernelIsolate::GetExperimentalFlag(const char* value) {
+  for (const char* str : *experimental_flags_) {
+    if (strcmp(str, value) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 DEFINE_OPTION_HANDLER(KernelIsolate::AddExperimentalFlag,
                       enable_experiment,
                       "Comma separated list of experimental features.");

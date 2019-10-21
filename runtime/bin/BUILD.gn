@@ -4,6 +4,7 @@
 
 import("../../build/config/gclient_args.gni")
 import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
 import("../vm/heap/heap_sources.gni")
@@ -537,7 +538,11 @@ gen_snapshot_action("generate_snapshot_bin") {
     isolate_snapshot_data,
     isolate_snapshot_instructions,
   ]
-  args = [
+  args = []
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
+  args += [
     "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),

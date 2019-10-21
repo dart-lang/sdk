@@ -8210,6 +8210,12 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     return true;
   }
 
+  if (KernelIsolate::GetExperimentalFlag("non-nullable")) {
+    // The non-nullable experiment changes the fingerprints, and we only track
+    // one fingerprint set.
+    return true;
+  }
+
   if (SourceFingerprint() != fp) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {

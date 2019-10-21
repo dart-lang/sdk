@@ -69,6 +69,7 @@ class KernelIsolate : public AllStatic {
   static void NotifyAboutIsolateShutdown(const Isolate* isolate);
 
   static void AddExperimentalFlag(const char* value);
+  static bool GetExperimentalFlag(const char* value);
 
  protected:
   static void InitCallback(Isolate* I);
