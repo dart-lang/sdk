@@ -636,11 +636,11 @@ class ApiNativeScope {
   static uintptr_t current_memory_usage() { return current_memory_usage_; }
 
   static void IncrementNativeScopeMemoryCapacity(intptr_t size) {
-    AtomicOperations::IncrementBy(&current_memory_usage_, size);
+    current_memory_usage_.fetch_add(size);
   }
 
   static void DecrementNativeScopeMemoryCapacity(intptr_t size) {
-    AtomicOperations::DecrementBy(&current_memory_usage_, size);
+    current_memory_usage_.fetch_sub(size);
   }
 
   Zone* zone() {
@@ -652,7 +652,7 @@ class ApiNativeScope {
 
  private:
   // The current total memory usage within ApiNativeScopes.
-  static intptr_t current_memory_usage_;
+  static RelaxedAtomic<intptr_t> current_memory_usage_;
 
   ApiZone zone_;
 };

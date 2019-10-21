@@ -398,7 +398,7 @@ class ICDataTestTask : public ThreadPool::Task {
                  const Array& ic_datas,
                  Monitor* monitor,
                  intptr_t* exited,
-                 bool* done)
+                 std::atomic<bool>* done)
       : isolate_(isolate),
         ic_datas_(ic_datas),
         len_(ic_datas.Length()),
@@ -430,7 +430,7 @@ class ICDataTestTask : public ThreadPool::Task {
           }
         }
 
-        if (AtomicOperations::LoadAcquire(done_)) {
+        if (done_->load(std::memory_order_acquire)) {
           break;
         }
 
@@ -452,7 +452,7 @@ class ICDataTestTask : public ThreadPool::Task {
   const intptr_t len_;
   Monitor* monitor_;
   intptr_t* exited_;  // # tasks that are no longer running.
-  bool* done_;        // Signal that helper threads can stop working.
+  std::atomic<bool>* done_;  // Signal that helper threads can stop working.
 };
 
 static Function* CreateFunction(const char* name) {
@@ -479,7 +479,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   USE(isolate);
   Monitor monitor;
   intptr_t exited = 0;
-  bool done = false;
+  std::atomic<bool> done = {false};
 
   const intptr_t kNumICData = 0x10;
 
@@ -517,7 +517,7 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   }
   // Ensure we looped long enough to allow all helpers to succeed and exit.
   {
-    AtomicOperations::StoreRelease(&done, true);
+    done.store(true, std::memory_order_release);
     MonitorLocker ml(&monitor);
     while (exited != ICDataTestTask::kTaskCount) {
       ml.Wait();

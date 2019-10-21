@@ -464,8 +464,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
-    AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                  (size >> kWordSizeLog2));
+    usage_.used_in_words += (size >> kWordSizeLog2);
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
     intptr_t free_size = page->object_end() - free_start;
@@ -498,8 +497,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
       // usage_ is updated by the call above.
     } else {
-      AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                    (size >> kWordSizeLog2));
+      usage_.used_in_words += (size >> kWordSizeLog2);
     }
   } else {
     // Large page allocation.
@@ -517,8 +515,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       if (page != NULL) {
         result = page->object_start();
         // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        AtomicOperations::IncrementBy(&(usage_.used_in_words),
-                                      (size >> kWordSizeLog2));
+        usage_.used_in_words += (size >> kWordSizeLog2);
       }
     }
   }
@@ -542,7 +539,7 @@ bool PageSpace::CurrentThreadOwnsDataLock() {
 
 void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words += size_in_words;
   NOT_IN_PRODUCT(
       heap_->isolate()->shared_class_table()->UpdateAllocatedExternalOld(cid,
                                                                          size));
@@ -550,12 +547,12 @@ void PageSpace::AllocateExternal(intptr_t cid, intptr_t size) {
 
 void PageSpace::PromoteExternal(intptr_t cid, intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words += size_in_words;
 }
 
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::DecrementBy(&(usage_.external_in_words), size_in_words);
+  usage_.external_in_words -= size_in_words;
 }
 
 // Provides exclusive access to all pages, and ensures they are walkable.

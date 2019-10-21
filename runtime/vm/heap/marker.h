@@ -66,8 +66,8 @@ class GCMarker {
   MarkingVisitorBase<true>** visitors_;
 
   Monitor root_slices_monitor_;
-  intptr_t root_slices_not_started_;
-  intptr_t root_slices_not_finished_;
+  RelaxedAtomic<intptr_t> root_slices_not_started_;
+  RelaxedAtomic<intptr_t> root_slices_not_finished_;
 
   Mutex stats_mutex_;
   uintptr_t marked_bytes_;

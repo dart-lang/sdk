@@ -590,7 +590,12 @@ class Object {
   // methods below or their counterparts in RawObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  type LoadPointer(type const* addr) const {
+    return raw()->LoadPointer<type, order>(addr);
+  }
+
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) const {
     raw()->StorePointer<type, order>(addr, value);
   }
@@ -615,27 +620,20 @@ class Object {
     *const_cast<FieldType*>(addr) = value;
   }
 
-  template <typename FieldType, typename ValueType, MemoryOrder order>
+  template <typename FieldType, typename ValueType, std::memory_order order>
   void StoreNonPointer(const FieldType* addr, ValueType value) const {
     // Can't use Contains, as it uses tags_, which is set through this method.
     ASSERT(reinterpret_cast<uword>(addr) >= RawObject::ToAddr(raw()));
-
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<FieldType*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      StoreNonPointer<FieldType, ValueType>(addr, value);
-    }
+    reinterpret_cast<std::atomic<FieldType>*>(const_cast<FieldType*>(addr))
+        ->store(value, order);
   }
 
-  template <typename FieldType, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename FieldType,
+            std::memory_order order = std::memory_order_relaxed>
   FieldType LoadNonPointer(const FieldType* addr) const {
-    if (order == MemoryOrder::kAcquire) {
-      return AtomicOperations::LoadAcquire(const_cast<FieldType*>(addr));
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      return *const_cast<FieldType*>(addr);
-    }
+    return reinterpret_cast<std::atomic<FieldType>*>(
+               const_cast<FieldType*>(addr))
+        ->load(order);
   }
 
   // Provides non-const access to non-pointer fields within the object. Such
@@ -1828,7 +1826,7 @@ class ICData : public Object {
 
     // Though we ensure that once the state bits are updated, all other previous
     // writes to the IC are visible as well.
-    StoreNonPointer<uint32_t, uint32_t, MemoryOrder::kRelease>(
+    StoreNonPointer<uint32_t, uint32_t, std::memory_order_release>(
         &raw_ptr()->state_bits_, updated_bits);
   }
 
@@ -2020,7 +2018,8 @@ class ICData : public Object {
   intptr_t FindCheck(const GrowableArray<intptr_t>& cids) const;
 
   RawArray* entries() const {
-    return AtomicOperations::LoadAcquire(&raw_ptr()->entries_);
+    return LoadPointer<RawArray*, std::memory_order_acquire>(
+        &raw_ptr()->entries_);
   }
 
  private:
@@ -2049,7 +2048,7 @@ class ICData : public Object {
   bool is_megamorphic() const {
     // Ensure any following load instructions do not get performed before this
     // one.
-    const uint32_t bits = LoadNonPointer<uint32_t, MemoryOrder::kAcquire>(
+    const uint32_t bits = LoadNonPointer<uint32_t, std::memory_order_acquire>(
         &raw_ptr()->state_bits_);
     return MegamorphicBit::decode(bits);
   }
@@ -8407,12 +8406,13 @@ class Array : public Instance {
 
   // Access to the array with acquire release semantics.
   RawObject* AtAcquire(intptr_t index) const {
-    return AtomicOperations::LoadAcquire(ObjectAddr(index));
+    return LoadPointer<RawObject*, std::memory_order_acquire>(
+        ObjectAddr(index));
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoSafepointScope.
-    StoreArrayPointer<RawObject*, MemoryOrder::kRelease>(ObjectAddr(index),
-                                                         value.raw());
+    StoreArrayPointer<RawObject*, std::memory_order_release>(ObjectAddr(index),
+                                                             value.raw());
   }
 
   bool IsImmutable() const { return raw()->GetClassId() == kImmutableArrayCid; }
@@ -8519,7 +8519,7 @@ class Array : public Instance {
     StoreSmi(&raw_ptr()->length_, Smi::New(value));
   }
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StoreArrayPointer(type const* addr, type value) const {
     raw()->StoreArrayPointer<type, order>(addr, value);
   }

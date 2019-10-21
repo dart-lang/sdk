@@ -438,17 +438,15 @@ NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : ThreadStackResource(thread), isolate_(isolate) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ASSERT(isolate_ != NULL);
-  AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
-  ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
-         0);
+  isolate_->no_reload_scope_depth_.fetch_add(1);
+  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 NoReloadScope::~NoReloadScope() {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
-  ASSERT(AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >=
-         0);
+  isolate_->no_reload_scope_depth_.fetch_sub(1);
+  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -1529,8 +1527,7 @@ void Isolate::BuildName(const char* name_prefix) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
-         !IsReloading() &&
-         (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
+         !IsReloading() && (no_reload_scope_depth_ == 0) &&
          IsolateCreationEnabled() &&
          OSThread::Current()->HasStackHeadroom(64 * KB);
 }

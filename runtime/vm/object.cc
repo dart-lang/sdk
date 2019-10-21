@@ -2202,7 +2202,11 @@ RawString* Object::DictionaryName() const {
 }
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
-  uword cur = address;
+  // Note: we skip the header word here because it confuses TSAN. TSAN records
+  // an 8-byte write from the this loop, but doesn't overwrite that entry with
+  // the 4-byte relaxed store of the header below, then reports false data races
+  // based on the record of the 8-byte write.
+  uword cur = address + sizeof(RawObject);
   uword end = address + size;
   if (class_id == kInstructionsCid) {
     compiler::target::uword initial_value =
@@ -8157,12 +8161,13 @@ void Function::RestoreICDataMap(
 }
 
 void Function::set_ic_data_array(const Array& value) const {
-  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->ic_data_array_,
-                                                 value.raw());
+  StorePointer<RawArray*, std::memory_order_release>(&raw_ptr()->ic_data_array_,
+                                                     value.raw());
 }
 
 RawArray* Function::ic_data_array() const {
-  return AtomicOperations::LoadAcquire(&raw_ptr()->ic_data_array_);
+  return LoadPointer<RawArray*, std::memory_order_acquire>(
+      &raw_ptr()->ic_data_array_);
 }
 
 void Function::ClearICDataArray() const {
@@ -13442,8 +13447,8 @@ void ICData::set_deopt_id(intptr_t value) const {
 
 void ICData::set_entries(const Array& value) const {
   ASSERT(!value.IsNull());
-  StorePointer<RawArray*, MemoryOrder::kRelease>(&raw_ptr()->entries_,
-                                                 value.raw());
+  StorePointer<RawArray*, std::memory_order_release>(&raw_ptr()->entries_,
+                                                     value.raw());
 }
 
 intptr_t ICData::NumArgsTested() const {

@@ -62,12 +62,6 @@ enum TypedDataElementType {
 #undef V
 };
 
-enum class MemoryOrder {
-  kRelaxed,
-  kRelease,
-  kAcquire,
-};
-
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(SnapshotWriter* writer, intptr_t object_id,                     \
                Snapshot::Kind kind, bool as_reference);                        \
@@ -539,14 +533,16 @@ class RawObject {
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  type LoadPointer(type const* addr) {
+    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->load(order);
+  }
+
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StorePointer(type const* addr, type value) {
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      *const_cast<type*>(addr) = value;
-    }
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->store(value, order);
     if (value->IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -588,14 +584,10 @@ class RawObject {
     }
   }
 
-  template <typename type, MemoryOrder order = MemoryOrder::kRelaxed>
+  template <typename type, std::memory_order order = std::memory_order_relaxed>
   void StoreArrayPointer(type const* addr, type value) {
-    if (order == MemoryOrder::kRelease) {
-      AtomicOperations::StoreRelease(const_cast<type*>(addr), value);
-    } else {
-      ASSERT(order == MemoryOrder::kRelaxed);
-      *const_cast<type*>(addr) = value;
-    }
+    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
+        ->store(value, order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }

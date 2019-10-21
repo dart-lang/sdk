@@ -1169,7 +1169,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  intptr_t no_reload_scope_depth_ = 0;  // we can only reload when this is 0.
+  RelaxedAtomic<intptr_t> no_reload_scope_depth_ =
+      0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_ = nullptr;

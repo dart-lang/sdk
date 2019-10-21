@@ -451,7 +451,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       reload_finalized_(false),
       js_(js),
       saved_num_cids_(-1),
-      saved_class_table_(NULL),
+      saved_class_table_(nullptr),
       num_saved_libs_(-1),
       instance_morphers_(zone_, 0),
       reasons_to_cancel_reload_(zone_, 0),
@@ -478,7 +478,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
 
 IsolateReloadContext::~IsolateReloadContext() {
   ASSERT(zone_ == Thread::Current()->zone());
-  ASSERT(saved_class_table_ == NULL);
+  ASSERT(saved_class_table_.load(std::memory_order_relaxed) == nullptr);
 }
 
 void IsolateReloadContext::ReportError(const Error& error) {
@@ -977,7 +977,7 @@ void IsolateReloadContext::CheckpointClasses() {
     NoSafepointScope no_safepoint_scope(Thread::Current());
 
     // The saved_class_table_ is now source of truth for GC.
-    AtomicOperations::StoreRelease(&saved_class_table_, saved_class_table);
+    saved_class_table_.store(saved_class_table, std::memory_order_release);
 
     // We can therefore wipe out all of the old entries (if that table is used
     // for GC during the hot-reload we have a bug).
@@ -1142,7 +1142,7 @@ void IsolateReloadContext::Checkpoint() {
 void IsolateReloadContext::RollbackClasses() {
   TIR_Print("---- ROLLING BACK CLASS TABLE\n");
   ASSERT(saved_num_cids_ > 0);
-  ASSERT(saved_class_table_ != NULL);
+  ASSERT(saved_class_table_.load(std::memory_order_relaxed) != nullptr);
 
   DiscardSavedClassTable(/*is_rollback=*/true);
 }
@@ -1514,7 +1514,8 @@ void IsolateReloadContext::MorphInstancesAndApplyNewClassTable() {
   ASSERT(HasNoTasks(I->heap()));
 #if defined(DEBUG)
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
-    saved_class_table_[i] = ClassAndSize(nullptr, -1);
+    saved_class_table_.load(std::memory_order_relaxed)[i] =
+        ClassAndSize(nullptr, -1);
   }
 #endif
 
@@ -1585,7 +1586,7 @@ RawClass* IsolateReloadContext::FindOriginalClass(const Class& cls) {
 
 RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
   ClassAndSize* class_table =
-      AtomicOperations::LoadAcquire(&saved_class_table_);
+      saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1597,7 +1598,7 @@ RawClass* IsolateReloadContext::GetClassForHeapWalkAt(intptr_t cid) {
 
 intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
   ClassAndSize* class_table =
-      AtomicOperations::LoadAcquire(&saved_class_table_);
+      saved_class_table_.load(std::memory_order_acquire);
   if (class_table != NULL) {
     ASSERT(cid > 0);
     ASSERT(cid < saved_num_cids_);
@@ -1608,11 +1609,11 @@ intptr_t IsolateReloadContext::GetClassSizeForHeapWalkAt(intptr_t cid) {
 }
 
 void IsolateReloadContext::DiscardSavedClassTable(bool is_rollback) {
-  ClassAndSize* local_saved_class_table = saved_class_table_;
+  ClassAndSize* local_saved_class_table =
+      saved_class_table_.load(std::memory_order_relaxed);
   I->class_table()->ResetAfterHotReload(local_saved_class_table,
                                         saved_num_cids_, is_rollback);
-  AtomicOperations::StoreRelease(&saved_class_table_,
-                                 static_cast<ClassAndSize*>(nullptr));
+  saved_class_table_.store(nullptr, std::memory_order_release);
 }
 
 RawLibrary* IsolateReloadContext::saved_root_library() const {
@@ -1634,10 +1635,13 @@ void IsolateReloadContext::set_saved_libraries(
 
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
-  if (saved_class_table_ != NULL) {
+
+  ClassAndSize* saved_class_table =
+      saved_class_table_.load(std::memory_order_relaxed);
+  if (saved_class_table != nullptr) {
     for (intptr_t i = 0; i < saved_num_cids_; i++) {
       visitor->VisitPointer(
-          reinterpret_cast<RawObject**>(&(saved_class_table_[i].class_)));
+          reinterpret_cast<RawObject**>(&(saved_class_table[i].class_)));
     }
   }
 }
