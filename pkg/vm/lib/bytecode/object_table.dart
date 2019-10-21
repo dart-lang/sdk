@@ -1877,11 +1877,13 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
   ObjectHandle getOrAddObject(ObjectHandle obj) {
     assert(obj._useCount == 0);
-    ObjectHandle canonical = _canonicalizationCache.putIfAbsent(obj, () {
+    ObjectHandle canonical = _canonicalizationCache[obj];
+    if (canonical == null) {
       assert(_indexTable == null);
       _objects.add(obj);
-      return obj;
-    });
+      _canonicalizationCache[obj] = obj;
+      canonical = obj;
+    }
     ++canonical._useCount;
     return canonical;
   }

@@ -8,13 +8,14 @@ import 'bytecode_serialization.dart'
     show
         BufferedWriter,
         BufferedReader,
+        BytecodeDeclaration,
         PackedUInt30DeltaEncoder,
         PackedUInt30DeltaDecoder,
         SLEB128DeltaEncoder,
         SLEB128DeltaDecoder;
 
 /// Maintains mapping between bytecode instructions and source positions.
-class SourcePositions {
+class SourcePositions extends BytecodeDeclaration {
   // Special value of fileOffset which marks synthetic code without source
   // position.
   static const syntheticCodeMarker = -1;
@@ -99,7 +100,7 @@ class SourcePositions {
 
 /// Keeps file offsets of line starts. This information is used to
 /// decode source positions to line/column.
-class LineStarts {
+class LineStarts extends BytecodeDeclaration {
   final List<int> lineStarts;
 
   LineStarts(this.lineStarts);

@@ -6,7 +6,12 @@ library vm.bytecode.declarations;
 
 import 'package:kernel/ast.dart';
 import 'bytecode_serialization.dart'
-    show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
+    show
+        BufferedWriter,
+        BufferedReader,
+        BytecodeDeclaration,
+        BytecodeSizeStatistics,
+        StringTable;
 import 'constant_pool.dart' show ConstantPool;
 import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
@@ -15,7 +20,7 @@ import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
 import 'source_positions.dart' show LineStarts, SourcePositions;
 
-class LibraryDeclaration {
+class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
@@ -89,7 +94,7 @@ class LibraryDeclaration {
   }
 }
 
-class ClassDeclaration {
+class ClassDeclaration extends BytecodeDeclaration {
   static const isAbstractFlag = 1 << 0;
   static const isEnumFlag = 1 << 1;
   static const hasTypeParamsFlag = 1 << 2;
@@ -220,7 +225,7 @@ class ClassDeclaration {
   }
 }
 
-class SourceFile {
+class SourceFile extends BytecodeDeclaration {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
 
@@ -274,7 +279,7 @@ class SourceFile {
   }
 }
 
-class Members {
+class Members extends BytecodeDeclaration {
   final List<FieldDeclaration> fields;
   final List<FunctionDeclaration> functions;
 
@@ -789,7 +794,7 @@ class ParameterDeclaration {
   String toString() => '$type $name';
 }
 
-class Code {
+class Code extends BytecodeDeclaration {
   static const hasExceptionsTableFlag = 1 << 0;
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasNullableFieldsFlag = 1 << 2;
@@ -1190,7 +1195,7 @@ class ClosureCode {
   }
 }
 
-class AnnotationsDeclaration {
+class AnnotationsDeclaration extends BytecodeDeclaration {
   final ObjectHandle object;
 
   AnnotationsDeclaration(this.object);

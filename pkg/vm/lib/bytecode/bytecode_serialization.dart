@@ -229,12 +229,13 @@ class BufferedReader {
     return result;
   }
 
-  T readLinkOffset<T>() {
+  T readLinkOffset<T extends BytecodeDeclaration>() {
     final offset = readPackedUInt30();
     return linkReader.get<T>(offset);
   }
 
-  ForwardReference<T> readLinkOffsetAsForwardReference<T>() {
+  ForwardReference<T>
+      readLinkOffsetAsForwardReference<T extends BytecodeDeclaration>() {
     final offset = readPackedUInt30();
     return new ForwardReference<T>(offset, linkReader);
   }
@@ -429,24 +430,26 @@ class SLEB128DeltaDecoder {
   }
 }
 
-class LinkWriter {
-  final _map = <Object, int>{};
+class BytecodeDeclaration {
+  int _offset;
+}
 
-  void put(Object target, int offset) {
-    _map[target] = offset;
+class LinkWriter {
+  void put(BytecodeDeclaration target, int offset) {
+    target._offset = offset;
   }
 
-  int getOffset(Object target) {
-    return _map[target] ??
+  int getOffset(BytecodeDeclaration target) {
+    return target._offset ??
         (throw 'Offset of ${target.runtimeType} $target is not set');
   }
 }
 
 class LinkReader {
-  final _map = <Type, Map<int, Object>>{};
+  final _map = <Type, Map<int, BytecodeDeclaration>>{};
 
-  void setOffset<T>(T target, int offset) {
-    final offsetToObject = (_map[T] ??= <int, Object>{});
+  void setOffset<T>(BytecodeDeclaration target, int offset) {
+    final offsetToObject = (_map[T] ??= <int, BytecodeDeclaration>{});
     final previous = offsetToObject[offset];
     if (previous != null) {
       throw 'Unable to associate offset $T/$offset with ${target.runtimeType} $target.'
@@ -455,13 +458,13 @@ class LinkReader {
     offsetToObject[offset] = target;
   }
 
-  T get<T>(int offset) {
+  T get<T extends BytecodeDeclaration>(int offset) {
     return _map[T][offset] ?? (throw 'No object at offset $T/$offset');
   }
 }
 
 // Placeholder for an object which will be read in future.
-class ForwardReference<T> {
+class ForwardReference<T extends BytecodeDeclaration> {
   final int offset;
   final LinkReader linkReader;
 
