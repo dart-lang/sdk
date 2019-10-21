@@ -131,12 +131,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
   if (Options::depfile() == NULL) {
     return;
   }
-  Loader::ResolveDependenciesAsFilePaths();
-  auto isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_IsolateGroupData(isolate));
-  ASSERT(isolate_group_data != NULL);
-  MallocGrowableArray<char*>* dependencies = isolate_group_data->dependencies();
-  ASSERT(dependencies != NULL);
   File* file =
       File::Open(NULL, Options::depfile(), File::kWriteTruncate);
   if (file == NULL) {
@@ -148,11 +142,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
     success &= file->Print("%s: ", Options::snapshot_filename());
   } else {
     success &= file->Print("%s: ", Options::depfile_output_filename());
-  }
-  for (intptr_t i = 0; i < dependencies->length(); i++) {
-    char* dep = dependencies->At(i);
-    success &= file->Print("%s ", dep);
-    free(dep);
   }
   if (kernel_isolate_is_running) {
     Dart_KernelCompilationResult result = Dart_KernelListDependencies();
@@ -171,7 +160,6 @@ static void WriteDepsFile(Dart_Isolate isolate) {
               Options::depfile());
   }
   file->Release();
-  dependencies->Clear();
 }
 
 static void OnExitHook(int64_t exit_code) {
@@ -681,9 +669,6 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
       isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
                                                     kernel_buffer_size);
     }
-  }
-  if (is_main_isolate && (Options::depfile() != NULL)) {
-    isolate_group_data->set_dependencies(new MallocGrowableArray<char*>());
   }
 
   Dart_Isolate isolate = NULL;

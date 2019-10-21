@@ -28,7 +28,6 @@ extern DFE dfe;
 // Keep in sync with loader.dart.
 static const intptr_t _Dart_kInitLoader = 4;
 static const intptr_t _Dart_kImportExtension = 9;
-static const intptr_t _Dart_kResolveAsFilePath = 10;
 
 Loader::Loader(IsolateData* isolate_data)
     : port_(ILLEGAL_PORT),
@@ -259,46 +258,6 @@ static bool PathContainsSeparator(const char* path) {
           (strstr(path, File::PathSeparator()) != NULL));
 }
 
-void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
-  MallocGrowableArray<char*>* dependencies =
-      loader->isolate_group_data()->dependencies();
-  if (dependencies == NULL) {
-    return;
-  }
-  dependencies->Add(strdup(resolved_uri));
-}
-
-void Loader::ResolveDependenciesAsFilePaths() {
-  IsolateGroupData* isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
-  ASSERT(isolate_group_data != NULL);
-  MallocGrowableArray<char*>* dependencies = isolate_group_data->dependencies();
-  if (dependencies == NULL) {
-    return;
-  }
-
-  for (intptr_t i = 0; i < dependencies->length(); i++) {
-    char* resolved_uri = (*dependencies)[i];
-
-    uint8_t* file_path = NULL;
-    intptr_t file_path_length = -1;
-    Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
-    ASSERT(!Dart_IsError(uri));
-    Dart_Handle result =
-        Loader::ResolveAsFilePath(uri, &file_path, &file_path_length);
-    if (Dart_IsError(result)) {
-      Syslog::Print("Error resolving dependency: %s\n", Dart_GetError(result));
-      return;
-    }
-
-    // Convert buffer buffer to NUL-terminated string.
-    (*dependencies)[i] = Utils::StrNDup(
-        reinterpret_cast<const char*>(file_path), file_path_length);
-    free(file_path);
-    free(resolved_uri);
-  }
-}
-
 class ScopedDecompress : public ValueObject {
  public:
   ScopedDecompress(const uint8_t** payload, intptr_t* payload_length)
@@ -343,8 +302,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
         Dart_NewStringFromCString(reinterpret_cast<char*>(result->library_uri));
   }
 
-  AddDependencyLocked(loader, result->resolved_uri);
-
   // A negative result tag indicates a loading error occurred in the service
   // isolate. The payload is a C string of the error message.
   if (result->tag < 0) {
@@ -352,8 +309,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     Dart_Handle error =
         Dart_NewStringFromUTF8(result->payload, result->payload_length);
     // If a library with the given uri exists, give it a chance to handle
-    // the error. If the load requests stems from a deferred library load,
-    // an IO error is not fatal.
+    // the error.
     if (LibraryHandleError(library, error)) {
       return true;
     }
@@ -419,23 +375,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
 
   UNREACHABLE();
   return false;
-}
-
-bool Loader::ProcessPayloadResultLocked(Loader* loader,
-                                        Loader::IOResult* result) {
-  // A negative result tag indicates a loading error occurred in the service
-  // isolate. The payload is a C string of the error message.
-  if (result->tag < 0) {
-    Dart_Handle error =
-        Dart_NewStringFromUTF8(result->payload, result->payload_length);
-    loader->error_ = Dart_NewUnhandledExceptionError(error);
-    return false;
-  }
-  loader->payload_length_ = result->payload_length;
-  loader->payload_ =
-      reinterpret_cast<uint8_t*>(::malloc(loader->payload_length_));
-  memmove(loader->payload_, result->payload, loader->payload_length_);
-  return true;
 }
 
 bool Loader::ProcessQueueLocked(ProcessResult process_result) {
@@ -508,53 +447,6 @@ Dart_Handle Loader::ReloadNativeExtensions() {
   }
 
   return Dart_True();
-}
-
-Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
-                                        Dart_Handle url,
-                                        uint8_t** payload,
-                                        intptr_t* payload_length) {
-  auto isolate_data = reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
-  ASSERT(!isolate_data->HasLoader());
-  Loader* loader = NULL;
-
-  // Setup the loader. The constructor does a bunch of leg work.
-  loader = new Loader(isolate_data);
-  loader->Init(isolate_data->isolate_group_data()->package_root,
-               isolate_data->packages_file(),
-               DartUtils::original_working_directory, NULL);
-  ASSERT(loader != NULL);
-  ASSERT(isolate_data->HasLoader());
-
-  // Now send a load request to the service isolate.
-  loader->SendRequest(tag, url, Dart_Null());
-
-  // Wait for a reply to the load request.
-  loader->BlockUntilComplete(ProcessPayloadResultLocked);
-
-  // Copy fields from the loader before deleting it.
-  // The payload array itself which was malloced above is freed by
-  // the caller of LoadUrlContents.
-  Dart_Handle error = loader->error();
-  *payload = loader->payload_;
-  *payload_length = loader->payload_length_;
-
-  // Destroy the loader. The destructor does a bunch of leg work.
-  delete loader;
-
-  // An error occurred during loading.
-  if (!Dart_IsNull(error)) {
-    return error;
-  }
-  return Dart_Null();
-}
-
-Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
-                                      uint8_t** payload,
-                                      intptr_t* payload_length) {
-  return SendAndProcessReply(_Dart_kResolveAsFilePath, url, payload,
-                             payload_length);
 }
 
 IsolateGroupData* Loader::isolate_group_data() {
@@ -662,13 +554,6 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
   // Grab this isolate's loader.
   Loader* loader = NULL;
 
-  // The outer invocation of the tag handler for this isolate. We make the outer
-  // invocation block and allow any nested invocations to operate in parallel.
-  const bool blocking_call = !isolate_data->HasLoader();
-
-  // If we are the outer invocation of the tag handler and the tag is an import
-  // this means that we are starting a deferred library load.
-  const bool is_deferred_import = blocking_call && (tag == Dart_kImportTag);
   if (!isolate_data->HasLoader()) {
     // The isolate doesn't have a loader -- this is the outer invocation which
     // will block.
@@ -717,42 +602,25 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
 
-  if (blocking_call) {
-    // The outer invocation of the tag handler will block here until all nested
-    // invocations complete.
-    loader->BlockUntilComplete(ProcessResultLocked);
+  // The outer invocation of the tag handler will block here until all nested
+  // invocations complete.
+  loader->BlockUntilComplete(ProcessResultLocked);
 
-    // Remember the error (if any).
-    Dart_Handle error = loader->error();
-    // Destroy the loader. The destructor does a bunch of leg work.
-    delete loader;
+  // Remember the error (if any).
+  Dart_Handle error = loader->error();
+  // Destroy the loader. The destructor does a bunch of leg work.
+  delete loader;
 
-    // An error occurred during loading.
-    if (!Dart_IsNull(error)) {
-      if (false && is_deferred_import) {
-        // This blocks handles transitive load errors caused by a deferred
-        // import. Non-transitive load errors are handled above (see callers of
-        // |LibraryHandleError|). To handle the transitive case, we give the
-        // originating deferred library an opportunity to handle it.
-        Dart_Handle deferred_library = Dart_LookupLibrary(url);
-        if (!LibraryHandleError(deferred_library, error)) {
-          // Library did not handle it, return to caller as an unhandled
-          // exception.
-          return Dart_NewUnhandledExceptionError(error);
-        }
-      } else {
-        // We got an error during loading but we aren't loading a deferred
-        // library, return the error to the caller.
-        return error;
-      }
-    }
+  // An error occurred during loading.
+  if (!Dart_IsNull(error)) {
+    // We got an error during loading, return the error to the caller.
+    return error;
+  }
 
-    // Finalize loading. This will complete any futures for completed deferred
-    // loads.
-    error = Dart_FinalizeLoading(true);
-    if (Dart_IsError(error)) {
-      return error;
-    }
+  // Finalize loading.
+  error = Dart_FinalizeLoading(true);
+  if (Dart_IsError(error)) {
+    return error;
   }
   return Dart_Null();
 }
