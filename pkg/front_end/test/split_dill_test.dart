@@ -16,7 +16,7 @@ import 'package:kernel/target/targets.dart' show TargetFlags;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
-import 'incremental_load_from_dill_test.dart'
+import 'incremental_load_from_dill_suite.dart'
     show getOptions, normalCompileToComponent;
 
 import 'utils/io_utils.dart' show computeRepoDir;

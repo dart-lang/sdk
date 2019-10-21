@@ -215,6 +215,8 @@ abstract class ChainContext {
                 suite, description, result, expectedOutcomes);
             exitCode = 1;
           } else {
+            logger.logExpectedResult(
+                suite, description, result, expectedOutcomes);
             logger.logMessage(sb);
           }
           logger.logTestComplete(++completed, unexpectedResults.length,

@@ -10,7 +10,7 @@ import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
 
-import 'incremental_load_from_dill_test.dart'
+import 'incremental_load_from_dill_suite.dart'
     show checkIsEqual, getOptions, normalCompilePlain;
 
 main() async {

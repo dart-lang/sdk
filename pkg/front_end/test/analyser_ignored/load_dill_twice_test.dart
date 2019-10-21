@@ -10,7 +10,7 @@ import 'package:kernel/text/ast_to_text.dart' show componentToString;
 
 import 'package:kernel/kernel.dart' show Component;
 
-import '../incremental_load_from_dill_test.dart' show normalCompileToBytes;
+import '../incremental_load_from_dill_suite.dart' show normalCompileToBytes;
 
 main() async {
   List<int> bytes = await normalCompileToBytes(

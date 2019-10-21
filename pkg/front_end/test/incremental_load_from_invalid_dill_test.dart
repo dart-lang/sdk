@@ -42,7 +42,7 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/kernel.dart' show Component, Library;
 
-import 'incremental_load_from_dill_test.dart' show getOptions;
+import 'incremental_load_from_dill_suite.dart' show getOptions;
 
 Future<Null> main() async {
   Tester tester = new Tester();

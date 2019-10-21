@@ -550,6 +550,16 @@
             "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
           ]
+        },
+        {
+          "name": "unit tests suites",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/front_end/test/unit_test_suites.dart",
+            "-nfront-end-${system}-release-x64",
+            "--verbose"
+          ]
         }
       ]
     },
