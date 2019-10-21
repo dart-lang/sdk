@@ -13,6 +13,7 @@ cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
 cc/Profiler_StringInterpolation: Fail # Issue 37208
 dart/data_uri_import_test/none: SkipByDesign
+dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -252,6 +253,7 @@ dart/redirection_type_shuffling_test/00: RuntimeError, Pass
 dart/redirection_type_shuffling_test/none: RuntimeError
 
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
+dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
 # It makes no sense to run any test that uses spawnURI under the simulator
