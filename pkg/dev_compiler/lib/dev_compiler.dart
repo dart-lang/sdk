@@ -5,3 +5,7 @@
 // The dev_compiler does not have a publishable public API, instead this is
 // intended for other consumers within the Dart SDK.
 export 'src/kernel/target.dart' show DevCompilerTarget;
+export 'src/kernel/compiler.dart' show ProgramCompiler;
+export 'src/kernel/command.dart' show jsProgramToCode;
+export 'src/compiler/shared_command.dart' show SharedCompilerOptions;
+export 'src/compiler/module_builder.dart' show ModuleFormat;

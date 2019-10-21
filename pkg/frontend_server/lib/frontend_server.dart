@@ -50,10 +50,9 @@ import 'package:vm/kernel_front_end.dart'
         setVMEnvironmentDefines,
         sortComponent,
         writeDepfile;
-import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
-import 'package:vm/target/flutter.dart' show FlutterTarget;
-import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
-import 'package:vm/target/vm.dart' show VmTarget;
+
+import 'src/javascript_bundle.dart';
+import 'src/strong_components.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -273,14 +272,7 @@ class FrontendCompiler implements CompilerInterface {
       this.unsafePackageSerialization,
       this.incrementalSerialization: true}) {
     _outputStream ??= stdout;
-    printerFactory ??= BinaryPrinterFactory();
-    // Initialize supported kernel targets.
-    targets['dart_runner'] = (TargetFlags flags) => DartRunnerTarget(flags);
-    targets['flutter'] = (TargetFlags flags) => FlutterTarget(flags);
-    targets['flutter_runner'] =
-        (TargetFlags flags) => FlutterRunnerTarget(flags);
-    targets['vm'] = (TargetFlags flags) => VmTarget(flags);
-    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
+    printerFactory ??= new BinaryPrinterFactory();
   }
 
   StringSink _outputStream;
@@ -382,6 +374,8 @@ class FrontendCompiler implements CompilerInterface {
       aot: options['aot'],
     )..parseCommandLineFlags(options['bytecode-options']);
 
+    // Initialize additional supported kernel targets.
+    targets['dartdevc'] = (TargetFlags flags) => DevCompilerTarget(flags);
     compilerOptions.target = createFrontEndTarget(
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
@@ -444,13 +438,15 @@ class FrontendCompiler implements CompilerInterface {
           useProtobufTreeShaker: options['protobuf-tree-shaker']));
     }
     if (results.component != null) {
-      if (transformer != null) {
-        transformer.transform(results.component);
-      }
+      transformer?.transform(results.component);
 
-      await writeDillFile(results, _kernelBinaryFilename,
-          filterExternal: importDill != null,
-          incrementalSerializer: incrementalSerializer);
+      if (_compilerOptions.target.name == 'dartdevc') {
+        await writeJavascriptBundle(results, _kernelBinaryFilename);
+      } else {
+        await writeDillFile(results, _kernelBinaryFilename,
+            filterExternal: importDill != null,
+            incrementalSerializer: incrementalSerializer);
+      }
 
       _outputStream.writeln(boundaryKey);
       await _outputDependenciesDelta(results.compiledSources);
@@ -512,6 +508,25 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
     previouslyReportedDependencies = uris;
+  }
+
+  /// Write a JavaScript bundle containg the provided component.
+  Future<void> writeJavascriptBundle(
+      KernelCompilationResults results, String filename) async {
+    final Component component = results.component;
+    // Compute strongly connected components.
+    final strongComponents = StrongComponents(component, _mainSource);
+    strongComponents.computeModules();
+
+    // Create JavaScript bundler.
+    final File sourceFile = File('$filename.sources');
+    final File manifestFile = File('$filename.json');
+    if (!sourceFile.parent.existsSync()) {
+      sourceFile.parent.createSync(recursive: true);
+    }
+    final bundler = JavaScriptBundler(component, strongComponents);
+    bundler.compile(results.classHierarchy, results.coreTypes,
+        sourceFile.openWrite(), manifestFile.openWrite());
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
@@ -707,8 +722,12 @@ class FrontendCompiler implements CompilerInterface {
         _generator.getCoreTypes(),
         deltaProgram.uriToSource.keys);
 
-    await writeDillFile(results, _kernelBinaryFilename,
-        incrementalSerializer: _generator.incrementalSerializer);
+    if (_compilerOptions.target.name == 'dartdevc') {
+      await writeJavascriptBundle(results, _kernelBinaryFilename);
+    } else {
+      await writeDillFile(results, _kernelBinaryFilename,
+          incrementalSerializer: _generator.incrementalSerializer);
+    }
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources);

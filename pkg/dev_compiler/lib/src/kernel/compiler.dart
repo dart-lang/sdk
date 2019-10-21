@@ -216,8 +216,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final NullableInference _nullableInference;
 
   factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
-      SharedCompilerOptions options) {
-    var coreTypes = CoreTypes(component);
+      SharedCompilerOptions options,
+      {CoreTypes coreTypes}) {
+    coreTypes ??= CoreTypes(component);
     var types = TypeSchemaEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
     var nativeTypes = NativeTypeSet(coreTypes, constants);

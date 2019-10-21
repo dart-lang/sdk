@@ -102,6 +102,31 @@ Future<int> main() async {
       expect(await result, 0);
       inputStreamController.close();
     });
+
+    test('compile one file to JavaScript', () async {
+      final StreamController<List<int>> inputStreamController =
+          new StreamController<List<int>>();
+      final ReceivePort compileCalled = new ReceivePort();
+      when(compiler.compile(any, any, generator: anyNamed('generator')))
+          .thenAnswer((Invocation invocation) async {
+        expect(invocation.positionalArguments[0], equals('server.dart'));
+        expect(
+            invocation.positionalArguments[1]['sdk-root'], equals('sdkroot'));
+        compileCalled.sendPort.send(true);
+        return true;
+      });
+
+      Future<int> result = starter(
+        ['--target=dartdevc', ...args],
+        compiler: compiler,
+        input: inputStreamController.stream,
+      );
+      inputStreamController.add('compile server.dart\n'.codeUnits);
+      await compileCalled.first;
+      inputStreamController.add('quit\n'.codeUnits);
+      expect(await result, 0);
+      inputStreamController.close();
+    });
   });
 
   group('interactive compile with mocked compiler', () {
@@ -410,6 +435,8 @@ Future<int> main() async {
   group('full compiler tests', () {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+    final ddcPlatformKernel =
+        computePlatformBinariesLocation().resolve('ddc_sdk.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
     Directory tempDir;
@@ -1094,6 +1121,29 @@ true
         '--filesystem-scheme=test-scheme',
         'test-scheme:///foo.dart'
       ];
+      expect(await starter(args), 0);
+    });
+
+    test('compile and recompile to JavaScript', () async {
+      var file = new File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var packages = new File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\n");
+      var dillFile = new File('${tempDir.path}/app.dill');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packages.path}',
+        '--target=dartdevc',
+        file.path,
+      ];
+
       expect(await starter(args), 0);
     });
 
