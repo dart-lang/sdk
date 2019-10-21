@@ -276,6 +276,7 @@ testRelativeLinksSync() {
 }
 
 testIsDir() async {
+  // Only run on Platforms that supports file watcher
   if (!Platform.isWindows && !Platform.isLinux && !Platform.isMacOS) return;
   Directory sandbox = Directory.systemTemp.createTempSync();
   Directory dir = new Directory(sandbox.path + Platform.pathSeparator + "dir");
@@ -283,8 +284,9 @@ testIsDir() async {
   File target = new File(sandbox.path + Platform.pathSeparator + "target");
   target.createSync();
 
-  final eventCompleter = new Completer<FileSystemEvent>();
+  var eventCompleter = new Completer<FileSystemEvent>();
   var subscription;
+  // Check for link pointing to file
   subscription = dir.watch().listen((FileSystemEvent event) {
     if (event.path.endsWith('link')) {
       eventCompleter.complete(event);
@@ -293,8 +295,20 @@ testIsDir() async {
   });
   Link link = new Link(dir.path + Platform.pathSeparator + "link");
   link.createSync(target.path);
-  final event = await eventCompleter.future;
-  // Link should not be marked as Dir.
+  var event = await eventCompleter.future;
+  Expect.isFalse(event.isDirectory);
+
+  // Check for link pointing to directory
+  eventCompleter = new Completer<FileSystemEvent>();
+  subscription = dir.watch().listen((FileSystemEvent event) {
+    if (event.path.endsWith('link2')) {
+      eventCompleter.complete(event);
+      subscription.cancel();
+    }
+  });
+  link = new Link(dir.path + Platform.pathSeparator + "link2");
+  link.createSync(dir.path);
+  event = await eventCompleter.future;
   Expect.isFalse(event.isDirectory);
 
   sandbox.deleteSync(recursive: true);
