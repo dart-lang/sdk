@@ -187,6 +187,7 @@ class TestRunnerAOT implements TestRunner {
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
+    env['DART_VM_FLAGS'] = '--enable-asserts';
     cmd = [precompiler, ...extraFlags, fileName, snapshot];
   }
 
@@ -200,8 +201,11 @@ class TestRunnerAOT implements TestRunner {
   }
 
   void printReproductionCommand() {
-    print(
-        ["DART_CONFIGURATION=${env['DART_CONFIGURATION']}", ...cmd].join(" "));
+    print([
+      "DART_CONFIGURATION='${env['DART_CONFIGURATION']}'",
+      "DART_VM_FLAGS='${env['DART_VM_FLAGS']}'",
+      ...cmd
+    ].join(" "));
     print([dart, snapshot].join(" "));
   }
 
