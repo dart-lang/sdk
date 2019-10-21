@@ -607,7 +607,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForAllRedirectConstructorErrorCodes(node);
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
-      _checkForRedirectToNonConstConstructor(node, constructorElement);
       _checkForReturnInGenerativeConstructor(node);
       super.visitConstructorDeclaration(node);
     } finally {
@@ -4547,6 +4546,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameter.identifier);
         }
       }
+      _checkForRedirectToNonConstConstructor(declaration.declaredElement,
+          redirectedConstructor.staticElement, redirectedConstructor);
     }
     // check if there are redirected invocations
     int numRedirections = 0;
@@ -4579,6 +4580,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             }
           }
         }
+        // [declaration] is a redirecting constructor via a redirecting
+        // initializer.
+        _checkForRedirectToNonConstConstructor(declaration.declaredElement,
+            initializer.staticElement, initializer.constructorName);
         numRedirections++;
       }
     }
@@ -4605,41 +4610,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Check whether the given constructor [declaration] has redirected
-   * constructor and references itself directly or indirectly. The
-   * constructor [element] is the element introduced by the declaration.
+   * Check whether the redirecting constructor, [element], is const, and
+   * [redirectedElement], its redirectee, is not const.
    *
    * See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
    */
-  void _checkForRedirectToNonConstConstructor(
-      ConstructorDeclaration declaration, ConstructorElement element) {
-    // prepare redirected constructor
-    ConstructorName redirectedConstructorNode =
-        declaration.redirectedConstructor;
-    if (redirectedConstructorNode == null) {
-      return;
+  void _checkForRedirectToNonConstConstructor(ConstructorElement element,
+      ConstructorElement redirectedElement, AstNode reportingNode) {
+    // This constructor is const, but it redirects to a non-const constructor.
+    if (redirectedElement != null &&
+        element.isConst &&
+        !redirectedElement.isConst) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+          reportingNode);
     }
-    // prepare element
-    if (element == null) {
-      return;
-    }
-    // OK, it is not 'const'
-    if (!element.isConst) {
-      return;
-    }
-    // prepare redirected constructor
-    ConstructorElement redirectedConstructor = element.redirectedConstructor;
-    if (redirectedConstructor == null) {
-      return;
-    }
-    // OK, it is also 'const'
-    if (redirectedConstructor.isConst) {
-      return;
-    }
-
-    _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
-        redirectedConstructorNode);
   }
 
   void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {

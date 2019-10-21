@@ -267,6 +267,8 @@ import 'redirect_to_invalid_return_type_test.dart'
 import 'redirect_to_missing_constructor_test.dart'
     as redirect_to_missing_constructor;
 import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
+import 'redirect_to_non_const_constructor_test.dart'
+    as redirect_to_non_const_constructor;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
@@ -538,6 +540,7 @@ main() {
     redirect_to_invalid_return_type.main();
     redirect_to_missing_constructor.main();
     redirect_to_non_class.main();
+    redirect_to_non_const_constructor.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();

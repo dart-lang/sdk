@@ -3994,7 +3994,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode REDIRECT_TO_NON_CONST_CONSTRUCTOR =
       const CompileTimeErrorCode(
           'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
-          "Constant factory constructor can't delegate to a non-constant "
+          "Constant redirecting constructor can't redirect to a non-constant "
               "constructor.",
           correction: "Try redirecting to a different constructor.");
 
@@ -6407,8 +6407,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
    * abstract class and <i>q</i> is not a factory constructor.
    */
   static const StaticWarningCode NEW_WITH_ABSTRACT_CLASS =
-      const StaticWarningCode('NEW_WITH_ABSTRACT_CLASS',
-          "Abstract classes can't be instantiated.",
+      const StaticWarningCode(
+          'NEW_WITH_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
           correction: "Try creating an instance of a subtype.");
 
   /**

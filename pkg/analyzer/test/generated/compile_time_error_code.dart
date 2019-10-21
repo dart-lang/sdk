@@ -4418,17 +4418,6 @@ class B {
     ]);
   }
 
-  test_redirectToNonConstConstructor() async {
-    await assertErrorsInCode(r'''
-class A {
-  A.a() {}
-  const factory A.b() = A.a;
-}
-''', [
-      error(CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR, 45, 3),
-    ]);
-  }
-
   test_referencedBeforeDeclaration_hideInBlock_comment() async {
     await assertNoErrorsInCode(r'''
 main() {
