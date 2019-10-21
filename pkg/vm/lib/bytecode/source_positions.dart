@@ -40,7 +40,7 @@ class SourcePositions {
 
   void addYieldPoint(int pc, int fileOffset) {
     assert(pc > _lastPc);
-    assert(fileOffset >= 0);
+    assert((fileOffset >= 0) || (fileOffset == syntheticCodeMarker));
     _positions.add(pc);
     _positions.add(yieldPointMarker);
     _positions.add(pc);
