@@ -1343,8 +1343,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (KernelIsolate::NameEquals(name_prefix)) {
-    ASSERT(!KernelIsolate::Exists());
-    KernelIsolate::SetKernelIsolate(result);
     is_service_or_kernel_isolate = true;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

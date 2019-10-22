@@ -74,7 +74,7 @@ static RawArray* MakeServerControlMessage(const SendPort& sp,
 
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback ServiceIsolate::create_group_callback_ = NULL;
-Monitor* ServiceIsolate::monitor_ = new Monitor();
+Monitor* ServiceIsolate::monitor_ = nullptr;
 ServiceIsolate::State ServiceIsolate::state_ = ServiceIsolate::kStopped;
 Isolate* ServiceIsolate::isolate_ = NULL;
 Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
@@ -118,16 +118,19 @@ bool ServiceIsolate::NameEquals(const char* name) {
 }
 
 bool ServiceIsolate::Exists() {
+  if (!WasInitialized()) return false;
   MonitorLocker ml(monitor_);
   return isolate_ != NULL;
 }
 
 bool ServiceIsolate::IsRunning() {
+  if (!WasInitialized()) return false;
   MonitorLocker ml(monitor_);
   return (port_ != ILLEGAL_PORT) && (isolate_ != NULL);
 }
 
 bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
+  if (!Exists()) return false;
   MonitorLocker ml(monitor_);
   return isolate != nullptr && isolate == isolate_;
 }
@@ -499,6 +502,32 @@ class RunServiceTask : public ThreadPool::Task {
   }
 };
 
+void ServiceIsolate::InitializeState() {
+  ASSERT(monitor_ == nullptr);
+  monitor_ = new Monitor();
+}
+
+void ServiceIsolate::FreeState() {
+  if (server_address_ != NULL) {
+    free(server_address_);
+    server_address_ = NULL;
+  }
+
+  if (startup_failure_reason_ != nullptr) {
+    free(startup_failure_reason_);
+    startup_failure_reason_ = nullptr;
+  }
+
+  delete monitor_;
+  monitor_ = nullptr;
+}
+
+bool ServiceIsolate::WasInitialized() {
+  // If [monitor_] is nullptr after the VM initialization, it will stay that
+  // way.
+  return monitor_ != nullptr;
+}
+
 void ServiceIsolate::Run() {
   {
     MonitorLocker ml(monitor_);
@@ -539,29 +568,32 @@ void ServiceIsolate::KillServiceIsolate() {
 }
 
 void ServiceIsolate::Shutdown() {
-  {
-    MonitorLocker ml(monitor_);
-    while (state_ == kStarting) {
-      ml.Wait();
-    }
-  }
-
-  if (IsRunning()) {
+  if (WasInitialized()) {
     {
       MonitorLocker ml(monitor_);
-      ASSERT(state_ == kStarted);
-      state_ = kStopping;
-      ml.NotifyAll();
-    }
-    SendServiceExitMessage();
-    {
-      MonitorLocker ml(monitor_);
-      while (state_ == kStopping) {
+      while (state_ == kStarting) {
         ml.Wait();
       }
-      ASSERT(state_ == kStopped);
     }
-  } else {
+    if (IsRunning()) {
+      {
+        MonitorLocker ml(monitor_);
+        if (state_ != kStopped) {
+          ASSERT(state_ == kStarted);
+          state_ = kStopping;
+          ml.NotifyAll();
+        }
+      }
+      SendServiceExitMessage();
+      {
+        MonitorLocker ml(monitor_);
+        while (state_ == kStopping) {
+          ml.Wait();
+        }
+        ASSERT(state_ == kStopped);
+      }
+    }
+
     if (isolate_ != NULL) {
       // TODO(johnmccutchan,turnidge) When it is possible to properly create
       // the VMService object and set up its shutdown handler in the service
@@ -569,15 +601,6 @@ void ServiceIsolate::Shutdown() {
       // can be removed.
       KillServiceIsolate();
     }
-  }
-  if (server_address_ != NULL) {
-    free(server_address_);
-    server_address_ = NULL;
-  }
-
-  if (startup_failure_reason_ != nullptr) {
-    free(startup_failure_reason_);
-    startup_failure_reason_ = nullptr;
   }
 }
 

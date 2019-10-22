@@ -41,6 +41,8 @@ class ServiceIsolate : public AllStatic {
                              Dart_Port reply_port,
                              char** error);
 
+  static void InitializeState();
+  static void FreeState();
   static void Run();
   static bool SendIsolateStartupMessage();
   static bool SendIsolateShutdownMessage();
@@ -66,6 +68,7 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port WaitForLoadPortInternal();
 
  protected:
+  static bool WasInitialized();
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
   static void SetLoadPort(Dart_Port port);

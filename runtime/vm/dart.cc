@@ -393,15 +393,16 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   const bool is_dart2_aot_precompiler =
       FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
+  // Issue(dartbug.com/38982): To reduce the AOT binary size in product mode we
+  // should exclude this C++ code at compile-time.
+  ServiceIsolate::InitializeState();
   if (!is_dart2_aot_precompiler &&
       (FLAG_support_service || !kDartPrecompiledRuntime)) {
     ServiceIsolate::Run();
   }
 
 #ifndef DART_PRECOMPILED_RUNTIME
-  if (start_kernel_isolate) {
-    KernelIsolate::InitializeState();
-  }
+  KernelIsolate::InitializeState();
 #endif  // DART_PRECOMPILED_RUNTIME
 
   return NULL;
@@ -524,6 +525,13 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   WaitForIsolateShutdown();
+
+  // Issue(dartbug.com/38982): To reduce the AOT binary size in product mode we
+  // should exclude this C++ code at compile-time.
+  ServiceIsolate::FreeState();
+#ifndef DART_PRECOMPILED_RUNTIME
+  KernelIsolate::FreeState();
+#endif  // DART_PRECOMPILED_RUNTIME
 
 #if !defined(PRODUCT)
   {
@@ -802,6 +810,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     I->class_table()->Print();
   }
   ServiceIsolate::MaybeMakeServiceIsolate(I);
+  KernelIsolate::MaybeMakeKernelIsolate(I);
 
 #if !defined(PRODUCT)
   if (!ServiceIsolate::IsServiceIsolate(I) &&
