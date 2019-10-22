@@ -22,6 +22,9 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
+[ $builder_tag == crossword ]
+dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
+
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
