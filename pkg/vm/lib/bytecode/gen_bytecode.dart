@@ -1656,18 +1656,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    labeledStatements = <LabeledStatement, Label>{};
-    switchCases = <SwitchCase, Label>{};
-    tryCatches = <TryCatch, TryBlock>{};
-    finallyBlocks = <TryFinally, List<FinallyBlock>>{};
+    labeledStatements = null;
+    switchCases = null;
+    tryCatches = null;
+    finallyBlocks = null;
     yieldPoints = null; // Initialized when entering sync-yielding closure.
-    contextLevels = <TreeNode, int>{};
-    closures = <ClosureDeclaration>[];
+    contextLevels = null;
+    closures = null;
     initializedFields = null; // Tracked for constructors only.
     nullableFields = const <ObjectHandle>[];
     cp = new ConstantPool(stringTable, objectTable);
     asm = new BytecodeAssembler(options);
-    savedAssemblers = <BytecodeAssembler>[];
+    savedAssemblers = null;
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
     maxSourcePosition = node.fileOffset;
@@ -1780,7 +1780,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
             finalizeSourcePositions(),
             finalizeLocalVariables(),
             nullableFields,
-            closures,
+            closures ?? const <ClosureDeclaration>[],
             parameterFlags,
             forwardingStubTargetCpIndex,
             defaultFunctionTypeArgsCpIndex);
@@ -2344,6 +2344,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _pushAssemblerState() {
+    savedAssemblers ??= <BytecodeAssembler>[];
     savedAssemblers.add(asm);
     asm = new BytecodeAssembler(options);
   }
@@ -2377,6 +2378,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     List<Label> savedYieldPoints = yieldPoints;
     yieldPoints = locals.isSyncYieldingFrame ? <Label>[] : null;
 
+    closures ??= <ClosureDeclaration>[];
     final int closureIndex = closures.length;
     final closure = getClosureDeclaration(node, function, name, closureIndex,
         savedIsClosure ? parentFunction : enclosingMember);
@@ -4014,7 +4016,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   @override
   visitLabeledStatement(LabeledStatement node) {
     final label = new Label();
+    labeledStatements ??= new Map<LabeledStatement, Label>();
     labeledStatements[node] = label;
+    contextLevels ??= new Map<TreeNode, int>();
     contextLevels[node] = locals.currentContextLevel;
     _generateNode(node.body);
     asm.bind(label);
@@ -4057,6 +4061,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitSwitchStatement(SwitchStatement node) {
+    contextLevels ??= new Map<TreeNode, int>();
     contextLevels[node] = locals.currentContextLevel;
 
     _generateNode(node.expression);
@@ -4074,6 +4079,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final List<Label> caseLabels = new List<Label>.generate(
         node.cases.length, (_) => new Label(allowsBackwardJumps: true));
     final equalsArgDesc = objectTable.getArgDescHandle(2);
+
+    switchCases ??= new Map<SwitchCase, Label>();
 
     Label defaultLabel = done;
     for (int i = 0; i < node.cases.length; i++) {
@@ -4244,6 +4251,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final TryBlock tryBlock = _startTryBlock(node);
     tryBlock.isSynthetic = node.isSynthetic;
+    tryCatches ??= new Map<TryCatch, TryBlock>();
     tryCatches[node] = tryBlock; // Used by rethrow.
 
     _generateNode(node.body);
@@ -4315,6 +4323,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final TryBlock tryBlock = _startTryBlock(node);
     tryBlock.isSynthetic = true;
+    finallyBlocks ??= new Map<TryFinally, List<FinallyBlock>>();
     finallyBlocks[node] = <FinallyBlock>[];
 
     _generateNode(node.body);

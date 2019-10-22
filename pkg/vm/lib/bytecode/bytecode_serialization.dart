@@ -457,7 +457,7 @@ class LinkWriter {
 class LinkReader {
   final _map = <Type, Map<int, BytecodeDeclaration>>{};
 
-  void setOffset<T>(BytecodeDeclaration target, int offset) {
+  void setOffset<T extends BytecodeDeclaration>(T target, int offset) {
     final offsetToObject = (_map[T] ??= <int, BytecodeDeclaration>{});
     final previous = offsetToObject[offset];
     if (previous != null) {
