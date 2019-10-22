@@ -45,6 +45,7 @@ achieve
 act
 acting
 action
+actions
 active
 actual
 actually
@@ -2480,6 +2481,8 @@ shift
 short
 shortcut
 shorten
+shortened
+shorting
 should
 shouldn't
 show

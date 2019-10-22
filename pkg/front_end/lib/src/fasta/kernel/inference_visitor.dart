@@ -2030,19 +2030,10 @@ class InferenceVisitor
     Member equalsMember = inferrer
         .findInterfaceMember(node.variable.type, equalsName, node.fileOffset)
         .member;
-    MethodInvocation equalsNull = createEqualsNull(
-        node.fileOffset,
-        new VariableGet(node.variable)..fileOffset = node.fileOffset,
-        equalsMember);
-    ConditionalExpression condition = new ConditionalExpression(
-        equalsNull,
-        new NullLiteral()..fileOffset = node.fileOffset,
+    return new ExpressionInferenceResult.nullAware(
+        invocationResult.inferredType,
         invocationResult.expression,
-        invocationResult.inferredType);
-    Expression replacement = new Let(node.variable, condition)
-      ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(
-        invocationResult.inferredType, replacement);
+        new NullAwareGuard(node.variable, node.fileOffset, equalsMember));
   }
 
   ExpressionInferenceResult visitNullAwarePropertyGet(
@@ -2053,18 +2044,10 @@ class InferenceVisitor
     Member equalsMember = inferrer
         .findInterfaceMember(node.variable.type, equalsName, node.fileOffset)
         .member;
-    MethodInvocation equalsNull = createEqualsNull(
-        node.fileOffset,
-        new VariableGet(node.variable)..fileOffset = node.fileOffset,
-        equalsMember);
-    ConditionalExpression condition = new ConditionalExpression(
-        equalsNull,
-        new NullLiteral()..fileOffset = node.fileOffset,
+    return new ExpressionInferenceResult.nullAware(
+        readResult.inferredType,
         readResult.expression,
-        readResult.inferredType);
-    Expression replacement = new Let(node.variable, condition)
-      ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(readResult.inferredType, replacement);
+        new NullAwareGuard(node.variable, node.fileOffset, equalsMember));
   }
 
   ExpressionInferenceResult visitNullAwarePropertySet(
@@ -2075,18 +2058,10 @@ class InferenceVisitor
     Member equalsMember = inferrer
         .findInterfaceMember(node.variable.type, equalsName, node.fileOffset)
         .member;
-    MethodInvocation equalsNull = createEqualsNull(
-        node.fileOffset,
-        new VariableGet(node.variable)..fileOffset = node.fileOffset,
-        equalsMember);
-    ConditionalExpression condition = new ConditionalExpression(
-        equalsNull,
-        new NullLiteral()..fileOffset = node.fileOffset,
+    return new ExpressionInferenceResult.nullAware(
+        writeResult.inferredType,
         writeResult.expression,
-        writeResult.inferredType);
-    Expression replacement = new Let(node.variable, condition)
-      ..fileOffset = node.fileOffset;
-    return new ExpressionInferenceResult(writeResult.inferredType, replacement);
+        new NullAwareGuard(node.variable, node.fileOffset, equalsMember));
   }
 
   ExpressionInferenceResult visitNullAwareExtension(
@@ -2283,7 +2258,14 @@ class InferenceVisitor
     ExpressionInferenceResult receiverResult = inferrer.inferExpression(
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
-    Expression receiver = receiverResult.expression;
+    Expression receiver;
+    NullAwareGuard nullAwareGuard;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = receiverResult.nullAwareGuard;
+      receiver = receiverResult.nullAwareAction;
+    } else {
+      receiver = receiverResult.expression;
+    }
     DartType receiverType = receiverResult.inferredType;
     VariableDeclaration receiverVariable =
         createVariable(receiver, receiverType);
@@ -2354,7 +2336,8 @@ class InferenceVisitor
                 createLet(
                     assignmentVariable, createVariableGet(valueVariable))))
           ..fileOffset = node.fileOffset);
-    return new ExpressionInferenceResult(inferredType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        inferredType, replacement, nullAwareGuard);
   }
 
   ExpressionInferenceResult visitSuperIndexSet(
@@ -2500,9 +2483,18 @@ class InferenceVisitor
     ExpressionInferenceResult receiverResult = inferrer.inferExpression(
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
+
+    Expression receiver;
+    NullAwareGuard nullAwareGuard;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = receiverResult.nullAwareGuard;
+      receiver = receiverResult.nullAwareAction;
+    } else {
+      receiver = receiverResult.expression;
+    }
     DartType receiverType = receiverResult.inferredType;
     VariableDeclaration receiverVariable;
-    Expression readReceiver = receiverResult.expression;
+    Expression readReceiver = receiver;
     Expression writeReceiver;
     if (node.readOnlyReceiver) {
       writeReceiver = readReceiver.accept<TreeNode>(new CloneVisitor());
@@ -2700,7 +2692,8 @@ class InferenceVisitor
     } else {
       replacement = inner;
     }
-    return new ExpressionInferenceResult(inferredType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        inferredType, replacement, nullAwareGuard);
   }
 
   ExpressionInferenceResult visitIfNullSuperIndexSet(
@@ -3008,9 +3001,17 @@ class InferenceVisitor
     ExpressionInferenceResult receiverResult = inferrer.inferExpression(
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
+    Expression receiver;
+    NullAwareGuard nullAwareGuard;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = receiverResult.nullAwareGuard;
+      receiver = receiverResult.nullAwareAction;
+    } else {
+      receiver = receiverResult.expression;
+    }
     VariableDeclaration receiverVariable;
     DartType receiverType = receiverResult.inferredType;
-    Expression readReceiver = receiverResult.expression;
+    Expression readReceiver = receiver;
     Expression writeReceiver;
     if (node.readOnlyReceiver) {
       writeReceiver = readReceiver.accept<TreeNode>(new CloneVisitor());
@@ -3255,8 +3256,10 @@ class InferenceVisitor
     } else {
       replacement = inner;
     }
-    return new ExpressionInferenceResult(
-        node.forPostIncDec ? readType : binaryType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        node.forPostIncDec ? readType : binaryType,
+        replacement,
+        nullAwareGuard);
   }
 
   ExpressionInferenceResult visitNullAwareCompoundSet(
@@ -3429,7 +3432,7 @@ class InferenceVisitor
 
     DartType resultType = node.forPostIncDec ? readType : binaryType;
 
-    Expression replacement;
+    Expression action;
     if (node.forEffect) {
       assert(leftVariable == null);
       assert(valueVariable == null);
@@ -3441,13 +3444,7 @@ class InferenceVisitor
       //             receiverVariable.propertyName + rhs
       //
 
-      MethodInvocation equalsNull = createEqualsNull(
-          receiverVariable.fileOffset,
-          createVariableGet(receiverVariable),
-          equalsMember);
-      ConditionalExpression condition = new ConditionalExpression(equalsNull,
-          new NullLiteral()..fileOffset = node.readOffset, write, resultType);
-      replacement = createLet(receiverVariable, condition);
+      action = write;
     } else if (node.forPostIncDec) {
       // Encode `receiver?.propertyName binaryName= rhs` from a postfix
       // expression like `o?.a++` as:
@@ -3465,17 +3462,8 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      MethodInvocation equalsNull = createEqualsNull(
-          receiverVariable.fileOffset,
-          createVariableGet(receiverVariable),
-          equalsMember);
-      ConditionalExpression condition = new ConditionalExpression(
-          equalsNull,
-          new NullLiteral()..fileOffset = node.readOffset,
-          createLet(leftVariable,
-              createLet(writeVariable, createVariableGet(leftVariable))),
-          resultType);
-      replacement = createLet(receiverVariable, condition);
+      action = createLet(leftVariable,
+          createLet(writeVariable, createVariableGet(leftVariable)));
     } else {
       // Encode `receiver?.propertyName binaryName= rhs` as:
       //
@@ -3493,20 +3481,12 @@ class InferenceVisitor
 
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
-      MethodInvocation equalsNull = createEqualsNull(
-          receiverVariable.fileOffset,
-          createVariableGet(receiverVariable),
-          equalsMember);
-      ConditionalExpression condition = new ConditionalExpression(
-          equalsNull,
-          new NullLiteral()..fileOffset = node.readOffset,
-          createLet(valueVariable,
-              createLet(writeVariable, createVariableGet(valueVariable))),
-          resultType);
-      replacement = createLet(receiverVariable, condition);
+      action = createLet(valueVariable,
+          createLet(writeVariable, createVariableGet(valueVariable)));
     }
 
-    return new ExpressionInferenceResult(resultType, replacement);
+    return new ExpressionInferenceResult.nullAware(resultType, action,
+        new NullAwareGuard(receiverVariable, node.fileOffset, equalsMember));
   }
 
   ExpressionInferenceResult visitCompoundSuperIndexSet(
@@ -3979,7 +3959,14 @@ class InferenceVisitor
         node.receiver, const UnknownType(), true,
         isVoidAllowed: false);
     DartType receiverType = receiverResult.inferredType;
-    Expression receiver = receiverResult.expression;
+    Expression receiver;
+    NullAwareGuard nullAwareGuard;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = receiverResult.nullAwareGuard;
+      receiver = receiverResult.nullAwareAction;
+    } else {
+      receiver = receiverResult.expression;
+    }
     ObjectAccessTarget target = inferrer.findInterfaceMember(
         receiverType, node.name, node.fileOffset,
         setter: true, instrumented: true, includeExtensionMethods: true);
@@ -4045,7 +4032,8 @@ class InferenceVisitor
       node.value = rhs..parent = node;
       replacement = node;
     }
-    return new ExpressionInferenceResult(rhsType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        rhsType, replacement, nullAwareGuard);
   }
 
   ExpressionInferenceResult visitNullAwareIfNullSet(

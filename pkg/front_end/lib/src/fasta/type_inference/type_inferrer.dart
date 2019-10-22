@@ -515,6 +515,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         isTopLevel = topLevel,
         super.private(engine.coreTypes);
 
+  bool get isNonNullableByDefault => library.isNonNullableByDefault;
+
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
@@ -2011,7 +2013,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // First infer the receiver so we can look up the method that was invoked.
     ExpressionInferenceResult result =
         inferExpression(node.receiver, const UnknownType(), true);
-    Expression receiver = result.expression;
+    Expression receiver;
+    NullAwareGuard nullAwareGuard;
+    if (isNonNullableByDefault) {
+      nullAwareGuard = result.nullAwareGuard;
+      receiver = result.nullAwareAction;
+    } else {
+      receiver = result.expression;
+    }
     DartType receiverType = result.inferredType;
     ObjectAccessTarget target = findInterfaceMember(
         receiverType, node.name, node.fileOffset,
@@ -2109,7 +2118,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return new ExpressionInferenceResult(const DynamicType(), error);
     }
 
-    return new ExpressionInferenceResult(inferredType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        inferredType, replacement, nullAwareGuard);
   }
 
   void _checkBoundsInMethodInvocation(
@@ -2221,7 +2231,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // First infer the receiver so we can look up the getter that was invoked.
     ExpressionInferenceResult result =
         inferExpression(node.receiver, const UnknownType(), true);
-    Expression receiver = result.expression;
+    NullAwareGuard nullAwareGuard;
+    Expression receiver;
+    if (isNonNullableByDefault) {
+      nullAwareGuard = result.nullAwareGuard;
+      receiver = result.nullAwareAction;
+    } else {
+      receiver = result.expression;
+    }
     node.receiver = receiver..parent = node;
     DartType receiverType = result.inferredType;
     Name propertyName = node.name;
@@ -2276,7 +2293,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           break;
       }
     }
-    return new ExpressionInferenceResult(inferredType, replacement);
+    return new ExpressionInferenceResult.nullAware(
+        inferredType, replacement, nullAwareGuard);
   }
 
   /// Performs the core type inference algorithm for super property get.
@@ -2671,10 +2689,105 @@ class ExpressionInferenceResult {
   /// The inferred expression.
   final Expression expression;
 
+  factory ExpressionInferenceResult.nullAware(
+      DartType inferredType, Expression expression,
+      [NullAwareGuard nullAwareGuard]) {
+    if (nullAwareGuard != null) {
+      return new NullAwareExpressionInferenceResult(
+          inferredType, nullAwareGuard, expression);
+    } else {
+      return new ExpressionInferenceResult(inferredType, expression);
+    }
+  }
+
   ExpressionInferenceResult(this.inferredType, this.expression)
       : assert(expression != null);
 
+  /// The guard used for null-aware access if the expression is part of a
+  /// null-shorting, and `null` otherwise.
+  NullAwareGuard get nullAwareGuard => null;
+
+  /// If the expression is part of a null-shorting, the action performed on
+  /// the variable in [nullAwareGuard]. Otherwise, this is the same as
+  /// [expression].
+  Expression get nullAwareAction => expression;
+
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
+}
+
+/// A guard used for creating null-shorting null-aware actions.
+class NullAwareGuard {
+  /// The variable used to guard the null-aware action.
+  final VariableDeclaration _nullAwareVariable;
+
+  /// The file offset used for the null-test.
+  int _nullAwareFileOffset;
+
+  /// The [Member] used for the == call.
+  final Member _nullAwareEquals;
+
+  NullAwareGuard(
+      this._nullAwareVariable, this._nullAwareFileOffset, this._nullAwareEquals)
+      : assert(_nullAwareVariable != null),
+        assert(_nullAwareFileOffset != null),
+        assert(_nullAwareEquals != null);
+
+  /// Creates the null-guarded application of [nullAwareAction] with the
+  /// [inferredType].
+  ///
+  /// For an null-aware action `v.e` on the [_nullAwareVariable] `v` the created
+  /// expression is
+  ///
+  ///     let v in v == null ? null : v.e
+  ///
+  Expression createExpression(
+      DartType inferredType, Expression nullAwareAction) {
+    MethodInvocation equalsNull = createEqualsNull(_nullAwareFileOffset,
+        createVariableGet(_nullAwareVariable), _nullAwareEquals);
+    ConditionalExpression condition = new ConditionalExpression(
+        equalsNull,
+        new NullLiteral()..fileOffset = _nullAwareFileOffset,
+        nullAwareAction,
+        inferredType);
+    return new Let(_nullAwareVariable, condition)
+      ..fileOffset = _nullAwareFileOffset;
+  }
+
+  String toString() =>
+      'NullAwareGuard($_nullAwareVariable,$_nullAwareFileOffset,'
+      '$_nullAwareEquals)';
+}
+
+/// The result of an expression inference that is guarded with a null aware
+/// variable.
+class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
+  /// The inferred type of the expression.
+  final DartType inferredType;
+
+  @override
+  final NullAwareGuard nullAwareGuard;
+
+  @override
+  final Expression nullAwareAction;
+
+  Expression _expression;
+
+  NullAwareExpressionInferenceResult(
+      this.inferredType, this.nullAwareGuard, this.nullAwareAction)
+      : assert(nullAwareGuard != null),
+        assert(nullAwareAction != null);
+
+  Expression get expression {
+    if (_expression == null) {
+      _expression ??=
+          nullAwareGuard.createExpression(inferredType, nullAwareAction);
+    }
+    return _expression;
+  }
+
+  String toString() =>
+      'NullAwareExpressionInferenceResult($inferredType,$nullAwareGuard,'
+      '$nullAwareAction)';
 }
 
 enum ObjectAccessTargetKind {
