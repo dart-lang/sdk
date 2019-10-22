@@ -4,9 +4,11 @@
 
 ### Language
 
-*   [Static extension members][]: A new language feature allowing
+*   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
     specially declared static functions to be invoked
-    like instance members on expressions of appropriate static types.
+    like instance members on expressions of appropriate static types
+    is available in preview.
+
     Static extension members are declared using a new `extension`
     declaration. Example:
     ```dart
