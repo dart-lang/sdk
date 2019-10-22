@@ -4359,21 +4359,25 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   visitVariableDeclaration(VariableDeclaration node) {
     if (!node.isConst) {
       final bool isCaptured = locals.isCaptured(node);
-      if (isCaptured) {
-        _genPushContextForVariable(node);
-      }
+      final initializer = node.initializer;
+      final bool emitStore =
+          !(isCaptured && (initializer == null || initializer is NullLiteral));
       int maxInitializerPosition = node.fileOffset;
-      if (node.initializer != null) {
-        _startRecordingMaxPosition(node.fileOffset);
-        _generateNode(node.initializer);
-        maxInitializerPosition = _endRecordingMaxPosition();
-      } else {
-        asm.emitPushNull();
+      if (emitStore) {
+        if (isCaptured) {
+          _genPushContextForVariable(node);
+        }
+        if (initializer != null) {
+          _startRecordingMaxPosition(node.fileOffset);
+          _generateNode(initializer);
+          maxInitializerPosition = _endRecordingMaxPosition();
+        } else {
+          asm.emitPushNull();
+        }
       }
 
       if (options.emitDebuggerStops &&
-          (node.initializer == null ||
-              _variableSetNeedsDebugCheck(node.initializer))) {
+          (initializer == null || _variableSetNeedsDebugCheck(initializer))) {
         final savedSourcePosition = asm.currentSourcePosition;
         if (node.fileEqualsOffset != TreeNode.noOffset) {
           _recordSourcePosition(node.fileEqualsOffset);
@@ -4385,7 +4389,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }
-      _genStoreVar(node);
+
+      if (emitStore) {
+        _genStoreVar(node);
+      }
     }
   }
 

@@ -97,26 +97,11 @@ L1:
   DirectCall           CP#8, 1
   Drop1
   StoreContextVar      0, 1
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 2
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      0, 3
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 4
-  Push                 r0
   PushInt              0
   StoreContextVar      0, 5
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 6
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 7
   Push                 r0
   AllocateClosure      CP#10
   StoreLocal           r2
@@ -263,9 +248,6 @@ Bytecode {
   DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 0
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 1
   PushNull
   PopLocal             r3
   PushNull
@@ -275,9 +257,6 @@ Bytecode {
   Push                 r0
   PushInt              0
   StoreContextVar      0, 2
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 3
   AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2
@@ -423,29 +402,11 @@ Bytecode {
   DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 2
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 3
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      0, 4
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 5
-  Push                 r0
   PushInt              0
   StoreContextVar      0, 6
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 7
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 8
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 9
   Push                 r0
   AllocateClosure      CP#4
   StoreLocal           r2
@@ -665,32 +626,11 @@ Bytecode {
   DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 1
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 2
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      0, 3
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 4
-  Push                 r0
   PushInt              0
   StoreContextVar      0, 5
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 6
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 7
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 8
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 9
   Push                 r0
   AllocateClosure      CP#4
   StoreLocal           r2
@@ -1040,47 +980,11 @@ Bytecode {
   DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 3
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 4
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      0, 5
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 6
-  Push                 r0
   PushInt              0
   StoreContextVar      0, 7
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 8
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 9
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 10
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 11
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 12
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 13
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 14
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 15
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 16
   Push                 r0
   AllocateClosure      CP#4
   StoreLocal           r2
@@ -1672,29 +1576,11 @@ ClosureCode {
   DirectCall           CP#5, 1
   Drop1
   StoreContextVar      1, 0
-  Push                 r0
-  PushNull
-  StoreContextVar      1, 1
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      1, 2
-  Push                 r0
-  PushNull
-  StoreContextVar      1, 3
-  Push                 r0
   PushInt              0
   StoreContextVar      1, 4
-  Push                 r0
-  PushNull
-  StoreContextVar      1, 5
-  Push                 r0
-  PushNull
-  StoreContextVar      1, 6
-  Push                 r0
-  PushNull
-  StoreContextVar      1, 7
   Push                 r0
   AllocateClosure      CP#7
   StoreLocal           r2
@@ -1914,26 +1800,11 @@ Bytecode {
   DirectCall           CP#2, 1
   Drop1
   StoreContextVar      0, 1
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 2
   PushNull
   PopLocal             r3
   Push                 r0
-  PushNull
-  StoreContextVar      0, 3
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 4
-  Push                 r0
   PushInt              0
   StoreContextVar      0, 5
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 6
-  Push                 r0
-  PushNull
-  StoreContextVar      0, 7
   Push                 r0
   AllocateClosure      CP#4
   StoreLocal           r2
