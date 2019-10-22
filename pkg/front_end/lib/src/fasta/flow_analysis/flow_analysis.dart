@@ -350,14 +350,14 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// Return whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable);
 
-  /// Call this method after visiting the LHS of an "is" expression that checks
-  /// the type of a promotable variable.
-  /// [isExpression] should be the complete expression.  [variable] should be
-  /// the promotable variable.  [isNot] should be a boolean indicating whether
-  /// this is an "is" or an "is!" expression.  [type] should be the type being
-  /// checked.
+  /// Call this method after visiting the LHS of an "is" expression.
+  ///
+  /// [isExpression] should be the complete expression.  [subExpression] should
+  /// be the expression to which the "is" check was applied.  [isNot] should be
+  /// a boolean indicating whether this is an "is" or an "is!" expression.
+  /// [type] should be the type being checked.
   void isExpression_end(
-      Expression isExpression, Variable variable, bool isNot, Type type);
+      Expression isExpression, Expression subExpression, bool isNot, Type type);
 
   /// Call this method after visiting the RHS of a logical binary operation
   /// ("||" or "&&").
@@ -737,10 +737,12 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void isExpression_end(
-      Expression isExpression, Variable variable, bool isNot, Type type) {
-    _wrap('isExpression_end($isExpression, $variable, $isNot, $type)',
-        () => _wrapped.isExpression_end(isExpression, variable, isNot, type));
+  void isExpression_end(Expression isExpression, Expression subExpression,
+      bool isNot, Type type) {
+    _wrap(
+        'isExpression_end($isExpression, $subExpression, $isNot, $type)',
+        () => _wrapped.isExpression_end(
+            isExpression, subExpression, isNot, type));
   }
 
   @override
@@ -1787,8 +1789,16 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void isExpression_end(
-      Expression isExpression, Variable variable, bool isNot, Type type) {
+  void isExpression_end(Expression isExpression, Expression subExpression,
+      bool isNot, Type type) {
+    _ExpressionInfo<Variable, Type> subExpressionInfo =
+        _getExpressionInfo(subExpression);
+    Variable variable;
+    if (subExpressionInfo is _VariableReadInfo<Variable, Type>) {
+      variable = subExpressionInfo._variable;
+    } else {
+      return;
+    }
     FlowModel<Variable, Type> promoted =
         _current.promote(typeOperations, variable, type);
     _storeExpressionInfo(

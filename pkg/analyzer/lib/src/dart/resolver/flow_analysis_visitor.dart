@@ -126,17 +126,12 @@ class FlowAnalysisHelper {
     var expression = node.expression;
     var typeAnnotation = node.type;
 
-    if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      if (element is VariableElement) {
-        flow.isExpression_end(
-          node,
-          element,
-          node.notOperator != null,
-          typeAnnotation.type,
-        );
-      }
-    }
+    flow.isExpression_end(
+      node,
+      expression,
+      node.notOperator != null,
+      typeAnnotation.type,
+    );
   }
 
   bool isPotentiallyNonNullableLocalReadBeforeWrite(SimpleIdentifier node) {

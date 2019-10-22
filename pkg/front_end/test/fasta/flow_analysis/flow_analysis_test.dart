@@ -628,8 +628,10 @@ main() {
       var x = h.addVar('x', 'int?');
       h.run((flow) {
         h.declare(x, initialized: true);
+        var read = _Expression();
+        flow.variableRead(read, x);
         var expr = _Expression();
-        flow.isExpression_end(expr, x, false, _Type(tryPromoteType));
+        flow.isExpression_end(expr, read, false, _Type(tryPromoteType));
         flow.ifStatement_thenBegin(expr);
         if (expectedPromotedType == null) {
           expect(flow.promotedType(x), isNull);
@@ -659,13 +661,13 @@ main() {
       var x = h.addVar('x', 'int?', hasWrites: true, isCaptured: true);
       h.run((flow) {
         h.declare(x, initialized: true);
-        h.if_(h.isType(x, 'int'), () {
+        h.if_(h.isType(h.variableRead(x), 'int'), () {
           expect(flow.promotedType(x).type, 'int');
         });
         h.function({x}, () {
           flow.write(x);
         });
-        h.if_(h.isType(x, 'int'), () {
+        h.if_(h.isType(h.variableRead(x), 'int'), () {
           expect(flow.promotedType(x), isNull);
         });
       });
@@ -675,7 +677,7 @@ main() {
       var h = _Harness();
       var x = h.addVar('x', 'int?', hasWrites: true, isCaptured: true);
       h.run((flow) {
-        h.if_(h.isType(x, 'int'), () {
+        h.if_(h.isType(h.variableRead(x), 'int'), () {
           expect(flow.promotedType(x).type, 'int');
         });
         h.declare(x, initialized: true);
@@ -1931,11 +1933,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
   }
 
   /// Creates a [LazyExpression] representing an `is!` check, checking whether
-  /// [variable] has the given [type].
-  LazyExpression isNotType(_Var variable, String type) {
+  /// [subExpression] has the given [type].
+  LazyExpression isNotType(LazyExpression subExpression, String type) {
     return () {
       var expr = _Expression();
-      _flow.isExpression_end(expr, variable, true, _Type(type));
+      _flow.isExpression_end(expr, subExpression(), true, _Type(type));
       return expr;
     };
   }
@@ -1966,11 +1968,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
   }
 
   /// Creates a [LazyExpression] representing an `is` check, checking whether
-  /// [variable] has the given [type].
-  LazyExpression isType(_Var variable, String type) {
+  /// [subExpression] has the given [type].
+  LazyExpression isType(LazyExpression subExpression, String type) {
     return () {
       var expr = _Expression();
-      _flow.isExpression_end(expr, variable, false, _Type(type));
+      _flow.isExpression_end(expr, subExpression(), false, _Type(type));
       return expr;
     };
   }
@@ -2012,7 +2014,7 @@ class _Harness implements TypeOperations<_Var, _Type> {
 
   /// Causes [variable] to be promoted to [type].
   void promote(_Var variable, String type) {
-    if_(isNotType(variable, type), _flow.handleExit);
+    if_(isNotType(variableRead(variable), type), _flow.handleExit);
   }
 
   @override

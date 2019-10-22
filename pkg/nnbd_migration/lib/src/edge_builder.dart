@@ -850,13 +850,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var expression = node.expression;
     expression.accept(this);
-    if (expression is SimpleIdentifier) {
-      var element = expression.staticElement;
-      if (element is PromotableElement) {
-        _flowAnalysis.isExpression_end(
-            node, element, node.notOperator != null, decoratedType);
-      }
-    }
+    _flowAnalysis.isExpression_end(
+        node, expression, node.notOperator != null, decoratedType);
     return DecoratedType(node.staticType, _graph.never);
   }
 
