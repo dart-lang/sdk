@@ -75,17 +75,3 @@ void checkSubtypeFailure(Type sWrapped, Type tWrapped) {
   var t = dart.unwrapType(tWrapped);
   Expect.isFalse(dart.isSubtypeOf(s, t), '$s should not be subtype of $t.');
 }
-
-// Returns tWrapped? as a wrapped type.
-Type nullable(Type tWrapped) {
-  var t = dart.unwrapType(tWrapped);
-  var tNullable = dart.nullable(t);
-  return dart.wrapType(tNullable);
-}
-
-// Returns tWrapped* as a wrapped type.
-Type legacy(Type tWrapped) {
-  var t = dart.unwrapType(tWrapped);
-  var tLegacy = dart.legacy(t);
-  return dart.wrapType(tLegacy);
-}

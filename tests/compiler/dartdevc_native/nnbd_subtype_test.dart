@@ -8,6 +8,7 @@ import 'dart:_runtime' as dart;
 import 'dart:async';
 
 import 'runtime_utils.dart';
+import 'runtime_utils_nnbd.dart';
 
 class A {}
 

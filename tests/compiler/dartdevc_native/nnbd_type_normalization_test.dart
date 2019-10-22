@@ -8,7 +8,7 @@ import 'dart:_runtime' as dart;
 
 import 'package:expect/expect.dart';
 
-import 'runtime_utils.dart';
+import 'runtime_utils_nnbd.dart';
 
 class A {}
 
