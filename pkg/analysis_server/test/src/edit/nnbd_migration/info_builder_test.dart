@@ -208,7 +208,7 @@ void g() {
   A(null);
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     // TODO(brianwilkerson) It would be nice if the target for the region could
     //  be the argument rather than the field formal parameter.
@@ -257,7 +257,7 @@ void f() {
   Set<String?> y = <String?>{"hello", s};
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(5));
     // regions[0] is the `String? s` fix.
     // regions[1] is the `List<String?> x` fix.
@@ -293,7 +293,7 @@ void f() {
   ];
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(3));
     // regions[0] is the `String? s` fix.
     // regions[1] is the `List<String?> x` fix.
@@ -343,7 +343,7 @@ void f() {
   Map<bool, String?> y = <bool, String?>{false: "hello", true: s};
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(5));
     // regions[0] is the `String? s` fix.
     // regions[1] is the `Map<String?, bool> x` fix.
@@ -358,6 +358,55 @@ void f() {
         offset: 136,
         details: ["This map is initialized with a nullable value on line 4"]);
     assertDetail(detail: regions[4].details[0], offset: 156, length: 1);
+  }
+
+  test_nonNullableType_assert() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String s) {
+  assert(s != null);
+}
+''', migratedContent: '''
+void f(String s) {
+  assert(s != null);
+}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 7,
+        length: 6,
+        details: ["This value is asserted to be non-null"]);
+  }
+
+  test_nonNullableType_exclamationComment() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String /*!*/ s) {}
+''', migratedContent: '''
+void f(String /*!*/ s) {}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 7, length: 6, details: [
+      'This type is annotated with a non-nullability comment ("/*!*/")'
+    ]);
+  }
+
+  test_nonNullableType_unconditionalFieldAccess() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+void f(String s) {
+  print(s.length);
+}
+''', migratedContent: '''
+void f(String s) {
+  print(s.length);
+}
+''');
+    List<RegionInfo> regions = unit.nonNullableTypeRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 7, length: 6, details: [
+      "This value is unconditionally used in a non-nullable context"
+    ]);
   }
 
   test_parameter_fromInvocation_explicit() async {
@@ -426,7 +475,7 @@ void f(A a) {
   a.m(null);
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
@@ -453,7 +502,7 @@ class B extends A {
   void m(Object? p) {}
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     // TODO(brianwilkerson) The detail should read something like
     //  "The overridden method accepts a nullable type"
@@ -473,7 +522,7 @@ void f() { g(); }
 
 void g({int? i}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 30, details: [
       "This named parameter was omitted in a call to this function",
@@ -491,7 +540,7 @@ void f({String s = null}) {}
 ''', migratedContent: '''
 void f({String? s = null}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -510,7 +559,7 @@ void f({String s = sd}) {}
 const sd = null;
 void f({String? s = sd}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -524,7 +573,7 @@ void f({String s}) {}
 ''', migratedContent: '''
 void f({String? s}) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -538,7 +587,7 @@ void f([String s]) {}
 ''', migratedContent: '''
 void f([String? s]) {}
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -563,7 +612,7 @@ class B implements A {
   String? m() => 1 == 2 ? "Hello" : null;
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],
@@ -585,7 +634,7 @@ String? g() {
   return "Hello";
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(
         region: regions[0],
@@ -706,7 +755,7 @@ void f() {
   };
 }
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(3));
     // regions[0] is the `String? s` fix.
     // regions[1] is the `Set<List<String?>> x` fix.
@@ -727,7 +776,7 @@ int _f2 = _f;
 int? _f = null;
 int? _f2 = _f;
 ''');
-    List<RegionInfo> regions = unit.regions;
+    List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(2));
     assertRegion(
         region: regions[0],

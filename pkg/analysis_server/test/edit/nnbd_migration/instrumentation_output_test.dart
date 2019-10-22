@@ -39,11 +39,11 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   test_outputContainsEachPath() async {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [])]),
+          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
       unit('/package/lib/part1.dart', 'int? b = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [])]),
+          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
       unit('/package/lib/part2.dart', 'int? c = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [])]),
+          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
     });
     List<String> contents = renderLibrary(info);
     expect(contents[0], contains(resourceProvider.convertPath('lib/a.dart')));
@@ -55,13 +55,14 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
 
   test_outputContainsEscapedHtml() async {
     LibraryInfo info = LibraryInfo({
-      unit('/package/lib/a.dart', 'List<String>? a = null;',
-          regions: [RegionInfo(12, 1, 'null was assigned', [])]),
+      unit('/package/lib/a.dart', 'List<String>? a = null;', regions: [
+        RegionInfo(12, 1, 'null was assigned', [], RegionType.fix)
+      ]),
     });
     String output = renderLibrary(info)[0];
     expect(
         output,
-        contains('List&lt;String&gt;<span class="region">?'
+        contains('List&lt;String&gt;<span class="region fix-region">?'
             '<span class="tooltip"><p>null was assigned</p>'
             '</span></span> a = null;'));
   }
@@ -77,12 +78,12 @@ class InstrumentationRendererTest extends AbstractAnalysisTest {
   test_outputContainsModifiedAndUnmodifiedRegions() async {
     LibraryInfo info = LibraryInfo({
       unit('/package/lib/a.dart', 'int? a = null;',
-          regions: [RegionInfo(3, 1, 'null was assigned', [])]),
+          regions: [RegionInfo(3, 1, 'null was assigned', [], RegionType.fix)]),
     });
     String output = renderLibrary(info)[0];
     expect(
         output,
-        contains('int<span class="region">?'
+        contains('int<span class="region fix-region">?'
             '<span class="tooltip"><p>null was assigned</p>'
             '</span></span> a = null;'));
   }

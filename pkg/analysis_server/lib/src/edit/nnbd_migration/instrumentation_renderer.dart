@@ -79,6 +79,10 @@ h2 {
 
 .code {
   left: 0.5em;
+  /* Increase line height to make room for borders in non-nullable type
+   * regions.
+   */
+  line-height: 1.3;
   padding-left: 60px;
   position: absolute;
   top: 0.5em;
@@ -106,6 +110,7 @@ h2 {
 
 .regions td {
   border: none;
+  line-height: 1.3;
   padding: 0;
   white-space: pre;
 }
@@ -116,6 +121,7 @@ h2 {
 
 .regions td.line-no {
   color: #999999;
+  display: inline-block;
   padding-right: 4px;
   text-align: right;
   visibility: visible;
@@ -123,13 +129,25 @@ h2 {
 }
 
 .region {
-  /* Green means this region was added. */
-  background-color: #ccffcc;
-  color: #003300;
   cursor: default;
   display: inline-block;
   position: relative;
   visibility: visible;
+}
+
+.region.fix-region {
+  /* Green means this region was added. */
+  background-color: #ccffcc;
+  color: #003300;
+}
+
+.region.non-nullable-type-region {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-bottom: solid 2px #cccccc;
+  /* Invisible text; use underlying highlighting. */
+  color: rgba(0, 0, 0, 0);
+  /* Reduce line height to make room for border. */
+  line-height: 1;
 }
 
 .region .tooltip {
@@ -334,7 +352,10 @@ class InstrumentationRenderer {
         writeSplitLines(content.substring(previousOffset, offset));
         previousOffset = offset + length;
       }
-      regions.write('<span class="region">'
+      String regionClass = region.regionType == RegionType.fix
+          ? 'fix-region'
+          : 'non-nullable-type-region';
+      regions.write('<span class="region $regionClass">'
           '${content.substring(offset, offset + length)}'
           '<span class="tooltip">'
           '<p>${region.explanation}</p>');
