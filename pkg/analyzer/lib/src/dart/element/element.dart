@@ -571,9 +571,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
-
-  @override
   List<FieldElement> get fields {
     if (_fields != null) return _fields;
 
@@ -879,7 +876,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   InterfaceType get type {
     if (_type == null) {
       InterfaceTypeImpl type = new InterfaceTypeImpl(this);
-      type.typeArguments = typeParameterTypes;
+      type.typeArguments = typeParameters.map((e) => e.type).toList();
       _type = type;
     }
     return _type;
@@ -2057,10 +2054,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   ClassElementImpl get enclosingElement =>
-      super.enclosingElement as ClassElementImpl;
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
       super.enclosingElement as ClassElementImpl;
 
   /// Set whether this constructor represents a factory method.
@@ -4070,9 +4063,6 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
-
-  @override
   DartType get extendedType {
     if (_extendedType != null) return _extendedType;
 
@@ -4507,11 +4497,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext {
-    return (enclosingElement as ElementImpl).typeParameterContext;
-  }
-
-  @override
   String get identifier {
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
@@ -4565,16 +4550,8 @@ class FunctionElementImpl_forFunctionTypedParameter
   @override
   final CompilationUnitElementImpl enclosingUnit;
 
-  /// The enclosing function typed [ParameterElementImpl].
-  final ParameterElementImpl _parameter;
-
-  FunctionElementImpl_forFunctionTypedParameter(
-      this.enclosingUnit, this._parameter)
+  FunctionElementImpl_forFunctionTypedParameter(this.enclosingUnit)
       : super('', -1);
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
-      _parameter.typeParameterContext;
 
   @override
   bool get isSynthetic => true;
@@ -4611,11 +4588,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   /// [nameOffset]. This is used for function expressions, that have no name.
   GenericFunctionTypeElementImpl.forOffset(int nameOffset)
       : super("", nameOffset);
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext {
-    return _enclosingElement.typeParameterContext;
-  }
 
   @override
   String get identifier => '-';
@@ -4807,9 +4779,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
   CompilationUnitElementImpl get enclosingUnit =>
@@ -5950,10 +5919,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return displayName;
   }
 
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext =>
-      super.enclosingElement as TypeParameterizedElementMixin;
-
   /// Set whether this class is abstract.
   void set isAbstract(bool isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
@@ -6443,9 +6408,6 @@ class MultiplyInheritedPropertyAccessorElementImpl
       : super.forNode(name) {
     isSynthetic = true;
   }
-
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
   List<ExecutableElement> get inheritedElements => _elements;
@@ -7184,11 +7146,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return variable.setter;
   }
 
-  @override
-  TypeParameterizedElementMixin get enclosingTypeParameterContext {
-    return (enclosingElement as ElementImpl).typeParameterContext;
-  }
-
   /// Set whether this accessor is a getter.
   void set getter(bool isGetter) {
     setModifier(Modifier.GETTER, isGetter);
@@ -7716,27 +7673,14 @@ class TypeParameterElementImpl extends ElementImpl
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedElementMixin
-    implements
-        TypeParameterizedElement,
-        ElementImpl,
-        TypeParameterSerializationContext {
+    implements TypeParameterizedElement, ElementImpl {
   /// A cached list containing the type parameters declared by this element
   /// directly, or `null` if the elements have not been created yet. This does
   /// not include type parameters that are declared by any enclosing elements.
   List<TypeParameterElement> _typeParameterElements;
 
-  /// A cached list containing the type parameter types declared by this element
-  /// directly, or `null` if the list has not been computed yet.
-  List<TypeParameterType> _typeParameterTypes;
-
-  /// Get the type parameter context enclosing this one, if any.
-  TypeParameterizedElementMixin get enclosingTypeParameterContext;
-
   @override
   bool get isSimplyBounded => true;
-
-  @override
-  TypeParameterizedElementMixin get typeParameterContext => this;
 
   @override
   List<TypeParameterElement> get typeParameters {
@@ -7760,55 +7704,6 @@ mixin TypeParameterizedElementMixin
 
     return _typeParameterElements ?? const <TypeParameterElement>[];
   }
-
-  /// Get a list of [TypeParameterType] objects corresponding to the
-  /// element's type parameters.
-  List<TypeParameterType> get typeParameterTypes {
-    return _typeParameterTypes ??= typeParameters
-        .map((TypeParameterElement e) =>
-            e.instantiate(nullabilitySuffix: NullabilitySuffix.star))
-        .toList(growable: false);
-  }
-
-  @override
-  int computeDeBruijnIndex(TypeParameterElement typeParameter,
-      {int offset = 0}) {
-    if (typeParameter.enclosingElement == this) {
-      var index = typeParameters.indexOf(typeParameter);
-      assert(index >= 0);
-      return typeParameters.length - index + offset;
-    } else if (enclosingTypeParameterContext != null) {
-      return enclosingTypeParameterContext.computeDeBruijnIndex(typeParameter,
-          offset: offset + typeParameters.length);
-    } else {
-      return null;
-    }
-  }
-
-  /// Convert the given [index] into a type parameter type.
-  TypeParameterType getTypeParameterType(int index) {
-    List<TypeParameterType> types = typeParameterTypes;
-    if (index <= types.length) {
-      return types[types.length - index];
-    } else if (enclosingTypeParameterContext != null) {
-      return enclosingTypeParameterContext
-          .getTypeParameterType(index - types.length);
-    } else {
-      // If we get here, it means that a summary contained a type parameter
-      // index that was out of range.
-      throw new RangeError('Invalid type parameter index');
-    }
-  }
-}
-
-/// Interface used by linker serialization methods to convert type parameter
-/// references into De Bruijn indices.
-abstract class TypeParameterSerializationContext {
-  /// Return the given [typeParameter]'s de Bruijn index in this context, or
-  /// `null` if it's not in scope.
-  ///
-  /// If an [offset] is provided, then it is added to the computed index.
-  int computeDeBruijnIndex(TypeParameterElement typeParameter, {int offset: 0});
 }
 
 /// Container with information about explicit top-level property accessors and
