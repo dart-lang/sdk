@@ -101,6 +101,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "ExpectationFileMismatchSerialized",
+    "group": "Fail"
+  },
+  {
     "name": "ExpectationFileMissing",
     "group": "Fail"
   },
@@ -183,7 +187,11 @@ class FastaContext extends ChainContext with MatchContext {
         ] {
     if (!ignoreExpectations) {
       steps.add(new MatchExpectation(
-          fullCompile ? ".strong.expect" : ".outline.expect"));
+          fullCompile ? ".strong.expect" : ".outline.expect",
+          serializeFirst: true));
+      steps.add(new MatchExpectation(
+          fullCompile ? ".strong.expect" : ".outline.expect",
+          serializeFirst: false));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
@@ -193,9 +201,16 @@ class FastaContext extends ChainContext with MatchContext {
     if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation(fullCompile
-            ? ".strong.transformed.expect"
-            : ".outline.transformed.expect"));
+        steps.add(new MatchExpectation(
+            fullCompile
+                ? ".strong.transformed.expect"
+                : ".outline.transformed.expect",
+            serializeFirst: true));
+        steps.add(new MatchExpectation(
+            fullCompile
+                ? ".strong.transformed.expect"
+                : ".outline.transformed.expect",
+            serializeFirst: false));
       }
       steps.add(const EnsureNoErrors());
       if (!skipVm) {

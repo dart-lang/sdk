@@ -6,8 +6,7 @@ library fasta.testing.kernel_chain;
 
 import 'dart:async' show Future;
 
-import 'dart:io' show Directory, File, IOSink;
-import 'dart:io';
+import 'dart:io' show Directory, File, IOSink, Platform;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -25,6 +24,8 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show templateInternalProblemUnhandled, templateUnspecified;
 
+import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
+
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
@@ -34,6 +35,8 @@ import 'package:front_end/src/fasta/resolve_input_uri.dart' show isWindows;
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 
 import 'package:kernel/ast.dart' show Component, Library;
+
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -66,15 +69,14 @@ abstract class MatchContext implements ChainContext {
   Expectation get expectationFileMismatch =>
       expectationSet["ExpectationFileMismatch"];
 
+  Expectation get expectationFileMismatchSerialized =>
+      expectationSet["ExpectationFileMismatchSerialized"];
+
   Expectation get expectationFileMissing =>
       expectationSet["ExpectationFileMissing"];
 
-  Future<Result<O>> match<O>(
-    String suffix,
-    String actual,
-    Uri uri,
-    O output,
-  ) async {
+  Future<Result<O>> match<O>(String suffix, String actual, Uri uri, O output,
+      {Expectation onMismatch}) async {
     actual = actual.trim();
     if (actual.isNotEmpty) {
       actual += "\n";
@@ -87,7 +89,8 @@ abstract class MatchContext implements ChainContext {
           return updateExpectationFile<O>(expectedFile.uri, actual, output);
         }
         String diff = await runDiff(expectedFile.uri, actual);
-        return new Result<O>(output, expectationFileMismatch,
+        onMismatch ??= expectationFileMismatch;
+        return new Result<O>(output, onMismatch,
             "$uri doesn't match ${expectedFile.uri}\n$diff", null);
       } else {
         return new Result<O>.pass(output);
@@ -208,17 +211,49 @@ class TypeCheck extends Step<Component, Component, ChainContext> {
 
 class MatchExpectation extends Step<Component, Component, MatchContext> {
   final String suffix;
+  final bool serializeFirst;
 
-  const MatchExpectation(this.suffix);
+  /// Check if a textual representation of the component matches the expectation
+  /// located at [suffix]. If [serializeFirst] is true, the input component will
+  /// be serialized, deserialized, and the textual representation of that is
+  /// compared. It is still the original component that is returned though.
+  const MatchExpectation(this.suffix, {this.serializeFirst: false});
 
   String get name => "match expectations";
 
   Future<Result<Component>> run(Component component, MatchContext context) {
+    Component componentToText = component;
+    if (serializeFirst) {
+      component.computeCanonicalNames();
+      List<Library> sdkLibraries = component.libraries
+          .where((l) => l.importUri.scheme == "dart")
+          .toList();
+
+      ByteSink sink = new ByteSink();
+      Component writeMe = new Component(
+          libraries: component.libraries
+              .where((l) => l.importUri.scheme != "dart")
+              .toList());
+      writeMe.uriToSource.addAll(component.uriToSource);
+      if (component.problemsAsJson != null) {
+        writeMe.problemsAsJson =
+            new List<String>.from(component.problemsAsJson);
+      }
+      BinaryPrinter binaryPrinter = new BinaryPrinter(sink);
+      binaryPrinter.writeComponentFile(writeMe);
+      List<int> bytes = sink.builder.takeBytes();
+
+      BinaryBuilder binaryBuilder = new BinaryBuilder(bytes);
+      componentToText = new Component(libraries: sdkLibraries);
+      binaryBuilder.readComponent(componentToText);
+      component.adoptChildren();
+    }
+
     StringBuffer messages =
         (context as dynamic).componentToDiagnostics[component];
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    Iterable<Library> libraries = component.libraries.where(
+    Iterable<Library> libraries = componentToText.libraries.where(
         ((Library library) =>
             library.importUri.scheme != "dart" &&
             library.importUri.scheme != "package"));
@@ -227,12 +262,13 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
     StringBuffer buffer = new StringBuffer();
     messages.clear();
     Printer printer = new Printer(buffer)
-      ..writeProblemsAsJson("Problems in component", component.problemsAsJson);
+      ..writeProblemsAsJson(
+          "Problems in component", componentToText.problemsAsJson);
     libraries.forEach((Library library) {
       printer.writeLibraryFile(library);
       printer.endLine();
     });
-    printer.writeConstantTable(component);
+    printer.writeConstantTable(componentToText);
     String actual = "$buffer";
     String binariesPath =
         relativizeUri(Uri.base, platformBinariesLocation, isWindows);
@@ -246,7 +282,10 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
     actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("$dartBase", "org-dartlang-testcase-sdk:///");
     actual = actual.replaceAll("\\n", "\n");
-    return context.match<Component>(suffix, actual, uri, component);
+    return context.match<Component>(suffix, actual, uri, component,
+        onMismatch: serializeFirst
+            ? context.expectationFileMismatchSerialized
+            : context.expectationFileMismatch);
   }
 }
 

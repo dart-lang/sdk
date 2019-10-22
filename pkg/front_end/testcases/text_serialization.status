@@ -6,6 +6,12 @@
 # the round trip for Kernel textual serialization where the initial binary
 # Kernel files are produced by compiling Dart code via Fasta.
 
+inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: ExpectationFileMismatchSerialized
+inference/generic_methods_infer_generic_function_parameter_type2: ExpectationFileMismatchSerialized
+regress/issue_31181: ExpectationFileMismatchSerialized
+regress/issue_31213: ExpectationFileMismatchSerialized
+runtime_checks/contravariant_generic_return_tear_off: ExpectationFileMismatchSerialized
+
 all_variances: TextSerializationFailure
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
