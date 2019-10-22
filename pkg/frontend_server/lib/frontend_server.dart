@@ -526,8 +526,12 @@ class FrontendCompiler implements CompilerInterface {
       sourceFile.parent.createSync(recursive: true);
     }
     final bundler = JavaScriptBundler(component, strongComponents);
-    bundler.compile(results.classHierarchy, results.coreTypes,
+    final sourceFileSink = sourceFile.openWrite();
+    final manifestFileSink = manifestFile.openWrite();
+    await bundler.compile(results.classHierarchy, results.coreTypes,
         sourceFile.openWrite(), manifestFile.openWrite());
+    await sourceFileSink.close();
+    await manifestFileSink.close();
   }
 
   writeDillFile(KernelCompilationResults results, String filename,
