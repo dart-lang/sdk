@@ -529,7 +529,7 @@ class FrontendCompiler implements CompilerInterface {
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     await bundler.compile(results.classHierarchy, results.coreTypes,
-        sourceFile.openWrite(), manifestFile.openWrite());
+        sourceFileSink, manifestFileSink);
     await sourceFileSink.close();
     await manifestFileSink.close();
   }
