@@ -1898,17 +1898,6 @@ class _Harness implements TypeOperations<_Var, _Type> {
     };
   }
 
-  /// Creates a [LazyExpression] representing an equality check between two
-  /// other expressions.
-  LazyExpression notEqual(LazyExpression lhs, LazyExpression rhs) {
-    return () {
-      var expr = _Expression();
-      _flow.equalityOp_rightBegin(lhs());
-      _flow.equalityOp_end(expr, rhs(), notEqual: true);
-      return expr;
-    };
-  }
-
   /// Invokes flow analysis of a nested function.
   void function(Iterable<_Var> writeCaptured, void body()) {
     _flow.functionExpression_begin(writeCaptured);
@@ -1973,6 +1962,17 @@ class _Harness implements TypeOperations<_Var, _Type> {
     return () {
       var expr = _Expression();
       _flow.isExpression_end(expr, subExpression(), false, _Type(type));
+      return expr;
+    };
+  }
+
+  /// Creates a [LazyExpression] representing an equality check between two
+  /// other expressions.
+  LazyExpression notEqual(LazyExpression lhs, LazyExpression rhs) {
+    return () {
+      var expr = _Expression();
+      _flow.equalityOp_rightBegin(lhs());
+      _flow.equalityOp_end(expr, rhs(), notEqual: true);
       return expr;
     };
   }
