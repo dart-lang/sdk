@@ -3066,25 +3066,6 @@ abstract class ElementImpl implements Element {
         object.location == location;
   }
 
-  /// Append to the given [buffer] a comma-separated list of the names of the
-  /// types of this element and every enclosing element.
-  void appendPathTo(StringBuffer buffer) {
-    Element element = this;
-    while (element != null) {
-      if (element != this) {
-        buffer.write(', ');
-      }
-      buffer.write(element.runtimeType);
-      String name = element.name;
-      if (name != null) {
-        buffer.write(' (');
-        buffer.write(name);
-        buffer.write(')');
-      }
-      element = element.enclosingElement;
-    }
-  }
-
   /// Append a textual representation of this element to the given [buffer].
   void appendTo(StringBuffer buffer) {
     if (_name == null) {
@@ -3110,7 +3091,11 @@ abstract class ElementImpl implements Element {
 
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
-    return getAncestorStatic<E>(_enclosingElement, predicate);
+    var ancestor = _enclosingElement;
+    while (ancestor != null && !predicate(ancestor)) {
+      ancestor = ancestor.enclosingElement;
+    }
+    return ancestor as E;
   }
 
   /// Return the child of this element that is uniquely identified by the given
@@ -3213,25 +3198,6 @@ abstract class ElementImpl implements Element {
         element.enclosingElement is! GenericTypeAliasElement) {
       element.accept(visitor);
     }
-  }
-
-  static int findElementIndexUsingIdentical(List items, Object item) {
-    int length = items.length;
-    for (int i = 0; i < length; i++) {
-      if (identical(items[i], item)) {
-        return i;
-      }
-    }
-    throw new StateError('Unable to find $item in $items');
-  }
-
-  static E getAncestorStatic<E extends Element>(
-      Element startingPoint, Predicate<Element> predicate) {
-    Element ancestor = startingPoint;
-    while (ancestor != null && !predicate(ancestor)) {
-      ancestor = ancestor.enclosingElement;
-    }
-    return ancestor as E;
   }
 }
 
