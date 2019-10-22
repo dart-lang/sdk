@@ -976,7 +976,7 @@ main() {
         expect(flow.promotedType(x).type, 'int');
         expect(flow.promotedType(y).type, 'int');
         flow.tryCatchStatement_bodyEnd({}, {});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         expect(flow.promotedType(x), isNull);
         expect(flow.promotedType(y).type, 'int');
         flow.tryCatchStatement_catchEnd();
@@ -997,7 +997,7 @@ main() {
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryCatchStatement_bodyEnd({x}, {});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         expect(flow.promotedType(x), isNull);
         flow.tryCatchStatement_catchEnd();
         flow.tryCatchStatement_end();
@@ -1020,7 +1020,7 @@ main() {
         });
         flow.handleExit();
         flow.tryCatchStatement_bodyEnd({x}, {x});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         h.promote(x, 'int');
         expect(flow.promotedType(x), isNull);
         flow.tryCatchStatement_catchEnd();
@@ -1036,12 +1036,27 @@ main() {
         h.declare(x, initialized: true);
         flow.tryCatchStatement_bodyBegin();
         flow.tryCatchStatement_bodyEnd({}, {});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         h.promote(x, 'int');
         expect(flow.promotedType(x).type, 'int');
         flow.tryCatchStatement_catchEnd();
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         expect(flow.promotedType(x), isNull);
+        flow.tryCatchStatement_catchEnd();
+        flow.tryCatchStatement_end();
+      });
+    });
+
+    test('tryCatchStatement_catchBegin() initializes vars', () {
+      var h = _Harness();
+      var e = h.addVar('e', 'int');
+      var st = h.addVar('st', 'StackTrace');
+      h.run((flow) {
+        flow.tryCatchStatement_bodyBegin();
+        flow.tryCatchStatement_bodyEnd({}, {});
+        flow.tryCatchStatement_catchBegin(e, st);
+        expect(flow.isAssigned(e), true);
+        expect(flow.isAssigned(st), true);
         flow.tryCatchStatement_catchEnd();
         flow.tryCatchStatement_end();
       });
@@ -1061,7 +1076,7 @@ main() {
         h.promote(x, 'int');
         h.promote(y, 'int');
         flow.tryCatchStatement_bodyEnd({}, {});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         h.promote(x, 'int');
         h.promote(z, 'int');
         flow.tryCatchStatement_catchEnd();
@@ -1086,11 +1101,11 @@ main() {
         flow.tryCatchStatement_bodyBegin();
         flow.handleExit();
         flow.tryCatchStatement_bodyEnd({}, {});
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         h.promote(x, 'int');
         h.promote(y, 'int');
         flow.tryCatchStatement_catchEnd();
-        flow.tryCatchStatement_catchBegin();
+        flow.tryCatchStatement_catchBegin(null, null);
         h.promote(x, 'int');
         h.promote(z, 'int');
         flow.tryCatchStatement_catchEnd();

@@ -435,16 +435,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitCatchClause(CatchClause node) {
-    _flowAnalysis.tryCatchStatement_catchBegin();
+    _flowAnalysis.tryCatchStatement_catchBegin(
+        node.exceptionParameter?.staticElement as PromotableElement,
+        node.stackTraceParameter?.staticElement as PromotableElement);
     node.exceptionType?.accept(this);
-    for (var identifier in [
-      node.exceptionParameter,
-      node.stackTraceParameter
-    ]) {
-      if (identifier != null) {
-        _flowAnalysis.initialize(identifier.staticElement as PromotableElement);
-      }
-    }
     // The catch clause may not execute, so create a new scope for
     // post-dominators.
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));

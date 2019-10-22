@@ -468,7 +468,12 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Call this method just before visiting a catch clause of a "try/catch"
   /// statement.  See [tryCatchStatement_bodyBegin] for details.
-  void tryCatchStatement_catchBegin();
+  ///
+  /// [exceptionVariable] should be the exception variable declared by the catch
+  /// clause, or `null` if there is no exception variable.  Similar for
+  /// [stackTraceVariable].
+  void tryCatchStatement_catchBegin(
+      Variable exceptionVariable, Variable stackTraceVariable);
 
   /// Call this method just after visiting a catch clause of a "try/catch"
   /// statement.  See [tryCatchStatement_bodyBegin] for details.
@@ -834,9 +839,12 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryCatchStatement_catchBegin() {
-    return _wrap('tryCatchStatement_catchBegin()',
-        () => _wrapped.tryCatchStatement_catchBegin());
+  void tryCatchStatement_catchBegin(
+      Variable exceptionVariable, Variable stackTraceVariable) {
+    return _wrap(
+        'tryCatchStatement_catchBegin($exceptionVariable, $stackTraceVariable)',
+        () => _wrapped.tryCatchStatement_catchBegin(
+            exceptionVariable, stackTraceVariable));
   }
 
   @override
@@ -1928,10 +1936,17 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryCatchStatement_catchBegin() {
+  void tryCatchStatement_catchBegin(
+      Variable exceptionVariable, Variable stackTraceVariable) {
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     _current = context._beforeCatch;
+    if (exceptionVariable != null) {
+      _current = _current.write(exceptionVariable);
+    }
+    if (stackTraceVariable != null) {
+      _current = _current.write(stackTraceVariable);
+    }
   }
 
   @override
