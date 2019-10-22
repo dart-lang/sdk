@@ -2358,7 +2358,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           variable.name, this, variable.charOffset,
           bound: variable.bound?.clone(newTypes),
           isExtensionTypeParameter: isExtensionTypeParameter,
-          variableVariance: variable.variance);
+          variableVariance:
+              variable.parameter.isLegacyCovariant ? null : variable.variance);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }

@@ -259,34 +259,6 @@ const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateBadTypeVariableInSupertype =
-    const Template<Message Function(String name, String name2)>(
-        messageTemplate:
-            r"""Found unsupported uses of '#name' in supertype '#name2'.""",
-        withArguments: _withArgumentsBadTypeVariableInSupertype);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeBadTypeVariableInSupertype =
-    const Code<Message Function(String name, String name2)>(
-  "BadTypeVariableInSupertype",
-  templateBadTypeVariableInSupertype,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsBadTypeVariableInSupertype(String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(codeBadTypeVariableInSupertype,
-      message:
-          """Found unsupported uses of '${name}' in supertype '${name2}'.""",
-      arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,
@@ -6589,6 +6561,83 @@ const MessageCode messageInvalidThisInInitializer = const MessageCode(
     index: 65,
     message:
         r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String string2,
+        String
+            name2)> templateInvalidTypeVariableInSupertype = const Template<
+        Message Function(String name, String string2, String name2)>(
+    messageTemplate:
+        r"""Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'.""",
+    withArguments: _withArgumentsInvalidTypeVariableInSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string2, String name2)>
+    codeInvalidTypeVariableInSupertype =
+    const Code<Message Function(String name, String string2, String name2)>(
+  "InvalidTypeVariableInSupertype",
+  templateInvalidTypeVariableInSupertype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidTypeVariableInSupertype(
+    String name, String string2, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string2.isEmpty) throw 'No string provided';
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInvalidTypeVariableInSupertype,
+      message:
+          """Can't use implicitly 'out' variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
+      arguments: {'name': name, 'string2': string2, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String string, String name, String string2, String name2)>
+    templateInvalidTypeVariableInSupertypeWithVariance = const Template<
+            Message Function(
+                String string, String name, String string2, String name2)>(
+        messageTemplate:
+            r"""Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'.""",
+        withArguments:
+            _withArgumentsInvalidTypeVariableInSupertypeWithVariance);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String string, String name, String string2, String name2)>
+    codeInvalidTypeVariableInSupertypeWithVariance = const Code<
+        Message Function(
+            String string, String name, String string2, String name2)>(
+  "InvalidTypeVariableInSupertypeWithVariance",
+  templateInvalidTypeVariableInSupertypeWithVariance,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidTypeVariableInSupertypeWithVariance(
+    String string, String name, String string2, String name2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string2.isEmpty) throw 'No string provided';
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeInvalidTypeVariableInSupertypeWithVariance,
+      message:
+          """Can't use '${string}' type variable '${name}' in an '${string2}' position in supertype '${name2}'.""",
+      arguments: {
+        'string': string,
+        'name': name,
+        'string2': string2,
+        'name2': name2
+      });
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidUnicodeEscape = messageInvalidUnicodeEscape;

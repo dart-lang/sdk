@@ -26,7 +26,8 @@ import '../fasta_codes.dart'
     show
         Message,
         noLength,
-        templateBadTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertype,
+        templateInvalidTypeVariableInSupertypeWithVariance,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -240,8 +241,19 @@ class SourceClassBuilder extends ClassBuilderImpl
     for (int i = 0; i < typeVariables.length; ++i) {
       int variance = computeVariance(typeVariables[i], supertype);
       if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
-        message = templateBadTypeVariableInSupertype.withArguments(
-            typeVariables[i].name, supertype.name);
+        if (typeVariables[i].parameter.isLegacyCovariant) {
+          message = templateInvalidTypeVariableInSupertype.withArguments(
+              typeVariables[i].name,
+              Variance.keywordString(variance),
+              supertype.name);
+        } else {
+          message =
+              templateInvalidTypeVariableInSupertypeWithVariance.withArguments(
+                  Variance.keywordString(typeVariables[i].variance),
+                  typeVariables[i].name,
+                  Variance.keywordString(variance),
+                  supertype.name);
+        }
         library.addProblem(message, charOffset, noLength, fileUri);
       }
     }

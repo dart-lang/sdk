@@ -6108,6 +6108,19 @@ class Variance {
       return unrelated;
     }
   }
+
+  // Returns the keyword lexeme associated with the variance given.
+  static String keywordString(int variance) {
+    switch (variance) {
+      case Variance.contravariant:
+        return 'in';
+      case Variance.invariant:
+        return 'inout';
+      case Variance.covariant:
+      default:
+        return 'out';
+    }
+  }
 }
 
 /// Declaration of a type variable.

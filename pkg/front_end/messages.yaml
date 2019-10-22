@@ -3615,11 +3615,17 @@ NonNullAwareSpreadIsNull:
       <int>[...null];
     }
 
-BadTypeVariableInSupertype:
-  template: "Found unsupported uses of '#name' in supertype '#name2'."
+InvalidTypeVariableInSupertype:
+  template: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
+
+InvalidTypeVariableInSupertypeWithVariance:
+  template: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
+  script: >
+    class A<out X> {}
+    class B<out Y> extends A<Function(Y)> {}
 
 IllegalRecursiveType:
   template: "Illegal recursive type '#type'."

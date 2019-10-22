@@ -25,7 +25,6 @@ AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
 AwaitNotAsync/example: Fail
-BadTypeVariableInSupertype/analyzerCode: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
@@ -344,6 +343,10 @@ InvalidPackageUri/analyzerCode: Fail
 InvalidPackageUri/example: Fail
 InvalidSuperInInitializer/example: Fail
 InvalidThisInInitializer/example: Fail
+InvalidTypeVariableInSupertype/analyzerCode: Fail
+InvalidTypeVariableInSupertypeWithVariance/analyzerCode: Fail
+InvalidTypeVariableInSupertypeWithVariance/part_wrapped_script: Fail # Triggers multiple errors
+InvalidTypeVariableInSupertypeWithVariance/script: Fail # Triggers multiple errors
 InvalidUseOfNullAwareAccess/example: Fail
 InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail

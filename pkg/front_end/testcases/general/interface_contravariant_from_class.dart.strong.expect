@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/interface_contravariant_from_class.dart:17:16: Error: Found unsupported uses of 'T' in supertype 'B'.
+// pkg/front_end/testcases/general/interface_contravariant_from_class.dart:17:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'B'.
 // abstract class C<T> extends B<F<T>> implements I<F<T>> {}
 //                ^
 //
-// pkg/front_end/testcases/general/interface_contravariant_from_class.dart:17:16: Error: Found unsupported uses of 'T' in supertype 'I'.
+// pkg/front_end/testcases/general/interface_contravariant_from_class.dart:17:16: Error: Can't use implicitly 'out' variable 'T' in an 'in' position in supertype 'I'.
 // abstract class C<T> extends B<F<T>> implements I<F<T>> {}
 //                ^
 //

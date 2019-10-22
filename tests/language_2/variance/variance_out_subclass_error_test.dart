@@ -20,87 +20,87 @@ mixin MInvariant<in T> {}
 class A<out T> extends Contravariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Contravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
 
 class B<out T> implements Contravariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Contravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
 
 class C<out T> with MContravariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MContravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MContravariant'.
 
 class D<out T> extends Invariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Invariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
 
 class E<out T> implements Invariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Invariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
 
 class F<out T> with MInvariant<T> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MInvariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
 
 class G<out T> extends Covariant<Contravariant<T>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
 
 class H<out T> extends Contravariant<Covariant<T>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Contravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
 
 class I<out T> extends Covariant<ContraFunction<T>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
 
 class J<out T> extends Covariant<ContraFunction<CovFunction<T>>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
 
 class K<out T> extends Covariant<CovFunction<ContraFunction<T>>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
 
 class L<out T> extends Covariant<ContraFunction<Covariant<T>>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Covariant'.
 
 class M<out T> extends Contravariant<Contravariant<Contravariant<T>>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Contravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
 
 class N<out T> extends Covariant<InvFunction<T>> {}
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Covariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Covariant'.
 
 class O<out T> = Covariant<T> with MContravariant<T>;
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MContravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MContravariant'.
 
 class P<out T> = Contravariant<T> with MCovariant<T>;
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Contravariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'Contravariant'.
 
 class Q<out T> = Invariant<T> with MInvariant<T>;
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'Invariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
 //    ^
 // [analyzer] unspecified
-// [cfe] Found unsupported uses of 'T' in supertype 'MInvariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
