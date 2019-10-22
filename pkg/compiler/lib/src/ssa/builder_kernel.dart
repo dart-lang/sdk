@@ -1709,11 +1709,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     String loadId = closedWorld.outputUnitData.getImportDeferName(
         _elementMap.getSpannable(targetElement, checkLoad), import);
     HInstruction prefixConstant = graph.addConstantString(loadId, closedWorld);
-    HInstruction uriConstant =
-        graph.addConstantString('${import.uri}', closedWorld);
     _pushStaticInvocation(
         _commonElements.checkDeferredIsLoaded,
-        [prefixConstant, uriConstant],
+        [prefixConstant],
         _typeInferenceMap
             .getReturnTypeOf(_commonElements.checkDeferredIsLoaded),
         const <DartType>[],

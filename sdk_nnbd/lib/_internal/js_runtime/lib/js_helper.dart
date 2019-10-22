@@ -3076,9 +3076,9 @@ futureOrCheck(o, futureOrRti) => assertSubtypeOfRuntimeType(o, futureOrRti);
 futureOrCast(o, futureOrRti) => subtypeOfRuntimeTypeCast(o, futureOrRti);
 
 @pragma('dart2js:noInline')
-void checkDeferredIsLoaded(String loadId, String uri) {
+void checkDeferredIsLoaded(String loadId) {
   if (!_loadedLibraries.contains(loadId)) {
-    throw new DeferredNotLoadedError(uri);
+    throw new DeferredNotLoadedError(loadId);
   }
 }
 
