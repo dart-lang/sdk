@@ -446,38 +446,6 @@ abstract class Source implements AnalysisTarget {
 }
 
 /**
- * The interface `ContentReceiver` defines the behavior of objects that can receive the
- * content of a source.
- */
-abstract class Source_ContentReceiver {
-  /**
-   * Accept the contents of a source.
-   *
-   * @param contents the contents of the source
-   * @param modificationTime the time at which the contents were last set
-   */
-  void accept(String contents, int modificationTime);
-}
-
-/**
- * The interface `SourceContainer` is used by clients to define a collection of sources
- *
- * Source containers are not used within analysis engine, but can be used by clients to group
- * sources for the purposes of accessing composite dependency information. For example, the Eclipse
- * client uses source containers to represent Eclipse projects, which allows it to easily compute
- * project-level dependencies.
- */
-abstract class SourceContainer {
-  /**
-   * Determine if the specified source is part of the receiver's collection of sources.
-   *
-   * @param source the source in question
-   * @return `true` if the receiver contains the source, else `false`
-   */
-  bool contains(Source source);
-}
-
-/**
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
  */

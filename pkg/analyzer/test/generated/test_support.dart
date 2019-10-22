@@ -432,9 +432,6 @@ class TestSource extends Source {
   }
 
   bool exists() => exists2;
-  void getContentsToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedError('getContentsToReceiver');
-  }
 
   Source resolve(String uri) {
     throw new UnsupportedError('resolve');

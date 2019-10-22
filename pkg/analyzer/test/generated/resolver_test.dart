@@ -13,7 +13,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:test/test.dart';
@@ -460,11 +459,6 @@ class ScopeTest extends DriverResolutionTest {
   void test_isPrivateName_private() {
     expect(Scope.isPrivateName("_Private"), isTrue);
   }
-}
-
-class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
-  @override
-  bool contains(Source source) => false;
 }
 
 /**
