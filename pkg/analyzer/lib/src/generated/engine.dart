@@ -132,9 +132,6 @@ class AnalysisEngine {
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
 
-  /// The partition manager being used to manage the shared partitions.
-  final PartitionManager partitionManager = new PartitionManager();
-
   AnalysisEngine._();
 
   /// Return the instrumentation service that is to be used by this analysis
@@ -164,7 +161,6 @@ class AnalysisEngine {
   /// Clear any caches holding on to analysis results so that a full re-analysis
   /// will be performed the next time an analysis context is created.
   void clearCaches() {
-    partitionManager.clearCache();
     // See https://github.com/dart-lang/sdk/issues/30314.
     StringToken.canonicalizer.clear();
   }

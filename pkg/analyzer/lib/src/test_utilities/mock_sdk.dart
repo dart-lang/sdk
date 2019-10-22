@@ -4,9 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
@@ -1100,13 +1098,4 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
   final DartSdk sdk;
 
   _SdkAnalysisContext(this.sdk);
-
-  @override
-  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
-    if (factory == null) {
-      return super.createCacheFromSourceFactory(factory);
-    }
-    return new AnalysisCache(
-        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
-  }
 }
