@@ -102,7 +102,7 @@ void main(List<String> argv) {
           libraryFile.lastModifiedSync().millisecondsSinceEpoch);
       var partFiles = <File>[];
       for (var part
-          in _parseString(libraryContents, useNnbd: false).unit.directives) {
+          in _parseString(libraryContents, useNnbd: useNnbd).unit.directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
           outPaths.add(p.join(p.dirname(libraryOut), partPath));
@@ -328,7 +328,7 @@ class PatchFinder extends GeneralizingAstVisitor {
 
   PatchFinder.parseAndVisit(String contents, {bool useNnbd})
       : contents = contents,
-        unit = _parseString(contents, useNnbd: false).unit {
+        unit = _parseString(contents, useNnbd: useNnbd).unit {
     visitCompilationUnit(unit);
   }
 
@@ -495,7 +495,7 @@ List<SdkLibrary> _getSdkLibraries(String contents, {bool useNnbd}) {
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
   var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
-  _parseString(contents, useNnbd: false).unit.accept(libraryBuilder);
+  _parseString(contents, useNnbd: useNnbd).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }
 
