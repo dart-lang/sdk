@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.63';
+const String version = '1.64';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -1177,17 +1177,30 @@ class DartFuzz {
     emit("'");
   }
 
-  void emitElementExpr(int depth, DartType tp, {RhsFilter rhsFilter}) {
-    // This check determines whether we are emitting a global variable.
-    // I.e. whenever we are not currently emitting part of a class.
-    if (currentMethod != null) {
-      emitExpr(depth, tp, rhsFilter: rhsFilter);
-    } else {
+  void emitElementExpr(int depth, DartType tp,
+      {RhsFilter rhsFilter, bool isConst = false}) {
+    // Inside a constant collection, keep collection elements constants too.
+    if (isConst) {
+      if (DartType.isCollectionType(tp)) {
+        emitConstCollection(depth + 1, tp, rhsFilter: rhsFilter);
+        return;
+      } else if (tp == DartType.DOUBLE) {
+        // Dart does not like floating-point elements. A key would, for
+        // example, yield "The key does not have a primitive operator '=='".
+        emit('null');
+        return;
+      }
+    }
+    // Use literals outside a class or inside a constant collection.
+    if (currentMethod == null || isConst) {
       emitLiteral(depth, tp, rhsFilter: rhsFilter);
+    } else {
+      emitExpr(depth, tp, rhsFilter: rhsFilter);
     }
   }
 
-  void emitElement(int depth, DartType tp, {RhsFilter rhsFilter}) {
+  void emitElement(int depth, DartType tp,
+      {RhsFilter rhsFilter, bool isConst = false}) {
     // Get the element type contained in type tp.
     // E.g. element type of List<String> is String.
     final elementType = dartType.elementType(tp);
@@ -1196,13 +1209,15 @@ class DartFuzz {
       // Emit construct for the map key type.
       final indexType = dartType.indexType(tp);
       emitIndentation();
-      emitElementExpr(depth, indexType, rhsFilter: rhsFilter);
+      emitElementExpr(depth, indexType, rhsFilter: rhsFilter, isConst: isConst);
       emit(' : ');
       // Emit construct for the map value type.
-      emitElementExpr(depth, elementType, rhsFilter: rhsFilter);
+      emitElementExpr(depth, elementType,
+          rhsFilter: rhsFilter, isConst: isConst);
     } else {
       // List and Set types.
-      emitElementExpr(depth, elementType, rhsFilter: rhsFilter);
+      emitElementExpr(depth, elementType,
+          rhsFilter: rhsFilter, isConst: isConst);
     }
   }
 
@@ -1294,6 +1309,14 @@ class DartFuzz {
             chooseOneUpTo(collectionLength),
             newline: DartType.isMapType(tp));
       }, shouldIndent: DartType.isMapType(tp));
+
+  void emitConstCollection(int depth, DartType tp, {RhsFilter rhsFilter}) =>
+      emitWrapped(
+          DartType.isListType(tp)
+              ? const ['const [', ']']
+              : const ['const {', '}'],
+          () => emitElement(depth, tp, rhsFilter: rhsFilter, isConst: true),
+          shouldIndent: DartType.isMapType(tp));
 
   void emitLiteral(int depth, DartType tp,
       {bool smallPositiveValue = false, RhsFilter rhsFilter}) {
@@ -1445,8 +1468,12 @@ class DartFuzz {
       // Emit a variable of the selected list or map type.
       ret = emitScalarVar(iterType, isLhs: isLhs, rhsFilter: rhsFilter);
       emitSquareBraceWrapped(() =>
-          // Emit an expression resolving into the index type.
-          emitExpr(depth + 1, indexType));
+          // Emit an expression resolving into the index type. For
+          // collection type, only constant collections are used
+          // to avoid rehashing the same value into many entries.
+          DartType.isCollectionType(indexType)
+              ? emitConstCollection(depth + 1, indexType)
+              : emitExpr(depth + 1, indexType));
     } else {
       ret = emitScalarVar(tp,
           isLhs: isLhs, rhsFilter: rhsFilter); // resort to scalar

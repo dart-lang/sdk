@@ -344,15 +344,17 @@ class DartFuzzTest {
     rand = Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
+
     // Testcase generation flags.
-    // Necessary To avoid false divergences between 64 and 32 bit versions.
+
+    // Only use FP when modes have same precision (to avoid false
+    // divergences between 32-bit and 64-bit versions).
     fp = samePrecision(mode1, mode2);
-    // Occasionally test FFI.
+    // Occasionally test FFI (if capable).
     ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
-    // TODO (https://github.com/dart-lang/sdk/issues/38710):
-    // re-enable non-flat types once hash issue is fixed.
-    // flatTp = !nestedTypesAllowed(mode1, mode2) || (rand.nextInt(5) == 0);
-    flatTp = true;
+    // Resort to flat types for the more expensive modes.
+    flatTp = !nestedTypesAllowed(mode1, mode2);
+
     runner1 =
         TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
     runner2 =
