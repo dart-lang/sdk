@@ -227,7 +227,6 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
       return <Test>[];
     }
 
-    // Load the run.json to find the named configuration.
     final resultsFile = new File("$buildPath/results.json");
     if (!await resultsFile.exists()) {
       print("$bot: No results.json exists");
