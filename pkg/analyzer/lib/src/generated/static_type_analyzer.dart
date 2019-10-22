@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -74,13 +75,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   LocalVariableTypeProvider _localVariableTypeProvider;
 
+  final FlowAnalysisHelper _flowAnalysis;
+
   /**
    * Initialize a newly created static type analyzer to analyze types for the
    * [_resolver] based on the
    *
    * @param resolver the resolver driving this participant
    */
-  StaticTypeAnalyzer(this._resolver, this._featureSet) {
+  StaticTypeAnalyzer(this._resolver, this._featureSet, this._flowAnalysis) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -1388,6 +1391,35 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return returnType.type;
   }
 
+  /// If [node] is a null-shorting expression, updates flow analysis as
+  /// appropriate to finish the null shorting, and returns `true`.  Otherwise
+  /// returns `false`.
+  bool _finishNullShorting(Expression node) {
+    bool nullShortingFound = false;
+    while (true) {
+      Expression next;
+      if (node is AssignmentExpression) {
+        next = node.leftHandSide;
+      } else if (node is IndexExpression) {
+        if (node.isNullAware) {
+          nullShortingFound = true;
+          _flowAnalysis?.flow?.nullAwareAccess_end();
+        }
+        next = node.target;
+      } else if (node is PropertyAccess) {
+        if (node.isNullAware) {
+          nullShortingFound = true;
+          _flowAnalysis?.flow?.nullAwareAccess_end();
+        }
+        next = node.target;
+      } else {
+        break;
+      }
+      node = next;
+    }
+    return nullShortingFound;
+  }
+
   /**
    * If the given element name can be mapped to the name of a class defined within the given
    * library, return the type specified by the argument.
@@ -2037,8 +2069,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (parent is PropertyAccess) {
       return;
     }
+    if (parent is IndexExpression && parent.target == node) {
+      return;
+    }
 
-    if (_hasNullShorting(node)) {
+    if (_finishNullShorting(node)) {
       var type = node.staticType;
       node.staticType = _typeSystem.makeNullable(type);
     }
@@ -2190,20 +2225,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       return type;
     }
-  }
-
-  /// Return `true` if the [node] has null-aware shorting, e.g. `foo?.bar`.
-  static bool _hasNullShorting(Expression node) {
-    if (node is AssignmentExpression) {
-      return _hasNullShorting(node.leftHandSide);
-    }
-    if (node is IndexExpression) {
-      return node.isNullAware || _hasNullShorting(node.target);
-    }
-    if (node is PropertyAccess) {
-      return node.isNullAware || _hasNullShorting(node.target);
-    }
-    return false;
   }
 }
 
