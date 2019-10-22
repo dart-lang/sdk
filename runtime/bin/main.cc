@@ -75,8 +75,6 @@ static bool vm_run_app_snapshot = false;
 static char* app_script_uri = NULL;
 static const uint8_t* app_isolate_snapshot_data = NULL;
 static const uint8_t* app_isolate_snapshot_instructions = NULL;
-static const uint8_t* app_isolate_shared_data = NULL;
-static const uint8_t* app_isolate_shared_instructions = NULL;
 static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = NULL;
@@ -487,8 +485,7 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* script_uri,
     isolate_data = new IsolateData(isolate_group_data);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions,
-        app_isolate_shared_data, app_isolate_shared_instructions, flags,
+        isolate_snapshot_data, isolate_snapshot_instructions, flags,
         isolate_group_data, isolate_data, error);
   }
   if (isolate == NULL) {
@@ -548,8 +545,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       app_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, app_isolate_shared_data,
-      app_isolate_shared_instructions, flags, isolate_group_data,
+      isolate_snapshot_instructions, flags, isolate_group_data,
       /*isolate_data=*/nullptr, error);
 #else
   // JIT: Service isolate uses the core libraries snapshot.
@@ -562,8 +558,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       core_isolate_snapshot_instructions;
   isolate = Dart_CreateIsolateGroup(
       script_uri, DART_VM_SERVICE_ISOLATE_NAME, isolate_snapshot_data,
-      isolate_snapshot_instructions, app_isolate_shared_data,
-      app_isolate_shared_instructions, flags, isolate_group_data,
+      isolate_snapshot_instructions, flags, isolate_group_data,
       /*isolate_data=*/nullptr, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (isolate == NULL) {
@@ -700,17 +695,15 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
         flags, isolate_group_data, isolate_data, error);
   } else {
     auto isolate_data = new IsolateData(isolate_group_data);
-    isolate = Dart_CreateIsolateGroup(
-        script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
-        app_isolate_shared_data, app_isolate_shared_instructions, flags,
-        isolate_group_data, isolate_data, error);
+    isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
+                                      isolate_snapshot_instructions, flags,
+                                      isolate_group_data, isolate_data, error);
   }
 #else
   auto isolate_data = new IsolateData(isolate_group_data);
-  isolate = Dart_CreateIsolateGroup(
-      script_uri, name, isolate_snapshot_data, isolate_snapshot_instructions,
-      app_isolate_shared_data, app_isolate_shared_instructions, flags,
-      isolate_group_data, isolate_data, error);
+  isolate = Dart_CreateIsolateGroup(script_uri, name, isolate_snapshot_data,
+                                    isolate_snapshot_instructions, flags,
+                                    isolate_group_data, isolate_data, error);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   Dart_Isolate created_isolate = NULL;
@@ -1123,21 +1116,6 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
-  AppSnapshot* shared_blobs = NULL;
-  if (Options::shared_blobs_filename() != NULL) {
-    Syslog::PrintErr(
-        "Shared blobs in the standalone VM are for testing only.\n");
-    shared_blobs =
-        Snapshot::TryReadAppSnapshot(Options::shared_blobs_filename());
-    if (shared_blobs == NULL) {
-      Syslog::PrintErr("Failed to load: %s\n",
-                       Options::shared_blobs_filename());
-      Platform::Exit(kErrorExitCode);
-    }
-    const uint8_t* ignored;
-    shared_blobs->SetBuffers(&ignored, &ignored, &app_isolate_shared_data,
-                             &app_isolate_shared_instructions);
-  }
   if (app_snapshot == nullptr) {
     app_snapshot = Snapshot::TryReadAppSnapshot(script_name);
   }
@@ -1245,7 +1223,6 @@ void main(int argc, char** argv) {
   EventHandler::Stop();
 
   delete app_snapshot;
-  delete shared_blobs;
   free(app_script_uri);
 
   // Free copied argument strings if converted.

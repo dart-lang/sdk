@@ -476,7 +476,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
   intptr_t isolate_instructions_size = 0;
   Dart_Handle result = Dart_CreateAppJITSnapshotAsBlobs(
       &isolate_data_buffer, &isolate_data_size, &isolate_instructions_buffer,
-      &isolate_instructions_size, NULL);
+      &isolate_instructions_size);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
@@ -486,9 +486,7 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #endif
 }
 
-void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename,
-                                     const uint8_t* shared_data,
-                                     const uint8_t* shared_instructions) {
+void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
   uint8_t* vm_data_buffer = NULL;
   intptr_t vm_data_size = 0;
   uint8_t* vm_instructions_buffer = NULL;
@@ -500,8 +498,7 @@ void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename,
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsBlobs(
       &vm_data_buffer, &vm_data_size, &vm_instructions_buffer,
       &vm_instructions_size, &isolate_data_buffer, &isolate_data_size,
-      &isolate_instructions_buffer, &isolate_instructions_size, shared_data,
-      shared_instructions);
+      &isolate_instructions_buffer, &isolate_instructions_size);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }

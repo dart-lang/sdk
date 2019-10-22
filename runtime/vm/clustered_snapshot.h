@@ -349,7 +349,6 @@ class Serializer : public ThreadStackResource {
   }
 
   void WriteInstructions(RawInstructions* instr, RawCode* code);
-  bool GetSharedDataOffset(RawObject* object, uint32_t* offset) const;
   uint32_t GetDataOffset(RawObject* object) const;
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
@@ -467,8 +466,6 @@ class Deserializer : public ThreadStackResource {
                intptr_t size,
                const uint8_t* data_buffer,
                const uint8_t* instructions_buffer,
-               const uint8_t* shared_data_buffer,
-               const uint8_t* shared_instructions_buffer,
                intptr_t offset = 0);
   ~Deserializer();
 
@@ -548,7 +545,6 @@ class Deserializer : public ThreadStackResource {
 
   RawInstructions* ReadInstructions();
   RawObject* GetObjectAt(uint32_t offset) const;
-  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
 
@@ -653,8 +649,6 @@ class FullSnapshotReader {
  public:
   FullSnapshotReader(const Snapshot* snapshot,
                      const uint8_t* instructions_buffer,
-                     const uint8_t* shared_data,
-                     const uint8_t* shared_instructions,
                      Thread* thread);
   ~FullSnapshotReader() {}
 
@@ -670,8 +664,6 @@ class FullSnapshotReader {
   intptr_t size_;
   const uint8_t* data_image_;
   const uint8_t* instructions_image_;
-  const uint8_t* shared_data_image_;
-  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotReader);
 };

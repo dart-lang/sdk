@@ -35,11 +35,6 @@ DEFINE_FLAG(charp,
             "Print sizes of all instruction objects to the given file");
 #endif
 
-DEFINE_FLAG(bool,
-            trace_reused_instructions,
-            false,
-            "Print code that lacks reusable instructions");
-
 intptr_t ObjectOffsetTrait::Hashcode(Key key) {
   RawObject* obj = key;
   ASSERT(!obj->IsSmi());
@@ -82,19 +77,13 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-ImageWriter::ImageWriter(Heap* heap,
-                         const void* shared_objects,
-                         const void* shared_instructions,
-                         const void* reused_instructions)
+ImageWriter::ImageWriter(Heap* heap)
     : heap_(heap),
       next_data_offset_(0),
       next_text_offset_(0),
       objects_(),
       instructions_() {
   ResetOffsets();
-  SetupShared(&shared_objects_, shared_objects);
-  SetupShared(&shared_instructions_, shared_instructions);
-  SetupShared(&reuse_instructions_, reused_instructions);
 }
 
 void ImageWriter::PrepareForSerialization(
@@ -130,49 +119,11 @@ void ImageWriter::PrepareForSerialization(
   }
 }
 
-void ImageWriter::SetupShared(ObjectOffsetMap* map, const void* shared_image) {
-  if (shared_image == NULL) {
-    return;
-  }
-  Image image(shared_image);
-  uword obj_addr = reinterpret_cast<uword>(image.object_start());
-  uword end_addr = obj_addr + image.object_size();
-  while (obj_addr < end_addr) {
-    int32_t offset = obj_addr - reinterpret_cast<uword>(shared_image);
-    RawObject* raw_obj = RawObject::FromAddr(obj_addr);
-    ObjectOffsetPair pair;
-    pair.object = raw_obj;
-    pair.offset = offset;
-    map->Insert(pair);
-    obj_addr += SizeInSnapshot(raw_obj);
-  }
-  ASSERT(obj_addr == end_addr);
-}
-
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
   intptr_t offset = heap_->GetObjectId(instructions);
   if (offset != 0) {
     return offset;
-  }
-
-  if (!reuse_instructions_.IsEmpty()) {
-    ObjectOffsetPair* pair = reuse_instructions_.Lookup(instructions);
-    if (pair == NULL) {
-      // Code should have been removed by DropCodeWithoutReusableInstructions.
-      return 0;
-    }
-    ASSERT(pair->offset != 0);
-    return pair->offset;
-  }
-
-  ObjectOffsetPair* pair = shared_instructions_.Lookup(instructions);
-  if (pair != NULL) {
-    // Negative offsets tell the reader the offset is w/r/t the shared
-    // instructions image instead of the app-specific instructions image.
-    // Compare ImageReader::GetInstructionsAt.
-    ASSERT(pair->offset != 0);
-    return -pair->offset;
   }
 
   offset = next_text_offset_;
@@ -264,16 +215,6 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   return raw_object->HeapSize();
 }
 #endif  // defined(IS_SIMARM_X64)
-
-bool ImageWriter::GetSharedDataOffsetFor(RawObject* raw_object,
-                                         uint32_t* offset) {
-  ObjectOffsetPair* pair = shared_objects_.Lookup(raw_object);
-  if (pair == NULL) {
-    return false;
-  }
-  *offset = pair->offset;
-  return true;
-}
 
 uint32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t snap_size = SizeInSnapshot(raw_object);
@@ -500,10 +441,8 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
 AssemblyImageWriter::AssemblyImageWriter(Thread* thread,
                                          Dart_StreamingWriteCallback callback,
-                                         void* callback_data,
-                                         const void* shared_objects,
-                                         const void* shared_instructions)
-    : ImageWriter(thread->heap(), shared_objects, shared_instructions, nullptr),
+                                         void* callback_data)
+    : ImageWriter(thread->heap()),
       assembly_stream_(512 * KB, callback, callback_data),
       dwarf_(nullptr) {
 #if defined(DART_PRECOMPILER)
@@ -894,15 +833,9 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
                                  uint8_t** instructions_blob_buffer,
                                  ReAlloc alloc,
                                  intptr_t initial_size,
-                                 const void* shared_objects,
-                                 const void* shared_instructions,
-                                 const void* reused_instructions,
                                  Elf* elf,
                                  Dwarf* dwarf)
-    : ImageWriter(thread->heap(),
-                  shared_objects,
-                  shared_instructions,
-                  reused_instructions),
+    : ImageWriter(thread->heap()),
       instructions_blob_stream_(instructions_blob_buffer, alloc, initial_size),
       elf_(elf),
       dwarf_(dwarf) {
@@ -1105,22 +1038,15 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ImageReader::ImageReader(const uint8_t* data_image,
-                         const uint8_t* instructions_image,
-                         const uint8_t* shared_data_image,
-                         const uint8_t* shared_instructions_image)
-    : data_image_(data_image),
-      instructions_image_(instructions_image),
-      shared_data_image_(shared_data_image),
-      shared_instructions_image_(shared_instructions_image) {
+                         const uint8_t* instructions_image)
+    : data_image_(data_image), instructions_image_(instructions_image) {
   ASSERT(data_image != NULL);
   ASSERT(instructions_image != NULL);
 }
 
 RawApiError* ImageReader::VerifyAlignment() const {
   if (!Utils::IsAligned(data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(shared_data_image_, kObjectAlignment) ||
-      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment) ||
-      !Utils::IsAligned(shared_instructions_image_, kMaxObjectAlignment)) {
+      !Utils::IsAligned(instructions_image_, kMaxObjectAlignment)) {
     return ApiError::New(
         String::Handle(String::New("Snapshot is misaligned", Heap::kOld)),
         Heap::kOld);
@@ -1128,17 +1054,11 @@ RawApiError* ImageReader::VerifyAlignment() const {
   return ApiError::null();
 }
 
-RawInstructions* ImageReader::GetInstructionsAt(int32_t offset) const {
+RawInstructions* ImageReader::GetInstructionsAt(uint32_t offset) const {
   ASSERT(Utils::IsAligned(offset, kObjectAlignment));
 
-  RawObject* result;
-  if (offset < 0) {
-    result = RawObject::FromAddr(
-        reinterpret_cast<uword>(shared_instructions_image_) - offset);
-  } else {
-    result = RawObject::FromAddr(reinterpret_cast<uword>(instructions_image_) +
-                                 offset);
-  }
+  RawObject* result = RawObject::FromAddr(
+      reinterpret_cast<uword>(instructions_image_) + offset);
   ASSERT(result->IsInstructions());
   ASSERT(result->IsMarked());
 
@@ -1154,117 +1074,5 @@ RawObject* ImageReader::GetObjectAt(uint32_t offset) const {
 
   return result;
 }
-
-RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
-  ASSERT(Utils::IsAligned(offset, kObjectAlignment));
-
-  RawObject* result =
-      RawObject::FromAddr(reinterpret_cast<uword>(shared_data_image_) + offset);
-  ASSERT(result->IsMarked());
-
-  return result;
-}
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
-  class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
-   public:
-    explicit DropCodeVisitor(const void* reused_instructions)
-        : code_(Code::Handle()),
-          instructions_(Instructions::Handle()),
-          pool_(ObjectPool::Handle()),
-          table_(Array::Handle()),
-          entry_(Object::Handle()) {
-      ImageWriter::SetupShared(&reused_instructions_, reused_instructions);
-      if (FLAG_trace_reused_instructions) {
-        OS::PrintErr("%" Pd " reusable instructions\n",
-                     reused_instructions_.Size());
-      }
-    }
-
-    void Visit(const Class& cls) {
-      code_ = cls.allocation_stub();
-      if (!code_.IsNull()) {
-        if (!CanKeep(code_)) {
-          if (FLAG_trace_reused_instructions) {
-            OS::PrintErr("No reusable instructions for %s\n", cls.ToCString());
-          }
-          cls.DisableAllocationStub();
-        }
-      }
-    }
-
-    void Visit(const Function& func) {
-      if (func.HasCode()) {
-        code_ = func.CurrentCode();
-        if (!CanKeep(code_)) {
-          if (FLAG_trace_reused_instructions) {
-            OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
-          }
-          func.ClearCode();
-          func.ClearICDataArray();
-          return;
-        }
-      }
-      code_ = func.unoptimized_code();
-      if (!code_.IsNull() && !CanKeep(code_)) {
-        if (FLAG_trace_reused_instructions) {
-          OS::PrintErr("No reusable instructions for %s\n", func.ToCString());
-        }
-        func.ClearCode();
-        func.ClearICDataArray();
-      }
-    }
-
-    bool CanKeep(const Code& code) {
-      if (!IsAvailable(code)) {
-        return false;
-      }
-
-      pool_ = code.object_pool();
-      for (intptr_t i = 0; i < pool_.Length(); i++) {
-        if (pool_.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
-          entry_ = pool_.ObjectAt(i);
-          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
-            return false;
-          }
-        }
-      }
-
-      table_ = code.static_calls_target_table();
-      if (!table_.IsNull()) {
-        StaticCallsTable static_calls(table_);
-        for (auto& view : static_calls) {
-          entry_ = view.Get<Code::kSCallTableCodeTarget>();
-          if (entry_.IsCode() && !IsAvailable(Code::Cast(entry_))) {
-            return false;
-          }
-        }
-      }
-
-      return true;
-    }
-
-   private:
-    bool IsAvailable(const Code& code) {
-      ObjectOffsetPair* pair = reused_instructions_.Lookup(code.instructions());
-      return pair != NULL;
-    }
-
-    ObjectOffsetMap reused_instructions_;
-    Code& code_;
-    Instructions& instructions_;
-    ObjectPool& pool_;
-    Array& table_;
-    Object& entry_;
-
-    DISALLOW_COPY_AND_ASSIGN(DropCodeVisitor);
-  };
-
-  DropCodeVisitor visitor(reused_instructions);
-  ProgramVisitor::VisitClasses(&visitor);
-  ProgramVisitor::VisitFunctions(&visitor);
-}
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

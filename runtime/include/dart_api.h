@@ -908,8 +908,6 @@ Dart_CreateIsolateGroup(const char* script_uri,
                         const char* name,
                         const uint8_t* isolate_snapshot_data,
                         const uint8_t* isolate_snapshot_instructions,
-                        const uint8_t* shared_data,
-                        const uint8_t* shared_instructions,
                         Dart_IsolateFlags* flags,
                         void* isolate_group_data,
                         void* isolate_data,
@@ -3446,9 +3444,7 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
                                  uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 const uint8_t* shared_data,
-                                 const uint8_t* shared_instructions);
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance
@@ -3484,8 +3480,7 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
                                  intptr_t* isolate_snapshot_data_size,
                                  uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 const uint8_t* reused_instructions);
+                                 intptr_t* isolate_snapshot_instructions_size);
 
 /**
  * Like Dart_CreateAppJITSnapshotAsBlobs, but also creates a new VM snapshot.

@@ -114,9 +114,9 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   Isolate::FlagsInitialize(&api_flags);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
-                                      NULL, NULL, &api_flags, group_data,
-                                      isolate_data, &err);
+    isolate =
+        Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
+                                &api_flags, group_data, isolate_data, &err);
   } else {
     isolate = Dart_CreateIsolateGroupFromKernel(name, NULL, data_buffer, len,
                                                 &api_flags, group_data,

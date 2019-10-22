@@ -57,8 +57,6 @@ class Dart : public AllStatic {
   // from_kernel.  Otherwise, initialize from sources.
   static RawError* InitializeIsolate(const uint8_t* snapshot_data,
                                      const uint8_t* snapshot_instructions,
-                                     const uint8_t* shared_data,
-                                     const uint8_t* shared_instructions,
                                      const uint8_t* kernel_buffer,
                                      intptr_t kernel_buffer_size,
                                      void* data);

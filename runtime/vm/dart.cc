@@ -249,9 +249,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
-    std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, "vm-isolate", nullptr, nullptr, nullptr,
-                               nullptr, nullptr, -1, api_flags));
+    std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+        nullptr, "vm-isolate", nullptr, nullptr, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
@@ -308,7 +307,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
       } else {
         return strdup("Invalid vm isolate snapshot seen");
       }
-      FullSnapshotReader reader(snapshot, instructions_snapshot, NULL, NULL, T);
+      FullSnapshotReader reader(snapshot, instructions_snapshot, T);
       const Error& error = Error::Handle(reader.ReadVMSnapshot());
       if (!error.IsNull()) {
         // Must copy before leaving the zone.
@@ -649,8 +648,6 @@ static bool IsSnapshotCompatible(Snapshot::Kind vm_kind,
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* snapshot_instructions,
-                                  const uint8_t* shared_data,
-                                  const uint8_t* shared_instructions,
                                   const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_size,
                                   void* isolate_data) {
@@ -695,8 +692,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
     if (FLAG_trace_isolates) {
       OS::PrintErr("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
-    FullSnapshotReader reader(snapshot, snapshot_instructions, shared_data,
-                              shared_instructions, T);
+    FullSnapshotReader reader(snapshot, snapshot_instructions, T);
     const Error& error = Error::Handle(reader.ReadIsolateSnapshot());
     if (!error.IsNull()) {
       return error.raw();

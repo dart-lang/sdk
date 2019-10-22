@@ -64,22 +64,16 @@ class Image : ValueObject {
 
 class ImageReader : public ZoneAllocated {
  public:
-  ImageReader(const uint8_t* data_image,
-              const uint8_t* instructions_image,
-              const uint8_t* shared_data_image,
-              const uint8_t* shared_instructions_image);
+  ImageReader(const uint8_t* data_image, const uint8_t* instructions_image);
 
   RawApiError* VerifyAlignment() const;
 
-  RawInstructions* GetInstructionsAt(int32_t offset) const;
+  RawInstructions* GetInstructionsAt(uint32_t offset) const;
   RawObject* GetObjectAt(uint32_t offset) const;
-  RawObject* GetSharedObjectAt(uint32_t offset) const;
 
  private:
   const uint8_t* data_image_;
   const uint8_t* instructions_image_;
-  const uint8_t* shared_data_image_;
-  const uint8_t* shared_instructions_image_;
 
   DISALLOW_COPY_AND_ASSIGN(ImageReader);
 };
@@ -152,13 +146,9 @@ struct ImageWriterCommand {
 
 class ImageWriter : public ValueObject {
  public:
-  ImageWriter(Heap* heap,
-              const void* shared_objects,
-              const void* shared_instructions,
-              const void* reused_instructions);
+  explicit ImageWriter(Heap* heap);
   virtual ~ImageWriter() {}
 
-  static void SetupShared(ObjectOffsetMap* map, const void* shared_image);
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
     next_text_offset_ = Image::kHeaderSize;
@@ -171,7 +161,6 @@ class ImageWriter : public ValueObject {
   void PrepareForSerialization(GrowableArray<ImageWriterCommand>* commands);
 
   int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  bool GetSharedDataOffsetFor(RawObject* raw_object, uint32_t* offset);
   uint32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
@@ -244,9 +233,6 @@ class ImageWriter : public ValueObject {
   intptr_t next_text_offset_;
   GrowableArray<ObjectData> objects_;
   GrowableArray<InstructionsData> instructions_;
-  ObjectOffsetMap shared_objects_;
-  ObjectOffsetMap shared_instructions_;
-  ObjectOffsetMap reuse_instructions_;
 
   V8SnapshotProfileWriter::IdSpace offset_space_ =
       V8SnapshotProfileWriter::kSnapshot;
@@ -309,9 +295,7 @@ class AssemblyImageWriter : public ImageWriter {
  public:
   AssemblyImageWriter(Thread* thread,
                       Dart_StreamingWriteCallback callback,
-                      void* callback_data,
-                      const void* shared_objects,
-                      const void* shared_instructions);
+                      void* callback_data);
   void Finalize();
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
@@ -348,9 +332,6 @@ class BlobImageWriter : public ImageWriter {
                   uint8_t** instructions_blob_buffer,
                   ReAlloc alloc,
                   intptr_t initial_size,
-                  const void* shared_objects,
-                  const void* shared_instructions,
-                  const void* reused_instructions,
                   Elf* elf = nullptr,
                   Dwarf* dwarf = nullptr);
 
@@ -369,8 +350,6 @@ class BlobImageWriter : public ImageWriter {
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
-
-void DropCodeWithoutReusableInstructions(const void* reused_instructions);
 
 }  // namespace dart
 

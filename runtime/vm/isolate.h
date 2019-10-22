@@ -184,8 +184,6 @@ class IsolateGroupSource {
                      const char* name,
                      const uint8_t* snapshot_data,
                      const uint8_t* snapshot_instructions,
-                     const uint8_t* shared_data,
-                     const uint8_t* shared_instructions,
                      const uint8_t* kernel_buffer,
                      intptr_t kernel_buffer_size,
                      Dart_IsolateFlags flags)
@@ -193,8 +191,6 @@ class IsolateGroupSource {
         name(strdup(name)),
         snapshot_data(snapshot_data),
         snapshot_instructions(snapshot_instructions),
-        shared_data(shared_data),
-        shared_instructions(shared_instructions),
         kernel_buffer(kernel_buffer),
         kernel_buffer_size(kernel_buffer_size),
         flags(flags),
@@ -208,8 +204,6 @@ class IsolateGroupSource {
   char* name;
   const uint8_t* snapshot_data;
   const uint8_t* snapshot_instructions;
-  const uint8_t* shared_data;
-  const uint8_t* shared_instructions;
   const uint8_t* kernel_buffer;
   const intptr_t kernel_buffer_size;
   Dart_IsolateFlags flags;

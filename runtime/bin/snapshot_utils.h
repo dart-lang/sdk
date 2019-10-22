@@ -32,9 +32,7 @@ class Snapshot {
                              const char* script_name,
                              const char* package_config);
   static void GenerateAppJIT(const char* snapshot_filename);
-  static void GenerateAppAOTAsBlobs(const char* snapshot_filename,
-                                    const uint8_t* shared_data,
-                                    const uint8_t* shared_instructions);
+  static void GenerateAppAOTAsBlobs(const char* snapshot_filename);
   static void GenerateAppAOTAsAssembly(const char* snapshot_filename);
 
   static AppSnapshot* TryReadAppendedAppSnapshotElf(const char* container_path);
