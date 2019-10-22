@@ -255,6 +255,9 @@ intptr_t RawObject::HeapSizeFromClass() const {
            instance_size, tags_size, tags);
   }
 #endif  // DEBUG
+#if !defined(HASH_IN_OBJECT_HEADER)
+  instance_size += TrailingExtraSize();
+#endif
   return instance_size;
 }
 
@@ -380,9 +383,13 @@ void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
                                 ->next_field_offset_in_words_
                             << kWordSizeLog2;
   ASSERT(next_field_offset > 0);
-  uword obj_addr = RawObject::ToAddr(this);
-  uword from = obj_addr + sizeof(RawObject);
-  uword to = obj_addr + next_field_offset - kWordSize;
+  // uword obj_addr = RawObject::ToAddr(this);
+  // uword from = obj_addr + sizeof(RawObject);
+  // uword to = obj_addr + next_field_offset - kWordSize;
+
+  // Not sure how next_field_offset should be interpreted
+  uword from = RawObject::FirstPointerAddr(this);
+  uword to = RawObject::ToAddr(this) + next_field_offset - kWordSize;
   visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                          reinterpret_cast<RawObject**>(to));
 }
@@ -620,6 +627,8 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   uint32_t tags = raw_obj->ptr()->tags_;
+
+  // Why not HeapSize()?
   intptr_t instance_size = SizeTag::decode(tags);
   if (instance_size == 0) {
     instance_size =
@@ -627,11 +636,14 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
   }
 
   // Calculate the first and last raw object pointer fields.
-  uword obj_addr = RawObject::ToAddr(raw_obj);
-  uword from = obj_addr + sizeof(RawObject);
-  uword to = obj_addr + instance_size - kWordSize;
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
-                         reinterpret_cast<RawObject**>(to));
+  // uword obj_addr = RawObject::ToAddr(raw_obj);
+  // uword from = obj_addr + sizeof(RawObject);
+  // uword to = obj_addr + instance_size - kWordSize;
+  // visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
+  //                        reinterpret_cast<RawObject**>(to));
+  visitor->VisitPointers(
+      reinterpret_cast<RawObject**>(FirstPointerAddr(raw_obj)),
+      reinterpret_cast<RawObject**>(LastPointerAddr(raw_obj)));
   return instance_size;
 }
 

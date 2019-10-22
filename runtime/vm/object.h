@@ -384,6 +384,11 @@ class Object {
   static void SetCachedHash(RawObject* obj, uint32_t hash) {
     obj->ptr()->hash_ = hash;
   }
+#else
+  static uint32_t GetHash(const RawObject* obj) {
+    if(obj->ptr())
+    return obj->ptr()->GetHash();
+  }
 #endif
 
   // The list below enumerates read-only handles for singleton
@@ -7626,6 +7631,7 @@ class Integer : public Number {
   friend class Class;
 };
 
+// Small integer (smi) class
 class Smi : public Integer {
  public:
   static const intptr_t kBits = kSmiBits;

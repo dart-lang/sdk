@@ -60,7 +60,7 @@ static inline void ForwardTo(uword original, uword target) {
   *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
-static inline void objcpy(void* dst, const void* src, size_t size) {
+static inline void objcpy(void* dst, void* src, size_t size) {
   // A memcopy specialized for objects. We can assume:
   //  - dst and src do not overlap
   ASSERT(
@@ -74,15 +74,17 @@ static inline void objcpy(void* dst, const void* src, size_t size) {
   //  - size is a multiple of double words
   ASSERT(Utils::IsAligned(size, 2 * sizeof(uword)));
 
-  uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
-  const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
-  do {
-    uword a = *src_cursor++;
-    uword b = *src_cursor++;
-    *dst_cursor++ = a;
-    *dst_cursor++ = b;
-    size -= (2 * sizeof(uword));
-  } while (size > 0);
+  // uword* __restrict dst_cursor = reinterpret_cast<uword*>(dst);
+  // const uword* __restrict src_cursor = reinterpret_cast<const uword*>(src);
+  // do {
+  //   uword a = *src_cursor++;
+  //   uword b = *src_cursor++;
+  //   *dst_cursor++ = a;
+  //   *dst_cursor++ = b;
+  //   size -= (2 * sizeof(uword));
+  // } while (size > 0);
+  reinterpret_cast<RawObject*>(src)->Reallocate(reinterpret_cast<uword>(dst),
+                                                size);
 }
 
 class ScavengerVisitor : public ObjectPointerVisitor {

@@ -37,10 +37,11 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
 // The performance benefit is more than 5% when using hashCode.
 #if defined(HASH_IN_OBJECT_HEADER)
   return Smi::New(Object::GetCachedHash(arguments->NativeArgAt(0)));
-#else
-  Heap* heap = isolate->heap();
-  ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
-  return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+#else  // 32bit architectures
+  // Heap* heap = isolate->heap();
+  // ASSERT(arguments->NativeArgAt(0)->IsDartInstance());
+  // return Smi::New(heap->GetHash(arguments->NativeArgAt(0)));
+  return Smi::New(Object::GetHash(arguments->NativeArgAt(0)));
 #endif
 }
 

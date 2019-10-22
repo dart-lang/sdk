@@ -20,6 +20,14 @@ DEFINE_FLAG(bool,
             "Force compaction to move every movable object");
 
 static const intptr_t kBitVectorWordsPerBlock = 1;
+// The block size in bytes. One uword is used as a bit vector to keep track
+// of the sections-buckets in the block that are used. In 64 bit architectures,
+// buckets are of size 16 bytes ("alignment"), or in other words objects
+// are placed at addresses multiples of 16 bytes. A bit vector of 64
+// bits represents up to 64 buckets and that's why block size
+// is defined to be 64*16 bytes (1024 bytes). In 32 bit architectures,
+// aligments are of size 8 bytes and the bit vector is of size 32, therefore
+// the block size is 32*8 (256 byes).
 static const intptr_t kBlockSize =
     kObjectAlignment * kBitsPerWord * kBitVectorWordsPerBlock;
 static const intptr_t kBlockMask = ~(kBlockSize - 1);
@@ -38,6 +46,17 @@ class ForwardingBlock {
  public:
   void Clear() {
     new_address_ = 0;
+    // live_bitvector is used to track the used byte buckets in the block.
+    // Each bucket represents a size 16 or 8 bytes depending on the architecture.
+    // Only live objects use buckets, so the live_bitvector can be a vector
+    // like 111000110011, where the 0s represent "dead" (garbage) space.
+    // It's used to count the number of used ("live") buckets up to a any bucket
+    // index, which in turn is used to calculate the forwarding address of a
+    // an old address in LookUp. As an example if an object is stored from
+    // bucket 16 (deduced from the address) and only 8 buckets are used up to
+    // index 16 (vector has only 8 bits set in the first 15 bits), the object's
+    // new address will represent bucket 9 of the forwarding block (the object
+    // is "slided" down).
     live_bitvector_ = 0;
   }
 
@@ -83,7 +102,7 @@ class ForwardingBlock {
 
  private:
   uword new_address_;
-  uword live_bitvector_;
+  uword live_bitvector_;  // could make permanently uint64, too small in 32 bit
   COMPILE_ASSERT(kBitVectorWordsPerBlock == 1);
 
   DISALLOW_COPY_AND_ASSIGN(ForwardingBlock);
@@ -464,10 +483,17 @@ uword CompactorTask::PlanBlock(uword first_object,
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->HeapSize();
     if (obj->IsMarked()) {
+#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+      intptr_t extra_size = obj->ReallocationExtraSize();
+      size += extra_size;
+#endif
       forwarding_block->RecordLive(current, size);
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
+#if !defined(HASH_IN_OBJECT_HEADER)
+      size -= extra_size;
+#endif
     } else {
       block_dead_size += size;
     }
@@ -491,15 +517,23 @@ uword CompactorTask::SlideBlock(uword first_object,
 
   uword old_addr = first_object;
   while (old_addr < block_end) {
+#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+    intptr_t extra_size = 0;
+#endif
     RawObject* old_obj = RawObject::FromAddr(old_addr);
     intptr_t size = old_obj->HeapSize();
     if (old_obj->IsMarked()) {
       uword new_addr = forwarding_block->Lookup(old_addr);
       if (new_addr != free_current_) {
+        // Question: blocks were planned before sliding to fit in the page, therefore
+        // this condition should never trigger?
+
         // The only situation where these two don't match is if we are moving
         // to a new page.  But if we exactly hit the end of the previous page
         // then free_current could be at the start of the next page, so we
         // subtract 1.
+        // Question: how can that happen? Wouldn't that mean end of page was
+        // written? Isn't end of page used to store the forwarding page?
         ASSERT(HeapPage::Of(free_current_ - 1) != HeapPage::Of(new_addr));
         intptr_t free_remaining = free_end_ - free_current_;
         // Add any leftover at the end of a page to the free list.
@@ -517,9 +551,13 @@ uword CompactorTask::SlideBlock(uword first_object,
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
       if (new_addr != old_addr) {
+#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+        extra_size = old_obj->ReallocationExtraSize();
+#endif
         // Slide the object down.
-        memmove(reinterpret_cast<void*>(new_addr),
-                reinterpret_cast<void*>(old_addr), size);
+        old_obj->Reallocate(new_addr, size);
+        // memmove(reinterpret_cast<void*>(new_addr),
+        //         reinterpret_cast<void*>(old_addr), size);
 
         if (RawObject::IsTypedDataClassId(new_obj->GetClassId())) {
           reinterpret_cast<RawTypedData*>(new_obj)->RecomputeDataField();
@@ -530,6 +568,10 @@ uword CompactorTask::SlideBlock(uword first_object,
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
+#if !defined(HASH_IN_OBJECT_HEADER)  // 32 bit platform
+      free_current_ += extra_size;
+      extra_size = 0;
+#endif
     } else {
       ASSERT(!forwarding_block->IsLive(old_addr));
     }

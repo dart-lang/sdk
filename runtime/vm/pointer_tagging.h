@@ -19,6 +19,8 @@ namespace dart {
 
 class RawSmi;
 
+// How are word misaligned in the new space??
+
 // Dart VM aligns all objects by 2 words in in the old space and misaligns them
 // in new space. This allows to distinguish new and old pointers by their bits.
 //
