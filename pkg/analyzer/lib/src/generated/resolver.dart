@@ -1327,66 +1327,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-/// Utilities for [LibraryElementImpl] building.
-class BuildLibraryElementUtils {
-  /// Look through all of the compilation units defined for the given [library],
-  /// looking for getters and setters that are defined in different compilation
-  /// units but that have the same names. If any are found, make sure that they
-  /// have the same variable element.
-  static void patchTopLevelAccessors(LibraryElementImpl library) {
-    // Without parts getters/setters already share the same variable element.
-    List<CompilationUnitElement> parts = library.parts;
-    if (parts.isEmpty) {
-      return;
-    }
-    // Collect getters and setters.
-    Map<String, PropertyAccessorElement> getters =
-        new HashMap<String, PropertyAccessorElement>();
-    List<PropertyAccessorElement> setters = <PropertyAccessorElement>[];
-    _collectAccessors(getters, setters, library.definingCompilationUnit);
-    int partLength = parts.length;
-    for (int i = 0; i < partLength; i++) {
-      CompilationUnitElement unit = parts[i];
-      _collectAccessors(getters, setters, unit);
-    }
-    // Move every setter to the corresponding getter's variable (if exists).
-    int setterLength = setters.length;
-    for (int j = 0; j < setterLength; j++) {
-      PropertyAccessorElement setter = setters[j];
-      PropertyAccessorElement getter = getters[setter.displayName];
-      if (getter != null) {
-        TopLevelVariableElementImpl variable = getter.variable;
-        TopLevelVariableElementImpl setterVariable = setter.variable;
-        CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
-        setterUnit.replaceTopLevelVariable(setterVariable, variable);
-        variable.setter = setter;
-        (setter as PropertyAccessorElementImpl).variable = variable;
-      }
-    }
-  }
-
-  /// Add all of the non-synthetic [getters] and [setters] defined in the given
-  /// [unit] that have no corresponding accessor to one of the given
-  /// collections.
-  static void _collectAccessors(Map<String, PropertyAccessorElement> getters,
-      List<PropertyAccessorElement> setters, CompilationUnitElement unit) {
-    List<PropertyAccessorElement> accessors = unit.accessors;
-    int length = accessors.length;
-    for (int i = 0; i < length; i++) {
-      PropertyAccessorElement accessor = accessors[i];
-      if (accessor.isGetter) {
-        if (!accessor.isSynthetic && accessor.correspondingSetter == null) {
-          getters[accessor.displayName] = accessor;
-        }
-      } else {
-        if (!accessor.isSynthetic && accessor.correspondingGetter == null) {
-          setters.add(accessor);
-        }
-      }
-    }
-  }
-}
-
 /// Instances of the class `Dart2JSVerifier` traverse an AST structure looking
 /// for hints for code that will be compiled to JS, such as
 /// [HintCode.IS_DOUBLE].
