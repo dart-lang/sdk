@@ -29,6 +29,7 @@ accepted
 accepts
 access
 accessed
+accesses
 accessible
 accessing
 accessor
@@ -985,6 +986,7 @@ existing
 exists
 exit
 exited
+exits
 expand
 expanding
 expect

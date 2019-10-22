@@ -206,7 +206,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
       computeForNode(node, createUpdateId(node));
       super.visitMethodInvocation(node);
     } else {
-      computeForNode(node, createInvokeId(node));
+      if (node.fileOffset != TreeNode.noOffset) {
+        // TODO(johnniwinther): Ensure file offset on all method invocations.
+        // Skip synthetic invocation created in the collection transformer.
+        computeForNode(node, createInvokeId(node));
+      }
       super.visitMethodInvocation(node);
     }
   }

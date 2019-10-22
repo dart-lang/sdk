@@ -196,11 +196,12 @@ MemberBuilder lookupMemberBuilder(
         required: required);
   } else {
     TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
-        compilerResult, member.enclosingLibrary);
+        compilerResult, member.enclosingLibrary,
+        required: required);
     if (member is Procedure && member.isSetter) {
-      memberBuilder = libraryBuilder.members[member.name.name];
-    } else {
       memberBuilder = libraryBuilder.setters[member.name.name];
+    } else {
+      memberBuilder = libraryBuilder.members[member.name.name];
     }
   }
   if (memberBuilder == null && required) {

@@ -360,7 +360,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             uri: fileUri,
             typeInferrer: library.loader.typeInferenceEngine
                 ?.createLocalTypeInferrer(
-                    fileUri, declarationBuilder?.thisType, library));
+                    fileUri, declarationBuilder?.thisType, library, null));
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is ConstructorBuilder;

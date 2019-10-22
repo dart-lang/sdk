@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         Member,
         NamedType,
+        TreeNode,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -149,13 +150,13 @@ abstract class TypeInferenceEngine {
 
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
@@ -214,4 +215,23 @@ abstract class TypeInferenceEngine {
     }
     return member;
   }
+}
+
+class InferenceDataForTesting {
+  final FlowAnalysisResult flowAnalysisResult = new FlowAnalysisResult();
+}
+
+/// The result of performing flow analysis on a unit.
+class FlowAnalysisResult {
+  /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
+  /// for example because a previous statement always exits.
+  final List<TreeNode> unreachableNodes = [];
+
+  /// The list of function bodies that don't complete, for example because
+  /// there is a `return` statement at the end of the function body block.
+  final List<TreeNode> functionBodiesThatDontComplete = [];
+
+  /// The list of [Expression]s representing variable accesses that occur before
+  /// the corresponding variable has been definitely assigned.
+  final List<TreeNode> unassignedNodes = [];
 }

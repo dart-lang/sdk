@@ -600,7 +600,8 @@ Future runTests(Directory dataDir,
     Iterable<String> supportedMarkers,
     Uri createUriForFileName(String fileName),
     void onFailure(String message),
-    RunTestFunction runTest}) async {
+    RunTestFunction runTest,
+    List<String> skipList}) async {
   // TODO(johnniwinther): Support --show to show actual data for an input.
   args = args.toList();
   bool verbose = args.remove('-v');
@@ -629,6 +630,10 @@ Future runTests(Directory dataDir,
     if (shouldContinue) continued = true;
     testCount++;
 
+    if (skipList != null && skipList.contains(name)) {
+      print('Skip: ${name}');
+      continue;
+    }
     if (onTest != null) {
       onTest(entity.uri);
     }

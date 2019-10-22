@@ -76,8 +76,7 @@ import 'inference_helper.dart' show InferenceHelper;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
-import 'type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine, Variance;
+import 'type_inference_engine.dart';
 
 import 'type_promotion.dart' show TypePromoter;
 
@@ -419,7 +418,8 @@ abstract class TypeInferrer {
       Uri uri,
       bool topLevel,
       InterfaceType thisType,
-      SourceLibraryBuilder library) = ShadowTypeInferrer.private;
+      SourceLibraryBuilder library,
+      InferenceDataForTesting dataForTesting) = ShadowTypeInferrer.private;
 
   SourceLibraryBuilder get library;
 

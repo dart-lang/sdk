@@ -20,7 +20,7 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide Variance;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
@@ -35,7 +35,7 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 
-import '../builder/library_builder.dart' show LibraryBuilder;
+import '../builder/library_builder.dart';
 
 import '../fasta_codes.dart'
     show
@@ -70,9 +70,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
-import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
-
+import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
 
 import '../type_inference/type_promotion.dart'
@@ -818,15 +816,16 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
       : super(instrumentation);
 
   @override
-  ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
-    return new TypeInferrer(this, uri, false, thisType, library);
+  ShadowTypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    return new TypeInferrer(
+        this, uri, false, thisType, library, dataForTesting);
   }
 
   @override
-  ShadowTypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
-    return new TypeInferrer(this, uri, true, thisType, library);
+  ShadowTypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    return new TypeInferrer(this, uri, true, thisType, library, dataForTesting);
   }
 }
 
@@ -836,8 +835,15 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   final TypePromoter typePromoter;
 
-  ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
-      bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)
+  final InferenceDataForTesting dataForTesting;
+
+  ShadowTypeInferrer.private(
+      ShadowTypeInferenceEngine engine,
+      Uri uri,
+      bool topLevel,
+      InterfaceType thisType,
+      SourceLibraryBuilder library,
+      this.dataForTesting)
       : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
         super.private(engine, uri, topLevel, thisType, library);
 

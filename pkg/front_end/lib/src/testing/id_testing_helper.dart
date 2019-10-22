@@ -258,7 +258,8 @@ Future<bool> runTestForConfig<T>(
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
-      retainDataForTesting: true);
+      retainDataForTesting: true,
+      requireMain: false);
 
   Component component = compilerResult.component;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};

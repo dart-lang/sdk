@@ -63,7 +63,8 @@ import '../scope.dart';
 
 import '../source/value_kinds.dart';
 
-import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
+import '../type_inference/type_inference_engine.dart'
+    show InferenceDataForTesting, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -668,7 +669,8 @@ class DietListener extends StackListener {
       {bool isDeclarationInstanceMember,
       VariableDeclaration extensionThis,
       List<TypeParameter> extensionTypeParameters,
-      Scope formalParameterScope}) {
+      Scope formalParameterScope,
+      InferenceDataForTesting inferenceDataForTesting}) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
     // TODO(johnniwinther): Provide a dummy this on static extension methods
@@ -676,7 +678,7 @@ class DietListener extends StackListener {
     InterfaceType thisType =
         extensionThis == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine?.createLocalTypeInferrer(
-        uri, thisType, libraryBuilder);
+        uri, thisType, libraryBuilder, inferenceDataForTesting);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
@@ -716,7 +718,7 @@ class DietListener extends StackListener {
       ..constantContext = constantContext;
   }
 
-  StackListener createFunctionListener(FunctionBuilder builder) {
+  StackListener createFunctionListener(FunctionBuilderImpl builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -727,7 +729,8 @@ class DietListener extends StackListener {
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
         extensionThis: builder.extensionThis,
         extensionTypeParameters: builder.extensionTypeParameters,
-        formalParameterScope: formalParameterScope);
+        formalParameterScope: formalParameterScope,
+        inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }
 
   void buildRedirectingFactoryMethod(

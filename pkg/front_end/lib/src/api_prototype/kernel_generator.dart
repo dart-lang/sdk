@@ -53,7 +53,7 @@ Future<CompilerResult> kernelForProgram(
 
 Future<CompilerResult> kernelForProgramInternal(
     Uri source, CompilerOptions options,
-    {bool retainDataForTesting: false}) async {
+    {bool retainDataForTesting: false, bool requireMain: true}) async {
   ProcessedOptions pOptions =
       new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
@@ -63,7 +63,7 @@ Future<CompilerResult> kernelForProgramInternal(
     Component component = result?.component;
     if (component == null) return null;
 
-    if (component.mainMethod == null) {
+    if (requireMain && component.mainMethod == null) {
       context.options.report(
           messageMissingMain.withLocation(source, -1, noLength),
           Severity.error);
