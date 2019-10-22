@@ -1063,8 +1063,7 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 // there is a getter with the same name.  If so, invoke it.  If the value is
 // a closure, invoke it with the given arguments.  If the value is a
 // non-closure, attempt to invoke "call" on it.
-static bool ResolveCallThroughGetter(const Instance& receiver,
-                                     const Class& receiver_class,
+static bool ResolveCallThroughGetter(const Class& receiver_class,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
@@ -1088,7 +1087,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   if (FLAG_trace_ic) {
     OS::PrintErr(
         "InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
-        Class::Handle(receiver.clazz()).ToCString(), receiver.GetClassId(),
+        receiver_class.ToCString(), receiver_class.id(),
         target_function.IsNull() ? "null" : target_function.ToCString());
   }
   *result = target_function.raw();
@@ -1096,22 +1095,20 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 }
 
 // Handle other invocations (implicit closures, noSuchMethod).
-RawFunction* InlineCacheMissHelper(const Instance& receiver,
+RawFunction* InlineCacheMissHelper(const Class& receiver_class,
                                    const Array& args_descriptor,
                                    const String& target_name) {
-  const Class& receiver_class = Class::Handle(receiver.clazz());
-
   // Handle noSuchMethod for dyn:methodName by getting a noSuchMethod dispatcher
   // (or a call-through getter for methodName).
   if (Function::IsDynamicInvocationForwarderName(target_name)) {
     const String& demangled = String::Handle(
         Function::DemangleDynamicInvocationForwarderName(target_name));
-    return InlineCacheMissHelper(receiver, args_descriptor, demangled);
+    return InlineCacheMissHelper(receiver_class, args_descriptor, demangled);
   }
 
   Function& result = Function::Handle();
-  if (!ResolveCallThroughGetter(receiver, receiver_class, target_name,
-                                args_descriptor, &result)) {
+  if (!ResolveCallThroughGetter(receiver_class, target_name, args_descriptor,
+                                &result)) {
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
@@ -1120,7 +1117,7 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
     if (FLAG_trace_ic) {
       OS::PrintErr(
           "NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
-          Class::Handle(receiver.clazz()).ToCString(), receiver.GetClassId(),
+          receiver_class.ToCString(), receiver_class.id(),
           target_function.IsNull() ? "null" : target_function.ToCString());
     }
     result = target_function.raw();
@@ -1271,8 +1268,9 @@ static RawFunction* InlineCacheMissHandler(
     const Array& args_descriptor =
         Array::Handle(ic_data.arguments_descriptor());
     const String& target_name = String::Handle(ic_data.target_name());
+    const Class& receiver_class = Class::Handle(receiver.clazz());
     target_function =
-        InlineCacheMissHelper(receiver, args_descriptor, target_name);
+        InlineCacheMissHelper(receiver_class, args_descriptor, target_name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
@@ -1489,7 +1487,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+    target_function = InlineCacheMissHelper(cls, descriptor, name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
@@ -1536,6 +1534,70 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
 #endif
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+
+class SavedUnlinkedCallMapKeyEqualsTraits : public AllStatic {
+ public:
+  static const char* Name() { return "SavedUnlinkedCallMapKeyEqualsTraits "; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& key1, const Object& key2) {
+    if (!key1.IsInteger() || !key2.IsInteger()) return false;
+    return Integer::Cast(key1).Equals(Integer::Cast(key2));
+  }
+  static uword Hash(const Object& key) {
+    return Integer::Cast(key).CanonicalizeHash();
+  }
+};
+
+using UnlinkedCallMap = UnorderedHashMap<SavedUnlinkedCallMapKeyEqualsTraits>;
+
+static void SaveUnlinkedCall(Zone* zone,
+                             Isolate* isolate,
+                             uword frame_pc,
+                             const UnlinkedCall& unlinked_call) {
+  auto object_store = isolate->object_store();
+  if (object_store->saved_unlinked_calls() == Array::null()) {
+    const auto& initial_map =
+        Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
+    object_store->set_saved_unlinked_calls(initial_map);
+  }
+
+  UnlinkedCallMap unlinked_call_map(zone, object_store->saved_unlinked_calls());
+  const auto& pc = Integer::Handle(Integer::NewFromUint64(frame_pc));
+  const bool was_present = unlinked_call_map.UpdateOrInsert(pc, unlinked_call);
+  // We transition at most once out of UnlinkedCall state.
+  RELEASE_ASSERT(!was_present);
+  object_store->set_saved_unlinked_calls(unlinked_call_map.Release());
+}
+
+static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
+                                         Isolate* isolate,
+                                         uword pc) {
+  auto object_store = isolate->object_store();
+  ASSERT(object_store->saved_unlinked_calls() != Array::null());
+
+  UnlinkedCallMap unlinked_call_map(zone, object_store->saved_unlinked_calls());
+  const auto& pc_integer = Integer::Handle(Integer::NewFromUint64(pc));
+  const auto& unlinked_call = UnlinkedCall::Cast(
+      Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
+  // Since we transition out of the monomorphic state only once, we should not
+  // need the saved unlinked call anymore.
+  unlinked_call_map.Remove(pc_integer);
+  object_store->set_saved_unlinked_calls(unlinked_call_map.Release());
+
+  return unlinked_call.raw();
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+
+#if !defined(TARGET_ARCH_DBC)
+#if defined(PRODUCT)
+const bool kInstructionsCanBeDeduped = true;
+#else
+const bool kInstructionsCanBeDeduped = false;
+#endif  // defined(PRODUCT)
+#endif  // !defined(TARGET_ARCH_DBC)
+
 // Handle the first use of an instance call
 //   Arg2: UnlinkedCall.
 //   Arg1: Receiver.
@@ -1570,12 +1632,46 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+    target_function = InlineCacheMissHelper(cls, descriptor, name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
   } else {
     ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+  }
+
+  // In AOT bare mode, the PC -> Code mapping is ambiguous, since multiple code
+  // objects can have the same deduped instructions and bare frames are compact
+  // (i.e. have only PC but no code object in the frame)
+  //
+  // In JIT and AOT non-bare mode, instructions will push the unique code
+  // object on the frame.
+  //
+  // If we can find the unique code object of the callee, we can find it's
+  // owner function. If the callee function is non-generic and has no optional
+  // parameters, we can and thereby deduce the call-site argument descriptor +
+  // name from it.
+  //
+  // If not, we'll save the unlinked call object in a map.
+  //
+  // See [MonomorphicMiss]
+  const bool need_saved_unlinked_call =
+      (FLAG_use_bare_instructions && kInstructionsCanBeDeduped);
+
+  // We transition from an unlinked call to a monomorphic call. This transition
+  // will cause us to loose the argument descriptor information on the call
+  // site.
+  //
+  // Though if the monomorphic call site transitions to a
+  // polymorphic/megamorphic we need to reconstruct the arguments descriptor.
+  //
+  // We assume here that generated code never moves.
+  if (need_saved_unlinked_call) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    SaveUnlinkedCall(zone, isolate, caller_frame->pc(), unlinked);
+#else
+    UNREACHABLE();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // If the target function has optional parameters or is generic, it's
@@ -1658,33 +1754,63 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
   Smi& old_expected_cid = Smi::Handle(zone);
   old_expected_cid ^=
       CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
-  const Code& old_target_code = Code::Handle(
-      CodePatcher::GetSwitchableCallTargetAt(caller_frame->pc(), caller_code));
-  Function& old_target = Function::Handle(zone);
-  old_target ^= old_target_code.owner();
 
-  // We lost the original ICData when we patched to the monomorphic case.
-  const String& name = String::Handle(zone, old_target.name());
-  ASSERT(!old_target.HasOptionalParameters());
-  const int kTypeArgsLen = 0;
-  const Array& descriptor =
-      Array::Handle(zone, ArgumentsDescriptor::New(
-                              kTypeArgsLen, old_target.num_fixed_parameters()));
+  String& name = String::Handle(zone);
+  Array& descriptor = Array::Handle(zone);
+  Function& old_target = Function::Handle(zone);
+  if (FLAG_use_bare_instructions && kInstructionsCanBeDeduped) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    const auto& unlinked_call = UnlinkedCall::Handle(
+        zone, LoadUnlinkedCall(zone, isolate, caller_frame->pc()));
+    name = unlinked_call.target_name();
+    descriptor = unlinked_call.args_descriptor();
+
+    ArgumentsDescriptor args_desc(descriptor);
+    const auto& old_receiver_class = Class::Handle(
+        zone, isolate->class_table()->At(old_expected_cid.Value()));
+    old_target = Resolver::ResolveDynamicForReceiverClass(old_receiver_class,
+                                                          name, args_desc);
+    if (old_target.IsNull()) {
+      old_target = InlineCacheMissHelper(old_receiver_class, descriptor, name);
+    }
+#else
+    UNREACHABLE();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    // We lost the original UnlinkedCall (and the name + arg descriptor inside
+    // it) when the call site transitioned from unlinked to monomorphic.
+    //
+    // Though we can deduce name + arg descriptor based on the first
+    // monomorphic callee (we are guaranteed it is not generic and does not have
+    // optional parameters, see DEFINE_RUNTIME_ENTRY(UnlinkedCall) above).
+    const Code& old_target_code =
+        Code::Handle(zone, CodePatcher::GetSwitchableCallTargetAt(
+                               caller_frame->pc(), caller_code));
+    old_target ^= old_target_code.owner();
+
+    const int kTypeArgsLen = 0;
+    name = old_target.name();
+    descriptor = ArgumentsDescriptor::New(kTypeArgsLen,
+                                          old_target.num_fixed_parameters());
+  }
+
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        DeoptId::kNone, 1, /* args_tested */
                                        ICData::kInstance));
 
   // Add the first target.
-  ic_data.AddReceiverCheck(old_expected_cid.Value(), old_target);
+  if (!old_target.IsNull()) {
+    ic_data.AddReceiverCheck(old_expected_cid.Value(), old_target);
+  }
 
   // Maybe add the new target.
-  Class& cls = Class::Handle(zone, receiver.clazz());
   ArgumentsDescriptor args_desc(descriptor);
+  const Class& cls = Class::Handle(zone, receiver.clazz());
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+    target_function = InlineCacheMissHelper(cls, descriptor, name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
@@ -1804,7 +1930,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   Function& target_function = Function::Handle(
       zone, Resolver::ResolveDynamicForReceiverClass(cls, name, args_desc));
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, descriptor, name);
+    target_function = InlineCacheMissHelper(cls, descriptor, name);
     if (target_function.IsNull()) {
       ASSERT(!FLAG_lazy_dispatchers);
       arguments.SetReturn(target_function);
@@ -1896,7 +2022,9 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
   // arg to the call, the type, is needed.
 
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, arg_desc, target_name);
+    const Class& receiver_class = Class::Handle(zone, receiver.clazz());
+    target_function =
+        InlineCacheMissHelper(receiver_class, arg_desc, target_name);
   }
   ASSERT(!target_function.IsNull());
   arguments.SetReturn(target_function);

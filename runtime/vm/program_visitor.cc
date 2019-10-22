@@ -859,12 +859,6 @@ void ProgramVisitor::DedupInstructionsWithSameMetadata() {
 
     RawInstructions* DedupOneInstructions(const Function& function,
                                           const Code& code) {
-      // Switchable calls rely on a unique PC -> Code mapping atm, so we do not
-      // dedup any instructions for instance methods.
-      if (function.IsDynamicFunction()) {
-        return code.instructions();
-      }
-
       const Code* canonical = canonical_set_.LookupValue(&code);
       if (canonical == nullptr) {
         canonical_set_.Insert(&Code::ZoneHandle(zone_, code.raw()));
