@@ -1283,12 +1283,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// A list containing all of the variables contained in this compilation unit.
   List<TopLevelVariableElement> _variables;
 
-  /// Resynthesized explicit top-level property accessors.
-  UnitExplicitTopLevelAccessors _explicitTopLevelAccessors;
-
-  /// Resynthesized explicit top-level variables.
-  UnitExplicitTopLevelVariables _explicitTopLevelVariables;
-
   /// Initialize a newly created compilation unit element to have the given
   /// [name].
   CompilationUnitElementImpl()
@@ -1309,12 +1303,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       _createPropertiesAndAccessors(this);
       assert(_accessors != null);
       return _accessors;
-    }
-
-    if (_explicitTopLevelAccessors != null) {
-      _accessors = <PropertyAccessorElementImpl>[]
-        ..addAll(_explicitTopLevelAccessors.accessors)
-        ..addAll(_explicitTopLevelVariables.implicitAccessors);
     }
 
     return _accessors ?? const <PropertyAccessorElement>[];
@@ -7704,28 +7692,6 @@ mixin TypeParameterizedElementMixin
 
     return _typeParameterElements ?? const <TypeParameterElement>[];
   }
-}
-
-/// Container with information about explicit top-level property accessors and
-/// corresponding implicit top-level variables.
-class UnitExplicitTopLevelAccessors {
-  final List<PropertyAccessorElementImpl> accessors =
-      <PropertyAccessorElementImpl>[];
-  final List<TopLevelVariableElementImpl> implicitVariables =
-      <TopLevelVariableElementImpl>[];
-}
-
-/// Container with information about explicit top-level variables and
-/// corresponding implicit top-level property accessors.
-class UnitExplicitTopLevelVariables {
-  final List<TopLevelVariableElementImpl> variables;
-  final List<PropertyAccessorElementImpl> implicitAccessors =
-      <PropertyAccessorElementImpl>[];
-
-  UnitExplicitTopLevelVariables(int numberOfVariables)
-      : variables = numberOfVariables != 0
-            ? new List<TopLevelVariableElementImpl>(numberOfVariables)
-            : const <TopLevelVariableElementImpl>[];
 }
 
 /// A concrete implementation of a [UriReferencedElement].
