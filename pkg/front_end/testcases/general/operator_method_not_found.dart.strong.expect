@@ -169,7 +169,7 @@ library;
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named '[]='.
 //   print(foo[2] = 2);
-//            ^^^
+//            ^
 //
 // pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The method '[]' isn't defined for the class 'Foo'.
 //  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
@@ -279,7 +279,7 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '[]='.
   print(foo[2] = 2);
-           ^^^" in #t3);
+           ^" in #t3);
   core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The method '[]' isn't defined for the class 'Foo'.
  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '[]'.
