@@ -32,7 +32,7 @@ static const intptr_t kMaxSamplesPerTick = 16;
 
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
-#if defined(TARGET_ARCH_ARM_6) || defined(TARGET_ARCH_ARM_5TE)
+#if defined(TARGET_ARCH_ARM_6)
 DEFINE_FLAG(int,
             profile_period,
             10000,

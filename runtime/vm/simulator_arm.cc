@@ -1639,14 +1639,11 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           case 2:
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
-            if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-              // umaal is only in ARMv6 and above.
-              UnimplementedInstruction(instr);
-            }
             FALL_THROUGH;
           case 5:
-          // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-          // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            FALL_THROUGH;
           case 7: {
             // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
             // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
@@ -1694,10 +1691,6 @@ DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
           }
         }
       } else {
-        if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-          UnimplementedInstruction(instr);
-          return;
-        }
         // synchronization primitives
         Register rd = instr->RdField();
         Register rn = instr->RnField();

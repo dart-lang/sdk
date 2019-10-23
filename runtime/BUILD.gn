@@ -100,9 +100,6 @@ config("dart_arch_config") {
   } else if (dart_target_arch == "armv6") {
     defines += [ "TARGET_ARCH_ARM" ]
     defines += [ "TARGET_ARCH_ARM_6" ]
-  } else if (dart_target_arch == "armv5te") {
-    defines += [ "TARGET_ARCH_ARM" ]
-    defines += [ "TARGET_ARCH_ARM_5TE" ]
   } else if (dart_target_arch == "arm64") {
     defines += [ "TARGET_ARCH_ARM64" ]
   } else if (dart_target_arch == "x64") {

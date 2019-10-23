@@ -419,12 +419,6 @@ typedef simd128_value_t fpu_register_t;
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
-// Disable background threads by default on armv5te. The relevant
-// implementations are uniprocessors.
-#if !defined(TARGET_ARCH_ARM_5TE)
-#define ARCH_IS_MULTI_CORE 1
-#endif
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR

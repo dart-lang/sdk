@@ -418,15 +418,8 @@ void Assembler::umaal(Register rd_lo,
   ASSERT(rd_hi != IP);
   ASSERT(rn != IP);
   ASSERT(rm != IP);
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
-    EmitMulOp(AL, B22, rd_lo, rd_hi, rn, rm);
-  } else {
-    mov(IP, Operand(0));
-    umlal(rd_lo, IP, rn, rm);
-    adds(rd_lo, rd_lo, Operand(rd_hi));
-    adc(rd_hi, IP, Operand(0));
-  }
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(AL, B22, rd_lo, rd_hi, rn, rm);
 }
 
 void Assembler::EmitDivOp(Condition cond,
@@ -493,12 +486,7 @@ void Assembler::ldrd(Register rd,
                      Condition cond) {
   ASSERT((rd % 2) == 0);
   ASSERT(rd2 == rd + 1);
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    ldr(rd, Address(rn, offset), cond);
-    ldr(rd2, Address(rn, offset + target::kWordSize), cond);
-  } else {
-    EmitMemOpAddressMode3(cond, B7 | B6 | B4, rd, Address(rn, offset));
-  }
+  EmitMemOpAddressMode3(cond, B7 | B6 | B4, rd, Address(rn, offset));
 }
 
 void Assembler::strd(Register rd,
@@ -508,12 +496,7 @@ void Assembler::strd(Register rd,
                      Condition cond) {
   ASSERT((rd % 2) == 0);
   ASSERT(rd2 == rd + 1);
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    str(rd, Address(rn, offset), cond);
-    str(rd2, Address(rn, offset + target::kWordSize), cond);
-  } else {
-    EmitMemOpAddressMode3(cond, B7 | B6 | B5 | B4, rd, Address(rn, offset));
-  }
+  EmitMemOpAddressMode3(cond, B7 | B6 | B5 | B4, rd, Address(rn, offset));
 }
 
 void Assembler::ldm(BlockAddressMode am,
@@ -533,7 +516,6 @@ void Assembler::stm(BlockAddressMode am,
 }
 
 void Assembler::ldrex(Register rt, Register rn, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(cond != kNoCondition);
@@ -545,7 +527,6 @@ void Assembler::ldrex(Register rt, Register rn, Condition cond) {
 }
 
 void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
-  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   ASSERT(rn != kNoRegister);
   ASSERT(rd != kNoRegister);
   ASSERT(rt != kNoRegister);
@@ -562,7 +543,7 @@ void Assembler::EnterSafepoint(Register addr, Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced. This simplifies GenerateJitCallbackTrampolines.
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path) {
     b(&slow_path);
   }
 
@@ -578,7 +559,7 @@ void Assembler::EnterSafepoint(Register addr, Register state) {
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
 
-  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 
@@ -614,7 +595,7 @@ void Assembler::ExitSafepoint(Register addr, Register state) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterSafepoint.
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path) {
     b(&slow_path);
   }
 
@@ -630,7 +611,7 @@ void Assembler::ExitSafepoint(Register addr, Register state) {
   cmp(TMP, Operand(0));  // 0 means strex was successful.
   b(&done, EQ);
 
-  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 
@@ -673,7 +654,6 @@ void Assembler::TransitionNativeToGenerated(Register addr,
 }
 
 void Assembler::clrex() {
-  ASSERT(TargetCPUFeatures::arm_version() != ARMv5TE);
   int32_t encoding = (kSpecialCondition << kConditionShift) | B26 | B24 | B22 |
                      B21 | B20 | (0xff << 12) | B4 | 0xf;
   Emit(encoding);
@@ -894,13 +874,13 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoDRegister);
   ASSERT(static_cast<int32_t>(start) + count <= kNumberOfDRegisters);
-  const int armv5te = TargetCPUFeatures::arm_version() == ARMv5TE ? 1 : 0;
+  const int notArmv5te = 0;
 
   int32_t encoding =
       (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
       B8 | am | (load ? L : 0) | ArmEncode::Rn(base) |
       ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
-      ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | armv5te;
+      ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | notArmv5te;
   Emit(encoding);
 }
 
@@ -2075,7 +2055,7 @@ class PatchFarBranch : public AssemblerFixup {
 
   void Process(const MemoryRegion& region, intptr_t position) {
     const ARMVersion version = TargetCPUFeatures::arm_version();
-    if ((version == ARMv5TE) || (version == ARMv6)) {
+    if (version == ARMv6) {
       ProcessARMv6(region, position);
     } else {
       ASSERT(version == ARMv7);
@@ -2329,7 +2309,7 @@ void Assembler::BindARMv7(Label* label) {
 
 void Assembler::Bind(Label* label) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
+  if (version == ARMv6) {
     BindARMv6(label);
   } else {
     ASSERT(version == ARMv7);
@@ -2788,7 +2768,7 @@ void Assembler::LoadPatchableImmediate(Register rd,
                                        int32_t value,
                                        Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
+  if (version == ARMv6) {
     // This sequence is patched in a few places, and should remain fixed.
     const uint32_t byte0 = (value & 0x000000ff);
     const uint32_t byte1 = (value & 0x0000ff00) >> 8;
@@ -2811,7 +2791,7 @@ void Assembler::LoadDecodableImmediate(Register rd,
                                        int32_t value,
                                        Condition cond) {
   const ARMVersion version = TargetCPUFeatures::arm_version();
-  if ((version == ARMv5TE) || (version == ARMv6)) {
+  if (version == ARMv6) {
     if (constant_pool_allowed()) {
       const int32_t offset =
           target::ObjectPool::element_offset(FindImmediate(value));

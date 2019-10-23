@@ -95,8 +95,8 @@ def ToCommandLine(gn_args):
 
 def HostCpuForArch(arch):
     if arch in [
-            'ia32', 'arm', 'armv6', 'armv5te', 'simarm', 'simarmv6',
-            'simarmv5te', 'simdbc', 'armsimdbc', 'simarm_x64'
+            'ia32', 'arm', 'armv6', 'simarm', 'simarmv6', 'simdbc', 'armsimdbc',
+            'simarm_x64'
     ]:
         return 'x86'
     if arch in [
@@ -107,7 +107,7 @@ def HostCpuForArch(arch):
 
 # The C compiler's target.
 def TargetCpuForArch(arch, target_os):
-    if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te']:
+    if arch in ['ia32', 'simarm', 'simarmv6']:
         return 'x86'
     if arch in ['x64', 'simarm64', 'simarm_x64']:
         return 'x64'
@@ -134,8 +134,6 @@ def DartTargetCpuForArch(arch):
         return 'arm'
     if arch in ['armv6', 'simarmv6']:
         return 'armv6'
-    if arch in ['armv5te', 'simarmv5te']:
-        return 'armv5te'
     if arch in ['arm64', 'simarm64']:
         return 'arm64'
     if arch in ['simdbc', 'simdbc64', 'armsimdbc', 'armsimdbc64']:
@@ -233,8 +231,6 @@ def ToGnArgs(args, mode, arch, target_os, use_nnbd):
             gn_args['target_cpu'] = 'arm'
             gn_args['arm_version'] = 6
             gn_args['arm_float_abi'] = floatabi
-        elif gn_args['target_cpu'] == 'armv5te':
-            raise Exception("GN support for armv5te unimplemented")
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -329,8 +325,8 @@ def ProcessOptions(args):
             return False
     for arch in args.arch:
         archs = [
-            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
-            'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
+            'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6',
+            'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
             'armsimdbc64', 'simarm_x64'
         ]
         if not arch in archs:
@@ -350,7 +346,7 @@ def ProcessOptions(args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'arm64', 'simdbc',
                     'simdbc64'
             ]:
                 print(
@@ -389,7 +385,7 @@ def parse_args(args):
         '-a',
         type=str,
         help='Target architectures (comma-separated).',
-        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,simarmv5te,armv5te,'
+        metavar='[all,ia32,x64,simarm,arm,arm_x64,simarmv6,armv6,'
         'simarm64,arm64,simdbc,armsimdbc,simarm_x64]',
         default='x64')
     common_group.add_argument(

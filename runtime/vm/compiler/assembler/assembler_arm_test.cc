@@ -749,49 +749,41 @@ ASSEMBLER_TEST_RUN(LoadStore, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    __ mov(R0, Operand(40));
-    __ mov(R1, Operand(42));
-    __ Push(R0);
-    Label retry;
-    __ Bind(&retry);
-    __ ldrex(R0, SP);
-    __ strex(IP, R1, SP);  // IP == 0, success
-    __ tst(IP, Operand(0));
-    __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
-    __ Pop(R0);        // 42
-  }
+  __ mov(R0, Operand(40));
+  __ mov(R1, Operand(42));
+  __ Push(R0);
+  Label retry;
+  __ Bind(&retry);
+  __ ldrex(R0, SP);
+  __ strex(IP, R1, SP);  // IP == 0, success
+  __ tst(IP, Operand(0));
+  __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
+  __ Pop(R0);        // 42
   __ bx(LR);
 }
 
 ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    typedef int (*Semaphore)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
-  }
+  typedef int (*Semaphore)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    __ mov(R0, Operand(40));
-    __ mov(R1, Operand(42));
-    __ Push(R0);
-    __ ldrex(R0, SP);
-    __ clrex();            // Simulate a context switch.
-    __ strex(IP, R1, SP);  // IP == 1, failure
-    __ Pop(R0);            // 40
-    __ add(R0, R0, Operand(IP));
-  }
+  __ mov(R0, Operand(40));
+  __ mov(R1, Operand(42));
+  __ Push(R0);
+  __ ldrex(R0, SP);
+  __ clrex();            // Simulate a context switch.
+  __ strex(IP, R1, SP);  // IP == 1, failure
+  __ Pop(R0);            // 40
+  __ add(R0, R0, Operand(IP));
   __ bx(LR);
 }
 
 ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::arm_version() != ARMv5TE) {
-    typedef int (*FailedSemaphore)() DART_UNUSED;
-    EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
-  }
+  typedef int (*FailedSemaphore)() DART_UNUSED;
+  EXPECT_EQ(41, EXECUTE_TEST_CODE_INT32(FailedSemaphore, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(AddSub, assembler) {

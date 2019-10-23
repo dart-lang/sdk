@@ -1659,27 +1659,17 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   // Save values being destroyed.
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));
 
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-// TODO(21263): Implement 'swp' and use it below.
-#if !defined(USING_SIMULATOR)
-    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
-#endif
-    __ ldr(R2, FieldAddress(R1, target::Object::tags_offset()));
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
-    __ str(R2, FieldAddress(R1, target::Object::tags_offset()));
-  } else {
-    // Atomically set the remembered bit of the object header.
-    ASSERT(target::Object::tags_offset() == 0);
-    __ sub(R3, R1, Operand(kHeapObjectTag));
-    // R3: Untagged address of header word (ldrex/strex do not support offsets).
-    Label retry;
-    __ Bind(&retry);
-    __ ldrex(R2, R3);
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
-    __ strex(R4, R2, R3);
-    __ cmp(R4, Operand(1));
-    __ b(&retry, EQ);
-  }
+  // Atomically set the remembered bit of the object header.
+  ASSERT(target::Object::tags_offset() == 0);
+  __ sub(R3, R1, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldrex/strex do not support offsets).
+  Label retry;
+  __ Bind(&retry);
+  __ ldrex(R2, R3);
+  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotRememberedBit));
+  __ strex(R4, R2, R3);
+  __ cmp(R4, Operand(1));
+  __ b(&retry, EQ);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1718,28 +1708,18 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
   __ PushList((1 << R2) | (1 << R3) | (1 << R4));  // Spill.
 
   Label marking_retry, lost_race, marking_overflow;
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-// TODO(21263): Implement 'swp' and use it below.
-#if !defined(USING_SIMULATOR)
-    ASSERT(OS::NumberOfAvailableProcessors() <= 1);
-#endif
-    __ ldr(R2, FieldAddress(R0, target::Object::tags_offset()));
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ str(R2, FieldAddress(R0, target::Object::tags_offset()));
-  } else {
-    // Atomically clear kOldAndNotMarkedBit.
-    ASSERT(target::Object::tags_offset() == 0);
-    __ sub(R3, R0, Operand(kHeapObjectTag));
-    // R3: Untagged address of header word (ldrex/strex do not support offsets).
-    __ Bind(&marking_retry);
-    __ ldrex(R2, R3);
-    __ tst(R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ b(&lost_race, ZERO);
-    __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
-    __ strex(R4, R2, R3);
-    __ cmp(R4, Operand(1));
-    __ b(&marking_retry, EQ);
-  }
+  // Atomically clear kOldAndNotMarkedBit.
+  ASSERT(target::Object::tags_offset() == 0);
+  __ sub(R3, R0, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldrex/strex do not support offsets).
+  __ Bind(&marking_retry);
+  __ ldrex(R2, R3);
+  __ tst(R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ b(&lost_race, ZERO);
+  __ bic(R2, R2, Operand(1 << target::RawObject::kOldAndNotMarkedBit));
+  __ strex(R4, R2, R3);
+  __ cmp(R4, Operand(1));
+  __ b(&marking_retry, EQ);
 
   __ ldr(R4, Address(THR, target::Thread::marking_stack_block_offset()));
   __ ldr(R2, Address(R4, target::MarkingStackBlock::top_offset()));

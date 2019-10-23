@@ -210,7 +210,7 @@ analyzer/test/src/task/strong/front_end_inference_test: Slow
 
 # Timeout. These tests do not run efficiently on our simulator or low-end
 # devices.
-[ $runtime == vm && ($arch == armv5te || $arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $arch == simdbc64) ]
+[ $runtime == vm && ($arch == armv6 || $arch == simarm || $arch == simarm64 || $arch == simarmv6 || $arch == simdbc64) ]
 *: Skip
 
 [ $arch != x64 || $compiler != none || $mode != release || $runtime != vm ]

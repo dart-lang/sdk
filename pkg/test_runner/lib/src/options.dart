@@ -141,8 +141,8 @@ none:             No runtime, compile only.''',
 Allowed values are:
 all
 ia32, x64
-arm, armv6, armv5te, arm64,
-simarm, simarmv6, simarmv5te, simarm64,
+arm, armv6, arm64,
+simarm, simarmv6, simarm64,
 simdbc, simdbc64, arm_x64''',
         abbr: 'a',
         values: ['all']..addAll(Architecture.names),

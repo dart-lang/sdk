@@ -79,9 +79,7 @@ def GuessOS():
 # Try to guess the host architecture.
 def GuessArchitecture():
     os_id = platform.machine()
-    if os_id.startswith('armv5te'):
-        return 'armv5te'
-    elif os_id.startswith('armv6'):
+    if os_id.startswith('armv6'):
         return 'armv6'
     elif os_id.startswith('arm'):
         return 'arm'
@@ -268,11 +266,9 @@ ARCH_FAMILY = {
     'x64': 'ia32',
     'arm': 'arm',
     'armv6': 'arm',
-    'armv5te': 'arm',
     'arm64': 'arm',
     'simarm': 'ia32',
     'simarmv6': 'ia32',
-    'simarmv5te': 'ia32',
     'simarm64': 'ia32',
     'simdbc': 'ia32',
     'simdbc64': 'ia32',

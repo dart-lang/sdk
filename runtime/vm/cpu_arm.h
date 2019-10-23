@@ -23,7 +23,6 @@ namespace dart {
 // they may be altered for testing.
 
 enum ARMVersion {
-  ARMv5TE,
   ARMv6,
   ARMv7,
   ARMvUnknown,

@@ -12,13 +12,6 @@
 #define USING_DBC false
 #endif
 
-// Don't use USING_MULTICORE outside of this file.
-#if defined(ARCH_IS_MULTI_CORE)
-#define USING_MULTICORE true
-#else
-#define USING_MULTICORE false
-#endif
-
 // Don't use USING_PRODUCT outside of this file.
 #if defined(PRODUCT)
 #define USING_PRODUCT true
@@ -61,7 +54,7 @@ constexpr bool kDartUseBytecode = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
     "Debugger support async functions.")                                       \
-  P(background_compilation, bool, USING_MULTICORE,                             \
+  P(background_compilation, bool, true,                                        \
     "Run optimizing compilation in background")                                \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
@@ -72,10 +65,8 @@ constexpr bool kDartUseBytecode = false;
   P(compilation_counter_threshold, int, 10,                                    \
     "Function's usage-counter value before interpreted function is compiled, " \
     "-1 means never")                                                          \
-  P(concurrent_mark, bool, USING_MULTICORE,                                    \
-    "Concurrent mark for old generation.")                                     \
-  P(concurrent_sweep, bool, USING_MULTICORE,                                   \
-    "Concurrent sweep for old generation.")                                    \
+  P(concurrent_mark, bool, true, "Concurrent mark for old generation.")        \
+  P(concurrent_sweep, bool, true, "Concurrent sweep for old generation.")      \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")                            \
   C(deoptimize_alot, false, false, bool, false,                                \
@@ -118,7 +109,7 @@ constexpr bool kDartUseBytecode = false;
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
-  P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \
+  P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
   P(max_polymorphic_checks, int, 4,                                            \
