@@ -165,15 +165,36 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   // removal of initializing moves so there would be some redundant stores of
   // null left in the graph. In AOT mode we don't apply this optimization
   // which enables us to remove more stores.
-  RunInitializingStoresTest(root_library, "f4",
-                            CompilerPass::kJIT, /*expected_stores=*/
-                            {"value", "Context.parent", "Context.parent",
-                             "value", "Closure.function_type_arguments",
-                             "Closure.function", "Closure.context"});
-  RunInitializingStoresTest(root_library, "f4",
-                            CompilerPass::kAOT, /*expected_stores=*/
-                            {"value", "Closure.function_type_arguments",
-                             "Closure.function", "Closure.context"});
+  std::vector<const char*> expected_stores_jit;
+  std::vector<const char*> expected_stores_aot;
+  if (root_library.is_declared_in_bytecode()) {
+    // Bytecode flow graph builder doesn't provide readable
+    // variable names for captured variables. Also, bytecode may omit
+    // stores of context parent in certain cases.
+    expected_stores_jit.insert(
+        expected_stores_jit.end(),
+        {":context_var0", "Context.parent", ":context_var0",
+         "Closure.function_type_arguments", "Closure.function",
+         "Closure.context"});
+    expected_stores_aot.insert(
+        expected_stores_aot.end(),
+        {":context_var0", "Closure.function_type_arguments", "Closure.function",
+         "Closure.context"});
+  } else {
+    // These expectations are for AST-based flow graph builder.
+    expected_stores_jit.insert(expected_stores_jit.end(),
+                               {"value", "Context.parent", "Context.parent",
+                                "value", "Closure.function_type_arguments",
+                                "Closure.function", "Closure.context"});
+    expected_stores_aot.insert(expected_stores_aot.end(),
+                               {"value", "Closure.function_type_arguments",
+                                "Closure.function", "Closure.context"});
+  }
+
+  RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
+                            expected_stores_jit);
+  RunInitializingStoresTest(root_library, "f4", CompilerPass::kAOT,
+                            expected_stores_aot);
 }
 
 }  // namespace dart
