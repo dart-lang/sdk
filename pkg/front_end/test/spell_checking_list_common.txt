@@ -727,6 +727,7 @@ depending
 depends
 deprecate
 deprecated
+depromotes
 depth
 derivation
 derive

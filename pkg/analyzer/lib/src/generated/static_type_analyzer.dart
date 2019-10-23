@@ -1486,7 +1486,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (read) {
       type = getReadType(expression);
     } else {
-      type = expression.staticType;
+      if (expression is SimpleIdentifier && expression.inSetterContext()) {
+        var element = expression.staticElement;
+        if (element is PromotableElement) {
+          // We're writing to the element so ignore promotions.
+          type = element.type;
+        } else {
+          type = expression.staticType;
+        }
+      } else {
+        type = expression.staticType;
+      }
     }
     if (type == null) {
       // TODO(brianwilkerson) Determine the conditions for which the static type
