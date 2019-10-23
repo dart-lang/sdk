@@ -56,6 +56,7 @@ import '../fasta_codes.dart'
         templateSpreadTypeMismatch,
         templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
+        templateUndefinedGetter,
         templateUndefinedMethod,
         templateUndefinedSetter,
         templateWebLiteralCannotBeRepresentedExactly;

@@ -2916,7 +2916,8 @@ class InferenceVisitor
     Expression binary;
     if (binaryTarget.isMissing) {
       binary = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(binaryName.name, leftType),
+          templateUndefinedMethod.withArguments(
+              binaryName.name, inferrer.resolveTypeParameter(leftType)),
           fileOffset,
           binaryName.name.length);
     } else if (binaryTarget.isExtensionMember) {
@@ -2974,7 +2975,7 @@ class InferenceVisitor
     if (readTarget.isMissing) {
       read = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(
-              indexGetName.name, receiverType),
+              indexGetName.name, inferrer.resolveTypeParameter(receiverType)),
           fileOffset,
           noLength);
     } else if (readTarget.isExtensionMember) {
@@ -3029,7 +3030,7 @@ class InferenceVisitor
     if (writeTarget.isMissing) {
       write = inferrer.helper.buildProblem(
           templateUndefinedMethod.withArguments(
-              indexSetName.name, receiverType),
+              indexSetName.name, inferrer.resolveTypeParameter(receiverType)),
           fileOffset,
           noLength);
     } else if (writeTarget.isExtensionMember) {
@@ -3049,6 +3050,108 @@ class InferenceVisitor
         ..fileOffset = fileOffset;
     }
     return write;
+  }
+
+  /// Creates a property get of [propertyName] on [receiver] of type
+  /// [receiverType].
+  ///
+  /// [fileOffset] is used as the file offset for created nodes. [receiverType]
+  /// is the already inferred type of the [receiver] expression. The
+  /// [typeContext] is used to create implicit generic tearoff instantiation
+  /// if necessary. [isThisReceiver] must be set to `true` if the receiver is a
+  /// `this` expression.
+  ExpressionInferenceResult _computePropertyGet(
+      int fileOffset,
+      Expression receiver,
+      DartType receiverType,
+      Name propertyName,
+      DartType typeContext,
+      {bool isThisReceiver}) {
+    assert(isThisReceiver != null);
+
+    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
+        receiverType, propertyName, fileOffset,
+        includeExtensionMethods: true);
+
+    DartType readType = inferrer.getGetterType(readTarget, receiverType);
+
+    Expression read;
+    if (readTarget.isMissing) {
+      read = inferrer.helper.buildProblem(
+          templateUndefinedGetter.withArguments(
+              propertyName.name, inferrer.resolveTypeParameter(receiverType)),
+          fileOffset,
+          propertyName.name.length);
+    } else if (readTarget.isExtensionMember) {
+      switch (readTarget.extensionMethodKind) {
+        case ProcedureKind.Getter:
+          read = new StaticInvocation(
+              readTarget.member,
+              new Arguments(<Expression>[
+                receiver,
+              ], types: readTarget.inferredExtensionTypeArguments)
+                ..fileOffset = fileOffset)
+            ..fileOffset = fileOffset;
+          break;
+        case ProcedureKind.Method:
+          read = new StaticInvocation(
+              readTarget.tearoffTarget,
+              new Arguments(<Expression>[
+                receiver,
+              ], types: readTarget.inferredExtensionTypeArguments)
+                ..fileOffset = fileOffset)
+            ..fileOffset = fileOffset;
+          return inferrer.instantiateTearOff(readType, typeContext, read);
+        case ProcedureKind.Setter:
+        case ProcedureKind.Factory:
+        case ProcedureKind.Operator:
+          unhandled('$readTarget', "inferPropertyGet", null, null);
+          break;
+      }
+    } else {
+      if (readTarget.isInstanceMember &&
+          inferrer.instrumentation != null &&
+          receiverType == const DynamicType()) {
+        inferrer.instrumentation.record(
+            inferrer.uriForInstrumentation,
+            fileOffset,
+            'target',
+            new InstrumentationValueForMember(readTarget.member));
+      }
+      read = new PropertyGet(receiver, propertyName, readTarget.member)
+        ..fileOffset = fileOffset;
+      bool checkReturn = false;
+      if (readTarget.isInstanceMember && !isThisReceiver) {
+        Member interfaceMember = readTarget.member;
+        if (interfaceMember is Procedure) {
+          checkReturn =
+              TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass,
+                  interfaceMember.function.returnType);
+        } else if (interfaceMember is Field) {
+          checkReturn =
+              TypeInferrerImpl.returnedTypeParametersOccurNonCovariantly(
+                  interfaceMember.enclosingClass, interfaceMember.type);
+        }
+      }
+      if (checkReturn) {
+        if (inferrer.instrumentation != null) {
+          inferrer.instrumentation.record(
+              inferrer.uriForInstrumentation,
+              fileOffset,
+              'checkReturn',
+              new InstrumentationValueForType(readType));
+        }
+        read = new AsExpression(read, readType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+      }
+      Member member = readTarget.member;
+      if (member is Procedure && member.kind == ProcedureKind.Method) {
+        return inferrer.instantiateTearOff(readType, typeContext, read);
+      }
+    }
+    return new ExpressionInferenceResult(readType, read);
   }
 
   ExpressionInferenceResult visitCompoundIndexSet(
@@ -3216,47 +3319,11 @@ class InferenceVisitor
         .findInterfaceMember(receiverType, equalsName, node.receiver.fileOffset)
         .member;
 
-    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
-        receiverType, node.propertyName, node.readOffset,
-        includeExtensionMethods: true);
-
-    MethodContravarianceCheckKind readCheckKind =
-        inferrer.preCheckInvocationContravariance(receiverType, readTarget,
-            isThisReceiver: node.receiver is ThisExpression);
-
-    DartType readType = inferrer.getGetterType(readTarget, receiverType);
-
-    Expression read;
-    if (readTarget.isMissing) {
-      read = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              node.propertyName.name, receiverType),
-          node.readOffset,
-          node.propertyName.name.length);
-    } else if (readTarget.isExtensionMember) {
-      read = new StaticInvocation(
-          readTarget.member,
-          new Arguments(<Expression>[
-            readReceiver,
-          ], types: readTarget.inferredExtensionTypeArguments)
-            ..fileOffset = node.readOffset)
-        ..fileOffset = node.readOffset;
-    } else {
-      read = new PropertyGet(readReceiver, node.propertyName, readTarget.member)
-        ..fileOffset = node.readOffset;
-      if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-        if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(
-              inferrer.uriForInstrumentation,
-              node.readOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType));
-        }
-        read = new AsExpression(read, readType)
-          ..isTypeError = true
-          ..fileOffset = node.readOffset;
-      }
-    }
+    ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
+        readReceiver, receiverType, node.propertyName, const UnknownType(),
+        isThisReceiver: node.receiver is ThisExpression);
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
 
     VariableDeclaration leftVariable;
     Expression left;
@@ -3797,50 +3864,15 @@ class InferenceVisitor
         .findInterfaceMember(receiverType, equalsName, node.receiver.fileOffset)
         .member;
 
-    ObjectAccessTarget readTarget = inferrer.findInterfaceMember(
-        receiverType, node.name, node.readOffset,
-        includeExtensionMethods: true);
-
-    MethodContravarianceCheckKind readCheckKind =
-        inferrer.preCheckInvocationContravariance(receiverType, readTarget,
-            isThisReceiver: node.receiver is ThisExpression);
-
-    DartType readType = inferrer.getGetterType(readTarget, receiverType);
+    ExpressionInferenceResult readResult = _computePropertyGet(
+        node.readOffset, readReceiver, receiverType, node.name, typeContext,
+        isThisReceiver: node.receiver is ThisExpression);
+    Expression read = readResult.expression;
+    DartType readType = readResult.inferredType;
 
     Member readEqualsMember = inferrer
         .findInterfaceMember(readType, equalsName, node.testOffset)
         .member;
-
-    Expression read;
-    if (readTarget.isMissing) {
-      read = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(node.name.name, receiverType),
-          node.readOffset,
-          node.name.name.length);
-    } else if (readTarget.isExtensionMember) {
-      read = new StaticInvocation(
-          readTarget.member,
-          new Arguments(<Expression>[
-            readReceiver,
-          ], types: readTarget.inferredExtensionTypeArguments)
-            ..fileOffset = node.readOffset)
-        ..fileOffset = node.readOffset;
-    } else {
-      read = new PropertyGet(readReceiver, node.name, readTarget.member)
-        ..fileOffset = node.readOffset;
-      if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-        if (inferrer.instrumentation != null) {
-          inferrer.instrumentation.record(
-              inferrer.uriForInstrumentation,
-              node.readOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType));
-        }
-        read = new AsExpression(read, readType)
-          ..isTypeError = true
-          ..fileOffset = node.readOffset;
-      }
-    }
 
     VariableDeclaration readVariable;
     if (!node.forEffect) {
@@ -3960,7 +3992,23 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitPropertyGet(
       PropertyGet node, DartType typeContext) {
-    return inferrer.inferPropertyGet(node, typeContext);
+    ExpressionInferenceResult result =
+        inferrer.inferExpression(node.receiver, const UnknownType(), true);
+    NullAwareGuard nullAwareGuard;
+    Expression receiver;
+    if (inferrer.isNonNullableByDefault) {
+      nullAwareGuard = result.nullAwareGuard;
+      receiver = result.nullAwareAction;
+    } else {
+      receiver = result.expression;
+    }
+    node.receiver = receiver..parent = node;
+    DartType receiverType = result.inferredType;
+    ExpressionInferenceResult readResult = _computePropertyGet(
+        node.fileOffset, receiver, receiverType, node.name, typeContext,
+        isThisReceiver: node.receiver is ThisExpression);
+    return new ExpressionInferenceResult.nullAware(
+        readResult.inferredType, readResult.expression, nullAwareGuard);
   }
 
   @override

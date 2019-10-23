@@ -51,7 +51,6 @@ import '../fasta_codes.dart'
         templateInvalidCastTopLevelFunction,
         templateInvokeNonFunction,
         templateMixinInferenceNoMatchingClass,
-        templateUndefinedGetter,
         templateUndefinedMethod;
 
 import '../kernel/expression_generator.dart' show buildIsNull;
@@ -1399,37 +1398,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return expression;
   }
 
-  /// Add an "as" check if necessary due to contravariance.
-  ///
-  /// Returns the "as" check if it was added; otherwise returns the original
-  /// expression.
-  Expression handlePropertyGetContravariance(
-      PropertyGet node, ObjectAccessTarget readTarget, DartType inferredType) {
-    bool checkReturn = false;
-    if (readTarget.isInstanceMember && node.receiver is! ThisExpression) {
-      Member interfaceMember = readTarget.member;
-      if (interfaceMember is Procedure) {
-        checkReturn = returnedTypeParametersOccurNonCovariantly(
-            interfaceMember.enclosingClass,
-            interfaceMember.function.returnType);
-      } else if (interfaceMember is Field) {
-        checkReturn = returnedTypeParametersOccurNonCovariantly(
-            interfaceMember.enclosingClass, interfaceMember.type);
-      }
-    }
-    Expression replacement = node;
-    if (checkReturn) {
-      replacement = new AsExpression(node, inferredType)
-        ..isTypeError = true
-        ..fileOffset = node.fileOffset;
-    }
-    if (instrumentation != null && checkReturn) {
-      instrumentation.record(uriForInstrumentation, node.fileOffset,
-          'checkReturn', new InstrumentationValueForType(inferredType));
-    }
-    return replacement;
-  }
-
   /// Modifies a type as appropriate when inferring a declared variable's type.
   DartType inferDeclarationType(DartType initializerType) {
     if (initializerType is BottomType ||
@@ -2222,79 +2190,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     initializer = ensureAssignableResult(declaredType, result);
     this.helper = null;
     return initializer;
-  }
-
-  /// Performs the core type inference algorithm for property gets (this handles
-  /// both null-aware and non-null-aware property gets).
-  ExpressionInferenceResult inferPropertyGet(
-      PropertyGet node, DartType typeContext) {
-    // First infer the receiver so we can look up the getter that was invoked.
-    ExpressionInferenceResult result =
-        inferExpression(node.receiver, const UnknownType(), true);
-    NullAwareGuard nullAwareGuard;
-    Expression receiver;
-    if (isNonNullableByDefault) {
-      nullAwareGuard = result.nullAwareGuard;
-      receiver = result.nullAwareAction;
-    } else {
-      receiver = result.expression;
-    }
-    node.receiver = receiver..parent = node;
-    DartType receiverType = result.inferredType;
-    Name propertyName = node.name;
-    ObjectAccessTarget readTarget = findInterfaceMember(
-        receiverType, propertyName, node.fileOffset,
-        includeExtensionMethods: true);
-    Expression error = reportMissingInterfaceMember(readTarget, receiverType,
-        propertyName, node.fileOffset, templateUndefinedGetter);
-    if (error != null) {
-      return new ExpressionInferenceResult(const DynamicType(), error);
-    }
-    if (readTarget.isInstanceMember) {
-      if (instrumentation != null && receiverType == const DynamicType()) {
-        instrumentation.record(uriForInstrumentation, node.fileOffset, 'target',
-            new InstrumentationValueForMember(readTarget.member));
-      }
-      node.interfaceTarget = readTarget.member;
-    }
-    DartType inferredType = getGetterType(readTarget, receiverType);
-    Expression replacement =
-        handlePropertyGetContravariance(node, readTarget, inferredType);
-    if (readTarget.isInstanceMember) {
-      Member member = readTarget.member;
-      if (member is Procedure && member.kind == ProcedureKind.Method) {
-        return instantiateTearOff(inferredType, typeContext, replacement);
-      }
-    } else if (readTarget.isExtensionMember) {
-      int fileOffset = replacement.fileOffset;
-      switch (readTarget.extensionMethodKind) {
-        case ProcedureKind.Getter:
-          replacement = engine.forest.createStaticInvocation(
-              fileOffset,
-              readTarget.member,
-              engine.forest.createArgumentsForExtensionMethod(fileOffset,
-                  readTarget.inferredExtensionTypeArguments.length, 0, receiver,
-                  extensionTypeArguments:
-                      readTarget.inferredExtensionTypeArguments));
-          break;
-        case ProcedureKind.Method:
-          replacement = engine.forest.createStaticInvocation(
-              fileOffset,
-              readTarget.tearoffTarget,
-              engine.forest.createArgumentsForExtensionMethod(fileOffset,
-                  readTarget.inferredExtensionTypeArguments.length, 0, receiver,
-                  extensionTypeArguments:
-                      readTarget.inferredExtensionTypeArguments));
-          return instantiateTearOff(inferredType, typeContext, replacement);
-        case ProcedureKind.Setter:
-        case ProcedureKind.Factory:
-        case ProcedureKind.Operator:
-          unhandled('$readTarget', "inferPropertyGet", null, null);
-          break;
-      }
-    }
-    return new ExpressionInferenceResult.nullAware(
-        inferredType, replacement, nullAwareGuard);
   }
 
   /// Performs the core type inference algorithm for super property get.
