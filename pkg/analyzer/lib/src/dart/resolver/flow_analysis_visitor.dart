@@ -86,14 +86,14 @@ class FlowAnalysisHelper {
 
   void executableDeclaration_enter(
       Declaration node, FormalParameterList parameters, bool isClosure) {
+    if (isClosure) {
+      flow.functionExpression_begin(assignedVariables.writtenInNode(node));
+    }
+
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         flow.initialize(parameter.declaredElement);
       }
-    }
-
-    if (isClosure) {
-      flow.functionExpression_begin(assignedVariables.writtenInNode(node));
     }
   }
 
