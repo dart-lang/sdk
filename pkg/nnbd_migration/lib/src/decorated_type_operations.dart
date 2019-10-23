@@ -35,6 +35,16 @@ class DecoratedTypeOperations
   }
 
   @override
+  DecoratedType tryPromoteToType(DecoratedType to, DecoratedType from) {
+    // TODO(paulberry): implement appropriate logic for type variable promotion.
+    if (isSubtypeOf(to, from)) {
+      return to;
+    } else {
+      return null;
+    }
+  }
+
+  @override
   DecoratedType variableType(PromotableElement variable) {
     return _variableRepository.decoratedElementType(variable);
   }

@@ -2092,6 +2092,15 @@ class _Harness implements TypeOperations<_Var, _Type> {
     _flow.finish();
   }
 
+  @override
+  _Type tryPromoteToType(_Type to, _Type from) {
+    if (isSubtypeOf(to, from)) {
+      return to;
+    } else {
+      return null;
+    }
+  }
+
   LazyExpression variableRead(_Var variable) {
     return () {
       var expr = _Expression();

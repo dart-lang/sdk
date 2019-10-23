@@ -1054,11 +1054,11 @@ class FlowModel<Variable, Type> {
     Type previousType = info.promotedType;
     previousType ??= typeOperations.variableType(variable);
 
-    if (!typeOperations.isSubtypeOf(type, previousType) ||
-        typeOperations.isSameType(type, previousType)) {
+    Type newType = typeOperations.tryPromoteToType(type, previousType);
+    if (newType == null || typeOperations.isSameType(newType, previousType)) {
       return this;
     }
-    return _updateVariableInfo(variable, info.withPromotedType(type));
+    return _updateVariableInfo(variable, info.withPromotedType(newType));
   }
 
   /// Updates the state to indicate that the given [writtenVariables] are no
@@ -1324,6 +1324,10 @@ abstract class TypeOperations<Variable, Type> {
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
   Type /*!*/ promoteToNonNull(Type type);
+
+  /// Tries to promote to the first type from the second type, and returns the
+  /// promoted type if it succeeds, otherwise null.
+  Type tryPromoteToType(Type to, Type from);
 
   /// Return the static type of the given [variable].
   Type variableType(Variable variable);

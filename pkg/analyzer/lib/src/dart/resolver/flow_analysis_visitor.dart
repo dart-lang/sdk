@@ -278,6 +278,16 @@ class TypeSystemTypeOperations
   }
 
   @override
+  DartType tryPromoteToType(DartType to, DartType from) {
+    // TODO(paulberry): implement appropriate logic for type variable promotion.
+    if (isSubtypeOf(to, from)) {
+      return to;
+    } else {
+      return null;
+    }
+  }
+
+  @override
   DartType variableType(PromotableElement variable) {
     return variable.type;
   }
