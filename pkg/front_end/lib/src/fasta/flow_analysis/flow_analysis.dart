@@ -310,6 +310,8 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Register the fact that the current state definitely exists, e.g. returns
   /// from the body, throws an exception, etc.
+  ///
+  /// Should also be called if a subexpression's type is Never.
   void handleExit();
 
   /// Call this method after visiting the RHS of an if-null ("??") expression.

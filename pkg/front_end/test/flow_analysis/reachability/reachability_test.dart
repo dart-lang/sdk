@@ -34,6 +34,7 @@ main(List<String> args) async {
         'early_exit.dart',
         'for.dart',
         'function_body.dart',
+        'never_return_type.dart',
         'switch.dart',
         'try_catch.dart',
       ]);
