@@ -5,12 +5,13 @@
 /*member: beforeSplitStatement:doesNotComplete*/
 void beforeSplitStatement(bool b, int i) {
   return;
-  /*stmt: unreachable*/ do {} while (b);
-  /*stmt: unreachable*/ for (;;) {}
-  /*stmt: unreachable*/ for (var _ in []) {}
-  /*stmt: unreachable*/ if (b) {}
-  /*stmt: unreachable*/ switch (i) {
+  /*stmt: unreachable*/ do /*stmt: unreachable*/ {} while (/*unreachable*/ b);
+  /*stmt: unreachable*/ for (;;) /*stmt: unreachable*/ {}
+  /*stmt: unreachable*/ for (var _
+      in /*unreachable*/ []) /*stmt: unreachable*/ {}
+  /*stmt: unreachable*/ if (/*unreachable*/ b) /*stmt: unreachable*/ {}
+  /*stmt: unreachable*/ switch (/*unreachable*/ i) {
   }
-  /*stmt: unreachable*/ try {} finally {}
-  /*stmt: unreachable*/ while (b) {}
+  /*stmt: unreachable*/ try /*stmt: unreachable*/ {} finally /*stmt: unreachable*/ {}
+  /*stmt: unreachable*/ while (/*unreachable*/ b) /*stmt: unreachable*/ {}
 }

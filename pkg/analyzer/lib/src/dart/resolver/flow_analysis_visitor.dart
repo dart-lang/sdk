@@ -74,12 +74,6 @@ class FlowAnalysisHelper {
     if (flow.isReachable) return;
 
     if (result != null) {
-      // Ignore the [node] if it is fully covered by the last unreachable.
-      if (result.unreachableNodes.isNotEmpty) {
-        var last = result.unreachableNodes.last;
-        if (node.offset >= last.offset && node.end <= last.end) return;
-      }
-
       result.unreachableNodes.add(node);
     }
   }
