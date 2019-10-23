@@ -576,7 +576,9 @@ class FrontendCompiler implements CompilerInterface {
           }
         }
 
-        final IOSink sink = File(_initializeFromDill).openWrite();
+        final file = new File(_initializeFromDill);
+        await file.create(recursive: true);
+        final IOSink sink = file.openWrite();
         final BinaryPrinter printer = filterExternal
             ? LimitedBinaryPrinter(
                 sink, (lib) => !lib.isExternal, true /* excludeUriToSource */)
