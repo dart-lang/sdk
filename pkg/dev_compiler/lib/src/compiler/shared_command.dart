@@ -347,7 +347,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     if (scheme == 'dart' || scheme == 'package' || scheme == multiRootScheme) {
       if (scheme == multiRootScheme) {
         var multiRootPath = '$multiRootOutputPath${uri.path}';
-        multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
+        multiRootPath = p.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
       return sourcePath;
@@ -361,7 +361,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     if (match != null) return match;
 
     // Fall back to a relative path against the source map itself.
-    sourcePath = p.url.relative(sourcePath, from: sourceMapDir);
+    sourcePath = p.relative(sourcePath, from: sourceMapDir);
 
     // Convert from relative local path to relative URI.
     return p.toUri(sourcePath).path;
