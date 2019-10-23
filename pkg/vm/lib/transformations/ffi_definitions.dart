@@ -312,7 +312,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         FunctionNode(
             ReturnStatement(MethodInvocation(pointer, castMethod.name,
                 Arguments([], types: [nativeType]), castMethod)),
-            returnType: pointerType));
+            returnType: pointerType),
+        fileUri: field.fileUri)
+      ..fileOffset = field.fileOffset;
 
     // Sample output:
     // double get x => _xPtr.value;
@@ -328,7 +330,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                   PropertyGet(ThisExpression(), pointerName, pointerGetter),
                   ConstantExpression(IntConstant(0))
                 ], types: typeArguments))),
-            returnType: field.type));
+            returnType: field.type),
+        fileUri: field.fileUri)
+      ..fileOffset = field.fileOffset;
 
     // Sample output:
     // set x(double v) { _xPtr.value = v; };
@@ -349,7 +353,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                     VariableGet(argument)
                   ], types: typeArguments))),
               returnType: VoidType(),
-              positionalParameters: [argument]));
+              positionalParameters: [argument]),
+          fileUri: field.fileUri)
+        ..fileOffset = field.fileOffset;
     }
 
     replacedGetters[field] = getter;
