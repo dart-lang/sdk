@@ -323,14 +323,24 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
   intptr_t remainder_index = IndexForSize(remainder_size);
   EnqueueElement(element, remainder_index);
 
-  // Postcondition: when allocating in a protected page, the remainder
-  // element is no longer writable unless it is in the same page as the
-  // allocated element.  (The allocated element is still writable, and the
-  // remainder element will be protected when the allocated one is).
-  if (is_protected &&
-      !VirtualMemory::InSamePage(remainder_address - 1, remainder_address)) {
-    VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
-                           remainder_size, VirtualMemory::kReadExecute);
+  // Postcondition: when allocating in a protected page, the fraction of the
+  // remainder element which does not share a page with the allocated element is
+  // no longer writable. This means that if the remainder's header is not fully
+  // contained in the last page of the allocation, we need to re-protect the
+  // page it ends on.
+  if (is_protected) {
+    const uword remainder_header_size =
+        FreeListElement::HeaderSizeFor(remainder_size);
+    if (!VirtualMemory::InSamePage(
+            remainder_address - 1,
+            remainder_address + remainder_header_size - 1)) {
+      VirtualMemory::Protect(
+          reinterpret_cast<void*>(
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize())),
+          remainder_address + remainder_header_size -
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()),
+          VirtualMemory::kReadExecute);
+    }
   }
 }
 
