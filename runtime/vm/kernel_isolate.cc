@@ -60,7 +60,7 @@ const int KernelIsolate::kNotifyIsolateShutdown = 6;
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
-Monitor* KernelIsolate::monitor_ = nullptr;
+Monitor* KernelIsolate::monitor_ = new Monitor();
 KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kNotStarted;
 Isolate* KernelIsolate::isolate_ = NULL;
 Dart_Port KernelIsolate::kernel_port_ = ILLEGAL_PORT;
@@ -217,6 +217,19 @@ class RunKernelTask : public ThreadPool::Task {
   }
 };
 
+void KernelIsolate::InitializeState() {
+  // Grab the isolate create callback here to avoid race conditions with tests
+  // that change this after Dart_Initialize returns.
+  if (FLAG_trace_kernel) {
+    OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": InitializeState\n");
+  }
+  create_group_callback_ = Isolate::CreateGroupCallback();
+  if (create_group_callback_ == NULL) {
+    KernelIsolate::InitializingFailed();
+    return;
+  }
+}
+
 bool KernelIsolate::Start() {
   bool start_task = false;
   {
@@ -237,6 +250,23 @@ bool KernelIsolate::Start() {
   return task_started;
 }
 
+void KernelIsolate::Shutdown() {
+  MonitorLocker ml(monitor_);
+  while (state_ == kStarting) {
+    ml.Wait();
+  }
+  if (state_ == kStopped || state_ == kNotStarted) {
+    return;
+  }
+  ASSERT(state_ == kStarted);
+  state_ = kStopping;
+  ml.NotifyAll();
+  Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
+  while (state_ != kStopped) {
+    ml.Wait();
+  }
+}
+
 void KernelIsolate::InitCallback(Isolate* I) {
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
@@ -254,13 +284,11 @@ void KernelIsolate::InitCallback(Isolate* I) {
 }
 
 bool KernelIsolate::IsKernelIsolate(const Isolate* isolate) {
-  if (!Exists()) return false;
   MonitorLocker ml(monitor_);
   return isolate == isolate_;
 }
 
 bool KernelIsolate::IsRunning() {
-  if (!WasInitialized()) return false;
   MonitorLocker ml(monitor_);
   return (kernel_port_ != ILLEGAL_PORT) && (isolate_ != NULL);
 }
@@ -271,7 +299,6 @@ bool KernelIsolate::NameEquals(const char* name) {
 }
 
 bool KernelIsolate::Exists() {
-  if (!WasInitialized()) return false;
   MonitorLocker ml(monitor_);
   return isolate_ != NULL;
 }
@@ -289,18 +316,6 @@ void KernelIsolate::SetLoadPort(Dart_Port port) {
   MonitorLocker ml(monitor_);
   kernel_port_ = port;
   ml.NotifyAll();
-}
-
-void KernelIsolate::MaybeMakeKernelIsolate(Isolate* I) {
-  Thread* T = Thread::Current();
-  ASSERT(I == T->isolate());
-  ASSERT(I != nullptr);
-  ASSERT(I->name() != nullptr);
-  if (!KernelIsolate::NameEquals(I->name())) {
-    // Not kernel isolate.
-    return;
-  }
-  SetKernelIsolate(I);
 }
 
 void KernelIsolate::FinishedExiting() {
@@ -373,12 +388,10 @@ static void PassThroughFinalizer(void* isolate_callback_data,
                                  Dart_WeakPersistentHandle handle,
                                  void* peer) {}
 
-MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ = nullptr;
+MallocGrowableArray<char*>* KernelIsolate::experimental_flags_ =
+    new MallocGrowableArray<char*>();
 
 void KernelIsolate::AddExperimentalFlag(const char* value) {
-  if (KernelIsolate::experimental_flags_ == nullptr) {
-    KernelIsolate::experimental_flags_ = new MallocGrowableArray<char*>();
-  }
   experimental_flags_->Add(strdup(value));
 }
 
@@ -718,16 +731,6 @@ class KernelCompilationRequest : public ValueObject {
     return result_;
   }
 
-  static void InitializeState() {
-    ASSERT(requests_monitor_ == nullptr);
-    requests_monitor_ = new Monitor();
-  }
-
-  static void Cleanup() {
-    delete requests_monitor_;
-    requests_monitor_ = nullptr;
-  }
-
  private:
   void LoadKernelFromResponse(Dart_CObject* response) {
     ASSERT((response->type == Dart_CObject_kTypedData) ||
@@ -832,62 +835,8 @@ class KernelCompilationRequest : public ValueObject {
   Dart_KernelCompilationResult result_ = {};
 };
 
-Monitor* KernelCompilationRequest::requests_monitor_ = nullptr;
+Monitor* KernelCompilationRequest::requests_monitor_ = new Monitor();
 KernelCompilationRequest* KernelCompilationRequest::requests_ = NULL;
-
-void KernelIsolate::InitializeState() {
-  KernelCompilationRequest::InitializeState();
-
-  ASSERT(KernelIsolate::monitor_ == nullptr);
-  KernelIsolate::monitor_ = new Monitor();
-
-  // This might have been already initialized before Dart_Initialize() via
-  // [KernelIsolate::AddExperimentalFlag].
-  if (KernelIsolate::experimental_flags_ == nullptr) {
-    KernelIsolate::experimental_flags_ = new MallocGrowableArray<char*>();
-  }
-
-  // Grab the isolate create callback here to avoid race conditions with tests
-  // that change this after Dart_Initialize returns.
-  if (FLAG_trace_kernel) {
-    OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": InitializeState\n");
-  }
-  create_group_callback_ = Isolate::CreateGroupCallback();
-}
-
-void KernelIsolate::FreeState() {
-  delete KernelIsolate::experimental_flags_;
-  KernelIsolate::experimental_flags_ = nullptr;
-
-  delete monitor_;
-  monitor_ = nullptr;
-
-  KernelCompilationRequest::Cleanup();
-}
-
-bool KernelIsolate::WasInitialized() {
-  // If [monitor_] is nullptr after the VM initialization, it will stay that
-  // way.
-  return monitor_ != nullptr;
-}
-
-void KernelIsolate::Shutdown() {
-  if (WasInitialized()) {
-    MonitorLocker ml(monitor_);
-    while (state_ == kStarting) {
-      ml.Wait();
-    }
-    if (state_ != kStopped && state_ != kNotStarted) {
-      ASSERT(state_ == kStarted);
-      state_ = kStopping;
-      ml.NotifyAll();
-      Isolate::KillIfExists(isolate_, Isolate::kInternalKillMsg);
-      while (state_ != kStopped) {
-        ml.Wait();
-      }
-    }
-  }
-}
 
 Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     const char* script_uri,

@@ -30,7 +30,6 @@ class KernelIsolate : public AllStatic {
   static const int kNotifyIsolateShutdown;
 
   static void InitializeState();
-  static void FreeState();
   static bool Start();
   static void Shutdown();
 
@@ -73,11 +72,9 @@ class KernelIsolate : public AllStatic {
   static bool GetExperimentalFlag(const char* value);
 
  protected:
-  static bool WasInitialized();
   static void InitCallback(Isolate* I);
   static void SetKernelIsolate(Isolate* isolate);
   static void SetLoadPort(Dart_Port port);
-  static void MaybeMakeKernelIsolate(Isolate* isolate);
   static void FinishedExiting();
   static void FinishedInitializing();
   static void InitializingFailed();
