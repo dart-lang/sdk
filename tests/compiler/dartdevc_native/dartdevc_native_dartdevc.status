@@ -5,4 +5,5 @@
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
 
 [ $compiler == dartdevc ]
+variance_subtype_test: SkipByDesign # Not supported by analyzer based DDC.
 variance_test: SkipByDesign # Not supported by analyzer based DDC.

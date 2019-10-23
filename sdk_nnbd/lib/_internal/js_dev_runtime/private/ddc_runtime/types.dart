@@ -1198,9 +1198,23 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
     if (typeArguments1.length != typeArguments2.length) {
       $assertFailed();
     }
+    let variances = $getGenericArgVariances($t1);
     for (let i = 0; i < typeArguments1.length; ++i) {
-      if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
-        return false;
+      // When using implicit variance, variances will be undefined and
+      // considered covariant.
+      if (variances === void 0 || variances[i] == ${Variance.covariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.contravariant}) {
+        if (!$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+          return false;
+        }
+      } else if (variances[i] == ${Variance.invariant}) {
+        if (!$_isSubtype(typeArguments1[i], typeArguments2[i]) ||
+            !$_isSubtype(typeArguments2[i], typeArguments1[i])) {
+          return false;
+        }
       }
     }
     return true;

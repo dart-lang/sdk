@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=variance
 
+import "package:expect/expect.dart";
+
 class Covariant<out T> {}
 
 class Upper {}
@@ -58,14 +60,23 @@ void testCall(Iterable<Covariant<Middle>> x) {}
 
 main() {
   A a = new A();
+  Expect.type<Covariant<Middle>>(a.method1());
+  Expect.type<Covariant<Upper>>(a.method1());
+  Expect.notType<Covariant<Lower>>(a.method1());
   a.method2(new Covariant<Middle>());
   a.method2(new Covariant<Lower>());
 
   B b = new B();
+  Expect.type<Covariant<Upper>>(b.method1());
+  Expect.type<Covariant<Middle>>(b.method1());
+  Expect.type<Covariant<Lower>>(b.method1());
   b.method2(new Covariant<Upper>());
   b.method2(new Covariant<Middle>());
 
   C c = new C();
+  Expect.type<Covariant<Middle>>(c.method1());
+  Expect.type<Covariant<Upper>>(c.method1());
+  Expect.notType<Covariant<Lower>>(c.method1());
   c.method2(new Covariant<Middle>());
   c.method2(new Covariant<Lower>());
 
@@ -73,12 +84,19 @@ main() {
   D<Covariant<Middle>> dMiddle = new D<Covariant<Middle>>();
 
   E e = new E();
+  Expect.type<D<Covariant<Lower>>>(e.method1());
+  Expect.type<D<Covariant<Middle>>>(e.method1());
 
   F f = new F();
+  Expect.type<D<Covariant<Middle>>>(f.method1());
 
   Iterable<Covariant<Middle>> iterableMiddle = [new Covariant<Middle>()];
   List<Covariant<Lower>> listLower = [new Covariant<Lower>()];
   iterableMiddle = listLower;
 
   testCall(listLower);
+
+  Expect.subtype<Covariant<Lower>, Covariant<Middle>>();
+  Expect.subtype<Covariant<Middle>, Covariant<Middle>>();
+  Expect.notSubtype<Covariant<Upper>, Covariant<Middle>>();
 }
