@@ -999,6 +999,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
@@ -1022,8 +1023,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    NoTemporaryAllocator no_temp;
-    compiler->EmitMove(target, origin, &no_temp);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, origin, &temp_alloc);
   }
 
   // We need to copy the return address up into the dummy stack frame so the
@@ -1039,15 +1040,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  RawPcDescriptors::Kind::kOther, locs());
 
   // Update information in the thread object and enter a safepoint.
-  const Register tmp = locs()->temp(1).reg();
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, tmp,
+    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, temp,
                                    /*enter_safepoint=*/true);
 
     __ blx(branch);
 
     // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(saved_fp, tmp, /*leave_safepoint=*/true);
+    __ TransitionNativeToGenerated(saved_fp, temp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -1059,7 +1059,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                         call_native_through_safepoint_entry_point_offset()));
 
     // Calls R8 in a safepoint and clobbers NOTFP and R4.
-    ASSERT(branch == R8 && tmp == NOTFP && locs()->temp(2).reg() == R4);
+    ASSERT(branch == R8 && temp == NOTFP && locs()->temp(2).reg() == R4);
     __ blx(TMP);
   }
 

@@ -876,9 +876,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();
-  Register temp = locs()->temp(1).reg();
-  Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
