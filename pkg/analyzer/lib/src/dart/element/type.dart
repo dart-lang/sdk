@@ -2356,7 +2356,9 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     if (identical(other, this)) {
       return true;
     }
-    return other is TypeParameterTypeImpl && other.element == element;
+    return other is TypeParameterTypeImpl &&
+        other.element == element &&
+        other.bound == bound;
   }
 
   @override
