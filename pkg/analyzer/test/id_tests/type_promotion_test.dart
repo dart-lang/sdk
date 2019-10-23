@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
@@ -67,14 +68,23 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   const _TypePromotionDataInterpreter();
 
   @override
-  String getText(DartType actualData) => actualData.toString();
+  String getText(DartType actualData) {
+    if (actualData is TypeParameterType) {
+      var element = actualData.element;
+      if (element is TypeParameterMember) {
+        return '${element.name} & ${element.bound}';
+      }
+    }
+    return actualData.toString();
+  }
 
   @override
   String isAsExpected(DartType actualData, String expectedData) {
-    if (actualData.toString() == expectedData) {
+    var actualDataText = getText(actualData);
+    if (actualDataText == expectedData) {
       return null;
     } else {
-      return 'Expected $expectedData, got $actualData';
+      return 'Expected $expectedData, got $actualDataText';
     }
   }
 

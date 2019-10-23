@@ -622,6 +622,7 @@ could
 couldn't
 count
 counter
+counterpart
 counting
 counts
 couple
