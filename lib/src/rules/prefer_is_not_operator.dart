@@ -51,13 +51,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
+    // Return if it is `is!` expression
+    if (node.notOperator != null) {
+      return;
+    }
+
     // Check whether is expression is inside parenthesis
     if (node.parent is ParenthesizedExpression) {
-      final isExpressionInsideParenthesis = node.parent;
+      final parenthesizedExpression = node.parent;
+      final prefixExpression = parenthesizedExpression.parent;
       // Check for NOT (!) operator
-      if (isExpressionInsideParenthesis.parent.beginToken.type ==
-          TokenType.BANG) {
-        rule.reportLint(isExpressionInsideParenthesis.parent);
+      if (prefixExpression is PrefixExpression &&
+          prefixExpression.operator.type == TokenType.BANG) {
+        rule.reportLint(parenthesizedExpression.parent);
       }
     }
   }
