@@ -6,6 +6,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/bazel.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -488,29 +489,18 @@ class BazelPackageUriResolverTest with ResourceProviderMixin {
 @reflectiveTest
 class BazelWorkspacePackageTest with ResourceProviderMixin {
   BazelWorkspace workspace;
-
-  void setUp() {
-    newFile('/ws/WORKSPACE');
-    newFolder('/ws/bazel-genfiles');
-    workspace =
-        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
-  }
+  BazelWorkspacePackage package;
 
   void test_contains_differentPackage_summarySource() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
-
-    var package = workspace.findPackageFor(targetFile.path);
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
     var source = InSummarySource(
         Uri.parse('package:some.other.code/file.dart'), '' /* summaryPath */);
     expect(package.contains(source), isFalse);
   }
 
   void test_contains_differentPackageInWorkspace() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
 
-    var package = workspace.findPackageFor(targetFile.path);
     // A file that is _not_ in this package is not required to have a BUILD
     // file above it, for simplicity and reduced I/O.
     expect(
@@ -520,53 +510,42 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   }
 
   void test_contains_differentWorkspace() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
-
-    var package = workspace.findPackageFor(targetFile.path);
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
     expect(package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
         isFalse);
   }
 
   void test_contains_samePackage() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
-    final targetFile2 = newFile('/ws/some/code/lib/code2.dart');
-    final targetFile3 = newFile('/ws/some/code/lib/src/code3.dart');
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
+    final targetFile = newFile('/ws/some/code/lib/code2.dart');
+    final targetFile2 = newFile('/ws/some/code/lib/src/code3.dart');
     final targetBinFile = newFile('/ws/some/code/bin/code.dart');
     final targetTestFile = newFile('/ws/some/code/test/code_test.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
+    expect(package.contains(TestSource(targetFile.path)), isTrue);
     expect(package.contains(TestSource(targetFile2.path)), isTrue);
-    expect(package.contains(TestSource(targetFile3.path)), isTrue);
     expect(package.contains(TestSource(targetBinFile.path)), isTrue);
     expect(package.contains(TestSource(targetTestFile.path)), isTrue);
   }
 
   void test_contains_samePackage_summarySource() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
     newFile('/ws/some/code/lib/code2.dart');
     newFile('/ws/some/code/lib/src/code3.dart');
-
     final file2Source = InSummarySource(
         Uri.parse('package:some.code/code2.dart'), '' /* summaryPath */);
     final file3Source = InSummarySource(
         Uri.parse('package:some.code/src/code2.dart'), '' /* summaryPath */);
 
-    var package = workspace.findPackageFor(targetFile.path);
     expect(package.contains(file2Source), isTrue);
     expect(package.contains(file3Source), isTrue);
   }
 
   void test_contains_subPackage() {
-    newFile('/ws/some/code/BUILD');
-    newFile('/ws/some/code/lib/code.dart');
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
     newFile('/ws/some/code/testing/BUILD');
     newFile('/ws/some/code/testing/lib/testing.dart');
 
-    var package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'));
     expect(
         package.contains(
             TestSource(convertPath('/ws/some/code/testing/lib/testing.dart'))),
@@ -574,25 +553,87 @@ class BazelWorkspacePackageTest with ResourceProviderMixin {
   }
 
   void test_findPackageFor_buildFileExists() {
-    newFile('/ws/some/code/BUILD');
-    final targetFile = newFile('/ws/some/code/lib/code.dart');
+    _setUpPackage('/ws/some/code', workspaceRoot: '/ws');
 
-    var package = workspace.findPackageFor(targetFile.path);
     expect(package, isNotNull);
     expect(package.root, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
 
-  void test_findPackageFor_missingBuildFile() {
+  void test_findPackageFor_missingMarkerFiles() {
+    _addResources([
+      '/ws/WORKSPACE',
+      '/ws/bazel-genfiles',
+    ]);
+    workspace =
+        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
     final targetFile = newFile('/ws/some/code/lib/code.dart');
 
-    var package = workspace.findPackageFor(targetFile.path);
+    package = workspace.findPackageFor(targetFile.path);
     expect(package, isNull);
+  }
+
+  void test_findPackageFor_packagesFileInBinExists() {
+    _addResources([
+      '/ws/blaze-out/host/bin/some/code/code.packages',
+      '/ws/some/code/lib/code.dart',
+    ]);
+    workspace =
+        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+
+    package = workspace.findPackageFor('/ws/some/code/lib/code.dart');
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/ws/some/code'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  void test_findPackageFor_packagesFileInBinExists_subPackage() {
+    _addResources([
+      '/ws/blaze-out/host/bin/some/code/code.packages',
+      '/ws/blaze-out/host/bin/some/code/testing/testing.packages',
+      '/ws/some/code/lib/code.dart',
+      '/ws/some/code/testing/lib/testing.dart',
+    ]);
+    workspace = BazelWorkspace.find(
+        resourceProvider, convertPath('/ws/some/code/testing'));
+
+    package =
+        workspace.findPackageFor('/ws/some/code/testing/lib/testing.dart');
+    expect(package, isNotNull);
+    expect(package.root, convertPath('/ws/some/code/testing'));
+    expect(package.workspace, equals(workspace));
+  }
+
+  /// Create new files and directories from [paths].
+  void _addResources(List<String> paths) {
+    for (String path in paths) {
+      if (path.endsWith('/')) {
+        newFolder(path.substring(0, path.length - 1));
+      } else {
+        newFile(path);
+      }
+    }
+  }
+
+  /// Set up files for [package] rooted at [root] and [workspace] rooted at
+  /// [workspaceRoot].
+  void _setUpPackage(String root, {@required String workspaceRoot}) {
+    _addResources([
+      '$workspaceRoot/WORKSPACE',
+      '$workspaceRoot/bazel-genfiles/',
+      '$root/BUILD',
+      '$root/lib/code.dart',
+    ]);
+    workspace =
+        BazelWorkspace.find(resourceProvider, convertPath('/ws/some/code'));
+    package = workspace.findPackageFor('$root/lib/code.dart');
   }
 }
 
 @reflectiveTest
 class BazelWorkspaceTest with ResourceProviderMixin {
+  BazelWorkspace workspace;
+
   void test_find_fail_notAbsolute() {
     expect(
         () =>
@@ -600,10 +641,39 @@ class BazelWorkspaceTest with ResourceProviderMixin {
         throwsA(const TypeMatcher<ArgumentError>()));
   }
 
+  void test_find_hasBlazeBinFolderInOutFolder() {
+    _addResources([
+      '/workspace/blaze-out/host/bin/',
+      '/workspace/my/module/',
+    ]);
+    BazelWorkspace workspace = BazelWorkspace.find(
+        resourceProvider, convertPath('/workspace/my/module'));
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, convertPath('/workspace/blaze-out/host/bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+  }
+
+  void test_find_hasBlazeOutFolder_missingBinFolder() {
+    _addResources([
+      '/workspace/blaze-genfiles/',
+      '/workspace/blaze-out/',
+      '/workspace/my/module/',
+    ]);
+    BazelWorkspace workspace = BazelWorkspace.find(
+        resourceProvider, convertPath('/workspace/my/module'));
+    expect(workspace.root, convertPath('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, convertPath('/workspace/blaze-bin'));
+    expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
+  }
+
   void test_find_hasReadonlyFolder() {
-    newFolder('/Users/user/test/READONLY/prime');
-    newFolder('/Users/user/test/prime');
-    newFolder('/Users/user/test/prime/bazel-genfiles');
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/',
+      '/Users/user/test/prime/bazel-genfiles/',
+    ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
@@ -614,9 +684,11 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasReadonlyFolder_bad_actuallyHasWorkspaceFile() {
-    newFolder('/Users/user/test/READONLY');
-    newFile('/Users/user/test/prime/WORKSPACE');
-    newFolder('/Users/user/test/prime/bazel-genfiles');
+    _addResources([
+      '/Users/user/test/READONLY/',
+      '/Users/user/test/prime/WORKSPACE',
+      '/Users/user/test/prime/bazel-genfiles/',
+    ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
@@ -627,9 +699,11 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasReadonlyFolder_blaze() {
-    newFolder('/Users/user/test/READONLY/prime');
-    newFolder('/Users/user/test/prime');
-    newFolder('/Users/user/test/prime/blaze-genfiles');
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/',
+      '/Users/user/test/prime/blaze-genfiles/',
+    ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
     expect(workspace.root, convertPath('/Users/user/test/prime'));
@@ -640,8 +714,10 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasWorkspaceFile() {
-    newFile('/workspace/WORKSPACE');
-    newFolder('/workspace/bazel-genfiles');
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
@@ -651,8 +727,10 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasWorkspaceFile_forModuleInWorkspace() {
-    newFile('/workspace/WORKSPACE');
-    newFolder('/workspace/bazel-genfiles');
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
     BazelWorkspace workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
     expect(workspace.root, convertPath('/workspace'));
@@ -662,8 +740,10 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasWorkspaceFile_forWorkspace() {
-    newFile('/workspace/WORKSPACE');
-    newFolder('/workspace/bazel-genfiles');
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
     BazelWorkspace workspace =
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
@@ -673,8 +753,10 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_find_hasWorkspaceFile_forWorkspace_blaze() {
-    newFile('/workspace/WORKSPACE');
-    newFolder('/workspace/blaze-genfiles');
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/blaze-genfiles/',
+    ]);
     BazelWorkspace workspace =
         BazelWorkspace.find(resourceProvider, convertPath('/workspace'));
     expect(workspace.root, convertPath('/workspace'));
@@ -707,77 +789,75 @@ class BazelWorkspaceTest with ResourceProviderMixin {
   }
 
   void test_findFile_hasReadonlyFolder() {
-    newFolder('/Users/user/test/READONLY/prime');
-    newFolder('/Users/user/test/prime');
-    newFile('/Users/user/test/prime/my/module/test1.dart');
-    newFile('/Users/user/test/prime/my/module/test2.dart');
-    newFile('/Users/user/test/prime/my/module/test3.dart');
-    newFile('/Users/user/test/prime/bazel-bin/my/module/test2.dart');
-    newFile('/Users/user/test/prime/bazel-genfiles/my/module/test3.dart');
-    newFile('/Users/user/test/READONLY/prime/other/module/test4.dart');
-    BazelWorkspace workspace = BazelWorkspace.find(
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/',
+      '/Users/user/test/prime/my/module/test1.dart',
+      '/Users/user/test/prime/my/module/test2.dart',
+      '/Users/user/test/prime/my/module/test3.dart',
+      '/Users/user/test/prime/bazel-bin/my/module/test2.dart',
+      '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart',
+      '/Users/user/test/READONLY/prime/other/module/test4.dart',
+    ]);
+    workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
-    expect(
-        workspace
-            .findFile(
-                convertPath('/Users/user/test/prime/my/module/test1.dart'))
-            .path,
-        convertPath('/Users/user/test/prime/my/module/test1.dart'));
-    expect(
-        workspace
-            .findFile(
-                convertPath('/Users/user/test/prime/my/module/test2.dart'))
-            .path,
-        convertPath('/Users/user/test/prime/bazel-bin/my/module/test2.dart'));
-    expect(
-        workspace
-            .findFile(
-                convertPath('/Users/user/test/prime/my/module/test3.dart'))
-            .path,
-        convertPath(
-            '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart'));
-    expect(
-        workspace
-            .findFile(
-                convertPath('/Users/user/test/prime/other/module/test4.dart'))
-            .path,
-        convertPath('/Users/user/test/READONLY/prime/other/module/test4.dart'));
+    _expectFindFile('/Users/user/test/prime/my/module/test1.dart',
+        equals: '/Users/user/test/prime/my/module/test1.dart');
+    _expectFindFile('/Users/user/test/prime/my/module/test2.dart',
+        equals: '/Users/user/test/prime/bazel-bin/my/module/test2.dart');
+    _expectFindFile('/Users/user/test/prime/my/module/test3.dart',
+        equals: '/Users/user/test/prime/bazel-genfiles/my/module/test3.dart');
+    _expectFindFile('/Users/user/test/prime/other/module/test4.dart',
+        equals: '/Users/user/test/READONLY/prime/other/module/test4.dart');
   }
 
   void test_findFile_main_overrides_readonly() {
-    newFolder('/Users/user/test/READONLY/prime');
-    newFolder('/Users/user/test/prime');
-    newFolder('/Users/user/test/prime/bazel-genfiles');
-    newFile('/Users/user/test/prime/my/module/test.dart');
-    newFile('/Users/user/test/READONLY/prime/my/module/test.dart');
-    BazelWorkspace workspace = BazelWorkspace.find(
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/test.dart',
+      '/Users/user/test/READONLY/prime/my/module/test.dart',
+    ]);
+    workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/Users/user/test/prime/my/module'));
-    expect(
-        workspace
-            .findFile(convertPath('/Users/user/test/prime/my/module/test.dart'))
-            .path,
-        convertPath('/Users/user/test/prime/my/module/test.dart'));
+    _expectFindFile('/Users/user/test/prime/my/module/test.dart',
+        equals: '/Users/user/test/prime/my/module/test.dart');
   }
 
   void test_findFile_noReadOnly() {
-    newFile('/workspace/WORKSPACE');
-    newFile('/workspace/my/module/test1.dart');
-    newFile('/workspace/my/module/test2.dart');
-    newFile('/workspace/my/module/test3.dart');
-    newFile('/workspace/bazel-bin/my/module/test2.dart');
-    newFile('/workspace/bazel-genfiles/my/module/test3.dart');
-    BazelWorkspace workspace = BazelWorkspace.find(
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/my/module/test1.dart',
+      '/workspace/my/module/test2.dart',
+      '/workspace/my/module/test3.dart',
+      '/workspace/bazel-bin/my/module/test2.dart',
+      '/workspace/bazel-genfiles/my/module/test3.dart',
+    ]);
+    workspace = BazelWorkspace.find(
         resourceProvider, convertPath('/workspace/my/module'));
-    expect(
-        workspace.findFile(convertPath('/workspace/my/module/test1.dart')).path,
-        convertPath('/workspace/my/module/test1.dart'));
-    expect(
-        workspace.findFile(convertPath('/workspace/my/module/test2.dart')).path,
-        convertPath('/workspace/bazel-bin/my/module/test2.dart'));
-    expect(
-        workspace.findFile(convertPath('/workspace/my/module/test3.dart')).path,
-        convertPath('/workspace/bazel-genfiles/my/module/test3.dart'));
+    _expectFindFile('/workspace/my/module/test1.dart',
+        equals: '/workspace/my/module/test1.dart');
+    _expectFindFile('/workspace/my/module/test2.dart',
+        equals: '/workspace/bazel-bin/my/module/test2.dart');
+    _expectFindFile('/workspace/my/module/test3.dart',
+        equals: '/workspace/bazel-genfiles/my/module/test3.dart');
   }
+
+  /// Create new files and directories from [paths].
+  void _addResources(List<String> paths) {
+    for (String path in paths) {
+      if (path.endsWith('/')) {
+        newFolder(path.substring(0, path.length - 1));
+      } else {
+        newFile(path);
+      }
+    }
+  }
+
+  /// Expect that [BazelWorkspace.findFile], given [path], returns [equals].
+  void _expectFindFile(String path, {@required String equals}) =>
+      expect(workspace.findFile(convertPath(path)).path, convertPath(equals));
 }
 
 class _MockSource implements Source {
