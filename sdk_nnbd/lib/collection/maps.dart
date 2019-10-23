@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.collection;
 
 /// Base class for implementing a [Map].
@@ -21,7 +19,7 @@ part of dart.collection;
 /// A more efficient implementation is usually possible by overriding
 /// some of the other members as well.
 abstract class MapBase<K, V> extends MapMixin<K, V> {
-  static String mapToString(Map m) {
+  static String mapToString(Map<Object?, Object?> m) {
     // Reuses the list in IterableBase for detecting toString cycles.
     if (_isToStringVisiting(m)) {
       return '{...}';
@@ -32,7 +30,7 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
       _toStringVisiting.add(m);
       result.write('{');
       bool first = true;
-      m.forEach((k, v) {
+      m.forEach((Object? k, Object? v) {
         if (!first) {
           result.write(', ');
         }
@@ -50,16 +48,22 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
     return result.toString();
   }
 
-  static _id(x) => x;
+  static Object? _id(Object? x) => x;
 
   /// Fills a [Map] with key/value pairs computed from [iterable].
   ///
   /// This method is used by [Map] classes in the named constructor
   /// `fromIterable`.
   static void _fillMapWithMappedIterable(
-      Map map, Iterable iterable, key(element), value(element)) {
+      Map<Object?, Object?> map,
+      Iterable<Object?> iterable,
+      Object? Function(Object? element)? key,
+      Object? Function(Object? element)? value) {
     key ??= _id;
     value ??= _id;
+
+    if (key == null) throw "!"; // TODO(38493): The `??=` should promote.
+    if (value == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     for (var element in iterable) {
       map[key(element)] = value(element);
@@ -70,9 +74,10 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
   ///
   /// This method is used by [Map] classes in the named constructor
   /// `fromIterables`.
-  static void _fillMapWithIterables(Map map, Iterable keys, Iterable values) {
-    Iterator keyIterator = keys.iterator;
-    Iterator valueIterator = values.iterator;
+  static void _fillMapWithIterables(Map<Object?, Object?> map,
+      Iterable<Object?> keys, Iterable<Object?> values) {
+    Iterator<Object?> keyIterator = keys.iterator;
+    Iterator<Object?> valueIterator = values.iterator;
 
     bool hasNextKey = keyIterator.moveNext();
     bool hasNextValue = valueIterator.moveNext();
@@ -105,9 +110,9 @@ abstract class MapBase<K, V> extends MapMixin<K, V> {
 /// some of the other members as well.
 abstract class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
-  V operator [](Object key);
+  V? operator [](Object? key);
   operator []=(K key, V value);
-  V remove(Object key);
+  V? remove(Object? key);
   // The `clear` operation should not be based on `remove`.
   // It should clear the map even if some keys are not equal to themselves.
   void clear();
@@ -115,7 +120,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   Map<RK, RV> cast<RK, RV>() => Map.castFrom<K, V, RK, RV>(this);
   void forEach(void action(K key, V value)) {
     for (K key in keys) {
-      action(key, this[key]);
+      action(key, this[key] as V);
     }
   }
 
@@ -125,7 +130,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
     }
   }
 
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (K key in keys) {
       if (this[key] == value) return true;
     }
@@ -134,14 +139,14 @@ abstract class MapMixin<K, V> implements Map<K, V> {
 
   V putIfAbsent(K key, V ifAbsent()) {
     if (containsKey(key)) {
-      return this[key];
+      return this[key] as V;
     }
     return this[key] = ifAbsent();
   }
 
-  V update(K key, V update(V value), {V ifAbsent()}) {
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
     if (this.containsKey(key)) {
-      return this[key] = update(this[key]);
+      return this[key] = update(this[key] as V);
     }
     if (ifAbsent != null) {
       return this[key] = ifAbsent();
@@ -151,18 +156,18 @@ abstract class MapMixin<K, V> implements Map<K, V> {
 
   void updateAll(V update(K key, V value)) {
     for (var key in this.keys) {
-      this[key] = update(key, this[key]);
+      this[key] = update(key, this[key] as V);
     }
   }
 
   Iterable<MapEntry<K, V>> get entries {
-    return keys.map((K key) => MapEntry<K, V>(key, this[key]));
+    return keys.map((K key) => MapEntry<K, V>(key, this[key] as V));
   }
 
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
     var result = <K2, V2>{};
     for (var key in this.keys) {
-      var entry = transform(key, this[key]);
+      var entry = transform(key, this[key] as V);
       result[entry.key] = entry.value;
     }
     return result;
@@ -177,14 +182,14 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   void removeWhere(bool test(K key, V value)) {
     var keysToRemove = <K>[];
     for (var key in keys) {
-      if (test(key, this[key])) keysToRemove.add(key);
+      if (test(key, this[key] as V)) keysToRemove.add(key);
     }
     for (var key in keysToRemove) {
       this.remove(key);
     }
   }
 
-  bool containsKey(Object key) => keys.contains(key);
+  bool containsKey(Object? key) => keys.contains(key);
   int get length => keys.length;
   bool get isEmpty => keys.isEmpty;
   bool get isNotEmpty => keys.isNotEmpty;
@@ -238,7 +243,7 @@ class _MapBaseValueIterable<K, V> extends EfficientLengthIterable<V> {
 class _MapBaseValueIterator<K, V> implements Iterator<V> {
   final Iterator<K> _keys;
   final Map<K, V> _map;
-  V _current;
+  V? _current;
 
   _MapBaseValueIterator(Map<K, V> map)
       : _map = map,
@@ -253,7 +258,7 @@ class _MapBaseValueIterator<K, V> implements Iterator<V> {
     return false;
   }
 
-  V get current => _current;
+  V get current => _current as V;
 }
 
 /// Mixin that overrides mutating map operations with implementations that
@@ -280,7 +285,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V remove(Object key) {
+  V remove(Object? key) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
@@ -295,7 +300,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V update(K key, V update(V value), {V ifAbsent()}) {
+  V update(K key, V update(V value), {V Function()? ifAbsent}) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
@@ -354,7 +359,7 @@ class MapView<K, V> implements Map<K, V> {
   Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) =>
       _map.map<K2, V2>(transform);
 
-  V update(K key, V update(V value), {V ifAbsent()}) =>
+  V update(K key, V update(V value), {V Function()? ifAbsent}) =>
       _map.update(key, update, ifAbsent: ifAbsent);
 
   void updateAll(V update(K key, V value)) {
