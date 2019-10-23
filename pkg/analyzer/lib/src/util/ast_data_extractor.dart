@@ -55,6 +55,10 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
         memberName += '=';
       }
       return MemberId.internal(memberName);
+    } else if (element.enclosingElement is ClassElement) {
+      var memberName = element.name;
+      var className = element.enclosingElement.name;
+      return MemberId.internal(memberName, className: className);
     }
     throw UnimplementedError(
         'TODO(paulberry): $element (${element.runtimeType})');
@@ -76,6 +80,12 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
 
   void run(CompilationUnit unit) {
     unit.accept(this);
+  }
+
+  @override
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    return super.visitConstructorDeclaration(node);
   }
 
   @override

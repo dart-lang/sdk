@@ -90,13 +90,19 @@ class _ReachabilityDataExtractor
       result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {
-      var body = node.functionExpression.body;
-      if (body != null &&
-          _flowResult.functionBodiesThatDontComplete.contains(body)) {
-        result.add(_ReachabilityAssertion.doesNotComplete);
-      }
+      _checkBodyCompletion(node.functionExpression.body, result);
+    } else if (node is ConstructorDeclaration) {
+      _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;
+  }
+
+  void _checkBodyCompletion(
+      FunctionBody body, Set<_ReachabilityAssertion> result) {
+    if (body != null &&
+        _flowResult.functionBodiesThatDontComplete.contains(body)) {
+      result.add(_ReachabilityAssertion.doesNotComplete);
+    }
   }
 }
 

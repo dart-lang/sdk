@@ -160,6 +160,8 @@ void cascade_getter_call(bool b, C c) {
 Never topLevelFunction() => throw 'foo';
 
 class C {
+  final dynamic field1;
+  final dynamic field2;
   Never method() => throw 'foo';
   static Never staticMethod() => throw 'foo';
   void methodTakingArgument(arg) {}
@@ -169,6 +171,11 @@ class C {
   Never operator +(other) => throw 'foo';
   Never operator [](other) => throw 'foo';
   Never operator -() => throw 'foo';
+
+  /*member: C.constructor_initializer:doesNotComplete*/
+  C.constructor_initializer()
+      : field1 = topLevelFunction(),
+        field2 = /*unreachable*/ 0 /*stmt: unreachable*/ {}
 
   void local_getter(bool b) {
     if (b) {
