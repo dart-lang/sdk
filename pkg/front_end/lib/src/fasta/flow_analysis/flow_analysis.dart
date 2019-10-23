@@ -181,6 +181,12 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// Return `true` if the current state is reachable.
   bool get isReachable;
 
+  /// Call this method after visiting an "as" expression.
+  ///
+  /// [subExpression] should be the expression to which the "as" check was
+  /// applied.  [type] should be the type being checked.
+  void asExpression_end(Expression subExpression, Type type);
+
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
@@ -579,6 +585,12 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   @override
   bool get isReachable =>
       _wrap('isReachable', () => _wrapped.isReachable, isQuery: true);
+
+  @override
+  void asExpression_end(Expression subExpression, Type type) {
+    _wrap('asExpression_end($subExpression, $type)',
+        () => _wrapped.asExpression_end(subExpression, type));
+  }
 
   @override
   void booleanLiteral(Expression expression, bool value) {
@@ -1576,6 +1588,19 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
 
   @override
   bool get isReachable => _current.reachable;
+
+  @override
+  void asExpression_end(Expression subExpression, Type type) {
+    _ExpressionInfo<Variable, Type> subExpressionInfo =
+        _getExpressionInfo(subExpression);
+    Variable variable;
+    if (subExpressionInfo is _VariableReadInfo<Variable, Type>) {
+      variable = subExpressionInfo._variable;
+    } else {
+      return;
+    }
+    _current = _current.promote(typeOperations, variable, type);
+  }
 
   @override
   void booleanLiteral(Expression expression, bool value) {

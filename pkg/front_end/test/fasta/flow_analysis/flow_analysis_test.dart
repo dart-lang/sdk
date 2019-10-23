@@ -8,6 +8,26 @@ import 'package:test/test.dart';
 
 main() {
   group('API', () {
+    test('asExpression_end promotes variables', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        h.declare(x, initialized: true);
+        var expr = _Expression();
+        flow.variableRead(expr, x);
+        flow.asExpression_end(expr, _Type('int'));
+        expect(flow.promotedType(x).type, 'int');
+      });
+    });
+
+    test('asExpression_end handles other expressions', () {
+      var h = _Harness();
+      h.run((flow) {
+        var expr = _Expression();
+        flow.asExpression_end(expr, _Type('int'));
+      });
+    });
+
     test('conditional_thenBegin promotes true branch', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');

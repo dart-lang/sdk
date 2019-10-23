@@ -14,6 +14,26 @@ main() {
 
 @reflectiveTest
 class EdgeBuilderFlowAnalysisTest extends EdgeBuilderTestBase {
+  test_as() async {
+    await analyze('''
+void f(num n) {
+  h(n);
+  n as int;
+  g(n);
+}
+void g(int i) {}
+void h(num m) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var nNode = decoratedTypeAnnotation('num n').node;
+    var mNode = decoratedTypeAnnotation('num m').node;
+    // No edge from n to i because n is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(nNode, iNode);
+    // But there is an edge from n to m.
+    assertEdge(nNode, mNode, hard: true);
+  }
+
   test_assignmentExpression() async {
     await analyze('''
 void f(int i, int j) {

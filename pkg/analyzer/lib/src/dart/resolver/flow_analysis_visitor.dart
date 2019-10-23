@@ -41,6 +41,15 @@ class FlowAnalysisHelper {
     return _LocalVariableTypeProvider(this);
   }
 
+  void asExpression(AsExpression node) {
+    if (flow == null) return;
+
+    var expression = node.expression;
+    var typeAnnotation = node.type;
+
+    flow.asExpression_end(expression, typeAnnotation.type);
+  }
+
   VariableElement assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
 

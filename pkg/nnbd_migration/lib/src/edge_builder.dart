@@ -259,6 +259,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitAsExpression(AsExpression node) {
     final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
     _handleAssignment(node.expression, destinationType: typeNode);
+    _flowAnalysis.asExpression_end(node.expression, typeNode);
     return typeNode;
   }
 
