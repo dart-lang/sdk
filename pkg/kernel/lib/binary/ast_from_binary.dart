@@ -73,6 +73,7 @@ class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
   int labelStackBase = 0;
+  int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
   final List<TypeParameter> typeParameterStack = <TypeParameter>[];
   final String filename;
@@ -1509,6 +1510,7 @@ class BinaryBuilder {
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
     int oldLabelStackBase = labelStackBase;
+    int oldSwitchCaseStackBase = switchCaseStackBase;
 
     if (lazyLoadBody && outerEndOffset > 0) {
       lazyLoadBody = outerEndOffset - _byteOffset >
@@ -1518,6 +1520,7 @@ class BinaryBuilder {
     var body;
     if (!lazyLoadBody) {
       labelStackBase = labelStack.length;
+      switchCaseStackBase = switchCaseStack.length;
       body = readStatementOption();
     }
 
@@ -1533,18 +1536,20 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
 
     if (lazyLoadBody) {
-      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight);
+      _setLazyLoadFunction(result, oldLabelStackBase, oldSwitchCaseStackBase,
+          variableStackHeight);
     }
 
     labelStackBase = oldLabelStackBase;
+    switchCaseStackBase = oldSwitchCaseStackBase;
     variableStack.length = variableStackHeight;
     typeParameterStack.length = typeParameterStackHeight;
 
     return result;
   }
 
-  void _setLazyLoadFunction(
-      FunctionNode result, int oldLabelStackBase, int variableStackHeight) {
+  void _setLazyLoadFunction(FunctionNode result, int oldLabelStackBase,
+      int oldSwitchCaseStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
@@ -1562,6 +1567,7 @@ class BinaryBuilder {
       result.body = readStatementOption();
       result.body?.parent = result;
       labelStackBase = oldLabelStackBase;
+      switchCaseStackBase = oldSwitchCaseStackBase;
       variableStack.length = variableStackHeight;
       typeParameterStack.clear();
       if (result.parent is Procedure) {
@@ -2012,7 +2018,8 @@ class BinaryBuilder {
       case Tag.ContinueSwitchStatement:
         int offset = readOffset();
         int index = readUInt();
-        return new ContinueSwitchStatement(switchCaseStack[index])
+        return new ContinueSwitchStatement(
+            switchCaseStack[switchCaseStackBase + index])
           ..fileOffset = offset;
       case Tag.IfStatement:
         int offset = readOffset();
