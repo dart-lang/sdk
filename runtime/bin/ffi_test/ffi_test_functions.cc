@@ -123,6 +123,14 @@ DART_EXPORT int64_t IntComputation(int8_t a, int16_t b, int32_t c, int64_t d) {
   return retval;
 }
 
+// Used in regress_39044_test.dart.
+DART_EXPORT int64_t Regress39044(int64_t a, int8_t b) {
+  std::cout << "Regress39044(" << a << ", " << static_cast<int>(b) << ")\n";
+  const int64_t retval = a - b;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
 // Performs some computation on various sized unsigned ints.
 // Used for testing value ranges for unsigned ints.
 DART_EXPORT int64_t UintComputation(uint8_t a,

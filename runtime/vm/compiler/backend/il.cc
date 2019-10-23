@@ -1117,7 +1117,8 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
 bool ConstantInstr::AttributesEqual(Instruction* other) const {
   ConstantInstr* other_constant = other->AsConstant();
   ASSERT(other_constant != NULL);
-  return (value().raw() == other_constant->value().raw());
+  return (value().raw() == other_constant->value().raw() &&
+          representation() == other_constant->representation());
 }
 
 UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
