@@ -112,6 +112,7 @@ import 'rules/prefer_int_literals.dart';
 import 'rules/prefer_interpolation_to_compose_strings.dart';
 import 'rules/prefer_is_empty.dart';
 import 'rules/prefer_is_not_empty.dart';
+import 'rules/prefer_is_not_operator.dart';
 import 'rules/prefer_iterable_whereType.dart';
 import 'rules/prefer_mixin.dart';
 import 'rules/prefer_null_aware_operators.dart';
@@ -270,6 +271,7 @@ void registerLintRules() {
     ..register(PreferIntLiterals())
     ..register(PreferIsEmpty())
     ..register(PreferIsNotEmpty())
+    ..register(PreferIsNotOperator())
     ..register(PreferIterableWhereType())
     ..register(PreferMixin())
     ..register(PreferNullAwareOperators())
