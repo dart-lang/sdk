@@ -49,5 +49,5 @@ android {
 
 Within the `native-libraries` folder, the libraries are organized by ABI.
 Therefore, we must copy the compiled `libsqlite3.so` into `native-libraries/arm64-v8a/libsqlite3.so`.
-If multiple sub-directories are present, the libraries from the sub-directory corresponding to the target ABI will be available in the application's linking path, so the library can be loaded with `ffi.DynamicLibrary.open("libsqlite3.so")` in Dart.
+If multiple sub-directories are present, the libraries from the sub-directory corresponding to the target ABI will be available in the application's linking path, so the library can be loaded with `DynamicLibrary.open("libsqlite3.so")` in Dart.
 Finally, pass `--target-platform=android-arm64` to the `flutter` command when running or building the app since `libsqlite3.so` was compiled for the `arm64-v8a` ABI.
