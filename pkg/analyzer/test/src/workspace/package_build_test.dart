@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:package_config/packages.dart';
@@ -246,20 +246,6 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
         isFalse);
   }
 
-  void test_contains_sameWorkspace() {
-    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
-    newFile('/workspace/project/lib/file2.dart');
-
-    var package = workspace
-        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
-    var file2Path = convertPath('/workspace/project/lib/file2.dart');
-    expect(package.contains(TestSource(file2Path)), isTrue);
-    var binPath = convertPath('/workspace/project/bin/bin.dart');
-    expect(package.contains(TestSource(binPath)), isTrue);
-    var testPath = convertPath('/workspace/project/test/test.dart');
-    expect(package.contains(TestSource(testPath)), isTrue);
-  }
-
   void test_contains_packageUris() {
     PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
     newFile('/workspace/project/lib/file2.dart');
@@ -278,6 +264,20 @@ class PackageBuildWorkspacePackageTest with ResourceProviderMixin {
     var file2Source = InSummarySource(
         Uri.parse('package:project2/file2.dart'), '' /* summaryPath */);
     expect(package.contains(file2Source), isFalse);
+  }
+
+  void test_contains_sameWorkspace() {
+    PackageBuildWorkspace workspace = _createPackageBuildWorkspace();
+    newFile('/workspace/project/lib/file2.dart');
+
+    var package = workspace
+        .findPackageFor(convertPath('/workspace/project/lib/code.dart'));
+    var file2Path = convertPath('/workspace/project/lib/file2.dart');
+    expect(package.contains(TestSource(file2Path)), isTrue);
+    var binPath = convertPath('/workspace/project/bin/bin.dart');
+    expect(package.contains(TestSource(binPath)), isTrue);
+    var testPath = convertPath('/workspace/project/test/test.dart');
+    expect(package.contains(TestSource(testPath)), isTrue);
   }
 
   void test_findPackageFor_includedFile() {
