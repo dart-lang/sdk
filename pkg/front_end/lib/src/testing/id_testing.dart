@@ -614,7 +614,8 @@ Future runTests(Directory dataDir,
 
   String relativeDir = dataDir.uri.path.replaceAll(Uri.base.path, '');
   print('Data dir: ${relativeDir}');
-  List<FileSystemEntity> entities = dataDir.listSync();
+  List<FileSystemEntity> entities =
+      dataDir.listSync().where((entity) => !entity.path.endsWith('~')).toList();
   if (shards > 1) {
     int start = entities.length * shardIndex ~/ shards;
     int end = entities.length * (shardIndex + 1) ~/ shards;
