@@ -497,6 +497,14 @@
         "enable-asserts": true
 
     }},
+    "dartdevc-weak-linux-release-chrome": {
+      "options": {
+        "checked": true,
+        "use-sdk": true,
+        "enable-experiment": ["non-nullable"],
+        "enable-asserts": true
+
+    }},
     "fasta-(linux|mac|win)": { },
     "analyzer-(linux|mac|win)": {
       "options": {
@@ -1361,6 +1369,13 @@
           "name": "ddc nnbd strong tests",
           "arguments": [
             "-ndartdevc-strong-linux-release-chrome",
+            "dartdevc_native"
+          ]
+        },
+        {
+          "name": "ddc nnbd weak tests",
+          "arguments": [
+            "-ndartdevc-weak-linux-release-chrome",
             "dartdevc_native"
           ]
         }
