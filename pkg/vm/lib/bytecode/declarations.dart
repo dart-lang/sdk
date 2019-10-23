@@ -4,7 +4,7 @@
 
 library vm.bytecode.declarations;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' show TreeNode, listHashCode, listEquals;
 import 'bytecode_serialization.dart'
     show
         BufferedWriter,
@@ -19,6 +19,8 @@ import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'object_table.dart' show ObjectTable, ObjectHandle, NameAndType;
 import 'source_positions.dart' show LineStarts, SourcePositions;
+
+import 'dart:typed_data' show Uint8List;
 
 class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
@@ -805,7 +807,7 @@ class Code extends BytecodeDeclaration {
   static const hasLocalVariablesFlag = 1 << 7;
 
   final ConstantPool constantPool;
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -903,7 +905,7 @@ class Code extends BytecodeDeclaration {
             (_) => new ClosureDeclaration.read(reader))
         : const <ClosureDeclaration>[];
     final ConstantPool constantPool = new ConstantPool.read(reader);
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -1128,7 +1130,7 @@ class ClosureCode {
   static const hasSourcePositionsFlag = 1 << 1;
   static const hasLocalVariablesFlag = 1 << 2;
 
-  final List<int> bytecodes;
+  final Uint8List bytecodes;
   final ExceptionsTable exceptionsTable;
   final SourcePositions sourcePositions;
   final LocalVariableTable localVariables;
@@ -1163,7 +1165,7 @@ class ClosureCode {
 
   factory ClosureCode.read(BufferedReader reader) {
     final int flags = reader.readPackedUInt30();
-    final List<int> bytecodes = _readBytecodeInstructions(reader);
+    final Uint8List bytecodes = _readBytecodeInstructions(reader);
     final exceptionsTable = ((flags & hasExceptionsTableFlag) != 0)
         ? new ExceptionsTable.read(reader)
         : new ExceptionsTable();
@@ -1384,7 +1386,7 @@ class Component {
       if (section.writer != null) {
         writer.align(sectionAlignment);
         assert(writer.offset - start == section.offset);
-        writer.writeBytes(section.writer.takeBytes());
+        writer.appendWriter(section.writer);
       }
     }
 
@@ -1582,13 +1584,13 @@ class Component {
   }
 }
 
-void _writeBytecodeInstructions(BufferedWriter writer, List<int> bytecodes) {
+void _writeBytecodeInstructions(BufferedWriter writer, Uint8List bytecodes) {
   writer.writePackedUInt30(bytecodes.length);
-  writer.writeBytes(bytecodes);
+  writer.appendUint8List(bytecodes);
   BytecodeSizeStatistics.instructionsSize += bytecodes.length;
 }
 
-List<int> _readBytecodeInstructions(BufferedReader reader) {
+Uint8List _readBytecodeInstructions(BufferedReader reader) {
   int len = reader.readPackedUInt30();
   return reader.readBytesAsUint8List(len);
 }

@@ -4,7 +4,7 @@
 
 library vm.bytecode.bytecode_serialization;
 
-import 'dart:io' show BytesBuilder;
+import 'package:kernel/ast.dart' show BinarySink;
 import 'dart:typed_data' show ByteData, Endian, Uint8List, Uint16List;
 
 abstract class StringWriter {
@@ -26,12 +26,32 @@ abstract class ObjectReader {
 }
 
 class BufferedWriter {
+  /// Initial size of the buffer in BufferedWriter.
+  static const int initialSize = 1024;
+
+  /// Lists less than this size are copied into the buffer.
+  /// Larger lists are appended without copying.
+  static const int avoidCopyingSize = 1024;
+
+  /// Keep buffers with this remaining bytes or more, instead of
+  /// creating a new buffer.
+  static const int minRemainderToKeep = 256;
+
   final int formatVersion;
   final StringWriter stringWriter;
   final ObjectWriter objectWriter;
   final LinkWriter linkWriter;
-  final BytesBuilder bytes = new BytesBuilder();
   final int baseOffset;
+
+  // Prefix of the data stored in this writer.
+  // List of pairs Uint8List buffer, int length.
+  List<dynamic> _buffers;
+  // Total length of data in [_buffers].
+  int _buffersLength = 0;
+
+  Uint8List _currentBuffer = new Uint8List(initialSize);
+  int _currentLength = 0;
+  int _nextBufferSize = initialSize << 1;
 
   BufferedWriter(
       this.formatVersion, this.stringWriter, this.objectWriter, this.linkWriter,
@@ -41,19 +61,131 @@ class BufferedWriter {
       new BufferedWriter(writer.formatVersion, writer.stringWriter,
           writer.objectWriter, writer.linkWriter);
 
-  List<int> takeBytes() => bytes.takeBytes();
+  Uint8List getContents() {
+    if (_buffers == null) {
+      return new Uint8List.view(
+          _currentBuffer.buffer, _currentBuffer.offsetInBytes, _currentLength);
+    }
+    final Uint8List result = new Uint8List(_buffersLength + _currentLength);
+    int position = 0;
+    for (int i = 0; i < _buffers.length; i += 2) {
+      final Uint8List buf = _buffers[i];
+      final int len = _buffers[i + 1];
+      result.setRange(position, position + len, buf);
+      position += len;
+    }
+    assert(position == _buffersLength);
+    result.setRange(position, position + _currentLength, _currentBuffer);
+    return result;
+  }
 
-  int get offset => bytes.length;
+  void writeContentsToBinarySink(BinarySink sink) {
+    if (_buffers != null) {
+      for (int i = 0; i < _buffers.length; i += 2) {
+        Uint8List buf = _buffers[i];
+        final int len = _buffers[i + 1];
+        if (len != buf.length) {
+          buf = new Uint8List.view(buf.buffer, buf.offsetInBytes, len);
+        }
+        sink.writeBytes(buf);
+      }
+    }
+    Uint8List buf = _currentBuffer;
+    if (_currentLength != buf.length) {
+      buf = new Uint8List.view(buf.buffer, buf.offsetInBytes, _currentLength);
+    }
+    sink.writeBytes(buf);
+  }
+
+  int get offset => _buffersLength + _currentLength;
 
   @pragma('vm:prefer-inline')
-  void writeByte(int value) {
+  void _addByte(int value) {
     assert((value >> 8) == 0);
-    bytes.addByte(value);
+    _currentBuffer[_currentLength] = value;
+    ++_currentLength;
+  }
+
+  void _flushBuffer(Uint8List buf, int len) {
+    _buffers ??= <dynamic>[];
+    _buffers.add(buf);
+    _buffers.add(len);
+    _buffersLength += len;
+  }
+
+  void _flushCurrentBuffer() {
+    _flushBuffer(_currentBuffer, _currentLength);
+    _currentBuffer = null;
+    _currentLength = 0;
+  }
+
+  @pragma('vm:never-inline')
+  void _grow() {
+    _flushCurrentBuffer();
+    // Callers of _grow() expect up to avoidCopyingSize bytes to be available.
+    assert(_nextBufferSize >= avoidCopyingSize);
+    _currentBuffer = new Uint8List(_nextBufferSize);
+    _nextBufferSize = _nextBufferSize << 1;
   }
 
   @pragma('vm:prefer-inline')
-  void writeBytes(List<int> values) {
-    bytes.add(values);
+  void writeByte(int value) {
+    if (_currentLength == _currentBuffer.length) {
+      _grow();
+    }
+    _addByte(value);
+  }
+
+  void appendUint8List(Uint8List src) {
+    if (src.length < avoidCopyingSize) {
+      if (_currentLength > _currentBuffer.length - src.length) {
+        _grow();
+      }
+      _currentBuffer.setRange(_currentLength, _currentLength + src.length, src);
+      _currentLength += src.length;
+    } else {
+      final int remainingBytes = _currentBuffer.length - _currentLength;
+      if (remainingBytes >= minRemainderToKeep) {
+        final Uint8List remainder = new Uint8List.view(_currentBuffer.buffer,
+            _currentBuffer.offsetInBytes + _currentLength, remainingBytes);
+        _flushCurrentBuffer();
+        _flushBuffer(src, src.length);
+        _currentBuffer = remainder;
+        _currentLength = 0;
+      } else {
+        _flushCurrentBuffer();
+        _currentBuffer = src;
+        _currentLength = src.length;
+      }
+    }
+  }
+
+  void appendWriter(BufferedWriter other) {
+    final int remainingBytes = _currentBuffer.length - _currentLength;
+    Uint8List remainder;
+    if (remainingBytes >= minRemainderToKeep &&
+        remainingBytes > (other._currentBuffer.length - other._currentLength)) {
+      remainder = new Uint8List.view(_currentBuffer.buffer,
+          _currentBuffer.offsetInBytes + _currentLength, remainingBytes);
+    }
+    _flushCurrentBuffer();
+    if (other._buffers != null) {
+      _buffers.addAll(other._buffers);
+      _buffersLength += other._buffersLength;
+    }
+    if (remainder != null) {
+      _flushBuffer(other._currentBuffer, other._currentLength);
+      _currentBuffer = remainder;
+      _currentLength = 0;
+    } else {
+      _currentBuffer = other._currentBuffer;
+      _currentLength = other._currentLength;
+    }
+    // Reset [other] to make sure it is no longer used.
+    other._buffers = null;
+    other._buffersLength = 0;
+    other._currentBuffer = null;
+    other._currentLength = 0;
   }
 
   @pragma('vm:prefer-inline')
@@ -61,11 +193,14 @@ class BufferedWriter {
     if ((value >> 32) != 0) {
       throw 'Unable to write $value as 32-bit unsigned integer';
     }
+    if (_currentLength > _currentBuffer.length - 4) {
+      _grow();
+    }
     // TODO(alexmarkov): consider using native byte order
-    bytes.addByte((value >> 24) & 0xFF);
-    bytes.addByte((value >> 16) & 0xFF);
-    bytes.addByte((value >> 8) & 0xFF);
-    bytes.addByte(value & 0xFF);
+    _addByte((value >> 24) & 0xFF);
+    _addByte((value >> 16) & 0xFF);
+    _addByte((value >> 8) & 0xFF);
+    _addByte(value & 0xFF);
   }
 
   @pragma('vm:prefer-inline')
@@ -74,15 +209,21 @@ class BufferedWriter {
       throw 'Unable to write $value as 30-bit unsigned integer';
     }
     if (value < 0x80) {
-      bytes.addByte(value);
+      writeByte(value);
     } else if (value < 0x4000) {
-      bytes.addByte((value >> 8) | 0x80);
-      bytes.addByte(value & 0xFF);
+      if (_currentLength > _currentBuffer.length - 2) {
+        _grow();
+      }
+      _addByte((value >> 8) | 0x80);
+      _addByte(value & 0xFF);
     } else {
-      bytes.addByte((value >> 24) | 0xC0);
-      bytes.addByte((value >> 16) & 0xFF);
-      bytes.addByte((value >> 8) & 0xFF);
-      bytes.addByte(value & 0xFF);
+      if (_currentLength > _currentBuffer.length - 4) {
+        _grow();
+      }
+      _addByte((value >> 24) | 0xC0);
+      _addByte((value >> 16) & 0xFF);
+      _addByte((value >> 8) & 0xFF);
+      _addByte(value & 0xFF);
     }
   }
 
@@ -98,7 +239,7 @@ class BufferedWriter {
       } else {
         part |= 0x80;
       }
-      bytes.addByte(part);
+      writeByte(part);
     } while (!last);
   }
 
@@ -130,8 +271,11 @@ class BufferedWriter {
     assert(alignment & (alignment - 1) == 0);
     int offs = baseOffset + offset;
     int padding = ((offs + alignment - 1) & -alignment) - offs;
+    if (_currentLength > _currentBuffer.length - padding) {
+      _grow();
+    }
     for (int i = 0; i < padding; ++i) {
-      bytes.addByte(0);
+      _addByte(0);
     }
   }
 }

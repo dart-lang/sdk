@@ -56,7 +56,7 @@ class BytecodeMetadataRepository extends MetadataRepository<BytecodeMetadata> {
         linkWriter,
         baseOffset: sink.getBufferOffset());
     metadata.write(writer);
-    sink.writeBytes(writer.takeBytes());
+    writer.writeContentsToBinarySink(sink);
   }
 
   @override

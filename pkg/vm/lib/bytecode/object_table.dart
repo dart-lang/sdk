@@ -1970,7 +1970,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
     writer.writePackedUInt30(_indexTable.length);
     writer.writePackedUInt30(contentsWriter.offset);
-    writer.writeBytes(contentsWriter.takeBytes());
+    writer.appendWriter(contentsWriter);
     for (var offs in offsets) {
       writer.writePackedUInt30(offs);
     }
