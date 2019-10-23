@@ -82,7 +82,12 @@ main() { foo(() {}); }
 * Added optional `parent` parameter to `TimelineTask` constructor to allow for
   linking of asynchronous timeline events in the DevTools timeline view.
 
-### `dart:ffi`
+### Dart VM
+
+* Added a new tool for AOT compiling Dart programs to native, self-contained
+executables. See https://dart.dev/tools/dart2native for additional details.
+
+### Foreign Function Interface (`dart:ffi`)
 
 *   **Breaking change**: The API now makes use of static extension members.
     Static extension members enable the `dart:ffi` API to be more precise with
@@ -100,12 +105,7 @@ main() { foo(() {}); }
     instead.
 *   Faster memory load and stores.
 *   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
-*   Callbacks are now supported in AOT (ahead-of-time).
-
-### Dart VM
-
-* Added a new tool for AOT compiling Dart programs to native, self-contained
-executables. See https://dart.dev/tools/dart2native for additional details.
+*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
 
 ### Dart for the Web
 
