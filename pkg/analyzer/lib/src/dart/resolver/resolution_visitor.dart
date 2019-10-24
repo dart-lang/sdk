@@ -476,8 +476,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           : _elementWalker.getFunction();
       node.name.staticElement = element;
     } else {
-      // Elements for local variables and functions are built before we
-      // start visiting a Block.
       element = node.declaredElement;
 
       _setCodeRange(element, node);
@@ -534,6 +532,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         },
       );
     });
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    if (!_hasLocalElementsBuilt(node)) {
+      _buildLocalFunctionElement(node);
+    }
+
+    node.functionDeclaration.accept(this);
   }
 
   @override
@@ -909,23 +916,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       element = _elementWalker.getVariable();
       node.name.staticElement = element;
     } else {
-      bool isConst = node.isConst;
-      bool isFinal = node.isFinal;
-      SimpleIdentifier variableName = node.name;
-
-      LocalVariableElementImpl localElement;
-      if (isConst && initializerNode != null) {
-        localElement = ConstLocalVariableElementImpl.forNode(variableName);
-      } else {
-        localElement = LocalVariableElementImpl.forNode(variableName);
-      }
-      _elementHolder.enclose(localElement);
-      variableName.staticElement = localElement;
+      LocalVariableElementImpl localElement = node.declaredElement;
       element = localElement;
-
-      localElement.isConst = isConst;
-      localElement.isFinal = isFinal;
-      localElement.isLate = node.isLate;
 
       VariableDeclarationList varList = node.parent;
       localElement.hasImplicitType = varList.type == null;
@@ -950,10 +942,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    super.visitVariableDeclarationList(node);
+    var parent = node.parent;
+    if (parent is ForPartsWithDeclarations ||
+        parent is VariableDeclarationStatement &&
+            !_hasLocalElementsBuilt(parent)) {
+      _buildLocalVariableElements(node);
+    }
+
+    node.visitChildren(this);
 
     List<ElementAnnotation> elementAnnotations;
-    AstNode parent = node.parent;
     if (parent is FieldDeclaration) {
       elementAnnotations = _createElementAnnotations(parent.metadata);
     } else if (parent is TopLevelVariableDeclaration) {
@@ -991,22 +989,41 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _buildLocalElements(List<Statement> statements) {
     for (var statement in statements) {
       if (statement is FunctionDeclarationStatement) {
-        var declaration = statement.functionDeclaration;
-        var element = FunctionElementImpl.forNode(declaration.name);
-        declaration.name.staticElement = element;
-        _nameScope.define(element);
-        _elementHolder.enclose(element);
+        _buildLocalFunctionElement(statement);
       } else if (statement is VariableDeclarationStatement) {
-        for (var variable in statement.variables.variables) {
-          var element = LocalVariableElementImpl(
-            variable.name.name,
-            variable.name.offset,
-          );
-          variable.name.staticElement = element;
-          _nameScope.define(element);
-          _elementHolder.enclose(element);
-        }
+        _buildLocalVariableElements(statement.variables);
       }
+    }
+  }
+
+  void _buildLocalFunctionElement(FunctionDeclarationStatement statement) {
+    var node = statement.functionDeclaration;
+    var element = FunctionElementImpl.forNode(node.name);
+    node.name.staticElement = element;
+    _nameScope.define(element);
+    _elementHolder.enclose(element);
+  }
+
+  void _buildLocalVariableElements(VariableDeclarationList variableList) {
+    var isConst = variableList.isConst;
+    var isFinal = variableList.isFinal;
+    var isLate = variableList.isLate;
+    for (var variable in variableList.variables) {
+      var variableName = variable.name;
+
+      LocalVariableElementImpl element;
+      if (isConst && variable.initializer != null) {
+        element = ConstLocalVariableElementImpl.forNode(variableName);
+      } else {
+        element = LocalVariableElementImpl.forNode(variableName);
+      }
+      variableName.staticElement = element;
+      _elementHolder.enclose(element);
+      _nameScope.define(element);
+
+      element.isConst = isConst;
+      element.isFinal = isFinal;
+      element.isLate = isLate;
     }
   }
 
@@ -1187,6 +1204,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _nameScope = current;
     }
+  }
+
+  /// We always build local elements for [VariableDeclarationStatement]s and
+  /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
+  /// to use forward references.
+  static bool _hasLocalElementsBuilt(Statement node) {
+    var parent = node.parent;
+    return parent is Block || parent is SwitchMember;
   }
 
   /// Associate each of the annotation [nodes] with the corresponding

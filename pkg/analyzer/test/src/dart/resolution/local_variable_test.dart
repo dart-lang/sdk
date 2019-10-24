@@ -18,10 +18,25 @@ main() {
 
 @reflectiveTest
 class LocalVariableResolutionTest extends DriverResolutionTest {
-  test_element() async {
+  test_element_block() async {
     await assertNoErrorsInCode(r'''
 void f() {
   int x = 0;
+}
+''');
+
+    var x = findElement.localVar('x');
+    expect(x.isConst, isFalse);
+    expect(x.isFinal, isFalse);
+    expect(x.isLate, isFalse);
+    expect(x.isStatic, isFalse);
+  }
+
+  test_element_ifStatement() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  if (1 > 2)
+    int x = 0;
 }
 ''');
 
