@@ -6,10 +6,10 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
-import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -19,11 +19,15 @@ import 'package:nnbd_migration/src/variables.dart';
 class NullabilityMigrationImpl implements NullabilityMigration {
   final NullabilityMigrationListener listener;
 
-  final Variables _variables;
+  Variables _variables;
 
   final NullabilityGraph _graph;
 
   final bool _permissive;
+
+  final NullabilityMigrationInstrumentation _instrumentation;
+
+  DecoratedClassHierarchy _decoratedClassHierarchy;
 
   /// Prepares to perform nullability migration.
   ///
@@ -32,39 +36,62 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
-      {bool permissive: false})
-      : this._(listener, NullabilityGraph(), permissive);
+      {bool permissive: false,
+      NullabilityMigrationInstrumentation instrumentation})
+      : this._(listener, NullabilityGraph(instrumentation: instrumentation),
+            permissive, instrumentation);
 
-  NullabilityMigrationImpl._(this.listener, this._graph, this._permissive)
-      : _variables = Variables(_graph);
+  NullabilityMigrationImpl._(
+      this.listener, this._graph, this._permissive, this._instrumentation) {
+    _instrumentation?.immutableNodes(_graph.never, _graph.always);
+  }
 
   void finish() {
     _graph.propagate();
     if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
-      throw new UnimplementedError('Need to report unsatisfied substitutions');
+      // TODO(paulberry): for now we just ignore unsatisfied substitutions, to
+      // work around https://github.com/dart-lang/sdk/issues/38257
+      // throw new UnimplementedError('Need to report unsatisfied substitutions');
     }
     // TODO(paulberry): it would be nice to report on unsatisfied edges as well,
     // however, since every `!` we add has an unsatisfied edge associated with
     // it, we can't report on every unsatisfied edge.  We need to figure out a
     // way to report unsatisfied edges that isn't too overwhelming.
-    broadcast(_variables, listener);
+    if (_variables != null) {
+      broadcast(_variables, listener, _instrumentation);
+    }
   }
 
   void prepareInput(ResolvedUnitResult result) {
+    if (_variables == null) {
+      _variables = Variables(_graph, result.typeProvider,
+          instrumentation: _instrumentation);
+      _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
+    }
     var unit = result.unit;
     unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
-        _permissive ? listener : null, _graph, result.typeProvider));
+        _permissive ? listener : null, _graph, result.typeProvider,
+        instrumentation: _instrumentation));
   }
 
   void processInput(ResolvedUnitResult result) {
     var unit = result.unit;
-    unit.accept(EdgeBuilder(result.typeProvider, result.typeSystem, _variables,
-        _graph, unit.declaredElement.source, _permissive ? listener : null));
+    unit.accept(EdgeBuilder(
+        result.typeProvider,
+        result.typeSystem,
+        _variables,
+        _graph,
+        unit.declaredElement.source,
+        _permissive ? listener : null,
+        _decoratedClassHierarchy,
+        instrumentation: _instrumentation));
   }
 
   @visibleForTesting
   static void broadcast(
-      Variables variables, NullabilityMigrationListener listener) {
+      Variables variables,
+      NullabilityMigrationListener listener,
+      NullabilityMigrationInstrumentation instrumentation) {
     for (var entry in variables.getPotentialModifications().entries) {
       var source = entry.key;
       final lineInfo = LineInfo.fromContent(source.contents.data);
@@ -76,6 +103,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         var fix =
             _SingleNullabilityFix(source, potentialModification, lineInfo);
         listener.addFix(fix);
+        instrumentation?.fix(fix, potentialModification.reasons);
         for (var edit in modifications) {
           listener.addEdit(fix, edit);
         }
@@ -97,32 +125,6 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
 
   factory _SingleNullabilityFix(Source source,
       PotentialModification potentialModification, LineInfo lineInfo) {
-    // TODO(paulberry): once everything is migrated into the analysis server,
-    // the migration engine can just create SingleNullabilityFix objects
-    // directly and set their kind appropriately; we won't need to translate the
-    // kinds using a bunch of `is` checks.
-    NullabilityFixDescription desc;
-    if (potentialModification is ExpressionChecks) {
-      desc = NullabilityFixDescription.checkExpression;
-    } else if (potentialModification is DecoratedTypeAnnotation) {
-      desc = NullabilityFixDescription.makeTypeNullable(
-          potentialModification.type.toString());
-    } else if (potentialModification is ConditionalModification) {
-      desc = potentialModification.discard.keepFalse
-          ? NullabilityFixDescription.discardThen
-          : NullabilityFixDescription.discardElse;
-    } else if (potentialModification is PotentiallyAddImport) {
-      desc =
-          NullabilityFixDescription.addImport(potentialModification.importPath);
-    } else if (potentialModification is PotentiallyAddRequired) {
-      desc = NullabilityFixDescription.addRequired(
-          potentialModification.className,
-          potentialModification.methodName,
-          potentialModification.parameterName);
-    } else {
-      throw new UnimplementedError('TODO(paulberry)');
-    }
-
     Location location;
 
     if (potentialModification.modifications.isNotEmpty) {
@@ -137,7 +139,8 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
       );
     }
 
-    return _SingleNullabilityFix._(source, desc, location: location);
+    return _SingleNullabilityFix._(source, potentialModification.description,
+        location: location);
   }
 
   _SingleNullabilityFix._(this.source, this.description, {Location location})

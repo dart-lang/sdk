@@ -284,7 +284,7 @@ class _MyWidgetState extends State<MyWidget> {
 import 'package:flutter/material.dart';
 /*caret*/main() {}
 ''');
-    assertNoAssist();
+    await assertNoAssist();
   }
 
   test_notStatelessWidget() async {
@@ -295,7 +295,7 @@ class /*caret*/MyWidget extends Text {
   MyWidget() : super('');
 }
 ''');
-    assertNoAssist();
+    await assertNoAssist();
   }
 
   test_notWidget() async {
@@ -304,7 +304,7 @@ class /*caret*/MyWidget extends Text {
 import 'package:flutter/material.dart';
 class /*caret*/MyWidget {}
 ''');
-    assertNoAssist();
+    await assertNoAssist();
   }
 
   test_simple() async {

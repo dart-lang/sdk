@@ -7,7 +7,9 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
+
 #include "vm/bitfield.h"
+#include "vm/class_id.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -15,6 +17,8 @@ namespace dart {
 class Class;
 class ClassStats;
 class ClassTable;
+class Isolate;
+class IsolateGroup;
 class JSONArray;
 class JSONObject;
 class JSONStream;
@@ -43,12 +47,12 @@ class ClassAndSize {
 template <typename T>
 class AllocStats {
  public:
-  T new_count;
-  T new_size;
-  T new_external_size;
-  T old_count;
-  T old_size;
-  T old_external_size;
+  RelaxedAtomic<T> new_count;
+  RelaxedAtomic<T> new_size;
+  RelaxedAtomic<T> new_external_size;
+  RelaxedAtomic<T> old_count;
+  RelaxedAtomic<T> old_size;
+  RelaxedAtomic<T> old_external_size;
 
   void ResetNew() {
     new_count = 0;
@@ -58,18 +62,16 @@ class AllocStats {
   }
 
   void AddNew(T size) {
-    AtomicOperations::IncrementBy(&new_count, 1);
-    AtomicOperations::IncrementBy(&new_size, size);
+    new_count.fetch_add(1);
+    new_size.fetch_add(size);
   }
 
   void AddNewGC(T size) {
-    new_count += 1;
-    new_size += size;
+    new_count.fetch_add(1);
+    new_size.fetch_add(size);
   }
 
-  void AddNewExternal(T size) {
-    AtomicOperations::IncrementBy(&new_external_size, size);
-  }
+  void AddNewExternal(T size) { new_external_size.fetch_add(size); }
 
   void ResetOld() {
     old_count = 0;
@@ -79,18 +81,16 @@ class AllocStats {
   }
 
   void AddOld(T size, T count = 1) {
-    AtomicOperations::IncrementBy(&old_count, count);
-    AtomicOperations::IncrementBy(&old_size, size);
+    old_count.fetch_add(count);
+    old_size.fetch_add(size);
   }
 
   void AddOldGC(T size, T count = 1) {
-    old_count += count;
-    old_size += size;
+    old_count.fetch_add(count);
+    old_size.fetch_add(size);
   }
 
-  void AddOldExternal(T size) {
-    AtomicOperations::IncrementBy(&old_external_size, size);
-  }
+  void AddOldExternal(T size) { old_external_size.fetch_add(size); }
 
   void Reset() {
     ResetNew();
@@ -185,40 +185,36 @@ class ClassHeapStats {
 };
 #endif  // !PRODUCT
 
-class ClassTable {
+// Registry of all known classes and their sizes.
+//
+// The GC will only need the information in this shared class table to scan
+// object pointers.
+class SharedClassTable {
  public:
-  ClassTable();
-  // Creates a shallow copy of the original class table for some read-only
-  // access, without support for stats data.
-  explicit ClassTable(ClassTable* original);
-  ~ClassTable();
+  SharedClassTable();
+  ~SharedClassTable();
 
   // Thread-safe.
-  RawClass* At(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return table_[index].class_;
-  }
-
   intptr_t SizeAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return table_[index].size_;
-  }
-
-  ClassAndSize PairAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
     return table_[index];
   }
 
-  void SetAt(intptr_t index, RawClass* raw_cls);
-
-  bool IsValidIndex(intptr_t index) const {
-    return (index > 0) && (index < top_);
-  }
-
   bool HasValidClassAt(intptr_t index) const {
     ASSERT(IsValidIndex(index));
-    return table_[index].class_ != NULL;
+    ASSERT(table_[index] >= 0);
+    return table_[index] != 0;
   }
+
+  void SetSizeAt(intptr_t index, intptr_t size) {
+    ASSERT(IsValidIndex(index));
+    // Ensure we never change size for a given cid from one non-zero size to
+    // another non-zero size.
+    RELEASE_ASSERT(table_[index] == 0 || table_[index] == size);
+    table_[index] = size;
+  }
+
+  bool IsValidIndex(intptr_t index) const { return index > 0 && index < top_; }
 
   intptr_t NumCids() const { return top_; }
   intptr_t Capacity() const { return capacity_; }
@@ -229,10 +225,211 @@ class ClassTable {
     top_ = num_cids;
   }
 
-  void Register(const Class& cls);
+  // Called whenever a old GC occurs.
+  void ResetCountersOld();
+  // Called whenever a new GC occurs.
+  void ResetCountersNew();
+  // Called immediately after a new GC.
+  void UpdatePromoted();
 
+#if !defined(PRODUCT)
+  // Called whenever a class is allocated in the runtime.
+  void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddNew(size);
+  }
+  void UpdateAllocatedOld(intptr_t cid, intptr_t size) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    ASSERT(stats != NULL);
+    ASSERT(size != 0);
+    stats->recent.AddOld(size);
+  }
+  void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
+  void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
+  void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
+
+  void ResetAllocationAccumulators();
+
+  void SetTraceAllocationFor(intptr_t cid, bool trace) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    stats->set_trace_allocation(trace);
+  }
+  bool TraceAllocationFor(intptr_t cid) {
+    ClassHeapStats* stats = PreliminaryStatsAt(cid);
+    return stats->trace_allocation();
+  }
+
+  ClassHeapStats* StatsWithUpdatedSize(intptr_t cid, intptr_t size);
+#endif  // !defined(PRODUCT)
+
+  // Returns the newly allocated cid.
+  //
+  // [index] is kIllegalCid or a predefined cid.
+  intptr_t Register(intptr_t index, intptr_t size);
   void AllocateIndex(intptr_t index);
+  void Unregister(intptr_t index);
 
+  void Remap(intptr_t* old_to_new_cids);
+
+  void FreeOldTables();
+
+  // Used by the generated code.
+#ifndef PRODUCT
+  static intptr_t class_heap_stats_table_offset() {
+    return OFFSET_OF(SharedClassTable, class_heap_stats_table_);
+  }
+#endif
+
+  // Used by the generated code.
+  static intptr_t ClassOffsetFor(intptr_t cid);
+
+  // Used by the generated code.
+  static intptr_t NewSpaceCounterOffsetFor(intptr_t cid);
+
+  // Used by the generated code.
+  static intptr_t StateOffsetFor(intptr_t cid);
+
+  // Used by the generated code.
+  static intptr_t NewSpaceSizeOffsetFor(intptr_t cid);
+
+  static const int kInitialCapacity = 512;
+  static const int kCapacityIncrement = 256;
+
+ private:
+  friend class ClassTable;
+  friend class GCMarker;
+  friend class MarkingWeakVisitor;
+  friend class Scavenger;
+  friend class ScavengerWeakVisitor;
+  friend class ClassHeapStatsTestHelper;
+  friend class HeapTestsHelper;
+
+  static bool ShouldUpdateSizeForClassId(intptr_t cid);
+
+#ifndef PRODUCT
+  // May not have updated size for variable size classes.
+  ClassHeapStats* PreliminaryStatsAt(intptr_t cid) {
+    ASSERT(cid > 0);
+    ASSERT(cid < top_);
+    return &class_heap_stats_table_[cid];
+  }
+  void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
+  void UpdateLiveNew(intptr_t cid, intptr_t size);
+  void UpdateLiveNewGC(intptr_t cid, intptr_t size);
+  void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
+  void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
+
+  ClassHeapStats* class_heap_stats_table_ = nullptr;
+#endif  // !PRODUCT
+
+  void Grow(intptr_t new_capacity);
+
+  intptr_t top_;
+  intptr_t capacity_;
+
+  // Copy-on-write is used for table_, with old copies stored in old_tables_.
+  intptr_t* table_;  // Maps the cid to the instance size.
+  MallocGrowableArray<intptr_t*>* old_tables_;
+
+  DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
+};
+
+class ClassTable {
+ public:
+  explicit ClassTable(SharedClassTable* shared_class_table_);
+
+  // Creates a shallow copy of the original class table for some read-only
+  // access, without support for stats data.
+  ClassTable(ClassTable* original, SharedClassTable* shared_class_table);
+  ~ClassTable();
+
+  SharedClassTable* shared_class_table() const { return shared_class_table_; }
+
+  void CopyBeforeHotReload(ClassAndSize** copy, intptr_t* copy_num_cids) {
+    // The [IsolateReloadContext] will need to maintain a copy of the old class
+    // table until instances have been morphed.
+    const intptr_t num_cids = NumCids();
+    const intptr_t bytes = sizeof(ClassAndSize) * num_cids;
+    auto class_and_size = static_cast<ClassAndSize*>(malloc(bytes));
+    for (intptr_t i = 0; i < num_cids; ++i) {
+      class_and_size[i] =
+          ClassAndSize(table_[i], shared_class_table_->table_[i]);
+    }
+    *copy_num_cids = num_cids;
+    *copy = class_and_size;
+  }
+
+  void ResetBeforeHotReload() {
+    // The [IsolateReloadContext] is now source-of-truth for GC.
+    //
+    // Though we cannot clear out the class pointers, because a hot-reload
+    // contains only a diff: If e.g. a class included in the hot-reload has a
+    // super class not included in the diff, it will look up in this class table
+    // to find the super class (e.g. `cls.SuperClass` will cause us to come
+    // here).
+    for (intptr_t i = 0; i < top_; ++i) {
+      shared_class_table_->table_[i] = 0;
+    }
+  }
+
+  void ResetAfterHotReload(ClassAndSize* old_table,
+                           intptr_t num_old_cids,
+                           bool is_rollback) {
+    // The [IsolateReloadContext] is no longer source-of-truth for GC after we
+    // return, so we restore size information for all classes.
+    if (is_rollback) {
+      SetNumCids(num_old_cids);
+      for (intptr_t i = 0; i < num_old_cids; ++i) {
+        shared_class_table_->table_[i] = old_table[i].size_;
+        table_[i] = old_table[i].class_;
+      }
+    } else {
+      CopySizesFromClassObjects();
+    }
+
+    // Can't free this table immediately as another thread (e.g., concurrent
+    // marker or sweeper) may be between loading the table pointer and loading
+    // the table element. The table will be freed at the next major GC or
+    // isolate shutdown.
+    AddOldTable(old_table);
+  }
+
+  // Thread-safe.
+  RawClass* At(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
+    return table_[index];
+  }
+
+  intptr_t SizeAt(intptr_t index) const {
+    return shared_class_table_->SizeAt(index);
+  }
+
+  void SetAt(intptr_t index, RawClass* raw_cls);
+
+  bool IsValidIndex(intptr_t index) const {
+    return shared_class_table_->IsValidIndex(index);
+  }
+
+  bool HasValidClassAt(intptr_t index) const {
+    ASSERT(IsValidIndex(index));
+    return table_[index] != nullptr;
+  }
+
+  intptr_t NumCids() const { return shared_class_table_->NumCids(); }
+  intptr_t Capacity() const { return shared_class_table_->Capacity(); }
+
+  // Used to drop recently added classes.
+  void SetNumCids(intptr_t num_cids) {
+    shared_class_table_->SetNumCids(num_cids);
+
+    ASSERT(num_cids <= top_);
+    top_ = num_cids;
+  }
+
+  void Register(const Class& cls);
+  void AllocateIndex(intptr_t index);
   void Unregister(intptr_t index);
 
   void Remap(intptr_t* old_to_new_cids);
@@ -252,7 +449,9 @@ class ClassTable {
   static intptr_t table_offset() { return OFFSET_OF(ClassTable, table_); }
 
   // Used by the generated code.
-  static intptr_t ClassOffsetFor(intptr_t cid);
+  static intptr_t shared_class_table_offset() {
+    return OFFSET_OF(ClassTable, shared_class_table_);
+  }
 
 #ifndef PRODUCT
   // Describes layout of heap stats for code generation. See offset_extractor.cc
@@ -263,75 +462,18 @@ class ClassTable {
   };
 #endif
 
-#if defined(ARCH_IS_32_BIT)
-  static constexpr int kSizeOfClassPairLog2 = 3;
-#else
-  static constexpr int kSizeOfClassPairLog2 = 4;
-#endif
-  static_assert(
-      (1 << kSizeOfClassPairLog2) == sizeof(ClassAndSize),
-      "Mismatch between sizeof(ClassAndSize) and kSizeOfClassPairLog2");
-
 #ifndef PRODUCT
-  // Called whenever a class is allocated in the runtime.
-  void UpdateAllocatedNew(intptr_t cid, intptr_t size) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    ASSERT(stats != NULL);
-    ASSERT(size != 0);
-    stats->recent.AddNew(size);
-  }
-  void UpdateAllocatedOld(intptr_t cid, intptr_t size) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    ASSERT(stats != NULL);
-    ASSERT(size != 0);
-    stats->recent.AddOld(size);
-  }
-  void UpdateAllocatedOldGC(intptr_t cid, intptr_t size);
-  void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
-  void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
-
-  // Called whenever a old GC occurs.
-  void ResetCountersOld();
-  // Called whenever a new GC occurs.
-  void ResetCountersNew();
-  // Called immediately after a new GC.
-  void UpdatePromoted();
-
-  // Used by the generated code.
-  static intptr_t class_heap_stats_table_offset() {
-    return OFFSET_OF(ClassTable, class_heap_stats_table_);
-  }
-
-  // Used by the generated code.
-  static intptr_t NewSpaceCounterOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t StateOffsetFor(intptr_t cid);
-
-  // Used by the generated code.
-  static intptr_t NewSpaceSizeOffsetFor(intptr_t cid);
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 
   void AllocationProfilePrintJSON(JSONStream* stream, bool internal);
-  void ResetAllocationAccumulators();
 
   void PrintToJSONObject(JSONObject* object);
-
-  void SetTraceAllocationFor(intptr_t cid, bool trace) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    stats->set_trace_allocation(trace);
-  }
-  bool TraceAllocationFor(intptr_t cid) {
-    ClassHeapStats* stats = PreliminaryStatsAt(cid);
-    return stats->trace_allocation();
-  }
 #endif  // !PRODUCT
 
   void AddOldTable(ClassAndSize* old_table);
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
-
 
  private:
   friend class GCMarker;
@@ -340,33 +482,19 @@ class ClassTable {
   friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
   friend class HeapTestsHelper;
-  static const int initial_capacity_ = 512;
-  static const int capacity_increment_ = 256;
+  static const int kInitialCapacity = SharedClassTable::kInitialCapacity;
+  static const int kCapacityIncrement = SharedClassTable::kCapacityIncrement;
 
-  static bool ShouldUpdateSizeForClassId(intptr_t cid);
+  void Grow(intptr_t index);
 
   intptr_t top_;
   intptr_t capacity_;
 
   // Copy-on-write is used for table_, with old copies stored in old_tables_.
-  ClassAndSize* table_;
+  RawClass** table_;
   MallocGrowableArray<ClassAndSize*>* old_tables_;
-
-#ifndef PRODUCT
-  ClassHeapStats* class_heap_stats_table_;
-
-  // May not have updated size for variable size classes.
-  ClassHeapStats* PreliminaryStatsAt(intptr_t cid) {
-    ASSERT(cid > 0);
-    ASSERT(cid < top_);
-    return &class_heap_stats_table_[cid];
-  }
-  void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
-  void UpdateLiveNew(intptr_t cid, intptr_t size);
-  void UpdateLiveNewGC(intptr_t cid, intptr_t size);
-  void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
-  void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
-#endif  // !PRODUCT
+  MallocGrowableArray<RawClass**>* old_class_tables_;
+  SharedClassTable* shared_class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);
 };

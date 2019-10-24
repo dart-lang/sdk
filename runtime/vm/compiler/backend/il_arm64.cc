@@ -874,9 +874,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();
-  Register temp = locs()->temp(1).reg();
-  Register branch = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+  const Register branch = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -914,7 +914,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
-    __ TransitionGeneratedToNative(branch, FPREG, temp);
+    __ TransitionGeneratedToNative(branch, FPREG, temp,
+                                   /*enter_safepoint=*/true);
 
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
@@ -926,7 +927,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mov(SP, CSP);
 
     // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(temp);
+    __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -977,11 +978,22 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Pop(vm_tag_reg);
 
-  // Reset the exit frame info to
-  // old_exit_frame_reg *before* entering the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp);
+  // Reset the exit frame info to old_exit_frame_reg *before* entering the
+  // safepoint.
+  //
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, tmp,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Leave the entry frame.
   __ LeaveFrame();
@@ -1014,10 +1026,6 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
 
@@ -1042,20 +1050,51 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save a space for the code object.
   __ PushImmediate(0);
 
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   __ PushNativeCalleeSavedRegisters();
 
-  // Load the thread object.
-  // TODO(35765): Fix linking issue on AOT.
-  // TOOD(35934): Exclude native callbacks from snapshots.
-  //
-  // Create another frame to align the frame before continuing in "native" code.
-  {
+  // Load the thread object. If we were called by a trampoline, the thread is
+  // already loaded.
+  if (FLAG_precompiled_mode) {
+    compiler::Label skip_reloc;
+    __ b(&skip_reloc);
+    compiler->InsertBSSRelocation(
+        BSS::Relocation::DRT_GetThreadForNativeCallback);
+    __ Bind(&skip_reloc);
+
+    __ adr(R0, compiler::Immediate(-compiler::target::kWordSize));
+
+    // R0 holds the address of the relocation.
+    __ ldr(R1, compiler::Address(R0));
+
+    // R1 holds the relocation itself: R0 - bss_start.
+    // R0 = R0 + (bss_start - R0) = bss_start
+    __ add(R0, R0, compiler::Operand(R1));
+
+    // R0 holds the start of the BSS section.
+    // Load the "get-thread" routine: *bss_start.
+    __ ldr(R1, compiler::Address(R0));
+  } else if (!NativeCallbackTrampolines::Enabled()) {
+    // In JIT mode, we can just paste the address of the runtime entry into the
+    // generated code directly. This is not a problem since we don't save
+    // callbacks into JIT snapshots.
+    __ LoadImmediate(
+        R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
+  }
+
+  if (!NativeCallbackTrampolines::Enabled()) {
+    // Create another frame to align the frame before continuing in "native"
+    // code.
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ LoadImmediate(
-        R0, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-    __ blr(R0);
+    __ LoadImmediate(R0, callback_id_);
+    __ blr(R1);
     __ mov(THR, R0);
 
     __ LeaveFrame();
@@ -1075,8 +1114,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Push(R0);
   __ StoreToOffset(ZR, THR, compiler::target::Thread::top_resource_offset());
 
-  // Save the top exit frame info. We don't set it to 0 yet in Thread because we
-  // need to leave the safepoint first.
+  // Save the top exit frame info. We don't set it to 0 yet:
+  // TransitionNativeToGenerated will handle that.
   __ LoadFromOffset(R0, THR,
                     compiler::target::Thread::top_exit_frame_info_offset());
   __ Push(R0);
@@ -1085,21 +1124,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
-  // leaving the safepoint.
-  __ TransitionNativeToGenerated(R0);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(R0, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
-
-  // Otherwise we'll clobber the argument sent from the caller.
-  ASSERT(CallingConventions::ArgumentRegisters[0] != TMP &&
-         CallingConventions::ArgumentRegisters[0] != TMP2 &&
-         CallingConventions::ArgumentRegisters[0] != R1);
-  __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
-  __ LoadFromOffset(R1, THR,
-                    compiler::target::Thread::verify_callback_entry_offset());
-  __ blr(R1);
 
   // Load the code object.
   __ LoadFromOffset(R0, THR, compiler::target::Thread::callback_code_offset());
@@ -1305,7 +1335,7 @@ static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = aligned() ? 0 : 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1322,9 +1352,6 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   } else {
     locs->set_out(0, Location::RequiresRegister());
   }
-  if (!aligned()) {
-    locs->set_temp(0, Location::RequiresRegister());
-  }
   return locs;
 }
 
@@ -1332,32 +1359,16 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
-  const Register address = aligned() ? kNoRegister : locs()->temp(0).reg();
 
   compiler::Address element_address(TMP);  // Bad address.
-  if (aligned()) {
-    element_address =
-        index.IsRegister()
-            ? __ ElementAddressForRegIndex(true,  // Load.
-                                           IsExternal(), class_id(),
-                                           index_scale(), array, index.reg())
-            : __ ElementAddressForIntIndex(IsExternal(), class_id(),
-                                           index_scale(), array,
-                                           Smi::Cast(index.constant()).Value());
-    // Warning: element_address may use register TMP as base.
-  } else {
-    if (index.IsRegister()) {
-      __ LoadElementAddressForRegIndex(address,
-                                       true,  // Load.
-                                       IsExternal(), class_id(), index_scale(),
-                                       array, index.reg());
-    } else {
-      __ LoadElementAddressForIntIndex(address, IsExternal(), class_id(),
-                                       index_scale(), array,
-                                       Smi::Cast(index.constant()).Value());
-    }
-  }
-
+  element_address =
+      index.IsRegister()
+          ? __ ElementAddressForRegIndex(true,  // Load.
+                                         IsExternal(), class_id(),
+                                         index_scale(), array, index.reg())
+          : __ ElementAddressForIntIndex(IsExternal(), class_id(),
+                                         index_scale(), array,
+                                         Smi::Cast(index.constant()).Value());
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
       (representation() == kUnboxedInt32x4) ||
@@ -1366,26 +1377,15 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (class_id()) {
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
-        if (aligned()) {
-          __ fldrs(result, element_address);
-        } else {
-          __ LoadUnaligned(TMP, address, TMP2, kUnsignedWord);
-          __ fmovsr(result, TMP);
-        }
+        __ fldrs(result, element_address);
         break;
       case kTypedDataFloat64ArrayCid:
         // Load double precision float.
-        if (aligned()) {
-          __ fldrd(result, element_address);
-        } else {
-          __ LoadUnaligned(TMP, address, TMP2, kDoubleWord);
-          __ fmovdr(result, TMP);
-        }
+        __ fldrd(result, element_address);
         break;
       case kTypedDataFloat64x2ArrayCid:
       case kTypedDataInt32x4ArrayCid:
       case kTypedDataFloat32x4ArrayCid:
-        ASSERT(aligned());
         __ fldrq(result, element_address);
         break;
       default:
@@ -1398,28 +1398,16 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (class_id()) {
     case kTypedDataInt32ArrayCid:
       ASSERT(representation() == kUnboxedInt32);
-      if (aligned()) {
-        __ ldr(result, element_address, kWord);
-      } else {
-        __ LoadUnaligned(result, address, TMP, kWord);
-      }
+      __ ldr(result, element_address, kWord);
       break;
     case kTypedDataUint32ArrayCid:
       ASSERT(representation() == kUnboxedUint32);
-      if (aligned()) {
-        __ ldr(result, element_address, kUnsignedWord);
-      } else {
-        __ LoadUnaligned(result, address, TMP, kUnsignedWord);
-      }
+      __ ldr(result, element_address, kUnsignedWord);
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       ASSERT(representation() == kUnboxedInt64);
-      if (aligned()) {
-        __ ldr(result, element_address, kDoubleWord);
-      } else {
-        __ LoadUnaligned(result, address, TMP, kDoubleWord);
-      }
+      __ ldr(result, element_address, kDoubleWord);
       break;
     case kTypedDataInt8ArrayCid:
       ASSERT(representation() == kUnboxedIntPtr);
@@ -1438,26 +1426,17 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataInt16ArrayCid:
       ASSERT(representation() == kUnboxedIntPtr);
-      if (aligned()) {
-        __ ldr(result, element_address, kHalfword);
-      } else {
-        __ LoadUnaligned(result, address, TMP, kHalfword);
-      }
+      __ ldr(result, element_address, kHalfword);
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
       ASSERT(representation() == kUnboxedIntPtr);
-      if (aligned()) {
-        __ ldr(result, element_address, kUnsignedHalfword);
-      } else {
-        __ LoadUnaligned(result, address, TMP, kUnsignedHalfword);
-      }
+      __ ldr(result, element_address, kUnsignedHalfword);
       break;
     default:
       ASSERT(representation() == kTagged);
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
-      ASSERT(aligned());
       __ ldr(result, element_address);
       break;
   }
@@ -1479,10 +1458,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The string register points to the backing store for external strings.
   const Register str = locs()->in(0).reg();
   const Location index = locs()->in(1);
-
-  compiler::Address element_address = __ ElementAddressForRegIndex(
-      true, IsExternal(), class_id(), index_scale(), str, index.reg());
-  // Warning: element_address may use register TMP as base.
+  OperandSize sz = OperandSize::kByte;
 
   Register result = locs()->out(0).reg();
   switch (class_id()) {
@@ -1490,37 +1466,41 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalOneByteStringCid:
       switch (element_count()) {
         case 1:
-          __ ldr(result, element_address, kUnsignedByte);
+          sz = kUnsignedByte;
           break;
         case 2:
-          __ ldr(result, element_address, kUnsignedHalfword);
+          sz = kUnsignedHalfword;
           break;
         case 4:
-          __ ldr(result, element_address, kUnsignedWord);
+          sz = kUnsignedWord;
           break;
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
       switch (element_count()) {
         case 1:
-          __ ldr(result, element_address, kUnsignedHalfword);
+          sz = kUnsignedHalfword;
           break;
         case 2:
-          __ ldr(result, element_address, kUnsignedWord);
+          sz = kUnsignedWord;
           break;
         default:
           UNREACHABLE();
       }
-      __ SmiTag(result);
       break;
     default:
       UNREACHABLE();
       break;
   }
+  // Warning: element_address may use register TMP as base.
+  compiler::Address element_address = __ ElementAddressForRegIndexWithSize(
+      true, IsExternal(), class_id(), sz, index_scale(), str, index.reg());
+  __ ldr(result, element_address, sz);
+
+  __ SmiTag(result);
 }
 
 Representation StoreIndexedInstr::RequiredInputRepresentation(
@@ -1566,7 +1546,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = aligned() ? 1 : 2;
+  const intptr_t kNumTemps = 1;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1575,9 +1555,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   } else {
     locs->set_in(1, Location::WritableRegister());
   }
-  for (intptr_t i = 0; i < kNumTemps; i++) {
-    locs->set_temp(i, Location::RequiresRegister());
-  }
+  locs->set_temp(0, Location::RequiresRegister());
 
   switch (class_id()) {
     case kArrayCid:
@@ -1624,7 +1602,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
   const Register address = locs()->temp(0).reg();
-  const Register scratch = aligned() ? kNoRegister : locs()->temp(1).reg();
 
   if (index.IsRegister()) {
     __ LoadElementAddressForRegIndex(address,
@@ -1639,7 +1616,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   switch (class_id()) {
     case kArrayCid:
-      ASSERT(aligned());
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
         __ StoreIntoArray(array, address, value, CanValueBeSmi(),
@@ -1658,7 +1634,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kExternalTypedDataUint8ArrayCid:
     case kOneByteStringCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
-      ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ LoadImmediate(TMP, static_cast<int8_t>(constant.Value()));
@@ -1672,7 +1647,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
-      ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();
@@ -1698,57 +1672,34 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid: {
       ASSERT(RequiredInputRepresentation(2) == kUnboxedIntPtr);
       const Register value = locs()->in(2).reg();
-      if (aligned()) {
-        __ str(value, compiler::Address(address), kUnsignedHalfword);
-      } else {
-        __ StoreUnaligned(value, address, scratch, kUnsignedHalfword);
-      }
+      __ str(value, compiler::Address(address), kUnsignedHalfword);
       break;
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       const Register value = locs()->in(2).reg();
-      if (aligned()) {
-        __ str(value, compiler::Address(address), kUnsignedWord);
-      } else {
-        __ StoreUnaligned(value, address, scratch, kUnsignedWord);
-      }
+      __ str(value, compiler::Address(address), kUnsignedWord);
       break;
     }
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid: {
       const Register value = locs()->in(2).reg();
-      if (aligned()) {
-        __ str(value, compiler::Address(address), kDoubleWord);
-      } else {
-        __ StoreUnaligned(value, address, scratch, kDoubleWord);
-      }
+      __ str(value, compiler::Address(address), kDoubleWord);
       break;
     }
     case kTypedDataFloat32ArrayCid: {
       const VRegister value_reg = locs()->in(2).fpu_reg();
-      if (aligned()) {
-        __ fstrs(value_reg, compiler::Address(address));
-      } else {
-        __ fmovrs(TMP, value_reg);
-        __ StoreUnaligned(TMP, address, scratch, kWord);
-      }
+      __ fstrs(value_reg, compiler::Address(address));
       break;
     }
     case kTypedDataFloat64ArrayCid: {
       const VRegister value_reg = locs()->in(2).fpu_reg();
-      if (aligned()) {
-        __ fstrd(value_reg, compiler::Address(address));
-      } else {
-        __ fmovrd(TMP, value_reg);
-        __ StoreUnaligned(TMP, address, scratch, kDoubleWord);
-      }
+      __ fstrd(value_reg, compiler::Address(address));
       break;
     }
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
-      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
       __ fstrq(value_reg, compiler::Address(address));
       break;
@@ -2843,10 +2794,9 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(catch_try_index(), try_index(),
-                                compiler->assembler()->CodeSize(),
-                                handler_token_pos(), is_generated(),
-                                catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(
+      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
+      is_generated(), catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
   const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
@@ -3252,13 +3202,20 @@ class CheckedSmiComparisonSlowPath
   static constexpr intptr_t kNumSlowPathArgs = 2;
 
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               Environment* env,
                                intptr_t try_index,
                                BranchLabels labels,
                                bool merged)
       : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
-        merged_(merged) {}
+        merged_(merged),
+        env_(env) {
+    // The environment must either come from the comparison or the environment
+    // was cleared from the comparison (and moved to a branch).
+    ASSERT(env == instruction->env() ||
+           (merged && instruction->env() == nullptr));
+  }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
@@ -3270,10 +3227,9 @@ class CheckedSmiComparisonSlowPath
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction()->env() != NULL) {
-      Environment* env =
-          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
-      compiler->pending_deoptimization_env_ = env;
+    if (env_ != nullptr) {
+      compiler->pending_deoptimization_env_ =
+          compiler->SlowPathEnvironmentFor(env_, locs, kNumSlowPathArgs);
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
@@ -3285,7 +3241,7 @@ class CheckedSmiComparisonSlowPath
         instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ mov(result, R0);
     compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = NULL;
+    compiler->pending_deoptimization_env_ = nullptr;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ b(instruction()->is_negated() ? labels_.false_label
@@ -3304,6 +3260,7 @@ class CheckedSmiComparisonSlowPath
   intptr_t try_index_;
   BranchLabels labels_;
   bool merged_;
+  Environment* env_;
 };
 
 LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
@@ -3347,7 +3304,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, branch->env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ true);
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -3368,7 +3325,7 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For this purpose, 'merged' slow path is generated: it tests
   // result of a call and jumps directly to true or false label.
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ is_negated());
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -5400,6 +5357,55 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register tmp,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
+
+  // Special case 64-bit div/mod by compile-time constant. Note that various
+  // special constants (such as powers of two) should have been optimized
+  // earlier in the pipeline. Div or mod by zero falls into general code
+  // to implement the exception.
+  if (FLAG_optimization_level <= 2) {
+    // We only consider magic operations under O3.
+  } else if (auto c = instruction->right()->definition()->AsConstant()) {
+    if (c->value().IsInteger()) {
+      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      if (divisor <= -2 || divisor >= 2) {
+        // For x DIV c or x MOD c: use magic operations.
+        compiler::Label pos;
+        int64_t magic = 0;
+        int64_t shift = 0;
+        Utils::CalculateMagicAndShiftForDivRem(divisor, &magic, &shift);
+        // Compute tmp = high(magic * numerator).
+        __ LoadImmediate(TMP2, magic);
+        __ smulh(TMP2, TMP2, left);
+        // Compute tmp +/-= numerator.
+        if (divisor > 0 && magic < 0) {
+          __ add(TMP2, TMP2, compiler::Operand(left));
+        } else if (divisor < 0 && magic > 0) {
+          __ sub(TMP2, TMP2, compiler::Operand(left));
+        }
+        // Shift if needed.
+        if (shift != 0) {
+          __ add(TMP2, ZR, compiler::Operand(TMP2, ASR, shift));
+        }
+        // Finalize DIV or MOD.
+        if (op_kind == Token::kTRUNCDIV) {
+          __ sub(out, TMP2, compiler::Operand(TMP2, ASR, 63));
+        } else {
+          __ sub(TMP2, TMP2, compiler::Operand(TMP2, ASR, 63));
+          __ LoadImmediate(TMP, divisor);
+          __ msub(out, TMP2, TMP, left);
+          // Compensate for Dart's Euclidean view of MOD.
+          __ CompareRegisters(out, ZR);
+          if (divisor > 0) {
+            __ add(TMP2, out, compiler::Operand(TMP));
+          } else {
+            __ sub(TMP2, out, compiler::Operand(TMP));
+          }
+          __ csel(out, TMP2, out, LT);
+        }
+        return;
+      }
+    }
+  }
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();

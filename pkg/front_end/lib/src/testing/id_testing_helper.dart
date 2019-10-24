@@ -8,6 +8,7 @@ import '../api_prototype/compiler_options.dart'
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
+import '../base/common.dart';
 import '../fasta/messages.dart' show FormattedMessage;
 import '../fasta/severity.dart' show Severity;
 import '../kernel_generator_impl.dart' show InternalCompilerResult;
@@ -23,6 +24,7 @@ import 'id_testing.dart'
         RunTestFunction,
         TestData,
         cfeMarker,
+        cfeWithNnbdMarker,
         checkCode;
 import 'id_testing_utils.dart';
 
@@ -33,22 +35,21 @@ export '../fasta/messages.dart' show FormattedMessage;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
-/// Test configuration used for testing CFE with constant evaluation.
-const TestConfig cfeConstantUpdate2018Config = const TestConfig(
-    cfeMarker, 'cfe with constant-update-2018',
-    experimentalFlags: const {ExperimentalFlag.constantUpdate2018: true});
-
-/// Test configuration used for testing CFE with extension methods.
-const TestConfig cfeExtensionMethodsConfig = const TestConfig(
-    cfeMarker, 'cfe with constant-update-2018',
-    experimentalFlags: const {ExperimentalFlag.extensionMethods: true});
+/// Test configuration used for testing CFE with nnbd.
+const TestConfig cfeNonNullableConfig = const TestConfig(
+    cfeWithNnbdMarker, 'cfe with nnbd',
+    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
 
 class TestConfig {
   final String marker;
   final String name;
   final Map<ExperimentalFlag, bool> experimentalFlags;
+  final Uri librariesSpecificationUri;
 
-  const TestConfig(this.marker, this.name, {this.experimentalFlags = const {}});
+  const TestConfig(this.marker, this.name,
+      {this.experimentalFlags = const {}, this.librariesSpecificationUri});
+
+  void customizeCompilerOptions(CompilerOptions options) {}
 }
 
 // TODO(johnniwinther): Support annotations for compile-time errors.
@@ -137,6 +138,11 @@ class CfeCompiledData<T> extends CompiledData<T> {
       return offset;
     } else if (id is ClassId) {
       Library library = lookupLibrary(compilerResult.component, uri);
+      Extension extension =
+          lookupExtension(library, id.className, required: false);
+      if (extension != null) {
+        return extension.fileOffset;
+      }
       Class cls = lookupClass(library, id.className);
       return cls.fileOffset;
     }
@@ -178,6 +184,7 @@ void onFailure(String message) => throw new StateError(message);
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
+  retainDataForTesting = true;
   return (TestData testData,
       {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
     return runTest(testData, dataComputer, testedConfigs,
@@ -240,6 +247,14 @@ Future<bool> runTestForConfig<T>(
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
+  if (config.librariesSpecificationUri != null) {
+    Set<Uri> testFiles =
+        testData.memorySourceFiles.keys.map(createUriForFileName).toSet();
+    if (testFiles.contains(config.librariesSpecificationUri)) {
+      options.librariesSpecificationUri = config.librariesSpecificationUri;
+    }
+  }
+  config.customizeCompilerOptions(options);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
@@ -280,7 +295,9 @@ Future<bool> runTestForConfig<T>(
   }
 
   Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
-    Uri uri = node is Library ? node.fileUri : node.location.file;
+    Uri uri = node is Library
+        ? node.fileUri
+        : (node is Member ? node.fileUri : node.location.file);
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 

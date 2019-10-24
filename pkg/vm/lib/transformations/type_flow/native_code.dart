@@ -55,15 +55,16 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
-    if (!klass.isAbstract) {
-      var type = _annotationsDefineRoot(klass.annotations);
-      if (type != null) {
-        if (type != PragmaEntryPointType.Default) {
-          throw "Error: pragma entry-point definition on a class must evaluate "
-              "to null, true or false. See entry_points_pragma.md.";
-        }
+    final type = _annotationsDefineRoot(klass.annotations);
+    if (type != null) {
+      if (type != PragmaEntryPointType.Default) {
+        throw "Error: pragma entry-point definition on a class must evaluate "
+            "to null, true or false. See entry_points_pragma.md.";
+      }
+      if (!klass.isAbstract) {
         entryPoints.addAllocatedClass(klass);
       }
+      nativeCodeOracle.addClassReferencedFromNativeCode(klass);
     }
     currentClass = klass;
     klass.visitChildren(this);
@@ -167,11 +168,19 @@ class PragmaEntryPointsVisitor extends RecursiveVisitor {
 class NativeCodeOracle {
   final LibraryIndex _libraryIndex;
   final Set<Member> _membersReferencedFromNativeCode = new Set<Member>();
+  final Set<Class> _classesReferencedFromNativeCode = new Set<Class>();
   final PragmaAnnotationParser _matcher;
 
   NativeCodeOracle(this._libraryIndex, this._matcher) {
     assertx(_matcher != null);
   }
+
+  void addClassReferencedFromNativeCode(Class klass) {
+    _classesReferencedFromNativeCode.add(klass);
+  }
+
+  bool isClassReferencedFromNativeCode(Class klass) =>
+      _classesReferencedFromNativeCode.contains(klass);
 
   void setMemberReferencedFromNativeCode(Member member) {
     _membersReferencedFromNativeCode.add(member);

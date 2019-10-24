@@ -1,16 +1,40 @@
+include: package:pedantic/analysis_options.1.8.0.yaml
+
 analyzer:
   # This currently finds ~1,200 implicit-casts issues when enabled.
   # strong-mode:
   #   implicit-casts: false
   exclude:
     - test/mock_packages/**
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
+    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
+    # violations that need to be cleaned up. Each one can be cleaned up and
+    # enabled according to the value provided.
+    avoid_init_to_null: ignore
+    avoid_return_types_on_setters: ignore
+    curly_braces_in_flow_control_structures: ignore
+    empty_catches: ignore
+    prefer_iterable_wheretype: ignore
+    prefer_contains: ignore
+    # TODO(srawlins): At the time of writing, 2400 violations in lib/. The fix
+    # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
+    # today.
+    slash_for_doc_comments: ignore
+    # TODO(srawlins): At the time of writing, 20 violations in lib/. The fix
+    # is not mechanical; each violation probably needs to be scrutinized.
+    unawaited_futures: ignore
+    # TODO(srawlins): At the time of writing, 1100 violations in lib/. The fix
+    # is mechanical, via `dartfmt --fix-optional-const`, but not worth the
+    # churn today.
+    unnecessary_const: ignore
+    # TODO(srawlins): At the time of writing, 2500 violations in lib/. The fix
+    # is mechanical, via `dartfmt --fix-optional-new`, but not worth the churn
+    # today.
+    unnecessary_new: ignore
 
 linter:
   rules:
-    - empty_constructor_bodies # pedantic
     - empty_statements
-    - prefer_equal_for_default_values # pedantic
-    - prefer_is_empty # pedantic
-    - prefer_is_not_empty # pedantic
     - unnecessary_brace_in_string_interps
-    - valid_regexps # pedantic

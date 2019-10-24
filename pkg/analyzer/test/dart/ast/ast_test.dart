@@ -26,10 +26,13 @@ main() {
     defineReflectiveTests(FieldFormalParameterTest);
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(MethodDeclarationTest);
+    defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(PreviousTokenTest);
+    defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
+    defineReflectiveTests(SpreadElementTest);
     defineReflectiveTests(StringInterpolationTest);
     defineReflectiveTests(VariableDeclarationTest);
   });
@@ -130,7 +133,7 @@ class ClassTypeAliasTest extends ParserTestCase {
 }
 
 @reflectiveTest
-class ConstructorDeclarationTest extends EngineTestCase {
+class ConstructorDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_all_inverted() {
     Token externalKeyword = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     externalKeyword.offset = 14;
@@ -202,7 +205,7 @@ class ConstructorDeclarationTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class FieldFormalParameterTest extends EngineTestCase {
+class FieldFormalParameterTest {
   void test_endToken_noParameters() {
     FieldFormalParameter parameter =
         AstTestFactory.fieldFormalParameter2('field');
@@ -217,7 +220,7 @@ class FieldFormalParameterTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class IndexExpressionTest extends EngineTestCase {
+class IndexExpressionTest {
   void test_inGetterContext_assignment_compound_left() {
     IndexExpression expression = AstTestFactory.indexExpression(
         AstTestFactory.identifier3("a"), AstTestFactory.identifier3("b"));
@@ -321,10 +324,26 @@ class IndexExpressionTest extends EngineTestCase {
     AstTestFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     expect(expression.inSetterContext(), isTrue);
   }
+
+  void test_isNullAware_regularIndex() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final expression = AstTestFactory.indexExpression(
+        AstTestFactory.nullLiteral(),
+        AstTestFactory.nullLiteral(),
+        TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+    expect(expression.isNullAware, isTrue);
+  }
 }
 
 @reflectiveTest
-class MethodDeclarationTest extends EngineTestCase {
+class MethodDeclarationTest {
   void test_firstTokenAfterCommentAndMetadata_external() {
     MethodDeclaration declaration =
         AstTestFactory.methodDeclaration4(external: true, name: 'm');
@@ -362,7 +381,32 @@ class MethodDeclarationTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class NodeListTest extends EngineTestCase {
+class MethodInvocationTest extends ParserTestCase {
+  void test_isNullAware_cascade() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD_PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_regularInvocation() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(), 'foo', null, [], TokenType.PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final invocation = AstTestFactory.methodInvocation3(
+        AstTestFactory.nullLiteral(),
+        'foo',
+        null,
+        [],
+        TokenType.QUESTION_PERIOD);
+    expect(invocation.isNullAware, isTrue);
+  }
+}
+
+@reflectiveTest
+class NodeListTest {
   void test_add() {
     AstNode parent = AstTestFactory.argumentList();
     AstNode firstNode = AstTestFactory.booleanLiteral(true);
@@ -707,6 +751,27 @@ E f() => g;
     ClassDeclaration clazz = unit.declarations[0];
     MethodDeclaration method = clazz.members[1];
     expect(method.findPrevious(findToken('D')).lexeme, '}');
+  }
+}
+
+@reflectiveTest
+class PropertyAccessTest extends ParserTestCase {
+  void test_isNullAware_cascade() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD_PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_regularPropertyAccess() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.PERIOD);
+    expect(invocation.isNullAware, isFalse);
+  }
+
+  void test_isNullAware_true() {
+    final invocation = AstTestFactory.propertyAccess2(
+        AstTestFactory.nullLiteral(), 'foo', TokenType.QUESTION_PERIOD);
+    expect(invocation.isNullAware, isTrue);
   }
 }
 
@@ -1185,6 +1250,21 @@ class SimpleStringLiteralTest extends ParserTestCase {
     expect(stringLiteral.beginToken, same(token));
     expect(stringLiteral.endToken, same(token));
     expect(stringLiteral.value, "value");
+  }
+}
+
+@reflectiveTest
+class SpreadElementTest extends ParserTestCase {
+  void test_notNullAwareSpread() {
+    final spread = AstTestFactory.spreadElement(
+        TokenType.PERIOD_PERIOD_PERIOD, AstTestFactory.nullLiteral());
+    expect(spread.isNullAware, isFalse);
+  }
+
+  void test_nullAwareSpread() {
+    final spread = AstTestFactory.spreadElement(
+        TokenType.PERIOD_PERIOD_PERIOD_QUESTION, AstTestFactory.nullLiteral());
+    expect(spread.isNullAware, isTrue);
   }
 }
 

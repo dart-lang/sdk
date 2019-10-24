@@ -23,9 +23,7 @@ abstract class AbstractLinterContextTest extends DriverResolutionTest {
   LinterContextImpl context;
 
   Future<void> resolve(String content) async {
-    addTestFile(content);
-    await resolveTestFile();
-
+    await resolveTestCode(content);
     var contextUnit = LinterContextUnit(result.content, result.unit);
     context = new LinterContextImpl(
       [contextUnit],
@@ -184,6 +182,16 @@ A f() => A();
     assertCanBeConst("A(", false);
   }
 
+  void test_false_typeParameter() async {
+    await resolve('''
+class A<T> {
+  const A();
+}
+f<U>() => A<U>();
+''');
+    assertCanBeConst("A<U>", false);
+  }
+
   void test_true_constConstructorArg() async {
     await resolve('''
 class A {
@@ -205,5 +213,21 @@ class A {
 A f() => A([1, 2, 3]);
 ''');
     assertCanBeConst("A([", true);
+  }
+
+  void test_true_importedClass_defaultValue() async {
+    var aPath = convertPath('/test/lib/a.dart');
+    newFile(aPath, content: r'''
+class A {
+  final int a;
+  const A({int b = 1}) : a = b * 2;
+}
+''');
+    await resolve('''
+import 'a.dart';
+
+A f() => A();
+''');
+    assertCanBeConst("A();", true);
   }
 }

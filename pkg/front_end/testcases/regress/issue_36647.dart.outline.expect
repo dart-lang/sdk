@@ -7,10 +7,9 @@ import "org-dartlang-testcase:///issue_36647_lib1.dart";
 library;
 import self as self2;
 import "issue_36647_lib2.dart" as iss;
-additionalExports = (iss::xxx)
-, iss::XXX)
-, iss::extends)
-
+additionalExports = (iss::xxx,
+  iss::XXX,
+  iss::extends)
 
 export "org-dartlang-testcase:///issue_36647_lib2.dart";
 
@@ -53,7 +52,7 @@ library;
 // class xxx xx XXX extends XXX {
 //              ^^^
 //
-// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:11: Warning: Type 'xx' not found.
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:11: Error: Type 'xx' not found.
 // class xxx xx XXX extends XXX {
 //           ^^
 //

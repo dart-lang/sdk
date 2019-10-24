@@ -21,6 +21,7 @@
 #include "platform/globals.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/bss_relocs.h"
 #include "vm/class_id.h"
 #include "vm/code_entry_kind.h"
 #include "vm/constants.h"
@@ -632,6 +633,7 @@ class Thread : public AllStatic {
   static word active_exception_offset();
   static word active_stacktrace_offset();
   static word resume_pc_offset();
+  static word saved_shadow_call_stack_offset();
   static word marking_stack_block_offset();
   static word top_exit_frame_info_offset();
   static word top_resource_offset();
@@ -651,13 +653,13 @@ class Thread : public AllStatic {
   static word write_barrier_wrappers_thread_offset(Register regno);
   static word array_write_barrier_entry_point_offset();
   static word write_barrier_entry_point_offset();
-  static word verify_callback_entry_offset();
   static word vm_tag_offset();
   static uword vm_tag_compiled_id();
 
   static word safepoint_state_offset();
   static uword safepoint_state_unacquired();
   static uword safepoint_state_acquired();
+  static intptr_t safepoint_state_inside_bit();
 
   static word execution_state_offset();
   static uword vm_execution_state();
@@ -754,15 +756,22 @@ class Isolate : public AllStatic {
 #endif  // !defined(PRODUCT)
 };
 
+class SharedClassTable : public AllStatic {
+ public:
+  static word class_heap_stats_table_offset();
+};
+
 class ClassTable : public AllStatic {
  public:
   static word table_offset();
+  static word shared_class_table_offset();
 #if !defined(PRODUCT)
   static word ClassOffsetFor(intptr_t cid);
   static word StateOffsetFor(intptr_t cid);
-  static word class_heap_stats_table_offset();
   static word NewSpaceCounterOffsetFor(intptr_t cid);
   static word NewSpaceSizeOffsetFor(intptr_t cid);
+  static word SharedTableOffsetFor();
+  static word SizeOffsetFor(intptr_t cid, bool is_new);
 #endif  // !defined(PRODUCT)
   static const word kSizeOfClassPairLog2;
 };

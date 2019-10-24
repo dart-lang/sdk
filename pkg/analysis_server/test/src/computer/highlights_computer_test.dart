@@ -38,6 +38,18 @@ extension E on String {}
     _check(HighlightRegionType.BUILT_IN, 'on');
   }
 
+  test_methodInvocation_ofExtensionOverride_unresolved() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    await _computeHighlights('''
+extension E on int {}
+
+main() {
+  E(0).foo();
+}
+''', hasErrors: true);
+    _check(HighlightRegionType.IDENTIFIER_DEFAULT, 'foo');
+  }
+
   void _check(HighlightRegionType expectedType, String expectedText) {
     for (var region in highlights) {
       if (region.type == expectedType) {
@@ -52,11 +64,20 @@ extension E on String {}
     fail('Expected region of type $expectedType with text "$expectedText"');
   }
 
-  Future<void> _computeHighlights(String content) async {
+  Future<void> _computeHighlights(
+    String content, {
+    bool hasErrors = false,
+  }) async {
     this.content = content;
     newFile(sourcePath, content: content);
     ResolvedUnitResult result = await session.getResolvedUnit(sourcePath);
-    expect(result.errors, hasLength(0));
+
+    if (hasErrors) {
+      expect(result.errors, isNotEmpty);
+    } else {
+      expect(result.errors, isEmpty);
+    }
+
     DartUnitHighlightsComputer computer =
         new DartUnitHighlightsComputer(result.unit);
     highlights = computer.compute();

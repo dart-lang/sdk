@@ -8,11 +8,12 @@
 
 library FfiTest;
 
+import 'dart:io';
 import 'dart:ffi';
 
-import 'dylib_utils.dart';
-
 import 'package:expect/expect.dart';
+
+import 'dylib_utils.dart';
 
 void main() {
   testOpen();
@@ -42,6 +43,20 @@ void testLookup() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   var timesFour = l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour");
   Expect.approxEquals(12.0, timesFour(3));
+
+  if (Platform.isMacOS ||
+      Platform.isIOS ||
+      Platform.isAndroid ||
+      Platform.isLinux) {
+    // Lookup a symbol from 'libc' since it's loaded with global visibility.
+    DynamicLibrary p = DynamicLibrary.process();
+    Expect.isTrue(p.lookup<Void>("strcmp") != nullptr);
+  } else {
+    Expect.throws<UnsupportedError>(() => DynamicLibrary.process());
+  }
+
+  DynamicLibrary e = DynamicLibrary.executable();
+  Expect.isTrue(e.lookup("Dart_Invoke") != nullptr);
 }
 
 void testLookupError() {

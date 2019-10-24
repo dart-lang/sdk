@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
@@ -349,8 +348,7 @@ class A {
     ConstructorElement element = _findElementAtString('A() {}');
 
     CompilationUnit otherUnit = (await driver.getResult(other)).unit;
-    Element main =
-        resolutionMap.elementDeclaredByCompilationUnit(otherUnit).functions[0];
+    Element main = otherUnit.declaredElement.functions[0];
     var expected = [
       new ExpectedResult(main, SearchResultKind.REFERENCE,
           otherCode.indexOf('(); // in other'), 0,
@@ -420,8 +418,8 @@ class A {
       _expectIdQ(main, SearchResultKind.REFERENCE, 'field: 1'),
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -476,8 +474,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, SearchResultKind.READ, 'field); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'field(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, SearchResultKind.READ, 'field(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.READ, 'field(); // inv-q'),
       _expectId(main, SearchResultKind.WRITE, 'field = 2; // ref-nq'),
       _expectIdQ(main, SearchResultKind.WRITE, 'field = 3; // ref-q'),
     ];
@@ -705,7 +703,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -727,7 +725,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -751,7 +749,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'v += 2;'),
       _expectId(main, SearchResultKind.READ, 'v);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'v();')
+      _expectId(main, SearchResultKind.READ, 'v();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -815,7 +813,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, 'p: 42')
     ];
     await _verifyReferences(element, expected);
@@ -844,7 +842,7 @@ main() {
       _expectId(constructorA, SearchResultKind.WRITE, 'p = 2;'),
       _expectId(constructorA, SearchResultKind.READ_WRITE, 'p += 3;'),
       _expectId(constructorA, SearchResultKind.READ, 'p);'),
-      _expectId(constructorA, SearchResultKind.INVOCATION, 'p();')
+      _expectId(constructorA, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -868,7 +866,7 @@ main() {
       _expectId(main, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(main, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(main, SearchResultKind.READ, 'p);'),
-      _expectId(main, SearchResultKind.INVOCATION, 'p();')
+      _expectId(main, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -893,7 +891,7 @@ main(C c) {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -916,7 +914,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();')
+      _expectId(fooElement, SearchResultKind.READ, 'p();')
     ];
     await _verifyReferences(element, expected);
   }
@@ -940,7 +938,7 @@ main() {
       _expectId(fooElement, SearchResultKind.WRITE, 'p = 1;'),
       _expectId(fooElement, SearchResultKind.READ_WRITE, 'p += 2;'),
       _expectId(fooElement, SearchResultKind.READ, 'p);'),
-      _expectId(fooElement, SearchResultKind.INVOCATION, 'p();'),
+      _expectId(fooElement, SearchResultKind.READ, 'p();'),
       _expectIdQ(mainElement, SearchResultKind.REFERENCE, '42', length: 0)
     ];
     await _verifyReferences(element, expected);
@@ -1136,8 +1134,8 @@ class A {
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'ggg); // ref-nq'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg); // ref-q'),
-      _expectId(main, SearchResultKind.INVOCATION, 'ggg(); // inv-nq'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'ggg(); // inv-q'),
+      _expectId(main, SearchResultKind.REFERENCE, 'ggg(); // inv-nq'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'ggg(); // inv-q'),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1187,10 +1185,10 @@ main() {
       _expectIdQ(testUnitElement, SearchResultKind.REFERENCE, 'V; // imp'),
       _expectIdQ(main, SearchResultKind.WRITE, 'V = 1; // q'),
       _expectIdQ(main, SearchResultKind.READ, 'V); // q'),
-      _expectIdQ(main, SearchResultKind.INVOCATION, 'V(); // q'),
+      _expectIdQ(main, SearchResultKind.READ, 'V(); // q'),
       _expectId(main, SearchResultKind.WRITE, 'V = 1; // nq'),
       _expectId(main, SearchResultKind.READ, 'V); // nq'),
-      _expectId(main, SearchResultKind.INVOCATION, 'V(); // nq'),
+      _expectId(main, SearchResultKind.READ, 'V(); // nq'),
     ];
     await _verifyReferences(variable, expected);
   }
@@ -1320,7 +1318,8 @@ class F {}
     ClassElement a = _findElement('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(3));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1341,7 +1340,8 @@ class F {}
 
     // Search by 'id'.
     {
-      List<SubtypeResult> subtypes = await driver.search.subtypes(subtype: b);
+      List<SubtypeResult> subtypes =
+          await driver.search.subtypes(SearchedFiles(), subtype: b);
       expect(subtypes, hasLength(1));
       SubtypeResult e = subtypes.singleWhere((r) => r.name == 'E');
       expect(e.members, ['methodE']);
@@ -1390,7 +1390,8 @@ class A {
     ClassElement aClass = aLibrary.getType('A');
 
     // Search by 'type'.
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: aClass);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: aClass);
     expect(subtypes, hasLength(3));
 
     SubtypeResult t1 = subtypes.singleWhere((r) => r.name == 'T1');
@@ -1465,7 +1466,8 @@ class A {}
     driver.addFile(pathC);
     await scheduler.waitForIdle();
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(2));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');
@@ -1494,7 +1496,7 @@ mixin M on A, B {
     ClassElement b = _findElement('B');
 
     {
-      var subtypes = await driver.search.subtypes(type: a);
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
@@ -1504,7 +1506,7 @@ mixin M on A, B {
     }
 
     {
-      var subtypes = await driver.search.subtypes(type: b);
+      var subtypes = await driver.search.subtypes(SearchedFiles(), type: b);
       expect(subtypes, hasLength(1));
 
       var m = subtypes.singleWhere((r) => r.name == 'M');
@@ -1523,7 +1525,8 @@ class B extends A {}
 ''');
     ClassElement a = _findElement('A');
 
-    List<SubtypeResult> subtypes = await driver.search.subtypes(type: a);
+    List<SubtypeResult> subtypes =
+        await driver.search.subtypes(SearchedFiles(), type: a);
     expect(subtypes, hasLength(1));
 
     SubtypeResult b = subtypes.singleWhere((r) => r.name == 'B');

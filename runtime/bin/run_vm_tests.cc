@@ -151,6 +151,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
                              /*dev_mode=*/false, /*auth_disabled=*/true,
+                             /*write_service_info_filename*/ "",
                              /*trace_loading=*/false, /*deterministic=*/true)) {
     *error = strdup(bin::VmService::GetErrorMessage());
     return nullptr;
@@ -253,7 +254,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   CHECK_RESULT(result);
 
   // Setup kernel service as the main script for this isolate.
-  if (kernel_service_buffer) {
+  if (kernel_service_buffer != nullptr) {
     result = Dart_LoadScriptFromKernel(kernel_service_buffer,
                                        kernel_service_buffer_size);
     CHECK_RESULT(result);

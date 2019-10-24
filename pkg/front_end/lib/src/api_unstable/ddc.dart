@@ -6,7 +6,7 @@ import 'dart:async' show Future;
 
 import 'package:kernel/class_hierarchy.dart';
 
-import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
+import 'package:kernel/kernel.dart' show Component;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -24,14 +24,12 @@ import '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
-
-import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
-
 import '../kernel_generator_impl.dart' show generateKernel;
 
-import 'compiler_state.dart'
-    show InitializedCompilerState, WorkerInputComponent, digestsEqual;
+import 'compiler_state.dart' show InitializedCompilerState;
+
+import 'modular_incremental_compilation.dart' as modular
+    show initializeIncrementalCompiler;
 
 import 'util.dart' show equalLists, equalMaps;
 
@@ -132,8 +130,13 @@ Future<InitializedCompilerState> initializeCompiler(
   return new InitializedCompilerState(options, processedOpts);
 }
 
+/// Initializes the compiler for a modular build.
+///
+/// Re-uses cached components from [oldState.workerInputCache], and reloads them
+/// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
+    Set<String> tags,
     List<Component> doneInputSummaries,
     bool compileSdk,
     Uri sdkRoot,
@@ -147,143 +150,25 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<ExperimentalFlag, bool> experiments,
     Map<String, String> environmentDefines,
     bool trackNeededDillLibraries: false}) async {
-  inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
-
-  IncrementalCompiler incrementalCompiler;
-  WorkerInputComponent cachedSdkInput;
-  CompilerOptions options;
-  ProcessedOptions processedOpts;
-
-  Map<Uri, WorkerInputComponent> workerInputCache =
-      oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
-  final List<int> sdkDigest = workerInputDigests[sdkSummary];
-  if (sdkDigest == null) {
-    throw new StateError("Expected to get sdk digest at $sdkSummary");
-  }
-
-  cachedSdkInput = workerInputCache[sdkSummary];
-
-  if (oldState == null ||
-      oldState.incrementalCompiler == null ||
-      oldState.options.compileSdk != compileSdk ||
-      cachedSdkInput == null ||
-      !digestsEqual(cachedSdkInput.digest, sdkDigest) ||
-      !equalMaps(oldState.options.experimentalFlags, experiments) ||
-      !equalMaps(oldState.options.environmentDefines, environmentDefines)) {
-    // No previous state.
-    options = new CompilerOptions()
-      ..compileSdk = compileSdk
-      ..sdkRoot = sdkRoot
-      ..sdkSummary = sdkSummary
-      ..packagesFileUri = packagesFile
-      ..inputSummaries = inputSummaries
-      ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = target
-      ..fileSystem = fileSystem ?? StandardFileSystem.instance
-      ..environmentDefines = environmentDefines;
-    if (experiments != null) options.experimentalFlags = experiments;
-
-    // We'll load a new sdk, anything loaded already will have a wrong root.
-    workerInputCache.clear();
-
-    processedOpts = new ProcessedOptions(options: options);
-
-    cachedSdkInput = new WorkerInputComponent(
-        sdkDigest, await processedOpts.loadSdkSummary(null));
-    workerInputCache[sdkSummary] = cachedSdkInput;
-    incrementalCompiler = new IncrementalCompiler.fromComponent(
-        new CompilerContext(processedOpts), cachedSdkInput.component);
-    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
-  } else {
-    options = oldState.options;
-    options.inputSummaries = inputSummaries;
-    processedOpts = oldState.processedOpts;
-
-    for (Library lib in cachedSdkInput.component.libraries) {
-      lib.isExternal = false;
-    }
-    cachedSdkInput.component.adoptChildren();
-    for (WorkerInputComponent cachedInput in workerInputCache.values) {
-      cachedInput.component.adoptChildren();
-    }
-
-    // Reuse the incremental compiler, but reset as needed.
-    incrementalCompiler = oldState.incrementalCompiler;
-    incrementalCompiler.invalidateAllSources();
-    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
-    options.packagesFileUri = packagesFile;
-    options.fileSystem = fileSystem;
-    processedOpts.clearFileSystemCache();
-  }
-  InitializedCompilerState compilerState = new InitializedCompilerState(
-      options, processedOpts,
-      workerInputCache: workerInputCache,
-      incrementalCompiler: incrementalCompiler);
-
-  CanonicalName nameRoot = cachedSdkInput.component.root;
-  Map<Uri, Uri> libraryToInputDill;
-  if (trackNeededDillLibraries) {
-    libraryToInputDill = new Map<Uri, Uri>();
-  }
-  List<int> loadFromDillIndexes = new List<int>();
-
-  // Notice that the ordering of the input summaries matter, so we need to
-  // keep them in order.
-  if (doneInputSummaries.length != inputSummaries.length) {
-    throw new ArgumentError("Invalid length.");
-  }
-  for (int i = 0; i < inputSummaries.length; i++) {
-    Uri inputSummary = inputSummaries[i];
-    WorkerInputComponent cachedInput = workerInputCache[inputSummary];
-    List<int> digest = workerInputDigests[inputSummary];
-    if (digest == null) {
-      throw new StateError("Expected to get digest for $inputSummary");
-    }
-    if (cachedInput == null ||
-        cachedInput.component.root != nameRoot ||
-        !digestsEqual(digest, cachedInput.digest)) {
-      loadFromDillIndexes.add(i);
-    } else {
-      // Need to reset cached components so they are usable again.
-      Component component = cachedInput.component;
-      for (Library lib in component.libraries) {
-        lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
-        if (trackNeededDillLibraries) {
-          libraryToInputDill[lib.importUri] = inputSummary;
-        }
-      }
-      component.computeCanonicalNames();
-      doneInputSummaries[i] = component;
-    }
-  }
-
-  for (int i = 0; i < loadFromDillIndexes.length; i++) {
-    int index = loadFromDillIndexes[i];
-    Uri summary = inputSummaries[index];
-    List<int> digest = workerInputDigests[summary];
-    if (digest == null) {
-      throw new StateError("Expected to get digest for $summary");
-    }
-    List<int> bytes = await fileSystem.entityForUri(summary).readAsBytes();
-    WorkerInputComponent cachedInput = WorkerInputComponent(
-        digest,
-        await compilerState.processedOpts
-            .loadComponent(bytes, nameRoot, alwaysCreateNewNamedNodes: true));
-    workerInputCache[summary] = cachedInput;
-    doneInputSummaries[index] = cachedInput.component;
-    if (trackNeededDillLibraries) {
-      for (Library lib in cachedInput.component.libraries) {
-        libraryToInputDill[lib.importUri] = summary;
-      }
-    }
-  }
-
-  incrementalCompiler.setModulesToLoadOnNextComputeDelta(doneInputSummaries);
-
-  return new InitializedCompilerState(options, processedOpts,
-      workerInputCache: workerInputCache,
-      incrementalCompiler: incrementalCompiler,
-      libraryToInputDill: libraryToInputDill);
+  return modular.initializeIncrementalCompiler(
+      oldState,
+      tags,
+      doneInputSummaries,
+      sdkSummary,
+      packagesFile,
+      librariesSpecificationUri,
+      inputSummaries,
+      workerInputDigests,
+      target,
+      compileSdk: compileSdk,
+      sdkRoot: sdkRoot,
+      fileSystem: fileSystem ?? StandardFileSystem.instance,
+      experimentalFlags: experiments,
+      environmentDefines:
+          environmentDefines ?? const <ExperimentalFlag, bool>{},
+      outlineOnly: false,
+      omitPlatform: false,
+      trackNeededDillLibraries: trackNeededDillLibraries);
 }
 
 Future<DdcResult> compile(InitializedCompilerState compilerState,

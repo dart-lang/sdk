@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -17,7 +19,8 @@ main() {
 }
 
 @reflectiveTest
-class MixinDriverResolutionTest extends DriverResolutionTest {
+class MixinDriverResolutionTest extends DriverResolutionTest
+    with ElementsTypesMixin {
   test_accessor_getter() async {
     await assertNoErrorsInCode(r'''
 mixin M {
@@ -92,7 +95,7 @@ class A extends Object with M {} // A
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
 
     var mRef = findNode.typeName('M {} // A');
     assertTypeName(mRef, mElement, 'M');
@@ -107,7 +110,7 @@ class A = Object with M;
     var mElement = findElement.mixin('M');
 
     var aElement = findElement.class_('A');
-    assertElementTypes(aElement.mixins, [mElement.type]);
+    assertElementTypes(aElement.mixins, [interfaceType(mElement)]);
 
     var mRef = findNode.typeName('M;');
     assertTypeName(mRef, mElement, 'M');
@@ -153,7 +156,8 @@ mixin M {}
     expect(element.isEnum, isFalse);
     expect(element.isMixin, isTrue);
     expect(element.isMixinApplication, isFalse);
-    expect(element.type.isObject, isFalse);
+    expect(interfaceType(element).isObject, isFalse);
+    expect(element.isDartCoreObject, isFalse);
 
     assertElementTypes(element.superclassConstraints, [objectType]);
     assertElementTypes(element.interfaces, []);
@@ -174,11 +178,11 @@ mixin M2 on A implements B, C {}
     var c = findElement.class_('C');
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
-      [a.type, b.type, objectType],
+      [interfaceType(a), interfaceType(b), objectType],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
-      [a.type, objectType, b.type, c.type],
+      [interfaceType(a), objectType, interfaceType(b), interfaceType(c)],
     );
   }
 
@@ -196,15 +200,15 @@ mixin M2 on B<String> {}
     assertElementTypes(
       findElement.mixin('M1').allSupertypes,
       [
-        a.type.instantiate([intType, doubleType]),
+        interfaceType(a, typeArguments: [intType, doubleType]),
         objectType
       ],
     );
     assertElementTypes(
       findElement.mixin('M2').allSupertypes,
       [
-        b.type.instantiate([stringType]),
-        a.type.instantiate([intType, stringType]),
+        interfaceType(b, typeArguments: [stringType]),
+        interfaceType(a, typeArguments: [intType, stringType]),
         objectType
       ],
     );
@@ -317,7 +321,7 @@ mixin M {
   M();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
       error(StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1),
     ]);
   }
@@ -329,7 +333,7 @@ mixin M {
   M(this.f);
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
     ]);
 
     var element = findElement.mixin('M');
@@ -353,7 +357,7 @@ mixin M implements math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.interfaces, [randomElement.type]);
+    assertElementTypes(element.interfaces, [interfaceType(randomElement)]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -830,7 +834,7 @@ mixin M {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
     // Even though it is an error for a mixin to declare a constructor,
@@ -854,14 +858,13 @@ mixin M {
   }
 
   test_error_mixinInstantiate_default() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 mixin M {}
 
 main() {
   new M();
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_INSTANTIATE]);
 
     var creation = findNode.instanceCreation('M();');
@@ -879,7 +882,7 @@ main() {
   new M.named();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
       error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
     ]);
 
@@ -916,7 +919,9 @@ mixin M on math.Random {}
     var randomElement = mathImport.importedLibrary.getType('Random');
 
     var element = findElement.mixin('M');
-    assertElementTypes(element.superclassConstraints, [randomElement.type]);
+    assertElementTypes(element.superclassConstraints, [
+      interfaceType(randomElement),
+    ]);
 
     var typeRef = findNode.typeName('Random {}');
     assertTypeName(typeRef, randomElement, 'Random',
@@ -993,7 +998,9 @@ mixin B on A {} // ref
 
     var a = findElement.mixin('A');
     var b = findElement.mixin('B');
-    assertElementTypes(b.superclassConstraints, [a.type]);
+    assertElementTypes(b.superclassConstraints, [
+      interfaceType(a),
+    ]);
   }
 
   test_error_onRepeated() async {
@@ -1071,8 +1078,14 @@ mixin M implements A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.interfaces, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');
@@ -1240,10 +1253,10 @@ mixin M on A {
 
 abstract class X extends A with U1, U2, M {}
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 121, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
-      error(StaticWarningCode.UNDEFINED_CLASS, 125, 2),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 125, 2),
       error(
           CompileTimeErrorCode
               .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -1258,7 +1271,7 @@ mixin M {}
 ''');
 
     var element = findElement.mixin('M');
-    var type = element.type;
+    var type = interfaceType(element);
     // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(intType), isFalse);
   }
@@ -1319,8 +1332,14 @@ mixin M on A, B {} // M
 
     var element = findElement.mixin('M');
     assertElementTypes(element.superclassConstraints, [
-      findElement.interfaceType('A'),
-      findElement.interfaceType('B'),
+      findElement.class_('A').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      findElement.class_('B').instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
     ]);
 
     var aRef = findNode.typeName('A, ');

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:math';
-import 'package:path/path.dart' as path;
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
@@ -24,11 +23,11 @@ import 'package:analysis_server/src/services/completion/dart/completion_ranking.
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
     show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -36,6 +35,7 @@ import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
+import 'package:path/path.dart' as path;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 
@@ -299,11 +299,6 @@ class Driver implements ServerStarter {
   static const String COMPLETION_MODEL_FOLDER = "completion-model";
 
   /**
-   * The name of the flag to use summary2.
-   */
-  static const String USE_SUMMARY2 = "use-summary2";
-
-  /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
   static const String TRAIN_USING = "train-using";
@@ -353,23 +348,28 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+
+    final bool enableCompletionModel = results[ENABLE_COMPLETION_MODEL];
     analysisServerOptions.completionModelFolder =
         results[COMPLETION_MODEL_FOLDER];
-    if (results[ENABLE_COMPLETION_MODEL] &&
-        analysisServerOptions.completionModelFolder == null) {
-      // The user has enabled ML code completion without explicitly setting
-      // a model for us to choose, so use the default one. We need to walk over
-      // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
-      // $SDK/model/lexeme.
-      analysisServerOptions.completionModelFolder = path.join(
-          File.fromUri(Platform.script).parent.path,
-          '..',
-          '..',
-          'model',
-          'lexeme');
+    if (results.wasParsed(ENABLE_COMPLETION_MODEL) && !enableCompletionModel) {
+      // This is the case where the user has explicitly turned off model-based
+      // code completion.
+      analysisServerOptions.completionModelFolder = null;
     }
-
-    AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
+    if (enableCompletionModel &&
+        analysisServerOptions.completionModelFolder == null) {
+      // The user has enabled ML code completion without explicitly setting a
+      // model for us to choose, so use the default one. We need to walk over
+      // from $SDK/bin/snapshots/analysis_server.dart.snapshot to
+      // $SDK/bin/model/lexeme.
+      analysisServerOptions.completionModelFolder = path.join(
+        File.fromUri(Platform.script).parent.path,
+        '..',
+        'model',
+        'lexeme',
+      );
+    }
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -477,6 +477,7 @@ class Driver implements ServerStarter {
             parser,
             dartSdkManager,
             instrumentationService,
+            RequestStatisticsHelper(),
             analytics,
             diagnosticServerPort);
       }
@@ -489,6 +490,7 @@ class Driver implements ServerStarter {
     CommandLineParser parser,
     DartSdkManager dartSdkManager,
     InstrumentationService instrumentationService,
+    RequestStatisticsHelper requestStatistics,
     telemetry.Analytics analytics,
     int diagnosticServerPort,
   ) {
@@ -519,6 +521,7 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         dartSdkManager,
         instrumentationService,
+        requestStatistics,
         diagnosticServer,
         fileResolverProvider,
         packageResolverProvider,
@@ -588,6 +591,38 @@ class Driver implements ServerStarter {
     }
   }
 
+  /// This will be invoked after createAnalysisServer has been called on the
+  /// socket server. At that point, we'll be able to send a server.error
+  /// notification in case model startup fails.
+  void startCompletionRanking(
+      SocketServer socketServer,
+      LspSocketServer lspSocketServer,
+      AnalysisServerOptions analysisServerOptions) {
+    // If ML completion is not enabled, or we're on a 32-bit machine, don't try
+    // and start the completion model.
+    if (analysisServerOptions.completionModelFolder == null ||
+        ffi.sizeOf<ffi.IntPtr>() == 4) {
+      return;
+    }
+
+    // Start completion model isolate if this is a 64 bit system and analysis
+    // server was configured to load a language model on disk.
+    CompletionRanking.instance =
+        CompletionRanking(analysisServerOptions.completionModelFolder);
+    CompletionRanking.instance.start().catchError((error) {
+      // Disable smart ranking if model startup fails.
+      analysisServerOptions.completionModelFolder = null;
+      CompletionRanking.instance = null;
+      if (socketServer != null) {
+        socketServer.analysisServer.sendServerErrorNotification(
+            'Failed to start ranking model isolate', error, error.stackTrace);
+      } else {
+        lspSocketServer.analysisServer.sendServerErrorNotification(
+            'Failed to start ranking model isolate', error, error.stackTrace);
+      }
+    });
+  }
+
   void startLspServer(
     ArgResults args,
     AnalysisServerOptions analysisServerOptions,
@@ -627,36 +662,6 @@ class Driver implements ServerStarter {
         }
       });
       startCompletionRanking(null, socketServer, analysisServerOptions);
-    });
-  }
-
-  /// This will be invoked after createAnalysisServer has been called on the
-  /// socket server. At that point, we'll be able to send a server.error
-  /// notification in case model startup fails.
-  void startCompletionRanking(
-      SocketServer socketServer,
-      LspSocketServer lspSocketServer,
-      AnalysisServerOptions analysisServerOptions) {
-    if (analysisServerOptions.completionModelFolder == null ||
-        ffi.sizeOf<ffi.IntPtr>() == 4) {
-      return;
-    }
-
-    // Start completion model isolate if this is a 64 bit system and
-    // analysis server was configured to load a language model on disk.
-    CompletionRanking.instance =
-        CompletionRanking(analysisServerOptions.completionModelFolder);
-    CompletionRanking.instance.start().catchError((error) {
-      // Disable smart ranking if model startup fails.
-      analysisServerOptions.completionModelFolder = null;
-      CompletionRanking.instance = null;
-      if (socketServer != null) {
-        socketServer.analysisServer.sendServerErrorNotification(
-            'Failed to start ranking model isolate', error, error.stackTrace);
-      } else {
-        lspSocketServer.analysisServer.sendServerErrorNotification(
-            'Failed to start ranking model isolate', error, error.stackTrace);
-      }
     });
   }
 
@@ -788,8 +793,6 @@ class Driver implements ServerStarter {
         help: "Whether or not to turn on ML ranking for code completion");
     parser.addOption(COMPLETION_MODEL_FOLDER,
         help: "[path] path to the location of a code completion model");
-    parser.addFlag(USE_SUMMARY2,
-        defaultsTo: false, help: "Whether to use summary2");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");

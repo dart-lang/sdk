@@ -33,7 +33,9 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Recompute the target since resolution may have changed it
     Expression expression = request.dotTarget;
-    if (expression == null || expression.isSynthetic) {
+    if (expression == null ||
+        expression.isSynthetic ||
+        expression is ExtensionOverride) {
       return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
@@ -147,6 +149,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 
   @override
+  void declaredExtension(ExtensionDeclaration declaration) {}
+
+  @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
     if (varDecl.name.name == targetName) {
       // Type provided by the element in computeFull above
@@ -198,7 +203,8 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   @override
   void declaredLocalVar(SimpleIdentifier name, TypeAnnotation type) {
     if (name.name == targetName) {
-      typeFound = name.staticType;
+      var element = name.staticElement as VariableElement;
+      typeFound = element.type;
       finished();
     }
   }

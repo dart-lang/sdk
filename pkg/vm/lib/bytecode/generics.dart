@@ -11,6 +11,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
+import 'options.dart' show BytecodeOptions;
+
 bool hasInstantiatorTypeArguments(Class c) {
   for (; c != null; c = c.superclass) {
     if (c.typeParameters.isNotEmpty) {
@@ -279,7 +281,14 @@ bool _hasGenericCovariantParameters(Member target) {
 
 /// Returns true if invocation [node] is a closure call with statically known
 /// function type. Such invocations can omit argument type checks.
-bool isUncheckedClosureCall(
-        MethodInvocation node, TypeEnvironment typeEnvironment) =>
+bool isUncheckedClosureCall(MethodInvocation node,
+        TypeEnvironment typeEnvironment, BytecodeOptions options) =>
     node.name.name == 'call' &&
-    getStaticType(node.receiver, typeEnvironment) is FunctionType;
+    getStaticType(node.receiver, typeEnvironment) is FunctionType &&
+    !options.avoidClosureCallInstructions;
+
+/// Returns true if [MethodInvocation] node with given [interfaceTarget] is
+/// a call through field or getter.
+bool isCallThroughGetter(Member interfaceTarget) =>
+    interfaceTarget is Field ||
+    interfaceTarget is Procedure && interfaceTarget.isGetter;

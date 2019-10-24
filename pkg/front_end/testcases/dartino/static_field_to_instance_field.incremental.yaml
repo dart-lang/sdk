@@ -7,13 +7,13 @@ main.dart.patch: |
 
   class C {
   <<<< ["[instance] is null","v1","[instance.x] threw"]
-    static int x;
-  ==== ["[C.x] threw","v2"]
-    int x;
+    static String x;
+  ==== {"messages":[],"hasCompileTimeError":1}
+    String x;
   >>>>
   }
 
-  var instance;
+  dynamic instance;
 
   main() {
     if (instance == null) {

@@ -2,15 +2,43 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:kernel/ast.dart" show Nullability;
+import 'package:kernel/ast.dart' show Nullability;
 
 import "package:front_end/src/fasta/scanner.dart" show scanString, Token;
 
 import "package:front_end/src/fasta/parser/type_info_impl.dart"
     show splitCloser;
 
+import "package:front_end/src/fasta/problems.dart";
+import 'package:kernel/text/text_serialization_verifier.dart';
+
 abstract class ParsedType {
   R accept<R, A>(Visitor<R, A> visitor, [A a]);
+}
+
+enum ParsedNullability {
+  // Used when the type is declared with the '?' suffix.
+  nullable,
+
+  // Used when the type is declared with the '*' suffix.
+  legacy,
+
+  // Used when the nullability suffix is omitted after the type declaration.
+  omitted,
+}
+
+Nullability interpretParsedNullability(ParsedNullability parsedNullability,
+    {Nullability ifOmitted = Nullability.nonNullable}) {
+  switch (parsedNullability) {
+    case ParsedNullability.nullable:
+      return Nullability.nullable;
+    case ParsedNullability.legacy:
+      return Nullability.legacy;
+    case ParsedNullability.omitted:
+      return ifOmitted;
+  }
+  return unhandled(
+      "$parsedNullability", "interpretParsedNullability", noOffset, noUri);
 }
 
 class ParsedInterfaceType extends ParsedType {
@@ -18,9 +46,9 @@ class ParsedInterfaceType extends ParsedType {
 
   final List<ParsedType> arguments;
 
-  final Nullability nullability;
+  final ParsedNullability parsedNullability;
 
-  ParsedInterfaceType(this.name, this.arguments, this.nullability);
+  ParsedInterfaceType(this.name, this.arguments, this.parsedNullability);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -120,10 +148,10 @@ class ParsedFunctionType extends ParsedType {
 
   final ParsedArguments arguments;
 
-  final Nullability nullability;
+  final ParsedNullability parsedNullability;
 
-  ParsedFunctionType(
-      this.typeVariables, this.returnType, this.arguments, this.nullability);
+  ParsedFunctionType(this.typeVariables, this.returnType, this.arguments,
+      this.parsedNullability);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -268,12 +296,12 @@ class Parser {
     }
   }
 
-  Nullability parseNullability() {
-    Nullability result = Nullability.nonNullable;
+  ParsedNullability parseNullability() {
+    ParsedNullability result = ParsedNullability.omitted;
     if (optionalAdvance("?")) {
-      result = Nullability.nullable;
+      result = ParsedNullability.nullable;
     } else if (optionalAdvance("*")) {
-      result = Nullability.legacy;
+      result = ParsedNullability.legacy;
     }
     return result;
   }
@@ -288,7 +316,7 @@ class Parser {
         type = parseFunctionType();
       } else if (optionalAdvance("void")) {
         type = new ParsedInterfaceType(
-            "void", <ParsedType>[], Nullability.nullable);
+            "void", <ParsedType>[], ParsedNullability.nullable);
         optionalAdvance("?");
       } else {
         String name = parseName();
@@ -303,8 +331,8 @@ class Parser {
           peek = splitCloser(peek) ?? peek;
           expect(">");
         }
-        Nullability nullability = parseNullability();
-        type = new ParsedInterfaceType(name, arguments, nullability);
+        ParsedNullability parsedNullability = parseNullability();
+        type = new ParsedInterfaceType(name, arguments, parsedNullability);
       }
       if (result == null) {
         result = type;
@@ -325,10 +353,10 @@ class Parser {
     ParsedArguments arguments = parseArguments();
     expect("-");
     expect(">");
-    Nullability nullability = parseNullability();
+    ParsedNullability parsedNullability = parseNullability();
     ParsedType returnType = parseReturnType();
     return new ParsedFunctionType(
-        typeVariables, returnType, arguments, nullability);
+        typeVariables, returnType, arguments, parsedNullability);
   }
 
   String parseName() {

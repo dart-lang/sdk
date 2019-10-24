@@ -428,6 +428,8 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
+  void InsertBSSRelocation(BSS::Relocation reloc);
+
   // The function was fully intrinsified, so the body is unreachable.
   //
   // We still need to compile the body in unoptimized mode because the
@@ -728,7 +730,6 @@ class FlowGraphCompiler : public ValueObject {
   void AddExceptionHandler(intptr_t try_index,
                            intptr_t outer_try_index,
                            intptr_t pc_offset,
-                           TokenPosition token_pos,
                            bool is_generated,
                            const Array& handler_types,
                            bool needs_stacktrace);
@@ -790,7 +791,16 @@ class FlowGraphCompiler : public ValueObject {
   void ClobberDeadTempRegisters(LocationSummary* locs);
 #endif
 
-  Environment* SlowPathEnvironmentFor(Instruction* instruction,
+  // Returns a new environment based on [env] which accounts for the new
+  // locations of values in the slow path call.
+  Environment* SlowPathEnvironmentFor(Instruction* inst,
+                                      intptr_t num_slow_path_args) {
+    return SlowPathEnvironmentFor(inst->env(), inst->locs(),
+                                  num_slow_path_args);
+  }
+
+  Environment* SlowPathEnvironmentFor(Environment* env,
+                                      LocationSummary* locs,
                                       intptr_t num_slow_path_args);
 
   intptr_t CurrentTryIndex() const {
@@ -1024,11 +1034,11 @@ class FlowGraphCompiler : public ValueObject {
 
   intptr_t GetOptimizationThreshold() const;
 
-  StackMapTableBuilder* stackmap_table_builder() {
-    if (stackmap_table_builder_ == NULL) {
-      stackmap_table_builder_ = new StackMapTableBuilder();
+  CompressedStackMapsBuilder* compressed_stackmaps_builder() {
+    if (compressed_stackmaps_builder_ == NULL) {
+      compressed_stackmaps_builder_ = new CompressedStackMapsBuilder();
     }
-    return stackmap_table_builder_;
+    return compressed_stackmaps_builder_;
   }
 
 // TODO(vegorov) re-enable frame state tracking on DBC. It is
@@ -1090,7 +1100,7 @@ class FlowGraphCompiler : public ValueObject {
   BlockEntryInstr* current_block_;
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
-  StackMapTableBuilder* stackmap_table_builder_;
+  CompressedStackMapsBuilder* compressed_stackmaps_builder_;
   CodeSourceMapBuilder* code_source_map_builder_;
   CatchEntryMovesMapBuilder* catch_entry_moves_maps_builder_;
   GrowableArray<BlockInfo*> block_info_;

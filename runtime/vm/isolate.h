@@ -9,6 +9,7 @@
 #error "Should not include runtime"
 #endif
 
+#include <functional>
 #include <memory>
 #include <utility>
 
@@ -19,6 +20,7 @@
 #include "vm/class_table.h"
 #include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_trampolines.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
@@ -32,6 +34,7 @@
 #include "vm/thread.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
+#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -76,6 +79,7 @@ class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
 class ReversePcLookupCache;
+class RwLock;
 class SafepointHandler;
 class SampleBuffer;
 class SendPort;
@@ -88,6 +92,7 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
+class WeakTable;
 
 class PendingLazyDeopt {
  public:
@@ -259,16 +264,36 @@ class IsolateGroup {
     library_tag_handler_ = handler;
   }
 
+  // Ensures mutators are stopped during execution of the provided function.
+  //
+  // If the current thread is the only mutator in the isolate group,
+  // [single_current_mutator] will be called. Otherwise [otherwise] will be
+  // called inside a [SafepointOperationsScope] (or
+  // [ForceGrowthSafepointOperationScope] if [use_force_growth_in_otherwise]
+  // is set).
+  //
+  // During the duration of this function, no new isolates can be added to the
+  // isolate group.
+  void RunWithStoppedMutators(std::function<void()> single_current_mutator,
+                              std::function<void()> otherwise,
+                              bool use_force_growth_in_otherwise = false);
+
+  void RunWithStoppedMutators(std::function<void()> function) {
+    RunWithStoppedMutators(function, function);
+  }
+
  private:
-  std::unique_ptr<IsolateGroupSource> source_;
   void* embedder_data_ = nullptr;
-  std::unique_ptr<ThreadRegistry> thread_registry_;
-  std::unique_ptr<SafepointHandler> safepoint_handler_;
-  std::unique_ptr<Monitor> isolates_monitor_;
+
+  std::unique_ptr<RwLock> isolates_rwlock_;
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+
+  std::unique_ptr<IsolateGroupSource> source_;
+  std::unique_ptr<ThreadRegistry> thread_registry_;
+  std::unique_ptr<SafepointHandler> safepoint_handler_;
 };
 
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
@@ -337,6 +362,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   SafepointHandler* safepoint_handler() const {
     return group()->safepoint_handler();
   }
+
+  SharedClassTable* shared_class_table() { return shared_class_table_.get(); }
+
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -403,6 +431,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   void set_init_callback_data(void* value) { init_callback_data_ = value; }
   void* init_callback_data() const { return init_callback_data_; }
+
+#if !defined(TARGET_ARCH_DBC) && !defined(DART_PRECOMPILED_RUNTIME)
+  NativeCallbackTrampolines* native_callback_trampolines() {
+    return &native_callback_trampolines_;
+  }
+#endif
 
   Dart_EnvironmentCallback environment_callback() const {
     return environment_callback_;
@@ -771,18 +805,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     isolate_flags_ = RemappingCidsBit::update(value, isolate_flags_);
   }
 
-  static const intptr_t kInvalidGen = 0;
-
-  void IncrLoadingInvalidationGen() {
-    AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
-    if (loading_invalidation_gen_ == kInvalidGen) {
-      AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
-    }
-  }
-  intptr_t loading_invalidation_gen() {
-    return AtomicOperations::LoadRelaxed(&loading_invalidation_gen_);
-  }
-
   // Used by background compiler which field became boxed and must trigger
   // deoptimization in the mutator thread.
   void AddDeoptimizingBoxedField(const Field& field);
@@ -898,7 +920,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
 #if defined(PRODUCT)
   void set_use_osr(bool use_osr) { ASSERT(!use_osr); }
-#else  // defined(PRODUCT)
+#else   // defined(PRODUCT)
   void set_use_osr(bool use_osr) {
     isolate_flags_ = UseOsrBit::update(use_osr, isolate_flags_);
   }
@@ -948,6 +970,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   }
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
+
+  // The weak table used in the snapshot writer for the purpose of fast message
+  // sending.
+  WeakTable* forward_table_new() { return forward_table_new_.get(); }
+  void set_forward_table_new(WeakTable* table);
+
+  WeakTable* forward_table_old() { return forward_table_old_.get(); }
+  void set_forward_table_old(WeakTable* table);
 
   static void NotifyLowMemory();
 
@@ -1018,6 +1048,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
   RawCode* ic_miss_code_;
+  std::unique_ptr<SharedClassTable> shared_class_table_;
   ObjectStore* object_store_ = nullptr;
   ClassTable class_table_;
   bool single_step_ = false;
@@ -1028,6 +1059,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MarkingStack* deferred_marking_stack_ = nullptr;
   Heap* heap_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
+
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+  NativeCallbackTrampolines native_callback_trampolines_;
+#endif
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
@@ -1085,23 +1120,14 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   VMTagCounters vm_tag_counters_;
 
   // We use 6 list entries for each pending service extension calls.
-  enum {
-    kPendingHandlerIndex = 0,
-    kPendingMethodNameIndex,
-    kPendingKeysIndex,
-    kPendingValuesIndex,
-    kPendingReplyPortIndex,
-    kPendingIdIndex,
-    kPendingEntrySize
-  };
+  enum {kPendingHandlerIndex = 0, kPendingMethodNameIndex, kPendingKeysIndex,
+        kPendingValuesIndex,      kPendingReplyPortIndex,  kPendingIdIndex,
+        kPendingEntrySize};
   RawGrowableObjectArray* pending_service_extension_calls_;
 
   // We use 2 list entries for each registered extension handler.
-  enum {
-    kRegisteredNameIndex = 0,
-    kRegisteredHandlerIndex,
-    kRegisteredEntrySize
-  };
+  enum {kRegisteredNameIndex = 0, kRegisteredHandlerIndex,
+        kRegisteredEntrySize};
   RawGrowableObjectArray* registered_service_extension_handlers_;
 
   Metric* metrics_list_head_ = nullptr;
@@ -1167,11 +1193,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   // Isolate list next pointer.
   Isolate* next_ = nullptr;
 
-  // Invalidation generations; used to track events occurring in parallel
-  // to background compilation. The counters may overflow, which is OK
-  // since we check for equality to detect if an event occured.
-  intptr_t loading_invalidation_gen_ = kInvalidGen;
-
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
@@ -1189,6 +1210,10 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   const char** obfuscation_map_ = nullptr;
 
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
+
+  // Used during message sending of messages between isolates.
+  std::unique_ptr<WeakTable> forward_table_new_;
+  std::unique_ptr<WeakTable> forward_table_old_;
 
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;
@@ -1214,12 +1239,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
-  friend class Become;    // VisitObjectPointers
+  friend class Become;       // VisitObjectPointers
   friend class GCCompactor;  // VisitObjectPointers
-  friend class GCMarker;  // VisitObjectPointers
+  friend class GCMarker;     // VisitObjectPointers
   friend class SafepointHandler;
-  friend class ObjectGraph;  // VisitObjectPointers
-  friend class Scavenger;    // VisitObjectPointers
+  friend class ObjectGraph;         // VisitObjectPointers
+  friend class HeapSnapshotWriter;  // VisitObjectPointers
+  friend class Scavenger;           // VisitObjectPointers
   friend class HeapIterationScope;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;

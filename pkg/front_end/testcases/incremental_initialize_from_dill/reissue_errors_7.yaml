@@ -1,0 +1,78 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application with errors in it, then - without fixing the errors -
+# recompile. Make sure we still get errors. As long as we don't fix the error,
+# we keep getting errors. Once we fix it, we no longer get errors.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          foo();
+        }
+      lib.dart: |
+        import 'nonexisting.dart';
+        foo() {}
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        main() {
+          foo();
+          foo();
+        }
+    expectInitializeFromDill: false
+    expectedLibraryCount: 2
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'lib.dart';
+        import 'lib2.dart';
+        main() {
+          foo();
+          bar();
+        }
+      lib2.dart: |
+        bar() {
+          print("hello");
+        }
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    invalidate:
+      - lib2.dart
+    sources:
+      lib2.dart: |
+        bar() {
+          print("hello2");
+        }
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    errors: false
+    worldType: updated
+    invalidate:
+      - lib.dart
+    sources:
+      lib.dart: |
+        foo() {}
+    expectInitializeFromDill: false
+    expectedLibraryCount: 3

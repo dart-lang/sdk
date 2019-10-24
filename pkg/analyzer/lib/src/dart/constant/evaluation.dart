@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -111,7 +112,7 @@ class ConstantEvaluationEngine {
     if (arguments[0] is NamedExpression) {
       return false;
     }
-    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+    if (argumentValues[0].type != typeProvider.stringType) {
       return false;
     }
     if (argumentCount == 2) {
@@ -122,8 +123,8 @@ class ConstantEvaluationEngine {
         }
         ParameterizedType defaultValueType =
             namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
-        if (!(identical(defaultValueType, expectedDefaultValueType) ||
-            identical(defaultValueType, typeProvider.nullType))) {
+        if (!(defaultValueType == expectedDefaultValueType ||
+            defaultValueType == typeProvider.nullType)) {
           return false;
         }
       } else {
@@ -148,7 +149,7 @@ class ConstantEvaluationEngine {
     if (arguments[0] is NamedExpression) {
       return false;
     }
-    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+    if (argumentValues[0].type != typeProvider.stringType) {
       return false;
     }
     String name = argumentValues[0].toStringValue();
@@ -584,8 +585,8 @@ class ConstantEvaluationEngine {
       while (baseParameter is ParameterMember) {
         baseParameter = (baseParameter as ParameterMember).baseElement;
       }
-      DartObjectImpl argumentValue = null;
-      AstNode errorTarget = null;
+      DartObjectImpl argumentValue;
+      AstNode errorTarget;
       if (baseParameter.isNamed) {
         argumentValue = namedValues[baseParameter.name];
         errorTarget = namedNodes[baseParameter.name];
@@ -651,8 +652,8 @@ class ConstantEvaluationEngine {
     ConstantVisitor initializerVisitor = new ConstantVisitor(
         this, externalErrorReporter,
         lexicalEnvironment: parameterMap);
-    String superName = null;
-    NodeList<Expression> superArguments = null;
+    String superName;
+    NodeList<Expression> superArguments;
     for (var i = 0; i < initializers.length; i++) {
       var initializer = initializers[i];
       if (initializer is ConstructorFieldInitializer) {
@@ -831,7 +832,7 @@ class ConstantEvaluationEngine {
     if (!constructor.isFactory) {
       return null;
     }
-    if (identical(constructor.enclosingElement.type, typeProvider.symbolType)) {
+    if (constructor.enclosingElement == typeProvider.symbolElement) {
       // The dart:core.Symbol has a const factory constructor that redirects
       // to dart:_internal.Symbol.  That in turn redirects to an external
       // const constructor, which we won't be able to evaluate.
@@ -861,24 +862,7 @@ class ConstantEvaluationEngine {
       return true;
     }
     var objType = obj.type;
-    if (objType.isDartCoreInt && type.isDartCoreDouble) {
-      // Work around dartbug.com/35993 by allowing `int` to be used in a place
-      // where `double` is expected.
-      //
-      // Note that this is not technically correct, because it allows code like
-      // this:
-      //   const Object x = 1;
-      //   const double y = x;
-      //
-      // TODO(paulberry): remove this workaround once dartbug.com/33441 is
-      // fixed.
-      return true;
-    }
-    // TODO(scheglov ) Switch to using this, but not now, dartbug.com/33441
-    if (typeSystem.isSubtypeOf(objType, type)) {
-      return true;
-    }
-    return objType.isSubtypeOf(type);
+    return typeSystem.isSubtypeOf(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
@@ -1017,7 +1001,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     for (StringLiteral string in node.strings) {
       if (result == null) {
         result = string.accept(this);
@@ -1256,7 +1240,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
-    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
+    InterfaceType listType = _typeProvider.listType2(elementType);
     return new DartObjectImpl(listType, new ListState(list));
   }
 
@@ -1390,8 +1374,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           valueType = typeArguments[1];
         }
       }
-      InterfaceType mapType =
-          _typeProvider.mapType.instantiate([keyType, valueType]);
+      InterfaceType mapType = _typeProvider.mapType2(keyType, valueType);
       return new DartObjectImpl(mapType, new MapState(map));
     } else {
       if (!node.isConst) {
@@ -1412,7 +1395,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
           nodeType is InterfaceType && nodeType.typeArguments.isNotEmpty
               ? nodeType.typeArguments[0]
               : _typeProvider.dynamicType;
-      InterfaceType setType = _typeProvider.setType.instantiate([elementType]);
+      InterfaceType setType = _typeProvider.setType2(elementType);
       return new DartObjectImpl(setType, new SetState(set));
     }
   }
@@ -1432,7 +1415,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl visitStringInterpolation(StringInterpolation node) {
-    DartObjectImpl result = null;
+    DartObjectImpl result;
     bool first = true;
     for (InterpolationElement element in node.elements) {
       if (first) {
@@ -1618,7 +1601,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   /// Return the constant value of the static constant represented by the given
   /// [element]. The [node] is the node to be used if an error needs to be
   /// reported.
-  DartObjectImpl _getConstantValue(AstNode node, Element element) {
+  DartObjectImpl _getConstantValue(Expression node, Element element) {
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
     if (variableElement is VariableElementImpl) {
@@ -1634,19 +1617,39 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     } else if (variableElement is ExecutableElement) {
       ExecutableElement function = element;
       if (function.isStatic) {
-        ParameterizedType functionType = function.type;
-        if (functionType == null) {
-          functionType = _typeProvider.functionType;
-        }
-        return new DartObjectImpl(functionType, new FunctionState(function));
+        var functionType = node.staticType;
+        return DartObjectImpl(functionType, FunctionState(function));
       }
-    } else if (variableElement is TypeDefiningElement) {
+    } else if (variableElement is ClassElement) {
+      var type = variableElement.instantiate(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is DynamicElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.dynamicType),
+      );
+    } else if (variableElement is FunctionTypeAliasElement) {
+      var type = variableElement.instantiate2(
+        typeArguments: variableElement.typeParameters
+            .map((t) => _typeProvider.dynamicType)
+            .toList(),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+      return DartObjectImpl(_typeProvider.typeType, TypeState(type));
+    } else if (variableElement is NeverElementImpl) {
+      return DartObjectImpl(
+        _typeProvider.typeType,
+        TypeState(_typeProvider.neverType),
+      );
+    } else if (variableElement is TypeParameterElement) {
       // Constants may not refer to type parameters.
-      if (variableElement is! TypeParameterElement) {
-        return new DartObjectImpl(
-            _typeProvider.typeType, new TypeState(variableElement.type));
-      }
     }
+
     // TODO(brianwilkerson) Figure out which error to report.
     _error(node, null);
     return null;

@@ -18,7 +18,7 @@ import 'package:bazel_worker/bazel_worker.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 import 'package:vm/target/flutter.dart';
@@ -244,24 +244,43 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
-  if (parsedArgs['use-incremental-compiler'] &&
-      linkedInputs.isEmpty &&
-      isWorker) {
+  if (parsedArgs['use-incremental-compiler']) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
-    for (var input in inputs) {
-      inputDigests[_toUri(input.path)] = input.digest;
+    if (inputs != null) {
+      for (var input in inputs) {
+        inputDigests[_toUri(input.path)] = input.digest;
+      }
     }
 
-    // TODO(sigmund): add support for experiments with the incremental compiler.
+    // If digests weren't given and if not in worker mode, create fake data and
+    // ensure we don't have a previous state (as that wouldn't be safe with
+    // fake input digests).
+    if (!isWorker && inputDigests.isEmpty) {
+      previousState = null;
+      inputDigests[_toUri(parsedArgs['dart-sdk-summary'])] = const [0];
+      for (Uri uri in summaryInputs) {
+        inputDigests[uri] = const [0];
+      }
+      for (Uri uri in linkedInputs) {
+        inputDigests[uri] = const [0];
+      }
+    }
+
     state = await fe.initializeIncrementalCompiler(
         previousState,
+        {
+          "target=$targetName",
+          "trackWidgetCreation=$trackWidgetCreation",
+          "multiRootScheme=${fileSystem.markerScheme}",
+          "multiRootRoots=${fileSystem.roots}",
+        },
         _toUri(parsedArgs['dart-sdk-summary']),
         _toUri(parsedArgs['packages-file']),
         _toUri(parsedArgs['libraries-file']),
-        summaryInputs,
+        [...summaryInputs, ...linkedInputs],
         inputDigests,
         target,
         fileSystem,
@@ -317,9 +336,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
+        makeStable(incrementalComponent);
         return Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
       }
+
+      makeStable(incrementalComponent);
 
       return Future.value(fe.serializeComponent(incrementalComponent,
           filter: excludeNonSources
@@ -359,6 +381,22 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   return new ComputeKernelResult(succeeded, state);
+}
+
+/// Make sure the output is stable by sorting libraries and additional exports.
+void makeStable(Component c) {
+  // Make sure the output is stable.
+  c.libraries.sort((l1, l2) {
+    return "${l1.fileUri}".compareTo("${l2.fileUri}");
+  });
+  c.problemsAsJson?.sort();
+  c.computeCanonicalNames();
+  for (Library library in c.libraries) {
+    library.additionalExports.sort((Reference r1, Reference r2) {
+      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+    });
+    library.problemsAsJson?.sort();
+  }
 }
 
 /// Extends the DevCompilerTarget to transform outlines to meet the requirements

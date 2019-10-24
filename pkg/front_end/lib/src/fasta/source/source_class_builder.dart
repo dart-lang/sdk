@@ -7,6 +7,19 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart'
     show Class, Constructor, Member, Supertype, TreeNode;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
@@ -17,30 +30,16 @@ import '../fasta_codes.dart'
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
-        templateConflictsWithMemberWarning,
         templateConflictsWithSetter,
-        templateConflictsWithSetterWarning,
         templateSupertypeIsIllegal;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        ConstructorReferenceBuilder,
-        Builder,
-        FieldBuilder,
-        FunctionBuilder,
-        InvalidTypeBuilder,
-        NamedTypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        Scope,
-        TypeBuilder,
-        TypeVariableBuilder,
-        compareProcedures;
+import '../kernel/kernel_builder.dart' show compareProcedures;
 
 import '../kernel/type_algorithms.dart' show Variance, computeVariance;
 
 import '../problems.dart' show unexpected, unhandled;
+
+import '../scope.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -70,7 +69,7 @@ Class initializeClass(
   return cls;
 }
 
-class SourceClassBuilder extends ClassBuilder
+class SourceClassBuilder extends ClassBuilderImpl
     implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;
@@ -90,7 +89,7 @@ class SourceClassBuilder extends ClassBuilder
       List<TypeBuilder> interfaces,
       List<TypeBuilder> onTypes,
       Scope scope,
-      Scope constructors,
+      ConstructorScope constructors,
       LibraryBuilder parent,
       this.constructorReferences,
       int startCharOffset,
@@ -129,10 +128,10 @@ class SourceClassBuilder extends ClassBuilder
             cls.addMember(field);
           }
         } else if (declaration is FunctionBuilder) {
-          Member function = declaration.build(library);
-          function.parent = cls;
+          Member member = declaration.build(library);
+          member.parent = cls;
           if (!declaration.isPatch && declaration.next == null) {
-            cls.addMember(function);
+            cls.addMember(member);
           }
         } else {
           unhandled("${declaration.runtimeType}", "buildBuilders",
@@ -215,20 +214,11 @@ class SourceClassBuilder extends ClassBuilder
               member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
       }
-      if (member.isDeclarationInstanceMember ==
-          setter.isDeclarationInstanceMember) {
-        addProblem(templateConflictsWithMember.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetter.withArguments(name),
-            member.charOffset, noLength);
-      } else {
-        addProblem(templateConflictsWithMemberWarning.withArguments(name),
-            setter.charOffset, noLength);
-        // TODO(ahe): Context argument to previous message?
-        addProblem(templateConflictsWithSetterWarning.withArguments(name),
-            member.charOffset, noLength);
-      }
+      addProblem(templateConflictsWithMember.withArguments(name),
+          setter.charOffset, noLength);
+      // TODO(ahe): Context argument to previous message?
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          member.charOffset, noLength);
     });
 
     scope.setters.forEach((String name, Builder setter) {
@@ -249,16 +239,16 @@ class SourceClassBuilder extends ClassBuilder
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
       int variance = computeVariance(typeVariables[i], supertype);
-      if (variance == Variance.contravariant ||
-          variance == Variance.invariant) {
+      if (!Variance.greaterThanOrEqual(variance, typeVariables[i].variance)) {
         message = templateBadTypeVariableInSupertype.withArguments(
             typeVariables[i].name, supertype.name);
         library.addProblem(message, charOffset, noLength, fileUri);
       }
     }
     if (message != null) {
-      return new NamedTypeBuilder(supertype.name, null)
-        ..bind(new InvalidTypeBuilder(supertype.name,
+      return new NamedTypeBuilder(
+          supertype.name, const NullabilityBuilder.omitted(), null)
+        ..bind(new InvalidTypeDeclarationBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;

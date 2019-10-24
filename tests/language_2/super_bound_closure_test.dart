@@ -72,7 +72,8 @@ class B extends A {
   fooIntercept27() => confuse(super.lastWhere)(0);
   fooIntercept28() => confuse(super.lastWhere)(3, orElse: 77);
 
-  bar([var optional]) => -1; //       //# 01: compile-time error
+  // Warning: overrides should not change default parameter values.
+  bar([var optional]) => -1; //       //# 01: static type warning
   bar2({namedOptional}) => -1; //   //# 01: continued
   bar3(x, [var optional]) => -1; //   //# 01: continued
   bar4(x, {namedOptional}) => -1; //# 01: continued
@@ -101,7 +102,7 @@ confuse(x) {
 main() {
   var list = [new A(), new B(), [], "foo"];
   var a = list[confuse(0)];
-  var b = list[confuse(1)];
+  dynamic b = list[confuse(1)];
   var ignored = list[confuse(2)];
   var ignored2 = list[confuse(3)];
 

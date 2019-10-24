@@ -67,8 +67,8 @@ static void TestScriptJIT(const char* script_chars,
                           intptr_t expected_before,
                           intptr_t expected_after) {
   auto jit_result = ApplyBCE(script_chars, CompilerPass::kJIT);
-  EXPECT_STREQ(expected_before, jit_result.first);
-  EXPECT_STREQ(expected_after, jit_result.second);
+  EXPECT_EQ(expected_before, jit_result.first);
+  EXPECT_EQ(expected_after, jit_result.second);
 }
 
 //

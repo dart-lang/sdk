@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,16 +13,11 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart'
-    show ConstructorElementHandle;
 import 'package:analyzer/src/dart/element/member.dart';
 
 ConstructorElementImpl getConstructorImpl(ConstructorElement constructor) {
   while (constructor is ConstructorMember) {
     constructor = (constructor as ConstructorMember).baseElement;
-  }
-  if (constructor is ConstructorElementHandle) {
-    constructor = (constructor as ConstructorElementHandle).actualElement;
   }
   return constructor;
 }
@@ -91,6 +85,20 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) {
+    PrefixedIdentifierImpl copy = super.visitPrefixedIdentifier(node);
+    copy.staticType = node.staticType;
+    return copy;
+  }
+
+  @override
+  PropertyAccess visitPropertyAccess(PropertyAccess node) {
+    PropertyAccessImpl copy = super.visitPropertyAccess(node);
+    copy.staticType = node.staticType;
+    return copy;
+  }
+
+  @override
   RedirectingConstructorInvocation visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     RedirectingConstructorInvocation invocation =
@@ -111,9 +119,11 @@ class ConstantAstCloner extends AstCloner {
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) {
-    SimpleIdentifier identifier = super.visitSimpleIdentifier(node);
-    identifier.staticElement = node.staticElement;
-    return identifier;
+    SimpleIdentifierImpl copy = super.visitSimpleIdentifier(node);
+    copy.staticElement = node.staticElement;
+    copy.staticType = node.staticType;
+    copy.tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
+    return copy;
   }
 
   @override
@@ -226,9 +236,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
-    if (resolutionMap
-        .elementDeclaredByClassDeclaration(node)
-        .constructors
+    if (node.declaredElement.constructors
         .any((ConstructorElement e) => e.isConst)) {
       // Instance vars marked "final" need to be included in the dependency
       // graph, since constant constructors implicitly use the values in their
@@ -259,8 +267,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     super.visitDefaultFormalParameter(node);
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredElement != null) {
-      constantsToCompute
-          .add(resolutionMap.elementDeclaredByFormalParameter(node));
+      constantsToCompute.add(node.declaredElement);
     }
   }
 

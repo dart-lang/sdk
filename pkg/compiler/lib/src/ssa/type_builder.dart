@@ -288,8 +288,9 @@ abstract class TypeBuilder {
     argument = argument.unaliased;
 
     if (!argument.containsTypeVariables) {
-      HInstruction rti = HLoadType(argument, _abstractValueDomain.dynamicType)
-        ..sourceInformation = sourceInformation;
+      HInstruction rti =
+          HLoadType.type(argument, _abstractValueDomain.dynamicType)
+            ..sourceInformation = sourceInformation;
       builder.add(rti);
       return rti;
     }

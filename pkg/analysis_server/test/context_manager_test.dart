@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -2525,14 +2525,14 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisDriver driver = driverMap[contextFolder.path];
     if (driver != null) {
-      changeSet.addedSources.forEach((source) {
-        driver.addFile(source.fullName);
+      changeSet.addedFiles.forEach((source) {
+        driver.addFile(source);
       });
-      changeSet.changedSources.forEach((source) {
-        driver.changeFile(source.fullName);
+      changeSet.changedFiles.forEach((source) {
+        driver.changeFile(source);
       });
-      changeSet.removedSources.forEach((source) {
-        driver.removeFile(source.fullName);
+      changeSet.removedFiles.forEach((source) {
+        driver.removeFile(source);
       });
     }
   }

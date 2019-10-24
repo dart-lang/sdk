@@ -58,4 +58,19 @@ class _MockPackages implements Packages {
   Uri resolve(Uri packageUri, {Uri notFound(Uri packageUri)}) {
     fail('Unexpected invocation of resolve');
   }
+
+  @override
+  String get defaultPackageName {
+    fail('Unexpected invocation of defaultPackageName');
+  }
+
+  @override
+  String libraryMetadata(Uri libraryUri, String key) {
+    fail('Unexpected invocation of libraryMetadata');
+  }
+
+  @override
+  String packageMetadata(String packageName, String key) {
+    fail('Unexpected invocation of packageMetadata');
+  }
 }

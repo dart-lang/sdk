@@ -202,6 +202,14 @@ class VerifyingVisitor extends RecursiveVisitor<void> {
     currentLibrary = null;
   }
 
+  visitExtension(Extension node) {
+    declareTypeParameters(node.typeParameters);
+    final oldParent = enterParent(node);
+    node.visitChildren(this);
+    exitParent(oldParent);
+    undeclareTypeParameters(node.typeParameters);
+  }
+
   void checkTypedef(Typedef node) {
     var state = typedefState[node];
     if (state == TypedefState.Done) return;

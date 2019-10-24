@@ -64,6 +64,14 @@ class Platform {
 
   static const char* ResolveExecutablePath();
 
+  // This has the same effect as calling ResolveExecutablePath except that
+  // Dart_ScopeAllocate is not called and that the result goes into the given
+  // parameters.
+  // WARNING: On Fuchsia it returns -1, i.e. doesn't work.
+  // Note that `result` should be pre-allocated with size `result_size`.
+  // The return-value is the length read into `result` or -1 on failure.
+  static intptr_t ResolveExecutablePathInto(char* result, size_t result_size);
+
   // Stores the executable name.
   static void SetExecutableName(const char* executable_name) {
     executable_name_ = executable_name;

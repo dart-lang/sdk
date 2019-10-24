@@ -14,6 +14,7 @@
 #include "platform/atomic.h"
 #include "platform/safe_stack.h"
 #include "vm/bitfield.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/constants.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -23,7 +24,6 @@
 #include "vm/runtime_entry_list.h"
 #include "vm/thread_stack_resource.h"
 #include "vm/thread_state.h"
-
 namespace dart {
 
 class AbstractType;
@@ -68,6 +68,12 @@ class TypeArguments;
 class TypeParameter;
 class TypeUsageInfo;
 class Zone;
+
+namespace compiler {
+namespace target {
+class Thread;
+}  // namespace target
+}  // namespace compiler
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
   V(AbstractType)                                                              \
@@ -170,7 +176,6 @@ class Zone;
     0)                                                                         \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
-  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0) \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
 #endif
@@ -282,6 +287,9 @@ class Thread : public ThreadState {
     saved_safestack_limit_ = limit;
   }
 #endif
+  static uword saved_shadow_call_stack_offset() {
+    return OFFSET_OF(Thread, saved_shadow_call_stack_);
+  }
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
@@ -782,10 +790,18 @@ class Thread : public ThreadState {
   }
 
   int32_t AllocateFfiCallbackId();
+
+  // Store 'code' for the native callback identified by 'callback_id'.
+  //
+  // Expands the callback code array as necessary to accomodate the callback ID.
   void SetFfiCallbackCode(int32_t callback_id, const Code& code);
 
-  // Ensure that 'entry' points within the code of the callback identified by
-  // 'callback_id'. Aborts otherwise.
+  // Ensure that 'callback_id' refers to a valid callback in this isolate.
+  //
+  // If "entry != 0", additionally checks that entry is inside the instructions
+  // of this callback.
+  //
+  // Aborts if any of these conditions fails.
   void VerifyCallbackIsolate(int32_t callback_id, uword entry);
 
   Thread* next() const { return next_; }
@@ -879,6 +895,7 @@ class Thread : public ThreadState {
   RawObject* active_stacktrace_;
   RawObjectPool* global_object_pool_;
   uword resume_pc_;
+  uword saved_shadow_call_stack_ = 0;
   uword execution_state_;
   uword safepoint_state_;
   RawGrowableObjectArray* ffi_callback_code_;
@@ -933,6 +950,7 @@ class Thread : public ThreadState {
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
+  // Generated code assumes that AtSafepointField is the LSB.
   class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
   class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
@@ -985,6 +1003,7 @@ class Thread : public ThreadState {
   friend class StackZone;
   friend class ThreadRegistry;
   friend class CompilerState;
+  friend class compiler::target::Thread;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 

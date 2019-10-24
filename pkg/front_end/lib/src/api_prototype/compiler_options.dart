@@ -4,6 +4,8 @@
 
 library front_end.compiler_options;
 
+import 'package:kernel/ast.dart' as kernel show Library;
+
 import 'package:kernel/target/targets.dart' show Target;
 
 import 'diagnostic_message.dart' show DiagnosticMessageHandler;
@@ -108,9 +110,6 @@ class CompilerOptions {
   @deprecated
   bool chaseDependencies;
 
-  /// True if enabling legacy mode (Dart 1 compatibility).
-  bool legacyMode = false;
-
   /// Patch files to apply on the core libraries for a specific target platform.
   ///
   /// Keys in the map are the name of the library with no `dart:` prefix, for
@@ -210,11 +209,26 @@ class CompilerOptions {
   /// Typically used by developers to debug internals of the compiler.
   bool throwOnWarningsForDebugging = false;
 
+  /// For the [throwOnErrorsForDebugging] or [throwOnWarningsForDebugging]
+  /// options, skip this number of otherwise fatal diagnostics without throwing.
+  /// I.e. the default value of 0 means throw on the first fatal diagnostic.
+  ///
+  /// If the value is negative, print a stack trace for every fatal
+  /// diagnostic, but do not stop the compilation.
+  int skipForDebugging = 0;
+
   /// Whether to generate bytecode.
   bool bytecode = false;
 
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
+
+  /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
+  /// For instance used for language versioning (specifying the maximum
+  /// version).
+  String currentSdkVersion = "${kernel.Library.defaultLanguageVersionMajor}"
+      "."
+      "${kernel.Library.defaultLanguageVersionMinor}";
 }
 
 /// Parse experimental flag arguments of the form 'flag' or 'no-flag' into a map

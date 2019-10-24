@@ -178,6 +178,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
           result.add(" extends ");
           param.bound.accept(this);
         }
+        first = false;
       }
       result.add(">");
     }

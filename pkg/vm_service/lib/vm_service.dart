@@ -13,11 +13,23 @@ import 'dart:async';
 import 'dart:convert' show base64, jsonDecode, jsonEncode, utf8;
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
+export 'src/snapshot_graph.dart'
+    show
+        HeapSnapshotClass,
+        HeapSnapshotExternalProperty,
+        HeapSnapshotField,
+        HeapSnapshotGraph,
+        HeapSnapshotObject,
+        HeapSnapshotObjectLengthData,
+        HeapSnapshotObjectNoData,
+        HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.25.0';
+const String vmServiceVersion = '3.27.0';
 
 /// @optional
 const String optional = 'optional';
@@ -102,6 +114,8 @@ Map<String, Function> _typeFactories = {
   '@Context': ContextRef.parse,
   'Context': Context.parse,
   'ContextElement': ContextElement.parse,
+  'CpuSamples': CpuSamples.parse,
+  'CpuSample': CpuSample.parse,
   '@Error': ErrorRef.parse,
   'Error': Error.parse,
   'Event': Event.parse,
@@ -127,10 +141,12 @@ Map<String, Function> _typeFactories = {
   'MapAssociation': MapAssociation.parse,
   'MemoryUsage': MemoryUsage.parse,
   'Message': Message.parse,
+  'NativeFunction': NativeFunction.parse,
   '@Null': NullValRef.parse,
   'Null': NullVal.parse,
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
+  'ProfileFunction': ProfileFunction.parse,
   'ReloadReport': ReloadReport.parse,
   'RetainingObject': RetainingObject.parse,
   'RetainingPath': RetainingPath.parse,
@@ -161,11 +177,13 @@ Map<String, List<String>> _methodReturnTypes = {
   'addBreakpoint': const ['Breakpoint'],
   'addBreakpointWithScriptUri': const ['Breakpoint'],
   'addBreakpointAtEntry': const ['Breakpoint'],
+  'clearCpuSamples': const ['Success'],
   'clearVMTimeline': const ['Success'],
   'invoke': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluate': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences', 'Sentinel'],
   'getInstances': const ['InstanceSet'],
@@ -186,9 +204,10 @@ Map<String, List<String>> _methodReturnTypes = {
   'registerService': const ['Success'],
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
+  'requestHeapSnapshot': const ['Success'],
   'resume': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
-  'setFlag': const ['Success'],
+  'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
   'setVMName': const ['Success'],
@@ -281,6 +300,11 @@ abstract class VmServiceInterface {
   ///
   /// Note that breakpoints are added and removed on a per-isolate basis.
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId);
+
+  /// Clears all CPU profiling samples.
+  ///
+  /// See [Success].
+  Future<Success> clearCpuSamples(String isolateId);
 
   /// Clears all VM timeline events.
   ///
@@ -408,6 +432,16 @@ abstract class VmServiceInterface {
   /// that a garbage collection will be actually be performed.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
+  /// profiler. Only samples collected in the time range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]` will be reported.
+  ///
+  /// If the profiler is disabled, an error response will be returned.
+  ///
+  /// See [CpuSamples].
+  Future<CpuSamples> getCpuSamples(
+      String isolateId, int timeOriginMicros, int timeExtentMicros);
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
   /// along with their current values.
@@ -692,6 +726,15 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> removeBreakpoint(String isolateId, String breakpointId);
 
+  /// Requests a dump of the Dart heap of the given isolate.
+  ///
+  /// This method immediately returns success. The VM will then begin delivering
+  /// binary events on the `HeapSnapshot` event stream. The binary data in these
+  /// events, when concatenated together, conforms to the SnapshotGraph type.
+  /// The splitting of the SnapshotGraph into events can happen at any byte
+  /// offset, including the middle of scalar fields.
+  Future<Success> requestHeapSnapshot(String isolateId);
+
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
   /// If the `step` parameter is not provided, the program will resume regular
@@ -734,7 +777,9 @@ abstract class VmServiceInterface {
   /// value is of the wrong type for the flag.
   ///
   /// The following flags may be set at runtime:
-  Future<Success> setFlag(String name, String value);
+  ///
+  /// The return value can be one of [Success] or [Error].
+  Future<dynamic> setFlag(String name, String value);
 
   /// The `setLibraryDebuggable` RPC is used to enable or disable whether
   /// breakpoints and stepping work for a given library.
@@ -795,6 +840,7 @@ abstract class VmServiceInterface {
   /// Timeline | TimelineEvents
   /// Logging | Logging
   /// Service | ServiceRegistered, ServiceUnregistered
+  /// HeapSnapshot | HeapSnapshot
   ///
   /// Additionally, some embedders provide the `Stdout` and `Stderr` streams.
   /// These streams allow the client to subscribe to writes to stdout and
@@ -910,6 +956,11 @@ class VmServerConnection {
             params['functionId'],
           );
           break;
+        case 'clearCpuSamples':
+          response = await _serviceImplementation.clearCpuSamples(
+            params['isolateId'],
+          );
+          break;
         case 'clearVMTimeline':
           response = await _serviceImplementation.clearVMTimeline();
           break;
@@ -918,7 +969,7 @@ class VmServerConnection {
             params['isolateId'],
             params['targetId'],
             params['selector'],
-            params['argumentIds'],
+            List<String>.from(params['argumentIds'] ?? []),
             disableBreakpoints: params['disableBreakpoints'],
           );
           break;
@@ -945,6 +996,13 @@ class VmServerConnection {
             params['isolateId'],
             reset: params['reset'],
             gc: params['gc'],
+          );
+          break;
+        case 'getCpuSamples':
+          response = await _serviceImplementation.getCpuSamples(
+            params['isolateId'],
+            params['timeOriginMicros'],
+            params['timeExtentMicros'],
           );
           break;
         case 'getFlagList':
@@ -1002,7 +1060,7 @@ class VmServerConnection {
         case 'getSourceReport':
           response = await _serviceImplementation.getSourceReport(
             params['isolateId'],
-            params['reports'],
+            List<String>.from(params['reports'] ?? []),
             scriptId: params['scriptId'],
             tokenPos: params['tokenPos'],
             endTokenPos: params['endTokenPos'],
@@ -1052,6 +1110,11 @@ class VmServerConnection {
             params['breakpointId'],
           );
           break;
+        case 'requestHeapSnapshot':
+          response = await _serviceImplementation.requestHeapSnapshot(
+            params['isolateId'],
+          );
+          break;
         case 'resume':
           response = await _serviceImplementation.resume(
             params['isolateId'],
@@ -1091,7 +1154,7 @@ class VmServerConnection {
           break;
         case 'setVMTimelineFlags':
           response = await _serviceImplementation.setVMTimelineFlags(
-            params['recordedStreams'],
+            List<String>.from(params['recordedStreams'] ?? []),
           );
           break;
         case 'streamCancel':
@@ -1141,7 +1204,7 @@ class VmServerConnection {
           } else if (method.startsWith('ext.')) {
             // Remaining methods with `ext.` are assumed to be registered via
             // dart:developer, which the service implementation handles.
-            var args = params == null ? null : new Map.of(params);
+            var args = params == null ? null : Map.of(params);
             var isolateId = args?.remove('isolateId');
             response = await _serviceImplementation.callServiceExtension(method,
                 isolateId: isolateId, args: args);
@@ -1179,16 +1242,17 @@ class VmService implements VmServiceInterface {
   Map<String, ServiceCallback> _services = {};
   Log _log;
 
-  StreamController<String> _onSend = new StreamController.broadcast(sync: true);
-  StreamController<String> _onReceive =
-      new StreamController.broadcast(sync: true);
+  StreamController<String> _onSend = StreamController.broadcast(sync: true);
+  StreamController<String> _onReceive = StreamController.broadcast(sync: true);
+
+  final Completer _onDoneCompleter = Completer();
 
   Map<String, StreamController<Event>> _eventControllers = {};
 
   StreamController<Event> _getEventController(String eventName) {
     StreamController<Event> controller = _eventControllers[eventName];
     if (controller == null) {
-      controller = new StreamController.broadcast();
+      controller = StreamController.broadcast();
       _eventControllers[eventName] = controller;
     }
     return controller;
@@ -1196,13 +1260,23 @@ class VmService implements VmServiceInterface {
 
   DisposeHandler _disposeHandler;
 
-  VmService(Stream<dynamic> /*String|List<int>*/ inStream,
-      void writeMessage(String message),
-      {Log log, DisposeHandler disposeHandler}) {
-    _streamSub = inStream.listen(_processMessage);
+  VmService(
+    Stream<dynamic> /*String|List<int>*/ inStream,
+    void writeMessage(String message), {
+    Log log,
+    DisposeHandler disposeHandler,
+    Future streamClosed,
+  }) {
+    _streamSub = inStream.listen(_processMessage,
+        onDone: () => _onDoneCompleter.complete());
     _writeMessage = writeMessage;
-    _log = log == null ? new _NullLog() : log;
+    _log = log == null ? _NullLog() : log;
     _disposeHandler = disposeHandler;
+    streamClosed?.then((_) {
+      if (!_onDoneCompleter.isCompleted) {
+        _onDoneCompleter.complete();
+      }
+    });
   }
 
   @override
@@ -1232,6 +1306,10 @@ class VmService implements VmServiceInterface {
 
   // ServiceRegistered, ServiceUnregistered
   Stream<Event> get onServiceEvent => _getEventController('Service').stream;
+
+  // HeapSnapshot
+  Stream<Event> get onHeapSnapshotEvent =>
+      _getEventController('HeapSnapshot').stream;
 
   // WriteEvent
   Stream<Event> get onStdoutEvent => _getEventController('Stdout').stream;
@@ -1271,6 +1349,11 @@ class VmService implements VmServiceInterface {
   Future<Breakpoint> addBreakpointAtEntry(String isolateId, String functionId) {
     return _call('addBreakpointAtEntry',
         {'isolateId': isolateId, 'functionId': functionId});
+  }
+
+  @override
+  Future<Success> clearCpuSamples(String isolateId) {
+    return _call('clearCpuSamples', {'isolateId': isolateId});
   }
 
   @override
@@ -1351,6 +1434,16 @@ class VmService implements VmServiceInterface {
       m['gc'] = gc;
     }
     return _call('getAllocationProfile', m);
+  }
+
+  @override
+  Future<CpuSamples> getCpuSamples(
+      String isolateId, int timeOriginMicros, int timeExtentMicros) {
+    return _call('getCpuSamples', {
+      'isolateId': isolateId,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros
+    });
   }
 
   @override
@@ -1510,6 +1603,11 @@ class VmService implements VmServiceInterface {
   }
 
   @override
+  Future<Success> requestHeapSnapshot(String isolateId) {
+    return _call('requestHeapSnapshot', {'isolateId': isolateId});
+  }
+
+  @override
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex}) {
     Map m = {'isolateId': isolateId};
@@ -1530,7 +1628,7 @@ class VmService implements VmServiceInterface {
   }
 
   @override
-  Future<Success> setFlag(String name, String value) {
+  Future<dynamic> setFlag(String name, String value) {
     return _call('setFlag', {'name': name, 'value': value});
   }
 
@@ -1586,7 +1684,7 @@ class VmService implements VmServiceInterface {
     } else if (args == null) {
       return _call(method, {'isolateId': isolateId});
     } else {
-      args = new Map.from(args);
+      args = Map.from(args);
       if (isolateId != null) {
         args['isolateId'] = isolateId;
       }
@@ -1601,12 +1699,19 @@ class VmService implements VmServiceInterface {
   void dispose() {
     _streamSub.cancel();
     _completers.values.forEach((c) => c.completeError('disposed'));
-    if (_disposeHandler != null) _disposeHandler();
+    if (_disposeHandler != null) {
+      _disposeHandler();
+    }
+    if (!_onDoneCompleter.isCompleted) {
+      _onDoneCompleter.complete();
+    }
   }
+
+  Future get onDone => _onDoneCompleter.future;
 
   Future<T> _call<T>(String method, [Map args]) {
     String id = '${++_id}';
-    Completer<T> completer = new Completer<T>();
+    Completer<T> completer = Completer<T>();
     _completers[id] = completer;
     _methodCalls[id] = method;
     Map m = {'id': id, 'method': method};
@@ -1620,7 +1725,7 @@ class VmService implements VmServiceInterface {
   /// Register a service for invocation.
   void registerServiceCallback(String service, ServiceCallback cb) {
     if (_services.containsKey(service)) {
-      throw new Exception('Service \'${service}\' already registered');
+      throw Exception('Service \'${service}\' already registered');
     }
     _services[service] = cb;
   }
@@ -1631,8 +1736,8 @@ class VmService implements VmServiceInterface {
     if (message is String) {
       _processMessageStr(message);
     } else if (message is List<int>) {
-      Uint8List list = new Uint8List.fromList(message);
-      _processMessageByteData(new ByteData.view(list.buffer));
+      Uint8List list = Uint8List.fromList(message);
+      _processMessageByteData(ByteData.view(list.buffer));
     } else if (message is ByteData) {
       _processMessageByteData(message);
     } else {
@@ -1641,19 +1746,19 @@ class VmService implements VmServiceInterface {
   }
 
   void _processMessageByteData(ByteData bytes) {
-    int offset = 0;
-    int metaSize = bytes.getUint32(offset + 4, Endian.big);
-    offset += 8;
-    String meta = utf8.decode(new Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + offset, metaSize));
-    offset += metaSize;
-    ByteData data = new ByteData.view(bytes.buffer,
-        bytes.offsetInBytes + offset, bytes.lengthInBytes - offset);
+    final int metaOffset = 4;
+    final int dataOffset = bytes.getUint32(0, Endian.little);
+    final metaLength = dataOffset - metaOffset;
+    final dataLength = bytes.lengthInBytes - dataOffset;
+    final meta = utf8.decode(Uint8List.view(
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength));
+    final data = ByteData.view(
+        bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
     dynamic map = jsonDecode(meta);
     if (map != null && map['method'] == 'streamNotify') {
       String streamId = map['params']['streamId'];
       Map event = map['params']['event'];
-      event['_data'] = data;
+      event['data'] = data;
       _getEventController(streamId)
           .add(createServiceObject(event, const ['Event']));
     }
@@ -1750,8 +1855,7 @@ typedef DisposeHandler = Future Function();
 
 class RPCError {
   static RPCError parse(String callingMethod, dynamic json) {
-    return new RPCError(
-        callingMethod, json['code'], json['message'], json['data']);
+    return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
 
   final String callingMethod;
@@ -1775,7 +1879,7 @@ class RPCError {
 /// An `ExtensionData` is an arbitrary map that can have any contents.
 class ExtensionData {
   static ExtensionData parse(Map json) =>
-      json == null ? null : new ExtensionData._fromJson(json);
+      json == null ? null : ExtensionData._fromJson(json);
 
   final Map data;
 
@@ -1841,6 +1945,7 @@ class EventStreams {
   static const String kTimeline = 'Timeline';
   static const String kLogging = 'Logging';
   static const String kService = 'Service';
+  static const String kHeapSnapshot = 'HeapSnapshot';
   static const String kStdout = 'Stdout';
   static const String kStderr = 'Stderr';
 }
@@ -2089,7 +2194,7 @@ class StepOption {
 
 class AllocationProfile extends Response {
   static AllocationProfile parse(Map<String, dynamic> json) =>
-      json == null ? null : new AllocationProfile._fromJson(json);
+      json == null ? null : AllocationProfile._fromJson(json);
 
   /// Allocation information for all class types.
   List<ClassHeapStats> members;
@@ -2109,11 +2214,15 @@ class AllocationProfile extends Response {
   @optional
   int dateLastServiceGC;
 
-  AllocationProfile();
-
+  AllocationProfile({
+    @required this.members,
+    @required this.memoryUsage,
+    this.dateLastAccumulatorReset,
+    this.dateLastServiceGC,
+  });
   AllocationProfile._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
-    members = new List<ClassHeapStats>.from(
+    members = List<ClassHeapStats>.from(
         createServiceObject(json['members'], const ['ClassHeapStats']));
     memoryUsage =
         createServiceObject(json['memoryUsage'], const ['MemoryUsage']);
@@ -2152,15 +2261,17 @@ class AllocationProfile extends Response {
 /// `BeingInitialized` [Sentinel].
 class BoundField {
   static BoundField parse(Map<String, dynamic> json) =>
-      json == null ? null : new BoundField._fromJson(json);
+      json == null ? null : BoundField._fromJson(json);
 
   FieldRef decl;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
   dynamic value;
 
-  BoundField();
-
+  BoundField({
+    @required this.decl,
+    @required this.value,
+  });
   BoundField._fromJson(Map<String, dynamic> json) {
     decl = createServiceObject(json['decl'], const ['FieldRef']);
     value =
@@ -2192,7 +2303,7 @@ class BoundField {
 /// the `OptimizedOut` [Sentinel].
 class BoundVariable extends Response {
   static BoundVariable parse(Map<String, dynamic> json) =>
-      json == null ? null : new BoundVariable._fromJson(json);
+      json == null ? null : BoundVariable._fromJson(json);
 
   String name;
 
@@ -2208,8 +2319,13 @@ class BoundVariable extends Response {
   /// The last token position where this variable is visible to the scope.
   int scopeEndTokenPos;
 
-  BoundVariable();
-
+  BoundVariable({
+    @required this.name,
+    @required this.value,
+    @required this.declarationTokenPos,
+    @required this.scopeStartTokenPos,
+    @required this.scopeEndTokenPos,
+  });
   BoundVariable._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     value = createServiceObject(
@@ -2246,7 +2362,7 @@ class BoundVariable extends Response {
 /// library).
 class Breakpoint extends Obj {
   static Breakpoint parse(Map<String, dynamic> json) =>
-      json == null ? null : new Breakpoint._fromJson(json);
+      json == null ? null : Breakpoint._fromJson(json);
 
   /// A number identifying this breakpoint to the user.
   int breakpointNumber;
@@ -2265,8 +2381,12 @@ class Breakpoint extends Obj {
   /// [location] can be one of [SourceLocation] or [UnresolvedSourceLocation].
   dynamic location;
 
-  Breakpoint();
-
+  Breakpoint({
+    @required this.breakpointNumber,
+    @required this.resolved,
+    @required this.location,
+    this.isSyntheticAsyncContinuation,
+  });
   Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     breakpointNumber = json['breakpointNumber'];
     resolved = json['resolved'];
@@ -2301,13 +2421,14 @@ class Breakpoint extends Obj {
 /// `ClassRef` is a reference to a `Class`.
 class ClassRef extends ObjRef {
   static ClassRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new ClassRef._fromJson(json);
+      json == null ? null : ClassRef._fromJson(json);
 
   /// The name of this class.
   String name;
 
-  ClassRef();
-
+  ClassRef({
+    @required this.name,
+  });
   ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -2332,7 +2453,7 @@ class ClassRef extends ObjRef {
 /// A `Class` provides information about a Dart language class.
 class Class extends Obj {
   static Class parse(Map<String, dynamic> json) =>
-      json == null ? null : new Class._fromJson(json);
+      json == null ? null : Class._fromJson(json);
 
   /// The name of this class.
   String name;
@@ -2385,8 +2506,21 @@ class Class extends Obj {
   /// A list of subclasses of this class.
   List<ClassRef> subclasses;
 
-  Class();
-
+  Class({
+    @required this.name,
+    @required this.isAbstract,
+    @required this.isConst,
+    @required this.library,
+    @required this.interfaces,
+    @required this.fields,
+    @required this.functions,
+    @required this.subclasses,
+    this.error,
+    this.location,
+    this.superClass,
+    this.superType,
+    this.mixin,
+  });
   Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     error = createServiceObject(json['error'], const ['ErrorRef']);
@@ -2396,14 +2530,14 @@ class Class extends Obj {
     location = createServiceObject(json['location'], const ['SourceLocation']);
     superClass = createServiceObject(json['super'], const ['ClassRef']);
     superType = createServiceObject(json['superType'], const ['InstanceRef']);
-    interfaces = new List<InstanceRef>.from(
+    interfaces = List<InstanceRef>.from(
         createServiceObject(json['interfaces'], const ['InstanceRef']));
     mixin = createServiceObject(json['mixin'], const ['InstanceRef']);
-    fields = new List<FieldRef>.from(
+    fields = List<FieldRef>.from(
         createServiceObject(json['fields'], const ['FieldRef']));
-    functions = new List<FuncRef>.from(
+    functions = List<FuncRef>.from(
         createServiceObject(json['functions'], const ['FuncRef']));
-    subclasses = new List<ClassRef>.from(
+    subclasses = List<ClassRef>.from(
         createServiceObject(json['subclasses'], const ['ClassRef']));
   }
 
@@ -2438,7 +2572,7 @@ class Class extends Obj {
 
 class ClassHeapStats extends Response {
   static ClassHeapStats parse(Map<String, dynamic> json) =>
-      json == null ? null : new ClassHeapStats._fromJson(json);
+      json == null ? null : ClassHeapStats._fromJson(json);
 
   /// The class for which this memory information is associated.
   ClassRef classRef;
@@ -2457,8 +2591,13 @@ class ClassHeapStats extends Response {
   /// The number of instances of class which are currently alive.
   int instancesCurrent;
 
-  ClassHeapStats();
-
+  ClassHeapStats({
+    @required this.classRef,
+    @required this.accumulatedSize,
+    @required this.bytesCurrent,
+    @required this.instancesAccumulated,
+    @required this.instancesCurrent,
+  });
   ClassHeapStats._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     classRef = createServiceObject(json['class'], const ['ClassRef']);
     accumulatedSize = json['accumulatedSize'];
@@ -2488,14 +2627,15 @@ class ClassHeapStats extends Response {
 
 class ClassList extends Response {
   static ClassList parse(Map<String, dynamic> json) =>
-      json == null ? null : new ClassList._fromJson(json);
+      json == null ? null : ClassList._fromJson(json);
 
   List<ClassRef> classes;
 
-  ClassList();
-
+  ClassList({
+    @required this.classes,
+  });
   ClassList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    classes = new List<ClassRef>.from(
+    classes = List<ClassRef>.from(
         createServiceObject(json['classes'], const ['ClassRef']));
   }
 
@@ -2515,7 +2655,7 @@ class ClassList extends Response {
 /// `CodeRef` is a reference to a `Code` object.
 class CodeRef extends ObjRef {
   static CodeRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new CodeRef._fromJson(json);
+      json == null ? null : CodeRef._fromJson(json);
 
   /// A name for this code object.
   String name;
@@ -2523,8 +2663,10 @@ class CodeRef extends ObjRef {
   /// What kind of code object is this?
   /*CodeKind*/ String kind;
 
-  CodeRef();
-
+  CodeRef({
+    @required this.name,
+    @required this.kind,
+  });
   CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -2552,7 +2694,7 @@ class CodeRef extends ObjRef {
 /// A `Code` object represents compiled code in the Dart VM.
 class Code extends ObjRef {
   static Code parse(Map<String, dynamic> json) =>
-      json == null ? null : new Code._fromJson(json);
+      json == null ? null : Code._fromJson(json);
 
   /// A name for this code object.
   String name;
@@ -2560,8 +2702,10 @@ class Code extends ObjRef {
   /// What kind of code object is this?
   /*CodeKind*/ String kind;
 
-  Code();
-
+  Code({
+    @required this.name,
+    @required this.kind,
+  });
   Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     kind = json['kind'];
@@ -2588,13 +2732,14 @@ class Code extends ObjRef {
 
 class ContextRef extends ObjRef {
   static ContextRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new ContextRef._fromJson(json);
+      json == null ? null : ContextRef._fromJson(json);
 
   /// The number of variables in this context.
   int length;
 
-  ContextRef();
-
+  ContextRef({
+    @required this.length,
+  });
   ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
   }
@@ -2621,7 +2766,7 @@ class ContextRef extends ObjRef {
 /// closure.
 class Context extends Obj {
   static Context parse(Map<String, dynamic> json) =>
-      json == null ? null : new Context._fromJson(json);
+      json == null ? null : Context._fromJson(json);
 
   /// The number of variables in this context.
   int length;
@@ -2633,12 +2778,15 @@ class Context extends Obj {
   /// The variables in this context object.
   List<ContextElement> variables;
 
-  Context();
-
+  Context({
+    @required this.length,
+    @required this.variables,
+    this.parent,
+  });
   Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     parent = createServiceObject(json['parent'], const ['Context']);
-    variables = new List<ContextElement>.from(
+    variables = List<ContextElement>.from(
         createServiceObject(json['variables'], const ['ContextElement']));
   }
 
@@ -2664,13 +2812,14 @@ class Context extends Obj {
 
 class ContextElement {
   static ContextElement parse(Map<String, dynamic> json) =>
-      json == null ? null : new ContextElement._fromJson(json);
+      json == null ? null : ContextElement._fromJson(json);
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
   dynamic value;
 
-  ContextElement();
-
+  ContextElement({
+    @required this.value,
+  });
   ContextElement._fromJson(Map<String, dynamic> json) {
     value =
         createServiceObject(json['value'], const ['InstanceRef', 'Sentinel']);
@@ -2687,10 +2836,163 @@ class ContextElement {
   String toString() => '[ContextElement value: ${value}]';
 }
 
+/// See [getCpuSamples] and [CpuSample].
+class CpuSamples extends Response {
+  static CpuSamples parse(Map<String, dynamic> json) =>
+      json == null ? null : CpuSamples._fromJson(json);
+
+  /// The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  /// The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  /// The number of samples returned.
+  int sampleCount;
+
+  /// The timespan the set of returned samples covers, in microseconds.
+  int timeSpan;
+
+  /// The start of the period of time in which the returned samples were
+  /// collected.
+  int timeOriginMicros;
+
+  /// The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  /// The process ID for the VM.
+  int pid;
+
+  /// A list of functions seen in the relevant samples. These references can be
+  /// looked up using the indicies provided in a `CpuSample` `stack` to
+  /// determine which function was on the stack.
+  List<ProfileFunction> functions;
+
+  /// A list of samples collected in the range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]`
+  List<CpuSample> samples;
+
+  CpuSamples({
+    @required this.samplePeriod,
+    @required this.maxStackDepth,
+    @required this.sampleCount,
+    @required this.timeSpan,
+    @required this.timeOriginMicros,
+    @required this.timeExtentMicros,
+    @required this.pid,
+    @required this.functions,
+    @required this.samples,
+  });
+  CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    samplePeriod = json['samplePeriod'];
+    maxStackDepth = json['maxStackDepth'];
+    sampleCount = json['sampleCount'];
+    timeSpan = json['timeSpan'];
+    timeOriginMicros = json['timeOriginMicros'];
+    timeExtentMicros = json['timeExtentMicros'];
+    pid = json['pid'];
+    functions = List<ProfileFunction>.from(
+        createServiceObject(json['functions'], const ['ProfileFunction']));
+    samples = List<CpuSample>.from(
+        createServiceObject(json['samples'], const ['CpuSample']));
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'CpuSamples';
+    json.addAll({
+      'samplePeriod': samplePeriod,
+      'maxStackDepth': maxStackDepth,
+      'sampleCount': sampleCount,
+      'timeSpan': timeSpan,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros,
+      'pid': pid,
+      'functions': functions.map((f) => f.toJson()).toList(),
+      'samples': samples.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[CpuSamples]';
+}
+
+/// See [getCpuSamples] and [CpuSamples].
+class CpuSample {
+  static CpuSample parse(Map<String, dynamic> json) =>
+      json == null ? null : CpuSample._fromJson(json);
+
+  /// The thread ID representing the thread on which this sample was collected.
+  int tid;
+
+  /// The time this sample was collected in microseconds.
+  int timestamp;
+
+  /// The name of VM tag set when this sample was collected. Omitted if the VM
+  /// tag for the sample is not considered valid.
+  @optional
+  String vmTag;
+
+  /// The name of the User tag set when this sample was collected. Omitted if no
+  /// User tag was set when this sample was collected.
+  @optional
+  String userTag;
+
+  /// Provided and set to true if the sample's stack was truncated. This can
+  /// happen if the stack is deeper than the `stackDepth` in the `CpuSamples`
+  /// response.
+  @optional
+  bool truncated;
+
+  /// The call stack at the time this sample was collected. The stack is to be
+  /// interpreted as top to bottom. Each element in this array is a key into the
+  /// `functions` array in `CpuSamples`.
+  ///
+  /// Example:
+  ///
+  /// `functions[stack[0]] = @Function(bar())` `functions[stack[1]] =
+  /// @Function(foo())` `functions[stack[2]] = @Function(main())`
+  List<int> stack;
+
+  CpuSample({
+    @required this.tid,
+    @required this.timestamp,
+    @required this.stack,
+    this.vmTag,
+    this.userTag,
+    this.truncated,
+  });
+  CpuSample._fromJson(Map<String, dynamic> json) {
+    tid = json['tid'];
+    timestamp = json['timestamp'];
+    vmTag = json['vmTag'];
+    userTag = json['userTag'];
+    truncated = json['truncated'];
+    stack = List<int>.from(json['stack']);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'tid': tid,
+      'timestamp': timestamp,
+      'stack': stack.map((f) => f).toList(),
+    });
+    _setIfNotNull(json, 'vmTag', vmTag);
+    _setIfNotNull(json, 'userTag', userTag);
+    _setIfNotNull(json, 'truncated', truncated);
+    return json;
+  }
+
+  String toString() =>
+      '[CpuSample tid: ${tid}, timestamp: ${timestamp}, stack: ${stack}]';
+}
+
 /// `ErrorRef` is a reference to an `Error`.
 class ErrorRef extends ObjRef {
   static ErrorRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new ErrorRef._fromJson(json);
+      json == null ? null : ErrorRef._fromJson(json);
 
   /// What kind of error is this?
   /*ErrorKind*/ String kind;
@@ -2698,8 +3000,10 @@ class ErrorRef extends ObjRef {
   /// A description of the error.
   String message;
 
-  ErrorRef();
-
+  ErrorRef({
+    @required this.kind,
+    @required this.message,
+  });
   ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -2728,7 +3032,7 @@ class ErrorRef extends ObjRef {
 /// [rpc error].
 class Error extends Obj {
   static Error parse(Map<String, dynamic> json) =>
-      json == null ? null : new Error._fromJson(json);
+      json == null ? null : Error._fromJson(json);
 
   /// What kind of error is this?
   /*ErrorKind*/ String kind;
@@ -2746,8 +3050,12 @@ class Error extends Obj {
   @optional
   InstanceRef stacktrace;
 
-  Error();
-
+  Error({
+    @required this.kind,
+    @required this.message,
+    this.exception,
+    this.stacktrace,
+  });
   Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     message = json['message'];
@@ -2783,7 +3091,7 @@ class Error extends Obj {
 /// For more information, see [events].
 class Event extends Response {
   static Event parse(Map<String, dynamic> json) =>
-      json == null ? null : new Event._fromJson(json);
+      json == null ? null : Event._fromJson(json);
 
   /// What kind of event is this?
   /*EventKind*/ String kind;
@@ -2947,8 +3255,46 @@ class Event extends Response {
   @optional
   String newValue;
 
-  Event();
+  /// Specifies whether this event is the last of a group of events.
+  ///
+  /// This is provided for the event kinds:
+  ///  - HeapSnapshot
+  @optional
+  bool last;
 
+  /// Binary data associated with the event.
+  ///
+  /// This is provided for the event kinds:
+  ///   - HeapSnapshot
+  @optional
+  ByteData data;
+
+  Event({
+    @required this.kind,
+    @required this.timestamp,
+    this.isolate,
+    this.vm,
+    this.breakpoint,
+    this.pauseBreakpoints,
+    this.topFrame,
+    this.exception,
+    this.bytes,
+    this.inspectee,
+    this.extensionRPC,
+    this.extensionKind,
+    this.extensionData,
+    this.timelineEvents,
+    this.atAsyncSuspension,
+    this.status,
+    this.logRecord,
+    this.service,
+    this.method,
+    this.alias,
+    this.flag,
+    this.newValue,
+    this.last,
+    this.data,
+  });
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     isolate = createServiceObject(json['isolate'], const ['IsolateRef']);
@@ -2957,7 +3303,7 @@ class Event extends Response {
     breakpoint = createServiceObject(json['breakpoint'], const ['Breakpoint']);
     pauseBreakpoints = json['pauseBreakpoints'] == null
         ? null
-        : new List<Breakpoint>.from(createServiceObject(
+        : List<Breakpoint>.from(createServiceObject(
             json['pauseBreakpoints'], const ['Breakpoint']));
     topFrame = createServiceObject(json['topFrame'], const ['Frame']);
     exception = createServiceObject(json['exception'], const ['InstanceRef']);
@@ -2968,7 +3314,7 @@ class Event extends Response {
     extensionData = ExtensionData.parse(json['extensionData']);
     timelineEvents = json['timelineEvents'] == null
         ? null
-        : new List<TimelineEvent>.from(createServiceObject(
+        : List<TimelineEvent>.from(createServiceObject(
             json['timelineEvents'], const ['TimelineEvent']));
     atAsyncSuspension = json['atAsyncSuspension'];
     status = json['status'];
@@ -2978,6 +3324,8 @@ class Event extends Response {
     alias = json['alias'];
     flag = json['flag'];
     newValue = json['newValue'];
+    last = json['last'];
+    data = json['data'];
   }
 
   @override
@@ -3010,6 +3358,8 @@ class Event extends Response {
     _setIfNotNull(json, 'alias', alias);
     _setIfNotNull(json, 'flag', flag);
     _setIfNotNull(json, 'newValue', newValue);
+    _setIfNotNull(json, 'last', last);
+    _setIfNotNull(json, 'data', data);
     return json;
   }
 
@@ -3020,7 +3370,7 @@ class Event extends Response {
 /// An `FieldRef` is a reference to a `Field`.
 class FieldRef extends ObjRef {
   static FieldRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new FieldRef._fromJson(json);
+      json == null ? null : FieldRef._fromJson(json);
 
   /// The name of this field.
   String name;
@@ -3043,8 +3393,14 @@ class FieldRef extends ObjRef {
   /// Is this field static?
   bool isStatic;
 
-  FieldRef();
-
+  FieldRef({
+    @required this.name,
+    @required this.owner,
+    @required this.declaredType,
+    @required this.isConst,
+    @required this.isFinal,
+    @required this.isStatic,
+  });
   FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3080,7 +3436,7 @@ class FieldRef extends ObjRef {
 /// A `Field` provides information about a Dart language field or variable.
 class Field extends Obj {
   static Field parse(Map<String, dynamic> json) =>
-      json == null ? null : new Field._fromJson(json);
+      json == null ? null : Field._fromJson(json);
 
   /// The name of this field.
   String name;
@@ -3111,8 +3467,16 @@ class Field extends Obj {
   @optional
   SourceLocation location;
 
-  Field();
-
+  Field({
+    @required this.name,
+    @required this.owner,
+    @required this.declaredType,
+    @required this.isConst,
+    @required this.isFinal,
+    @required this.isStatic,
+    this.staticValue,
+    this.location,
+  });
   Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(json['owner'], const ['ObjRef']);
@@ -3153,7 +3517,7 @@ class Field extends Obj {
 /// A `Flag` represents a single VM command line flag.
 class Flag {
   static Flag parse(Map<String, dynamic> json) =>
-      json == null ? null : new Flag._fromJson(json);
+      json == null ? null : Flag._fromJson(json);
 
   /// The name of the flag.
   String name;
@@ -3170,8 +3534,12 @@ class Flag {
   @optional
   String valueAsString;
 
-  Flag();
-
+  Flag({
+    @required this.name,
+    @required this.comment,
+    @required this.modified,
+    this.valueAsString,
+  });
   Flag._fromJson(Map<String, dynamic> json) {
     name = json['name'];
     comment = json['comment'];
@@ -3197,16 +3565,16 @@ class Flag {
 /// A `FlagList` represents the complete set of VM command line flags.
 class FlagList extends Response {
   static FlagList parse(Map<String, dynamic> json) =>
-      json == null ? null : new FlagList._fromJson(json);
+      json == null ? null : FlagList._fromJson(json);
 
   /// A list of all flags in the VM.
   List<Flag> flags;
 
-  FlagList();
-
+  FlagList({
+    @required this.flags,
+  });
   FlagList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    flags =
-        new List<Flag>.from(createServiceObject(json['flags'], const ['Flag']));
+    flags = List<Flag>.from(createServiceObject(json['flags'], const ['Flag']));
   }
 
   @override
@@ -3224,7 +3592,7 @@ class FlagList extends Response {
 
 class Frame extends Response {
   static Frame parse(Map<String, dynamic> json) =>
-      json == null ? null : new Frame._fromJson(json);
+      json == null ? null : Frame._fromJson(json);
 
   int index;
 
@@ -3244,8 +3612,14 @@ class Frame extends Response {
   /*FrameKind*/
   String kind;
 
-  Frame();
-
+  Frame({
+    @required this.index,
+    this.function,
+    this.code,
+    this.location,
+    this.vars,
+    this.kind,
+  });
   Frame._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     function = createServiceObject(json['function'], const ['FuncRef']);
@@ -3253,7 +3627,7 @@ class Frame extends Response {
     location = createServiceObject(json['location'], const ['SourceLocation']);
     vars = json['vars'] == null
         ? null
-        : new List<BoundVariable>.from(
+        : List<BoundVariable>.from(
             createServiceObject(json['vars'], const ['BoundVariable']));
     kind = json['kind'];
   }
@@ -3279,7 +3653,7 @@ class Frame extends Response {
 /// An `FuncRef` is a reference to a `Func`.
 class FuncRef extends ObjRef {
   static FuncRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new FuncRef._fromJson(json);
+      json == null ? null : FuncRef._fromJson(json);
 
   /// The name of this function.
   String name;
@@ -3295,8 +3669,12 @@ class FuncRef extends ObjRef {
   /// Is this function const?
   bool isConst;
 
-  FuncRef();
-
+  FuncRef({
+    @required this.name,
+    @required this.owner,
+    @required this.isStatic,
+    @required this.isConst,
+  });
   FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -3330,7 +3708,7 @@ class FuncRef extends ObjRef {
 /// A `Func` represents a Dart language function.
 class Func extends Obj {
   static Func parse(Map<String, dynamic> json) =>
-      json == null ? null : new Func._fromJson(json);
+      json == null ? null : Func._fromJson(json);
 
   /// The name of this function.
   String name;
@@ -3348,8 +3726,12 @@ class Func extends Obj {
   @optional
   CodeRef code;
 
-  Func();
-
+  Func({
+    @required this.name,
+    @required this.owner,
+    this.location,
+    this.code,
+  });
   Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     owner = createServiceObject(
@@ -3382,7 +3764,7 @@ class Func extends Obj {
 /// `InstanceRef` is a reference to an `Instance`.
 class InstanceRef extends ObjRef {
   static InstanceRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new InstanceRef._fromJson(json);
+      json == null ? null : InstanceRef._fromJson(json);
 
   /// What kind of instance is this?
   /*InstanceKind*/ String kind;
@@ -3466,8 +3848,33 @@ class InstanceRef extends ObjRef {
   @optional
   InstanceRef pattern;
 
-  InstanceRef();
+  /// The function associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  FuncRef closureFunction;
 
+  /// The context associated with a Closure instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - Closure
+  @optional
+  ContextRef closureContext;
+
+  InstanceRef({
+    @required this.kind,
+    @required this.classRef,
+    this.valueAsString,
+    this.valueAsStringIsTruncated,
+    this.length,
+    this.name,
+    this.typeClass,
+    this.parameterizedClass,
+    this.pattern,
+    this.closureFunction,
+    this.closureContext,
+  });
   InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -3479,6 +3886,10 @@ class InstanceRef extends ObjRef {
     parameterizedClass =
         createServiceObject(json['parameterizedClass'], const ['ClassRef']);
     pattern = createServiceObject(json['pattern'], const ['InstanceRef']);
+    closureFunction =
+        createServiceObject(json['closureFunction'], const ['FuncRef']);
+    closureContext =
+        createServiceObject(json['closureContext'], const ['ContextRef']);
   }
 
   @override
@@ -3497,6 +3908,8 @@ class InstanceRef extends ObjRef {
     _setIfNotNull(json, 'typeClass', typeClass?.toJson());
     _setIfNotNull(json, 'parameterizedClass', parameterizedClass?.toJson());
     _setIfNotNull(json, 'pattern', pattern?.toJson());
+    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
+    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
     return json;
   }
 
@@ -3511,7 +3924,7 @@ class InstanceRef extends ObjRef {
 /// An `Instance` represents an instance of the Dart language class `Obj`.
 class Instance extends Obj {
   static Instance parse(Map<String, dynamic> json) =>
-      json == null ? null : new Instance._fromJson(json);
+      json == null ? null : Instance._fromJson(json);
 
   /// What kind of instance is this?
   /*InstanceKind*/ String kind;
@@ -3670,20 +4083,6 @@ class Instance extends Obj {
   @optional
   String bytes;
 
-  /// The function associated with a Closure instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - Closure
-  @optional
-  FuncRef closureFunction;
-
-  /// The context associated with a Closure instance.
-  ///
-  /// Provided for instance kinds:
-  ///  - Closure
-  @optional
-  ContextRef closureContext;
-
   /// The referent of a MirrorReference instance.
   ///
   /// Provided for instance kinds:
@@ -3763,8 +4162,32 @@ class Instance extends Obj {
   @optional
   InstanceRef bound;
 
-  Instance();
-
+  Instance({
+    @required this.kind,
+    @required this.classRef,
+    this.valueAsString,
+    this.valueAsStringIsTruncated,
+    this.length,
+    this.offset,
+    this.count,
+    this.name,
+    this.typeClass,
+    this.parameterizedClass,
+    this.fields,
+    this.elements,
+    this.associations,
+    this.bytes,
+    this.mirrorReferent,
+    this.pattern,
+    this.isCaseSensitive,
+    this.isMultiLine,
+    this.propertyKey,
+    this.propertyValue,
+    this.typeArguments,
+    this.parameterIndex,
+    this.targetType,
+    this.bound,
+  });
   Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     classRef = createServiceObject(json['class'], const ['ClassRef']);
@@ -3779,21 +4202,17 @@ class Instance extends Obj {
         createServiceObject(json['parameterizedClass'], const ['ClassRef']);
     fields = json['fields'] == null
         ? null
-        : new List<BoundField>.from(
+        : List<BoundField>.from(
             createServiceObject(json['fields'], const ['BoundField']));
     elements = json['elements'] == null
         ? null
-        : new List<dynamic>.from(
+        : List<dynamic>.from(
             createServiceObject(json['elements'], const ['dynamic']));
     associations = json['associations'] == null
         ? null
-        : new List<MapAssociation>.from(
+        : List<MapAssociation>.from(
             _createSpecificObject(json['associations'], MapAssociation.parse));
     bytes = json['bytes'];
-    closureFunction =
-        createServiceObject(json['closureFunction'], const ['FuncRef']);
-    closureContext =
-        createServiceObject(json['closureContext'], const ['ContextRef']);
     mirrorReferent =
         createServiceObject(json['mirrorReferent'], const ['InstanceRef']);
     pattern = json['pattern'];
@@ -3833,8 +4252,6 @@ class Instance extends Obj {
     _setIfNotNull(
         json, 'associations', associations?.map((f) => f?.toJson())?.toList());
     _setIfNotNull(json, 'bytes', bytes);
-    _setIfNotNull(json, 'closureFunction', closureFunction?.toJson());
-    _setIfNotNull(json, 'closureContext', closureContext?.toJson());
     _setIfNotNull(json, 'mirrorReferent', mirrorReferent?.toJson());
     _setIfNotNull(json, 'pattern', pattern);
     _setIfNotNull(json, 'isCaseSensitive', isCaseSensitive);
@@ -3859,7 +4276,7 @@ class Instance extends Obj {
 /// `IsolateRef` is a reference to an `Isolate` object.
 class IsolateRef extends Response {
   static IsolateRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new IsolateRef._fromJson(json);
+      json == null ? null : IsolateRef._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to load this isolate.
   String id;
@@ -3870,8 +4287,11 @@ class IsolateRef extends Response {
   /// A name identifying this isolate. Not guaranteed to be unique.
   String name;
 
-  IsolateRef();
-
+  IsolateRef({
+    @required this.id,
+    @required this.number,
+    @required this.name,
+  });
   IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -3901,7 +4321,7 @@ class IsolateRef extends Response {
 /// An `Isolate` object provides information about one isolate in the VM.
 class Isolate extends Response {
   static Isolate parse(Map<String, dynamic> json) =>
-      json == null ? null : new Isolate._fromJson(json);
+      json == null ? null : Isolate._fromJson(json);
 
   /// The id which is passed to the getIsolate RPC to reload this isolate.
   String id;
@@ -3956,8 +4376,22 @@ class Isolate extends Response {
   @optional
   List<String> extensionRPCs;
 
-  Isolate();
-
+  Isolate({
+    @required this.id,
+    @required this.number,
+    @required this.name,
+    @required this.startTime,
+    @required this.runnable,
+    @required this.livePorts,
+    @required this.pauseOnExit,
+    @required this.pauseEvent,
+    @required this.libraries,
+    @required this.breakpoints,
+    @required this.exceptionPauseMode,
+    this.rootLib,
+    this.error,
+    this.extensionRPCs,
+  });
   Isolate._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     number = json['number'];
@@ -3968,15 +4402,15 @@ class Isolate extends Response {
     pauseOnExit = json['pauseOnExit'];
     pauseEvent = createServiceObject(json['pauseEvent'], const ['Event']);
     rootLib = createServiceObject(json['rootLib'], const ['LibraryRef']);
-    libraries = new List<LibraryRef>.from(
+    libraries = List<LibraryRef>.from(
         createServiceObject(json['libraries'], const ['LibraryRef']));
-    breakpoints = new List<Breakpoint>.from(
+    breakpoints = List<Breakpoint>.from(
         createServiceObject(json['breakpoints'], const ['Breakpoint']));
     error = createServiceObject(json['error'], const ['Error']);
     exceptionPauseMode = json['exceptionPauseMode'];
     extensionRPCs = json['extensionRPCs'] == null
         ? null
-        : new List<String>.from(json['extensionRPCs']);
+        : List<String>.from(json['extensionRPCs']);
   }
 
   @override
@@ -4013,16 +4447,17 @@ class Isolate extends Response {
 /// See [getInboundReferences].
 class InboundReferences extends Response {
   static InboundReferences parse(Map<String, dynamic> json) =>
-      json == null ? null : new InboundReferences._fromJson(json);
+      json == null ? null : InboundReferences._fromJson(json);
 
   /// An array of inbound references to an object.
   List<InboundReference> references;
 
-  InboundReferences();
-
+  InboundReferences({
+    @required this.references,
+  });
   InboundReferences._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
-    references = new List<InboundReference>.from(
+    references = List<InboundReference>.from(
         createServiceObject(json['references'], const ['InboundReference']));
   }
 
@@ -4043,7 +4478,7 @@ class InboundReferences extends Response {
 /// See [getInboundReferences].
 class InboundReference {
   static InboundReference parse(Map<String, dynamic> json) =>
-      json == null ? null : new InboundReference._fromJson(json);
+      json == null ? null : InboundReference._fromJson(json);
 
   /// The object holding the inbound reference.
   ObjRef source;
@@ -4058,8 +4493,11 @@ class InboundReference {
   @optional
   FieldRef parentField;
 
-  InboundReference();
-
+  InboundReference({
+    @required this.source,
+    this.parentListIndex,
+    this.parentField,
+  });
   InboundReference._fromJson(Map<String, dynamic> json) {
     source = createServiceObject(json['source'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -4082,7 +4520,7 @@ class InboundReference {
 /// See [getInstances].
 class InstanceSet extends Response {
   static InstanceSet parse(Map<String, dynamic> json) =>
-      json == null ? null : new InstanceSet._fromJson(json);
+      json == null ? null : InstanceSet._fromJson(json);
 
   /// The number of instances of the requested type currently allocated.
   int totalCount;
@@ -4090,11 +4528,13 @@ class InstanceSet extends Response {
   /// An array of instances of the requested type.
   List<ObjRef> instances;
 
-  InstanceSet();
-
+  InstanceSet({
+    @required this.totalCount,
+    @required this.instances,
+  });
   InstanceSet._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     totalCount = json['totalCount'];
-    instances = new List<ObjRef>.from(createServiceObject(
+    instances = List<ObjRef>.from(createServiceObject(
         json['instances'] ?? json['samples'], const ['ObjRef']));
   }
 
@@ -4116,7 +4556,7 @@ class InstanceSet extends Response {
 /// `LibraryRef` is a reference to a `Library`.
 class LibraryRef extends ObjRef {
   static LibraryRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new LibraryRef._fromJson(json);
+      json == null ? null : LibraryRef._fromJson(json);
 
   /// The name of this library.
   String name;
@@ -4124,8 +4564,10 @@ class LibraryRef extends ObjRef {
   /// The uri of this library.
   String uri;
 
-  LibraryRef();
-
+  LibraryRef({
+    @required this.name,
+    @required this.uri,
+  });
   LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
@@ -4155,7 +4597,7 @@ class LibraryRef extends ObjRef {
 /// See [setLibraryDebuggable].
 class Library extends Obj {
   static Library parse(Map<String, dynamic> json) =>
-      json == null ? null : new Library._fromJson(json);
+      json == null ? null : Library._fromJson(json);
 
   /// The name of this library.
   String name;
@@ -4181,21 +4623,29 @@ class Library extends Obj {
   /// A list of all classes in this library.
   List<ClassRef> classes;
 
-  Library();
-
+  Library({
+    @required this.name,
+    @required this.uri,
+    @required this.debuggable,
+    @required this.dependencies,
+    @required this.scripts,
+    @required this.variables,
+    @required this.functions,
+    @required this.classes,
+  });
   Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     uri = json['uri'];
     debuggable = json['debuggable'];
-    dependencies = new List<LibraryDependency>.from(
+    dependencies = List<LibraryDependency>.from(
         _createSpecificObject(json['dependencies'], LibraryDependency.parse));
-    scripts = new List<ScriptRef>.from(
+    scripts = List<ScriptRef>.from(
         createServiceObject(json['scripts'], const ['ScriptRef']));
-    variables = new List<FieldRef>.from(
+    variables = List<FieldRef>.from(
         createServiceObject(json['variables'], const ['FieldRef']));
-    functions = new List<FuncRef>.from(
+    functions = List<FuncRef>.from(
         createServiceObject(json['functions'], const ['FuncRef']));
-    classes = new List<ClassRef>.from(
+    classes = List<ClassRef>.from(
         createServiceObject(json['classes'], const ['ClassRef']));
   }
 
@@ -4226,7 +4676,7 @@ class Library extends Obj {
 /// A `LibraryDependency` provides information about an import or export.
 class LibraryDependency {
   static LibraryDependency parse(Map<String, dynamic> json) =>
-      json == null ? null : new LibraryDependency._fromJson(json);
+      json == null ? null : LibraryDependency._fromJson(json);
 
   /// Is this dependency an import (rather than an export)?
   bool isImport;
@@ -4240,8 +4690,12 @@ class LibraryDependency {
   /// The library being imported or exported.
   LibraryRef target;
 
-  LibraryDependency();
-
+  LibraryDependency({
+    @required this.isImport,
+    @required this.isDeferred,
+    @required this.prefix,
+    @required this.target,
+  });
   LibraryDependency._fromJson(Map<String, dynamic> json) {
     isImport = json['isImport'];
     isDeferred = json['isDeferred'];
@@ -4267,7 +4721,7 @@ class LibraryDependency {
 
 class LogRecord extends Response {
   static LogRecord parse(Map<String, dynamic> json) =>
-      json == null ? null : new LogRecord._fromJson(json);
+      json == null ? null : LogRecord._fromJson(json);
 
   /// The log message.
   InstanceRef message;
@@ -4296,8 +4750,16 @@ class LogRecord extends Response {
   /// A stack trace associated with this log event.
   InstanceRef stackTrace;
 
-  LogRecord();
-
+  LogRecord({
+    @required this.message,
+    @required this.time,
+    @required this.level,
+    @required this.sequenceNumber,
+    @required this.loggerName,
+    @required this.zone,
+    @required this.error,
+    @required this.stackTrace,
+  });
   LogRecord._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     message = createServiceObject(json['message'], const ['InstanceRef']);
     time = json['time'];
@@ -4331,7 +4793,7 @@ class LogRecord extends Response {
 
 class MapAssociation {
   static MapAssociation parse(Map<String, dynamic> json) =>
-      json == null ? null : new MapAssociation._fromJson(json);
+      json == null ? null : MapAssociation._fromJson(json);
 
   /// [key] can be one of [InstanceRef] or [Sentinel].
   dynamic key;
@@ -4339,8 +4801,10 @@ class MapAssociation {
   /// [value] can be one of [InstanceRef] or [Sentinel].
   dynamic value;
 
-  MapAssociation();
-
+  MapAssociation({
+    @required this.key,
+    @required this.value,
+  });
   MapAssociation._fromJson(Map<String, dynamic> json) {
     key = createServiceObject(json['key'], const ['InstanceRef', 'Sentinel']);
     value =
@@ -4363,7 +4827,7 @@ class MapAssociation {
 /// isolate at a given point in time.
 class MemoryUsage extends Response {
   static MemoryUsage parse(Map<String, dynamic> json) =>
-      json == null ? null : new MemoryUsage._fromJson(json);
+      json == null ? null : MemoryUsage._fromJson(json);
 
   /// The amount of non-Dart memory that is retained by Dart objects. For
   /// example, memory associated with Dart objects through APIs such as
@@ -4381,8 +4845,11 @@ class MemoryUsage extends Response {
   /// equal to the heap capacity.
   int heapUsage;
 
-  MemoryUsage();
-
+  MemoryUsage({
+    @required this.externalUsage,
+    @required this.heapCapacity,
+    @required this.heapUsage,
+  });
   MemoryUsage._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     externalUsage = json['externalUsage'];
     heapCapacity = json['heapCapacity'];
@@ -4410,7 +4877,7 @@ class MemoryUsage extends Response {
 /// function that will be invoked to handle it.
 class Message extends Response {
   static Message parse(Map<String, dynamic> json) =>
-      json == null ? null : new Message._fromJson(json);
+      json == null ? null : Message._fromJson(json);
 
   /// The index in the isolate's message queue. The 0th message being the next
   /// message to be processed.
@@ -4434,8 +4901,14 @@ class Message extends Response {
   @optional
   SourceLocation location;
 
-  Message();
-
+  Message({
+    @required this.index,
+    @required this.name,
+    @required this.messageObjectId,
+    @required this.size,
+    this.handler,
+    this.location,
+  });
   Message._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     index = json['index'];
     name = json['name'];
@@ -4465,17 +4938,45 @@ class Message extends Response {
       'size: ${size}]';
 }
 
+/// A `NativeFunction` object is used to represent native functions in profiler
+/// samples. See [CpuSamples];
+class NativeFunction {
+  static NativeFunction parse(Map<String, dynamic> json) =>
+      json == null ? null : NativeFunction._fromJson(json);
+
+  /// The name of the native function this object represents.
+  String name;
+
+  NativeFunction({
+    @required this.name,
+  });
+  NativeFunction._fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'name': name,
+    });
+    return json;
+  }
+
+  String toString() => '[NativeFunction name: ${name}]';
+}
+
 /// `NullValRef` is a reference to an a `NullVal`.
 class NullValRef extends InstanceRef {
   static NullValRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new NullValRef._fromJson(json);
+      json == null ? null : NullValRef._fromJson(json);
 
   /// Always 'null'.
   @override
   String valueAsString;
 
-  NullValRef();
-
+  NullValRef({
+    @required this.valueAsString,
+  });
   NullValRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -4502,14 +5003,15 @@ class NullValRef extends InstanceRef {
 /// A `NullVal` object represents the Dart language value null.
 class NullVal extends Instance {
   static NullVal parse(Map<String, dynamic> json) =>
-      json == null ? null : new NullVal._fromJson(json);
+      json == null ? null : NullVal._fromJson(json);
 
   /// Always 'null'.
   @override
   String valueAsString;
 
-  NullVal();
-
+  NullVal({
+    @required this.valueAsString,
+  });
   NullVal._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     valueAsString = json['valueAsString'];
   }
@@ -4536,7 +5038,7 @@ class NullVal extends Instance {
 /// `ObjRef` is a reference to a `Obj`.
 class ObjRef extends Response {
   static ObjRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new ObjRef._fromJson(json);
+      json == null ? null : ObjRef._fromJson(json);
 
   /// A unique identifier for an Object. Passed to the getObject RPC to load
   /// this Object.
@@ -4548,8 +5050,10 @@ class ObjRef extends Response {
   @optional
   bool fixedId;
 
-  ObjRef();
-
+  ObjRef({
+    @required this.id,
+    this.fixedId,
+  });
   ObjRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -4576,7 +5080,7 @@ class ObjRef extends Response {
 /// An `Obj` is a persistent object that is owned by some isolate.
 class Obj extends Response {
   static Obj parse(Map<String, dynamic> json) =>
-      json == null ? null : new Obj._fromJson(json);
+      json == null ? null : Obj._fromJson(json);
 
   /// A unique identifier for an Object. Passed to the getObject RPC to reload
   /// this Object.
@@ -4611,8 +5115,12 @@ class Obj extends Response {
   @optional
   int size;
 
-  Obj();
-
+  Obj({
+    @required this.id,
+    this.fixedId,
+    this.classRef,
+    this.size,
+  });
   Obj._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     id = json['id'];
     fixedId = json['fixedId'];
@@ -4640,15 +5148,72 @@ class Obj extends Response {
   String toString() => '[Obj type: ${type}, id: ${id}]';
 }
 
+/// A `ProfileFunction` contains profiling information about a Dart or native
+/// function.
+///
+/// See [CpuSamples].
+class ProfileFunction {
+  static ProfileFunction parse(Map<String, dynamic> json) =>
+      json == null ? null : ProfileFunction._fromJson(json);
+
+  /// The kind of function this object represents.
+  String kind;
+
+  /// The number of times function appeared on the stack during sampling events.
+  int inclusiveTicks;
+
+  /// The number of times function appeared on the top of the stack during
+  /// sampling events.
+  int exclusiveTicks;
+
+  /// The resolved URL for the script containing function.
+  String resolvedUrl;
+
+  /// The function captured during profiling.
+  dynamic function;
+
+  ProfileFunction({
+    @required this.kind,
+    @required this.inclusiveTicks,
+    @required this.exclusiveTicks,
+    @required this.resolvedUrl,
+    @required this.function,
+  });
+  ProfileFunction._fromJson(Map<String, dynamic> json) {
+    kind = json['kind'];
+    inclusiveTicks = json['inclusiveTicks'];
+    exclusiveTicks = json['exclusiveTicks'];
+    resolvedUrl = json['resolvedUrl'];
+    function = createServiceObject(json['function'], const ['dynamic']);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'kind': kind,
+      'inclusiveTicks': inclusiveTicks,
+      'exclusiveTicks': exclusiveTicks,
+      'resolvedUrl': resolvedUrl,
+      'function': function.toJson(),
+    });
+    return json;
+  }
+
+  String toString() => '[ProfileFunction ' //
+      'kind: ${kind}, inclusiveTicks: ${inclusiveTicks}, exclusiveTicks: ${exclusiveTicks}, ' //
+      'resolvedUrl: ${resolvedUrl}, function: ${function}]';
+}
+
 class ReloadReport extends Response {
   static ReloadReport parse(Map<String, dynamic> json) =>
-      json == null ? null : new ReloadReport._fromJson(json);
+      json == null ? null : ReloadReport._fromJson(json);
 
   /// Did the reload succeed or fail?
   bool success;
 
-  ReloadReport();
-
+  ReloadReport({
+    @required this.success,
+  });
   ReloadReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     success = json['success'];
   }
@@ -4669,7 +5234,7 @@ class ReloadReport extends Response {
 /// See [RetainingPath].
 class RetainingObject {
   static RetainingObject parse(Map<String, dynamic> json) =>
-      json == null ? null : new RetainingObject._fromJson(json);
+      json == null ? null : RetainingObject._fromJson(json);
 
   /// An object that is part of a retaining path.
   ObjRef value;
@@ -4686,8 +5251,12 @@ class RetainingObject {
   @optional
   String parentField;
 
-  RetainingObject();
-
+  RetainingObject({
+    @required this.value,
+    this.parentListIndex,
+    this.parentMapKey,
+    this.parentField,
+  });
   RetainingObject._fromJson(Map<String, dynamic> json) {
     value = createServiceObject(json['value'], const ['ObjRef']);
     parentListIndex = json['parentListIndex'];
@@ -4712,7 +5281,7 @@ class RetainingObject {
 /// See [getRetainingPath].
 class RetainingPath extends Response {
   static RetainingPath parse(Map<String, dynamic> json) =>
-      json == null ? null : new RetainingPath._fromJson(json);
+      json == null ? null : RetainingPath._fromJson(json);
 
   /// The length of the retaining path.
   int length;
@@ -4725,12 +5294,15 @@ class RetainingPath extends Response {
   /// The chain of objects which make up the retaining path.
   List<RetainingObject> elements;
 
-  RetainingPath();
-
+  RetainingPath({
+    @required this.length,
+    @required this.gcRootType,
+    @required this.elements,
+  });
   RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     length = json['length'];
     gcRootType = json['gcRootType'];
-    elements = new List<RetainingObject>.from(
+    elements = List<RetainingObject>.from(
         createServiceObject(json['elements'], const ['RetainingObject']));
   }
 
@@ -4756,7 +5328,7 @@ class RetainingPath extends Response {
 /// [type] of response has been provided.
 class Response {
   static Response parse(Map<String, dynamic> json) =>
-      json == null ? null : new Response._fromJson(json);
+      json == null ? null : Response._fromJson(json);
 
   Map<String, dynamic> json;
 
@@ -4764,8 +5336,9 @@ class Response {
   /// allows the client distinguish between different kinds of responses.
   String type;
 
-  Response();
-
+  Response({
+    @required this.type,
+  });
   Response._fromJson(this.json) {
     type = json['type'];
   }
@@ -4785,7 +5358,7 @@ class Response {
 /// not represent a problematic condition. They are normal.
 class Sentinel extends Response {
   static Sentinel parse(Map<String, dynamic> json) =>
-      json == null ? null : new Sentinel._fromJson(json);
+      json == null ? null : Sentinel._fromJson(json);
 
   /// What kind of sentinel is this?
   /*SentinelKind*/ String kind;
@@ -4793,8 +5366,10 @@ class Sentinel extends Response {
   /// A reasonable string representation of this sentinel.
   String valueAsString;
 
-  Sentinel();
-
+  Sentinel({
+    @required this.kind,
+    @required this.valueAsString,
+  });
   Sentinel._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'];
     valueAsString = json['valueAsString'];
@@ -4818,13 +5393,14 @@ class Sentinel extends Response {
 /// `ScriptRef` is a reference to a `Script`.
 class ScriptRef extends ObjRef {
   static ScriptRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new ScriptRef._fromJson(json);
+      json == null ? null : ScriptRef._fromJson(json);
 
   /// The uri from which this script was loaded.
   String uri;
 
-  ScriptRef();
-
+  ScriptRef({
+    @required this.uri,
+  });
   ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
   }
@@ -4878,7 +5454,10 @@ class ScriptRef extends ObjRef {
 /// 102 | 2 | 7
 class Script extends Obj {
   static Script parse(Map<String, dynamic> json) =>
-      json == null ? null : new Script._fromJson(json);
+      json == null ? null : Script._fromJson(json);
+
+  final _tokenToLine = <int, int>{};
+  final _tokenToColumn = <int, int>{};
 
   /// The uri from which this script was loaded.
   String uri;
@@ -4902,8 +5481,14 @@ class Script extends Obj {
   @optional
   List<List<int>> tokenPosTable;
 
-  Script();
-
+  Script({
+    @required this.uri,
+    @required this.library,
+    this.lineOffset,
+    this.columnOffset,
+    this.source,
+    this.tokenPosTable,
+  });
   Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     uri = json['uri'];
     library = createServiceObject(json['library'], const ['LibraryRef']);
@@ -4912,8 +5497,36 @@ class Script extends Obj {
     source = json['source'];
     tokenPosTable = json['tokenPosTable'] == null
         ? null
-        : new List<List<int>>.from(json['tokenPosTable']
-            .map((dynamic list) => new List<int>.from(list)));
+        : List<List<int>>.from(
+            json['tokenPosTable'].map((dynamic list) => List<int>.from(list)));
+    _parseTokenPosTable();
+  }
+
+  /// This function maps a token position to a line number.
+  /// The VM considers the first line to be line 1.
+  int getLineNumberFromTokenPos(int tokenPos) => _tokenToLine[tokenPos];
+
+  /// This function maps a token position to a column number.
+  /// The VM considers the first column to be column 1.
+  int getColumnNumberFromTokenPos(int tokenPos) => _tokenToColumn[tokenPos];
+
+  void _parseTokenPosTable() {
+    if (tokenPosTable == null) {
+      return;
+    }
+    final lineSet = Set<int>();
+    for (List line in tokenPosTable) {
+      // Each entry begins with a line number...
+      int lineNumber = line[0];
+      lineSet.add(lineNumber);
+      for (var pos = 1; pos < line.length; pos += 2) {
+        // ...and is followed by (token offset, col number) pairs.
+        final int tokenOffset = line[pos];
+        final int colNumber = line[pos + 1];
+        _tokenToLine[tokenOffset] = lineNumber;
+        _tokenToColumn[tokenOffset] = colNumber;
+      }
+    }
   }
 
   @override
@@ -4942,14 +5555,15 @@ class Script extends Obj {
 
 class ScriptList extends Response {
   static ScriptList parse(Map<String, dynamic> json) =>
-      json == null ? null : new ScriptList._fromJson(json);
+      json == null ? null : ScriptList._fromJson(json);
 
   List<ScriptRef> scripts;
 
-  ScriptList();
-
+  ScriptList({
+    @required this.scripts,
+  });
   ScriptList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    scripts = new List<ScriptRef>.from(
+    scripts = List<ScriptRef>.from(
         createServiceObject(json['scripts'], const ['ScriptRef']));
   }
 
@@ -4970,7 +5584,7 @@ class ScriptList extends Response {
 /// script.
 class SourceLocation extends Response {
   static SourceLocation parse(Map<String, dynamic> json) =>
-      json == null ? null : new SourceLocation._fromJson(json);
+      json == null ? null : SourceLocation._fromJson(json);
 
   /// The script containing the source location.
   ScriptRef script;
@@ -4982,8 +5596,11 @@ class SourceLocation extends Response {
   @optional
   int endTokenPos;
 
-  SourceLocation();
-
+  SourceLocation({
+    @required this.script,
+    @required this.tokenPos,
+    this.endTokenPos,
+  });
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
     tokenPos = json['tokenPos'];
@@ -5010,7 +5627,7 @@ class SourceLocation extends Response {
 /// locations in an isolate.
 class SourceReport extends Response {
   static SourceReport parse(Map<String, dynamic> json) =>
-      json == null ? null : new SourceReport._fromJson(json);
+      json == null ? null : SourceReport._fromJson(json);
 
   /// A list of ranges in the program source.  These ranges correspond to ranges
   /// of executable code in the user's program (functions, methods,
@@ -5025,12 +5642,14 @@ class SourceReport extends Response {
   /// A list of scripts, referenced by index in the report's ranges.
   List<ScriptRef> scripts;
 
-  SourceReport();
-
+  SourceReport({
+    @required this.ranges,
+    @required this.scripts,
+  });
   SourceReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    ranges = new List<SourceReportRange>.from(
+    ranges = List<SourceReportRange>.from(
         _createSpecificObject(json['ranges'], SourceReportRange.parse));
-    scripts = new List<ScriptRef>.from(
+    scripts = List<ScriptRef>.from(
         createServiceObject(json['scripts'], const ['ScriptRef']));
   }
 
@@ -5056,7 +5675,7 @@ class SourceReport extends Response {
 /// will not contain a `type` property.
 class SourceReportCoverage {
   static SourceReportCoverage parse(Map<String, dynamic> json) =>
-      json == null ? null : new SourceReportCoverage._fromJson(json);
+      json == null ? null : SourceReportCoverage._fromJson(json);
 
   /// A list of token positions in a SourceReportRange which have been executed.
   /// The list is sorted.
@@ -5066,11 +5685,13 @@ class SourceReportCoverage {
   /// executed.  The list is sorted.
   List<int> misses;
 
-  SourceReportCoverage();
-
+  SourceReportCoverage({
+    @required this.hits,
+    @required this.misses,
+  });
   SourceReportCoverage._fromJson(Map<String, dynamic> json) {
-    hits = new List<int>.from(json['hits']);
-    misses = new List<int>.from(json['misses']);
+    hits = List<int>.from(json['hits']);
+    misses = List<int>.from(json['misses']);
   }
 
   Map<String, dynamic> toJson() {
@@ -5094,7 +5715,7 @@ class SourceReportCoverage {
 /// not contain a `type` property.
 class SourceReportRange {
   static SourceReportRange parse(Map<String, dynamic> json) =>
-      json == null ? null : new SourceReportRange._fromJson(json);
+      json == null ? null : SourceReportRange._fromJson(json);
 
   /// An index into the script table of the SourceReport, indicating which
   /// script contains this range of code.
@@ -5126,8 +5747,15 @@ class SourceReportRange {
   @optional
   List<int> possibleBreakpoints;
 
-  SourceReportRange();
-
+  SourceReportRange({
+    @required this.scriptIndex,
+    @required this.startPos,
+    @required this.endPos,
+    @required this.compiled,
+    this.error,
+    this.coverage,
+    this.possibleBreakpoints,
+  });
   SourceReportRange._fromJson(Map<String, dynamic> json) {
     scriptIndex = json['scriptIndex'];
     startPos = json['startPos'];
@@ -5138,7 +5766,7 @@ class SourceReportRange {
         _createSpecificObject(json['coverage'], SourceReportCoverage.parse);
     possibleBreakpoints = json['possibleBreakpoints'] == null
         ? null
-        : new List<int>.from(json['possibleBreakpoints']);
+        : List<int>.from(json['possibleBreakpoints']);
   }
 
   Map<String, dynamic> toJson() {
@@ -5163,7 +5791,7 @@ class SourceReportRange {
 
 class Stack extends Response {
   static Stack parse(Map<String, dynamic> json) =>
-      json == null ? null : new Stack._fromJson(json);
+      json == null ? null : Stack._fromJson(json);
 
   List<Frame> frames;
 
@@ -5175,20 +5803,24 @@ class Stack extends Response {
 
   List<Message> messages;
 
-  Stack();
-
+  Stack({
+    @required this.frames,
+    @required this.messages,
+    this.asyncCausalFrames,
+    this.awaiterFrames,
+  });
   Stack._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    frames = new List<Frame>.from(
-        createServiceObject(json['frames'], const ['Frame']));
+    frames =
+        List<Frame>.from(createServiceObject(json['frames'], const ['Frame']));
     asyncCausalFrames = json['asyncCausalFrames'] == null
         ? null
-        : new List<Frame>.from(
+        : List<Frame>.from(
             createServiceObject(json['asyncCausalFrames'], const ['Frame']));
     awaiterFrames = json['awaiterFrames'] == null
         ? null
-        : new List<Frame>.from(
+        : List<Frame>.from(
             createServiceObject(json['awaiterFrames'], const ['Frame']));
-    messages = new List<Message>.from(
+    messages = List<Message>.from(
         createServiceObject(json['messages'], const ['Message']));
   }
 
@@ -5215,10 +5847,9 @@ class Stack extends Response {
 /// successfully.
 class Success extends Response {
   static Success parse(Map<String, dynamic> json) =>
-      json == null ? null : new Success._fromJson(json);
+      json == null ? null : Success._fromJson(json);
 
   Success();
-
   Success._fromJson(Map<String, dynamic> json) : super._fromJson(json);
 
   @override
@@ -5233,7 +5864,7 @@ class Success extends Response {
 
 class Timeline extends Response {
   static Timeline parse(Map<String, dynamic> json) =>
-      json == null ? null : new Timeline._fromJson(json);
+      json == null ? null : Timeline._fromJson(json);
 
   /// A list of timeline events.
   List<TimelineEvent> traceEvents;
@@ -5244,10 +5875,13 @@ class Timeline extends Response {
   /// The duration of time covered by the timeline.
   int timeExtentMicros;
 
-  Timeline();
-
+  Timeline({
+    @required this.traceEvents,
+    @required this.timeOriginMicros,
+    @required this.timeExtentMicros,
+  });
   Timeline._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    traceEvents = new List<TimelineEvent>.from(
+    traceEvents = List<TimelineEvent>.from(
         createServiceObject(json['traceEvents'], const ['TimelineEvent']));
     timeOriginMicros = json['timeOriginMicros'];
     timeExtentMicros = json['timeExtentMicros'];
@@ -5274,10 +5908,9 @@ class Timeline extends Response {
 /// event.
 class TimelineEvent {
   static TimelineEvent parse(Map<String, dynamic> json) =>
-      json == null ? null : new TimelineEvent._fromJson(json);
+      json == null ? null : TimelineEvent._fromJson(json);
 
   TimelineEvent();
-
   TimelineEvent._fromJson(Map<String, dynamic> json);
 
   Map<String, dynamic> toJson() {
@@ -5290,7 +5923,7 @@ class TimelineEvent {
 
 class TimelineFlags extends Response {
   static TimelineFlags parse(Map<String, dynamic> json) =>
-      json == null ? null : new TimelineFlags._fromJson(json);
+      json == null ? null : TimelineFlags._fromJson(json);
 
   /// The name of the recorder currently in use. Recorder types include, but are
   /// not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
@@ -5303,12 +5936,15 @@ class TimelineFlags extends Response {
   /// The list of timeline streams that are currently enabled.
   List<String> recordedStreams;
 
-  TimelineFlags();
-
+  TimelineFlags({
+    @required this.recorderName,
+    @required this.availableStreams,
+    @required this.recordedStreams,
+  });
   TimelineFlags._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     recorderName = json['recorderName'];
-    availableStreams = new List<String>.from(json['availableStreams']);
-    recordedStreams = new List<String>.from(json['recordedStreams']);
+    availableStreams = List<String>.from(json['availableStreams']);
+    recordedStreams = List<String>.from(json['recordedStreams']);
   }
 
   @override
@@ -5330,13 +5966,14 @@ class TimelineFlags extends Response {
 
 class Timestamp extends Response {
   static Timestamp parse(Map<String, dynamic> json) =>
-      json == null ? null : new Timestamp._fromJson(json);
+      json == null ? null : Timestamp._fromJson(json);
 
   /// A timestamp in microseconds since epoch.
   int timestamp;
 
-  Timestamp();
-
+  Timestamp({
+    @required this.timestamp,
+  });
   Timestamp._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     timestamp = json['timestamp'];
   }
@@ -5357,13 +5994,14 @@ class Timestamp extends Response {
 /// `TypeArgumentsRef` is a reference to a `TypeArguments` object.
 class TypeArgumentsRef extends ObjRef {
   static TypeArgumentsRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new TypeArgumentsRef._fromJson(json);
+      json == null ? null : TypeArgumentsRef._fromJson(json);
 
   /// A name for this type argument list.
   String name;
 
-  TypeArgumentsRef();
-
+  TypeArgumentsRef({
+    @required this.name,
+  });
   TypeArgumentsRef._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     name = json['name'];
@@ -5391,7 +6029,7 @@ class TypeArgumentsRef extends ObjRef {
 /// instantiated generic type.
 class TypeArguments extends Obj {
   static TypeArguments parse(Map<String, dynamic> json) =>
-      json == null ? null : new TypeArguments._fromJson(json);
+      json == null ? null : TypeArguments._fromJson(json);
 
   /// A name for this type argument list.
   String name;
@@ -5402,11 +6040,13 @@ class TypeArguments extends Obj {
   /// BoundedType.
   List<InstanceRef> types;
 
-  TypeArguments();
-
+  TypeArguments({
+    @required this.name,
+    @required this.types,
+  });
   TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
-    types = new List<InstanceRef>.from(
+    types = List<InstanceRef>.from(
         createServiceObject(json['types'], const ['InstanceRef']));
   }
 
@@ -5441,7 +6081,7 @@ class TypeArguments extends Obj {
 /// with a specific column number.
 class UnresolvedSourceLocation extends Response {
   static UnresolvedSourceLocation parse(Map<String, dynamic> json) =>
-      json == null ? null : new UnresolvedSourceLocation._fromJson(json);
+      json == null ? null : UnresolvedSourceLocation._fromJson(json);
 
   /// The script containing the source location if the script has been loaded.
   @optional
@@ -5467,8 +6107,13 @@ class UnresolvedSourceLocation extends Response {
   @optional
   int column;
 
-  UnresolvedSourceLocation();
-
+  UnresolvedSourceLocation({
+    this.script,
+    this.scriptUri,
+    this.tokenPos,
+    this.line,
+    this.column,
+  });
   UnresolvedSourceLocation._fromJson(Map<String, dynamic> json)
       : super._fromJson(json) {
     script = createServiceObject(json['script'], const ['ScriptRef']);
@@ -5496,7 +6141,7 @@ class UnresolvedSourceLocation extends Response {
 /// See [Versioning].
 class Version extends Response {
   static Version parse(Map<String, dynamic> json) =>
-      json == null ? null : new Version._fromJson(json);
+      json == null ? null : Version._fromJson(json);
 
   /// The major version number is incremented when the protocol is changed in a
   /// potentially incompatible way.
@@ -5506,8 +6151,10 @@ class Version extends Response {
   /// backwards compatible way.
   int minor;
 
-  Version();
-
+  Version({
+    @required this.major,
+    @required this.minor,
+  });
   Version._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     major = json['major'];
     minor = json['minor'];
@@ -5531,13 +6178,14 @@ class Version extends Response {
 /// `VMRef` is a reference to a `VM` object.
 class VMRef extends Response {
   static VMRef parse(Map<String, dynamic> json) =>
-      json == null ? null : new VMRef._fromJson(json);
+      json == null ? null : VMRef._fromJson(json);
 
   /// A name identifying this vm. Not guaranteed to be unique.
   String name;
 
-  VMRef();
-
+  VMRef({
+    @required this.name,
+  });
   VMRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
   }
@@ -5557,7 +6205,7 @@ class VMRef extends Response {
 
 class VM extends Response {
   static VM parse(Map<String, dynamic> json) =>
-      json == null ? null : new VM._fromJson(json);
+      json == null ? null : VM._fromJson(json);
 
   /// A name identifying this vm. Not guaranteed to be unique.
   String name;
@@ -5588,8 +6236,17 @@ class VM extends Response {
   /// A list of isolates running in the VM.
   List<IsolateRef> isolates;
 
-  VM();
-
+  VM({
+    @required this.name,
+    @required this.architectureBits,
+    @required this.hostCPU,
+    @required this.operatingSystem,
+    @required this.targetCPU,
+    @required this.version,
+    @required this.pid,
+    @required this.startTime,
+    @required this.isolates,
+  });
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     architectureBits = json['architectureBits'];
@@ -5599,7 +6256,7 @@ class VM extends Response {
     version = json['version'];
     pid = json['pid'];
     startTime = json['startTime'];
-    isolates = new List<IsolateRef>.from(
+    isolates = List<IsolateRef>.from(
         createServiceObject(json['isolates'], const ['IsolateRef']));
   }
 

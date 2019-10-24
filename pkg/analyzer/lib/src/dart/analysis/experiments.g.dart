@@ -16,6 +16,7 @@ const _knownFeatures = <String, ExperimentalFeature>{
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
+  EnableString.variance: ExperimentalFeatures.variance,
 
   // ignore: deprecated_member_use_from_same_package
   EnableString.bogus_disabled: ExperimentalFeatures.bogus_disabled,
@@ -26,11 +27,12 @@ const _knownFeatures = <String, ExperimentalFeature>{
 List<bool> _buildExperimentalFlagsArray() => <bool>[
       true, // constant-update-2018
       true, // control-flow-collections
-      IsEnabledByDefault.extension_methods,
+      true, // extension-methods
       IsEnabledByDefault.non_nullable,
       true, // set-literals
       true, // spread-collections
       IsEnabledByDefault.triple_shift,
+      IsEnabledByDefault.variance,
       false, // bogus-disabled
       true, // bogus-enabled
     ];
@@ -58,6 +60,9 @@ class EnableString {
 
   /// String to enable the experiment "triple-shift"
   static const String triple_shift = 'triple-shift';
+
+  /// String to enable the experiment "variance"
+  static const String variance = 'variance';
 
   /// String to enable the experiment "bogus-disabled"
   @deprecated
@@ -90,7 +95,8 @@ class ExperimentalFeatures {
       EnableString.extension_methods,
       IsEnabledByDefault.extension_methods,
       IsExpired.extension_methods,
-      'Extension Methods');
+      'Extension Methods',
+      firstSupportedVersion: '2.6.0');
 
   static const non_nullable = const ExperimentalFeature(
       3,
@@ -122,9 +128,12 @@ class ExperimentalFeatures {
       IsExpired.triple_shift,
       'Triple-shift operator');
 
+  static const variance = const ExperimentalFeature(7, EnableString.variance,
+      IsEnabledByDefault.variance, IsExpired.variance, 'Sound variance.');
+
   @deprecated
   static const bogus_disabled = const ExperimentalFeature(
-      7,
+      8,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_disabled,
       IsEnabledByDefault.bogus_disabled,
@@ -133,7 +142,7 @@ class ExperimentalFeatures {
 
   @deprecated
   static const bogus_enabled = const ExperimentalFeature(
-      8,
+      9,
       // ignore: deprecated_member_use_from_same_package
       EnableString.bogus_enabled,
       IsEnabledByDefault.bogus_enabled,
@@ -152,7 +161,7 @@ class IsEnabledByDefault {
   static const bool control_flow_collections = true;
 
   /// Default state of the experiment "extension-methods"
-  static const bool extension_methods = false;
+  static const bool extension_methods = true;
 
   /// Default state of the experiment "non-nullable"
   static const bool non_nullable = false;
@@ -165,6 +174,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = false;
+
+  /// Default state of the experiment "variance"
+  static const bool variance = false;
 
   /// Default state of the experiment "bogus-disabled"
   @deprecated
@@ -183,7 +195,7 @@ class IsExpired {
   static const bool constant_update_2018 = true;
 
   /// Expiration status of the experiment "control-flow-collections"
-  static const bool control_flow_collections = false;
+  static const bool control_flow_collections = true;
 
   /// Expiration status of the experiment "extension-methods"
   static const bool extension_methods = false;
@@ -195,10 +207,13 @@ class IsExpired {
   static const bool set_literals = true;
 
   /// Expiration status of the experiment "spread-collections"
-  static const bool spread_collections = false;
+  static const bool spread_collections = true;
 
   /// Expiration status of the experiment "triple-shift"
   static const bool triple_shift = false;
+
+  /// Expiration status of the experiment "variance"
+  static const bool variance = false;
 
   /// Expiration status of the experiment "bogus-disabled"
   static const bool bogus_disabled = true;
@@ -240,6 +255,9 @@ mixin _CurrentState {
 
   /// Current state for the flag "triple-shift"
   bool get triple_shift => isEnabled(ExperimentalFeatures.triple_shift);
+
+  /// Current state for the flag "variance"
+  bool get variance => isEnabled(ExperimentalFeatures.variance);
 
   bool isEnabled(covariant ExperimentalFeature feature);
 }

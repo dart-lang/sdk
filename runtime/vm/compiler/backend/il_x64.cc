@@ -160,13 +160,21 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ popq(vm_tag_reg);
 
-  // TransitionGeneratedToNative will reset the exit frame info to
-  // old_exit_frame_reg *before* entering the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg);
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                   CallingConventions::kCalleeSaveXmmRegisters);
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Leave the entry frame.
   __ LeaveFrame();
@@ -925,8 +933,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();
-  Register target_address = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -952,8 +961,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    NoTemporaryAllocator temp;
-    compiler->EmitMove(target, rebase.Rebase(origin), &temp);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, rebase.Rebase(origin), &temp_alloc);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the
@@ -967,12 +976,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
     // Update information in the thread object and enter a safepoint.
-    __ TransitionGeneratedToNative(target_address, FPREG);
+    __ TransitionGeneratedToNative(target_address, FPREG,
+                                   /*enter_safepoint=*/true);
 
     __ CallCFunction(target_address);
 
     // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated();
+    __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -1021,15 +1031,17 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-
   __ Bind(compiler->GetJumpLabel(this));
 
   // Create a dummy frame holding the pushed arguments. This simplifies
   // NativeReturnInstr::EmitNativeCode.
   __ EnterFrame(0);
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the argument registers, in reverse order.
   for (intptr_t i = argument_locations_->length(); i-- > 0;) {
@@ -1052,18 +1064,47 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                    CallingConventions::kCalleeSaveXmmRegisters);
 
-  // Load the thread object.
-  // TODO(35765): Fix linking issue on AOT.
-  // TOOD(35934): Exclude native callbacks from snapshots.
-  //
+  // Load the address of DLRT_GetThreadForNativeCallback without using Thread.
+  if (FLAG_precompiled_mode) {
+    compiler::Label skip_reloc;
+    __ jmp(&skip_reloc);
+    compiler->InsertBSSRelocation(
+        BSS::Relocation::DRT_GetThreadForNativeCallback);
+    const intptr_t reloc_end = __ CodeSize();
+    __ Bind(&skip_reloc);
+
+    const intptr_t kLeaqLength = 7;
+    __ leaq(RAX, compiler::Address::AddressRIPRelative(
+                     -kLeaqLength - compiler::target::kWordSize));
+    ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
+
+    // RAX holds the address of the relocation.
+    __ movq(RCX, compiler::Address(RAX, 0));
+
+    // RCX holds the relocation itself: RAX - bss_start.
+    // RAX = RAX + (bss_start - RAX) = bss_start
+    __ addq(RAX, RCX);
+
+    // RAX holds the start of the BSS section.
+    // Load the "get-thread" routine: *bss_start.
+    __ movq(RAX, compiler::Address(RAX, 0));
+  } else if (!NativeCallbackTrampolines::Enabled()) {
+    // In JIT mode, we can just paste the address of the runtime entry into the
+    // generated code directly. This is not a problem since we don't save
+    // callbacks into JIT snapshots.
+    __ movq(RAX, compiler::Immediate(reinterpret_cast<intptr_t>(
+                     DLRT_GetThreadForNativeCallback)));
+  }
+
   // Create another frame to align the frame before continuing in "native" code.
-  {
+  // If we were called by a trampoline, it has already loaded the thread.
+  if (!NativeCallbackTrampolines::Enabled()) {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
-                     DLRT_GetThreadForNativeCallback)));
-    __ call(RAX);
+    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+    __ movq(CallingConventions::kArg1Reg, compiler::Immediate(callback_id_));
+    __ CallCFunction(RAX);
     __ movq(THR, RAX);
 
     __ LeaveFrame();
@@ -1088,19 +1129,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
-  // leaving the safepoint.
-  __ TransitionNativeToGenerated();
-
-  // Now that the safepoint has ended, we can touch Dart objects without
-  // handles.
-  // Otherwise we'll clobber the argument sent from the caller.
-  COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
-  __ movq(CallingConventions::kArg1Reg, compiler::Immediate(callback_id_));
-  __ movq(RAX,
-          compiler::Address(
-              THR, compiler::target::Thread::verify_callback_entry_offset()));
-  __ call(RAX);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(/*exit_safepoint=*/false);
 
   // Load the code object.
   __ movq(RAX, compiler::Address(
@@ -2875,10 +2906,9 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(catch_try_index(), try_index(),
-                                compiler->assembler()->CodeSize(),
-                                handler_token_pos(), is_generated(),
-                                catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(
+      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
+      is_generated(), catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
   const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
@@ -3307,13 +3337,20 @@ class CheckedSmiComparisonSlowPath
   static constexpr intptr_t kNumSlowPathArgs = 2;
 
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               Environment* env,
                                intptr_t try_index,
                                BranchLabels labels,
                                bool merged)
       : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
-        merged_(merged) {}
+        merged_(merged),
+        env_(env) {
+    // The environment must either come from the comparison or the environment
+    // was cleared from the comparison (and moved to a branch).
+    ASSERT(env == instruction->env() ||
+           (merged && instruction->env() == nullptr));
+  }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
@@ -3325,10 +3362,9 @@ class CheckedSmiComparisonSlowPath
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction()->env() != NULL) {
-      Environment* env =
-          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
-      compiler->pending_deoptimization_env_ = env;
+    if (env_ != nullptr) {
+      compiler->pending_deoptimization_env_ =
+          compiler->SlowPathEnvironmentFor(env_, locs, kNumSlowPathArgs);
     }
     __ pushq(locs->in(0).reg());
     __ pushq(locs->in(1).reg());
@@ -3342,7 +3378,7 @@ class CheckedSmiComparisonSlowPath
         instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ MoveRegister(result, RAX);
     compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = NULL;
+    compiler->pending_deoptimization_env_ = nullptr;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ j(EQUAL, instruction()->is_negated() ? labels_.false_label
@@ -3360,6 +3396,7 @@ class CheckedSmiComparisonSlowPath
   intptr_t try_index_;
   BranchLabels labels_;
   bool merged_;
+  Environment* env_;
 };
 
 LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
@@ -3404,7 +3441,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, branch->env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ true);
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -3425,7 +3462,7 @@ void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For this purpose, 'merged' slow path is generated: it tests
   // result of a call and jumps directly to true or false label.
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ is_negated());
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -4784,7 +4821,7 @@ LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
 void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT((op_kind() == MethodRecognizer::kMathMin) ||
          (op_kind() == MethodRecognizer::kMathMax));
-  const intptr_t is_min = (op_kind() == MethodRecognizer::kMathMin);
+  const bool is_min = op_kind() == MethodRecognizer::kMathMin;
   if (result_cid() == kDoubleCid) {
     compiler::Label done, returns_nan, are_equal;
     XmmRegister left = locs()->in(0).fpu_reg();
@@ -5694,6 +5731,64 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
                                  Register tmp,
                                  Register out) {
   ASSERT(op_kind == Token::kMOD || op_kind == Token::kTRUNCDIV);
+
+  // Special case 64-bit div/mod by compile-time constant. Note that various
+  // special constants (such as powers of two) should have been optimized
+  // earlier in the pipeline. Div or mod by zero falls into general code
+  // to implement the exception.
+  if (auto c = instruction->right()->definition()->AsConstant()) {
+    if (c->value().IsInteger()) {
+      const int64_t divisor = Integer::Cast(c->value()).AsInt64Value();
+      if (divisor <= -2 || divisor >= 2) {
+        // For x DIV c or x MOD c: use magic operations.
+        compiler::Label pos;
+        int64_t magic = 0;
+        int64_t shift = 0;
+        Utils::CalculateMagicAndShiftForDivRem(divisor, &magic, &shift);
+        // RDX:RAX = magic * numerator.
+        ASSERT(left == RAX);
+        __ MoveRegister(TMP, RAX);  // save numerator
+        __ LoadImmediate(RAX, compiler::Immediate(magic));
+        __ imulq(TMP);
+        // RDX +/-= numerator.
+        if (divisor > 0 && magic < 0) {
+          __ addq(RDX, TMP);
+        } else if (divisor < 0 && magic > 0) {
+          __ subq(RDX, TMP);
+        }
+        // Shift if needed.
+        if (shift != 0) {
+          __ sarq(RDX, compiler::Immediate(shift));
+        }
+        // RDX += 1 if RDX < 0.
+        __ movq(RAX, RDX);
+        __ shrq(RDX, compiler::Immediate(63));
+        __ addq(RDX, RAX);
+        // Finalize DIV or MOD.
+        if (op_kind == Token::kTRUNCDIV) {
+          ASSERT(out == RAX && tmp == RDX);
+          __ movq(RAX, RDX);
+        } else {
+          ASSERT(out == RDX && tmp == RAX);
+          __ movq(RAX, TMP);
+          __ LoadImmediate(TMP, compiler::Immediate(divisor));
+          __ imulq(RDX, TMP);
+          __ subq(RAX, RDX);
+          // Compensate for Dart's Euclidean view of MOD.
+          __ testq(RAX, RAX);
+          __ j(GREATER_EQUAL, &pos);
+          if (divisor > 0) {
+            __ addq(RAX, TMP);
+          } else {
+            __ subq(RAX, TMP);
+          }
+          __ Bind(&pos);
+          __ movq(RDX, RAX);
+        }
+        return;
+      }
+    }
+  }
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();

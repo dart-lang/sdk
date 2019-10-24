@@ -8,13 +8,9 @@ main.dart.patch: |
   <<<< "v1"
   class C {
   }
-  ==== {"messages":["v2"]}
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
   main() {
-    try {
-      new C();
-      print('v1');
-    } catch (e) {
-      print('v2');
-    }
+    new C();
+    print('v1');
   }

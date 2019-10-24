@@ -1,0 +1,12 @@
+pkg/front_end/testcases/nnbd/intersection_types.dart:13:11: Context: Possible promotion of t@403
+    if (t is B?) {
+          ^^
+pkg/front_end/testcases/nnbd/intersection_types.dart:15:13: Context: Possible promotion of t@403
+      if (t is C?) {
+            ^^
+pkg/front_end/testcases/nnbd/intersection_types.dart:22:11: Context: Possible promotion of t@403
+    if (t is B) {
+          ^^
+pkg/front_end/testcases/nnbd/intersection_types.dart:24:13: Context: Possible promotion of t@403
+      if (t is C) {
+            ^^

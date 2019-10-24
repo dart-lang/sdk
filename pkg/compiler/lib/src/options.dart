@@ -107,6 +107,7 @@ class CompilerOptions implements DiagnosticOptions {
   Map<fe.ExperimentalFlag, bool> languageExperiments = {};
 
   /// `true` if CFE performs constant evaluation.
+  /// TODO(johnniwinther, sigmund): Remove this and associated dead code.
   bool get useCFEConstants =>
       languageExperiments[fe.ExperimentalFlag.constantUpdate2018];
 

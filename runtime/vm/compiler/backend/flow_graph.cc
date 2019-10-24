@@ -54,7 +54,6 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       prologue_info_(prologue_info),
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
-      deferred_prefixes_(parsed_function.deferred_prefixes()),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
@@ -103,20 +102,6 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     }
   }
   iterator->RemoveCurrentFromGraph();
-}
-
-void FlowGraph::AddToDeferredPrefixes(
-    ZoneGrowableArray<const LibraryPrefix*>* from) {
-  ZoneGrowableArray<const LibraryPrefix*>* to = deferred_prefixes();
-  for (intptr_t i = 0; i < from->length(); i++) {
-    const LibraryPrefix* prefix = (*from)[i];
-    for (intptr_t j = 0; j < to->length(); j++) {
-      if ((*to)[j]->raw() == prefix->raw()) {
-        return;
-      }
-    }
-    to->Add(prefix);
-  }
 }
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
@@ -273,13 +258,19 @@ void FlowGraph::MergeBlocks() {
     if (merged->Contains(block->postorder_number())) continue;
 
     Instruction* last = block->last_instruction();
-    BlockEntryInstr* successor = NULL;
-    while ((!last->IsIndirectGoto()) && (last->SuccessorCount() == 1) &&
-           (!last->SuccessorAt(0)->IsIndirectEntry()) &&
-           (last->SuccessorAt(0)->PredecessorCount() == 1) &&
-           (block->try_index() == last->SuccessorAt(0)->try_index())) {
-      successor = last->SuccessorAt(0);
-      ASSERT(last->IsGoto());
+    BlockEntryInstr* last_merged_block = nullptr;
+    while (auto goto_instr = last->AsGoto()) {
+      JoinEntryInstr* successor = goto_instr->successor();
+      if (successor->PredecessorCount() > 1) break;
+      if (block->try_index() != successor->try_index()) break;
+
+      // Replace all phis with their arguments prior to removing successor.
+      for (PhiIterator it(successor); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        Value* input = phi->InputAt(0);
+        phi->ReplaceUsesWith(input->definition());
+        input->RemoveFromUseList();
+      }
 
       // Remove environment uses and unlink goto and block entry.
       successor->UnuseAllInputs();
@@ -288,6 +279,7 @@ void FlowGraph::MergeBlocks() {
 
       last = successor->last_instruction();
       merged->Add(successor->postorder_number());
+      last_merged_block = successor;
       changed = true;
       if (FLAG_trace_optimization) {
         THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
@@ -296,8 +288,8 @@ void FlowGraph::MergeBlocks() {
     }
     // The new block inherits the block id of the last successor to maintain
     // the order of phi inputs at its successors consistent with block ids.
-    if (successor != NULL) {
-      block->set_block_id(successor->block_id());
+    if (last_merged_block != nullptr) {
+      block->set_block_id(last_merged_block->block_id());
     }
   }
   // Recompute block order after changes were made.
@@ -408,6 +400,9 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
     Class& cls = Class::Handle(zone());
     Function& fun = Function::Handle(zone());
     for (intptr_t i = 0, len = data->NumberOfChecks(); i < len; i++) {
+      if (!data->IsUsedAt(i)) {
+        continue;  // do not consider
+      }
       fun = data->GetTargetAt(i);
       cls = fun.Owner();
       if (data->GetReceiverClassIdAt(i) == cid || cls.id() == cid) {
@@ -997,20 +992,10 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // Add global constants to the initial definitions.
   CreateCommonConstants();
 
-  // During regular execution, only the direct parameters appear in
-  // the fixed part of the environment. During OSR, however, all
-  // variables and possibly a non-empty stack are passed as
-  // parameters. The latter mimics the incoming expression stack
-  // that was set up prior to triggering OSR.
-  const intptr_t parameter_count =
-      IsCompiledForOsr() ? osr_variable_count() : num_direct_parameters_;
-
   // Initial renaming environment.
-  GrowableArray<Definition*> env(parameter_count + num_stack_locals());
-  env.FillWith(constant_dead(), 0, parameter_count);
-  if (!IsCompiledForOsr()) {
-    env.FillWith(constant_null(), parameter_count, num_stack_locals());
-  }
+  GrowableArray<Definition*> env(variable_count());
+  env.FillWith(constant_dead(), 0, num_direct_parameters());
+  env.FillWith(constant_null(), num_direct_parameters(), num_stack_locals());
 
   if (entry->catch_entries().length() > 0) {
     // Functions with try-catch have a fixed area of stack slots reserved
@@ -1021,6 +1006,21 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     ASSERT(entry->unchecked_entry() != nullptr ? entry->SuccessorCount() == 2
                                                : entry->SuccessorCount() == 1);
   }
+
+  // For OSR on a non-empty stack, insert synthetic phis on the joining entry.
+  // These phis are synthetic since they are not driven by live variable
+  // analysis, but merely serve the purpose of merging stack slots from
+  // parameters and other predecessors at the block in which OSR occurred.
+  if (IsCompiledForOsr()) {
+    JoinEntryInstr* join =
+        entry->osr_entry()->last_instruction()->SuccessorAt(0)->AsJoinEntry();
+    ASSERT(join != nullptr);
+    const intptr_t parameter_count = osr_variable_count();
+    for (intptr_t i = variable_count(); i < parameter_count; i++) {
+      join->InsertPhi(i, parameter_count)->mark_alive();
+    }
+  }
+
   RenameRecursive(entry, &env, live_phis, variable_liveness,
                   inlining_parameters);
 }
@@ -1032,14 +1032,15 @@ void FlowGraph::PopulateEnvironmentFromFunctionEntry(
     VariableLivenessAnalysis* variable_liveness,
     ZoneGrowableArray<Definition*>* inlining_parameters) {
   ASSERT(!IsCompiledForOsr());
-  const intptr_t parameter_count = num_direct_parameters_;
+  const intptr_t direct_parameter_count = num_direct_parameters_;
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
       ((inlining_parameters != NULL) && function().IsGeneric()) ? 1 : 0;
 
-  ASSERT(parameter_count <= env->length());
-  for (intptr_t i = 0; i < parameter_count; i++) {
+  ASSERT(variable_count() == env->length());
+  ASSERT(direct_parameter_count <= env->length());
+  for (intptr_t i = 0; i < direct_parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, function_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
     AddToInitialDefinitions(function_entry, param);
@@ -1096,25 +1097,16 @@ void FlowGraph::PopulateEnvironmentFromOsrEntry(
     OsrEntryInstr* osr_entry,
     GrowableArray<Definition*>* env) {
   ASSERT(IsCompiledForOsr());
+  // During OSR, all variables and possibly a non-empty stack are
+  // passed as parameters. The latter mimics the incoming expression
+  // stack that was set up prior to triggering OSR.
   const intptr_t parameter_count = osr_variable_count();
-  // Initialize the initial enviroment.
-  ASSERT(parameter_count <= env->length());
+  ASSERT(parameter_count == env->length());
   for (intptr_t i = 0; i < parameter_count; i++) {
     ParameterInstr* param = new (zone()) ParameterInstr(i, osr_entry);
     param->set_ssa_temp_index(alloc_ssa_temp_index());
     AddToInitialDefinitions(osr_entry, param);
     (*env)[i] = param;
-  }
-  // For OSR on a non-emtpy stack, insert synthetic phis on the joining entry.
-  // These phis are synthetic since they are not driven by live variable
-  // analysis, but merely serve the purpose of merging stack slots from
-  // parameters and other predecessors at the block in which OSR occurred.
-  JoinEntryInstr* join =
-      osr_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
-  ASSERT(join != nullptr);
-  for (intptr_t i = variable_count(); i < parameter_count; i++) {
-    PhiInstr* phi = join->InsertPhi(i, parameter_count);
-    phi->mark_alive();
   }
 }
 
@@ -1131,7 +1123,7 @@ void FlowGraph::PopulateEnvironmentFromCatchEntry(
           : -1;
 
   // Add real definitions for all locals and parameters.
-  ASSERT(variable_count() <= env->length());
+  ASSERT(variable_count() == env->length());
   for (intptr_t i = 0, n = variable_count(); i < n; ++i) {
     // Replace usages of the raw exception/stacktrace variables with
     // [SpecialParameterInstr]s.
@@ -1267,6 +1259,12 @@ void FlowGraph::RenameRecursive(
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
+        // Under OSR, constants can reside on the expression stack. Just
+        // generate the constant rather than going through a synthetic phi.
+        if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
+          ASSERT(IsCompiledForOsr() && env->length() < osr_variable_count());
+          reaching_defn = GetConstant(input_defn->AsConstant()->value());
+        }
         // Note: constants can only be replaced with other constants.
         ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
                input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
@@ -1297,15 +1295,28 @@ void FlowGraph::RenameRecursive(
         // with the incoming parameter that mimics the stack slot.
         ASSERT(IsCompiledForOsr());
         PushArgumentInstr* push_arg = current->PushArgumentAt(i);
-        ASSERT(push_arg->IsPushArgument());
         ASSERT(reaching_defn->ssa_temp_index() != -1);
-        ASSERT(reaching_defn->IsPhi());
+        ASSERT(reaching_defn->IsPhi() || reaching_defn == constant_dead());
+        push_arg->ReplaceUsesWith(push_arg->InputAt(0)->definition());
+        push_arg->UnuseAllInputs();
         push_arg->previous()->LinkTo(push_arg->next());
         push_arg->set_previous(nullptr);
         push_arg->set_next(nullptr);
         push_arg->value()->set_definition(reaching_defn);
         InsertBefore(insert_at, push_arg, nullptr, FlowGraph::kEffect);
         insert_at = push_arg;
+        // Since reaching_defn was not the expected PushArgument, we must
+        // change all its environment uses from the insertion point onward
+        // to the newly created PushArgument. This ensures that the stack
+        // depth computations (based on environment presence of PushArguments)
+        // is done correctly.
+        for (Value::Iterator it(reaching_defn->env_use_list()); !it.Done();
+             it.Advance()) {
+          Instruction* instruction = it.Current()->instruction();
+          if (instruction->IsDominatedBy(push_arg)) {
+            instruction->ReplaceInEnvironment(reaching_defn, push_arg);
+          }
+        }
       }
     }
 
@@ -1403,6 +1414,13 @@ void FlowGraph::RenameRecursive(
         env->Add(current->Cast<PushArgumentInstr>());
         continue;
 
+      case Instruction::kCheckStackOverflow:
+        // Assert environment integrity at checkpoints.
+        ASSERT((variable_count() +
+                current->AsCheckStackOverflow()->stack_depth()) ==
+               env->length());
+        continue;
+
       default:
         // Other definitions directly go into the environment.
         if (Definition* definition = current->AsDefinition()) {
@@ -1418,17 +1436,31 @@ void FlowGraph::RenameRecursive(
     // Update expression stack and remove current instruction from the graph.
     Definition* definition = current->Cast<Definition>();
     if (definition->HasTemp()) {
-      ASSERT(result != NULL);
+      ASSERT(result != nullptr);
       env->Add(result);
     }
     it.RemoveCurrentFromGraph();
   }
 
   // 3. Process dominated blocks.
+  const bool set_stack = (block_entry == graph_entry()) && IsCompiledForOsr();
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Definition*> new_env(env->length());
     new_env.AddArray(*env);
+    // During OSR, when traversing from the graph entry directly any block
+    // (which may be a non-entry), we must adjust the environment to mimic
+    // a non-empty incoming expression stack to ensure temporaries refer to
+    // the right stack items.
+    const intptr_t stack_depth = block->stack_depth();
+    ASSERT(stack_depth >= 0);
+    if (set_stack) {
+      ASSERT(variable_count() == new_env.length());
+      new_env.FillWith(constant_dead(), variable_count(), stack_depth);
+    } else if (!block->last_instruction()->IsTailCall()) {
+      // Assert environment integrity otherwise.
+      ASSERT((variable_count() + stack_depth) == new_env.length());
+    }
     RenameRecursive(block, &new_env, live_phis, variable_liveness,
                     inlining_parameters);
   }
@@ -1444,9 +1476,17 @@ void FlowGraph::RenameRecursive(
     if (successor->phis() != NULL) {
       for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
         PhiInstr* phi = (*successor->phis())[i];
-        if (phi != NULL) {
+        if (phi != nullptr) {
           // Rename input operand.
-          Value* use = new (zone()) Value((*env)[i]);
+          Definition* input = (*env)[i];
+          ASSERT(input != nullptr);
+          if (input->IsPushArgument()) {
+            // A push argument left on expression stack
+            // requires the variable name in SSA phis.
+            ASSERT(IsCompiledForOsr());
+            input = input->InputAt(0)->definition();
+          }
+          Value* use = new (zone()) Value(input);
           phi->SetInputAt(pred_index, use);
         }
       }

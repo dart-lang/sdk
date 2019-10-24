@@ -58,7 +58,7 @@ class IdTestingDataComputer extends DataComputer<String> {
       Library library, Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap)
-        .computeForLibrary(library, useFileUri: true);
+        .computeForLibrary(library);
   }
 
   @override

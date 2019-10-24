@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -777,10 +779,11 @@ class AstTestFactory {
           [List<Combinator> combinators]) =>
       importDirective(null, uri, false, prefix, combinators);
 
-  static IndexExpression indexExpression(Expression array, Expression index) =>
+  static IndexExpression indexExpression(Expression array, Expression index,
+          [TokenType leftBracket = TokenType.OPEN_SQUARE_BRACKET]) =>
       astFactory.indexExpressionForTarget(
           array,
-          TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET),
+          TokenFactory.tokenFromType(leftBracket),
           index,
           TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET));
 
@@ -1322,7 +1325,13 @@ class AstTestFactory {
     SimpleIdentifier name = identifier3(element.name);
     name.staticElement = element;
     TypeName typeName = typeName3(name, arguments);
-    typeName.type = element.type;
+    typeName.type = element.instantiate(
+      typeArguments: List.filled(
+        element.typeParameters.length,
+        DynamicTypeImpl.instance,
+      ),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     return typeName;
   }
 
@@ -1344,7 +1353,7 @@ class AstTestFactory {
           TokenFactory.tokenFromKeyword(Keyword.EXTENDS), bound);
 
   static TypeParameterList typeParameterList([List<String> typeNames]) {
-    List<TypeParameter> typeParameters = null;
+    List<TypeParameter> typeParameters;
     if (typeNames != null && typeNames.isNotEmpty) {
       typeParameters = new List<TypeParameter>();
       for (String typeName in typeNames) {

@@ -15,6 +15,7 @@ import 'completion_contributor_util.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeMemberContributorTest);
+    defineReflectiveTests(TypeMemberContributorWithExtensionMethodsTest);
   });
 }
 
@@ -4067,5 +4068,33 @@ class C with M {
     assertNotSuggested('f');
     assertNotSuggested('x');
     assertNotSuggested('e');
+  }
+}
+
+@reflectiveTest
+class TypeMemberContributorWithExtensionMethodsTest
+    extends DartCompletionContributorTest {
+  @override
+  DartCompletionContributor createContributor() {
+    return new TypeMemberContributor();
+  }
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_extensionOverride() async {
+    addTestSource('''
+extension E on int {
+  int get foo => 0;
+}
+
+void f() {
+  E(1).^
+}
+''');
+    await computeSuggestions();
+    assertNotSuggested('toString');
   }
 }

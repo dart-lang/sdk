@@ -13,10 +13,12 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -83,6 +85,12 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   String get refactoringName {
     return 'Extract Widget';
   }
+
+  FeatureSet get _featureSet {
+    return resolveResult.unit.featureSet;
+  }
+
+  bool get _isNonNullable => _featureSet.isEnabled(Feature.non_nullable);
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
@@ -373,7 +381,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     for (var invocation in collector.invocations) {
       List<Expression> arguments = invocation.argumentList.arguments;
       builder.addReplacement(range.node(invocation), (builder) {
-        builder.write('new $name(');
+        builder.write('$name(');
 
         // Insert field references (as named arguments).
         // Ensure that invocation arguments are named.
@@ -406,7 +414,10 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       builder.writeln();
       builder.writeClassDeclaration(
         name,
-        superclass: classStatelessWidget.type,
+        superclass: classStatelessWidget.instantiate(
+          typeArguments: const [],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
         membersWriter: () {
           // Add the constructor.
           builder.write('  ');
@@ -418,7 +429,15 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               // Add the required `key` parameter.
               builder.write('    ');
-              builder.writeParameter('key', type: classKey.type);
+              builder.writeParameter(
+                'key',
+                type: classKey.instantiate(
+                  typeArguments: const [],
+                  nullabilitySuffix: _isNonNullable
+                      ? NullabilitySuffix.question
+                      : NullabilitySuffix.star,
+                ),
+              );
               builder.writeln(',');
 
               // Add parameters for fields, local, and method parameters.
@@ -471,9 +490,18 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           builder.write('  ');
           builder.writeFunctionDeclaration(
             'build',
-            returnType: classWidget.type,
+            returnType: classWidget.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.none,
+            ),
             parameterWriter: () {
-              builder.writeParameter('context', type: classBuildContext.type);
+              builder.writeParameter(
+                'context',
+                type: classBuildContext.instantiate(
+                  typeArguments: const [],
+                  nullabilitySuffix: NullabilitySuffix.none,
+                ),
+              );
             },
             bodyWriter: () {
               if (_expression != null) {
@@ -517,7 +545,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
   /// Write instantiation of the new widget class.
   void _writeWidgetInstantiation(DartEditBuilder builder) {
-    builder.write('new $name(');
+    builder.write('$name(');
 
     for (var parameter in _parameters) {
       if (parameter != _parameters.first) {

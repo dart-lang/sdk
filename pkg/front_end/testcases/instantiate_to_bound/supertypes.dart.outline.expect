@@ -8,11 +8,11 @@ class B extends core::Object {
   synthetic constructor •() → self::B*
     ;
 }
-class X<T extends self::B* = dynamic> extends core::Object {
+class X<T extends self::B* = self::B*> extends core::Object {
   synthetic constructor •() → self::X<self::X::T*>*
     ;
 }
-class Y extends self::X<dynamic> {
+class Y extends self::X<self::B*> {
   synthetic constructor •() → self::Y*
     ;
 }

@@ -6,13 +6,11 @@ library fasta.dill_typedef_builder;
 
 import 'package:kernel/ast.dart' show DartType, Typedef;
 
-import '../kernel/kernel_builder.dart'
-    show
-        TypeAliasBuilder,
-        FunctionTypeBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder;
+import '../builder/function_type_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/type_alias_builder.dart';
+import '../builder/type_builder.dart';
 
 import '../problems.dart' show unimplemented;
 
@@ -28,7 +26,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   }
 
   @override
-  int get typeVariablesCount => target.typeParameters.length;
+  int get typeVariablesCount => typedef.typeParameters.length;
 
   @override
   FunctionTypeBuilder get type {
@@ -37,7 +35,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
 
   @override
   DartType buildThisType(LibraryBuilder library) {
-    return thisType ??= target.type;
+    return thisType ??= typedef.type;
   }
 
   @override
@@ -48,10 +46,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
     // [cls.typeParameters].
     if (arguments == null) {
       List<DartType> result = new List<DartType>.filled(
-          target.typeParameters.length, null,
+          typedef.typeParameters.length, null,
           growable: true);
       for (int i = 0; i < result.length; ++i) {
-        result[i] = target.typeParameters[i].defaultType;
+        result[i] = typedef.typeParameters[i].defaultType;
       }
       return result;
     }

@@ -344,7 +344,7 @@ class TypeCheckingVisitor
         }
         final enclosingFunction = parent as FunctionNode;
         if (enclosingFunction.dartAsyncMarker == AsyncMarker.SyncStar) {
-          return coreTypes.boolClass.rawType;
+          return coreTypes.boolLegacyRawType;
         }
         return null;
 
@@ -406,13 +406,13 @@ class TypeCheckingVisitor
 
   @override
   DartType visitBoolLiteral(BoolLiteral node) {
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     node.then = checkAndDowncastExpression(node.then, node.staticType);
     node.otherwise =
         checkAndDowncastExpression(node.otherwise, node.staticType);
@@ -424,7 +424,7 @@ class TypeCheckingVisitor
     Constructor target = node.target;
     Arguments arguments = node.arguments;
     Class class_ = target.enclosingClass;
-    handleCall(arguments, target.function.functionType,
+    handleCall(arguments, target.function.thisFunctionType,
         typeParameters: class_.typeParameters);
     return new InterfaceType(target.enclosingClass, arguments.types);
   }
@@ -452,18 +452,18 @@ class TypeCheckingVisitor
 
   @override
   DartType visitDoubleLiteral(DoubleLiteral node) {
-    return environment.doubleType;
+    return environment.coreTypes.doubleLegacyRawType;
   }
 
   @override
   DartType visitFunctionExpression(FunctionExpression node) {
     handleNestedFunctionNode(node.function);
-    return node.function.functionType;
+    return node.function.thisFunctionType;
   }
 
   @override
   DartType visitIntLiteral(IntLiteral node) {
-    return environment.intType;
+    return environment.coreTypes.intLegacyRawType;
   }
 
   @override
@@ -474,7 +474,7 @@ class TypeCheckingVisitor
   @override
   DartType visitIsExpression(IsExpression node) {
     visitExpression(node.operand);
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
@@ -529,9 +529,11 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLogicalExpression(LogicalExpression node) {
-    node.left = checkAndDowncastExpression(node.left, environment.boolType);
-    node.right = checkAndDowncastExpression(node.right, environment.boolType);
-    return environment.boolType;
+    node.left = checkAndDowncastExpression(
+        node.left, environment.coreTypes.boolLegacyRawType);
+    node.right = checkAndDowncastExpression(
+        node.right, environment.coreTypes.boolLegacyRawType);
+    return environment.coreTypes.boolLegacyRawType;
   }
 
   @override
@@ -595,7 +597,7 @@ class TypeCheckingVisitor
       var receiver = visitExpression(node.receiver);
       if (node.name.name == '==') {
         visitExpression(node.arguments.positional.single);
-        return environment.boolType;
+        return environment.coreTypes.boolLegacyRawType;
       }
       if (node.name.name == 'call' && receiver is FunctionType) {
         return handleFunctionCall(node, receiver, node.arguments);
@@ -646,7 +648,13 @@ class TypeCheckingVisitor
   @override
   DartType visitNot(Not node) {
     visitExpression(node.operand);
-    return environment.boolType;
+    return environment.coreTypes.boolLegacyRawType;
+  }
+
+  @override
+  DartType visitNullCheck(NullCheck node) {
+    // TODO(johnniwinther): Return `NonNull(visitExpression(types))`.
+    return visitExpression(node.operand);
   }
 
   @override
@@ -679,7 +687,7 @@ class TypeCheckingVisitor
   @override
   DartType visitStringConcatenation(StringConcatenation node) {
     node.expressions.forEach(visitExpression);
-    return environment.stringType;
+    return environment.coreTypes.stringLegacyRawType;
   }
 
   @override
@@ -725,8 +733,13 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitFileUriExpression(FileUriExpression node) {
+    return visitExpression(node.expression);
+  }
+
+  @override
   DartType visitStringLiteral(StringLiteral node) {
-    return environment.stringType;
+    return environment.coreTypes.stringLegacyRawType;
   }
 
   @override
@@ -769,7 +782,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitSymbolLiteral(SymbolLiteral node) {
-    return environment.symbolType;
+    return environment.coreTypes.symbolLegacyRawType;
   }
 
   @override
@@ -785,7 +798,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitTypeLiteral(TypeLiteral node) {
-    return environment.typeType;
+    return environment.coreTypes.typeLegacyRawType;
   }
 
   @override
@@ -807,7 +820,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    return environment.objectType;
+    return environment.coreTypes.objectLegacyRawType;
   }
 
   @override
@@ -842,8 +855,8 @@ class TypeCheckingVisitor
   @override
   visitDoStatement(DoStatement node) {
     visitStatement(node.body);
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
   }
 
   @override
@@ -907,8 +920,8 @@ class TypeCheckingVisitor
   visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     if (node.condition != null) {
-      node.condition =
-          checkAndDowncastExpression(node.condition, environment.boolType);
+      node.condition = checkAndDowncastExpression(
+          node.condition, environment.coreTypes.boolLegacyRawType);
     }
     node.updates.forEach(visitExpression);
     visitStatement(node.body);
@@ -921,8 +934,8 @@ class TypeCheckingVisitor
 
   @override
   visitIfStatement(IfStatement node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.then);
     if (node.otherwise != null) {
       visitStatement(node.otherwise);
@@ -982,8 +995,8 @@ class TypeCheckingVisitor
 
   @override
   visitWhileStatement(WhileStatement node) {
-    node.condition =
-        checkAndDowncastExpression(node.condition, environment.boolType);
+    node.condition = checkAndDowncastExpression(
+        node.condition, environment.coreTypes.boolLegacyRawType);
     visitStatement(node.body);
   }
 

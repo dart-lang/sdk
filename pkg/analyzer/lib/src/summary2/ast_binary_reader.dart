@@ -619,6 +619,24 @@ class AstBinaryReader {
     }
   }
 
+  ExtensionOverride _read_extensionOverride(LinkedNode data) {
+    var node = astFactory.extensionOverride(
+      extensionName: _readNode(data.extensionOverride_extensionName),
+      argumentList: astFactory.argumentList(
+        _Tokens.OPEN_PAREN,
+        _readNodeList(
+          data.extensionOverride_arguments,
+        ),
+        _Tokens.CLOSE_PAREN,
+      ),
+      typeArguments: _readNode(data.extensionOverride_typeArguments),
+    ) as ExtensionOverrideImpl;
+    node.extendedType = _readType(data.extensionOverride_extendedType);
+    node.typeArgumentTypes =
+        data.extensionOverride_typeArgumentTypes.map(_readType).toList();
+    return node;
+  }
+
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
       comment: _readDocumentationComment(data),
@@ -652,8 +670,8 @@ class AstBinaryReader {
       ),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
       comment: _readDocumentationComment(data),
-      type: _readNode(data.fieldFormalParameter_type),
-      parameters: _readNode(data.fieldFormalParameter_formalParameters),
+      type: _readNodeLazy(data.fieldFormalParameter_type),
+      parameters: _readNodeLazy(data.fieldFormalParameter_formalParameters),
       requiredKeyword:
           AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );
@@ -1023,8 +1041,9 @@ class AstBinaryReader {
   }
 
   IntegerLiteral _read_integerLiteral(LinkedNode data) {
+    // TODO(scheglov) Remove `?? _intType` after internal SDK roll.
     return AstTestFactory.integer(data.integerLiteral_value)
-      ..staticType = _intType;
+      ..staticType = _readType(data.expression_type) ?? _intType;
   }
 
   InterpolationExpression _read_interpolationExpression(LinkedNode data) {
@@ -1719,6 +1738,8 @@ class AstBinaryReader {
         return _read_extendsClause(data);
       case LinkedNodeKind.extensionDeclaration:
         return _read_extensionDeclaration(data);
+      case LinkedNodeKind.extensionOverride:
+        return _read_extensionOverride(data);
       case LinkedNodeKind.fieldDeclaration:
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:

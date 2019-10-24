@@ -43,6 +43,34 @@ void main() {
     ]);
   }
 
+  test_assignmentExpression_function() async {
+    await assertErrorsInCode('''
+void f() {}
+class A {
+  n() {
+    var a;
+    a = f();
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 38, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 49, 1),
+    ]);
+  }
+
+  test_assignmentExpression_method() async {
+    await assertErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    var a;
+    a = m();
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 51, 1),
+    ]);
+  }
+
   test_assignmentToVoidParameterOk() async {
     // Note: the spec may decide to disallow this, but at this point that seems
     // highly unlikely.
@@ -66,6 +94,14 @@ void main() {
 ''');
   }
 
+  test_await() async {
+    await assertNoErrorsInCode('''
+main() async {
+  void x;
+  await x;
+}''');
+  }
+
   test_implicitReturnValue() async {
     await assertNoErrorsInCode(r'''
 f() {}
@@ -75,6 +111,29 @@ class A {
   }
 }
 ''');
+  }
+
+  test_inForLoop_error() async {
+    await assertErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    for(Object a = m();;) {}
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 47, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 51, 1),
+    ]);
+  }
+
+  test_inForLoop_ok() async {
+    await assertNoErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    for(void a = m();;) {}
+  }
+}''');
   }
 
   test_interpolateVoidValueError() async {
@@ -502,6 +561,67 @@ void main() {
   void y = x;
 }
 ''');
+  }
+
+  test_variableDeclaration_function_error() async {
+    await assertErrorsInCode('''
+void f() {}
+class A {
+  n() {
+    Object a = f();
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 45, 1),
+    ]);
+  }
+
+  test_variableDeclaration_function_ok() async {
+    await assertNoErrorsInCode('''
+void f() {}
+class A {
+  n() {
+    void a = f();
+  }
+}''');
+  }
+
+  test_variableDeclaration_method2() async {
+    await assertErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    Object a = m(), b = m();
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 47, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 56, 1),
+    ]);
+  }
+
+  test_variableDeclaration_method_error() async {
+    await assertErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    Object a = m();
+  }
+}''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 43, 1),
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 47, 1),
+    ]);
+  }
+
+  test_variableDeclaration_method_ok() async {
+    await assertNoErrorsInCode('''
+class A {
+  void m() {}
+  n() {
+    void a = m();
+  }
+}''');
   }
 
   test_yieldStarVoid_asyncStar() async {

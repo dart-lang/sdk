@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -29,6 +30,7 @@ class ElementFactory {
    * The element representing the class 'Object'.
    */
   static ClassElementImpl _objectElement;
+  static InterfaceType _objectType;
 
   static ClassElementImpl get object {
     if (_objectElement == null) {
@@ -37,7 +39,12 @@ class ElementFactory {
     return _objectElement;
   }
 
-  static InterfaceType get objectType => object.type;
+  static InterfaceType get objectType {
+    return _objectType ??= object.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
 
   static ClassElementImpl classElement(
       String typeName, InterfaceType superclassType,
@@ -150,7 +157,10 @@ class ElementFactory {
     // Build the enum.
     //
     EnumElementImpl enumElement = new EnumElementImpl(enumName, -1);
-    InterfaceTypeImpl enumType = enumElement.type;
+    InterfaceTypeImpl enumType = enumElement.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
     //
     // Populate the fields.
     //
@@ -170,7 +180,7 @@ class ElementFactory {
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.isStatic = true;
     valuesField.isConst = true;
-    valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
+    valuesField.type = typeProvider.listType2(enumType);
     fields.add(valuesField);
     //
     // Build the enum constants.
@@ -264,8 +274,6 @@ class ElementFactory {
     // We don't create parameter elements because we don't have parameter names
     FunctionElementImpl functionElement =
         new FunctionElementImpl(functionName, 0);
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     functionElement.returnType = returnType ?? VoidTypeImpl.instance;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
@@ -276,10 +284,11 @@ class ElementFactory {
     for (int i = 0; i < totalCount; i++) {
       ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
       if (i < normalCount) {
-        parameter.type = normalParameters[i].type;
+        parameter.type = _typeDefiningElementType(normalParameters[i]);
         parameter.parameterKind = ParameterKind.REQUIRED;
       } else {
-        parameter.type = optionalParameters[i - normalCount].type;
+        parameter.type =
+            _typeDefiningElementType(optionalParameters[i - normalCount]);
         parameter.parameterKind = ParameterKind.POSITIONAL;
       }
       parameters[i] = parameter;
@@ -297,8 +306,6 @@ class ElementFactory {
       List<ClassElement> namedParameters) {
     FunctionElementImpl functionElement =
         new FunctionElementImpl(functionName, 0);
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     // parameters
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     int nameCount = names == null ? 0 : names.length;
@@ -312,13 +319,14 @@ class ElementFactory {
     for (int i = 0; i < totalCount; i++) {
       if (i < normalCount) {
         ParameterElementImpl parameter = new ParameterElementImpl("a$i", i);
-        parameter.type = normalParameters[i].type;
+        parameter.type = _typeDefiningElementType(normalParameters[i]);
         parameter.parameterKind = ParameterKind.REQUIRED;
         parameters[i] = parameter;
       } else {
         ParameterElementImpl parameter =
             new ParameterElementImpl(names[i - normalCount], i);
-        parameter.type = namedParameters[i - normalCount].type;
+        parameter.type =
+            _typeDefiningElementType(namedParameters[i - normalCount]);
         parameter.parameterKind = ParameterKind.NAMED;
         parameters[i] = parameter;
       }
@@ -328,7 +336,7 @@ class ElementFactory {
     if (returnElement == null) {
       functionElement.returnType = VoidTypeImpl.instance;
     } else {
-      functionElement.returnType = returnElement.type;
+      functionElement.returnType = _typeDefiningElementType(returnElement);
     }
     return functionElement;
   }
@@ -393,8 +401,6 @@ class ElementFactory {
     functionElement.returnType =
         returnType == null ? VoidTypeImpl.instance : returnType;
     functionElement.parameters = parameters;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionElement.type = functionType;
     return functionElement;
   }
 
@@ -404,7 +410,6 @@ class ElementFactory {
     element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
       ..parameters = parameters
       ..returnType = returnType ?? DynamicTypeImpl.instance;
-    element.type = new FunctionTypeImpl.forTypedef(element);
     return element;
   }
 
@@ -423,8 +428,6 @@ class ElementFactory {
     getter.returnType = type;
     getter.isStatic = isStatic;
     field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
     return getter;
   }
 
@@ -471,8 +474,6 @@ class ElementFactory {
       method.parameters = parameters;
     }
     method.returnType = returnType;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(method);
-    method.type = methodType;
     return method;
   }
 
@@ -485,7 +486,6 @@ class ElementFactory {
     method.enclosingElement = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
-    method.type = new FunctionTypeImpl(method);
     return method;
   }
 
@@ -575,8 +575,6 @@ class ElementFactory {
     getter.variable = field;
     getter.returnType = type;
     field.getter = getter;
-    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
-    getter.type = getterType;
     ParameterElementImpl parameter = requiredParameter2("a", type);
     PropertyAccessorElementImpl setter =
         new PropertyAccessorElementImpl(name, -1);
@@ -585,7 +583,7 @@ class ElementFactory {
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
-    setter.type = new FunctionTypeImpl(setter);
+    setter.isStatic = isStatic;
     field.setter = setter;
     return setter;
   }
@@ -628,9 +626,7 @@ class ElementFactory {
   }
 
   static TypeParameterElementImpl typeParameterElement(String name) {
-    TypeParameterElementImpl element = new TypeParameterElementImpl(name, 0);
-    element.type = new TypeParameterTypeImpl(element);
-    return element;
+    return new TypeParameterElementImpl(name, 0);
   }
 
   static List<TypeParameterElement> typeParameters(List<String> names) {
@@ -649,8 +645,20 @@ class ElementFactory {
   static TypeParameterElementImpl typeParameterWithType(String name,
       [DartType bound]) {
     TypeParameterElementImpl typeParameter = typeParameterElement(name);
-    typeParameter.type = new TypeParameterTypeImpl(typeParameter);
     typeParameter.bound = bound;
     return typeParameter;
+  }
+
+  static DartType _typeDefiningElementType(TypeDefiningElement element) {
+    if (element is ClassElement) {
+      return element.instantiate(
+        typeArguments: List.filled(
+          element.typeParameters.length,
+          DynamicTypeImpl.instance,
+        ),
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+    }
+    throw ArgumentError('element: (${element.runtimeType}) $element');
   }
 }

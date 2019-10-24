@@ -8,7 +8,9 @@
 
 #include "platform/globals.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/compiler/stub_code_compiler.h"
 #include "vm/growable_array.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -52,6 +54,56 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   return element_size_table[index];
 }
 
+classid_t ElementTypedDataCid(classid_t class_id) {
+  ASSERT(class_id >= kFfiPointerCid);
+  ASSERT(class_id < kFfiVoidCid);
+  ASSERT(class_id != kFfiNativeFunctionCid);
+  switch (class_id) {
+    case kFfiInt8Cid:
+      return kTypedDataInt8ArrayCid;
+    case kFfiUint8Cid:
+      return kTypedDataUint8ArrayCid;
+    case kFfiInt16Cid:
+      return kTypedDataInt16ArrayCid;
+    case kFfiUint16Cid:
+      return kTypedDataUint16ArrayCid;
+    case kFfiInt32Cid:
+      return kTypedDataInt32ArrayCid;
+    case kFfiUint32Cid:
+      return kTypedDataUint32ArrayCid;
+    case kFfiInt64Cid:
+      return kTypedDataInt64ArrayCid;
+    case kFfiUint64Cid:
+      return kTypedDataUint64ArrayCid;
+    case kFfiIntPtrCid:
+      return target::kWordSize == 4 ? kTypedDataInt32ArrayCid
+                                    : kTypedDataInt64ArrayCid;
+    case kFfiPointerCid:
+      return target::kWordSize == 4 ? kTypedDataUint32ArrayCid
+                                    : kTypedDataUint64ArrayCid;
+    case kFfiFloatCid:
+      return kTypedDataFloat32ArrayCid;
+    case kFfiDoubleCid:
+      return kTypedDataFloat64ArrayCid;
+    default:
+      UNREACHABLE();
+  }
+}
+
+classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind) {
+  switch (kind) {
+#define LOAD_STORE(type)                                                       \
+  case MethodRecognizer::kFfiLoad##type:                                       \
+  case MethodRecognizer::kFfiStore##type:                                      \
+    return kFfi##type##Cid;
+    CLASS_LIST_FFI_NUMERIC(LOAD_STORE)
+    LOAD_STORE(Pointer)
+#undef LOAD_STORE
+    default:
+      UNREACHABLE();
+  }
+}
+
 // See pkg/vm/lib/transformations/ffi.dart, which makes these assumptions.
 struct AbiAlignmentDouble {
   int8_t use_one_byte;
@@ -67,7 +119,7 @@ static_assert(offsetof(AbiAlignmentDouble, d) == 8,
               "FFI transformation alignment");
 static_assert(offsetof(AbiAlignmentUint64, i) == 8,
               "FFI transformation alignment");
-#elif (defined(HOST_ARCH_IA32) &&                                              \
+#elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
         defined(HOST_OS_ANDROID))) ||                                          \
     (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
@@ -89,7 +141,7 @@ static_assert(offsetof(AbiAlignmentUint64, i) == 8,
 static Abi HostAbi() {
 #if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
   return Abi::kWordSize64;
-#elif (defined(HOST_ARCH_IA32) &&                                              \
+#elif (defined(HOST_ARCH_IA32) && /* NOLINT(whitespace/parens) */              \
        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                    \
         defined(HOST_OS_ANDROID))) ||                                          \
     (defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS))
@@ -108,7 +160,7 @@ Abi TargetAbi() {
   return HostAbi();
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
   return Abi::kWordSize64;
-#elif (defined(TARGET_ARCH_IA32) &&                                            \
+#elif (defined(TARGET_ARCH_IA32) && /* NOLINT(whitespace/parens) */            \
        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
         defined(TARGET_OS_ANDROID))) ||                                        \
     (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS))
@@ -123,8 +175,8 @@ Abi TargetAbi() {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-Representation TypeRepresentation(const AbstractType& result_type) {
-  switch (result_type.type_class_id()) {
+Representation TypeRepresentation(classid_t class_id) {
+  switch (class_id) {
     case kFfiFloatCid:
       return kUnboxedFloat;
     case kFfiDoubleCid:
@@ -141,6 +193,7 @@ Representation TypeRepresentation(const AbstractType& result_type) {
     case kFfiUint64Cid:
       return kUnboxedInt64;
     case kFfiIntPtrCid:
+      return kUnboxedIntPtr;
     case kFfiPointerCid:
     case kFfiVoidCid:
       return kUnboxedFfiIntPtr;
@@ -182,7 +235,7 @@ ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
   for (intptr_t i = 0; i < num_arguments; i++) {
     AbstractType& arg_type =
         AbstractType::Handle(signature.ParameterTypeAt(i + 1));
-    Representation rep = TypeRepresentation(arg_type);
+    Representation rep = TypeRepresentation(arg_type.type_class_id());
     // In non simulator mode host::CallingConventions == CallingConventions.
     // In simulator mode convert arguments to host representation.
     if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
@@ -198,7 +251,7 @@ ZoneGrowableArray<Representation>* ArgumentRepresentationsBase(
 template <class CallingConventions>
 Representation ResultRepresentationBase(const Function& signature) {
   AbstractType& arg_type = AbstractType::Handle(signature.result_type());
-  Representation rep = TypeRepresentation(arg_type);
+  Representation rep = TypeRepresentation(arg_type.type_class_id());
   if (rep == kUnboxedFloat && CallingConventions::kAbiSoftFP) {
     rep = kUnboxedInt32;
   } else if (rep == kUnboxedDouble && CallingConventions::kAbiSoftFP) {
@@ -208,6 +261,58 @@ Representation ResultRepresentationBase(const Function& signature) {
 }
 
 #if !defined(TARGET_ARCH_DBC)
+
+RawFunction* NativeCallbackFunction(const Function& c_signature,
+                                    const Function& dart_target,
+                                    const Instance& exceptional_return) {
+  Thread* const thread = Thread::Current();
+  const int32_t callback_id = thread->AllocateFfiCallbackId();
+
+  // Create a new Function named '<target>_FfiCallback' and stick it in the
+  // 'dart:ffi' library. Note that these functions will never be invoked by
+  // Dart, so they have may have duplicate names.
+  Zone* const zone = thread->zone();
+  const auto& name = String::Handle(
+      zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
+                                String::Handle(zone, dart_target.name())));
+  const Library& lib = Library::Handle(zone, Library::FfiLibrary());
+  const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
+  const Function& function =
+      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+                                           /*is_static=*/true,
+                                           /*is_const=*/false,
+                                           /*is_abstract=*/false,
+                                           /*is_external=*/false,
+                                           /*is_native=*/false, owner_class,
+                                           TokenPosition::kNoSource));
+  function.set_is_debuggable(false);
+
+  // Set callback-specific fields which the flow-graph builder needs to generate
+  // the body.
+  function.SetFfiCSignature(c_signature);
+  function.SetFfiCallbackId(callback_id);
+  function.SetFfiCallbackTarget(dart_target);
+
+  // We need to load the exceptional return value as a constant in the generated
+  // function. Even though the FE ensures that it is a constant, it could still
+  // be a literal allocated in new space. We need to copy it into old space in
+  // that case.
+  //
+  // Exceptional return values currently cannot be pointers because we don't
+  // have constant pointers.
+  //
+  // TODO(36730): We'll need to extend this when we support passing/returning
+  // structs by value.
+  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber());
+  if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
+    function.SetFfiCallbackExceptionalReturn(Instance::Handle(
+        zone, exceptional_return.CopyShallowToOldSpace(thread)));
+  } else {
+    function.SetFfiCallbackExceptionalReturn(exceptional_return);
+  }
+
+  return function.raw();
+}
 
 ZoneGrowableArray<Representation>* ArgumentRepresentations(
     const Function& signature) {
@@ -354,6 +459,7 @@ class ArgumentAllocator : public ValueObject {
   intptr_t stack_height_in_slots = 0;
 };
 
+#if !defined(TARGET_ARCH_DBC)
 ZoneGrowableArray<Location>*
 CallbackArgumentTranslator::TranslateArgumentLocations(
     const ZoneGrowableArray<Location>& arg_locs) {
@@ -398,10 +504,17 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
     // saved argument registers and stack arguments. Also add slots for the
     // shadow space if present (factored into
     // kCallbackSlotsBeforeSavedArguments).
+    //
+    // Finally, if we are using NativeCallbackTrampolines, factor in the extra
+    // stack space corresponding to those trampolines' frames (above the entry
+    // frame).
+    intptr_t stack_delta = kCallbackSlotsBeforeSavedArguments;
+    if (NativeCallbackTrampolines::Enabled()) {
+      stack_delta += StubCodeCompiler::kNativeCallbackTrampolineStackDelta;
+    }
     FrameRebase rebase(
         /*old_base=*/SPREG, /*new_base=*/SPREG,
-        /*stack_delta=*/argument_slots_required_ +
-            kCallbackSlotsBeforeSavedArguments);
+        /*stack_delta=*/argument_slots_required_ + stack_delta);
     return rebase.Rebase(arg);
   }
 
@@ -415,6 +528,7 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 // Takes a list of argument representations, and converts it to a list of
 // argument locations based on calling convention.
@@ -639,27 +753,6 @@ Representation FfiSignatureDescriptor::ResultRepresentation() const {
 }
 
 #endif  // defined(TARGET_ARCH_DBC)
-
-bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func) {
-  Object& asFunctionInternal =
-      Object::Handle(zone, isolate->object_store()->ffi_as_function_internal());
-  if (asFunctionInternal.raw() == Object::null()) {
-    // Cache the reference.
-    const Library& ffi =
-        Library::Handle(zone, isolate->object_store()->ffi_library());
-    asFunctionInternal =
-        ffi.LookupFunctionAllowPrivate(Symbols::AsFunctionInternal());
-    // Cannot assert that 'asFunctionInternal' is found because it may have been
-    // tree-shaken.
-    if (asFunctionInternal.IsNull()) {
-      // Set the entry in the object store to a sentinel so we don't try to look
-      // it up again.
-      asFunctionInternal = Object::sentinel().raw();
-    }
-    isolate->object_store()->set_ffi_as_function_internal(asFunctionInternal);
-  }
-  return func.raw() == asFunctionInternal.raw();
-}
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

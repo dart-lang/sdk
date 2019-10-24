@@ -54,8 +54,8 @@ void testInterface() {
     x = b.b; //# 03: ok
   }
   if (x is A) {
-    // No promotion: x has type dynamic.
-    y = x.b; //# 04: ok
+    // Promotion A << dynamic.
+    y = x.b; //# 04: compile-time error
   }
 }
 

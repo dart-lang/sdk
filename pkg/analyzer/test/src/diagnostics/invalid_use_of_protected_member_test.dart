@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +13,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfProtectedMemberTest);
+    defineReflectiveTests(InvalidUseOfProtectedMember_InExtensionTest);
   });
 }
 
@@ -308,6 +311,9 @@ class B extends Object with A {
   }
 
   test_mixingIn_asParameter() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called from static members, which violates the
+    // protected spec.
     addMetaPackage();
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -336,6 +342,9 @@ main() {
   }
 
   test_setter_outsideClassAndFile() async {
+    // TODO(srawlins): This test verifies that the analyzer **allows**
+    // protected members to be called on objects other than `this`, which
+    // violates the protected spec.
     addMetaPackage();
     newFile('/lib1.dart', content: r'''
 import 'package:meta/meta.dart';
@@ -423,5 +432,37 @@ main() {
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
   Future<void> _resolveTestFile(String path) async {
     result = await resolveFile(convertPath(path));
+  }
+}
+
+@reflectiveTest
+class InvalidUseOfProtectedMember_InExtensionTest
+    extends InvalidUseOfProtectedMemberTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_extension_outsideClassAndFile() async {
+    addMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(int i) {}
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+extension E on A {
+  e() {
+    a(7);
+  }
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrorsWithCodes([HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
   }
 }

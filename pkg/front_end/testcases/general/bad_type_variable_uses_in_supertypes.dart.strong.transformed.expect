@@ -113,8 +113,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef ContravariantUse<T extends core::Object* = dynamic> = (T*) →* dynamic;
-typedef InvariantUse<T extends core::Object* = dynamic> = (T*) →* T*;
+typedef ContravariantUse<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
+typedef InvariantUse<invariant T extends core::Object* = dynamic> = (T*) →* T*;
 class Empty extends core::Object {
   synthetic constructor •() → self::Empty*
     : super core::Object::•()

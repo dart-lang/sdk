@@ -140,6 +140,7 @@ class TestDriver implements AnalysisDriver {
         new MemoryByteStore(),
         new FileContentOverlay(),
         resourceProvider,
+        'contextName',
         sourceFactory,
         new AnalysisOptionsImpl(),
         new Uint32List(0),

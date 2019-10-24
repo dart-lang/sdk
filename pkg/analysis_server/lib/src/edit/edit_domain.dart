@@ -207,6 +207,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     // Compute fixes associated with server-generated errors.
     //
     ResolvedUnitResult result = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
       var context = new DartAssistContextImpl(
         DartChangeWorkspace(server.currentSessions),
@@ -221,6 +222,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         for (Assist assist in assists) {
           changes.add(assist.change);
         }
+        server.requestStatistics?.addItemTimeNow(request, 'computedAssists');
       } catch (_) {}
     }
     //
@@ -228,6 +230,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     List<plugin.Response> responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
+    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     ResultConverter converter = new ResultConverter();
     List<plugin.PrioritizedSourceChange> pluginChanges =
         <plugin.PrioritizedSourceChange>[];
@@ -277,7 +280,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     List<AnalysisErrorFixes> errorFixesList = null;
     while (errorFixesList == null) {
       try {
-        errorFixesList = await _computeServerErrorFixes(file, offset);
+        errorFixesList = await _computeServerErrorFixes(request, file, offset);
       } on InconsistentAnalysisException {
         // Loop around to try again to compute the fixes.
       }
@@ -287,6 +290,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     List<plugin.Response> responses =
         await waitForResponses(pluginFutures, requestParameters: requestParams);
+    server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     ResultConverter converter = new ResultConverter();
     for (plugin.Response response in responses) {
       plugin.EditGetFixesResult result =
@@ -627,9 +631,10 @@ class EditDomainHandler extends AbstractRequestHandler {
    * Dart files.
    */
   Future<List<AnalysisErrorFixes>> _computeDartFixes(
-      String file, int offset) async {
+      Request request, String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     var result = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (result != null) {
       LineInfo lineInfo = result.lineInfo;
       int requestLine = lineInfo.getLocation(offset).lineNumber;
@@ -662,6 +667,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         }
       }
     }
+    server.requestStatistics?.addItemTimeNow(request, 'computedFixes');
     return errorFixesList;
   }
 
@@ -751,10 +757,10 @@ class EditDomainHandler extends AbstractRequestHandler {
    * Compute and return the fixes associated with server-generated errors.
    */
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
-      String file, int offset) async {
+      Request request, String file, int offset) async {
     Context context = server.resourceProvider.pathContext;
     if (AnalysisEngine.isDartFileName(file)) {
-      return _computeDartFixes(file, offset);
+      return _computeDartFixes(request, file, offset);
     } else if (AnalysisEngine.isAnalysisOptionsFileName(file, context)) {
       return _computeAnalysisOptionsFixes(file, offset);
     } else if (context.basename(file) == 'pubspec.yaml') {

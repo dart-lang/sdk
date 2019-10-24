@@ -112,6 +112,11 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
             _dartTypes.isSubtype(type,
                 _elementEnvironment.getRawType(_commonElements.jsArrayClass))) {
           registerInstantiation(type);
+        } else if (_dartTypes.isSubtype(
+            type,
+            _elementEnvironment
+                .getRawType(_commonElements.jsJavaScriptObjectClass))) {
+          matchingClasses.add(type.element);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type
         // arguments and implements relations that preserve generics. Currently

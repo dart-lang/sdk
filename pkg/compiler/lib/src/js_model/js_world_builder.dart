@@ -130,12 +130,14 @@ class JsClosedWorldBuilder {
     Set<MemberEntity> processedMembers =
         map.toBackendMemberSet(closedWorld.liveMemberUsage.keys);
 
+    Set<ClassEntity> extractTypeArgumentsInterfacesNewRti = {};
+
     RuntimeTypesNeed rtiNeed;
 
     List<FunctionEntity> callMethods = <FunctionEntity>[];
     ClosureData closureData;
     if (_options.disableRtiOptimization) {
-      rtiNeed = new TrivialRuntimeTypesNeed();
+      rtiNeed = new TrivialRuntimeTypesNeed(_elementMap.elementEnvironment);
       closureData = _closureDataBuilder.createClosureEntities(
           this,
           map.toBackendMemberMap(closureModels, identity),
@@ -223,6 +225,7 @@ class JsClosedWorldBuilder {
         liveInstanceMembers /*..addAll(callMethods)*/,
         assignedInstanceMembers,
         processedMembers,
+        extractTypeArgumentsInterfacesNewRti,
         mixinUses,
         typesImplementedBySubclasses,
         new ClassHierarchyImpl(
@@ -288,6 +291,7 @@ class JsClosedWorldBuilder {
         map.toBackendMemberMap(nativeBasicData.jsInteropMembers, identity);
     return new NativeBasicDataImpl(
         _elementEnvironment,
+        nativeBasicData.isAllowInteropUsed,
         nativeClassTagInfo,
         jsInteropLibraries,
         jsInteropClasses,
@@ -759,6 +763,10 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   DartType visitDynamicType(DynamicType type, _EntityConverter converter) {
     return const DynamicType();
   }
+
+  @override
+  DartType visitAnyType(AnyType type, _EntityConverter converter) =>
+      const AnyType();
 
   @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {

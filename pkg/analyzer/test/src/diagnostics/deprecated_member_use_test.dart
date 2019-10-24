@@ -306,7 +306,7 @@ class A {
   m() {}
   n() {m();}
 }
-''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE]);
+''', [HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE]);
   }
 
   test_operator() async {
@@ -614,7 +614,8 @@ class A {
     await assertErrorsInCode(r'''
 import 'package:foo/foo.dart';
 void main() => A().m();
-''', [HintCode.DEPRECATED_MEMBER_USE], sourceName: '/pkg1/lib/lib1.dart');
+''', [HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE],
+        sourceName: '/pkg1/lib/lib1.dart');
   }
 
   test_packageBuildWorkspace() async {

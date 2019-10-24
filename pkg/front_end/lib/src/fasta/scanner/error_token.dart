@@ -73,14 +73,14 @@ abstract class ErrorToken extends SimpleToken {
   int get length => 1;
 
   String get lexeme {
-    var errorMsg = assertionMessage.message;
+    String errorMsg = assertionMessage.message;
 
     // Attempt to include the location which is calling the parser
     // in an effort to debug https://github.com/dart-lang/sdk/issues/37528
-    var pattern = RegExp('^#[0-9]* *Parser');
-    var traceLines = StackTrace.current.toString().split('\n');
+    RegExp pattern = new RegExp('^#[0-9]* *Parser');
+    List<String> traceLines = StackTrace.current.toString().split('\n');
     for (int index = traceLines.length - 2; index >= 0; --index) {
-      var line = traceLines[index];
+      String line = traceLines[index];
       if (line.startsWith(pattern)) {
         errorMsg = '$errorMsg - ${traceLines[index + 1]}';
         break;

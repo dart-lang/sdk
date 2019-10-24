@@ -163,6 +163,11 @@ void KernelFingerprintHelper::CalculateTypeParameterFingerprint() {
   CalculateListOfExpressionsFingerprint();
   helper.SetJustRead(TypeParameterHelper::kAnnotations);
 
+  helper.ReadUntilExcluding(TypeParameterHelper::kVariance);
+  Variance variance = ReadVariance();
+  BuildHash(variance);
+  helper.SetJustRead(TypeParameterHelper::kVariance);
+
   helper.ReadUntilExcluding(TypeParameterHelper::kBound);
   // The helper isn't needed after this point.
   CalculateDartTypeFingerprint();
@@ -442,6 +447,10 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kNot:
       CalculateExpressionFingerprint();  // read expression.
       return;
+    case kNullCheck:
+      ReadPosition();                    // read position.
+      CalculateExpressionFingerprint();  // read expression.
+      return;
     case kLogicalExpression:
       CalculateExpressionFingerprint();  // read left.
       SkipBytes(1);                      // read operator.
@@ -461,8 +470,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -645,7 +655,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
           ReadPosition();                    // read jth position.
           CalculateExpressionFingerprint();  // read jth expression.
         }
-        BuildHash(ReadBool());            // read is_default.
+        BuildHash(static_cast<uint32_t>(ReadBool()));  // read is_default.
         CalculateStatementFingerprint();  // read body.
       }
       return;

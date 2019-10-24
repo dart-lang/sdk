@@ -104,6 +104,7 @@ class MessageTestSuite extends ChainContext {
       Severity severity;
       YamlNode badSeverity;
       YamlNode unnecessarySeverity;
+      List<String> badHasPublishedDocsValue = <String>[];
       List<String> spellingMessages;
       const String spellingPostMessage = "\nIf the word(s) look okay, update "
           "'spell_checking_list_messages.txt' or "
@@ -264,6 +265,12 @@ class MessageTestSuite extends ChainContext {
             // index is validated during generation
             break;
 
+          case "hasPublishedDocs":
+            if (value != true) {
+              badHasPublishedDocsValue.add(name);
+            }
+            break;
+
           default:
             unknownKeys.add(key);
         }
@@ -306,6 +313,14 @@ class MessageTestSuite extends ChainContext {
               : null);
 
       yield createDescription(
+          'hasPublishedDocs',
+          null,
+          badHasPublishedDocsValue.isNotEmpty
+              ? "Bad hasPublishedDocs value (only 'true' supported) in:"
+                  " ${badHasPublishedDocsValue.join(', ')}"
+              : null);
+
+      yield createDescription(
           "severity",
           null,
           badSeverity != null
@@ -320,6 +335,7 @@ class MessageTestSuite extends ChainContext {
               ? "The 'ERROR' severity is the default and not necessary."
               : null,
           location: unnecessarySeverity?.span?.start);
+
       yield createDescription(
           "spelling",
           null,
@@ -663,4 +679,4 @@ String relativize(Uri uri) {
 }
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../../testing.json");
+    runMe(arguments, createContext, configurationPath: "../../testing.json");

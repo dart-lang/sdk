@@ -236,6 +236,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new TypedefType(typedef, typeArguments, unaliased);
       case DartTypeKind.dynamicType:
         return const DynamicType();
+      case DartTypeKind.anyType:
+        return const AnyType();
       case DartTypeKind.futureOr:
         DartType typeArgument = _readDartType(functionTypeVariables);
         return new FutureOrType(typeArgument);
@@ -755,6 +757,13 @@ abstract class AbstractDataSource extends DataSourceMixin
     assert(_codegenReader != null,
         "Can not deserialize a JS node without a registered codegen reader.");
     return _codegenReader.readJsNode(this);
+  }
+
+  @override
+  TypeRecipe readTypeRecipe() {
+    assert(_codegenReader != null,
+        "Can not deserialize a TypeRecipe without a registered codegen reader.");
+    return _codegenReader.readTypeRecipe(this);
   }
 
   /// Actual deserialization of a section begin tag, implemented by subclasses.

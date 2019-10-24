@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/context/builder.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
@@ -49,15 +48,8 @@ class CommandLineOptions {
   /// List of summary file paths to use in build mode.
   final List<String> buildSummaryInputs;
 
-  /// List of unlinked summary file paths to use in build mode.
-  final List<String> buildSummaryUnlinkedInputs;
-
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
-
-  /// Whether to only produce unlinked summaries instead of linked summaries.
-  /// Must be used in combination with `buildSummaryOnly`.
-  final bool buildSummaryOnlyUnlinked;
 
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
@@ -162,10 +154,7 @@ class CommandLineOptions {
         buildModePersistentWorker = cast(args['persistent_worker']),
         buildSummaryInputs =
             (args['build-summary-input'] as List).cast<String>(),
-        buildSummaryUnlinkedInputs =
-            (args['build-summary-unlinked-input'] as List).cast<String>(),
         buildSummaryOnly = cast(args['build-summary-only']),
-        buildSummaryOnlyUnlinked = cast(args['build-summary-only-unlinked']),
         buildSummaryOutput = cast(args['build-summary-output']),
         buildSummaryOutputSemantic =
             cast(args['build-summary-output-semantic']),
@@ -269,26 +258,6 @@ class CommandLineOptions {
       return null; // Only reachable in testing.
     }
 
-    if (options.buildSummaryOnlyUnlinked) {
-      if (AnalysisDriver.useSummary2) {
-        printAndFail('The option --build-summary-only-unlinked can not be used '
-            'together with summary2.');
-        return null; // Only reachable in testing.
-      }
-      if (!options.buildSummaryOnly) {
-        printAndFail(
-            'The option --build-summary-only-unlinked can be used only '
-            'together with --build-summary-only.');
-        return null; // Only reachable in testing.
-      }
-      if (options.buildSummaryInputs.isNotEmpty ||
-          options.buildSummaryUnlinkedInputs.isNotEmpty) {
-        printAndFail('No summaries should be provided in combination with '
-            '--build-summary-only-unlinked, they aren\'t needed.');
-        return null; // Only reachable in testing.
-      }
-    }
-
     return options;
   }
 
@@ -386,10 +355,6 @@ class CommandLineOptions {
           help: 'Path to a linked summary file that contains information from '
               'a previous analysis run; may be specified multiple times.',
           hide: hide)
-      ..addMultiOption('build-summary-unlinked-input',
-          help: 'Path to an unlinked summary file that contains information '
-              'from a previous analysis run; may be specified multiple times.',
-          hide: hide)
       ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the full summary '
               'information should be written.',
@@ -400,11 +365,6 @@ class CommandLineOptions {
           hide: hide)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
-          defaultsTo: false,
-          negatable: false,
-          hide: hide)
-      ..addFlag('build-summary-only-unlinked',
-          help: 'Only output the unlinked summary.',
           defaultsTo: false,
           negatable: false,
           hide: hide)

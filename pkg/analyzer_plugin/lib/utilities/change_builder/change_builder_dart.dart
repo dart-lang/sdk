@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,7 +12,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
-import 'package:meta/meta.dart';
 
 /**
  * The optional generator for prefix that should be used for new imports.
@@ -266,6 +264,24 @@ abstract class DartEditBuilder implements EditBuilder {
   void writeReference(Element element);
 
   /**
+   * Write the code for a declaration of a setter with the given [name]. If a
+   * [bodyWriter] is provided, it will be invoked to write the body of the
+   * setter. (The space between the name and the body will automatically be
+   * written.) If [isStatic] is `true`, then the declaration will be preceded
+   * by the `static` keyword. If a [nameGroupName] is provided, the name of the
+   * getter will be included in the linked edit group with that name. If a
+   * [parameterType] is provided, then it will be used as the type of the
+   * parameter. If a [parameterTypeGroupName] is provided, then if a parameter
+   * type was written it will be in the linked edit group with that name.
+   */
+  void writeSetterDeclaration(String name,
+      {void bodyWriter(),
+      bool isStatic: false,
+      String nameGroupName,
+      DartType parameterType,
+      String parameterTypeGroupName});
+
+  /**
    * Write the code for a type annotation for the given [type]. If the [type] is
    * either `null` or represents the type 'dynamic', then the behavior depends
    * on whether a type is [required]. If [required] is `true`, then 'var' will
@@ -365,32 +381,14 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   String importLibrary(Uri uri);
 
   /**
-   * Ensure that the [requestedLibrary] is imported into the [targetLibrary],
-   * and the top-level [requestedName] is accessible at the [targetOffset] of
-   * the file with the [targetPath].
+   * Ensure that the library with the given [uri] is imported.
    *
-   * Parameters [targetPath] and [targetOffset] are used to determine if the
-   * unprefixed reference to the [requestedName] will be shadowed by a local
-   * declaration in the target syntactic scope.
+   * If there is already an import for the requested library, return the import
+   * prefix of the existing import directive.
    *
-   * If there is already an import for the [requestedLibrary], and the
-   * [requestedName] refers to the same element in the namespace of the import
-   * directive, and the name of the element is not ambiguous in existing import
-   * directives, and the name does not conflict with existing declarations and
-   * references, return the import prefix of the existing import directive.
-   *
-   * If there is no existing import, or there is a conflict, a new import is
-   * added, possibly with an import prefix.
-   *
-   * This method can be used only alone, and only once.
+   * If there is no existing import, a new import is added.
    */
-  ImportLibraryElementResult importLibraryElement({
-    @required ResolvedLibraryResult targetLibrary,
-    @required String targetPath,
-    @required int targetOffset,
-    @required LibraryElement requestedLibrary,
-    @required Element requestedElement,
-  });
+  ImportLibraryElementResult importLibraryElement(Uri uri);
 
   /**
    * Optionally create an edit to replace the given [typeAnnotation] with the

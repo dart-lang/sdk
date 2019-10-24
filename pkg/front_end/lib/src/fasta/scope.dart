@@ -4,7 +4,15 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart' show Builder, NameIterator, TypeVariableBuilder;
+import 'package:kernel/ast.dart' hide MapEntry;
+
+import 'builder/builder.dart';
+import 'builder/class_builder.dart';
+import 'builder/extension_builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/member_builder.dart';
+import 'builder/name_iterator.dart';
+import 'builder/type_variable_builder.dart';
 
 import 'fasta_codes.dart'
     show
@@ -24,14 +32,45 @@ class MutableScope {
   /// Setters declared in this scope.
   Map<String, Builder> setters;
 
+  /// The extensions declared in this scope.
+  ///
+  /// This includes all available extensions even if the extensions are not
+  /// accessible by name because of duplicate imports.
+  ///
+  /// For instance:
+  ///
+  ///   lib1.dart:
+  ///     extension Extension on String {
+  ///       method1() {}
+  ///       staticMethod1() {}
+  ///     }
+  ///   lib2.dart:
+  ///     extension Extension on String {
+  ///       method2() {}
+  ///       staticMethod2() {}
+  ///     }
+  ///   main.dart:
+  ///     import 'lib1.dart';
+  ///     import 'lib2.dart';
+  ///
+  ///     main() {
+  ///       'foo'.method1(); // This method is available.
+  ///       'foo'.method2(); // This method is available.
+  ///       // These methods are not available because Extension is ambiguous:
+  ///       Extension.staticMethod1();
+  ///       Extension.staticMethod2();
+  ///     }
+  ///
+  List<ExtensionBuilder> _extensions;
+
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
   Scope parent;
 
   final String classNameOrDebugName;
 
-  MutableScope(
-      this.local, this.setters, this.parent, this.classNameOrDebugName) {
+  MutableScope(this.local, this.setters, this._extensions, this.parent,
+      this.classNameOrDebugName) {
     assert(classNameOrDebugName != null);
   }
 
@@ -49,22 +88,36 @@ class Scope extends MutableScope {
 
   Map<String, int> usedNames;
 
-  Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
-      String debugName, {this.isModifiable: true})
-      : super(local, setters = setters ?? const <String, Builder>{}, parent,
-            debugName);
+  Scope(
+      {Map<String, Builder> local,
+      Map<String, Builder> setters,
+      List<ExtensionBuilder> extensions,
+      Scope parent,
+      String debugName,
+      this.isModifiable: true})
+      : super(local, setters = setters ?? const <String, Builder>{}, extensions,
+            parent, debugName);
 
   Scope.top({bool isModifiable: false})
-      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
+      : this(
+            local: <String, Builder>{},
+            setters: <String, Builder>{},
+            debugName: "top",
             isModifiable: isModifiable);
 
   Scope.immutable()
-      : this(const <String, Builder>{}, const <String, Builder>{}, null,
-            "immutable",
+      : this(
+            local: const <String, Builder>{},
+            setters: const <String, Builder>{},
+            debugName: "immutable",
             isModifiable: false);
 
   Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
-      : this(<String, Builder>{}, <String, Builder>{}, parent, debugName,
+      : this(
+            local: <String, Builder>{},
+            setters: <String, Builder>{},
+            parent: parent,
+            debugName: debugName,
             isModifiable: isModifiable);
 
   Iterator<Builder> get iterator {
@@ -76,7 +129,12 @@ class Scope extends MutableScope {
   }
 
   Scope copyWithParent(Scope parent, String debugName) {
-    return new Scope(super.local, super.setters, parent, debugName,
+    return new Scope(
+        local: super.local,
+        setters: super.setters,
+        extensions: _extensions,
+        parent: parent,
+        debugName: debugName,
         isModifiable: isModifiable);
   }
 
@@ -97,6 +155,7 @@ class Scope extends MutableScope {
     super.local = scope.local;
     super.setters = scope.setters;
     super.parent = scope.parent;
+    super._extensions = scope._extensions;
   }
 
   Scope createNestedScope(String debugName, {bool isModifiable: true}) {
@@ -121,7 +180,13 @@ class Scope extends MutableScope {
   ///     x = 42;
   ///     print("The answer is $x.");
   Scope createNestedLabelScope() {
-    return new Scope(local, setters, parent, "label", isModifiable: true);
+    return new Scope(
+        local: local,
+        setters: setters,
+        extensions: _extensions,
+        parent: parent,
+        debugName: "label",
+        isModifiable: true);
   }
 
   void recordUse(String name, int charOffset, Uri fileUri) {
@@ -235,6 +300,18 @@ class Scope extends MutableScope {
     return null;
   }
 
+  /// Adds [builder] to the extensions in this scope.
+  void addExtension(ExtensionBuilder builder) {
+    _extensions ??= [];
+    _extensions.add(builder);
+  }
+
+  /// Calls [f] for each extension in this scope and parent scopes.
+  void forEachExtension(void Function(ExtensionBuilder) f) {
+    _extensions?.forEach(f);
+    parent?.forEachExtension(f);
+  }
+
   void merge(
       Scope scope,
       Builder computeAmbiguousDeclaration(
@@ -308,10 +385,41 @@ class Scope extends MutableScope {
       }
     }
     return needsCopy
-        ? new Scope(local, setters, parent, classNameOrDebugName,
+        ? new Scope(
+            local: local,
+            setters: setters,
+            extensions: _extensions,
+            parent: parent,
+            debugName: classNameOrDebugName,
             isModifiable: isModifiable)
         : this;
   }
+}
+
+class ConstructorScope {
+  /// Constructors declared in this scope.
+  final Map<String, MemberBuilder> local;
+
+  final String className;
+
+  ConstructorScope(this.className, this.local);
+
+  void forEach(f(String name, MemberBuilder member)) {
+    local.forEach(f);
+  }
+
+  Builder lookup(String name, int charOffset, Uri fileUri) {
+    Builder builder = local[name];
+    if (builder == null) return null;
+    if (builder.next != null) {
+      return new AmbiguousMemberBuilder(
+          name.isEmpty ? className : name, builder, charOffset, fileUri);
+    } else {
+      return builder;
+    }
+  }
+
+  String toString() => "ConstructorScope($className, ${local.keys})";
 }
 
 class ScopeBuilder {
@@ -327,10 +435,26 @@ class ScopeBuilder {
     scope.setters[name] = builder;
   }
 
+  void addExtension(ExtensionBuilder builder) {
+    scope.addExtension(builder);
+  }
+
   Builder operator [](String name) => scope.local[name];
 }
 
-abstract class ProblemBuilder extends Builder {
+class ConstructorScopeBuilder {
+  final ConstructorScope scope;
+
+  ConstructorScopeBuilder(this.scope);
+
+  void addMember(String name, Builder builder) {
+    scope.local[name] = builder;
+  }
+
+  MemberBuilder operator [](String name) => scope.local[name];
+}
+
+abstract class ProblemBuilder extends BuilderImpl {
   final String name;
 
   final Builder builder;
@@ -418,6 +542,50 @@ class AmbiguousBuilder extends ProblemBuilder {
       declaration = declaration.next;
     }
     return declaration;
+  }
+}
+
+class AmbiguousMemberBuilder extends AmbiguousBuilder implements MemberBuilder {
+  AmbiguousMemberBuilder(
+      String name, Builder builder, int charOffset, Uri fileUri)
+      : super(name, builder, charOffset, fileUri);
+
+  Member get target => null;
+
+  Member get member => null;
+
+  bool get isNative => false;
+
+  ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
+
+  void set parent(Builder value) {
+    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+  }
+
+  LibraryBuilder get library {
+    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+  }
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Member get extensionTearOff => null;
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  Procedure get procedure => null;
+
+  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
+  ProcedureKind get kind => null;
+
+  void buildOutlineExpressions(LibraryBuilder library) {
+    throw new UnsupportedError(
+        'AmbiguousMemberBuilder.buildOutlineExpressions');
+  }
+
+  void inferType() {
+    throw new UnsupportedError('AmbiguousMemberBuilder.inferType');
+  }
+
+  void inferCopiedType(covariant Object other) {
+    throw new UnsupportedError('AmbiguousMemberBuilder.inferCopiedType');
   }
 }
 

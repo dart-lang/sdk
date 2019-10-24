@@ -45,8 +45,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitAnnotation(Annotation node) {
     var elementComponents = _componentsOfElement(node.element);
+
+    LinkedNodeBuilder storedArguments;
+    var arguments = node.arguments;
+    if (arguments != null) {
+      if (arguments.arguments.every(_isSerializableExpression)) {
+        storedArguments = arguments.accept(this);
+      } else {
+        storedArguments = LinkedNodeBuilder.argumentList();
+      }
+    }
+
     return LinkedNodeBuilder.annotation(
-      annotation_arguments: node.arguments?.accept(this),
+      annotation_arguments: storedArguments,
       annotation_constructorName: node.constructorName?.accept(this),
       annotation_element: elementComponents.rawElement,
       annotation_substitution: elementComponents.substitution,
@@ -509,6 +520,21 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   }
 
   @override
+  LinkedNodeBuilder visitExtensionOverride(ExtensionOverride node) {
+    var builder = LinkedNodeBuilder.extensionOverride(
+      extensionOverride_arguments: _writeNodeList(
+        node.argumentList.arguments,
+      ),
+      extensionOverride_extensionName: node.extensionName.accept(this),
+      extensionOverride_typeArguments: node.typeArguments?.accept(this),
+      extensionOverride_typeArgumentTypes:
+          node.typeArgumentTypes.map(_writeType).toList(),
+      extensionOverride_extendedType: _writeType(node.extendedType),
+    );
+    return builder;
+  }
+
+  @override
   LinkedNodeBuilder visitFieldDeclaration(FieldDeclaration node) {
     var builder = LinkedNodeBuilder.fieldDeclaration(
       fieldDeclaration_fields: node.fields.accept(this),
@@ -824,6 +850,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
   @override
   LinkedNodeBuilder visitIntegerLiteral(IntegerLiteral node) {
     return LinkedNodeBuilder.integerLiteral(
+      expression_type: _writeType(node.staticType),
       integerLiteral_value: node.value,
     );
   }
@@ -1354,6 +1381,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
               _hasConstConstructor)) {
         initializer = null;
       }
+    }
+
+    if (!_isSerializableExpression(initializer)) {
+      initializer = null;
     }
 
     var builder = LinkedNodeBuilder.variableDeclaration(

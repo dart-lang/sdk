@@ -16,8 +16,6 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   Stream<HeapSnapshotLoadingProgressEvent> get onProgress => _onProgress.stream;
 
   final S.Isolate isolate;
-  final M.HeapSnapshotRoots roots;
-  final bool gc;
 
   M.HeapSnapshotLoadingStatus _status = M.HeapSnapshotLoadingStatus.fetching;
   String _stepDescription = '';
@@ -33,7 +31,7 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
   Duration get loadingTime => _loadingTime.elapsed;
   HeapSnapshot get snapshot => _snapshot;
 
-  HeapSnapshotLoadingProgress(this.isolate, this.roots, this.gc) {
+  HeapSnapshotLoadingProgress(this.isolate) {
     _run();
   }
 
@@ -43,15 +41,12 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
       _status = M.HeapSnapshotLoadingStatus.fetching;
       _triggerOnProgress();
 
-      await isolate.getClassRefs();
-
-      final stream = isolate.fetchHeapSnapshot(roots, gc);
+      final stream = isolate.fetchHeapSnapshot();
 
       stream.listen((status) {
-        if (status is List) {
-          _progress = status[0] * 100.0 / status[1];
-          _stepDescription = 'Receiving snapshot chunk ${status[0] + 1}'
-              ' of ${status[1]}...';
+        if (status is List && status[0] is double) {
+          _progress = 0.5;
+          _stepDescription = 'Receiving snapshot chunk ${status[0] + 1}...';
           _triggerOnProgress();
         }
       });
@@ -66,10 +61,10 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 
       HeapSnapshot snapshot = new HeapSnapshot();
 
-      Stream<List> progress = snapshot.loadProgress(isolate, response);
+      Stream<String> progress = snapshot.loadProgress(isolate, response);
       progress.listen((value) {
-        _stepDescription = value[0];
-        _progress = value[1];
+        _stepDescription = value;
+        _progress = 0.5;
         _triggerOnProgress();
       });
 
@@ -101,11 +96,9 @@ class HeapSnapshotLoadingProgress extends M.HeapSnapshotLoadingProgress {
 }
 
 class HeapSnapshotRepository implements M.HeapSnapshotRepository {
-  Stream<HeapSnapshotLoadingProgressEvent> get(M.IsolateRef i,
-      {M.HeapSnapshotRoots roots: M.HeapSnapshotRoots.vm, bool gc: false}) {
+  Stream<HeapSnapshotLoadingProgressEvent> get(M.IsolateRef i) {
     S.Isolate isolate = i as S.Isolate;
     assert(isolate != null);
-    assert(gc != null);
-    return new HeapSnapshotLoadingProgress(isolate, roots, gc).onProgress;
+    return new HeapSnapshotLoadingProgress(isolate).onProgress;
   }
 }

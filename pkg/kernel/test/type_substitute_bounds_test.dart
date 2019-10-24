@@ -30,6 +30,8 @@ final List<TestCase> testCases = <TestCase>[
       '(<F>(String) => int) => int'),
   testCase('<E>((T) => int) => int', {'T': bound('_', 'String')},
       '<E>((String) => int) => int'),
+
+  testCase('(T?) =>* String', {'T': bound('int', 'int')}, '(int?) =>* String'),
 ];
 
 class TestCase {

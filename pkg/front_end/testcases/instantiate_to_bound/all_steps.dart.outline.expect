@@ -10,7 +10,7 @@ class C<X extends core::Object* = dynamic, Y extends core::Object* = dynamic> ex
   synthetic constructor •() → self::C<self::C::X*, self::C::Y*>*
     ;
 }
-class D<X extends self::B<self::D::X, self::D::Y>* = dynamic, Y extends self::C<self::D::X*, self::D::Y>* = dynamic, Z extends (self::D::Y*) →* self::D::X* = dynamic, W extends core::num* = dynamic> extends core::Object {
+class D<X extends self::B<self::D::X*, self::D::Y*>* = self::B<dynamic, dynamic>*, Y extends self::C<self::D::X*, self::D::Y*>* = self::C<dynamic, dynamic>*, Z extends (self::D::Y*) →* self::D::X* = (core::Null?) →* self::B<dynamic, dynamic>*, W extends core::num* = core::num*> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*, self::D::Z*, self::D::W*>*
     ;
 }

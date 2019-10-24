@@ -222,6 +222,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
+
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -249,6 +251,8 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
+
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -266,7 +270,8 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
 
   __ mov(R19, LR);
-  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/);
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
+                                 /*enter_safepoint=*/true);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
@@ -282,27 +287,136 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 
   __ blr(R8);
   __ mov(SP, CSP);
-  __ TransitionNativeToGenerated(R9);
+  __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
   __ ret(R19);
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
+#if !defined(DART_PRECOMPILER)
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+#if !defined(HOST_ARCH_ARM64)
+  // TODO(37299): FFI is not support in SIMARM64.
+  __ Breakpoint();
+#else
+  Label done;
 
-  // First argument is already set up by the caller.
+  // R8 is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R8) && !IsArgumentRegister(R8));
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    // We don't use LoadImmediate because we need the trampoline size to be
+    // fixed independently of the callback ID.
+    //
+    // Instead we paste the callback ID directly in the code load it
+    // PC-relative.
+    __ ldr(R8, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ b(&done);
+    __ Emit(next_callback_id + i);
+  }
+
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // The load of the callback ID might have incorrect higher-order bits, since
+  // we only emit a 32-bit callback ID.
+  __ uxtw(R8, R8);
+
+  // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
+  // aligned.
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+  __ stp(THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+
+  COMPILE_ASSERT(!IsArgumentRegister(THR));
+
+  RegisterSet all_registers;
+  all_registers.AddAllArgumentRegisters();
+
+  // The call below might clobber R8 (volatile, holding callback_id).
+  all_registers.Add(Location::RegisterLocation(R8));
+
+  // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // Second argument is the return address of the caller.
-  __ mov(CallingConventions::ArgumentRegisters[1], LR);
-  __ LoadFromOffset(R2, THR,
-                    kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread());
-  __ mov(CSP, SP);
-  __ blr(R2);
-  __ mov(SP, CSP);
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to safe code size on this shared stub.
+  {
+    __ mov(SP, CSP);
 
-  __ LeaveFrame();
-  __ Ret();
+    __ EnterFrame(0);
+    __ PushRegisters(all_registers);
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ mov(CSP, SP);
+
+    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
+    // loaded anywhere, we use the same trick as before to ensure a predictable
+    // instruction sequence.
+    Label call;
+    __ mov(R0, R8);
+    __ ldr(R1, compiler::Address::PC(2 * Instr::kInstrSize));
+    __ b(&call);
+
+    __ Emit64(
+        reinterpret_cast<int64_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
+
+    __ Bind(&call);
+    __ blr(R1);
+    __ mov(THR, R0);
+
+    __ LeaveFrame();
+
+    __ PopRegisters(all_registers);
+    __ LeaveFrame();
+
+    __ mov(CSP, SP);
+  }
+
+  COMPILE_ASSERT(!IsCalleeSavedRegister(R9) && !IsArgumentRegister(R9));
+
+  // Load the code object.
+  __ LoadFromOffset(R9, THR, compiler::target::Thread::callback_code_offset());
+  __ LoadFieldFromOffset(R9, R9,
+                         compiler::target::GrowableObjectArray::data_offset());
+  __ ldr(R9, __ ElementAddressForRegIndex(
+                 /*is_load=*/true,
+                 /*external=*/false,
+                 /*array_cid=*/kArrayCid,
+                 /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                 /*array=*/R9,
+                 /*index=*/R8));
+  __ LoadFieldFromOffset(R9, R9, compiler::target::Code::entry_point_offset());
+
+  // Clobbers all volatile registers, including the callback ID in R8.
+  // Resets CSP and SP, important for EnterSafepoint below.
+  __ blr(R9);
+
+  // EnterSafepoint clobbers TMP, TMP2 and R8 -- all volatile and not holding
+  // return values.
+  __ EnterSafepoint(/*scratch=*/R8);
+
+  // Pop LR and THR from the real stack (CSP).
+  __ ldp(THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
+
+  __ ret();
+
+  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+
+#if defined(DEBUG)
+  while (__ CodeSize() < VirtualMemory::PageSize()) {
+    __ Breakpoint();
+  }
+#endif
+#endif  // !defined(HOST_ARCH_ARM64)
 }
+#endif  // !defined(DART_PRECOMPILER)
 
 // R1: The extracted method.
 // R4: The type_arguments_field_offset (or 0)
@@ -762,7 +876,7 @@ static void PushArrayOfArguments(Assembler* assembler) {
   __ AddImmediate(R1, -target::kWordSize);
   __ AddImmediate(R3, target::kWordSize);
   __ AddImmediateSetFlags(R2, R2, -target::ToRawSmi(1));
-  __ str(R7, Address(R3, -target::kWordSize));
+  __ StoreIntoObject(R0, Address(R3, -target::kWordSize), R7);
   __ b(&loop, GE);
   __ Bind(&loop_exit);
 }
@@ -1209,12 +1323,19 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ ldr(TMP, Address(R3, target::Thread::invoke_dart_code_stub_offset()));
   __ Push(TMP);
 
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
     __ mov(THR, R3);
   }
+
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
@@ -1232,7 +1353,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
+#if defined(TARGET_OS_FUCHSIA)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
+#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -22);
+#endif
   __ Push(R6);
 
   // Mark that the thread is executing Dart code. Do this after initializing the
@@ -1303,7 +1428,18 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-  __ PopNativeCalleeSavedRegisters();
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ mov (R3, THR);
+#endif
+
+  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -1336,25 +1472,19 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
                  target::Thread::invoke_dart_code_from_bytecode_stub_offset()));
   __ Push(TMP);
 
-  // Save the callee-saved registers.
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    // We use str instead of the Push macro because we will be pushing the PP
-    // register when it is not holding a pool-pointer since we are coming from
-    // C++ code.
-    __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
-  }
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
-  // Save the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PushDouble(r);
-  }
+  __ PushNativeCalleeSavedRegisters();
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != R3) {
     __ mov(THR, R3);
   }
+
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
@@ -1372,7 +1502,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
+#if defined(TARGET_OS_FUCHSIA)
+  ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -23);
+#else
   ASSERT(target::frame_layout.exit_link_slot_from_entry_fp == -22);
+#endif
   __ Push(R6);
 
   // Mark that the thread is executing Dart code. Do this after initializing the
@@ -1434,21 +1568,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   __ Pop(R4);
   __ StoreToOffset(R4, THR, target::Thread::vm_tag_offset());
 
-  // Restore the bottom 64-bits of callee-saved V registers.
-  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
-    const VRegister r = static_cast<VRegister>(i);
-    __ PopDouble(r);
-  }
+#if defined(TARGET_OS_FUCHSIA)
+  __ mov (R3, THR);
+#endif
 
-  // Restore C++ ABI callee-saved registers.
-  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
-    Register r = static_cast<Register>(i);
-    // We use ldr instead of the Pop macro because we will be popping the PP
-    // register when it is not holding a pool-pointer since we are returning to
-    // C++ code. We also skip the dart stack pointer SP, since we are still
-    // using it as the stack pointer.
-    __ ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
-  }
+  __ PopNativeCalleeSavedRegisters();  // Clobbers THR
+
+#if defined(TARGET_OS_FUCHSIA)
+  __ str(R18, Address(R3, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore the frame pointer and C stack pointer and return.
   __ LeaveFrame();
@@ -2686,12 +2816,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n == 1) {
-      __ SmiTag(kInstanceCidOrFunction);
-    } else {
-      ASSERT(n >= 2);
+    if (n >= 2) {
       Label has_no_type_arguments;
-      // [LoadClassById] also tags [kInstanceCidOrFunction] as a side-effect.
       __ LoadClassById(R5, kInstanceCidOrFunction);
       __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
@@ -2708,6 +2834,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ mov(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
+    __ SmiTag(kInstanceCidOrFunction);
   }
 
   Label found, not_found, next_iteration;
@@ -3016,6 +3143,11 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ mov(SP, R1);  // Stack pointer.
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(THR, R3);
+#if defined(TARGET_OS_FUCHSIA)
+  __ ldr(R18, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   __ ldr(BARRIER_MASK,
          Address(THR, target::Thread::write_barrier_mask_offset()));
   // Set the tag.

@@ -3,17 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show SourceEdit;
+import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 
 /// Representation of a type in the code to be migrated.  In addition to
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
 /// indicating whether the type, and the types that compose it, are nullable.
-class DecoratedType {
+class DecoratedType implements DecoratedTypeInfo {
   /// Mapping from type parameter elements to the decorated types of those type
   /// parameters' bounds.
   ///
@@ -22,11 +26,13 @@ class DecoratedType {
   /// stored in [Variables._decoratedTypeParameterBounds].
   static final _decoratedTypeParameterBounds = Expando<DecoratedType>();
 
+  @override
   final DartType type;
 
+  @override
   final NullabilityNode node;
 
-  /// If `this` is a function type, the [DecoratedType] of its return type.
+  @override
   final DecoratedType returnType;
 
   /// If `this` is a function type, the [DecoratedType] of each of its
@@ -71,7 +77,7 @@ class DecoratedType {
         for (int i = 0; i < typeFormalBounds.length; i++) {
           var declaredBound = type.typeFormals[i].bound;
           if (declaredBound == null) {
-            assert(typeFormalBounds[i].type.isDartCoreObject);
+            assert(typeFormalBounds[i].type.toString() == 'Object');
           } else {
             assert(typeFormalBounds[i].type == declaredBound);
           }
@@ -112,26 +118,27 @@ class DecoratedType {
   /// Creates a decorated type corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitFunction(
+  factory DecoratedType.forImplicitFunction(TypeProvider typeProvider,
       FunctionType type, NullabilityNode node, NullabilityGraph graph,
       {DecoratedType returnType}) {
-    if (type.typeFormals.isNotEmpty) {
-      throw new UnimplementedError('Decorating a generic function type');
-    }
     var positionalParameters = <DecoratedType>[];
     var namedParameters = <String, DecoratedType>{};
     for (var parameter in type.parameters) {
       if (parameter.isPositional) {
-        positionalParameters
-            .add(DecoratedType.forImplicitType(parameter.type, graph));
+        positionalParameters.add(
+            DecoratedType.forImplicitType(typeProvider, parameter.type, graph));
       } else {
         namedParameters[parameter.name] =
-            DecoratedType.forImplicitType(parameter.type, graph);
+            DecoratedType.forImplicitType(typeProvider, parameter.type, graph);
       }
     }
     return DecoratedType(type, node,
-        returnType:
-            returnType ?? DecoratedType.forImplicitType(type.returnType, graph),
+        typeFormalBounds: type.typeFormals
+            .map((e) => DecoratedType.forImplicitType(
+                typeProvider, e.bound ?? typeProvider.objectType, graph))
+            .toList(),
+        returnType: returnType ??
+            DecoratedType.forImplicitType(typeProvider, type.returnType, graph),
         namedParameters: namedParameters,
         positionalParameters: positionalParameters);
   }
@@ -139,18 +146,39 @@ class DecoratedType {
   /// Creates a DecoratedType corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
-  factory DecoratedType.forImplicitType(DartType type, NullabilityGraph graph) {
+  factory DecoratedType.forImplicitType(
+      TypeProvider typeProvider, DartType type, NullabilityGraph graph,
+      {List<DecoratedType> typeArguments}) {
     if (type.isDynamic || type.isVoid) {
+      assert(typeArguments == null);
       return DecoratedType(type, graph.always);
     } else if (type is InterfaceType) {
+      assert(() {
+        if (typeArguments != null) {
+          assert(typeArguments.length == type.typeArguments.length);
+          for (var i = 0; i < typeArguments.length; ++i) {
+            assert(typeArguments[i].type == type.typeArguments[i]);
+          }
+        }
+        return true;
+      }());
+
+      typeArguments ??= type.typeArguments
+          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
+          .toList();
       return DecoratedType(type, NullabilityNode.forInferredType(),
-          typeArguments: type.typeArguments
-              .map((t) => DecoratedType.forImplicitType(t, graph))
-              .toList());
+          typeArguments: typeArguments);
     } else if (type is FunctionType) {
+      if (typeArguments != null) {
+        throw "Not supported: implicit function type with explicit type arguments";
+      }
       return DecoratedType.forImplicitFunction(
-          type, NullabilityNode.forInferredType(), graph);
+          typeProvider, type, NullabilityNode.forInferredType(), graph);
     } else if (type is TypeParameterType) {
+      assert(typeArguments == null);
+      return DecoratedType(type, NullabilityNode.forInferredType());
+    } else if (type is BottomTypeImpl) {
+      assert(typeArguments == null);
       return DecoratedType(type, NullabilityNode.forInferredType());
     }
     // TODO(paulberry)
@@ -160,8 +188,7 @@ class DecoratedType {
 
   /// Creates a [DecoratedType] for a synthetic type parameter, to be used
   /// during comparison of generic function types.
-  DecoratedType._forTypeParameterSubstitution(
-      TypeParameterElementImpl parameter)
+  DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
       : type = TypeParameterTypeImpl(parameter),
         node = null,
         returnType = null,
@@ -287,6 +314,7 @@ class DecoratedType {
   DecoratedType instantiate(List<DecoratedType> argumentTypes) {
     var type = this.type as FunctionType;
     var typeFormals = type.typeFormals;
+    assert(argumentTypes.length == typeFormals.length);
     List<DartType> undecoratedArgumentTypes = [];
     Map<TypeParameterElement, DecoratedType> substitution = {};
     for (int i = 0; i < argumentTypes.length; i++) {
@@ -298,6 +326,12 @@ class DecoratedType {
         type.instantiate(undecoratedArgumentTypes), substitution);
   }
 
+  @override
+  DecoratedTypeInfo namedParameter(String name) => namedParameters[name];
+
+  @override
+  DecoratedTypeInfo positionalParameter(int i) => positionalParameters[i];
+
   /// Apply the given [substitution] to this type.
   ///
   /// [undecoratedResult] is the result of the substitution, as determined by
@@ -307,20 +341,95 @@ class DecoratedType {
       [DartType undecoratedResult]) {
     if (substitution.isEmpty) return this;
     if (undecoratedResult == null) {
-      List<DartType> argumentTypes = [];
-      List<DartType> parameterTypes = [];
-      for (var entry in substitution.entries) {
-        argumentTypes.add(entry.value.type);
-        parameterTypes.add(entry.key.type);
-      }
-      undecoratedResult = type.substitute2(argumentTypes, parameterTypes);
+      undecoratedResult = Substitution.fromPairs(
+        substitution.keys.toList(),
+        substitution.values.map((d) => d.type).toList(),
+      ).substituteType(type);
     }
     return _substitute(substitution, undecoratedResult);
   }
 
+  /// Convert this decorated type into the [DartType] that it will represent
+  /// after the code has been migrated.
+  ///
+  /// This method should be used after nullability propagation; it makes use of
+  /// the nullabilities associated with nullability nodes to determine which
+  /// types should be nullable and which types should not.
+  DartType toFinalType(TypeProvider typeProvider) {
+    var type = this.type;
+    if (type.isVoid || type.isDynamic) return type;
+    if (type.isBottom || type.isDartCoreNull) {
+      if (node.isNullable) {
+        return (typeProvider.nullType as TypeImpl)
+            .withNullability(NullabilitySuffix.none);
+      } else {
+        return BottomTypeImpl.instance;
+      }
+    }
+    var nullabilitySuffix =
+        node.isNullable ? NullabilitySuffix.question : NullabilitySuffix.none;
+    if (type is FunctionType) {
+      var newTypeFormals = <TypeParameterElementImpl>[];
+      var typeFormalSubstitution = <TypeParameterElement, DartType>{};
+      for (var typeFormal in typeFormals) {
+        var newTypeFormal = TypeParameterElementImpl.synthetic(typeFormal.name);
+        newTypeFormals.add(newTypeFormal);
+        typeFormalSubstitution[typeFormal] = TypeParameterTypeImpl(
+            newTypeFormal,
+            nullabilitySuffix: NullabilitySuffix.none);
+      }
+      for (int i = 0; i < newTypeFormals.length; i++) {
+        newTypeFormals[i].bound = type_algebra.substitute(
+            typeFormalBounds[i].toFinalType(typeProvider),
+            typeFormalSubstitution);
+      }
+      var parameters = <ParameterElement>[];
+      for (int i = 0; i < type.parameters.length; i++) {
+        var origParameter = type.parameters[i];
+        ParameterKind parameterKind;
+        DecoratedType parameterType;
+        var name = origParameter.name;
+        if (origParameter.isNamed) {
+          // TODO(paulberry): infer ParameterKind.NAMED_REQUIRED when
+          // appropriate. See https://github.com/dart-lang/sdk/issues/38596.
+          parameterKind = ParameterKind.NAMED;
+          parameterType = namedParameters[name];
+        } else {
+          parameterKind = origParameter.isOptional
+              ? ParameterKind.POSITIONAL
+              : ParameterKind.REQUIRED;
+          parameterType = positionalParameters[i];
+        }
+        parameters.add(ParameterElementImpl.synthetic(
+            name,
+            type_algebra.substitute(parameterType.toFinalType(typeProvider),
+                typeFormalSubstitution),
+            parameterKind));
+      }
+      return FunctionTypeImpl.synthetic(
+          type_algebra.substitute(
+              returnType.toFinalType(typeProvider), typeFormalSubstitution),
+          newTypeFormals,
+          parameters,
+          nullabilitySuffix: nullabilitySuffix);
+    } else if (type is InterfaceType) {
+      return InterfaceTypeImpl.explicit(type.element,
+          [for (var arg in typeArguments) arg.toFinalType(typeProvider)],
+          nullabilitySuffix: nullabilitySuffix);
+    } else if (type is TypeParameterType) {
+      return TypeParameterTypeImpl(type.element,
+          nullabilitySuffix: nullabilitySuffix);
+    } else {
+      // The above cases should cover all possible types.  On the off chance
+      // they don't, fall back on returning DecoratedType.type.
+      assert(false, 'Unexpected type (${type.runtimeType})');
+      return type;
+    }
+  }
+
   @override
   String toString() {
-    var trailing = node.debugSuffix;
+    var trailing = node == null ? '' : node.debugSuffix;
     var type = this.type;
     if (type is TypeParameterType || type is VoidType) {
       return '$type$trailing';
@@ -366,6 +475,9 @@ class DecoratedType {
     }
   }
 
+  @override
+  DecoratedTypeInfo typeArgument(int i) => typeArguments[i];
+
   /// Creates a shallow copy of `this`, replacing the nullability node.
   DecoratedType withNode(NullabilityNode node) => DecoratedType(type, node,
       returnType: returnType,
@@ -379,8 +491,27 @@ class DecoratedType {
       DartType undecoratedResult) {
     var type = this.type;
     if (type is FunctionType && undecoratedResult is FunctionType) {
-      assert(type.typeFormals.isEmpty); // TODO(paulberry)
-      return _substituteFunctionAfterFormals(undecoratedResult, substitution);
+      var typeFormals = type.typeFormals;
+      assert(typeFormals.length == undecoratedResult.typeFormals.length);
+      var newTypeFormalBounds = <DecoratedType>[];
+      if (typeFormals.isNotEmpty) {
+        // The analyzer sometimes allocates fresh type variables when performing
+        // substitutions, so we need to reflect that in our decorations by
+        // substituting to use the type variables the analyzer used.
+        substitution =
+            Map<TypeParameterElement, DecoratedType>.from(substitution);
+        for (int i = 0; i < typeFormals.length; i++) {
+          substitution[typeFormals[i]] =
+              DecoratedType._forTypeParameterSubstitution(
+                  undecoratedResult.typeFormals[i]);
+        }
+        for (int i = 0; i < typeFormalBounds.length; i++) {
+          newTypeFormalBounds.add(typeFormalBounds[i]._substitute(
+              substitution, typeFormals[i].bound ?? typeFormalBounds[i].type));
+        }
+      }
+      return _substituteFunctionAfterFormals(undecoratedResult, substitution,
+          newTypeFormalBounds: newTypeFormalBounds);
     } else if (type is InterfaceType && undecoratedResult is InterfaceType) {
       List<DecoratedType> newTypeArguments = [];
       for (int i = 0; i < typeArguments.length; i++) {
@@ -397,10 +528,10 @@ class DecoratedType {
         return inner
             .withNode(NullabilityNode.forSubstitution(inner.node, node));
       }
-    } else if (type is VoidType) {
+    } else if (type.isVoid || type.isDynamic) {
       return this;
     }
-    throw '$type.substitute($substitution)'; // TODO(paulberry)
+    throw '$type.substitute($type | $substitution)'; // TODO(paulberry)
   }
 
   /// Performs the logic that is common to substitution and function type
@@ -408,20 +539,31 @@ class DecoratedType {
   /// is [undecoratedResult], and whose return type, positional parameters, and
   /// named parameters are formed by performing the given [substitution].
   DecoratedType _substituteFunctionAfterFormals(FunctionType undecoratedResult,
-      Map<TypeParameterElement, DecoratedType> substitution) {
+      Map<TypeParameterElement, DecoratedType> substitution,
+      {List<DecoratedType> newTypeFormalBounds = const []}) {
     var newPositionalParameters = <DecoratedType>[];
+    var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
     for (int i = 0; i < positionalParameters.length; i++) {
-      var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
       var undecoratedParameterType = i < numRequiredParameters
           ? undecoratedResult.normalParameterTypes[i]
           : undecoratedResult.optionalParameterTypes[i - numRequiredParameters];
       newPositionalParameters.add(positionalParameters[i]
           ._substitute(substitution, undecoratedParameterType));
     }
+    var newNamedParameters = <String, DecoratedType>{};
+    for (var entry in namedParameters.entries) {
+      var name = entry.key;
+      var undecoratedParameterType =
+          undecoratedResult.namedParameterTypes[name];
+      newNamedParameters[name] =
+          (entry.value._substitute(substitution, undecoratedParameterType));
+    }
     return DecoratedType(undecoratedResult, node,
+        typeFormalBounds: newTypeFormalBounds,
         returnType:
             returnType._substitute(substitution, undecoratedResult.returnType),
-        positionalParameters: newPositionalParameters);
+        positionalParameters: newPositionalParameters,
+        namedParameters: newNamedParameters);
   }
 
   List<DecoratedType> _substituteList(List<DecoratedType> list,
@@ -489,33 +631,4 @@ class DecoratedType {
     }
     return true;
   }
-}
-
-/// A [DecoratedType] based on a type annotation appearing explicitly in the
-/// source code.
-///
-/// This class implements [PotentialModification] because it knows how to update
-/// the source code to reflect its nullability.
-class DecoratedTypeAnnotation extends DecoratedType
-    implements PotentialModification {
-  final int _offset;
-
-  DecoratedTypeAnnotation(
-      DartType type, NullabilityNode nullabilityNode, this._offset,
-      {List<DecoratedType> typeArguments = const [],
-      DecoratedType returnType,
-      List<DecoratedType> positionalParameters = const [],
-      Map<String, DecoratedType> namedParameters = const {}})
-      : super(type, nullabilityNode,
-            typeArguments: typeArguments,
-            returnType: returnType,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters);
-
-  @override
-  bool get isEmpty => !node.isNullable;
-
-  @override
-  Iterable<SourceEdit> get modifications =>
-      isEmpty ? [] : [SourceEdit(_offset, 0, '?')];
 }

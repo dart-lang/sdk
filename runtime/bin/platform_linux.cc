@@ -162,6 +162,10 @@ const char* Platform::ResolveExecutablePath() {
   return File::ReadLink("/proc/self/exe");
 }
 
+intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
+  return File::ReadLinkInto("/proc/self/exe", result, result_size);
+}
+
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
   Dart_PrepareToAbort();

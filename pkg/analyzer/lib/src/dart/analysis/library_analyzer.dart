@@ -7,10 +7,10 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -20,17 +20,18 @@ import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
+import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/imports_verifier.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
@@ -66,9 +67,8 @@ class LibraryAnalyzer {
   final InheritanceManager3 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
-  final ElementResynthesizer _resynthesizer;
   final LinkedElementFactory _elementFactory;
-  TypeProvider _typeProvider;
+  TypeProviderImpl _typeProvider;
 
   final TypeSystem _typeSystem;
   LibraryElement _libraryElement;
@@ -98,7 +98,6 @@ class LibraryAnalyzer {
       this._sourceFactory,
       this._isLibraryUri,
       this._context,
-      this._resynthesizer,
       this._elementFactory,
       this._inheritance,
       this._library,
@@ -134,25 +133,16 @@ class LibraryAnalyzer {
     FeatureSet featureSet = units[_library].featureSet;
     _typeProvider = _context.typeProvider;
     if (featureSet.isEnabled(Feature.non_nullable)) {
-      if (_typeProvider is! NonNullableTypeProvider) {
-        _typeProvider = NonNullableTypeProvider.from(_typeProvider);
-      }
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.none);
     } else {
-      if (_typeProvider is NonNullableTypeProvider) {
-        _typeProvider = TypeProviderImpl.from(_typeProvider);
-      }
+      _typeProvider = _typeProvider.withNullability(NullabilitySuffix.star);
     }
     units.forEach((file, unit) {
       _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
 
-    if (_elementFactory != null) {
-      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
-    } else {
-      _libraryElement = _resynthesizer
-          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
-    }
+    _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
     _libraryScope = new LibraryScope(_libraryElement);
 
     timerLibraryAnalyzerResolve.start();
@@ -402,6 +392,10 @@ class LibraryAnalyzer {
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter, _libraryElement, _typeProvider, _inheritance, false);
     unit.accept(errorVerifier);
+
+    // Verify constraints on FFI uses. The CFE enforces these constraints as
+    // compile-time errors and so does the analyzer.
+    unit.accept(FfiVerifier(_typeSystem, errorReporter));
   }
 
   /**
@@ -513,16 +507,12 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      if (AnalysisDriver.useSummary2) {
-        return node.keyword.offset == element.nameOffset;
-      } else {
-        return node.offset == element.nameOffset;
-      }
+      return node.keyword.offset == element.nameOffset;
     }
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);
 
-    LibraryIdentifier libraryNameNode = null;
+    LibraryIdentifier libraryNameNode;
     var seenPartSources = new Set<Source>();
     var directivesToResolve = <Directive>[];
     int partIndex = 0;
@@ -537,11 +527,10 @@ class LibraryAnalyzer {
             directive.prefix?.staticElement = importElement.prefix;
             Source source = importElement.importedLibrary?.source;
             if (source != null && !_isLibrarySource(source)) {
-              ErrorCode errorCode = importElement.isDeferred
-                  ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-                  : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
               libraryErrorReporter.reportErrorForNode(
-                  errorCode, directive.uri, [directive.uri]);
+                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                  directive.uri,
+                  [directive.uri]);
             }
           }
         }
@@ -640,7 +629,7 @@ class LibraryAnalyzer {
 
     RecordingErrorListener errorListener = _getErrorListener(file);
 
-    CompilationUnitElement unitElement = unit.declaredElement;
+    CompilationUnitElementImpl unitElement = unit.declaredElement;
 
     // TODO(scheglov) Hack: set types for top-level variables
     // Otherwise TypeResolverVisitor will set declared types, and because we
@@ -653,23 +642,15 @@ class LibraryAnalyzer {
       }
     }
 
-    timerLibraryAnalyzerSplicer.start();
-    new DeclarationResolver().resolve(unit, unitElement);
-    timerLibraryAnalyzerSplicer.stop();
-
-    unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
-        source, _typeProvider, errorListener,
-        nameScope: _libraryScope));
-
-    // TODO(scheglov) remove EnumMemberBuilder class
-
-    new TypeParameterBoundsResolver(_context.typeSystem, _libraryElement,
-            source, errorListener, unit.featureSet)
-        .resolveTypeBounds(unit);
-
-    unit.accept(new TypeResolverVisitor(
-        _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet));
+    unit.accept(
+      ResolutionVisitor(
+        unitElement: unitElement,
+        errorListener: errorListener,
+        featureSet: unit.featureSet,
+        nameScope: _libraryScope,
+        elementWalker: ElementWalker.forCompilationUnit(unitElement),
+      ),
+    );
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
@@ -690,7 +671,7 @@ class LibraryAnalyzer {
     FlowAnalysisHelper flowAnalysisHelper;
     if (unit.featureSet.isEnabled(Feature.non_nullable)) {
       flowAnalysisHelper =
-          FlowAnalysisHelper(_context.typeSystem, unit, _testingData != null);
+          FlowAnalysisHelper(_context.typeSystem, _testingData != null);
       _testingData?.recordFlowAnalysisResult(
           file.uri, flowAnalysisHelper.result);
     }

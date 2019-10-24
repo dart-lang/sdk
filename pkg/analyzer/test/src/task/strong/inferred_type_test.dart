@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -367,11 +366,7 @@ var v = null;
 ''');
     var v = mainUnit.topLevelVariables[0];
     expect(v.type.toString(), 'dynamic');
-    if (AnalysisDriver.useSummary2) {
-      expect(v.initializer.type.toString(), 'dynamic Function()');
-    } else {
-      expect(v.initializer.type.toString(), 'Null Function()');
-    }
+    expect(v.initializer.type.toString(), 'Null Function()');
   }
 
   test_bottom_inClosure() async {
@@ -429,12 +424,12 @@ class B {
 }
 
 class C1 implements A, B {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 
 // Still ambiguous
 class C2 implements B, A {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 ''');
   }
@@ -466,7 +461,7 @@ class C1 implements A, B {
 }
 
 class C2 implements A, B {
-  /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/get a => null;
+  get /*error:INVALID_OVERRIDE,error:INVALID_OVERRIDE*/a => null;
 }
 ''');
   }
@@ -488,9 +483,9 @@ void main() {
         'error:TYPE_ARGUMENT_NOT_MATCHING_BOUNDS';
 //    if (hasExtraTaskModelPass) errors = '$errors,$errors';
     var unit = await checkFile('''
-class Clonable<T> {}
+class Cloneable<T> {}
 
-class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
   T t;
   U u;
   Pair(this.t, this.u);
@@ -503,7 +498,7 @@ main() {
 }
 ''');
     var x = findLocalVariable(unit, 'x');
-    expect(x.type.toString(), 'Pair<Clonable<dynamic>, Clonable<dynamic>>');
+    expect(x.type.toString(), 'Pair<Cloneable<dynamic>, Cloneable<dynamic>>');
   }
 
   test_constructors_inferFromArguments() async {
@@ -524,7 +519,7 @@ main() {
   C<num> c_num2 = (/*info:INFERRED_TYPE_ALLOCATION*/new C(456))
       ..t = 1.0;
 
-  // Down't infer from explicit dynamic.
+  // Don't infer from explicit dynamic.
   var c_dynamic = new C<dynamic>(42);
   x.t = /*error:INVALID_ASSIGNMENT*/'hello';
 }
@@ -751,7 +746,7 @@ class A {
 }
 
 class B implements A {
-  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
+  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
 }
 
 foo() {
@@ -1955,8 +1950,8 @@ class C {
   dynamic g(int x) => x;
 }
 class D extends C {
-  /*error:INVALID_OVERRIDE*/T m<T>(T x) => x;
-  /*error:INVALID_OVERRIDE*/T g<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/m<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/g<T>(T x) => x;
 }
 main() {
   int y = /*info:DYNAMIC_CAST*/(/*info:UNNECESSARY_CAST*/new D() as C).m(42);
@@ -2416,8 +2411,7 @@ var f = <dynamic, dynamic>{};
   }
 
   test_infer_use_of_void() async {
-    if (AnalysisDriver.useSummary2) {
-      await checkFileElement('''
+    await checkFileElement('''
 class B {
   void f() {}
 }
@@ -2426,17 +2420,6 @@ class C extends B {
 }
 var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C().f();
 ''');
-    } else {
-      await checkFileElement('''
-class B {
-  void f() {}
-}
-class C extends B {
-  f() {}
-}
-var x = /*error:TOP_LEVEL_INSTANCE_METHOD*/new C()./*error:USE_OF_VOID_RESULT*/f();
-''');
-    }
   }
 
   test_inferConstsTransitively() async {
@@ -2486,56 +2469,6 @@ foo() {
   i = new B().w;
 }
 ''');
-  }
-
-  test_inferedType_usesSyntheticFunctionType() async {
-    var mainUnit = await checkFileElement('''
-int f() => null;
-String g() => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function()>');
-  }
-
-  test_inferedType_usesSyntheticFunctionType_functionTypedParam() async {
-    var mainUnit = await checkFileElement('''
-int f(int x(String y)) => null;
-String g(int x(String y)) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function(int Function(String))>');
-  }
-
-  test_inferedType_usesSyntheticFunctionType_namedParam() async {
-    var mainUnit = await checkFileElement('''
-int f({int x}) => null;
-String g({int x}) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function({x: int})>');
-  }
-
-  test_inferedType_usesSyntheticFunctionType_positionalParam() async {
-    var mainUnit = await checkFileElement('''
-int f([int x]) => null;
-String g([int x]) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function([int])>');
-  }
-
-  test_inferedType_usesSyntheticFunctionType_requiredParam() async {
-    var mainUnit = await checkFileElement('''
-int f(int x) => null;
-String g(int x) => null;
-var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
-''');
-    var v = mainUnit.topLevelVariables[0];
-    expect(v.type.toString(), 'List<Object Function(int)>');
   }
 
   test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() async {
@@ -3077,6 +3010,56 @@ final x = <String, F<int>>{};
     expect(x.type.toString(), 'Map<String, int Function()>');
   }
 
+  test_inferredType_usesSyntheticFunctionType() async {
+    var mainUnit = await checkFileElement('''
+int f() => null;
+String g() => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function()>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
+    var mainUnit = await checkFileElement('''
+int f(int x(String y)) => null;
+String g(int x(String y)) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function(int Function(String))>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_namedParam() async {
+    var mainUnit = await checkFileElement('''
+int f({int x}) => null;
+String g({int x}) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function({x: int})>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_positionalParam() async {
+    var mainUnit = await checkFileElement('''
+int f([int x]) => null;
+String g([int x]) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function([int])>');
+  }
+
+  test_inferredType_usesSyntheticFunctionType_requiredParam() async {
+    var mainUnit = await checkFileElement('''
+int f(int x) => null;
+String g(int x) => null;
+var v = /*info:INFERRED_TYPE_LITERAL*/[f, g];
+''');
+    var v = mainUnit.topLevelVariables[0];
+    expect(v.type.toString(), 'List<Object Function(int)>');
+  }
+
   test_inferredType_viaClosure_multipleLevelsOfNesting() async {
     var mainUnit = await checkFileElement('''
 class C {
@@ -3400,7 +3383,7 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_OVERRIDE*/dynamic get x => 3;
+  dynamic get /*error:INVALID_OVERRIDE*/x => 3;
 }
 
 foo() {
@@ -3411,9 +3394,7 @@ foo() {
   }
 
   test_inferTypesOnGenericInstantiationsInLibraryCycle() async {
-    // Note: this is a regression test for a non-deterministic behavior we used to
-    // have with inference in library cycles. If you see this test flake out,
-    // change `test` to `skip_test` and reopen bug #48.
+    // Note: this is a regression test for bug #48.
     addFile('''
 import 'main.dart';
 abstract class I<E> {

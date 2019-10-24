@@ -12,7 +12,8 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/text/ast_to_text.dart" show Printer;
 
-import "package:kernel/type_environment.dart" show TypeEnvironment;
+import "package:kernel/type_environment.dart"
+    show SubtypeCheckMode, TypeEnvironment;
 
 import "kernel_type_parser.dart"
     show KernelEnvironment, KernelFromParsedType, parseLibrary;
@@ -24,16 +25,16 @@ import "shared_type_tests.dart" show SubtypeTest;
 import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
 const String testSdk = """
-typedef Typedef<T> <S>(T) -> S;
-typedef VoidFunction () -> void;
-class DefaultTypes<S, T extends Object, U extends List<S>, V extends List<T>, W extends Comparable<W>, X extends (W) -> void, Y extends () -> W>;
-typedef TestDefaultTypes () -> DefaultTypes;
-typedef Id<T> T;
-typedef TestSorting ({int c, int b, int a}) -> void;
-class Super implements Comparable<Sub>;
+typedef Typedef<T> <S>(T*) ->* S*;
+typedef VoidFunction () ->* void;
+class DefaultTypes<S, T extends Object*, U extends List<S*>*, V extends List<T*>*, W extends Comparable<W*>*, X extends (W*) ->* void, Y extends () ->* W*>;
+typedef TestDefaultTypes () ->* DefaultTypes*;
+typedef Id<T> T*;
+typedef TestSorting ({int* c, int* b, int* a}) ->* void;
+class Super implements Comparable<Sub*>;
 class Sub extends Super;
-class FBound<T extends FBound<T>>;
-class MixinApplication extends Object with FBound<MixinApplication>;
+class FBound<T extends FBound<T*>*>;
+class MixinApplication extends Object with FBound<MixinApplication*>;
 """;
 
 const String expectedSdk = """
@@ -42,14 +43,14 @@ import self as self;
 
 typedef Typedef<T extends self::Object* = dynamic> = <S extends self::Object* = dynamic>(T*) →* S*;
 typedef VoidFunction = () →* void;
-typedef TestDefaultTypes = () →* self::DefaultTypes<dynamic, self::Object, self::List<dynamic>*, self::List<self::Object>*, self::Comparable<dynamic>*, (<BottomType>) →* void, () →* self::Comparable<dynamic>*>;
+typedef TestDefaultTypes = () →* self::DefaultTypes<dynamic, self::Object*, self::List<dynamic>*, self::List<self::Object*>*, self::Comparable<dynamic>*, (<BottomType>) →* void, () →* self::Comparable<dynamic>*>*;
 typedef Id<T extends self::Object* = dynamic> = T*;
-typedef TestSorting = ({a: self::int, b: self::int, c: self::int}) →* void;
+typedef TestSorting = ({a: self::int*, b: self::int*, c: self::int*}) →* void;
 class Object {
 }
 class Comparable<T extends self::Object* = dynamic> extends self::Object {
 }
-class num extends self::Object implements self::Comparable<self::num> {
+class num extends self::Object implements self::Comparable<self::num*> {
 }
 class int extends self::num {
 }
@@ -71,15 +72,15 @@ class String extends self::Object {
 }
 class bool extends self::Object {
 }
-class DefaultTypes<S extends self::Object* = dynamic, T extends self::Object = self::Object, U extends self::List<self::DefaultTypes::S*> = self::List<dynamic>*, V extends self::List<self::DefaultTypes::T> = self::List<self::Object>*, W extends self::Comparable<self::DefaultTypes::W> = self::Comparable<dynamic>*, X extends (self::DefaultTypes::W) → void = (<BottomType>) →* void, Y extends () → self::DefaultTypes::W = () →* self::Comparable<dynamic>*> extends self::Object {
+class DefaultTypes<S extends self::Object* = dynamic, T extends self::Object* = self::Object*, U extends self::List<self::DefaultTypes::S*>* = self::List<dynamic>*, V extends self::List<self::DefaultTypes::T*>* = self::List<self::Object*>*, W extends self::Comparable<self::DefaultTypes::W*>* = self::Comparable<dynamic>*, X extends (self::DefaultTypes::W*) →* void = (<BottomType>) →* void, Y extends () →* self::DefaultTypes::W* = () →* self::Comparable<dynamic>*> extends self::Object {
 }
-class Super extends self::Object implements self::Comparable<self::Sub> {
+class Super extends self::Object implements self::Comparable<self::Sub*> {
 }
 class Sub extends self::Super {
 }
-class FBound<T extends self::FBound<self::FBound::T> = self::FBound<dynamic>*> extends self::Object {
+class FBound<T extends self::FBound<self::FBound::T*>* = self::FBound<dynamic>*> extends self::Object {
 }
-class MixinApplication = self::Object with self::FBound<self::MixinApplication> {
+class MixinApplication = self::Object with self::FBound<self::MixinApplication*> {
 }
 """;
 
@@ -119,8 +120,8 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
   }
 
   bool isSubtypeImpl(DartType subtype, DartType supertype) {
-    return new TypeEnvironment(coreTypes, hierarchy)
-        .isSubtypeOf(subtype, supertype);
+    return new TypeEnvironment(coreTypes, hierarchy).isSubtypeOf(
+        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
   }
 
   KernelEnvironment extend(String typeParameters) {

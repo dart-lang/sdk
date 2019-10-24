@@ -293,7 +293,7 @@ class H extends self::G implements self::C, self::A {}
 
   Class addClass(Class c) {
     if (_hierarchy != null) {
-      fail('The classs hierarchy has already been created.');
+      fail('The class hierarchy has already been created.');
     }
     library.addClass(c);
     return c;
@@ -306,7 +306,7 @@ class H extends self::G implements self::C, self::A {}
       {Supertype extends_(List<DartType> typeParameterTypes),
       List<Supertype> implements_(List<DartType> typeParameterTypes)}) {
     var typeParameters = typeParameterNames
-        .map((name) => new TypeParameter(name, objectClass.rawType))
+        .map((name) => new TypeParameter(name, coreTypes.objectLegacyRawType))
         .toList();
     var typeParameterTypes = typeParameters
         .map((parameter) => new TypeParameterType(parameter))
@@ -521,12 +521,12 @@ class C extends self::B {
   }
 
   void test_getClassAsInstanceOf_generic_extends() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT);
     var b = addClass(new Class(
         name: 'B',
@@ -549,12 +549,12 @@ class C extends self::B<core::int*> {}
   }
 
   void test_getClassAsInstanceOf_generic_implements() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT);
     var b = addClass(new Class(
         name: 'B',
@@ -583,12 +583,12 @@ class C implements self::B<core::int*> {}
   }
 
   void test_getClassAsInstanceOf_generic_with() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT);
     var b = addClass(new Class(
         name: 'B',
@@ -1195,12 +1195,12 @@ class B extends self::A {
   }
 
   void test_getTypeAsInstanceOf_generic_extends() {
-    var int = coreTypes.intClass.rawType;
-    var bool = coreTypes.boolClass.rawType;
+    var int = coreTypes.intLegacyRawType;
+    var bool = coreTypes.boolLegacyRawType;
 
     var a = addGenericClass('A', ['T', 'U']);
 
-    var bT = new TypeParameter('T', objectClass.rawType);
+    var bT = new TypeParameter('T', coreTypes.objectLegacyRawType);
     var bTT = new TypeParameterType(bT);
     var b = addClass(new Class(
         name: 'B',

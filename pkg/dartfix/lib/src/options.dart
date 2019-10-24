@@ -9,19 +9,20 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
+const excludeFixOption = 'excludeFix';
 const forceOption = 'force';
 const includeFixOption = 'fix';
-const excludeFixOption = 'excludeFix';
+const outputDirOption = 'outputDir';
 const overwriteOption = 'overwrite';
 const pedanticOption = 'pedantic';
 const requiredOption = 'required';
 
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
-const _serverSnapshot = 'server';
+const _helpOption = 'help';
 
 // options only supported by server 1.22.2 and greater
-const _helpOption = 'help';
+const _serverSnapshot = 'server';
 const _verboseOption = 'verbose';
 
 /// Command line options for `dartfix`.
@@ -40,6 +41,7 @@ class Options {
 
   final bool force;
   final bool showHelp;
+  final String outputDir;
   final bool overwrite;
   final bool useColor;
   final bool verbose;
@@ -48,6 +50,7 @@ class Options {
       : force = results[forceOption] as bool,
         includeFixes = (results[includeFixOption] as List ?? []).cast<String>(),
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
+        outputDir = results[outputDirOption] as String,
         overwrite = results[overwriteOption] as bool,
         pedanticFixes = results[pedanticOption] as bool,
         requiredFixes = results[requiredOption] as bool,
@@ -104,7 +107,12 @@ class Options {
           negatable: false)
       ..addFlag(_colorOption,
           help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi);
+          defaultsTo: Ansi.terminalSupportsAnsi)
+      //
+      // Hidden options.
+      //
+      ..addOption(outputDirOption,
+          help: 'Path to the output directory', hide: true);
 
     context ??= Context();
 

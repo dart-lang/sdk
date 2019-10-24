@@ -47,9 +47,9 @@ class RecognizedMethods {
 
   DartType staticType(Expression expr) => getStaticType(expr, typeEnv);
 
-  bool isInt(DartType type) => type == typeEnv.intType;
+  bool isInt(DartType type) => type == typeEnv.coreTypes.intLegacyRawType;
 
-  bool isDouble(DartType type) => type == typeEnv.doubleType;
+  bool isDouble(DartType type) => type == typeEnv.coreTypes.doubleLegacyRawType;
 
   Opcode specializedBytecodeFor(MethodInvocation node) {
     final args = node.arguments;

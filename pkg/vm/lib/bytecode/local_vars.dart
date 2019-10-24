@@ -4,7 +4,7 @@
 
 library vm.bytecode.local_vars;
 
-import 'dart:math' show max;
+import 'dart:math' show min, max;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
@@ -14,6 +14,7 @@ import 'package:vm/bytecode/generics.dart';
 
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
+import '../metadata/direct_call.dart' show DirectCallMetadata;
 
 class LocalVariables {
   final Map<TreeNode, Scope> _scopes = <TreeNode, Scope>{};
@@ -30,6 +31,7 @@ class LocalVariables {
       <ForInStatement, VariableDeclaration>{};
   final BytecodeOptions options;
   final TypeEnvironment typeEnvironment;
+  final Map<TreeNode, DirectCallMetadata> directCallMetadata;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -104,9 +106,12 @@ class LocalVariables {
   int get returnVarIndexInFrame => getVarIndexInFrame(_currentFrame.returnVar ??
       (throw 'Return variable is not declared in ${_currentFrame.function}'));
 
-  int get functionTypeArgsVarIndexInFrame => getVarIndexInFrame(_currentFrame
-          .functionTypeArgsVar ??
-      (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}'));
+  VariableDeclaration get functionTypeArgsVar =>
+      _currentFrame.functionTypeArgsVar ??
+      (throw 'FunctionTypeArgs variable is not declared in ${_currentFrame.function}');
+
+  int get functionTypeArgsVarIndexInFrame =>
+      getVarIndexInFrame(functionTypeArgsVar);
 
   bool get hasFunctionTypeArgsVar => _currentFrame.functionTypeArgsVar != null;
 
@@ -188,7 +193,8 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.typeEnvironment) {
+  LocalVariables(Member node, this.options, this.typeEnvironment,
+      this.directCallMetadata) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -351,7 +357,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
 
         if (_currentFrame.numTypeArguments > 0) {
           _currentFrame.functionTypeArgsVar =
-              new VariableDeclaration(':function_type_arguments_var');
+              new VariableDeclaration(':function_type_arguments_var')
+                ..fileOffset = function.fileOffset;
           _declareVariable(_currentFrame.functionTypeArgsVar);
         }
 
@@ -385,6 +392,13 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
             .getSyntheticVar(ContinuationVariables.awaitJumpVar));
         _useVariable(_currentFrame.parent
             .getSyntheticVar(ContinuationVariables.awaitContextVar));
+
+        // Debugger looks for :controller_stream variable among captured
+        // variables in a context, so make sure to capture it.
+        if (_currentFrame.parent.dartAsyncMarker == AsyncMarker.AsyncStar) {
+          _useVariable(_currentFrame.parent
+              .getSyntheticVar(ContinuationVariables.controllerStreamVar));
+        }
 
         if (locals.options.causalAsyncStacks &&
             (_currentFrame.parent.dartAsyncMarker == AsyncMarker.Async ||
@@ -834,10 +848,8 @@ class _Allocator extends RecursiveVisitor<Null> {
 
       if (_currentScope.contextOwner == _currentScope) {
         _currentScope.contextLevel = parentContextLevel + 1;
-        _currentScope.contextId = _contextIdCounter++;
-        if (_currentScope.contextId >= contextIdLimit) {
-          throw new ContextIdOverflowException();
-        }
+        int saturatedContextId = min(_contextIdCounter++, contextIdLimit - 1);
+        _currentScope.contextId = saturatedContextId;
       } else {
         _currentScope.contextLevel = _currentScope.contextOwner.contextLevel;
         _currentScope.contextId = _currentScope.contextOwner.contextId;
@@ -1197,8 +1209,16 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitMethodInvocation(MethodInvocation node) {
     int numTemps = 0;
-    if (isUncheckedClosureCall(node, locals.typeEnvironment)) {
+    if (isUncheckedClosureCall(node, locals.typeEnvironment, locals.options)) {
       numTemps = 1;
+    } else if (isCallThroughGetter(node.interfaceTarget)) {
+      final args = node.arguments;
+      numTemps = 1 + args.positional.length + args.named.length;
+    } else if (locals.directCallMetadata != null) {
+      final directCall = locals.directCallMetadata[node];
+      if (directCall != null && directCall.checkReceiverForNull) {
+        numTemps = 1;
+      }
     }
     _visit(node, temps: numTemps);
   }
@@ -1206,6 +1226,18 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitPropertySet(PropertySet node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitPropertyGet(PropertyGet node) {
+    int numTemps = 0;
+    if (locals.directCallMetadata != null) {
+      final directCall = locals.directCallMetadata[node];
+      if (directCall != null && directCall.checkReceiverForNull) {
+        numTemps = 1;
+      }
+    }
+    _visit(node, temps: numTemps);
   }
 
   @override
@@ -1261,5 +1293,3 @@ class _Allocator extends RecursiveVisitor<Null> {
 
 class LocalVariableIndexOverflowException
     extends BytecodeLimitExceededException {}
-
-class ContextIdOverflowException extends BytecodeLimitExceededException {}

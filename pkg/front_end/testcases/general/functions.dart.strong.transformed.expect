@@ -7,7 +7,7 @@ static method main() → dynamic {
     f.call(a: "Hello, World");
     f.call();
   }
-  local.call(({dynamic a = #C1}) → core::Null* {
+  local.call(({dynamic a = #C1}) → core::Null? {
     core::print(a);
   });
 }

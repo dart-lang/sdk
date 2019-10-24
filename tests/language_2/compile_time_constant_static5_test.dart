@@ -40,7 +40,7 @@ class Test2<U, V> {
 
 // Will be instantiated with U=A and V=B.
 class Test3<U extends A, V extends B> {
-  final U x = const A(); //# 11: ok
+  final U x = const A(); //# 11: compile-time error
   final U x = const B(); //# 12: compile-time error
   final V x = const A(); //# 13: compile-time error
   final V x = const C(); //# 14: compile-time error
@@ -50,7 +50,7 @@ class Test3<U extends A, V extends B> {
 
 // Will be instantiated with U=A and V=B.
 class Test4<U extends A, V extends A> {
-  final U x = const A(); //# 16: ok
+  final U x = const A(); //# 16: compile-time error
   final U x = const B(); //# 17: compile-time error
   final V x = const A(); //# 18: compile-time error
   final V x = const C(); //# 19: compile-time error
@@ -60,9 +60,9 @@ class Test4<U extends A, V extends A> {
 
 // Will be instantiated with U=dynamic and V=dynamic.
 class Test5<U extends A, V extends B> {
-  final U x = const A(); //# 21: ok
+  final U x = const A(); //# 21: compile-time error
   final U x = const B(); //# 22: compile-time error
-  final V x = const A(); //# 23: ok
+  final V x = const A(); //# 23: compile-time error
   final V x = const C(); //# 24: compile-time error
   final V x = const C.d(); //# 25: compile-time error
   const Test5();

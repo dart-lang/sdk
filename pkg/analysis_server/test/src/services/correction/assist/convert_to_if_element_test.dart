@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -50,6 +51,18 @@ f(bool b) {
   return ['a', if (b) 'c' else 'd', 'e'];
 }
 ''');
+  }
+
+  test_conditional_list_noAssistWithLint() async {
+    createAnalysisOptionsFile(
+        lints: [LintNames.prefer_if_elements_to_conditional_expressions]);
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+f(bool b) {
+  return ['a', b /*caret*/? 'c' : 'd', 'e'];
+}
+''');
+    await assertNoAssist();
   }
 
   test_conditional_list_withParentheses() async {

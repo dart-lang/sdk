@@ -4,8 +4,6 @@
 
 library fasta.enum_builder;
 
-import 'builder.dart' show ClassBuilder, MetadataBuilder;
-
 import 'package:kernel/ast.dart'
     show
         Arguments,
@@ -36,6 +34,8 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
 
+import '../kernel/metadata_collector.dart';
+
 import '../modifier.dart'
     show
         constMask,
@@ -44,26 +44,22 @@ import '../modifier.dart'
         initializingFormalMask,
         staticMask;
 
+import '../scope.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
-
-import '../kernel/kernel_builder.dart'
-    show
-        Builder,
-        FormalParameterBuilder,
-        ClassBuilder,
-        ConstructorBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        MetadataBuilder,
-        Scope;
-
-import '../kernel/metadata_collector.dart';
-
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'builder.dart';
+import 'class_builder.dart';
+import 'constructor_builder.dart';
+import 'field_builder.dart';
+import 'formal_parameter_builder.dart';
+import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
+import 'named_type_builder.dart';
+import 'nullability_builder.dart';
+import 'procedure_builder.dart';
+import 'type_builder.dart';
 
 class EnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo> enumConstantInfos;
@@ -80,7 +76,7 @@ class EnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder> metadata,
       String name,
       Scope scope,
-      Scope constructors,
+      ConstructorScope constructors,
       Class cls,
       this.enumConstantInfos,
       this.intType,
@@ -107,15 +103,19 @@ class EnumBuilder extends SourceClassBuilder {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    TypeBuilder intType = new NamedTypeBuilder("int", null);
-    TypeBuilder stringType = new NamedTypeBuilder("String", null);
-    NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
+    TypeBuilder intType =
+        new NamedTypeBuilder("int", const NullabilityBuilder.omitted(), null);
+    TypeBuilder stringType = new NamedTypeBuilder(
+        "String", const NullabilityBuilder.omitted(), null);
+    NamedTypeBuilder objectType = new NamedTypeBuilder(
+        "Object", const NullabilityBuilder.omitted(), null);
     Class cls = new Class(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
-    NamedTypeBuilder selfType = new NamedTypeBuilder(name, null);
-    TypeBuilder listType =
-        new NamedTypeBuilder("List", <TypeBuilder>[selfType]);
+    NamedTypeBuilder selfType =
+        new NamedTypeBuilder(name, const NullabilityBuilder.omitted(), null);
+    TypeBuilder listType = new NamedTypeBuilder(
+        "List", const NullabilityBuilder.omitted(), <TypeBuilder>[selfType]);
 
     /// metadata class E {
     ///   final int index;
@@ -128,11 +128,11 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
 
-    members["index"] = new FieldBuilder(null, intType, "index",
+    members["index"] = new FieldBuilderImpl(null, intType, "index",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    members["_name"] = new FieldBuilder(null, stringType, "_name",
+    members["_name"] = new FieldBuilderImpl(null, stringType, "_name",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    ConstructorBuilder constructorBuilder = new ConstructorBuilder(
+    ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         null,
         constMask,
         null,
@@ -150,7 +150,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    FieldBuilder valuesBuilder = new FieldBuilder(
+    FieldBuilder valuesBuilder = new FieldBuilderImpl(
         null,
         listType,
         "values",
@@ -159,7 +159,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset);
     members["values"] = valuesBuilder;
-    ProcedureBuilder toStringBuilder = new ProcedureBuilder(
+    ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
         null,
         0,
         stringType,
@@ -209,7 +209,7 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        FieldBuilder fieldBuilder = new FieldBuilder(
+        FieldBuilder fieldBuilder = new FieldBuilderImpl(
             metadata,
             selfType,
             name,
@@ -218,7 +218,7 @@ class EnumBuilder extends SourceClassBuilder {
             enumConstantInfo.charOffset,
             enumConstantInfo.charOffset);
         metadataCollector?.setDocumentationComment(
-            fieldBuilder.target, documentationComment);
+            fieldBuilder.field, documentationComment);
         members[name] = fieldBuilder..next = existing;
       }
     }
@@ -227,9 +227,12 @@ class EnumBuilder extends SourceClassBuilder {
     EnumBuilder enumBuilder = new EnumBuilder.internal(
         metadata,
         name,
-        new Scope(members, null, parent.scope, "enum $name",
+        new Scope(
+            local: members,
+            parent: parent.scope,
+            debugName: "enum $name",
             isModifiable: false),
-        new Scope(constructors, null, null, name, isModifiable: false),
+        new ConstructorScope(name, constructors),
         cls,
         enumConstantInfos,
         intType,
@@ -255,8 +258,9 @@ class EnumBuilder extends SourceClassBuilder {
 
   TypeBuilder get mixedInType => null;
 
-  InterfaceType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
-    return cls.rawType;
+  InterfaceType buildType(LibraryBuilder library,
+      NullabilityBuilder nullabilityBuilder, List<TypeBuilder> arguments) {
+    return rawType(nullabilityBuilder.build(library));
   }
 
   @override
@@ -290,8 +294,8 @@ class EnumBuilder extends SourceClassBuilder {
     }
     FieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
-    valuesBuilder.initializer =
-        new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
+    valuesBuilder.initializer = new ListLiteral(values,
+        typeArgument: rawType(library.nonNullable), isConst: true);
     ConstructorBuilder constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
@@ -316,7 +320,7 @@ class EnumBuilder extends SourceClassBuilder {
           objectClass.charOffset, objectClass.name.length, objectClass.fileUri);
     } else {
       constructor.initializers.add(
-          new SuperInitializer(superConstructor.target, new Arguments.empty())
+          new SuperInitializer(superConstructor.member, new Arguments.empty())
             ..parent = constructor);
     }
     int index = 0;
@@ -344,7 +348,7 @@ class EnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  Builder findConstructorOrFactory(
+  MemberBuilder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }

@@ -4,14 +4,14 @@
 
 library fasta.type_promotion_look_ahead_listener;
 
-import '../builder/builder.dart' show Builder;
+import '../builder/builder.dart';
 
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
 import '../parser.dart'
     show
         Assert,
-        ClassKind,
+        DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
         Listener,
@@ -98,7 +98,7 @@ abstract class TypePromotionState {
   void checkEmpty(Token token) {}
 }
 
-class UnspecifiedDeclaration extends Builder {
+class UnspecifiedDeclaration extends BuilderImpl {
   final String name;
 
   @override
@@ -119,7 +119,7 @@ class UnspecifiedDeclaration extends Builder {
   String toString() => "UnspecifiedDeclaration($name)";
 }
 
-class NoArguments extends Builder {
+class NoArguments extends BuilderImpl {
   NoArguments();
 
   @override
@@ -314,7 +314,7 @@ class TypePromotionLookAheadListener extends Listener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody", beginToken);
     state.checkEmpty(endToken);
   }
@@ -545,9 +545,9 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod", beginToken);
+    debugEvent("ClassFactoryMethod", beginToken);
     state.pop(); // Name.
     state.checkEmpty(endToken);
   }
@@ -564,7 +564,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields", staticToken);
     state.discard(count); // Field names.
@@ -982,7 +982,7 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("endMethod", endToken);
     state.pop(); // Method name.
@@ -1316,7 +1316,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endTypeVariable(Token token, int index, Token extendsOrSuper) {
+  void endTypeVariable(
+      Token token, int index, Token extendsOrSuper, Token variance) {
     debugEvent("TypeVariable", token);
     state.pop(); // Name.
   }
@@ -1358,6 +1359,12 @@ class TypePromotionLookAheadListener extends Listener {
   void handleUnaryPrefixExpression(Token token) {
     debugEvent("UnaryPrefixExpression", token);
     state.popPushNull("%UnaryPrefixExpression%", token);
+  }
+
+  @override
+  void handleNonNullAssertExpression(Token token) {
+    debugEvent("NonNullAssertExpression", token);
+    state.popPushNull("%NonNullAssertExpression%", token);
   }
 
   @override

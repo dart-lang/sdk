@@ -1627,6 +1627,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   Thread::ExitIsolate();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static uint8_t* ApiReallocate(uint8_t* ptr,
                               intptr_t old_size,
                               intptr_t new_size) {
@@ -1634,19 +1635,19 @@ static uint8_t* ApiReallocate(uint8_t* ptr,
       ->zone()
       ->Realloc<uint8_t>(ptr, old_size, new_size);
 }
+#endif
 
 DART_EXPORT Dart_Handle
 Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
                     intptr_t* vm_snapshot_data_size,
                     uint8_t** isolate_snapshot_data_buffer,
                     intptr_t* isolate_snapshot_data_size) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("Cannot create snapshots on an AOT runtime.");
+#else
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
-  if (!FLAG_load_deferred_eagerly) {
-    return Api::NewError(
-        "Creating full snapshots requires --load_deferred_eagerly");
-  }
   if (vm_snapshot_data_buffer != NULL && vm_snapshot_data_size == NULL) {
     RETURN_NULL_ERROR(vm_snapshot_data_size);
   }
@@ -1680,6 +1681,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   }
   *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
   return Api::Success();
+#endif
 }
 
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
@@ -5392,7 +5394,6 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
                                                 Dart_Handle error_in) {
   DARTSCOPE(Thread::Current());
-  Isolate* I = T->isolate();
 
   const Library& lib = Api::UnwrapLibraryHandle(Z, library_in);
   if (lib.IsNull()) {
@@ -5404,15 +5405,6 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
   }
   CHECK_CALLBACK_STATE(T);
 
-  const GrowableObjectArray& pending_deferred_loads =
-      GrowableObjectArray::Handle(Z,
-                                  I->object_store()->pending_deferred_loads());
-  for (intptr_t i = 0; i < pending_deferred_loads.Length(); i++) {
-    if (pending_deferred_loads.At(i) == lib.raw()) {
-      lib.SetLoadError(err);
-      return Api::Null();
-    }
-  }
   return error_in;
 }
 
@@ -5503,9 +5495,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  // TODO(hausner): move the remaining code below (finalization and
-  // invoking of _completeDeferredLoads) into Isolate::DoneLoading().
-
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
   if (Api::IsError(state)) {
@@ -5534,22 +5523,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   }
 #endif
 
-  if (complete_futures) {
-    const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
-    const String& function_name =
-        String::Handle(Z, String::New("_completeDeferredLoads"));
-    const Function& function =
-        Function::Handle(Z, corelib.LookupFunctionAllowPrivate(function_name));
-    ASSERT(!function.IsNull());
-    const Array& args = Array::empty_array();
-
-    const Object& res =
-        Object::Handle(Z, DartEntry::InvokeFunction(function, args));
-    I->object_store()->clear_pending_deferred_loads();
-    if (res.IsError() || res.IsUnhandledException()) {
-      return Api::NewHandle(T, res.raw());
-    }
-  }
   return Api::Success();
 }
 
@@ -6160,7 +6133,6 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
         "Isolate is not precompiled. "
         "Did you forget to call Dart_Precompile?");
   }
-  ASSERT(FLAG_load_deferred_eagerly);
   CHECK_NULL(callback);
 
   TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
@@ -6216,10 +6188,6 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif defined(TARGET_ARCH_DBC)
   return Api::NewError("AOT compilation is not supported on DBC.");
-#elif defined(TARGET_OS_WINDOWS)
-  return Api::NewError("Windows cannot load ELF.");
-#elif defined(TARGET_OS_MACOS)
-  return Api::NewError("macOS/iOS cannot load ELF.");
 #elif !defined(DART_PRECOMPILER)
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
@@ -6296,7 +6264,6 @@ Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
         "Isolate is not precompiled. "
         "Did you forget to call Dart_Precompile?");
   }
-  ASSERT(FLAG_load_deferred_eagerly);
   CHECK_NULL(vm_snapshot_data_buffer);
   CHECK_NULL(vm_snapshot_data_size);
   CHECK_NULL(vm_snapshot_instructions_buffer);
@@ -6400,10 +6367,6 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
-  if (!FLAG_load_deferred_eagerly) {
-    return Api::NewError(
-        "Creating full snapshots requires --load_deferred_eagerly");
-  }
   CHECK_NULL(vm_snapshot_data_buffer);
   CHECK_NULL(vm_snapshot_data_size);
   CHECK_NULL(vm_snapshot_instructions_buffer);
@@ -6463,10 +6426,6 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
-  if (!FLAG_load_deferred_eagerly) {
-    return Api::NewError(
-        "Creating full snapshots requires --load_deferred_eagerly");
-  }
   CHECK_NULL(isolate_snapshot_data_buffer);
   CHECK_NULL(isolate_snapshot_data_size);
   CHECK_NULL(isolate_snapshot_instructions_buffer);
@@ -6479,7 +6438,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   BackgroundCompiler::Stop(I);
   DropRegExpMatchCode(Z);
 
-  if (reused_instructions) {
+  if (reused_instructions != nullptr) {
     DropCodeWithoutReusableInstructions(reused_instructions);
   }
   ProgramVisitor::Dedup();
@@ -6506,7 +6465,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   *isolate_snapshot_instructions_size =
       isolate_image_writer.InstructionsBlobSize();
 
-  if (reused_instructions) {
+  if (reused_instructions != nullptr) {
     *isolate_snapshot_instructions_buffer = NULL;
   }
 

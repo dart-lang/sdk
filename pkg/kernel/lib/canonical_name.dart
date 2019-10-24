@@ -20,6 +20,10 @@ import 'ast.dart';
 ///         Canonical name of enclosing library
 ///         Name of class
 ///
+///      Extension:
+///         Canonical name of enclosing library
+///         Name of extension
+///
 ///      Constructor:
 ///         Canonical name of enclosing class or library
 ///         "@constructors"
@@ -175,6 +179,12 @@ class CanonicalName {
   void unbind() {
     if (reference == null) return;
     assert(reference.canonicalName == this);
+    if (reference.node is Class) {
+      // TODO(jensj): Get rid of this. This is only needed because pkg:vm does
+      // weird stuff in transformations. `unbind` should probably be private.
+      Class c = reference.node;
+      c.ensureLoaded();
+    }
     reference.canonicalName = null;
     reference = null;
   }

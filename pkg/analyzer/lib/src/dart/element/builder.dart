@@ -166,7 +166,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = enumElement.type;
+    InterfaceTypeImpl enumType = enumElement.thisType;
     //
     // Build the elements for the constants. These are minimal elements; the
     // rest of the constant elements (and elements for other fields) must be
@@ -345,7 +345,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (body.isGenerator) {
       element.generator = true;
     }
-    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     (node as FunctionExpressionImpl).declaredElement = element;
@@ -368,7 +367,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
       ..parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
-    element.type = new FunctionTypeImpl.forTypedef(element);
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
     holder.validate();
@@ -387,7 +385,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     setElementDocumentationComment(element, node);
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
-    element.type = new FunctionTypeImpl.forTypedef(element);
     element.function = node.functionType?.type?.element;
     _currentHolder.addTypeAlias(element);
     aliasName.staticElement = element;
@@ -728,10 +725,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     for (int i = 0; i < typeParameterCount; i++) {
       TypeParameterElementImpl typeParameter =
           typeParameters[i] as TypeParameterElementImpl;
-      TypeParameterTypeImpl typeParameterType =
-          new TypeParameterTypeImpl(typeParameter);
-      typeParameter.type = typeParameterType;
-      typeArguments[i] = typeParameterType;
+      typeArguments[i] = TypeParameterTypeImpl(typeParameter);
     }
     return typeArguments;
   }
@@ -992,11 +986,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<void> {
         offset = uriLiteral.offset;
         length = uriLiteral.length;
       }
-      ErrorCode errorCode = importElement.isDeferred
-          ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
-          : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY;
       errors.add(new AnalysisError(libraryElement.source, offset, length,
-          errorCode, [uriLiteral.toSource()]));
+          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
     }
   }
 
@@ -1286,7 +1277,6 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (enclosingBlock != null) {
       element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
     }
-    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     (node as FunctionExpressionImpl).declaredElement = element;
@@ -1392,7 +1382,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       initializer.encloseElements(holder.localVariables);
       initializer.parameters = holder.parameters;
       initializer.isSynthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
       holder.validate();
@@ -1415,7 +1404,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
       initializerElement.encloseElements(holder.labels);
       initializerElement.encloseElements(holder.localVariables);
       initializerElement.isSynthetic = true;
-      initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;
       holder.validate();
     }
@@ -1560,9 +1548,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
         new TypeParameterElementImpl.forNode(parameterName);
     _setCodeRange(typeParameter, node);
     typeParameter.metadata = _createElementAnnotations(node.metadata);
-    TypeParameterTypeImpl typeParameterType =
-        new TypeParameterTypeImpl(typeParameter);
-    typeParameter.type = typeParameterType;
     _currentHolder.addTypeParameter(typeParameter);
     parameterName.staticElement = typeParameter;
     super.visitTypeParameter(node);

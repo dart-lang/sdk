@@ -2,6 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef A<T extends core::num* = core::num*> = (T*) →* dynamic;
+typedef A<contravariant T extends core::num* = core::num*> = (T*) →* dynamic;
 static field core::Map<(core::num*) →* dynamic, (core::num*) →* dynamic>* a = <(core::num*) →* dynamic, (core::num*) →* dynamic>{};
 static method main() → dynamic {}

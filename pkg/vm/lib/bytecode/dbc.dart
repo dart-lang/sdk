@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 19;
+const int currentBytecodeFormatVersion = 23;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -210,8 +210,8 @@ enum Opcode {
   // Calls.
   kDirectCall,
   kDirectCall_Wide,
-  kUnused21, // Reserved for DirectCall1
-  kUnused22, // Reserved for DirectCall1_Wide
+  kUncheckedDirectCall,
+  kUncheckedDirectCall_Wide,
   kInterfaceCall,
   kInterfaceCall_Wide,
   kUnused23, // Reserved for InterfaceCall1
@@ -258,8 +258,8 @@ enum Opcode {
 
   // Null operations.
   kEqualsNull,
-  kUnused36, // Reserved for CheckNull
-  kUnused37, // Reserved for CheckNull_Wide
+  kCheckReceiverForNull,
+  kCheckReceiverForNull_Wide,
 
   // Int operations.
   kNegateInt,
@@ -468,6 +468,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kEqualsNull: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
+  Opcode.kCheckReceiverForNull: const Format(
+      Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kNegateInt: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAddInt: const Format(
@@ -501,6 +503,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
   Opcode.kCompareIntLe: const Format(
       Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kDirectCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
+  Opcode.kUncheckedDirectCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kAllocateClosure: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
@@ -608,6 +612,7 @@ bool isThrow(Opcode opcode) => opcode == Opcode.kThrow;
 bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kDirectCall:
+    case Opcode.kUncheckedDirectCall:
     case Opcode.kInterfaceCall:
     case Opcode.kInstantiatedInterfaceCall:
     case Opcode.kUncheckedClosureCall:

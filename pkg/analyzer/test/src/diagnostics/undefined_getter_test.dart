@@ -18,6 +18,34 @@ main() {
 
 @reflectiveTest
 class UndefinedGetterTest extends DriverResolutionTest {
+  test_compoundAssignment_hasSetter_instance() async {
+    await assertErrorsInCode('''
+class C {
+  set foo(int _) {}
+}
+
+f(C c) {
+  c.foo += 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 3),
+    ]);
+  }
+
+  test_compoundAssignment_hasSetter_static() async {
+    await assertErrorsInCode('''
+class C {
+  static set foo(int _) {}
+}
+
+f() {
+  C.foo += 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 50, 3),
+    ]);
+  }
+
   test_ifElement_inList_notPromoted() async {
     await assertErrorsInCode('''
 f(int x) {
@@ -116,6 +144,29 @@ void f<X extends num, Y extends X>(Y y) {
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
     ]);
   }
+
+  test_static_definedInSuperclass() async {
+    await assertErrorsInCode('''
+class S {
+  static int get g => 0;
+}
+class C extends S {}
+f(var p) {
+  f(C.g);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 75, 1),
+    ]);
+  }
+
+  test_static_undefined() async {
+    await assertErrorsInCode('''
+class C {}
+f(var p) {
+  f(C.m);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 1),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -125,7 +176,47 @@ class UndefinedGetterWithExtensionMethodsTest extends UndefinedGetterTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_withExtension() async {
+  test_instance_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+
+  f() {
+    this.foo;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 95, 3),
+    ]);
+  }
+
+  test_instance_undefined_hasSetter() async {
+    await assertErrorsInCode('''
+extension E on int {
+  void set foo(int _) {}
+}
+f() {
+  0.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 58, 3),
+    ]);
+  }
+
+  test_instance_withInference() async {
+    await assertErrorsInCode(r'''
+extension E on int {}
+var a = 3.v;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 32, 1),
+    ]);
+  }
+
+  test_instance_withoutInference() async {
     await assertErrorsInCode(r'''
 class C {}
 
@@ -136,6 +227,24 @@ f(C c) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
+    ]);
+  }
+
+  test_this_extendedHasSetter_extensionHasGetter() async {
+    await assertErrorsInCode('''
+class C {
+  void set foo(int _) {}
+}
+
+extension E on C {
+  int get foo => 0;
+}
+
+f(C c) {
+  c.foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 93, 3),
     ]);
   }
 }

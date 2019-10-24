@@ -3,9 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import '../fasta/builder/builder.dart';
+
+import '../fasta/builder/class_builder.dart';
+import '../fasta/builder/library_builder.dart';
+import '../fasta/builder/member_builder.dart';
+import '../fasta/builder/named_type_builder.dart';
+import '../fasta/builder/type_builder.dart';
+import '../fasta/builder/type_variable_builder.dart';
 import '../fasta/builder/extension_builder.dart';
-import '../fasta/kernel/kernel_builder.dart';
 import '../fasta/messages.dart';
 import '../fasta/source/source_library_builder.dart';
 import '../fasta/source/source_loader.dart';
@@ -62,7 +67,7 @@ Extension lookupExtension(Library library, String extensionName,
       (Extension extension) => extension.name == extensionName, orElse: () {
     if (required) {
       throw new ArgumentError(
-          "Extension '$extensionName' not found in '$library'.");
+          "Extension '$extensionName' not found in '${library.importUri}'.");
     }
     return null;
   });
@@ -97,7 +102,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
   });
 }
 
-TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+LibraryBuilder lookupLibraryBuilder(
     InternalCompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
@@ -105,6 +110,14 @@ TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }
+  return builder;
+}
+
+TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
+    InternalCompilerResult compilerResult, Library library,
+    {bool required: true}) {
+  SourceLibraryBuilder builder =
+      lookupLibraryBuilder(compilerResult, library, required: required);
   return builder.libraryDeclaration;
 }
 
@@ -143,7 +156,7 @@ MemberBuilder lookupClassMemberBuilder(InternalCompilerResult compilerResult,
       lookupClassBuilder(compilerResult, cls, required: required);
   MemberBuilder memberBuilder;
   if (classBuilder != null) {
-    if (member is Constructor) {
+    if (member is Constructor || member is Procedure && member.isFactory) {
       memberBuilder = classBuilder.constructors.local[memberName];
     } else if (member is Procedure && member.isSetter) {
       memberBuilder = classBuilder.scope.setters[memberName];
@@ -165,7 +178,7 @@ MemberBuilder lookupMemberBuilder(
     String memberName = member.name.name;
     String extensionName = memberName.substring(0, memberName.indexOf('|'));
     memberName = memberName.substring(extensionName.length + 1);
-    bool isSetter = false;
+    bool isSetter = member is Procedure && member.isSetter;
     if (memberName.startsWith('set#')) {
       memberName = memberName.substring(4);
       isSetter = true;
@@ -196,8 +209,8 @@ MemberBuilder lookupMemberBuilder(
   return memberBuilder;
 }
 
-/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
-/// [cls] using [memberName] as its name.
+/// Look up the [MemberBuilder] for [member] through the [ExtensionBuilder] for
+/// [extension] using [memberName] as its name.
 MemberBuilder lookupExtensionMemberBuilder(
     InternalCompilerResult compilerResult,
     Extension extension,
@@ -254,7 +267,7 @@ class ConstantToTextVisitor implements ConstantVisitor<void> {
     }
   }
 
-  void defaultConstant(Constant node) => throw UnimplementedError(
+  void defaultConstant(Constant node) => throw new UnimplementedError(
       'Unexpected constant $node (${node.runtimeType})');
 
   void visitNullConstant(NullConstant node) {
@@ -378,8 +391,8 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     }
   }
 
-  void defaultDartType(DartType node) =>
-      throw UnimplementedError('Unexpected type $node (${node.runtimeType})');
+  void defaultDartType(DartType node) => throw new UnimplementedError(
+      'Unexpected type $node (${node.runtimeType})');
 
   void visitInvalidType(InvalidType node) {
     sb.write('<invalid>');
@@ -403,6 +416,9 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('<');
       visitList(node.typeArguments);
       sb.write('>');
+    }
+    if (!isNull(node)) {
+      sb.write(nullabilityToText(node.nullability));
     }
   }
 
@@ -433,12 +449,15 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       }
       sb.write('}');
     }
-    sb.write(')->');
+    sb.write(')');
+    sb.write(nullabilityToText(node.nullability));
+    sb.write('->');
     visit(node.returnType);
   }
 
   void visitTypeParameterType(TypeParameterType node) {
     sb.write(node.parameter.name);
+    sb.write(nullabilityToText(node.nullability));
     if (node.promotedBound != null) {
       sb.write(' extends ');
       visit(node.promotedBound);
@@ -452,6 +471,7 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       visitList(node.typeArguments);
       sb.write('>');
     }
+    sb.write(nullabilityToText(node.nullability));
   }
 }
 
@@ -459,6 +479,13 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
 bool isObject(DartType type) {
   return type is InterfaceType &&
       type.classNode.name == 'Object' &&
+      '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
+}
+
+/// Returns `true` if [type] is `Null` from `dart:core`.
+bool isNull(DartType type) {
+  return type is InterfaceType &&
+      type.classNode.name == 'Null' &&
       '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
 }
 
@@ -519,34 +546,51 @@ String errorsToText(List<FormattedMessage> errors) {
 /// Returns a textual representation of [descriptor] to be used in testing.
 String extensionMethodDescriptorToText(ExtensionMemberDescriptor descriptor) {
   StringBuffer sb = new StringBuffer();
-  if (descriptor.isExternal) {
-    sb.write('external ');
-  }
   if (descriptor.isStatic) {
     sb.write('static ');
   }
-  if (descriptor.kind == null) {
-    sb.write('field ');
-  } else {
-    switch (descriptor.kind) {
-      case ProcedureKind.Method:
-        break;
-      case ProcedureKind.Getter:
-        sb.write('getter ');
-        break;
-      case ProcedureKind.Setter:
-        sb.write('setter ');
-        break;
-      case ProcedureKind.Operator:
-        sb.write('operator ');
-        break;
-      case ProcedureKind.Factory:
-        throw new UnsupportedError(
-            "Unexpected procedure kind ${descriptor.kind}.");
-    }
+  switch (descriptor.kind) {
+    case ExtensionMemberKind.Method:
+      break;
+    case ExtensionMemberKind.Getter:
+      sb.write('getter ');
+      break;
+    case ExtensionMemberKind.Setter:
+      sb.write('setter ');
+      break;
+    case ExtensionMemberKind.Operator:
+      sb.write('operator ');
+      break;
+    case ExtensionMemberKind.Field:
+      sb.write('field ');
+      break;
+    case ExtensionMemberKind.TearOff:
+      sb.write('tearoff ');
+      break;
   }
   sb.write(descriptor.name.name);
   sb.write('=');
-  sb.write(descriptor.member.asMember.name.name);
+  Member member = descriptor.member.asMember;
+  String name = member.name.name;
+  if (member is Procedure && member.isSetter) {
+    sb.write('$name=');
+  } else {
+    sb.write(name);
+  }
   return sb.toString();
+}
+
+/// Returns a textual representation of [nullability] to be used in testing.
+String nullabilityToText(Nullability nullability) {
+  switch (nullability) {
+    case Nullability.nonNullable:
+      return '!';
+    case Nullability.nullable:
+      return '?';
+    case Nullability.neither:
+      return '%';
+    case Nullability.legacy:
+      return '';
+  }
+  throw new UnsupportedError('Unexpected nullability: $nullability.');
 }

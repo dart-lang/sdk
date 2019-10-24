@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -86,8 +86,7 @@ class LiteralElementVerifier {
             CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP, element);
       }
     } else if (element is SpreadElement) {
-      var isNullAware = element.spreadOperator.type ==
-          TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
+      var isNullAware = element.isNullAware;
       Expression expression = element.expression;
       if (forList || forSet) {
         _verifySpreadForListOrSet(isNullAware, expression);

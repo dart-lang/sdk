@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
 /// Mixin that catches exceptions when visiting an AST recursively, and reports
@@ -14,14 +15,17 @@ import 'package:nnbd_migration/nnbd_migration.dart';
 mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
   NullabilityMigrationListener /*?*/ get listener;
 
+  /// The file being analyzed.
+  Source get source;
+
   /// Executes [callback].  If [listener] is not `null`, and an exception
   /// occurs, the exception is caught and reported to the [listener].
-  void reportExceptionsIfPermissive(void callback()) {
+  void reportExceptionsIfPermissive(AstNode node, void callback()) {
     if (listener != null) {
       try {
         return callback();
       } catch (exception, stackTrace) {
-        _reportException(exception, stackTrace);
+        listener.reportException(source, node, exception, stackTrace);
       }
     } else {
       callback();
@@ -34,18 +38,11 @@ mixin PermissiveModeVisitor<T> on GeneralizingAstVisitor<T> {
       try {
         return super.visitNode(node);
       } catch (exception, stackTrace) {
-        _reportException(exception, stackTrace);
+        listener.reportException(source, node, exception, stackTrace);
         return null;
       }
     } else {
       return super.visitNode(node);
     }
-  }
-
-  void _reportException(Object exception, StackTrace stackTrace) {
-    listener.addDetail('''
-$exception
-
-$stackTrace''');
   }
 }

@@ -142,6 +142,10 @@ class GCSNamer(object):
 
     # Functions for querying gs:// directories
 
+    def base_directory(self, revision):
+        return '%s/channels/%s/%s/%s' % (self.bucket, self.channel,
+                                         self.release_type, revision)
+
     def sdk_directory(self, revision):
         return self._variant_directory('sdk', revision)
 
@@ -164,8 +168,7 @@ class GCSNamer(object):
         return self._variant_directory('misc', revision)
 
     def _variant_directory(self, name, revision):
-        return '%s/channels/%s/%s/%s/%s' % (self.bucket, self.channel,
-                                            self.release_type, revision, name)
+        return '%s/%s' % (self.base_directory(revision), name)
 
     # Functions for quering filenames
 

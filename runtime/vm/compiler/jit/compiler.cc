@@ -119,7 +119,6 @@ static void PrecompilationModeHandler(bool value) {
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_load_deferred_eagerly = true;
     FLAG_use_osr = false;
 #endif
   }
@@ -231,14 +230,14 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
         Exceptions::PropagateError(Error::Cast(result));
       }
     }
-    if (function.HasBytecode()) {
+    if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
       // triggered by interpreter later via CompileInterpretedFunction.
       return;
     }
-    // No bytecode, fall back to compilation.
+    // Fall back to compilation.
   } else {
     ASSERT(!function.HasCode());
   }
@@ -335,9 +334,7 @@ class CompileParsedFunctionHelper : public ValueObject {
       : parsed_function_(parsed_function),
         optimized_(optimized),
         osr_id_(osr_id),
-        thread_(Thread::Current()),
-        loading_invalidation_gen_at_start_(
-            isolate()->loading_invalidation_gen()) {}
+        thread_(Thread::Current()) {}
 
   RawCode* Compile(CompilationPipeline* pipeline);
 
@@ -347,9 +344,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
-  intptr_t loading_invalidation_gen_at_start() const {
-    return loading_invalidation_gen_at_start_;
-  }
   RawCode* FinalizeCompilation(compiler::Assembler* assembler,
                                FlowGraphCompiler* graph_compiler,
                                FlowGraph* flow_graph);
@@ -359,7 +353,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   const bool optimized_;
   const intptr_t osr_id_;
   Thread* const thread_;
-  const intptr_t loading_invalidation_gen_at_start_;
 
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
@@ -439,13 +432,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
           }
         }
       }
-      if (loading_invalidation_gen_at_start() !=
-          isolate()->loading_invalidation_gen()) {
-        code_is_valid = false;
-        if (trace_compiler) {
-          THR_Print("--> FAIL: Loading invalidation.");
-        }
-      }
       if (!thread()
                ->compiler_state()
                .cha()
@@ -502,14 +488,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
       // While doing compilation in background, usage counter is set
       // to INT_MIN. Reset counter so that function can be optimized further.
       function.SetUsageCounter(0);
-    }
-  }
-  if (parsed_function()->HasDeferredPrefixes()) {
-    ASSERT(!FLAG_load_deferred_eagerly);
-    ZoneGrowableArray<const LibraryPrefix*>* prefixes =
-        parsed_function()->deferred_prefixes();
-    for (intptr_t i = 0; i < prefixes->length(); i++) {
-      (*prefixes)[i]->RegisterDependentCode(code);
     }
   }
   return code.raw();
@@ -629,7 +607,12 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       CompilerPassState pass_state(thread(), flow_graph, &speculative_policy);
       pass_state.reorder_blocks = reorder_blocks;
 
-      if (optimized()) {
+      if (function.ForceOptimize()) {
+        ASSERT(optimized());
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kJIT,
+                                                             &pass_state);
+      } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
@@ -644,7 +627,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
         pass_state.call_specializer = &call_specializer;
 
-        CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
+        flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
       }
 
       ASSERT(pass_state.inline_id_to_function.length() ==
@@ -663,25 +646,31 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
-        if (thread()->IsMutatorThread()) {
+
+        auto install_code_fun = [&]() {
           *result =
               FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-        } else {
-          // This part of compilation must be at a safepoint.
-          // Stop mutator thread before creating the instruction object and
-          // installing code.
-          // Mutator thread may not run code while we are creating the
-          // instruction object, since the creation of instruction object
-          // changes code page access permissions (makes them temporary not
-          // executable).
-          {
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            ForceGrowthSafepointOperationScope safepoint_scope(thread());
-            CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            *result =
-                FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
-          }
+        };
+
+        if (Compiler::IsBackgroundCompilation()) {
+          CheckIfBackgroundCompilerIsBeingStopped(optimized());
         }
+
+        // We have to ensure no mutators are running, because:
+        //
+        //   a) We allocate an instructions object, which might cause us to
+        //      temporarily flip page protections (RX -> RW -> RX).
+        //
+        //   b) We have to ensure the code generated does not violate
+        //      assumptions (e.g. CHA, field guards), the validation has to
+        //      happen while mutator is stopped.
+        //
+        //   b) We update the [Function] object with a new [Code] which
+        //      requires updating several pointers: We have to ensure all of
+        //      those writes are observed atomically.
+        //
+        thread()->isolate_group()->RunWithStoppedMutators(
+            install_code_fun, install_code_fun, /*use_force_growth=*/true);
 
         // We notify code observers after finalizing the code in order to be
         // outside a [SafepointOperationScope].
@@ -743,11 +732,12 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
+  ASSERT(function.is_background_optimizable() ||
+         !Compiler::IsBackgroundCompilation());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
-    Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -768,8 +758,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                 function.token_pos().ToCString(), token_size);
     }
     // Makes sure no classes are loaded during parsing in background.
-    const intptr_t loading_invalidation_gen_at_start =
-        isolate->loading_invalidation_gen();
     {
       HANDLESCOPE(thread);
       pipeline->ParseFunction(parsed_function);
@@ -777,17 +765,6 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
-    if (Compiler::IsBackgroundCompilation()) {
-      ASSERT(function.is_background_optimizable());
-      if ((loading_invalidation_gen_at_start !=
-           isolate->loading_invalidation_gen())) {
-        // Loading occured while parsing. We need to abort here because state
-        // changed while compiling.
-        Compiler::AbortBackgroundCompilation(
-            DeoptId::kNone,
-            "Invalidated state during parsing because of script loading");
-      }
-    }
 
     const Code& result = Code::Handle(helper.Compile(pipeline));
 
@@ -1039,6 +1016,41 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
     // Only possible with background compilation.
     ASSERT(Compiler::IsBackgroundCompilation());
   }
+}
+
+void Compiler::ComputeYieldPositions(const Function& function) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function.script());
+  Array& yield_position_map = Array::Handle(zone, script.yield_positions());
+  if (yield_position_map.IsNull()) {
+    yield_position_map = HashTables::New<UnorderedHashMap<SmiTraits>>(4);
+  }
+  UnorderedHashMap<SmiTraits> function_map(yield_position_map.raw());
+  Smi& key = Smi::Handle(zone, Smi::New(function.token_pos().value()));
+
+  if (function_map.ContainsKey(key)) {
+    ASSERT(function_map.Release().raw() == yield_position_map.raw());
+    return;
+  }
+
+  CompilerState state(thread);
+  LongJumpScope jump;
+  auto& array = GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  if (setjmp(*jump.Set()) == 0) {
+    ParsedFunction* parsed_function =
+        new ParsedFunction(thread, Function::ZoneHandle(zone, function.raw()));
+    ZoneGrowableArray<const ICData*>* ic_data_array =
+        new ZoneGrowableArray<const ICData*>();
+    kernel::FlowGraphBuilder builder(parsed_function, ic_data_array, nullptr,
+                                     /* not inlining */ nullptr, false,
+                                     Compiler::kNoOSRDeoptId, 1, false, &array);
+    builder.BuildGraph();
+  }
+  function_map.UpdateOrInsert(key, array);
+  // Release and store back to script
+  yield_position_map = function_map.Release().raw();
+  script.set_yield_positions(yield_position_map);
 }
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
@@ -1438,6 +1450,10 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
 }
 
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  UNREACHABLE();
+}
+
+void Compiler::ComputeYieldPositions(const Function& function) {
   UNREACHABLE();
 }
 

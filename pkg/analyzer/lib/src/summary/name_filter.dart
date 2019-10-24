@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * A [NameFilter] represents the set of filtering rules implied by zero or more
@@ -29,6 +28,13 @@ class NameFilter {
    */
   final Set<String> hiddenNames;
 
+  factory NameFilter({List<String> shows, List<String> hides}) {
+    return NameFilter._(
+      shownNames: shows?.toSet(),
+      hiddenNames: hides?.toSet(),
+    );
+  }
+
   /**
    * Create a [NameFilter] based on the given [combinator].
    */
@@ -52,30 +58,6 @@ class NameFilter {
     NameFilter result = identity;
     for (NamespaceCombinator combinator in combinators) {
       result = result.merge(new NameFilter.forNamespaceCombinator(combinator));
-    }
-    return result;
-  }
-
-  /**
-   * Create a [NameFilter] based on the given [combinator].
-   */
-  factory NameFilter.forUnlinkedCombinator(UnlinkedCombinator combinator) {
-    if (combinator.shows.isNotEmpty) {
-      return new NameFilter._(shownNames: combinator.shows.toSet());
-    } else {
-      return new NameFilter._(hiddenNames: combinator.hides.toSet());
-    }
-  }
-
-  /**
-   * Create a [NameFilter] based on the given (possibly empty) sequence of
-   * [combinators].
-   */
-  factory NameFilter.forUnlinkedCombinators(
-      List<UnlinkedCombinator> combinators) {
-    NameFilter result = identity;
-    for (UnlinkedCombinator combinator in combinators) {
-      result = result.merge(new NameFilter.forUnlinkedCombinator(combinator));
     }
     return result;
   }

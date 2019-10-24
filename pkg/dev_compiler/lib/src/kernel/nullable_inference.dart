@@ -53,8 +53,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   void exitFunction(FunctionNode fn) => _variableInference.exitFunction(fn);
 
   /// Returns true if [expr] can be null.
-  bool isNullable(Expression expr) =>
-      expr != null ? expr.accept(this) as bool : false;
+  bool isNullable(Expression expr) => expr != null ? expr.accept(this) : false;
 
   @override
   defaultExpression(Expression node) => true;
@@ -120,7 +119,7 @@ class NullableInference extends ExpressionVisitor<bool> {
     if (target == null) return true; // dynamic call
     if (target.name.name == 'toString' &&
         receiver != null &&
-        receiver.getStaticType(types) == coreTypes.stringClass.rawType) {
+        receiver.getStaticType(types) == coreTypes.stringLegacyRawType) {
       // TODO(jmesserly): `class String` in dart:core does not explicitly
       // declare `toString`, which results in a target of `Object.toString` even
       // when the reciever type is known to be `String`. So we work around it.
@@ -144,7 +143,8 @@ class NullableInference extends ExpressionVisitor<bool> {
       // implementation class in dart:_interceptors, for example `JSString`.
       //
       // This allows us to find the `@notNull` annotation if it exists.
-      var implClass = jsTypeRep.getImplementationClass(targetClass.rawType);
+      var implClass = jsTypeRep
+          .getImplementationClass(coreTypes.legacyRawType(targetClass));
       if (implClass != null) {
         var member =
             jsTypeRep.hierarchy.getDispatchTarget(implClass, target.name);
@@ -230,7 +230,7 @@ class NullableInference extends ExpressionVisitor<bool> {
   @override
   visitConstantExpression(ConstantExpression node) {
     var c = node.constant;
-    if (c is UnevaluatedConstant) return c.expression.accept(this) as bool;
+    if (c is UnevaluatedConstant) return c.expression.accept(this);
     if (c is PrimitiveConstant) return c.value == null;
     return false;
   }
@@ -249,7 +249,6 @@ class NullableInference extends ExpressionVisitor<bool> {
 
   bool _isInternalAnnotationField(
       Expression node, String fieldName, String className) {
-    node = unwrapUnevaluatedConstant(node);
     if (node is ConstantExpression) {
       var constant = node.constant;
       return constant is InstanceConstant &&

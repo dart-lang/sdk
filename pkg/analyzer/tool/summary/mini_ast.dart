@@ -216,7 +216,7 @@ class MiniAstBuilder extends StackListener {
 
   @override
   void endClassOrMixinBody(
-      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
     push(popList(memberCount,
         new List<ClassMember>.filled(memberCount, null, growable: true)));
@@ -280,9 +280,9 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFactoryMethod(
+  void endClassFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    debugEvent("FactoryMethod");
+    debugEvent("ClassFactoryMethod");
     pop(); // Body
     pop(); // Type variables
     String name = pop();
@@ -400,7 +400,7 @@ class MiniAstBuilder extends StackListener {
         NullValue.Metadata);
   }
 
-  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
     debugEvent("Method");
     pop(); // Body

@@ -7,5 +7,3 @@ typed_data_runtime_cc_files = [
   "typed_data.cc",
   "simd128.cc",
 ]
-
-typed_data_runtime_dart_files = [ "typed_data_patch.dart" ]

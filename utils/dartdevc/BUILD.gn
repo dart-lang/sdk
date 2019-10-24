@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/dart/dart_action.gni")
+import("../../sdk_args.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -30,13 +31,22 @@ application_snapshot("dartdevc") {
     ":dartdevc_kernel_sdk_outline",
   ]
 
-  inputs = [ sdk_dill ]
+  inputs = [
+    sdk_dill,
+  ]
+}
+
+# TODO(#38701) Cleanup after merging the forked SDK into mainline.
+if (use_nnbd) {
+  sdk_root = "../../sdk_nnbd"
+} else {
+  sdk_root = "../../sdk"
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
                               "absolute",
-                              rebase_path("../../sdk/lib"),
+                              rebase_path("$sdk_root/lib"),
                             ],
                             "list lines")
 
@@ -62,15 +72,10 @@ template("dart2js_compile") {
   abs_main = rebase_path(main)
   abs_output = rebase_path(out)
 
-  dart_action(target_name) {
+  prebuilt_dart_action(target_name) {
     deps = [
       "../compiler:compile_dart2js_platform",
     ]
-
-    # dart_action() needs kernel service snapshot to run in Dart 2 mode.
-    # This can't be added as a dependency to dart_action() itself as it will
-    # create a circular dependency.
-    deps += [ "../../utils/kernel-service:kernel-service" ]
 
     inputs = sdk_lib_files + compiler_files + dev_compiler_files + [
                "$root_out_dir/dart2js_platform.dill",
@@ -89,13 +94,9 @@ template("dart2js_compile") {
       "-m",
       "-o$abs_output",
       "--no-source-maps",
+      "--platform-binaries=" + rebase_path("$root_out_dir"),
     ]
   }
-}
-
-dart2js_compile("dartdevc_web") {
-  main = rebase_path("../../pkg/dev_compiler/web/main.dart")
-  out = "$root_out_dir/dev_compiler/build/web/ddc_web_compiler.js"
 }
 
 dart2js_compile("stack_trace_mapper") {
@@ -126,7 +127,7 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   inputs += exec_script("../../tools/list_dart_files.py",
                         [
                           "absolute",
-                          rebase_path("../../sdk/lib/_internal/js_dev_runtime"),
+                          rebase_path("$sdk_root/lib/_internal/js_dev_runtime"),
                         ],
                         "list lines")
 
@@ -139,9 +140,14 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
 
   args = [
     rebase_path("../../"),
-    rebase_path("../../sdk/lib/_internal/js_dev_runtime"),
+    rebase_path("$sdk_root/lib/_internal/js_dev_runtime"),
     rebase_path(patched_sdk_dir),
   ]
+
+  # TODO(#38701) Cleanup after merging the forked SDK into mainline.
+  if (use_nnbd) {
+    args += [ "sdk_nnbd" ]
+  }
 }
 
 # Compiles the Dart core libraries and DDC runtime to an analyzer summary and
@@ -211,10 +217,10 @@ prebuilt_dart_action("dartdevc_sdk") {
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
-    ":dartdevc_sdk",
     ":dartdevc_kernel_sdk",
+    ":dartdevc_sdk",
     ":dartdevc_test_pkg",
-    "../../sdk:create_sdk",
+    "../..:create_sdk",
   ]
 }
 
@@ -223,8 +229,8 @@ group("dartdevc_test") {
 # building the Dart VM and create_sdk.
 group("dartdevc_test_local") {
   deps = [
-    ":dartdevc_sdk",
     ":dartdevc_kernel_sdk",
+    ":dartdevc_sdk",
     ":dartdevc_test_pkg",
   ]
 }
@@ -235,7 +241,7 @@ create_timestamp_file("dartdevc_files_stamp") {
 }
 
 create_timestamp_file("dartdevc_sdk_patch_stamp") {
-  path = rebase_path("../../sdk/lib/_internal/js_dev_runtime")
+  path = rebase_path("$sdk_root/lib/_internal/js_dev_runtime")
   output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
 }
 
@@ -244,10 +250,10 @@ create_timestamp_file("dartdevc_sdk_patch_stamp") {
 prebuilt_dart_action("dartdevc_test_pkg") {
   deps = [
     ":dartdevc_files_stamp",
-    ":dartdevc_sdk",
     ":dartdevc_kernel_sdk",
-    ":dartdevc_kernel_sdk_outline",
     ":dartdevc_kernel_sdk_libraries_json",
+    ":dartdevc_kernel_sdk_outline",
+    ":dartdevc_sdk",
     "../../pkg:pkg_files_stamp",
   ]
 
@@ -319,9 +325,9 @@ prebuilt_dart_action("dartdevc_test_pkg") {
 
 prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
   deps = [
-    "../../pkg:pkg_files_stamp",
     ":dartdevc_files_stamp",
     ":dartdevc_sdk_patch_stamp",
+    "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
@@ -345,17 +351,17 @@ prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
     "--multi-root",
     rebase_path("../../sdk"),
     "--libraries-file",
-    "file:///" + rebase_path("../../sdk/lib/libraries.json"),
+    "file:///" + rebase_path("$sdk_root/lib/libraries.json"),
     "--output",
     rebase_path(sdk_dill),
     "--source",
-    "dart:core"
+    "dart:core",
   ]
 }
 
 copy("dartdevc_kernel_sdk_libraries_json") {
   sources = [
-    rebase_path("../../sdk/lib/libraries.json"),
+    rebase_path("$sdk_root/lib/libraries.json"),
   ]
   outputs = [
     sdk_libraries_json,
@@ -365,9 +371,9 @@ copy("dartdevc_kernel_sdk_libraries_json") {
 # Compiles the DDC SDK's kernel summary and JS code.
 prebuilt_dart_action("dartdevc_kernel_sdk") {
   deps = [
-    "../../pkg:pkg_files_stamp",
     ":dartdevc_files_stamp",
     ":dartdevc_sdk_patch_stamp",
+    "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
@@ -396,7 +402,7 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "--multi-root-scheme",
     "org-dartlang-sdk",
     "--multi-root",
-    "file:///" + rebase_path("../../sdk"),
+    "file:///" + rebase_path(sdk_root),
     "--multi-root-output-path",
     rebase_path("$target_gen_dir/../../"),
     "--libraries-file",

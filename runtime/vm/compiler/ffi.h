@@ -25,6 +25,12 @@ constexpr intptr_t kMinimumArgumentWidth = 4;
 // Storage size for an FFI type (extends 'ffi.NativeType').
 size_t ElementSizeInBytes(intptr_t class_id);
 
+// TypedData class id for a NativeType type, except for Void and NativeFunction.
+classid_t ElementTypedDataCid(classid_t class_id);
+
+// Returns the kFFi<type>Cid for the recognized load/store method [kind].
+classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind);
+
 // These ABIs should be kept in sync with pkg/vm/lib/transformations/ffi.dart.
 enum class Abi {
   kWordSize64 = 0,
@@ -36,7 +42,7 @@ enum class Abi {
 Abi TargetAbi();
 
 // Unboxed representation of an FFI type (extends 'ffi.NativeType').
-Representation TypeRepresentation(const AbstractType& result_type);
+Representation TypeRepresentation(classid_t class_id);
 
 // Unboxed representation of an FFI type (extends 'ffi.NativeType') for 8 and 16
 // bit integers.
@@ -55,6 +61,10 @@ RawFunction* TrampolineFunction(const Function& dart_signature,
                                 const Function& c_signature);
 
 #if !defined(TARGET_ARCH_DBC)
+
+RawFunction* NativeCallbackFunction(const Function& c_signature,
+                                    const Function& dart_target,
+                                    const Instance& exceptional_return);
 
 // Unboxed representations of the arguments to a C signature function.
 ZoneGrowableArray<Representation>* ArgumentRepresentations(
@@ -119,7 +129,7 @@ class FfiSignatureDescriptor : public ValueObject {
   static const intptr_t kOffsetArgumentLocations = 3;
 };
 
-#endif  // defined(TARGET_ARCH_DBC)
+#else  // defined(TARGET_ARCH_DBC)
 
 // This classes translates the ABI location of arguments into the locations they
 // will inhabit after entry-frame setup in the invocation of a native callback.
@@ -145,8 +155,7 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
-
-bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func);
+#endif  // defined(TARGET_ARCH_DBC)
 
 }  // namespace ffi
 

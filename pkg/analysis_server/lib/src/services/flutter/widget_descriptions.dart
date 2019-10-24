@@ -199,7 +199,7 @@ class _WidgetDescriptionComputer {
         (property) => property.name == 'child',
       );
     } else {
-      var containerDescription = classRegistry.get(_classContainer.type);
+      var containerDescription = classRegistry.get(_classContainer);
       containerProperty = PropertyDescription(
         resolvedUnit: resolvedUnit,
         classDescription: containerDescription,
@@ -364,15 +364,18 @@ class _WidgetDescriptionComputer {
         );
       }
     } else if (valueExpression == null) {
-      var classDescription = classRegistry.get(
-        parameter.type,
-      );
-      if (classDescription != null) {
-        _addProperties(
-          properties: propertyDescription.children,
-          parent: propertyDescription,
-          classDescription: classDescription,
+      var type = parameter.type;
+      if (type is InterfaceType) {
+        var classDescription = classRegistry.get(
+          type.element,
         );
+        if (classDescription != null) {
+          _addProperties(
+            properties: propertyDescription.children,
+            parent: propertyDescription,
+            classDescription: classDescription,
+          );
+        }
       }
     }
   }

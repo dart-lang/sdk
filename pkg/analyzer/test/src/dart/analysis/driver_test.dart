@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -24,7 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -38,9 +36,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
-    if (!AnalysisDriver.useSummary2) {
-      defineReflectiveTests(AnalysisDriverSummary1Test);
-    }
     defineReflectiveTests(CacheAllAnalysisDriverTest);
   });
 }
@@ -294,6 +289,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
     Monitor idleStatusMonitor = new Monitor();
     List<AnalysisStatus> allStatuses = [];
+    // awaiting times out.
+    // ignore: unawaited_futures
     scheduler.status.forEach((status) {
       allStatuses.add(status);
       if (status.isIdle) {
@@ -323,6 +320,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
     Monitor idleStatusMonitor = new Monitor();
     List<AnalysisStatus> allStatuses = [];
+    // awaiting times out.
+    // ignore: unawaited_futures
     scheduler.status.forEach((status) {
       allStatuses.add(status);
       if (status.isIdle) {
@@ -343,383 +342,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   }
 }
 
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
-@reflectiveTest
-class AnalysisDriverSummary1Test extends BaseAnalysisDriverTest {
-  test_externalSummaries() async {
-    var a = convertPath('/a.dart');
-    var b = convertPath('/b.dart');
-    newFile(a, content: r'''
-class A {}
-''');
-    newFile(b, content: r'''
-import 'a.dart';
-var a = new A();
-''');
-
-    // Prepare the store with a.dart and everything it needs.
-    SummaryDataStore summaryStore =
-        await createAnalysisDriver().test.getSummaryStore(a);
-
-    // There are at least a.dart and dart:core libraries.
-    String aUri = toUriStr(a);
-    expect(summaryStore.unlinkedMap.keys, contains(aUri));
-    expect(summaryStore.linkedMap.keys, contains(aUri));
-    expect(summaryStore.unlinkedMap.keys, contains('dart:core'));
-    expect(summaryStore.linkedMap.keys, contains('dart:core'));
-
-    // Remove a.dart from the file system.
-    deleteFile(a);
-
-    // We don't need a.dart file when we analyze with the summary store.
-    // Still no analysis errors.
-    AnalysisDriver driver =
-        createAnalysisDriver(externalSummaries: summaryStore);
-    ResolvedUnitResult result = await driver.getResult(b);
-    expect(result.errors, isEmpty);
-  }
-
-  test_externalSummaries_partReuse() async {
-    var a = convertPath('/a.dart');
-    var b = convertPath('/b.dart');
-    var c = convertPath('/c.dart');
-    newFile(a, content: r'''
-library a;
-part 'b.dart';
-class A {}
-''');
-    newFile(b, content: r'''
-part of a;
-class _B {}
-''');
-    newFile(c, content: r'''
-library a;
-import 'a.dart';
-part 'b.dart';
-var a = new A();
-var b = new _B();
-''');
-
-    // Prepare the store with a.dart and everything it needs.
-    SummaryDataStore summaryStore =
-        await createAnalysisDriver().test.getSummaryStore(a);
-
-    String aUri = toUriStr(a);
-    String bUri = toUriStr(b);
-    // There are unlinked units for a.dart and b.dart files.
-    expect(summaryStore.hasUnlinkedUnit(aUri), isTrue);
-    expect(summaryStore.hasUnlinkedUnit(bUri), isTrue);
-    // Only a.dart is linked, because b.dart is not a library.
-    expect(summaryStore.hasLinkedLibrary(aUri), isTrue);
-    expect(summaryStore.hasLinkedLibrary(bUri), isFalse);
-
-    // Remove a.dart from the file system.
-    // Keep b.dart, because we (re)use it as a part.
-    deleteFile(a);
-
-    // We don't need a.dart file when we analyze with the summary store.
-    // We can instantiate the class A the library a.dart.
-    // We can instantiate the class _A the part b.dart.
-    AnalysisDriver driver =
-        createAnalysisDriver(externalSummaries: summaryStore);
-    ResolvedUnitResult result = await driver.getResult(c);
-    expect(result.errors, isEmpty);
-  }
-
-  test_getLibraryByUri_external() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-
-    String aUriStr = 'package:test/a.dart';
-    String bUriStr = 'package:test/b.dart';
-
-    newFile(a, content: r'''
-part 'b.dart';
-
-class A {}
-''');
-
-    newFile(b, content: r'''
-part of 'a.dart';
-
-class B {}
-''');
-
-    // Prepare the store with package:test/test.dart URI.
-    var store = await createAnalysisDriver().test.getSummaryStore(a);
-
-    // package:test/test.dart is in the store.
-    expect(store.unlinkedMap.keys, contains(aUriStr));
-    expect(store.unlinkedMap.keys, contains(bUriStr));
-    expect(store.linkedMap.keys, contains(aUriStr));
-    expect(store.linkedMap.keys, isNot(contains(bUriStr)));
-
-    // Remove the files from the file system.
-    deleteFile(a);
-    deleteFile(b);
-
-    // We can resynthesize the library from the store.
-    var driver = createAnalysisDriver(externalSummaries: store);
-
-    // Ask by URI, so we get the "external" FileState.
-    var aUri = Uri.parse(aUriStr);
-    var aFile = driver.fsState.getFileForUri(aUri);
-    expect(aFile.uri, aUri);
-    expect(aFile.path, isNull);
-
-    // We still can resynthesize the library.
-    // The URI is known to be external, so we don't talk to the file.
-    var library = await driver.getLibraryByUri(aUriStr);
-    expect(library.getType('A'), isNotNull);
-    expect(library.getType('B'), isNotNull);
-
-    // It is an error to ask for a library when we know that it is a part.
-    expect(() async {
-      await driver.getLibraryByUri(bUriStr);
-    }, throwsArgumentError);
-  }
-
-  test_getLibraryByUri_sdk_analyze() async {
-    LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
-    expect(coreLibrary, isNotNull);
-    expect(coreLibrary.getType('Object'), isNotNull);
-    expect(coreLibrary.getType('int'), isNotNull);
-  }
-
-  test_getLibraryByUri_sdk_resynthesize() async {
-    String corePath = sdk.mapDartUri('dart:core').fullName;
-    String asyncPath = sdk.mapDartUri('dart:async').fullName;
-    var sdkStore = await createAnalysisDriver().test.getSummaryStore(corePath);
-
-    // There are dart:core and dart:async in the store.
-    expect(sdkStore.unlinkedMap.keys, contains('dart:core'));
-    expect(sdkStore.unlinkedMap.keys, contains('dart:async'));
-    expect(sdkStore.linkedMap.keys, contains('dart:core'));
-    expect(sdkStore.linkedMap.keys, contains('dart:async'));
-
-    // Remove dart:core and dart:async.
-    // So, the new driver below cannot parse and summarize them.
-    deleteFile(corePath);
-    deleteFile(asyncPath);
-
-    // We still get get dart:core library element.
-    AnalysisDriver driver = createAnalysisDriver(externalSummaries: sdkStore);
-    LibraryElement coreLibrary = await driver.getLibraryByUri('dart:core');
-    expect(coreLibrary, isNotNull);
-    expect(coreLibrary.getType('Object'), isNotNull);
-  }
-
-  test_getParsedLibrary_external() async {
-    var a1 = convertPath('/aaa/lib/a1.dart');
-    var a2 = convertPath('/aaa/lib/a2.dart');
-
-    var a1UriStr = 'package:aaa/a1.dart';
-    var a2UriStr = 'package:aaa/a2.dart';
-
-    newFile(a1, content: "part 'a2.dart';  class A {}");
-    newFile(a2, content: "part of 'a1.dart';");
-
-    // Build the store with the library.
-    var store = await createAnalysisDriver().test.getSummaryStore(a1);
-    expect(store.unlinkedMap.keys, contains(a1UriStr));
-    expect(store.unlinkedMap.keys, contains(a2UriStr));
-    expect(store.linkedMap.keys, contains(a1UriStr));
-
-    var driver = createAnalysisDriver(externalSummaries: store);
-    var libraryElement = await driver.getLibraryByUri(a1UriStr);
-    var classA = libraryElement.library.getType('A');
-
-    var parsedLibrary = driver.getParsedLibrary(a1);
-    expect(parsedLibrary, isNotNull);
-    expect(parsedLibrary.state, ResultState.NOT_A_FILE);
-    expect(() {
-      parsedLibrary.getElementDeclaration(classA);
-    }, throwsStateError);
-
-    // It is an error to ask for a library when we know that it is a part.
-    expect(() {
-      driver.getParsedLibrary(a2);
-    }, throwsArgumentError);
-  }
-
-  test_getParsedLibraryByUri_external() async {
-    var a1 = convertPath('/aaa/lib/a1.dart');
-    var a2 = convertPath('/aaa/lib/a2.dart');
-
-    var a1UriStr = 'package:aaa/a1.dart';
-    var a2UriStr = 'package:aaa/a2.dart';
-
-    var a1Uri = Uri.parse(a1UriStr);
-    var a2Uri = Uri.parse(a2UriStr);
-
-    newFile(a1, content: "part 'a2.dart';  class A {}");
-    newFile(a2, content: "part of 'a1.dart';");
-
-    // Build the store with the library.
-    var store = await createAnalysisDriver().test.getSummaryStore(a1);
-    expect(store.unlinkedMap.keys, contains(a1UriStr));
-    expect(store.unlinkedMap.keys, contains(a2UriStr));
-    expect(store.linkedMap.keys, contains(a1UriStr));
-
-    var driver = createAnalysisDriver(externalSummaries: store);
-    var libraryElement = await driver.getLibraryByUri(a1UriStr);
-    var classA = libraryElement.library.getType('A');
-
-    {
-      var parsedLibrary = driver.getParsedLibraryByUri(a1Uri);
-      expect(parsedLibrary, isNotNull);
-      expect(parsedLibrary.state, ResultState.NOT_A_FILE);
-      expect(() {
-        parsedLibrary.getElementDeclaration(classA);
-      }, throwsStateError);
-    }
-
-    // We can also get the result from the session.
-    {
-      var session = driver.currentSession;
-      var parsedLibrary = session.getParsedLibraryByElement(libraryElement);
-      expect(parsedLibrary, isNotNull);
-      expect(parsedLibrary.state, ResultState.NOT_A_FILE);
-      expect(() {
-        parsedLibrary.getElementDeclaration(classA);
-      }, throwsStateError);
-    }
-
-    // It is an error to ask for a library when we know that it is a part.
-    expect(() {
-      driver.getParsedLibraryByUri(a2Uri);
-    }, throwsArgumentError);
-  }
-
-  test_getResolvedLibrary_external() async {
-    var a1 = convertPath('/aaa/lib/a1.dart');
-    var a2 = convertPath('/aaa/lib/a2.dart');
-
-    var a1UriStr = 'package:aaa/a1.dart';
-    var a2UriStr = 'package:aaa/a2.dart';
-
-    newFile(a1, content: "part 'a2.dart';  class A {}");
-    newFile(a2, content: "part of 'a1.dart';");
-
-    // Build the store with the library.
-    var store = await createAnalysisDriver().test.getSummaryStore(a1);
-    expect(store.unlinkedMap.keys, contains(a1UriStr));
-    expect(store.unlinkedMap.keys, contains(a2UriStr));
-    expect(store.linkedMap.keys, contains(a1UriStr));
-
-    var driver = createAnalysisDriver(externalSummaries: store);
-    var libraryElement = await driver.getLibraryByUri(a1UriStr);
-    var classA = libraryElement.library.getType('A');
-
-    var resolvedLibrary = await driver.getResolvedLibrary(a1);
-    expect(resolvedLibrary, isNotNull);
-    expect(resolvedLibrary.state, ResultState.NOT_A_FILE);
-    expect(() {
-      resolvedLibrary.getElementDeclaration(classA);
-    }, throwsStateError);
-
-    // It is an error to ask for a library when we know that it is a part.
-    expect(() async {
-      await driver.getResolvedLibrary(a2);
-    }, throwsArgumentError);
-  }
-
-  test_getResolvedLibraryByUri_external() async {
-    var a1 = convertPath('/aaa/lib/a1.dart');
-    var a2 = convertPath('/aaa/lib/a2.dart');
-
-    var a1UriStr = 'package:aaa/a1.dart';
-    var a2UriStr = 'package:aaa/a2.dart';
-
-    var a1Uri = Uri.parse(a1UriStr);
-    var a2Uri = Uri.parse(a2UriStr);
-
-    newFile(a1, content: "part 'a2.dart';  class A {}");
-    newFile(a2, content: "part of 'a1.dart';");
-
-    // Build the store with the library.
-    var store = await createAnalysisDriver().test.getSummaryStore(a1);
-    expect(store.unlinkedMap.keys, contains(a1UriStr));
-    expect(store.unlinkedMap.keys, contains(a2UriStr));
-    expect(store.linkedMap.keys, contains(a1UriStr));
-
-    var driver = createAnalysisDriver(externalSummaries: store);
-    var libraryElement = await driver.getLibraryByUri(a1UriStr);
-    var classA = libraryElement.library.getType('A');
-
-    {
-      var resolvedLibrary = await driver.getResolvedLibraryByUri(a1Uri);
-      expect(resolvedLibrary, isNotNull);
-      expect(resolvedLibrary.state, ResultState.NOT_A_FILE);
-      expect(() {
-        resolvedLibrary.getElementDeclaration(classA);
-      }, throwsStateError);
-    }
-
-    // We can also get the result from the session.
-    {
-      var session = driver.currentSession;
-      var resolvedLibrary =
-          await session.getResolvedLibraryByElement(libraryElement);
-      expect(resolvedLibrary, isNotNull);
-      expect(resolvedLibrary.state, ResultState.NOT_A_FILE);
-      expect(() {
-        resolvedLibrary.getElementDeclaration(classA);
-      }, throwsStateError);
-    }
-
-    // It is an error to ask for a library when we know that it is a part.
-    expect(() async {
-      await driver.getResolvedLibraryByUri(a2Uri);
-    }, throwsArgumentError);
-  }
-
-  test_isLibraryByUri() async {
-    var a1 = '/aaa/lib/a1.dart';
-    var a2 = '/aaa/lib/a2.dart';
-    var b1 = '/bbb/lib/b1.dart';
-    var b2 = '/bbb/lib/b2.dart';
-
-    String a1UriStr = 'package:aaa/a1.dart';
-    String a2UriStr = 'package:aaa/a2.dart';
-    String b1UriStr = 'package:bbb/b1.dart';
-    String b2UriStr = 'package:bbb/b2.dart';
-
-    newFile(a1, content: "part 'a2.dart';");
-    newFile(a2, content: "part of 'a1.dart';");
-    newFile(b1, content: "part 'b2.dart';");
-    newFile(b2, content: "part of 'b1.dart';");
-
-    // Build the store with the library.
-    var store =
-        await createAnalysisDriver().test.getSummaryStore(convertPath(a1));
-    expect(store.unlinkedMap.keys, contains(a1UriStr));
-    expect(store.unlinkedMap.keys, contains(a2UriStr));
-    expect(store.linkedMap.keys, contains(a1UriStr));
-
-    // Remove the stored files from the file system.
-    deleteFile(a1);
-    deleteFile(a2);
-
-    // We can ask isLibraryByUri() for both external and local units.
-    AnalysisDriver driver = createAnalysisDriver(externalSummaries: store);
-    expect(driver.isLibraryByUri(Uri.parse(a1UriStr)), isTrue);
-    expect(driver.isLibraryByUri(Uri.parse(a2UriStr)), isFalse);
-    expect(driver.isLibraryByUri(Uri.parse(b1UriStr)), isTrue);
-    expect(driver.isLibraryByUri(Uri.parse(b2UriStr)), isFalse);
-  }
-}
-
-/// TODO(paulberry): migrate this test away from the task model.
-/// See dartbug.com/35734.
 @reflectiveTest
 class AnalysisDriverTest extends BaseAnalysisDriverTest {
-  void configurePreviewDart2() {
-    driver.configure(
-        analysisOptions: new AnalysisOptionsImpl.from(driver.analysisOptions));
-  }
-
   test_addedFiles() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -1278,8 +902,6 @@ class B {}
   }
 
   test_const_implicitCreation() async {
-    configurePreviewDart2();
-
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
     newFile(a, content: r'''
@@ -1304,8 +926,6 @@ const d = D.WARNING;
   }
 
   test_const_implicitCreation_rewrite() async {
-    configurePreviewDart2();
-
     var a = convertPath('/test/bin/a.dart');
     var b = convertPath('/test/bin/b.dart');
     newFile(a, content: r'''
@@ -1753,7 +1373,7 @@ class B {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.name.staticType.toString(), 'int Function()');
+    expect(f.declaredElement.type.toString(), 'int Function()');
     expect(f.returnType.type.toString(), 'int');
 
     // The same result is also received through the stream.
@@ -1954,10 +1574,7 @@ export 'dart:math';
     ResolvedUnitResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only exports for valid URIs.
-    List<ExportElement> imports = resolutionMap
-        .elementDeclaredByCompilationUnit(result.unit)
-        .library
-        .exports;
+    List<ExportElement> imports = result.libraryElement.exports;
     expect(imports.map((import) {
       return import.exportedLibrary?.source?.uri?.toString();
     }), ['dart:async', null, 'dart:math']);
@@ -1974,10 +1591,7 @@ import 'dart:math';
     ResolvedUnitResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     // Has only imports for valid URIs.
-    List<ImportElement> imports = resolutionMap
-        .elementDeclaredByCompilationUnit(result.unit)
-        .library
-        .imports;
+    List<ImportElement> imports = result.libraryElement.imports;
     expect(imports.map((import) {
       return import.importedLibrary?.source?.uri?.toString();
     }), ['dart:async', null, 'dart:math', 'dart:core']);
@@ -2318,7 +1932,7 @@ import 'package:test/b.dart';
     expect(driver.hasFilesToAnalyze, isFalse);
 
     // Request of referenced names is not analysis of a file.
-    driver.getFilesReferencingName('X');
+    await driver.getFilesReferencingName('X');
     expect(driver.hasFilesToAnalyze, isFalse);
   }
 
@@ -3295,7 +2909,7 @@ class F extends X {}
     expect(result.errors, hasLength(0));
 
     var f = result.unit.declarations[0] as FunctionDeclaration;
-    expect(f.name.staticType.toString(), 'int Function()');
+    expect(f.declaredElement.type.toString(), 'int Function()');
     expect(f.returnType.type.toString(), 'int');
   }
 
@@ -3452,9 +3066,8 @@ var v = 0
 
   String _getClassFieldType(
       CompilationUnit unit, String className, String fieldName) {
-    return resolutionMap
-        .elementDeclaredByVariableDeclaration(
-            _getClassField(unit, className, fieldName))
+    return _getClassField(unit, className, fieldName)
+        .declaredElement
         .type
         .toString();
   }
@@ -3474,9 +3087,8 @@ var v = 0
 
   String _getClassMethodReturnType(
       CompilationUnit unit, String className, String fieldName) {
-    return resolutionMap
-        .elementDeclaredByMethodDeclaration(
-            _getClassMethod(unit, className, fieldName))
+    return _getClassMethod(unit, className, fieldName)
+        .declaredElement
         .type
         .returnType
         .toString();
@@ -3506,10 +3118,7 @@ var v = 0
 
   String _getTopLevelVarType(CompilationUnit unit, String name) {
     VariableDeclaration variable = _getTopLevelVar(unit, name);
-    return resolutionMap
-        .elementDeclaredByVariableDeclaration(variable)
-        .type
-        .toString();
+    return variable.declaredElement.type.toString();
   }
 }
 

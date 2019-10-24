@@ -1,3 +1,48 @@
+## 0.38.5
+* Added the interface `PromotableElement`, which representing
+  variables that can be type promoted (local variables and parameters,
+  but not fields).
+* Deprecated the boolean `AnalysisDriver.useSummary2`.  Summary1 support has
+  been removed, so clients should assume Summary2 is in use now.
+* Deprecated the constructor argument `useDart2jsPaths` for SdkLibrariesReader.
+  We now always use Dart2js paths.
+* Bug fixes: #37608, #37708, #37867, #38498, #38565, #38572, #38589, #38641,
+  #38653, #38667, #38695, #38706.
+
+## 0.38.4
+* Bug fixes: #33300, #38484, #38505.
+
+## 0.38.3
+* Deprecated the following codes from `StaticWarningCode`.  Please use the
+  corresponding error codes from `CompileTimeErrorCode` instead:
+  * `EXTRA_POSITIONAL_ARGUMENTS`
+  * `EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED`
+  * `IMPORT_OF_NON_LIBRARY`
+  * `NOT_ENOUGH_REQUIRED_ARGUMENTS`
+  * `REDIRECT_TO_MISSING_CONSTRUCTOR`
+  * `REDIRECT_TO_NON_CLASS`
+  * `UNDEFINED_CLASS`
+  * `UNDEFINED_NAMED_PARAMETER`
+* Bug fixes: #33749, #35985, #37708, #37857, #37858, #37859, #37945, #38022,
+  #38057, #38071, #38091, #38095, #38105, #38113, #38198, #38202, #38203,
+  #38261, #38282, #38365, #38417, #38448, #38449.
+
+## 0.38.2
+* The type of `FunctionTypeAlias.declaredElement` has been refined to
+  `FunctionTypeAliasElement`.  Since the new type is a refinement of
+  the old one, the only effect on clients should be to make certain
+  casts unnecessary.
+* Deprecated `HintCode.INVALID_REQUIRED_PARAM` and replaced it with more
+  specific hints, `HintCode.INVALID_REQUIRED_NAMED_PARAM`,
+  `HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM`, and
+  `HintCode.INVALID_REQUIRED_POSITIONAL_PARAM` to address #36966.
+* Deprecated `CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS`.  It
+  has been renamed to
+  `CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS`.
+
+## 0.38.1
+* LinterVistor support for extension method AST nodes.
+
 ## 0.38.0
 * The deprecated method `AstFactory.compilationUnit2` has been removed.  Clients
   should switch back to `AstFactory.compilationUnit`.

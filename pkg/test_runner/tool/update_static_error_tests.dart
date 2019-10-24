@@ -11,6 +11,7 @@ import 'package:glob/glob.dart';
 
 import 'package:test_runner/src/command_output.dart';
 import 'package:test_runner/src/path.dart';
+import 'package:test_runner/src/static_error.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
 import 'package:test_runner/src/utils.dart';
@@ -143,17 +144,22 @@ Future<void> _processFile(File file,
   var source = file.readAsStringSync();
   var testFile = TestFile.parse(Path("."), file.path, source);
 
+  var options = testFile.sharedOptions.toList();
+  if (testFile.experiments.isNotEmpty) {
+    options.add("--enable-experiment=${testFile.experiments.join(',')}");
+  }
+
   var errors = <StaticError>[];
   if (insertAnalyzer) {
     stdout.write("\r${file.path} (Running analyzer...)");
-    errors.addAll(await _runAnalyzer(file.path, testFile.sharedOptions));
+    errors.addAll(await _runAnalyzer(file.path, options));
   }
 
   if (insertCfe) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    errors.addAll(await _runCfe(file.path, testFile.sharedOptions));
+    errors.addAll(await _runCfe(file.path, options));
   }
 
   errors = StaticError.simplify(errors);

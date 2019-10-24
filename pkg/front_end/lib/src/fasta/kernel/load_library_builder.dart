@@ -19,12 +19,12 @@ import 'package:kernel/ast.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'kernel_builder.dart' show Builder;
+import '../builder/builder.dart';
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
-class LoadLibraryBuilder extends Builder {
+class LoadLibraryBuilder extends BuilderImpl {
   final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;
@@ -42,8 +42,7 @@ class LoadLibraryBuilder extends Builder {
 
   LoadLibrary createLoadLibrary(
       int charOffset, Forest forest, Arguments arguments) {
-    return forest.createLoadLibrary(importDependency, arguments)
-      ..fileOffset = charOffset;
+    return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }
 
   Procedure createTearoffMethod(Forest forest) {
@@ -51,12 +50,12 @@ class LoadLibraryBuilder extends Builder {
     LoadLibrary expression = createLoadLibrary(charOffset, forest, null);
     String prefix = expression.import.name;
     tearoff = new Procedure(
-        new Name('__loadLibrary_$prefix', parent.target),
+        new Name('__loadLibrary_$prefix', parent.library),
         ProcedureKind.Method,
         new FunctionNode(new ReturnStatement(expression),
             returnType: new InterfaceType(parent.loader.coreTypes.futureClass,
                 <DartType>[const DynamicType()])),
-        fileUri: parent.target.fileUri,
+        fileUri: parent.library.fileUri,
         isStatic: true)
       ..startFileOffset = charOffset
       ..fileOffset = charOffset;

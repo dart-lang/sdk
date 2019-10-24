@@ -40,7 +40,9 @@ prebuilt_dart2js_action("build_observatory") {
     rebase_path(output),
     "--packages=" + rebase_path(".packages"),
   ]
-  if (!is_debug) {
+  if (is_debug) {
+    args += [ "--enable-asserts" ]
+  } else {
     args += [ "--minify" ]
   }
 }

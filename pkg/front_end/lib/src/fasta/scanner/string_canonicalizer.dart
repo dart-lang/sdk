@@ -7,7 +7,7 @@ library fasta.scanner.string_canonicalizer;
 import 'dart:convert';
 
 class Node {
-  var /* String | List<int> */ data;
+  dynamic /* String | List<int> */ data;
   int start;
   int end;
   String payload;
@@ -37,7 +37,7 @@ class StringCanonicalizer {
   List<Node> _nodes = new List<Node>(INITIAL_SIZE);
 
   static String decode(List<int> data, int start, int end, bool asciiOnly) {
-    var s;
+    String s;
     if (asciiOnly) {
       s = new String.fromCharCodes(data, start, end);
     } else {
@@ -63,8 +63,8 @@ class StringCanonicalizer {
   }
 
   rehash() {
-    var newSize = _size * 2;
-    var newNodes = new List<Node>(newSize);
+    int newSize = _size * 2;
+    List<Node> newNodes = new List<Node>(newSize);
     for (int i = 0; i < _size; i++) {
       Node t = _nodes[i];
       while (t != null) {

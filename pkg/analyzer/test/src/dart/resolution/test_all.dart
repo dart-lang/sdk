@@ -23,6 +23,7 @@ import 'function_type_alias_test.dart' as function_type_alias;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'import_prefix_test.dart' as import_prefix;
+import 'index_expression_test.dart' as index_expression;
 import 'instance_creation_test.dart' as instance_creation;
 import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
@@ -59,6 +60,7 @@ main() {
     generic_function_type.main();
     generic_type_alias.main();
     import_prefix.main();
+    index_expression.main();
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();

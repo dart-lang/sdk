@@ -6,8 +6,6 @@
 // contain a spread.
 // Regression test for https://github.com/dart-lang/sdk/issues/36812
 
-// SharedOptions=--enable-experiment=constant-update-2018
-
 const b = bool.fromEnvironment("foo");
 
 main() {

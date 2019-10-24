@@ -8,12 +8,21 @@ import 'id.dart';
 import '../fasta/colors.dart' as colors;
 
 const String cfeMarker = 'cfe';
+const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
 const String analyzerMarker = 'analyzer';
 
 /// Markers used in annotated tests shard by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
   cfeMarker,
+  dart2jsMarker,
+  analyzerMarker,
+];
+
+/// Markers used in annotated tests shard by CFE, analyzer and dart2js.
+const List<String> sharedMarkersWithNnbd = [
+  cfeMarker,
+  cfeWithNnbdMarker,
   dart2jsMarker,
   analyzerMarker,
 ];
@@ -214,6 +223,8 @@ TestData computeTestData(FileSystemEntity testFile,
             entry;
       }
     }
+    assert(
+        mainTestFile != null, "No 'main.dart' test file found for $testFile.");
   }
 
   String annotatedCode = new File.fromUri(mainTestFile.uri).readAsStringSync();

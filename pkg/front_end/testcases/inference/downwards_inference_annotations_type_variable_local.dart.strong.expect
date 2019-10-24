@@ -9,6 +9,6 @@ class Foo extends core::Object {
 }
 static method test() → void {
   function f<@self::Foo::•(const <core::String*>[]) T extends core::Object* = dynamic>() → void {}
-  <@self::Foo::•(const <core::String*>[]) T extends core::Object* = dynamic>() →* core::Null* x = <@self::Foo::•(const <core::String*>[]) T extends core::Object* = dynamic>() → core::Null* {};
+  <@self::Foo::•(const <core::String*>[]) T extends core::Object* = dynamic>() →* core::Null? x = <@self::Foo::•(const <core::String*>[]) T extends core::Object* = dynamic>() → core::Null? {};
 }
 static method main() → dynamic {}

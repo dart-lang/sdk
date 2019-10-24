@@ -88,7 +88,7 @@ test(String sdkRoot, {bool useElf: false}) async {
   }
   final int actual = await File(snapshotPath).length();
   final int expected = profile.accountedBytes;
-  Expect.isTrue((actual - expected).abs() / actual < 0.01);
+  Expect.isTrue((actual - expected).abs() / actual < 0.02);
 }
 
 Match matchComplete(RegExp regexp, String line) {

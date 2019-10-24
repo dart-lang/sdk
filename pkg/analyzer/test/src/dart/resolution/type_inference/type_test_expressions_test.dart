@@ -20,13 +20,12 @@ main() {
 @reflectiveTest
 class IsNotTest extends DriverResolutionTest {
   test_simple() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(Object a) {
   var b = a is! String;
   print(b);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('b)'), 'bool');
   }
 }
@@ -45,13 +44,12 @@ class IsNotWithNnbdTest extends IsNotTest {
 @reflectiveTest
 class IsTest extends DriverResolutionTest {
   test_simple() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(Object a) {
   var b = a is String;
   print(b);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('b)'), 'bool');
   }
 }

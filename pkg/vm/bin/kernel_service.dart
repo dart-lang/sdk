@@ -23,7 +23,7 @@ library runtime.tools.kernel_service;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io' show File, Platform, stderr hide FileSystemEntity;
+import 'dart:io' show Directory, File, Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -74,6 +74,7 @@ const int kNotifyIsolateShutdownTag = 6;
 bool allowDartInternalImport = false;
 
 abstract class Compiler {
+  final int isolateId;
   final FileSystem fileSystem;
   final Uri platformKernelPath;
   final bool suppressWarnings;
@@ -82,15 +83,22 @@ abstract class Compiler {
   final bool bytecode;
   final String packageConfig;
 
+  // Code coverage and hot reload are only supported by incremental compiler,
+  // which is used if vm-service is enabled.
+  final bool supportCodeCoverage;
+  final bool supportHotReload;
+
   final List<String> errors = new List<String>();
 
   CompilerOptions options;
 
-  Compiler(this.fileSystem, this.platformKernelPath,
+  Compiler(this.isolateId, this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
       this.enableAsserts: false,
       this.experimentalFlags: null,
       this.bytecode: false,
+      this.supportCodeCoverage: false,
+      this.supportHotReload: false,
       this.packageConfig: null}) {
     Uri packagesUri = null;
     if (packageConfig != null) {
@@ -139,7 +147,6 @@ abstract class Compiler {
           case Severity.warning:
             printMessage = !suppressWarnings;
             break;
-          case Severity.errorLegacyWarning:
           case Severity.context:
           case Severity.ignored:
             throw "Unexpected severity: ${message.severity}";
@@ -155,29 +162,39 @@ abstract class Compiler {
       CompilerResult compilerResult = await compileInternal(script);
       Component component = compilerResult.component;
 
+      if (errors.isEmpty) {
+        // Record dependencies only if compilation was error free, and before
+        // createFreshComponentWithBytecode drops the uriToSource table.
+        _recordDependencies(isolateId, component, options.packagesFileUri);
+      }
+
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
-          // TODO(alexmarkov): disable source positions, local variables info,
+          // TODO(alexmarkov): disable local variables info,
           //  debugger stops and source files in VM PRODUCT mode.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
               coreTypes: compilerResult.coreTypes,
               hierarchy: compilerResult.classHierarchy,
               options: new BytecodeOptions(
-                  enableAsserts: enableAsserts,
-                  environmentDefines: options.environmentDefines,
-                  // Needed both for stack traces and the debugger.
-                  emitSourcePositions: true,
-                  // Only needed when the debugger is available.
-                  emitLocalVarInfo: true,
-                  // Only needed when the debugger is available.
-                  emitDebuggerStops: true,
-                  // Only needed when the VM service is available.
-                  emitSourceFiles: true,
-                  // Only needed when reload is available.
-                  emitInstanceFieldInitializers: true,
-                  // Only needed when mirrors are available.
-                  emitAnnotations: true));
+                enableAsserts: enableAsserts,
+                environmentDefines: options.environmentDefines,
+                // Needed both for stack traces and the debugger.
+                emitSourcePositions: true,
+                // Only needed when the debugger is available.
+                emitLocalVarInfo: true,
+                // Only needed when the debugger is available.
+                emitDebuggerStops: true,
+                // Only needed when the VM service is available.
+                emitSourceFiles: true,
+                // Only needed when reload is available.
+                emitInstanceFieldInitializers: supportHotReload,
+                // Only needed when mirrors are available.
+                emitAnnotations: true,
+                // Only needed when observatory (source report) is available.
+                keepUnreachableCode: supportCodeCoverage,
+                avoidClosureCallInstructions: supportCodeCoverage,
+              ));
           component = createFreshComponentWithBytecode(component);
         });
       }
@@ -239,17 +256,20 @@ class FileSink implements Sink<List<int>> {
 class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompiler generator;
 
-  IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+  IncrementalCompilerWrapper(
+      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
-      : super(fileSystem, platformKernelPath,
+      : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
+            supportHotReload: true,
+            supportCodeCoverage: true,
             packageConfig: packageConfig);
 
   @override
@@ -268,7 +288,7 @@ class IncrementalCompilerWrapper extends Compiler {
 
   Future<IncrementalCompilerWrapper> clone(int isolateId) async {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
-        fileSystem, platformKernelPath,
+        isolateId, fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
@@ -296,14 +316,15 @@ class IncrementalCompilerWrapper extends Compiler {
 class SingleShotCompilerWrapper extends Compiler {
   final bool requireMain;
 
-  SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
+  SingleShotCompilerWrapper(
+      int isolateId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
       bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
-      : super(fileSystem, platformKernelPath,
+      : super(isolateId, fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
             enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
@@ -360,7 +381,8 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // destroyed when corresponding isolate is shut down. To achieve that kernel
       // isolate needs to receive a message indicating that particular
       // isolate was shut down. Message should be handled here in this script.
-      compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
+      compiler = new IncrementalCompilerWrapper(
+          isolateId, fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
           enableAsserts: enableAsserts,
           experimentalFlags: experimentalFlags,
@@ -463,7 +485,7 @@ Future _processExpressionCompilationRequest(request) async {
 }
 
 void _recordDependencies(
-    int isolateId, Component component, String packageConfig) {
+    int isolateId, Component component, Uri packageConfig) {
   final dependencies = isolateDependencies[isolateId] ??= new List<Uri>();
 
   if (component != null) {
@@ -484,7 +506,7 @@ void _recordDependencies(
   }
 
   if (packageConfig != null) {
-    dependencies.add(Uri.parse(packageConfig));
+    dependencies.add(packageConfig);
   }
 }
 
@@ -522,7 +544,21 @@ Future _processLoadRequest(request) async {
   if (verbose) {
     for (int i = 0; i < request.length; i++) {
       var part = request[i];
-      String partToString = part.toString();
+      String partToString;
+      if (part is List && part.isNotEmpty) {
+        // Assume this is large and printing all of it takes a lot of time.
+        StringBuffer sb = new StringBuffer();
+        String prepend = "[";
+        for (int j = 0; j < part.length; j++) {
+          sb.write(prepend);
+          sb.write(part[j]);
+          prepend = ", ";
+          if (sb.length > 256) break;
+        }
+        partToString = sb.toString();
+      } else {
+        partToString = part.toString();
+      }
       if (partToString.length > 256) {
         partToString = partToString.substring(0, 255) + "...";
       }
@@ -626,7 +662,8 @@ Future _processLoadRequest(request) async {
   } else {
     FileSystem fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
+    compiler = new SingleShotCompilerWrapper(
+        isolateId, fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
         enableAsserts: enableAsserts,
@@ -651,8 +688,6 @@ Future _processLoadRequest(request) async {
         result = new CompilationResult.errors(compiler.errors, null);
       }
     } else {
-      // Record dependencies only if compilation was error free.
-      _recordDependencies(isolateId, component, packageConfig);
       // We serialize the component excluding vm_platform.dill because the VM has
       // these sources built-in. Everything loaded as a summary in
       // [kernelForProgram] is marked `external`, so we can use that bit to
@@ -670,7 +705,7 @@ Future _processLoadRequest(request) async {
     // In training mode make sure to read the sdk a few more times...
     ProcessedOptions p = new ProcessedOptions(options: compiler.options);
     var bytes = await p.loadSdkSummaryBytes();
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 5; i++) {
       p.loadComponent(bytes, null);
     }
 
@@ -731,7 +766,32 @@ FileSystem _buildFileSystem(List sourceFiles, List<int> platformKernel,
   return fileSystem;
 }
 
-train(String scriptUri, String platformKernelPath, bool bytecode) {
+train(String scriptUri, String platformKernelPath, bool bytecode) async {
+  // Train on program asked to train on.
+  await trainInternal(scriptUri, platformKernelPath, bytecode);
+
+  // Also train a few times on a hello-world program to make sure we exercise
+  // the startup sequence.
+  Directory tmpDir =
+      Directory.systemTemp.createTempSync("kernel_service_train");
+  File helloDart = new File.fromUri(tmpDir.uri.resolve("hello.dart"));
+  helloDart.writeAsStringSync("""
+          main() {
+            print("Hello, World!");
+          }
+          """);
+  try {
+    for (int i = 0; i < 10; i++) {
+      await trainInternal(
+          helloDart.uri.toString(), platformKernelPath, bytecode);
+    }
+  } finally {
+    tmpDir.deleteSync(recursive: true);
+  }
+}
+
+Future trainInternal(
+    String scriptUri, String platformKernelPath, bool bytecode) async {
   var tag = kTrainTag;
   var responsePort = new RawReceivePort();
   responsePort.handler = (response) {
@@ -762,7 +822,7 @@ train(String scriptUri, String platformKernelPath, bool bytecode) {
     null /* multirootFilepaths */,
     null /* multirootScheme */,
   ];
-  _processLoadRequest(request);
+  await _processLoadRequest(request);
 }
 
 main([args]) {

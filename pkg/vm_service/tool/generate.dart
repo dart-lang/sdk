@@ -46,7 +46,11 @@ _generateDart(String appDirPath, List<Node> nodes) async {
   dart.api.parse(nodes);
   dart.api.generate(generator);
   outputFile.writeAsStringSync(generator.toString());
-  Process.runSync('dartfmt', ['-w', outDirPath]);
+  ProcessResult result = Process.runSync('dartfmt', ['-w', outDirPath]);
+  if (result.exitCode != 0) {
+    print('dartfmt: ${result.stdout}\n${result.stderr}');
+    throw result.exitCode;
+  }
 
   if (_stampPubspecVersion) {
     // Update the pubspec file.
@@ -99,7 +103,11 @@ _generateAsserts(String appDirPath, List<Node> nodes) async {
   dart.api.parse(nodes);
   dart.api.generateAsserts(generator);
   outputFile.writeAsStringSync(generator.toString());
-  Process.runSync('dartfmt', ['-w', outDirPath]);
+  ProcessResult result = Process.runSync('dartfmt', ['-w', outDirPath]);
+  if (result.exitCode != 0) {
+    print('dartfmt: ${result.stdout}\n${result.stderr}');
+    throw result.exitCode;
+  }
 
   if (_stampPubspecVersion) {
     // Update the pubspec file.

@@ -10,10 +10,9 @@ import '../core_types.dart';
 final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
-  final bool legacyMode;
   final bool trackWidgetCreation;
 
-  TargetFlags({this.legacyMode = false, this.trackWidgetCreation = false});
+  TargetFlags({this.trackWidgetCreation = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -84,7 +83,22 @@ abstract class Target {
   /// A list of URIs of required libraries, not including dart:core.
   ///
   /// Libraries will be loaded in order.
-  List<String> get extraRequiredLibraries => <String>[];
+  List<String> get extraRequiredLibraries => const <String>[];
+
+  /// A list of URIs of extra required libraries when compiling the platform.
+  ///
+  /// Libraries will be loaded in order after the [extraRequiredLibraries]
+  /// above.
+  ///
+  /// Normally not needed, but can be useful if removing libraries from the
+  /// [extraRequiredLibraries] list so libraries will still be available in the
+  /// platform if having a weird mix of current and not-quite-current as can
+  /// sometimes be the case.
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
+
+  /// A list of URIs of libraries to be indexed in the CoreTypes index, not
+  /// including dart:_internal, dart:async, dart:core and dart:mirrors.
+  List<String> get extraIndexedLibraries => const <String>[];
 
   /// Additional declared variables implied by this target.
   ///
@@ -96,8 +110,6 @@ abstract class Target {
   /// Classes from the SDK whose interface is required for the modular
   /// transformations.
   Map<String, List<String>> get requiredSdkClasses => CoreTypes.requiredClasses;
-
-  bool get legacyMode;
 
   /// A derived class may change this to `true` to enable forwarders to
   /// user-defined `noSuchMethod` that are generated for each abstract member
@@ -259,7 +271,6 @@ class NoneTarget extends Target {
 
   NoneTarget(this.flags);
 
-  bool get legacyMode => flags.legacyMode;
   String get name => 'none';
   List<String> get extraRequiredLibraries => <String>[];
   void performModularTransformationsOnLibraries(

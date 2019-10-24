@@ -1712,6 +1712,33 @@ A T;''');
     assertNotSuggested('x');
   }
 
+  test_classReference_in_comment() async {
+    addTestSource(r'''
+class Abc { }
+class Abcd { }
+
+// A^
+class Foo {  }
+''');
+    await computeSuggestions();
+    assertNotSuggested('Abc');
+    assertNotSuggested('Abcd');
+  }
+
+  /// see: https://github.com/dart-lang/sdk/issues/36037
+  @failingTest
+  test_classReference_in_comment_eof() async {
+    addTestSource(r'''
+class Abc { }
+class Abcd { }
+
+// A^
+''');
+    await computeSuggestions();
+    assertNotSuggested('Abc');
+    assertNotSuggested('Abcd');
+  }
+
   test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/home/test/lib/ab.dart', '''
@@ -4950,7 +4977,24 @@ class LocalReferenceContributorWithExtensionMethodsTest
     super.setUp();
   }
 
-  test_extensionDeclaration_body() async {
+  test_extensionDeclaration_inMethod() async {
+    // ExtensionDeclaration  CompilationUnit
+    addTestSource('''
+extension E on int {}
+class C {
+  void m() {
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('E');
+  }
+
+  test_extensionDeclaration_notInBody() async {
     // ExtensionDeclaration  CompilationUnit
     addSource('/home/test/lib/b.dart', '''
 class B { }''');
@@ -4973,5 +5017,15 @@ A T;''');
     assertNotSuggested('E');
     // Suggested by LibraryPrefixContributor
     assertNotSuggested('x');
+  }
+
+  test_extensionDeclaration_unnamed() async {
+    addTestSource('''
+extension on String {
+  void something() => this.^
+}
+''');
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 }

@@ -34,11 +34,16 @@ void main(List<String> argv) {
     exit(1);
   }
 
+  var sdk = 'sdk';
+  if (argv.length > 3) {
+    sdk = argv[3];
+  }
+
   var selfModifyTime = File(self).lastModifiedSync().millisecondsSinceEpoch;
 
   var repoDir = argv[0];
   var patchDir = argv[1];
-  var sdkLibIn = p.join(repoDir, 'sdk', 'lib');
+  var sdkLibIn = p.join(repoDir, sdk, 'lib');
   var patchIn = p.join(patchDir, 'patch');
   var privateIn = p.join(patchDir, 'private');
   var sdkOut = p.join(argv[2], 'lib');
@@ -477,7 +482,7 @@ List<SdkLibrary> _getSdkLibraries(String contents) {
   // TODO(jmesserly): fix SdkLibrariesReader_LibraryBuilder in Analyzer.
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
-  var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
+  var libraryBuilder = SdkLibrariesReader_LibraryBuilder();
   parseString(content: contents).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }

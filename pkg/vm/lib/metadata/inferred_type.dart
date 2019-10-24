@@ -47,6 +47,8 @@ class InferredType {
   bool get isInt => (_flags & flagInt) != 0;
   bool get skipCheck => (_flags & flagSkipCheck) != 0;
 
+  int get flags => _flags;
+
   @override
   String toString() {
     final base =
@@ -65,8 +67,10 @@ class InferredType {
 
 /// Repository for [InferredType].
 class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
+  static const String repositoryTag = 'vm.inferred-type.metadata';
+
   @override
-  final String tag = 'vm.inferred-type.metadata';
+  String get tag => repositoryTag;
 
   @override
   final Map<TreeNode, InferredType> mapping = <TreeNode, InferredType>{};

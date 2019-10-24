@@ -60,8 +60,10 @@ class ServiceExtensionRegistry {
   /// [EventKind.kServiceRegistered].
   Event _toRegistrationEvent(String method,
           {String kind = EventKind.kServiceRegistered}) =>
-      Event()
-        ..kind = kind
-        ..service = method
-        ..method = method;
+      Event(
+        kind: kind,
+        service: method,
+        method: method,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      );
 }

@@ -15,10 +15,10 @@ void harnessTest(String name, void doTest(TestHarness harness)) {
 
 main() {
   harnessTest('`Foo` where typedef Foo = C', (TestHarness harness) {
-    var foo = new Typedef('Foo', harness.otherClass.rawType);
+    var foo = new Typedef('Foo', harness.otherLegacyRawType);
     harness.enclosingLibrary.addTypedef(foo);
     var type = new TypedefType(foo);
-    expect(type.unalias, equals(harness.otherClass.rawType));
+    expect(type.unalias, equals(harness.otherLegacyRawType));
   });
   harnessTest('`Foo<Obj>` where typedef Foo<T> = C<T>', (TestHarness harness) {
     var param = harness.makeTypeParameter('T');
@@ -26,9 +26,9 @@ main() {
         new InterfaceType(harness.otherClass, [new TypeParameterType(param)]),
         typeParameters: [param]);
     harness.enclosingLibrary.addTypedef(foo);
-    var input = new TypedefType(foo, [harness.objectClass.rawType]);
+    var input = new TypedefType(foo, [harness.objectLegacyRawType]);
     var expected =
-        new InterfaceType(harness.otherClass, [harness.objectClass.rawType]);
+        new InterfaceType(harness.otherClass, [harness.objectLegacyRawType]);
     expect(input.unalias, equals(expected));
   });
   harnessTest('`Bar<Obj>` where typedef Bar<T> = Foo<T>, Foo<T> = C<T>',
@@ -45,9 +45,9 @@ main() {
         typeParameters: [barParam]);
     harness.enclosingLibrary.addTypedef(foo);
     harness.enclosingLibrary.addTypedef(bar);
-    var input = new TypedefType(bar, [harness.objectClass.rawType]);
+    var input = new TypedefType(bar, [harness.objectLegacyRawType]);
     var expected =
-        new InterfaceType(harness.otherClass, [harness.objectClass.rawType]);
+        new InterfaceType(harness.otherClass, [harness.objectLegacyRawType]);
     expect(input.unalias, equals(expected));
   });
   harnessTest('`Foo<Foo<C>>` where typedef Foo<T> = C<T>',
@@ -58,10 +58,10 @@ main() {
         typeParameters: [param]);
     harness.enclosingLibrary.addTypedef(foo);
     var input = new TypedefType(foo, [
-      new TypedefType(foo, [harness.objectClass.rawType])
+      new TypedefType(foo, [harness.objectLegacyRawType])
     ]);
     var expected = new InterfaceType(harness.otherClass, [
-      new TypedefType(foo, [harness.objectClass.rawType])
+      new TypedefType(foo, [harness.objectLegacyRawType])
     ]);
     expect(input.unalias, equals(expected));
   });

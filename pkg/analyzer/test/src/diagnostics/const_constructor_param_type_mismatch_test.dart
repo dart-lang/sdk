@@ -18,13 +18,6 @@ main() {
 @reflectiveTest
 class ConstConstructorParamTypeMismatchTest extends DriverResolutionTest {
   test_int_to_double_reference_from_other_library_other_file_after() async {
-    addTestFile('''
-class C {
-  final double d;
-  const C(this.d);
-}
-const C constant = const C(0);
-''');
     newFile('/test/lib/other.dart', content: '''
 import 'test.dart';
 class D {
@@ -33,7 +26,13 @@ class D {
 }
 const D constant2 = const D(constant);
 ''');
-    await resolveTestFile();
+    await resolveTestCode('''
+class C {
+  final double d;
+  const C(this.d);
+}
+const C constant = const C(0);
+''');
     assertNoTestErrors();
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
@@ -41,7 +40,7 @@ const D constant2 = const D(constant);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
-    addTestFile('''
+    await resolveTestCode('''
 class C {
   final double d;
   const C(this.d);
@@ -59,37 +58,34 @@ const D constant2 = const D(constant);
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_int_to_double_single_library() async {
-    addTestFile('''
+    await resolveTestCode('''
 class C {
   final double d;
   const C(this.d);
 }
 const C constant = const C(0);
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
   }
 
   test_int_to_double_via_default_value_other_file_after() async {
-    addTestFile('''
-import 'other.dart';
-
-void main() {
-  const c = C();
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class C {
   final double x;
   const C([this.x = 0]);
 }
 ''');
-    await resolveTestFile();
+    await resolveTestCode('''
+import 'other.dart';
+
+void main() {
+  const c = C();
+}
+''');
     assertNoTestErrors();
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
@@ -97,13 +93,6 @@ class C {
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
-    addTestFile('''
-import 'other.dart';
-
-void main() {
-  const c = C();
-}
-''');
     newFile('/test/lib/other.dart', content: '''
 class C {
   final double x;
@@ -113,7 +102,14 @@ class C {
     var otherFileResult =
         await resolveFile(convertPath('/test/lib/other.dart'));
     expect(otherFileResult.errors, isEmpty);
-    await resolveTestFile();
+
+    await resolveTestCode('''
+import 'other.dart';
+
+void main() {
+  const c = C();
+}
+''');
     assertNoTestErrors();
   }
 }

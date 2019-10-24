@@ -6,6 +6,10 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+extensions/extension_setter_error: TypeCheckError
+extensions/instance_access_of_static: RuntimeError
+extensions/invalid_explicit_access: RuntimeError
+extensions/static_access_of_instance: RuntimeError
 general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
@@ -16,14 +20,19 @@ general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/bug32629: InstrumentationMismatch # Test has an intentional error
 general/call: TypeCheckError
+general/candidate_found: TypeCheckError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_generic: RuntimeError
 general/duplicated_declarations: TypeCheckError
 general/duplicated_field_initializer: RuntimeError
 general/dynamic_and_void: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/error_locations/error_location_01: RuntimeError
+general/error_locations/error_location_02: RuntimeError
+general/error_locations/error_location_03: RuntimeError
+general/error_locations/error_location_05: RuntimeError
+general/error_locations/error_location_06: RuntimeError
 general/expressions: RuntimeError
-general/extension_methods: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: ExpectationFileMismatch
 general/ignore_function: TypeCheckError
@@ -44,9 +53,11 @@ general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue 
 general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
 general/statements: Crash
+general/type_variable_bound_access: TypeCheckError
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: RuntimeError
@@ -73,7 +84,6 @@ inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheck
 inference/generic_methods_infer_js_builtin: InstrumentationMismatch # Issue #30029
 inference/inconsistent_overrides: TypeCheckError
 inference/infer_field_override_multiple: TypeCheckError
-inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError # Issue #35630
 inference/infer_method_missing_params: ExpectationFileMismatch # Not supposed to be able to infer types if supertypes disagree on number of parameters. An error may be missing as C.f and B.f are not compatible at all.
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
@@ -86,7 +96,6 @@ inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
 inference/override_equals: RuntimeError
-inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: InstrumentationMismatch # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: InstrumentationMismatch # Issue #25824
 inference_new/dependency_only_if_overloaded: TypeCheckError
@@ -140,8 +149,8 @@ rasta/super: TypeCheckError
 rasta/super_initializer: RuntimeError
 rasta/super_mixin: TypeCheckError
 rasta/super_operator: TypeCheckError
-rasta/type_literals: Crash
-rasta/typedef: Crash
+rasta/type_literals: RuntimeError
+rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError
 rasta/unresolved_constructor: RuntimeError
 rasta/unresolved_for_in: RuntimeError

@@ -5,9 +5,11 @@ library kernel.ast_from_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import '../ast.dart';
+import '../src/bounds_checks.dart' show computeVariance;
 import '../transformations/flags.dart';
 import 'tag.dart';
 
@@ -58,6 +60,15 @@ class _ComponentIndex {
   int componentFileSizeInBytes;
 }
 
+class SubComponentView {
+  final List<Library> libraries;
+  final int componentStartOffset;
+  final int componentFileSize;
+
+  SubComponentView(
+      this.libraries, this.componentStartOffset, this.componentFileSize);
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -87,11 +98,21 @@ class BinaryBuilder {
   /// will not be resolved correctly.
   bool _disableLazyReading = false;
 
+  /// If binary contains metadata section with payloads referencing other nodes
+  /// such Kernel binary can't be read lazily because metadata cross references
+  /// will not be resolved correctly.
+  bool _disableLazyClassReading = false;
+
+  /// Note that [disableLazyClassReading] is incompatible
+  /// with checkCanonicalNames on readComponent.
   BinaryBuilder(this._bytes,
       {this.filename,
       bool disableLazyReading = false,
+      bool disableLazyClassReading = false,
       bool alwaysCreateNewNamedNodes})
       : _disableLazyReading = disableLazyReading,
+        _disableLazyClassReading =
+            disableLazyReading || disableLazyClassReading,
         this.alwaysCreateNewNamedNodes = alwaysCreateNewNamedNodes ?? false;
 
   fail(String message) {
@@ -415,6 +436,7 @@ class BinaryBuilder {
   }
 
   List<int> _indexComponents() {
+    _checkEmptyInput();
     int savedByteOffset = _byteOffset;
     _byteOffset = _bytes.length - 4;
     List<int> index = <int>[];
@@ -431,38 +453,63 @@ class BinaryBuilder {
     return new List.from(index.reversed);
   }
 
+  void _checkEmptyInput() {
+    if (_bytes.length == 0) throw new StateError("Empty input given.");
+  }
+
   /// Deserializes a kernel component and stores it in [component].
   ///
   /// When linking with a non-empty component, canonical names must have been
   /// computed ahead of time.
   ///
   /// The input bytes may contain multiple files concatenated.
-  void readComponent(Component component, {bool checkCanonicalNames: false}) {
-    // Check that we have a .dill file and it has the correct version before we
-    // start decoding it.  Otherwise we will fail for cryptic reasons.
-    int offset = _byteOffset;
-    int magic = readUint32();
-    if (magic != Tag.ComponentFile) {
-      throw ArgumentError('Not a .dill file (wrong magic number).');
-    }
-    int version = readUint32();
-    if (version != Tag.BinaryFormatVersion) {
-      throw InvalidKernelVersionError(version);
-    }
-    _byteOffset = offset;
-    List<int> componentFileSizes = _indexComponents();
-    if (componentFileSizes.length > 1) {
-      _disableLazyReading = true;
-    }
-    int componentFileIndex = 0;
-    while (_byteOffset < _bytes.length) {
-      _readOneComponent(component, componentFileSizes[componentFileIndex]);
-      ++componentFileIndex;
-    }
+  ///
+  /// If [createView] is true, returns a list of [SubComponentView] - one for
+  /// each concatenated dill - each of which knowing where in the combined dill
+  /// it came from. If [createView] is false null will be returned.
+  List<SubComponentView> readComponent(Component component,
+      {bool checkCanonicalNames: false, bool createView: false}) {
+    return Timeline.timeSync<List<SubComponentView>>(
+        "BinaryBuilder.readComponent", () {
+      _checkEmptyInput();
 
-    if (checkCanonicalNames) {
-      _checkCanonicalNameChildren(component.root);
-    }
+      // Check that we have a .dill file and it has the correct version before we
+      // start decoding it.  Otherwise we will fail for cryptic reasons.
+      int offset = _byteOffset;
+      int magic = readUint32();
+      if (magic != Tag.ComponentFile) {
+        throw ArgumentError('Not a .dill file (wrong magic number).');
+      }
+      int version = readUint32();
+      if (version != Tag.BinaryFormatVersion) {
+        throw InvalidKernelVersionError(version);
+      }
+      _byteOffset = offset;
+      List<int> componentFileSizes = _indexComponents();
+      if (componentFileSizes.length > 1) {
+        _disableLazyReading = true;
+        _disableLazyClassReading = true;
+      }
+      int componentFileIndex = 0;
+      List<SubComponentView> views;
+      if (createView) {
+        views = new List<SubComponentView>();
+      }
+      while (_byteOffset < _bytes.length) {
+        SubComponentView view = _readOneComponent(
+            component, componentFileSizes[componentFileIndex],
+            createView: createView);
+        if (createView) {
+          views.add(view);
+        }
+        ++componentFileIndex;
+      }
+
+      if (checkCanonicalNames) {
+        _checkCanonicalNameChildren(component.root);
+      }
+      return views;
+    });
   }
 
   /// Deserializes the source and stores it in [component].
@@ -472,6 +519,7 @@ class BinaryBuilder {
     List<int> componentFileSizes = _indexComponents();
     if (componentFileSizes.length > 1) {
       _disableLazyReading = true;
+      _disableLazyClassReading = true;
     }
     int componentFileIndex = 0;
     while (_byteOffset < _bytes.length) {
@@ -576,10 +624,10 @@ class BinaryBuilder {
     result.libraryOffsets = new List<int>(result.libraryCount + 1);
     result.componentFileSizeInBytes = readUint32();
     if (result.componentFileSizeInBytes != componentFileSize) {
-      throw 'Malformed binary: This component file\'s component index indicates that'
-          ' the filesize should be $componentFileSize but other component indexes'
-          ' has indicated that the size should be '
-          '${result.componentFileSizeInBytes}.';
+      throw "Malformed binary: This component file's component index indicates that"
+          " the file size should be $componentFileSize but other component indexes"
+          " has indicated that the size should be "
+          "${result.componentFileSizeInBytes}.";
     }
 
     // Skip to the start of the index.
@@ -623,12 +671,13 @@ class BinaryBuilder {
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
-    component.uriToSource.addAll(uriToSource);
+    _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = _componentStartOffset + componentFileSize;
   }
 
-  void _readOneComponent(Component component, int componentFileSize) {
+  SubComponentView _readOneComponent(Component component, int componentFileSize,
+      {bool createView: false}) {
     _componentStartOffset = _byteOffset;
 
     final int magic = readUint32();
@@ -664,15 +713,25 @@ class BinaryBuilder {
 
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<Uri, Source> uriToSource = readUriToSource();
-    component.uriToSource.addAll(uriToSource);
+    _mergeUriToSource(component.uriToSource, uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
     readConstantTable();
 
     int numberOfLibraries = index.libraryCount;
+
+    SubComponentView result;
+    if (createView) {
+      result = new SubComponentView(new List<Library>(numberOfLibraries),
+          _componentStartOffset, componentFileSize);
+    }
+
     for (int i = 0; i < numberOfLibraries; ++i) {
       _byteOffset = index.libraryOffsets[i];
-      readLibrary(component, index.libraryOffsets[i + 1]);
+      Library library = readLibrary(component, index.libraryOffsets[i + 1]);
+      if (createView) {
+        result.libraries[i] = library;
+      }
     }
 
     var mainMethod =
@@ -680,6 +739,10 @@ class BinaryBuilder {
     component.mainMethodName ??= mainMethod;
 
     _byteOffset = _componentStartOffset + componentFileSize;
+
+    assert(typeParameterStack.isEmpty);
+
+    return result;
   }
 
   /// Read a list of strings. If the list is empty, [null] is returned.
@@ -728,6 +791,23 @@ class BinaryBuilder {
       readUint32();
     }
     return uriToSource;
+  }
+
+  // Add everything from [src] into [dst], but don't overwrite a non-empty
+  // source with an empty source. Empty sources may be introduced by
+  // synthetic, copy-down implementations such as mixin applications or
+  // noSuchMethod forwarders.
+  void _mergeUriToSource(Map<Uri, Source> dst, Map<Uri, Source> src) {
+    if (dst.isEmpty) {
+      // Fast path for the common case of one component per binary.
+      dst.addAll(src);
+    } else {
+      src.forEach((Uri key, Source value) {
+        if (value.source.isNotEmpty || !dst.containsKey(key)) {
+          dst[key] = value;
+        }
+      });
+    }
   }
 
   CanonicalName readCanonicalNameReference() {
@@ -873,6 +953,11 @@ class BinaryBuilder {
       return readClass(classOffsets[index + 1]);
     }, library);
     _byteOffset = classOffsets.last;
+
+    _mergeNamedNodeList(library.extensions, (index) {
+      return readExtension();
+    }, library);
+
     _mergeNamedNodeList(library.fields, (index) => readField(), library);
     _mergeNamedNodeList(library.procedures, (index) {
       _byteOffset = procedureOffsets[index];
@@ -909,6 +994,7 @@ class BinaryBuilder {
   void _readAdditionalExports(Library library) {
     int numExportedReference = readUInt();
     if (numExportedReference != 0) {
+      library.additionalExports.clear();
       for (int i = 0; i < numExportedReference; i++) {
         CanonicalName exportedName = readCanonicalNameReference();
         Reference reference = exportedName.getReference();
@@ -965,10 +1051,16 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
     readAndPushTypeParameterList(node.typeParametersOfFunctionType, node);
+    node.positionalParameters.clear();
     node.positionalParameters.addAll(readAndPushVariableDeclarationList());
+    node.namedParameters.clear();
     node.namedParameters.addAll(readAndPushVariableDeclarationList());
     typeParameterStack.length = 0;
     variableStack.length = 0;
+    for (int i = 0; i < node.typeParameters.length; ++i) {
+      node.typeParameters[i].variance =
+          computeVariance(node.typeParameters[i], type);
+    }
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.name = name;
@@ -1004,7 +1096,9 @@ class BinaryBuilder {
     }
     bool shouldWriteData = node == null || _isReadingLibraryImplementation;
     if (node == null) {
-      node = new Class(reference: reference)..level = ClassLevel.Temporary;
+      node = new Class(reference: reference)
+        ..level = ClassLevel.Temporary
+        ..dirty = false;
     }
 
     var fileUri = readUriReference();
@@ -1024,6 +1118,9 @@ class BinaryBuilder {
       debugPath.add(node.name ?? 'normal-class');
       return true;
     }());
+
+    assert(typeParameterStack.length == 0);
+
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
@@ -1032,16 +1129,12 @@ class BinaryBuilder {
     } else {
       _skipNodeList(readSupertype);
     }
-    _mergeNamedNodeList(node.fields, (index) => readField(), node);
-    _mergeNamedNodeList(node.constructors, (index) => readConstructor(), node);
+    if (_disableLazyClassReading) {
+      readClassPartialContent(node, procedureOffsets);
+    } else {
+      _setLazyLoadClass(node, procedureOffsets);
+    }
 
-    _mergeNamedNodeList(node.procedures, (index) {
-      _byteOffset = procedureOffsets[index];
-      return readProcedure(procedureOffsets[index + 1]);
-    }, node);
-    _byteOffset = procedureOffsets.last;
-    _mergeNamedNodeList(node.redirectingFactoryConstructors,
-        (index) => readRedirectingFactoryConstructor(), node);
     typeParameterStack.length = 0;
     assert(debugPath.removeLast() != null);
     if (shouldWriteData) {
@@ -1055,6 +1148,93 @@ class BinaryBuilder {
     _byteOffset = endOffset;
 
     return node;
+  }
+
+  Extension readExtension() {
+    int tag = readByte();
+    assert(tag == Tag.Extension);
+
+    CanonicalName canonicalName = readCanonicalNameReference();
+    Reference reference = canonicalName.getReference();
+    Extension node = reference.node;
+    if (alwaysCreateNewNamedNodes) {
+      node = null;
+    }
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new Extension(reference: reference);
+    }
+
+    String name = readStringOrNullIfEmpty();
+    assert(() {
+      debugPath.add(node.name ?? 'extension');
+      return true;
+    }());
+
+    Uri fileUri = readUriReference();
+    node.fileOffset = readOffset();
+
+    readAndPushTypeParameterList(node.typeParameters, node);
+    DartType onType = readDartType();
+    typeParameterStack.length = 0;
+
+    if (shouldWriteData) {
+      node.name = name;
+      node.fileUri = fileUri;
+      node.onType = onType;
+    }
+
+    int length = readUInt();
+    if (shouldWriteData) {
+      node.members.length = length;
+    }
+    for (int i = 0; i < length; i++) {
+      Name name = readName();
+      int kind = readByte();
+      int flags = readByte();
+      CanonicalName canonicalName = readCanonicalNameReference();
+      if (shouldWriteData) {
+        node.members[i] = new ExtensionMemberDescriptor(
+            name: name,
+            kind: ExtensionMemberKind.values[kind],
+            member: canonicalName.getReference())
+          ..flags = flags;
+      }
+    }
+    return node;
+  }
+
+  /// Reads the partial content of a class, namely fields, procedures,
+  /// constructors and redirecting factory constructors.
+  void readClassPartialContent(Class node, List<int> procedureOffsets) {
+    _mergeNamedNodeList(node.fieldsInternal, (index) => readField(), node);
+    _mergeNamedNodeList(
+        node.constructorsInternal, (index) => readConstructor(), node);
+
+    _mergeNamedNodeList(node.proceduresInternal, (index) {
+      _byteOffset = procedureOffsets[index];
+      return readProcedure(procedureOffsets[index + 1]);
+    }, node);
+    _byteOffset = procedureOffsets.last;
+    _mergeNamedNodeList(node.redirectingFactoryConstructorsInternal,
+        (index) => readRedirectingFactoryConstructor(), node);
+  }
+
+  /// Set the lazyBuilder on the class so it can be lazy loaded in the future.
+  void _setLazyLoadClass(Class node, List<int> procedureOffsets) {
+    final int savedByteOffset = _byteOffset;
+    final int componentStartOffset = _componentStartOffset;
+    final Library currentLibrary = _currentLibrary;
+    node.lazyBuilder = () {
+      _byteOffset = savedByteOffset;
+      _currentLibrary = currentLibrary;
+      assert(typeParameterStack.isEmpty);
+      _componentStartOffset = componentStartOffset;
+      typeParameterStack.addAll(node.typeParameters);
+
+      readClassPartialContent(node, procedureOffsets);
+      typeParameterStack.length = 0;
+    };
   }
 
   int getAndResetTransformerFlags() {
@@ -1353,8 +1533,7 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
 
     if (lazyLoadBody) {
-      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight,
-          typeParameterStackHeight);
+      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight);
     }
 
     labelStackBase = oldLabelStackBase;
@@ -1364,8 +1543,8 @@ class BinaryBuilder {
     return result;
   }
 
-  void _setLazyLoadFunction(FunctionNode result, int oldLabelStackBase,
-      int variableStackHeight, int typeParameterStackHeight) {
+  void _setLazyLoadFunction(
+      FunctionNode result, int oldLabelStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
     final List<TypeParameter> typeParameters = typeParameterStack.toList();
@@ -1384,7 +1563,7 @@ class BinaryBuilder {
       result.body?.parent = result;
       labelStackBase = oldLabelStackBase;
       variableStack.length = variableStackHeight;
-      typeParameterStack.length = typeParameterStackHeight;
+      typeParameterStack.clear();
       if (result.parent is Procedure) {
         Procedure parent = result.parent;
         parent.transformerFlags |= getAndResetTransformerFlags();
@@ -1551,6 +1730,9 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.Not:
         return new Not(readExpression());
+      case Tag.NullCheck:
+        int offset = readOffset();
+        return new NullCheck(readExpression())..fileOffset = offset;
       case Tag.LogicalExpression:
         return new LogicalExpression(readExpression(),
             logicalOperatorToString(readByte()), readExpression());
@@ -1600,6 +1782,11 @@ class BinaryBuilder {
         List<Expression> unusedArguments = readExpressionList();
         return new InstanceCreation(classReference, typeArguments, fieldValues,
             asserts, unusedArguments)
+          ..fileOffset = offset;
+      case Tag.FileUriExpression:
+        Uri fileUri = readUriReference();
+        int offset = readOffset();
+        return new FileUriExpression(readExpression(), fileUri)
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
@@ -2044,6 +2231,7 @@ class BinaryBuilder {
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
+    node.variance = readByte();
     node.name = readStringOrNullIfEmpty();
     node.bound = readDartType();
     node.defaultType = readDartTypeOption();
@@ -2125,8 +2313,16 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   /// and are awaiting to be parsed and attached to nodes.
   List<_MetadataSubsection> _subsections;
 
-  BinaryBuilderWithMetadata(bytes, [filename])
-      : super(bytes, filename: filename);
+  BinaryBuilderWithMetadata(List<int> bytes,
+      {String filename,
+      bool disableLazyReading = false,
+      bool disableLazyClassReading = false,
+      bool alwaysCreateNewNamedNodes})
+      : super(bytes,
+            filename: filename,
+            disableLazyReading: disableLazyReading,
+            disableLazyClassReading: disableLazyClassReading,
+            alwaysCreateNewNamedNodes: alwaysCreateNewNamedNodes);
 
   @override
   void _readMetadataMappings(
@@ -2236,6 +2432,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Class readClass(int endOffset) {
     final nodeOffset = _byteOffset;
     final result = super.readClass(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  Extension readExtension() {
+    final nodeOffset = _byteOffset;
+    final result = super.readExtension();
     return _associateMetadata(result, nodeOffset);
   }
 

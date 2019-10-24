@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class SimpleResolverTest extends DriverResolutionTest {
   test_argumentResolution_required_matching() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3);
@@ -31,7 +31,7 @@ class A {
   }
 
   test_argumentResolution_required_tooFew() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2);
@@ -42,7 +42,7 @@ class A {
   }
 
   test_argumentResolution_required_tooMany() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3);
@@ -53,7 +53,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndNamed_extra() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, c: 3, d: 4);
@@ -64,7 +64,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndNamed_matching() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, c: 3);
@@ -75,7 +75,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndNamed_missing() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, d: 3);
@@ -86,7 +86,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndPositional_fewer() async {
-    addTestFile('''
+    await resolveTestCode('''
 class A {
   void f() {
     g(1, 2, 3);
@@ -97,7 +97,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndPositional_matching() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3, 4);
@@ -108,7 +108,7 @@ class A {
   }
 
   test_argumentResolution_requiredAndPositional_more() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void f() {
     g(1, 2, 3, 4);
@@ -119,7 +119,7 @@ class A {
   }
 
   test_argumentResolution_setter_propagated() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   var a = new A();
   a.sss = 0;
@@ -127,8 +127,6 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    await resolveTestFile();
-
     var rhs = findNode.assignment(' = 0;').rightHandSide;
     expect(
       rhs.staticParameterElement,
@@ -137,7 +135,7 @@ class A {
   }
 
   test_argumentResolution_setter_propagated_propertyAccess() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   var a = new A();
   a.b.sss = 0;
@@ -148,8 +146,6 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    await resolveTestFile();
-
     var rhs = findNode.assignment(' = 0;').rightHandSide;
     expect(
       rhs.staticParameterElement,
@@ -158,7 +154,7 @@ class B {
   }
 
   test_argumentResolution_setter_static() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   A a = new A();
   a.sss = 0;
@@ -166,8 +162,6 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    await resolveTestFile();
-
     var rhs = findNode.assignment(' = 0;').rightHandSide;
     expect(
       rhs.staticParameterElement,
@@ -176,7 +170,7 @@ class A {
   }
 
   test_argumentResolution_setter_static_propertyAccess() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {
   A a = new A();
   a.b.sss = 0;
@@ -187,8 +181,6 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    await resolveTestFile();
-
     var rhs = findNode.assignment(' = 0;').rightHandSide;
     expect(
       rhs.staticParameterElement,
@@ -199,7 +191,7 @@ class B {
   test_breakTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   loop1: while (true) {
     loop2: for (int i = 0; i < 10; i++) {
@@ -209,8 +201,6 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var break1 = findNode.breakStatement('break loop1;');
     var whileStatement = findNode.whileStatement('while (');
     expect(break1.target, same(whileStatement));
@@ -221,52 +211,46 @@ void f() {
   }
 
   test_breakTarget_unlabeledBreakFromDo() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   do {
     break;
   } while (true);
 }
 ''');
-    await resolveTestFile();
-
     var doStatement = findNode.doStatement('do {');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(doStatement));
   }
 
   test_breakTarget_unlabeledBreakFromFor() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   for (int i = 0; i < 10; i++) {
     break;
   }
 }
 ''');
-    await resolveTestFile();
-
     var forStatement = findNode.forStatement('for (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
 
   test_breakTarget_unlabeledBreakFromForEach() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (x in []) {
     break;
   }
 }
 ''');
-    await resolveTestFile();
-
     var forStatement = findNode.forStatement('for (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(forStatement));
   }
 
   test_breakTarget_unlabeledBreakFromSwitch() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     switch (0) {
@@ -276,23 +260,19 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var switchStatement = findNode.switchStatement('switch (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(switchStatement));
   }
 
   test_breakTarget_unlabeledBreakFromWhile() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     break;
   }
 }
 ''');
-    await resolveTestFile();
-
     var whileStatement = findNode.whileStatement('while (');
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, same(whileStatement));
@@ -301,7 +281,7 @@ void f() {
   test_breakTarget_unlabeledBreakToOuterFunction() async {
     // Verify that unlabeled break statements can't resolve to loops in an
     // outer function.
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     void g() {
@@ -310,8 +290,6 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var breakStatement = findNode.breakStatement('break;');
     expect(breakStatement.target, isNull);
   }
@@ -336,7 +314,7 @@ class C {}''');
   test_continueTarget_labeled() async {
     // Verify that the target of the label is correctly found and is recorded
     // as the unlabeled portion of the statement.
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   loop1: while (true) {
     loop2: for (int i = 0; i < 10; i++) {
@@ -346,8 +324,6 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var continue1 = findNode.continueStatement('continue loop1');
     var whileStatement = findNode.whileStatement('while (');
     expect(continue1.target, same(whileStatement));
@@ -358,67 +334,59 @@ void f() {
   }
 
   test_continueTarget_unlabeledContinueFromDo() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   do {
     continue;
   } while (true);
 }
 ''');
-    await resolveTestFile();
-
     var doStatement = findNode.doStatement('do {');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(doStatement));
   }
 
   test_continueTarget_unlabeledContinueFromFor() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f() {
   for (int i = 0; i < 10; i++) {
     continue;
   }
 }
 ''');
-    await resolveTestFile();
-
     var forStatement = findNode.forStatement('for (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }
 
   test_continueTarget_unlabeledContinueFromForEach() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   for (x in []) {
     continue;
   }
 }
 ''');
-    await resolveTestFile();
-
     var forStatement = findNode.forStatement('for (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(forStatement));
   }
 
   test_continueTarget_unlabeledContinueFromWhile() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     continue;
   }
 }
 ''');
-    await resolveTestFile();
-
     var whileStatement = findNode.whileStatement('while (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(whileStatement));
   }
 
   test_continueTarget_unlabeledContinueSkipsSwitch() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     switch (0) {
@@ -428,8 +396,6 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var whileStatement = findNode.whileStatement('while (');
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, same(whileStatement));
@@ -438,7 +404,7 @@ void f() {
   test_continueTarget_unlabeledContinueToOuterFunction() async {
     // Verify that unlabeled continue statements can't resolve to loops in an
     // outer function.
-    addTestFile(r'''
+    await resolveTestCode(r'''
 void f() {
   while (true) {
     void g() {
@@ -447,15 +413,12 @@ void f() {
   }
 }
 ''');
-    await resolveTestFile();
-
     var continueStatement = findNode.continueStatement('continue;');
     expect(continueStatement.target, isNull);
   }
 
   test_empty() async {
-    addTestFile('');
-    await resolveTestFile();
+    await resolveTestCode('');
     assertNoTestErrors();
   }
 
@@ -464,10 +427,9 @@ void f() {
 main() {}
 ''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 export 'a.dart';
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var library = result.libraryElement;
@@ -478,10 +440,9 @@ export 'a.dart';
   }
 
   test_entryPoint_local() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 main() {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var library = result.libraryElement;
@@ -492,8 +453,7 @@ main() {}
   }
 
   test_entryPoint_none() async {
-    addTestFile('');
-    await resolveTestFile();
+    await resolveTestCode('');
     assertNoTestErrors();
 
     var library = result.libraryElement;
@@ -504,12 +464,11 @@ main() {}
     newFile('/test/lib/a.dart', content: r'''
 enum EEE {A, B, C}
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 void f(EEE e) {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
@@ -527,13 +486,12 @@ class A {
   }
 
   test_fieldFormalParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int x;
   int y;
   A(this.x) : y = x {}
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -583,7 +541,7 @@ class A {
   }
 
   test_getter_and_setter_fromMixins_bare_identifier() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   get x => null;
@@ -599,7 +557,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -616,12 +573,8 @@ class C extends B with M1, M2 {
     );
   }
 
-  @failingTest
   test_getter_and_setter_fromMixins_property_access() async {
-    // TODO(paulberry): it appears that auxiliaryElements isn't properly set on
-    // a SimpleIdentifier that's inside a property access.  This bug should be
-    // fixed.
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class B {}
 class M1 {
   get x => null;
@@ -653,7 +606,7 @@ void main() {
   }
 
   test_getter_fromMixins_bare_identifier() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   get x => null;
@@ -667,7 +620,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -680,7 +632,7 @@ class C extends B with M1, M2 {
   }
 
   test_getter_fromMixins_property_access() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   get x => null;
@@ -693,7 +645,6 @@ void main() {
   var y = new C().x;
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -706,7 +657,7 @@ void main() {
   }
 
   test_getterAndSetterWithDifferentTypes() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int get f => 0;
   void set f(String s) {}
@@ -714,17 +665,15 @@ class A {
 g (A a) {
   a.f = a.f.toString();
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
     verifyTestResolved();
   }
 
   test_hasReferenceToSuper() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {}
 class B {toString() => super.toString();}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -743,7 +692,7 @@ class A {}''');
     newFile('/test/lib/lib2.dart', content: r'''
 set foo(value) {}''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'lib1.dart' hide foo;
 import 'lib2.dart';
 
@@ -751,7 +700,6 @@ main() {
   foo = 0;
 }
 A a;''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
@@ -762,12 +710,11 @@ f(int x) {
   return x * x;
 }''');
 
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart' as _a;
 main() {
   _a.f(0);
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
@@ -778,7 +725,7 @@ main() {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    addTestFile('''
+    await resolveTestCode('''
 import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
@@ -795,7 +742,6 @@ class H extends D<p.W> {
   H(int i) : super(i);
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
     verifyTestResolved();
   }
@@ -806,7 +752,7 @@ class H extends D<p.W> {
     // single error generated when the only problem is that an imported file
     // does not exist.
     //
-    addTestFile('''
+    await resolveTestCode('''
 import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
@@ -823,9 +769,7 @@ class H extends D<W> {
   H(int i) : super(i);
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
-    verifyTestResolved();
   }
 
   @failingTest
@@ -857,12 +801,11 @@ f() {
   }
 
   test_indexExpression_typeParameters_invalidAssignmentWarning() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 f() {
   List<List<int>> b;
   b[0][0] = 'hi';
 }''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verifyTestResolved();
   }
@@ -899,11 +842,10 @@ class A {
   }
 
   test_isValidMixin_badSuperclass() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A extends B {}
 class B {}
 class C = Object with A;''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
         [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
     verifyTestResolved();
@@ -913,12 +855,11 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_constructor() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   A() {}
 }
 class C = Object with A;''');
-    await resolveTestFile();
     assertTestErrorsWithCodes(
       [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
     );
@@ -929,12 +870,11 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_factoryConstructor() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   factory A() => null;
 }
 class C = Object with A;''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -943,14 +883,13 @@ class C = Object with A;''');
   }
 
   test_isValidMixin_super() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   toString() {
     return super.toString();
   }
 }
 class C = Object with A;''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
     verifyTestResolved();
 
@@ -984,23 +923,20 @@ void doSwitch(int target) {
   }
 
   test_localVariable_types_invoked() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    await resolveTestFile();
-
     var node = findNode.simple('myVar(42)');
     assertType(node, 'String Function(int)');
   }
 
   test_metadata_class() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 @A class C<A> {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1015,12 +951,11 @@ const A = null;
   }
 
   test_metadata_field() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 class C {
   @A int f;
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1029,13 +964,12 @@ class C {
   }
 
   test_metadata_fieldFormalParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 class C {
   int f;
   C(@A this.f);
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1044,10 +978,9 @@ class C {
   }
 
   test_metadata_function() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 @A f() {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1056,10 +989,9 @@ const A = null;
   }
 
   test_metadata_functionTypedParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 f(@A int p(int x)) {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1068,10 +1000,9 @@ f(@A int p(int x)) {}''');
   }
 
   test_metadata_libraryDirective() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 @A library lib;
 const A = null;''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1080,12 +1011,11 @@ const A = null;''');
   }
 
   test_metadata_method() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 class C {
   @A void m() {}
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1094,10 +1024,9 @@ class C {
   }
 
   test_metadata_namedParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 f({@A int p : 0}) {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1106,10 +1035,9 @@ f({@A int p : 0}) {}''');
   }
 
   test_metadata_positionalParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 f([@A int p = 0]) {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1118,10 +1046,9 @@ f([@A int p = 0]) {}''');
   }
 
   test_metadata_simpleParameter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 f(@A p1, @A int p2) {}''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1130,10 +1057,9 @@ f(@A p1, @A int p2) {}''');
   }
 
   test_metadata_typedef() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 const A = null;
 @A typedef F<A>();''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1147,7 +1073,7 @@ const A = null;
   }
 
   test_method_fromMixin() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class B {
   bar() => 1;
 }
@@ -1159,13 +1085,12 @@ class C extends B with A {
   bar() => super.bar();
   foo() => super.foo();
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_method_fromMixins() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1178,7 +1103,6 @@ void main() {
   new C().f();
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1189,7 +1113,7 @@ void main() {
   }
 
   test_method_fromMixins_bare_identifier() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1203,7 +1127,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1214,7 +1137,7 @@ class C extends B with M1, M2 {
   }
 
   test_method_fromMixins_invoked_from_outside_class() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   void f() {}
@@ -1227,7 +1150,6 @@ void main() {
   new C().f();
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1238,7 +1160,7 @@ void main() {
   }
 
   test_method_fromSuperclassMixin() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void m1() {}
 }
@@ -1249,13 +1171,12 @@ class C extends B {
 f(C c) {
   c.m1();
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_methodCascades() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   void m1() {}
   void m2() {}
@@ -1265,13 +1186,12 @@ class A {
      ..m2();
   }
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_methodCascades_withSetter() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   String name;
   void m1() {}
@@ -1283,23 +1203,21 @@ class A {
      ..m2();
   }
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_resolveAgainstNull() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 f(var p) {
   return null == p;
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_setter_fromMixins_bare_identifier() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   set x(value) {}
@@ -1313,7 +1231,6 @@ class C extends B with M1, M2 {
   }
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1324,7 +1241,7 @@ class C extends B with M1, M2 {
   }
 
   test_setter_fromMixins_property_access() async {
-    addTestFile('''
+    await resolveTestCode('''
 class B {}
 class M1 {
   set x(value) {}
@@ -1337,7 +1254,6 @@ void main() {
   new C().x = 1;
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
 
@@ -1348,7 +1264,7 @@ void main() {
   }
 
   test_setter_inherited() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class A {
   int get x => 0;
   set x(int p) {}
@@ -1357,20 +1273,18 @@ class B extends A {
   int get x => super.x == null ? 0 : super.x;
   int f() => x = 1;
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
 
   test_setter_static() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 set s(x) {
 }
 
 main() {
   s = 123;
 }''');
-    await resolveTestFile();
     assertNoTestErrors();
     verifyTestResolved();
   }
@@ -1404,8 +1318,6 @@ main() {
    *           valid
    */
   Future<void> _validateArgumentResolution(List<int> indices) async {
-    await resolveTestFile();
-
     var g = findElement.method('g');
     var parameters = g.parameters;
 

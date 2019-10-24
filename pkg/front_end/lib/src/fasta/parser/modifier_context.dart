@@ -117,6 +117,10 @@ class ModifierRecoveryContext {
         memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
       this.covariantToken = null;
+    } else if (memberKind == MemberKind.ExtensionNonStaticMethod ||
+        memberKind == MemberKind.ExtensionStaticMethod) {
+      reportExtraneousModifierInExtension(this.covariantToken);
+      this.covariantToken = null;
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
@@ -182,7 +186,7 @@ class ModifierRecoveryContext {
     // Process invalid and out-of-order modifiers
     Token next = token.next;
     while (true) {
-      final value = next.stringValue;
+      final String value = next.stringValue;
       if (isModifier(next)) {
         if (identical('abstract', value)) {
           token = parseAbstract(token);
@@ -355,7 +359,7 @@ class ModifierRecoveryContext {
       if (constToken != null) {
         reportConflictingModifiers(next, constToken);
       } else if (varToken != null) {
-        reportConflictingModifiers(next, varToken);
+        reportModifierOutOfOrder(next, varToken.lexeme);
       } else if (finalToken != null) {
         reportModifierOutOfOrder(next, finalToken.lexeme);
       }
@@ -429,10 +433,6 @@ class ModifierRecoveryContext {
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
       varToken = next;
-
-      if (lateToken != null) {
-        reportConflictingModifiers(next, lateToken);
-      }
       return next;
     }
 
@@ -463,6 +463,13 @@ class ModifierRecoveryContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, fasta.templateExtraneousModifier);
+    }
+  }
+
+  void reportExtraneousModifierInExtension(Token modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+          modifier, fasta.templateExtraneousModifierInExtension);
     }
   }
 

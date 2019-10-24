@@ -53,6 +53,10 @@ DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
 DECLARE_FLAG(bool, strong);
 
+#if defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_FLAG(bool, print_llvm_constant_pool, false, "Print LLVM constant pool");
+#endif
+
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -206,6 +210,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
+  Zone::Init();
 #if defined(SUPPORT_TIMELINE)
   Timeline::Init();
   TimelineDurationScope tds(Timeline::GetVMStream(), "Dart::Init");
@@ -265,6 +270,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     Object::Init(vm_isolate_);
     ArgumentsDescriptor::Init();
     ICData::Init();
+    SubtypeTestCache::Init();
     if (vm_isolate_snapshot != NULL) {
 #if defined(SUPPORT_TIMELINE)
       TimelineDurationScope tds(Timeline::GetVMStream(), "ReadVMSnapshot");
@@ -576,6 +582,7 @@ char* Dart::Cleanup() {
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
   ICData::Cleanup();
+  SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
   TargetCPUFeatures::Cleanup();
   MarkingStack::Cleanup();
@@ -583,6 +590,14 @@ char* Dart::Cleanup() {
   Object::Cleanup();
   SemiSpace::Cleanup();
   StubCode::Cleanup();
+#if defined(SUPPORT_TIMELINE)
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
+                 UptimeMillis());
+  }
+  Timeline::Cleanup();
+#endif
+  Zone::Cleanup();
   // Delete the current thread's TLS and set it's TLS to null.
   // If it is the last thread then the destructor would call
   // OSThread::Cleanup.
@@ -599,13 +614,6 @@ char* Dart::Cleanup() {
                  UptimeMillis());
   }
   NOT_IN_PRODUCT(CodeObservers::Cleanup());
-#if defined(SUPPORT_TIMELINE)
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Shutting down timeline\n",
-                 UptimeMillis());
-  }
-  Timeline::Cleanup();
-#endif
   OS::Cleanup();
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done\n", UptimeMillis());
@@ -646,7 +654,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-#if defined(SUPPORT_TIMLINE)
+#if defined(SUPPORT_TIMELINE)
   TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                             "InitializeIsolate");
   tds.SetNumArguments(1);
@@ -720,6 +728,49 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   // AOT: The megamorphic miss function and code come from the snapshot.
   ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());
   ASSERT(I->object_store()->build_method_extractor_code() != Code::null());
+  if (FLAG_print_llvm_constant_pool) {
+    StackZone printing_zone(T);
+    HandleScope printing_scope(T);
+    TextBuffer b(1000);
+    const auto& constants =
+        GrowableObjectArray::Handle(I->object_store()->llvm_constant_pool());
+    if (constants.IsNull()) {
+      b.AddString("No constant pool information in snapshot.\n\n");
+    } else {
+      auto const len = constants.Length();
+      b.Printf("Constant pool contents (length %" Pd "):\n", len);
+      auto& obj = Object::Handle();
+      for (intptr_t i = 0; i < len; i++) {
+        obj = constants.At(i);
+        b.Printf("  %5" Pd ": ", i);
+        if (obj.IsString()) {
+          b.AddChar('"');
+          b.AddEscapedString(obj.ToCString());
+          b.AddChar('"');
+        } else {
+          b.AddString(obj.ToCString());
+        }
+        b.AddChar('\n');
+      }
+      b.AddString("End of constant pool.\n\n");
+    }
+    const auto& functions =
+        GrowableObjectArray::Handle(I->object_store()->llvm_function_pool());
+    if (functions.IsNull()) {
+      b.AddString("No function pool information in snapshot.\n\n");
+    } else {
+      auto const len = functions.Length();
+      b.Printf("Function pool contents (length %" Pd "):\n", len);
+      auto& obj = Function::Handle();
+      for (intptr_t i = 0; i < len; i++) {
+        obj ^= functions.At(i);
+        ASSERT(!obj.IsNull());
+        b.Printf("  %5" Pd ": %s\n", i, obj.ToFullyQualifiedCString());
+      }
+      b.AddString("End of function pool.\n\n");
+    }
+    THR_Print("%s", b.buf());
+  }
 #else
   // JIT: The megamorphic miss function and code come from the snapshot in JIT
   // app snapshot, otherwise create them.

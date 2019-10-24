@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -52,189 +53,330 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Keyword.TRUE,
   ];
 
-  List<Keyword> get classBodyKeywords => [
-        Keyword.CONST,
-        Keyword.COVARIANT,
-        Keyword.DYNAMIC,
-        Keyword.FACTORY,
-        Keyword.FINAL,
-        Keyword.GET,
-        Keyword.OPERATOR,
-        Keyword.SET,
-        Keyword.STATIC,
-        Keyword.VAR,
-        Keyword.VOID
-      ];
+  List<Keyword> get classBodyKeywords {
+    List<Keyword> keywords = [
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.FACTORY,
+      Keyword.FINAL,
+      Keyword.GET,
+      Keyword.OPERATOR,
+      Keyword.SET,
+      Keyword.STATIC,
+      Keyword.VAR,
+      Keyword.VOID
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get constructorParameter => [Keyword.COVARIANT, Keyword.THIS];
+  List<Keyword> get constructorParameter {
+    List<Keyword> keywords = [Keyword.COVARIANT, Keyword.THIS];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.REQUIRED);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get declarationKeywords => [
-        Keyword.ABSTRACT,
-        Keyword.CLASS,
-        Keyword.CONST,
-        Keyword.COVARIANT,
-        Keyword.DYNAMIC,
-        Keyword.FINAL,
-        Keyword.TYPEDEF,
-        Keyword.VAR,
-        Keyword.VOID
-      ];
+  List<Keyword> get declarationKeywords {
+    List<Keyword> keywords = [
+      Keyword.ABSTRACT,
+      Keyword.CLASS,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.FINAL,
+      Keyword.TYPEDEF,
+      Keyword.VAR,
+      Keyword.VOID
+    ];
+    if (isEnabled(ExperimentalFeatures.extension_methods)) {
+      keywords.add(Keyword.EXTENSION);
+    }
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get directiveAndDeclarationKeywords => [
-        Keyword.ABSTRACT,
-        Keyword.CLASS,
-        Keyword.CONST,
-        Keyword.COVARIANT,
-        Keyword.DYNAMIC,
-        Keyword.EXPORT,
-        Keyword.FINAL,
-        Keyword.IMPORT,
-        Keyword.PART,
-        Keyword.TYPEDEF,
-        Keyword.VAR,
-        Keyword.VOID
-      ];
+  List<Keyword> get directiveAndDeclarationKeywords {
+    List<Keyword> keywords = [
+      Keyword.ABSTRACT,
+      Keyword.CLASS,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.EXPORT,
+      Keyword.FINAL,
+      Keyword.IMPORT,
+      Keyword.PART,
+      Keyword.TYPEDEF,
+      Keyword.VAR,
+      Keyword.VOID
+    ];
+    if (isEnabled(ExperimentalFeatures.extension_methods)) {
+      keywords.add(Keyword.EXTENSION);
+    }
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get directiveDeclarationAndLibraryKeywords =>
-      directiveDeclarationKeywords..add(Keyword.LIBRARY);
+  List<Keyword> get directiveDeclarationAndLibraryKeywords {
+    List<Keyword> keywords = directiveDeclarationKeywords..add(Keyword.LIBRARY);
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get directiveDeclarationKeywords => [
-        Keyword.ABSTRACT,
-        Keyword.CLASS,
-        Keyword.CONST,
-        Keyword.COVARIANT,
-        Keyword.DYNAMIC,
-        Keyword.EXPORT,
-        Keyword.FINAL,
-        Keyword.IMPORT,
-        Keyword.PART,
-        Keyword.TYPEDEF,
-        Keyword.VAR,
-        Keyword.VOID
-      ];
+  List<Keyword> get directiveDeclarationKeywords {
+    List<Keyword> keywords = [
+      Keyword.ABSTRACT,
+      Keyword.CLASS,
+      Keyword.CONST,
+      Keyword.COVARIANT,
+      Keyword.DYNAMIC,
+      Keyword.EXPORT,
+      Keyword.FINAL,
+      Keyword.IMPORT,
+      Keyword.PART,
+      Keyword.TYPEDEF,
+      Keyword.VAR,
+      Keyword.VOID
+    ];
+    if (isEnabled(ExperimentalFeatures.extension_methods)) {
+      keywords.add(Keyword.EXTENSION);
+    }
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get methodParameter => [Keyword.COVARIANT];
+  List<Keyword> get methodParameter {
+    List<Keyword> keywords = [Keyword.COVARIANT];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.REQUIRED);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartInClass => [
-        Keyword.ASSERT,
-        Keyword.CONST,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SUPER,
-        Keyword.SWITCH,
-        Keyword.THIS,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.CONST,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SUPER,
+      Keyword.SWITCH,
+      Keyword.THIS,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartInLoopInClass => [
-        Keyword.ASSERT,
-        Keyword.BREAK,
-        Keyword.CONST,
-        Keyword.CONTINUE,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SUPER,
-        Keyword.SWITCH,
-        Keyword.THIS,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInLoopInClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CONST,
+      Keyword.CONTINUE,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SUPER,
+      Keyword.SWITCH,
+      Keyword.THIS,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartInLoopOutsideClass => [
-        Keyword.ASSERT,
-        Keyword.BREAK,
-        Keyword.CONST,
-        Keyword.CONTINUE,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SWITCH,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInLoopOutsideClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CONST,
+      Keyword.CONTINUE,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartInSwitchInClass => [
-        Keyword.ASSERT,
-        Keyword.BREAK,
-        Keyword.CASE,
-        Keyword.CONST,
-        Keyword.DEFAULT,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SUPER,
-        Keyword.SWITCH,
-        Keyword.THIS,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInSwitchCaseInClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CONST,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SUPER,
+      Keyword.THIS,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartInSwitchOutsideClass => [
-        Keyword.ASSERT,
-        Keyword.BREAK,
-        Keyword.CASE,
-        Keyword.CONST,
-        Keyword.DEFAULT,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SWITCH,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInSwitchCaseOutsideClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CONST,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get statementStartOutsideClass => [
-        Keyword.ASSERT,
-        Keyword.CONST,
-        Keyword.DO,
-        Keyword.FINAL,
-        Keyword.FOR,
-        Keyword.IF,
-        Keyword.NEW,
-        Keyword.RETURN,
-        Keyword.SWITCH,
-        Keyword.THROW,
-        Keyword.TRY,
-        Keyword.VAR,
-        Keyword.VOID,
-        Keyword.WHILE
-      ];
+  List<Keyword> get statementStartInSwitchInClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CASE,
+      Keyword.CONST,
+      Keyword.DEFAULT,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SUPER,
+      Keyword.SWITCH,
+      Keyword.THIS,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
-  List<Keyword> get staticMember =>
-      [Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
+  List<Keyword> get statementStartInSwitchOutsideClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.BREAK,
+      Keyword.CASE,
+      Keyword.CONST,
+      Keyword.DEFAULT,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
+
+  List<Keyword> get statementStartOutsideClass {
+    List<Keyword> keywords = [
+      Keyword.ASSERT,
+      Keyword.CONST,
+      Keyword.DO,
+      Keyword.FINAL,
+      Keyword.FOR,
+      Keyword.IF,
+      Keyword.NEW,
+      Keyword.RETURN,
+      Keyword.SWITCH,
+      Keyword.THROW,
+      Keyword.TRY,
+      Keyword.VAR,
+      Keyword.VOID,
+      Keyword.WHILE
+    ];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
+
+  List<Keyword> get staticMember {
+    List<Keyword> keywords = [Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
+    if (isEnabled(ExperimentalFeatures.non_nullable)) {
+      keywords.add(Keyword.LATE);
+    }
+    return keywords;
+  }
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
@@ -305,6 +447,10 @@ class KeywordContributorTest extends DartCompletionContributorTest {
   DartCompletionContributor createContributor() {
     return new KeywordContributor();
   }
+
+  /// Return `true` if the given [feature] is enabled.
+  bool isEnabled(Feature feature) =>
+      driver.analysisOptions.contextFeatures.isEnabled(feature);
 
   test_after_class_noPrefix() async {
     addTestSource('class A {} ^');
@@ -1983,6 +2129,18 @@ f() => [...^];
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_switch_statement_case_break_insideClass() async {
+    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseInClass);
+  }
+
+  test_switch_statement_case_break_outsideClass() async {
+    addTestSource('foo() {switch(1) {case 1: b^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
+  }
+
   test_switch_statement_insideClass() async {
     addTestSource('class A{foo() {switch(1) {case 1:^}}}');
     await computeSuggestions();
@@ -2028,18 +2186,6 @@ f() => [...^];
 @reflectiveTest
 class KeywordContributorWithExtensionMethodsTest
     extends KeywordContributorTest {
-  @override
-  List<Keyword> get declarationKeywords =>
-      super.declarationKeywords..add(Keyword.EXTENSION);
-
-  @override
-  List<Keyword> get directiveAndDeclarationKeywords =>
-      super.directiveAndDeclarationKeywords..add(Keyword.EXTENSION);
-
-  @override
-  List<Keyword> get directiveDeclarationKeywords =>
-      super.directiveDeclarationKeywords..add(Keyword.EXTENSION);
-
   List<Keyword> get extensionBodyKeywords => [
         Keyword.CONST,
         Keyword.DYNAMIC,
@@ -2117,61 +2263,6 @@ extension E on int {
 
 @reflectiveTest
 class KeywordContributorWithNnbdTest extends KeywordContributorTest {
-  @override
-  List<Keyword> get classBodyKeywords =>
-      super.classBodyKeywords..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get constructorParameter =>
-      super.constructorParameter..add(Keyword.REQUIRED);
-
-  @override
-  List<Keyword> get declarationKeywords =>
-      super.declarationKeywords..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get directiveAndDeclarationKeywords =>
-      super.directiveAndDeclarationKeywords..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get directiveDeclarationAndLibraryKeywords =>
-      super.directiveDeclarationAndLibraryKeywords..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get directiveDeclarationKeywords =>
-      super.directiveDeclarationKeywords..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get methodParameter =>
-      super.methodParameter..add(Keyword.REQUIRED);
-
-  @override
-  List<Keyword> get statementStartInClass =>
-      super.statementStartInClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get statementStartInLoopInClass =>
-      super.statementStartInLoopInClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get statementStartInLoopOutsideClass =>
-      super.statementStartInLoopOutsideClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get statementStartInSwitchInClass =>
-      super.statementStartInSwitchInClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get statementStartInSwitchOutsideClass =>
-      super.statementStartInSwitchOutsideClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get statementStartOutsideClass =>
-      super.statementStartOutsideClass..add(Keyword.LATE);
-
-  @override
-  List<Keyword> get staticMember => super.staticMember..add(Keyword.LATE);
-
   @override
   void setupResourceProvider() {
     super.setupResourceProvider();

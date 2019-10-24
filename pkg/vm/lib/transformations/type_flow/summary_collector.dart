@@ -344,8 +344,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _summary = new Summary(
             parameterCount: numArgs, positionalParameterCount: numArgs);
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter(
-            "this", member.enclosingClass.rawType, null,
+        _receiver = _declareParameter("this",
+            _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       } else {
@@ -391,8 +391,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
       if (hasReceiver) {
         // TODO(alexmarkov): subclass cone
-        _receiver = _declareParameter(
-            "this", member.enclosingClass.rawType, null,
+        _receiver = _declareParameter("this",
+            _environment.coreTypes.legacyRawType(member.enclosingClass), null,
             isReceiver: true);
         _environment.thisType = member.enclosingClass?.thisType;
       }
@@ -524,7 +524,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     if (hasReceiverArg(member)) {
       assertx(member.enclosingClass != null);
-      Type receiver = new Type.cone(member.enclosingClass.rawType);
+      Type receiver = new Type.cone(
+          _environment.coreTypes.legacyRawType(member.enclosingClass));
       args.add(receiver);
     }
 
@@ -709,23 +710,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       new Type.fromStatic(_staticDartType(node));
 
   Type _cachedBoolType;
-  Type get _boolType =>
-      _cachedBoolType ??= new Type.cone(_environment.boolType);
+  Type get _boolType => _cachedBoolType ??=
+      new Type.cone(_environment.coreTypes.boolLegacyRawType);
 
   Type _cachedDoubleType;
-  Type get _doubleType =>
-      _cachedDoubleType ??= new Type.cone(_environment.doubleType);
+  Type get _doubleType => _cachedDoubleType ??=
+      new Type.cone(_environment.coreTypes.doubleLegacyRawType);
 
   Type _cachedIntType;
-  Type get _intType => _cachedIntType ??= new Type.cone(_environment.intType);
+  Type get _intType =>
+      _cachedIntType ??= new Type.cone(_environment.coreTypes.intLegacyRawType);
 
   Type _cachedStringType;
-  Type get _stringType =>
-      _cachedStringType ??= new Type.cone(_environment.stringType);
+  Type get _stringType => _cachedStringType ??=
+      new Type.cone(_environment.coreTypes.stringLegacyRawType);
 
   Type _cachedSymbolType;
-  Type get _symbolType =>
-      _cachedSymbolType ??= new Type.cone(_environment.symbolType);
+  Type get _symbolType => _cachedSymbolType ??=
+      new Type.cone(_environment.coreTypes.symbolLegacyRawType);
 
   Type _cachedNullType;
   Type get _nullType => _cachedNullType ??= new Type.nullable(new Type.empty());
@@ -945,9 +947,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitMethodInvocation(MethodInvocation node) {
-    final receiver = _visit(node.receiver);
+    final receiverNode = node.receiver;
+    final receiver = _visit(receiverNode);
     final args = _visitArguments(receiver, node.arguments);
     final target = node.interfaceTarget;
+    if (receiverNode is ConstantExpression && node.name.name == '[]') {
+      Constant constant = receiverNode.constant;
+      if (constant is ListConstant) {
+        return _handleIndexingIntoListConstant(constant);
+      }
+    }
     if (target == null) {
       if (node.name.name == '==') {
         assertx(args.values.length == 2);
@@ -960,7 +969,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (node.name.name == 'call') {
         final recvType = _staticDartType(node.receiver);
         if ((recvType is FunctionType) ||
-            (recvType == _environment.rawFunctionType)) {
+            (recvType == _environment.functionLegacyRawType)) {
           // Call to a Function.
           return _staticType(node);
         }
@@ -990,6 +999,24 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
               ? new VirtualSelector(target)
               : new InterfaceSelector(target),
           args);
+    }
+  }
+
+  TypeExpr _handleIndexingIntoListConstant(ListConstant list) {
+    final elementTypes = new Set<Type>();
+    for (var element in list.entries) {
+      elementTypes.add(constantAllocationCollector.typeFor(element));
+    }
+    switch (elementTypes.length) {
+      case 0:
+        return new Type.empty();
+      case 1:
+        return elementTypes.single;
+      default:
+        final join = new Join(null, list.typeArgument);
+        join.values.addAll(elementTypes);
+        _summary.add(join);
+        return join;
     }
   }
 
@@ -1166,7 +1193,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitTypeLiteral(TypeLiteral node) {
-    return new Type.cone(_environment.typeType);
+    return new Type.cone(_environment.coreTypes.typeLegacyRawType);
   }
 
   @override

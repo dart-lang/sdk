@@ -31,7 +31,7 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -40,7 +40,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
-import 'package:path/path.dart' as pathPackage;
+import 'package:path/path.dart' as path;
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -170,7 +170,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
       : super(site, 'completion', 'Code Completion',
             description: 'Latency statistics for code completion.');
 
-  pathPackage.Context get pathContext;
+  path.Context get pathContext;
 
   List<CompletionPerformance> get performanceItems;
 
@@ -245,22 +245,22 @@ class AstPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    String path = params['file'];
-    if (path == null) {
+    String filePath = params['file'];
+    if (filePath == null) {
       p('No file path provided.');
       return;
     }
-    AnalysisDriver driver = server.getAnalysisDriver(path);
+    AnalysisDriver driver = server.getAnalysisDriver(filePath);
     if (driver == null) {
-      p('The file <code>${escape(path)}</code> is not being analyzed.',
+      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
           raw: true);
       return;
     }
-    ResolvedUnitResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(filePath);
     if (result == null) {
       p(
           'An AST could not be produced for the file '
-          '<code>${escape(path)}</code>.',
+          '<code>${escape(filePath)}</code>.',
           raw: true);
       return;
     }
@@ -372,7 +372,7 @@ class CompletionPage extends AbstractCompletionPage {
       .firstWhere((handler) => handler is CompletionDomainHandler);
 
   @override
-  pathPackage.Context get pathContext =>
+  path.Context get pathContext =>
       completionDomain.server.resourceProvider.pathContext;
 
   @override
@@ -440,7 +440,7 @@ class ContextsPage extends DiagnosticPageWithNav {
         buf.writeln(
             '<a class="tabnav-tab selected">${escape(f.shortName)}</a>');
       } else {
-        String p = '$path?context=${Uri.encodeQueryComponent(f.path)}';
+        String p = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
         buf.writeln(
             '<a href="$p" class="tabnav-tab">${escape(f.shortName)}</a>');
       }
@@ -790,22 +790,22 @@ class ElementModelPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    String path = params['file'];
-    if (path == null) {
+    String filePath = params['file'];
+    if (filePath == null) {
       p('No file path provided.');
       return;
     }
-    AnalysisDriver driver = server.getAnalysisDriver(path);
+    AnalysisDriver driver = server.getAnalysisDriver(filePath);
     if (driver == null) {
-      p('The file <code>${escape(path)}</code> is not being analyzed.',
+      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
           raw: true);
       return;
     }
-    ResolvedUnitResult result = await driver.getResult(path);
+    ResolvedUnitResult result = await driver.getResult(filePath);
     if (result == null) {
       p(
           'An element model could not be produced for the file '
-          '<code>${escape(path)}</code>.',
+          '<code>${escape(filePath)}</code>.',
           raw: true);
       return;
     }
@@ -895,7 +895,7 @@ class FeedbackPage extends DiagnosticPage {
     );
     ul([
       'what you were doing',
-      'what occured',
+      'what occurred',
       'what you think the expected behavior should have been',
     ], (line) => buf.writeln(line));
 
@@ -994,7 +994,7 @@ class LspCompletionPage extends AbstractCompletionPage {
   LspCompletionPage(DiagnosticsSite site, this.server) : super(site);
 
   @override
-  pathPackage.Context get pathContext => server.resourceProvider.pathContext;
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
   @override
   List<CompletionPerformance> get performanceItems =>
@@ -1098,7 +1098,7 @@ class PluginsPage extends DiagnosticPageWithNav {
         Map<String, List<int>> responseTimes =
             PluginManager.pluginResponseTimes[plugin];
 
-        List<String> components = pathPackage.split(id);
+        List<String> components = path.split(id);
         int length = components.length;
         String name;
         if (length == 0) {

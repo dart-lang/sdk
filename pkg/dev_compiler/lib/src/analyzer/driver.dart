@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:meta/meta.dart';
 
@@ -56,18 +55,6 @@ class CompilerAnalysisDriver {
 
   ExtensionTypeSet _extensionTypes;
 
-  CompilerAnalysisDriver._(this.dartSdk, this._summaryPaths, this.summaryData,
-      this.analysisOptions, this._resourceProvider, this._dartSdkSummaryPath) {
-    var bundle = dartSdk.getLinkedBundle();
-    if (bundle != null) summaryData.addBundle(null, bundle);
-  }
-
-  /// Information about native extension types.
-  ///
-  /// This will be `null` until [linkLibraries] has been called (because we
-  /// could be compiling the Dart SDK, so it would not be available yet).
-  ExtensionTypeSet get extensionTypes => _extensionTypes;
-
   factory CompilerAnalysisDriver(AnalyzerOptions options,
       {SummaryDataStore summaryData,
       List<String> summaryPaths = const [],
@@ -84,14 +71,24 @@ class CompilerAnalysisDriver {
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
 
     // Read the summaries.
-    summaryData ??= SummaryDataStore(summaryPaths,
-        resourceProvider: resourceProvider,
-        // TODO(vsm): Reset this to true once we cleanup internal build rules.
-        disallowOverlappingSummaries: false);
+    summaryData ??=
+        SummaryDataStore(summaryPaths, resourceProvider: resourceProvider);
 
     return CompilerAnalysisDriver._(dartSdk, summaryPaths, summaryData,
         analysisOptions, resourceProvider, options.dartSdkSummaryPath);
   }
+
+  CompilerAnalysisDriver._(this.dartSdk, this._summaryPaths, this.summaryData,
+      this.analysisOptions, this._resourceProvider, this._dartSdkSummaryPath) {
+    var bundle = dartSdk.getLinkedBundle();
+    if (bundle != null) summaryData.addBundle(null, bundle);
+  }
+
+  /// Information about native extension types.
+  ///
+  /// This will be `null` until [linkLibraries] has been called (because we
+  /// could be compiling the Dart SDK, so it would not be available yet).
+  ExtensionTypeSet get extensionTypes => _extensionTypes;
 
   /// Whether this driver can be reused for the given [dartSdkSummaryPath] and
   /// [summaryPaths].
@@ -130,13 +127,11 @@ class CompilerAnalysisDriver {
 
     _extensionTypes ??= ExtensionTypeSet(
       resynthesizerBuilder.context.typeProvider,
-      resynthesizerBuilder.resynthesizer,
       resynthesizerBuilder.elementFactory,
     );
 
     return LinkedAnalysisDriver(
       analysisOptions,
-      resynthesizerBuilder.resynthesizer,
       resynthesizerBuilder.elementFactory,
       sourceFactory,
       resynthesizerBuilder.libraryUris,
@@ -162,6 +157,7 @@ class CompilerAnalysisDriver {
         MemoryByteStore(),
         FileContentOverlay(),
         _resourceProvider,
+        'contextName',
         sourceFactory,
         analysisOptions,
         unlinkedSalt,
@@ -174,7 +170,6 @@ class CompilerAnalysisDriver {
 /// sources, produced by [CompilerAnalysisDriver.linkLibraries].
 class LinkedAnalysisDriver {
   final AnalysisOptions analysisOptions;
-  final SummaryResynthesizer resynthesizer;
   final LinkedElementFactory elementFactory;
   final SourceFactory sourceFactory;
   final List<String> libraryUris;
@@ -189,7 +184,6 @@ class LinkedAnalysisDriver {
 
   LinkedAnalysisDriver(
       this.analysisOptions,
-      this.resynthesizer,
       this.elementFactory,
       this.sourceFactory,
       this.libraryUris,
@@ -199,21 +193,7 @@ class LinkedAnalysisDriver {
       this._resourceProvider);
 
   TypeProvider get typeProvider {
-    if (resynthesizer != null) {
-      return resynthesizer.typeProvider;
-    } else {
-      return elementFactory.analysisContext.typeProvider;
-    }
-  }
-
-  /// True if [uri] refers to a Dart library (i.e. a Dart source file exists
-  /// with this uri, and it is not a part file).
-  bool _isLibraryUri(String uri) {
-    if (resynthesizer != null) {
-      return resynthesizer.hasLibrarySummary(uri);
-    } else {
-      return elementFactory.isLibraryUri(uri);
-    }
+    return elementFactory.analysisContext.typeProvider;
   }
 
   /// Analyzes the library at [uri] and returns the results of analysis for all
@@ -223,13 +203,7 @@ class LinkedAnalysisDriver {
       throw ArgumentError('"$libraryUri" is not a library');
     }
 
-    AnalysisContext analysisContext;
-    if (resynthesizer != null) {
-      analysisContext = resynthesizer.context;
-    } else {
-      analysisContext = elementFactory.analysisContext;
-    }
-
+    var analysisContext = elementFactory.analysisContext;
     var libraryFile = _fsState.getFileForUri(Uri.parse(libraryUri));
     var analyzer = LibraryAnalyzer(
         analysisOptions as AnalysisOptionsImpl,
@@ -237,7 +211,6 @@ class LinkedAnalysisDriver {
         sourceFactory,
         (uri) => _isLibraryUri('$uri'),
         analysisContext,
-        resynthesizer,
         elementFactory,
         InheritanceManager3(analysisContext.typeSystem),
         libraryFile,
@@ -255,10 +228,12 @@ class LinkedAnalysisDriver {
   }
 
   LibraryElement getLibrary(String uri) {
-    if (resynthesizer != null) {
-      return resynthesizer.getLibraryElement(uri);
-    } else {
-      return elementFactory.libraryOfUri(uri);
-    }
+    return elementFactory.libraryOfUri(uri);
+  }
+
+  /// True if [uri] refers to a Dart library (i.e. a Dart source file exists
+  /// with this uri, and it is not a part file).
+  bool _isLibraryUri(String uri) {
+    return elementFactory.isLibraryUri(uri);
   }
 }

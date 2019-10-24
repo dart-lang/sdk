@@ -225,6 +225,8 @@ class FileTracker {
    */
   FileState verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
+      _logger.writeln('Work in ${_fsState.contextName}');
+
       bool anyApiChanged = false;
       List<FileState> files = _fsState.getFilesForPath(path);
       for (FileState file in files) {
@@ -234,7 +236,7 @@ class FileTracker {
         }
       }
       if (anyApiChanged) {
-        _logger.writeln('API signatures mismatch found for $path');
+        _logger.writeln('API signatures mismatch found.');
         // TODO(scheglov) schedule analysis of only affected files
         var pendingChangedFiles = new LinkedHashSet<String>();
         var pendingImportFiles = new LinkedHashSet<String>();

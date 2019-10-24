@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    ;
+}
+extension Extension on self::Class* {
+  static method method = self::Extension|method;
+  static method genericMethod = self::Extension|genericMethod;
+  static get property = get self::Extension|property;
+  static field field = self::Extension|field;
+  method instanceMethod = self::Extension|instanceMethod;
+  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceProperty = self::Extension|get#instanceProperty;
+  static set property = set self::Extension|property;
+  set instanceProperty = self::Extension|set#instanceProperty;
+}
+static field dynamic Extension|field;
+static method Extension|method() → dynamic
+  ;
+static method Extension|genericMethod<T extends core::Object* = dynamic>(self::Extension|genericMethod::T* t) → dynamic
+  ;
+static get Extension|property() → dynamic
+  ;
+static set Extension|property(dynamic value) → void
+  ;
+static method Extension|instanceMethod(final self::Class* #this) → dynamic
+  ;
+static method Extension|get#instanceMethod(final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|instanceMethod(#this);
+static method Extension|get#instanceProperty(final self::Class* #this) → dynamic
+  ;
+static method Extension|set#instanceProperty(final self::Class* #this, dynamic value) → void
+  ;
+static method main() → dynamic
+  ;

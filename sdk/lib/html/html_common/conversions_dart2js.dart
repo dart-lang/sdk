@@ -53,6 +53,18 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) =>
         .convertNativeToDart_AcceptStructuredClone(object, mustCopy: mustCopy);
 
 class _StructuredCloneDart2Js extends _StructuredClone {
+  JSObject newJsObject() => JS('JSObject', '{}');
+
+  void forEachObjectKey(object, action(key, value)) {
+    for (final key
+        in JS('returns:JSExtendableArray;new:true', 'Object.keys(#)', object)) {
+      action(key, JS('var', '#[#]', object, key));
+    }
+  }
+
+  void putIntoObject(object, key, value) =>
+      JS('void', '#[#] = #', object, key, value);
+
   newJsMap() => JS('var', '{}');
   putIntoMap(map, key, value) => JS('void', '#[#] = #', map, key, value);
   newJsList(length) => JS('JSExtendableArray', 'new Array(#)', length);
@@ -86,12 +98,11 @@ bool isImmutableJavaScriptArray(value) =>
 bool isJavaScriptPromise(value) =>
     JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
 
-Future convertNativePromiseToDartFuture(promise) {
-  var completer = new Completer();
-  var then = convertDartClosureToJS((result) => completer.complete(result), 1);
-  var error =
-      convertDartClosureToJS((result) => completer.completeError(result), 1);
-  var newPromise = JS('', '#.then(#)["catch"](#)', promise, then, error);
+Future<T> promiseToFuture<T>(promise) {
+  var completer = new Completer<T>();
+  var then = convertDartClosureToJS((r) => completer.complete(r), 1);
+  var error = convertDartClosureToJS((e) => completer.completeError(e), 1);
+  JS('', '#.then(#, #)', promise, then, error);
   return completer.future;
 }
 

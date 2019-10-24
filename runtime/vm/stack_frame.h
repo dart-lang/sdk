@@ -56,7 +56,7 @@ class StackFrame : public ValueObject {
     return 0;
   }
 
-  uword IsMarkedForLazyDeopt() const {
+  bool IsMarkedForLazyDeopt() const {
     ASSERT(!is_interpreted());
     uword raw_pc =
         *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize));

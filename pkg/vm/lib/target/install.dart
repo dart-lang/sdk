@@ -5,24 +5,20 @@
 library vm.target.install;
 
 import 'package:kernel/target/targets.dart' show targets, TargetFlags;
-
 import 'package:vm/target/dart_runner.dart' show DartRunnerTarget;
-
 import 'package:vm/target/flutter.dart' show FlutterTarget;
-
 import 'package:vm/target/flutter_runner.dart' show FlutterRunnerTarget;
-
 import 'package:vm/target/vm.dart' show VmTarget;
 
 bool _installed = false;
 
 void installAdditionalTargets() {
   if (!_installed) {
-    targets["dart_runner"] = (TargetFlags flags) => new DartRunnerTarget(flags);
-    targets["flutter"] = (TargetFlags flags) => new FlutterTarget(flags);
+    targets["dart_runner"] = (TargetFlags flags) => DartRunnerTarget(flags);
+    targets["flutter"] = (TargetFlags flags) => FlutterTarget(flags);
     targets["flutter_runner"] =
-        (TargetFlags flags) => new FlutterRunnerTarget(flags);
-    targets["vm"] = (TargetFlags flags) => new VmTarget(flags);
+        (TargetFlags flags) => FlutterRunnerTarget(flags);
+    targets["vm"] = (TargetFlags flags) => VmTarget(flags);
     _installed = true;
   }
 }

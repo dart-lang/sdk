@@ -14,7 +14,6 @@ import 'command_output.dart';
 import 'configuration.dart';
 import 'output_log.dart';
 import 'process_queue.dart';
-import 'repository.dart';
 import 'test_file.dart';
 import 'utils.dart';
 
@@ -45,7 +44,7 @@ const _excludedEnvironmentVariables = [
 /// for evaluating if the test has passed, failed, crashed, or timed out, and
 /// the TestCase has information about what the expected result of the test
 /// should be.
-class TestCase extends UniqueObject {
+class TestCase {
   /// A list of commands to execute. Most test cases have a single command.
   /// Dart2js tests have two commands, one to compile the source and another
   /// to execute it. Some isolate tests might even have three, if they require
@@ -55,28 +54,20 @@ class TestCase extends UniqueObject {
 
   TestConfiguration configuration;
   String displayName;
-  int hash = 0;
   Set<Expectation> expectedOutcomes;
   final TestFile testFile;
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {TestFile testFile})
-      : testFile = testFile {
+      {this.testFile}) {
     // A test case should do something.
     assert(commands.isNotEmpty);
-
-    if (testFile != null) {
-      hash = (testFile.originPath?.relativeTo(Repository.dir)?.toString())
-          .hashCode;
-    }
   }
 
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
     return TestCase(displayName, newCommands, configuration, expectedOutcomes,
-        testFile: testFile)
-      ..hash = hash;
+        testFile: testFile);
   }
 
   bool get hasRuntimeError => testFile?.hasRuntimeError ?? false;
@@ -269,7 +260,7 @@ class RunningProcess {
       var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
-      processFuture.then((io.Process process) {
+      processFuture.then<dynamic>((io.Process process) {
         var stdoutFuture = process.stdout.pipe(stdout);
         var stderrFuture = process.stderr.pipe(stderr);
         pid = process.pid;
@@ -384,8 +375,7 @@ class RunningProcess {
         exitCode = nonUtfFakeExitCode;
       }
     }
-    var commandOutput = createCommandOutput(
-        command,
+    var commandOutput = command.createOutput(
         exitCode,
         timedOut,
         stdoutData,

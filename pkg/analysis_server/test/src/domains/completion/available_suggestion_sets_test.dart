@@ -100,6 +100,10 @@ class A {
   },
   "parameterNames": [],
   "parameterTypes": [],
+  "relevanceTags": [
+    "package:test/a.dart::A",
+    "a"
+  ],
   "requiredParameterCount": 0
 }
 ''');

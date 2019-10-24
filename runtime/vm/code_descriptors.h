@@ -44,29 +44,73 @@ class DescriptorList : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 
-class StackMapTableBuilder : public ZoneAllocated {
+class CompressedStackMapsBuilder : public ZoneAllocated {
  public:
-  StackMapTableBuilder()
-      : stack_map_(StackMap::ZoneHandle()),
-        list_(GrowableObjectArray::ZoneHandle(
-            GrowableObjectArray::New(Heap::kOld))) {}
-  ~StackMapTableBuilder() {}
+  CompressedStackMapsBuilder() : encoded_bytes_() {}
 
   void AddEntry(intptr_t pc_offset,
                 BitmapBuilder* bitmap,
-                intptr_t register_bit_count);
+                intptr_t spill_slot_bit_count);
 
-  bool Verify();
-
-  RawArray* FinalizeStackMaps(const Code& code);
+  RawCompressedStackMaps* Finalize() const;
 
  private:
-  intptr_t Length() const { return list_.Length(); }
-  RawStackMap* MapAt(intptr_t index) const;
+  intptr_t last_pc_offset_ = 0;
+  GrowableArray<uint8_t> encoded_bytes_;
+  DISALLOW_COPY_AND_ASSIGN(CompressedStackMapsBuilder);
+};
 
-  StackMap& stack_map_;
-  GrowableObjectArray& list_;
-  DISALLOW_COPY_AND_ASSIGN(StackMapTableBuilder);
+class CompressedStackMapsIterator : public ValueObject {
+ public:
+  // We use the null value to represent CompressedStackMaps with no
+  // entries, so the constructor allows them.
+  explicit CompressedStackMapsIterator(const CompressedStackMaps& maps)
+      : maps_(maps) {}
+
+  // Loads the next entry from [maps_], if any. If [maps_] is the null
+  // value, this always returns false.
+  bool MoveNext();
+
+  // Finds the entry with the given PC offset starting at the current
+  // position of the iterator. If [maps_] is the null value, this always
+  // returns false.
+  bool Find(uint32_t pc_offset) {
+    // We should never have an entry with a PC offset of 0 inside an
+    // non-empty CSM, so fail. (On DBC, a pc_offset of 0 can be provided
+    // to Find() if there's no stack map information for a given Code object.)
+    if (pc_offset == 0) return false;
+    do {
+      if (current_pc_offset_ >= pc_offset) break;
+    } while (MoveNext());
+    return current_pc_offset_ == pc_offset;
+  }
+
+  // Methods for accessing parts of an entry should not be called until
+  // a successful MoveNext() or Find() call has been made.
+
+  uint32_t pc_offset() const {
+    ASSERT(HasLoadedEntry());
+    return current_pc_offset_;
+  }
+  intptr_t length() const {
+    ASSERT(HasLoadedEntry());
+    return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+  }
+  intptr_t spill_slot_bit_count() const {
+    ASSERT(HasLoadedEntry());
+    return current_spill_slot_bit_count_;
+  }
+  bool IsObject(intptr_t bit_offset) const;
+
+ private:
+  bool HasLoadedEntry() const { return next_offset_ > 0; }
+
+  const CompressedStackMaps& maps_;
+  intptr_t next_offset_ = 0;
+  uint32_t current_pc_offset_ = 0;
+  intptr_t current_spill_slot_bit_count_ = -1;
+  intptr_t current_non_spill_slot_bit_count_ = -1;
+  intptr_t current_bits_offset_ = -1;
 };
 
 class ExceptionHandlerList : public ZoneAllocated {
@@ -74,7 +118,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   struct HandlerDesc {
     intptr_t outer_try_index;    // Try block in which this try block is nested.
     intptr_t pc_offset;          // Handler PC offset value.
-    TokenPosition token_pos;     // Token position of handler.
     bool is_generated;           // False if this is directly from Dart code.
     const Array* handler_types;  // Catch clause guards.
     bool needs_stacktrace;
@@ -88,7 +131,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     struct HandlerDesc data;
     data.outer_try_index = -1;
     data.pc_offset = ExceptionHandlers::kInvalidPcOffset;
-    data.token_pos = TokenPosition::kNoSource;
     data.is_generated = true;
     data.handler_types = NULL;
     data.needs_stacktrace = false;
@@ -98,7 +140,6 @@ class ExceptionHandlerList : public ZoneAllocated {
   void AddHandler(intptr_t try_index,
                   intptr_t outer_try_index,
                   intptr_t pc_offset,
-                  TokenPosition token_pos,
                   bool is_generated,
                   const Array& handler_types,
                   bool needs_stacktrace) {
@@ -109,7 +150,6 @@ class ExceptionHandlerList : public ZoneAllocated {
     list_[try_index].outer_try_index = outer_try_index;
     ASSERT(list_[try_index].pc_offset == ExceptionHandlers::kInvalidPcOffset);
     list_[try_index].pc_offset = pc_offset;
-    list_[try_index].token_pos = token_pos;
     list_[try_index].is_generated = is_generated;
     ASSERT(handler_types.IsZoneHandle());
     list_[try_index].handler_types = &handler_types;

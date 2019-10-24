@@ -527,7 +527,10 @@ class Assembler : public AssemblerBase {
   void negl(Register reg);
   void notl(Register reg);
 
+  void bsfl(Register dst, Register src);
   void bsrl(Register dst, Register src);
+  void popcntl(Register dst, Register src);
+  void lzcntl(Register dst, Register src);
 
   void bt(Register base, Register offset);
   void bt(Register base, int bit);
@@ -664,11 +667,13 @@ class Assembler : public AssemblerBase {
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
   // However XMM0 is saved for convenience.
-
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch);
-  void TransitionNativeToGenerated(Register scratch);
+                                   Register scratch,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void EnterSafepoint(Register scratch);
+  void ExitSafepoint(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and
@@ -833,7 +838,7 @@ class Assembler : public AssemblerBase {
                         Register temp);
 
   // Debugging and bringup support.
-  void Breakpoint() { int3(); }
+  void Breakpoint() override { int3(); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

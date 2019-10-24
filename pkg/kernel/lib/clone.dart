@@ -13,7 +13,7 @@ import 'type_algebra.dart';
 ///
 /// It is safe to clone members, but cloning a class or library is not
 /// supported.
-class CloneVisitor implements TreeVisitor {
+class CloneVisitor implements TreeVisitor<TreeNode> {
   final Map<VariableDeclaration, VariableDeclaration> variables =
       <VariableDeclaration, VariableDeclaration>{};
   final Map<LabeledStatement, LabeledStatement> labels =
@@ -180,6 +180,10 @@ class CloneVisitor implements TreeVisitor {
     return new Not(clone(node.operand));
   }
 
+  visitNullCheck(NullCheck node) {
+    return new NullCheck(clone(node.operand));
+  }
+
   visitLogicalExpression(LogicalExpression node) {
     return new LogicalExpression(
         clone(node.left), node.operator, clone(node.right));
@@ -220,6 +224,10 @@ class CloneVisitor implements TreeVisitor {
         fieldValues,
         node.asserts.map(clone).toList(),
         node.unusedArguments.map(clone).toList());
+  }
+
+  visitFileUriExpression(FileUriExpression node) {
+    return new FileUriExpression(clone(node.expression), _activeFileUri);
   }
 
   visitIsExpression(IsExpression node) {
@@ -490,6 +498,7 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    prepareTypeParameters(node.typeParameters);
     return new RedirectingFactoryConstructor(node.targetReference,
         name: node.name,
         isConst: node.isConst,
@@ -506,12 +515,19 @@ class CloneVisitor implements TreeVisitor {
           : const <Expression>[];
   }
 
+  void prepareTypeParameters(List<TypeParameter> typeParameters) {
+    for (TypeParameter node in typeParameters) {
+      TypeParameter newNode = typeParams[node];
+      if (newNode == null) {
+        newNode = new TypeParameter(node.name);
+        typeParams[node] = newNode;
+        typeSubstitution[node] = new TypeParameterType(newNode);
+      }
+    }
+  }
+
   visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node];
-    if (newNode == null) {
-      newNode = new TypeParameter(node.name);
-      typeSubstitution[node] = new TypeParameterType(newNode);
-    }
     newNode.bound = visitType(node.bound);
     if (node.defaultType != null) {
       newNode.defaultType = visitType(node.defaultType);
@@ -534,6 +550,7 @@ class CloneVisitor implements TreeVisitor {
   }
 
   visitFunctionNode(FunctionNode node) {
+    prepareTypeParameters(node.typeParameters);
     var typeParameters = node.typeParameters.map(clone).toList();
     var positional = node.positionalParameters.map(clone).toList();
     var named = node.namedParameters.map(clone).toList();

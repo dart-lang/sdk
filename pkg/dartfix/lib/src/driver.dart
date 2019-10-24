@@ -16,6 +16,7 @@ import 'package:dartfix/listener/bad_message_listener.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:dartfix/src/options.dart';
 import 'package:dartfix/src/util.dart';
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 class Driver {
@@ -32,11 +33,10 @@ class Driver {
   Ansi get ansi => logger.ansi;
 
   Future applyFixes() async {
-    showDescriptions('Recommended changes', result.suggestions);
     showDescriptions('Recommended changes that cannot be automatically applied',
         result.otherSuggestions);
     showDetails(result.details);
-    if (result.suggestions.isEmpty) {
+    if (result.edits.isEmpty) {
       logger.stdout('');
       logger.stdout(result.otherSuggestions.isNotEmpty
           ? 'None of the recommended changes can be automatically applied.'
@@ -127,6 +127,14 @@ class Driver {
     }
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
+    }
+    String dir = options.outputDir;
+    if (dir != null) {
+      if (!path.isAbsolute(dir)) {
+        dir = path.absolute(dir);
+      }
+      dir = path.canonicalize(dir);
+      params.outputDir = dir;
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());

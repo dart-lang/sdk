@@ -8,5 +8,5 @@ abstract class TimelineRepository {
   Future<TimelineFlags> getFlags(VMRef ref);
   Future setRecordedStreams(VMRef ref, Iterable<TimelineStream> streams);
   Future clear(VMRef ref);
-  Future<Map<String, dynamic>> getIFrameParams(VMRef ref);
+  Future<Map> getTimeline(VMRef ref);
 }

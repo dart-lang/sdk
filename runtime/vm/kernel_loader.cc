@@ -822,6 +822,7 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
   ASSERT(H.GetExpressionEvaluationFunction().IsNull());
+  H.SetExpressionEvaluationRealClass(real_class);
   const Object& result = Object::Handle(Z, LoadProgram(true));
   if (result.IsError()) {
     return result.raw();
@@ -1021,6 +1022,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return library.raw();
 
+  library.set_is_nnbd(library_helper.IsNonNullableByDefault());
+
   library_kernel_data_ = helper_.reader_.ExternalDataFromTo(
       library_kernel_offset_, library_kernel_offset_ + library_size);
   library.set_kernel_data(library_kernel_data_);
@@ -1138,22 +1141,32 @@ void KernelLoader::FinishTopLevelClassLoading(
 
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!toplevel_class.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(library_kernel_offset_,
-                                              toplevel_class, false)) {
-      ASSERT(toplevel_class.is_loaded());
-      return;
-    }
-  }
-
   // Offsets within library index are whole program offsets and not
   // relative to the library.
   const intptr_t correction = correction_offset_ - library_kernel_offset_;
   helper_.SetOffset(library_index.ClassOffset(library_index.class_count()) +
                     correction);
+
+  if (kernel_binary_version_ >= 30) {
+    const intptr_t extension_count = helper_.ReadListLength();
+    for (intptr_t i = 0; i < extension_count; ++i) {
+      helper_.ReadTag();                     // read tag.
+      helper_.SkipCanonicalNameReference();  // skip canonical name.
+      helper_.SkipStringReference();         // skip name.
+      helper_.ReadUInt();                    // read source uri index.
+      helper_.ReadPosition();                // read file offset.
+      helper_.SkipTypeParametersList();      // skip type parameter list.
+      helper_.SkipDartType();                // skip on-type.
+
+      const intptr_t extension_member_count = helper_.ReadListLength();
+      for (intptr_t j = 0; j < extension_member_count; ++j) {
+        helper_.SkipName();                    // skip name.
+        helper_.ReadByte();                    // read kind.
+        helper_.ReadByte();                    // read flags.
+        helper_.SkipCanonicalNameReference();  // skip member reference
+      }
+    }
+  }
 
   fields_.Clear();
   functions_.Clear();
@@ -1189,12 +1202,16 @@ void KernelLoader::FinishTopLevelClassLoading(
     // Only instance fields could be covariant.
     ASSERT(!field_helper.IsCovariant() &&
            !field_helper.IsGenericCovariantImpl());
+    const bool is_late = field_helper.IsLate();
+    const bool is_extension_member = field_helper.IsExtensionMember();
     const Field& field = Field::Handle(
         Z,
         Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
                            field_helper.position_, field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     field.set_has_pragma(has_pragma_annotation);
+    field.set_is_late(is_late);
+    field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1294,7 +1311,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
       for (intptr_t n = 0; n < name_count; ++n) {
         String& show_hide_name =
             H.DartSymbolObfuscate(helper_.ReadStringReference());
-        if (flags & LibraryDependencyHelper::Show) {
+        if ((flags & LibraryDependencyHelper::Show) != 0) {
           show_list.Add(show_hide_name, Heap::kOld);
         } else {
           hide_list.Add(show_hide_name, Heap::kOld);
@@ -1329,7 +1346,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
-    if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
+    if ((dependency_helper.flags_ & LibraryDependencyHelper::Export) != 0) {
       library->AddExport(ns);
     } else {
       if (prefix.IsNull() || prefix.Length() == 0) {
@@ -1341,7 +1358,8 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         } else {
           library_prefix = LibraryPrefix::New(
               prefix, ns,
-              dependency_helper.flags_ & LibraryDependencyHelper::Deferred,
+              (dependency_helper.flags_ & LibraryDependencyHelper::Deferred) !=
+                  0,
               *library);
           library->AddObject(library_prefix, prefix);
         }
@@ -1498,18 +1516,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
   // fields.
   const bool discard_fields = klass.InjectCIDFields();
 
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
-                  "Cleanup support for old bytecode format versions");
-    ASSERT(!klass.is_declared_in_bytecode());
-    if (bytecode_metadata_helper_.ReadMembers(
-            klass.kernel_offset() + library_kernel_offset_, klass,
-            discard_fields)) {
-      ASSERT(klass.is_loaded());
-      return;
-    }
-  }
-
   fields_.Clear();
   functions_.Clear();
   if (!discard_fields) {
@@ -1550,6 +1556,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       // In the VM all const fields are implicitly final whereas in Kernel they
       // are not final because they are not explicitly declared that way.
       const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
+      const bool is_late = field_helper.IsLate();
+      const bool is_extension_member = field_helper.IsExtensionMember();
       Field& field = Field::Handle(
           Z,
           Field::New(name, field_helper.IsStatic(), is_final,
@@ -1560,6 +1568,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
+      field.set_is_late(is_late);
+      field.set_is_extension_member(is_extension_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
@@ -1815,7 +1825,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         }
         const intptr_t offset_in_constant_table = helper_.ReadUInt();
 
-        AlternativeReadingScope scope(
+        AlternativeReadingScopeWithNewData scope(
             &helper_.reader_,
             &ExternalTypedData::Handle(Z,
                                        kernel_program_info_.constants_table()),
@@ -1889,6 +1899,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_method = in_class && !procedure_helper.IsStatic();
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
+  bool is_extension_member = procedure_helper.IsExtensionMember();
   String& native_name = String::Handle(Z);
   bool is_potential_native;
   bool has_pragma_annotation;
@@ -1925,6 +1936,7 @@ void KernelLoader::LoadProcedure(const Library& library,
     H.SetExpressionEvaluationFunction(function);
   }
   function.set_kernel_offset(procedure_offset);
+  function.set_is_extension_member(is_extension_member);
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.raw() == Library::InternalLibrary()))) {
@@ -2147,6 +2159,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   getter.set_result_type(field_type);
   getter.set_is_debuggable(false);
   getter.set_accessor_field(field);
+  getter.set_is_extension_member(field.is_extension_member());
   H.SetupFieldAccessorFunction(klass, getter, field_type);
 
   if (!field_helper->IsStatic() && !field_helper->IsFinal()) {
@@ -2167,6 +2180,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
+    setter.set_is_extension_member(field.is_extension_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
   }
 }
@@ -2333,6 +2347,7 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_end_token_pos(field.end_token_pos());
   initializer_fun.set_accessor_field(field);
   initializer_fun.InheritBinaryDeclarationFrom(field);
+  initializer_fun.set_is_extension_member(field.is_extension_member());
   field.SetInitializerFunction(initializer_fun);
   return initializer_fun.raw();
 }

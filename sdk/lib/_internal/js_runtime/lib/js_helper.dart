@@ -366,7 +366,7 @@ class JSInvocationMirror implements Invocation {
         list.add(createRuntimeType(_arguments[start + index]));
       }
     }
-    return list;
+    return JSArray.markUnmodifiableList(list);
   }
 
   List get positionalArguments {
@@ -2280,7 +2280,8 @@ abstract class Closure implements Function {
     if (JS('bool', 'typeof # == "string"', functionType)) {
       // A recipe to evaluate against the instance type.
       if (isStatic) {
-        throw 'TODO: Recipe for static tearoff.';
+        // TODO(sra): Recipe for static tearoff.
+        throw 'Cannot compute signature for static tearoff.';
       }
       var typeEvalMethod = isIntercepted
           ? RAW_DART_FUNCTION_REF(BoundClosure.evalRecipeIntercepted)
@@ -2558,10 +2559,17 @@ abstract class Closure implements Function {
   // to be visible to resolution and the generation of extra stubs.
 
   String toString() {
-    var constructor = JS('', '#.constructor', this);
-    String name =
-        constructor == null ? null : JS('String|Null', '#.name', constructor);
-    if (name == null) name = 'unknown';
+    String name;
+    if (JS_GET_FLAG('USE_NEW_RTI')) {
+      var constructor = JS('', '#.constructor', this);
+      name =
+          constructor == null ? null : JS('String|Null', '#.name', constructor);
+      if (name == null) name = 'unknown';
+    } else {
+      name = Primitives.objectTypeName(this);
+      // Mirrors puts a space in front of some names, so remove it.
+      name = JS('String', '#.trim()', name);
+    }
     return "Closure '$name'";
   }
 }

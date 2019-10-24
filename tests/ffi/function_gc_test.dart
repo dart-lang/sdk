@@ -6,6 +6,8 @@
 // VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas
 // VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas --no-dual-map-code --write-protect-code
 // VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas --no-dual-map-code --write-protect-code
+// VMOptions=--enable-testing-pragmas --no-dual-map-code --write-protect-code
+// VMOptions=--enable-testing-pragmas --no-dual-map-code --write-protect-code --stacktrace-every=100
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.
@@ -16,7 +18,6 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi' as ffi;
-import 'dylib_utils.dart';
 import "package:expect/expect.dart";
 import 'ffi_test_helpers.dart';
 
@@ -111,12 +112,12 @@ void testRegress37069() {
 }
 
 final unprotectCode = ffiTestFunctions.lookupFunction<
-    ffi.Pointer<ffi.Void> Function(),
-    ffi.Pointer<ffi.Void> Function()>("UnprotectCode");
+    ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>),
+    ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.Void>)>("TestUnprotectCode");
 final waitForHelper = ffiTestFunctions.lookupFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void>),
     void Function(ffi.Pointer<ffi.Void>)>("WaitForHelper");
 
 void testWriteProtection() {
-  waitForHelper(unprotectCode());
+  waitForHelper(unprotectCode(ffi.nullptr));
 }

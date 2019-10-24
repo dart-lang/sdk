@@ -3,16 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+
 import 'element_helpers.dart' show getStaticType, isInlineJS, findAnnotation;
 import 'js_interop.dart' show isNotNullAnnotation, isNullCheckAnnotation;
 import 'js_typerep.dart';
 import 'property_model.dart';
+import 'type_utilities.dart';
 
 /// An inference engine for nullable types.
 ///
@@ -53,7 +55,7 @@ abstract class NullableTypeInference {
   bool _isNonNullMethodInvocation(MethodInvocation expr) {
     // TODO(vsm): This logic overlaps with the resolver.
     // Where is the best place to put this?
-    var e = resolutionMap.staticElementForIdentifier(expr.methodName);
+    var e = expr.methodName.staticElement;
     if (e == null) return false;
     if (isInlineJS(e)) {
       // Fix types for JS builtin calls.
@@ -85,7 +87,7 @@ abstract class NullableTypeInference {
     if (e is MethodElement) {
       Element container = e.enclosingElement;
       if (container is ClassElement) {
-        DartType targetType = container.type;
+        DartType targetType = getLegacyRawClassType(container);
         InterfaceType implType = jsTypeRep.getImplementationType(targetType);
         if (implType != null) {
           MethodElement method = implType.lookUpMethod(e.name, coreLibrary);
@@ -109,7 +111,7 @@ abstract class NullableTypeInference {
     // type.
     Element container = element.enclosingElement;
     if (container is ClassElement) {
-      var targetType = container.type;
+      var targetType = getLegacyRawClassType(container);
       var implType = jsTypeRep.getImplementationType(targetType);
       if (implType != null) {
         var getter = implType.lookUpGetter(name, coreLibrary);
@@ -220,7 +222,7 @@ abstract class NullableTypeInference {
       return _isNullable(expr.expression, localIsNullable);
     }
     if (expr is InstanceCreationExpression) {
-      var e = resolutionMap.staticElementForConstructorReference(expr);
+      var e = expr.staticElement;
       if (e == null) return true;
 
       // Follow redirects.

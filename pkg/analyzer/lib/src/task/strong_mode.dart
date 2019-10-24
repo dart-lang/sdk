@@ -10,12 +10,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart'
-    show FieldElementForLink_ClassField, ParameterElementForLink;
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 
 /**
@@ -149,26 +147,14 @@ class InstanceMemberInferrer {
    */
   DartType _computeParameterType(ParameterElement parameter, int index,
       List<FunctionType> overriddenTypes) {
-    DartType parameterType = null;
+    DartType parameterType;
     int length = overriddenTypes.length;
     for (int i = 0; i < length; i++) {
       ParameterElement matchingParameter = _getCorrespondingParameter(
           parameter, index, overriddenTypes[i].parameters);
       DartType type = matchingParameter?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
-        if (type is FunctionType &&
-            type.element != null &&
-            type.element is! TypeDefiningElement &&
-            type.element.enclosingElement is! TypeDefiningElement) {
-          // The resulting parameter's type element has an `enclosingElement` of
-          // the overridden parameter. Change it to the overriding parameter.
-          parameterType = new FunctionTypeImpl.fresh(type, force: true);
-          (parameterType.element as ElementImpl).enclosingElement = parameter;
-          // TODO(mfairhurst) handle cases where non-functions contain functions
-          // See test_inferredType_parameter_genericFunctionType_asTypeArgument
-        } else {
-          parameterType = type;
-        }
+        parameterType = type;
       } else if (parameterType != type) {
         if (parameter is ParameterElementImpl && parameter.linkedNode != null) {
           LazyAst.setTypeInferenceError(
@@ -177,9 +163,6 @@ class InstanceMemberInferrer {
               kind: TopLevelInferenceErrorKind.overrideConflictParameterType,
             ),
           );
-        } else if (parameter is ParameterElementForLink) {
-          parameter.setInferenceError(new TopLevelInferenceErrorBuilder(
-              kind: TopLevelInferenceErrorKind.overrideConflictParameterType));
         }
         return typeProvider.dynamicType;
       }
@@ -196,7 +179,7 @@ class InstanceMemberInferrer {
    * want to be smarter about it.
    */
   DartType _computeReturnType(Iterable<DartType> overriddenReturnTypes) {
-    DartType returnType = null;
+    DartType returnType;
     for (DartType type in overriddenReturnTypes) {
       if (type == null) {
         type = typeProvider.dynamicType;
@@ -307,7 +290,7 @@ class InstanceMemberInferrer {
         //
         // Then infer the types for the members.
         //
-        this.interfaceType = classElement.type;
+        this.interfaceType = classElement.thisType;
         for (FieldElement field in classElement.fields) {
           _inferField(field);
         }
@@ -428,9 +411,6 @@ class InstanceMemberInferrer {
             kind: TopLevelInferenceErrorKind.overrideConflictFieldType,
           ),
         );
-      } else if (field is FieldElementForLink_ClassField) {
-        field.setInferenceError(new TopLevelInferenceErrorBuilder(
-            kind: TopLevelInferenceErrorKind.overrideConflictFieldType));
       }
       return;
     }
@@ -496,16 +476,19 @@ class InstanceMemberInferrer {
    */
   FunctionType _toOverriddenFunctionType(
       ExecutableElement element, ExecutableElement overriddenElement) {
-    List<DartType> typeFormals =
-        TypeParameterTypeImpl.getTypes(element.type.typeFormals);
-    FunctionType overriddenType = overriddenElement.type;
-    if (overriddenType.typeFormals.isNotEmpty) {
-      if (overriddenType.typeFormals.length != typeFormals.length) {
-        return null;
-      }
-      overriddenType = overriddenType.instantiate(typeFormals);
+    var elementTypeParameters = element.typeParameters;
+    var overriddenTypeParameters = overriddenElement.typeParameters;
+
+    if (elementTypeParameters.length != overriddenTypeParameters.length) {
+      return null;
     }
-    return overriddenType;
+
+    var overriddenType = overriddenElement.type;
+    if (elementTypeParameters.isEmpty) {
+      return overriddenType;
+    }
+
+    return replaceTypeParameters(overriddenType, elementTypeParameters);
   }
 
   /**
@@ -575,7 +558,7 @@ class VariableGatherer extends RecursiveAstVisitor {
    * Initialize a newly created gatherer to gather all of the variables that
    * pass the given [filter] (or all variables if no filter is provided).
    */
-  VariableGatherer([this.filter = null]);
+  VariableGatherer([this.filter]);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

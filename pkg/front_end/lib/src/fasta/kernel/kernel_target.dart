@@ -45,6 +45,17 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+
 import '../compiler_context.dart' show CompilerContext;
 
 import '../crash.dart' show withCrashReporting;
@@ -86,18 +97,6 @@ import '../uri_translator.dart' show UriTranslator;
 
 import 'constant_evaluator.dart' as constants show transformLibraries;
 
-import 'kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        InvalidTypeBuilder,
-        FieldBuilder,
-        NamedTypeBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder;
-
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
 import 'metadata_collector.dart' show MetadataCollector;
@@ -120,13 +119,16 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  final TypeBuilder dynamicType = new NamedTypeBuilder("dynamic", null);
+  // 'dynamic' is always nullable.
+  final TypeBuilder dynamicType = new NamedTypeBuilder(
+      "dynamic", const NullabilityBuilder.nullable(), null);
 
-  final NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
+  final NamedTypeBuilder objectType =
+      new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null);
 
-  final TypeBuilder bottomType = new NamedTypeBuilder("Null", null);
-
-  bool get legacyMode => backendTarget.legacyMode;
+  // Null is always nullable.
+  final TypeBuilder bottomType =
+      new NamedTypeBuilder("Null", const NullabilityBuilder.nullable(), null);
 
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
@@ -204,7 +206,7 @@ class KernelTarget extends TargetImplementation {
   LibraryBuilder createLibraryBuilder(
       Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
-      var builder = dillTarget.loader.builders[uri];
+      LibraryBuilder builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
@@ -230,12 +232,13 @@ class KernelTarget extends TargetImplementation {
   }
 
   void breakCycle(ClassBuilder builder) {
-    Class cls = builder.target;
+    Class cls = builder.cls;
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new NamedTypeBuilder("Object", null)
-      ..bind(objectClassBuilder);
+    builder.supertype =
+        new NamedTypeBuilder("Object", const NullabilityBuilder.omitted(), null)
+          ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
   }
@@ -251,17 +254,13 @@ class KernelTarget extends TargetImplementation {
           loader.coreLibrary.lookupLocalMember("dynamic", required: true));
       loader.resolveParts();
       loader.computeLibraryScopes();
-      objectType
-          .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
-      bottomType
-          .bind(loader.coreLibrary.lookupLocalMember("Null", required: true));
+      setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeDefaultTypes(dynamicType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> myClasses =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.buildComponent();
-      loader.finalizeInitializingFormals();
       installDefaultSupertypes();
       installSyntheticConstructors(myClasses);
       loader.resolveConstructors();
@@ -350,7 +349,7 @@ class KernelTarget extends TargetImplementation {
         declaration = problem.getFirstDeclaration();
       }
       if (declaration is ProcedureBuilder) {
-        component.mainMethod = declaration.procedure;
+        component.mainMethod = declaration.actualProcedure;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {
           component.mainMethod = declaration.member;
@@ -374,10 +373,11 @@ class KernelTarget extends TargetImplementation {
         while (iterator.moveNext()) {
           Builder declaration = iterator.current;
           if (declaration is SourceClassBuilder) {
-            Class cls = declaration.target;
+            Class cls = declaration.cls;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??= new NamedTypeBuilder("Object", null)
+              declaration.supertype ??= new NamedTypeBuilder(
+                  "Object", const NullabilityBuilder.omitted(), null)
                 ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
@@ -394,7 +394,7 @@ class KernelTarget extends TargetImplementation {
   void installSyntheticConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      if (builder.target != objectClass && !builder.isPatch) {
+      if (builder.cls != objectClass && !builder.isPatch) {
         if (builder.isPatch ||
             builder.isMixinDeclaration ||
             builder.isExtension) {
@@ -419,9 +419,9 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isMixinApplication);
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
-    if (builder.target.constructors.isNotEmpty) return;
-    if (builder.target.redirectingFactoryConstructors.isNotEmpty) return;
-    for (Procedure proc in builder.target.procedures) {
+    if (builder.cls.constructors.isNotEmpty) return;
+    if (builder.cls.redirectingFactoryConstructors.isNotEmpty) return;
+    for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }
 
@@ -430,13 +430,13 @@ class KernelTarget extends TargetImplementation {
     /// >Iff no constructor is specified for a class C, it implicitly has a
     /// >default constructor C() : super() {}, unless C is class Object.
     // The superinitializer is installed below in [finishConstructors].
-    builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+    builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
   }
 
   void installForwardingConstructors(SourceClassBuilder builder) {
     assert(builder.isMixinApplication);
     if (builder.library.loader != loader) return;
-    if (builder.target.constructors.isNotEmpty) {
+    if (builder.cls.constructors.isNotEmpty) {
       // These were installed by a subclass in the recursive call below.
       return;
     }
@@ -460,22 +460,22 @@ class KernelTarget extends TargetImplementation {
       unhandled("${type.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
     }
-    if (supertype.isMixinApplication) {
+    if (supertype is SourceClassBuilder && supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
     if (supertype is ClassBuilder) {
       if (supertype.cls.constructors.isEmpty) {
-        builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+        builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
       } else {
         Map<TypeParameter, DartType> substitutionMap =
-            builder.getSubstitutionMap(supertype.target);
+            builder.getSubstitutionMap(supertype.cls);
         for (Constructor constructor in supertype.cls.constructors) {
           builder.addSyntheticConstructor(makeMixinApplicationConstructor(
-              builder.target, builder.cls.mixin, constructor, substitutionMap));
+              builder.cls, builder.cls.mixin, constructor, substitutionMap));
         }
       }
-    } else if (supertype is InvalidTypeBuilder) {
-      builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
+    } else if (supertype is InvalidTypeDeclarationBuilder) {
+      builder.addSyntheticConstructor(makeDefaultConstructor(builder.cls));
     } else {
       unhandled("${supertype.runtimeType}", "installForwardingConstructors",
           builder.charOffset, builder.fileUri);
@@ -486,7 +486,7 @@ class KernelTarget extends TargetImplementation {
       Constructor constructor, Map<TypeParameter, DartType> substitutionMap) {
     VariableDeclaration copyFormal(VariableDeclaration formal) {
       // TODO(ahe): Handle initializers.
-      var copy = new VariableDeclaration(formal.name,
+      VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
         copy.type = substitute(formal.type, substitutionMap);
@@ -562,21 +562,28 @@ class KernelTarget extends TargetImplementation {
     return new InterfaceType(enclosingClass, typeParameterTypes);
   }
 
+  void setupTopAndBottomTypes() {
+    objectType
+        .bind(loader.coreLibrary.lookupLocalMember("Object", required: true));
+
+    ClassBuilder nullClassBuilder =
+        loader.coreLibrary.lookupLocalMember("Null", required: true);
+    nullClassBuilder.isNullClass = true;
+    bottomType.bind(nullClassBuilder);
+  }
+
   void computeCoreTypes() {
     List<Library> libraries = <Library>[];
-    for (String platformLibrary in const [
+    for (String platformLibrary in [
       "dart:_internal",
       "dart:async",
-      // TODO(askesc): When all backends support set literals, we no longer
-      // need to index dart:collection, as it is only needed for desugaring of
-      // const sets. We can remove it from this list at that time.
-      "dart:collection",
       "dart:core",
-      "dart:mirrors"
+      "dart:mirrors",
+      ...backendTarget.extraIndexedLibraries
     ]) {
       Uri uri = Uri.parse(platformLibrary);
-      LibraryBuilder library = loader.builders[uri];
-      if (library == null) {
+      LibraryBuilder libraryBuilder = loader.builders[uri];
+      if (libraryBuilder == null) {
         // TODO(ahe): This is working around a bug in kernel_driver_test or
         // kernel_driver.
         bool found = false;
@@ -592,7 +599,7 @@ class KernelTarget extends TargetImplementation {
           throw "Can't find $uri";
         }
       } else {
-        libraries.add(library.target);
+        libraries.add(libraryBuilder.library);
       }
     }
     Component platformLibraries =
@@ -605,7 +612,7 @@ class KernelTarget extends TargetImplementation {
   void finishAllConstructors(List<SourceClassBuilder> builders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in builders) {
-      Class cls = builder.target;
+      Class cls = builder.cls;
       if (cls != objectClass) {
         finishConstructors(builder);
       }
@@ -613,11 +620,11 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Finished constructors");
   }
 
-  /// Ensure constructors of [cls] have the correct initializers and other
+  /// Ensure constructors of [builder] have the correct initializers and other
   /// requirements.
   void finishConstructors(SourceClassBuilder builder) {
     if (builder.isPatch) return;
-    Class cls = builder.target;
+    Class cls = builder.cls;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
@@ -783,19 +790,20 @@ class KernelTarget extends TargetImplementation {
         loader.libraries,
         new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
-    if (loader.target.enableConstantUpdate2018) {
-      TypeEnvironment environment =
-          new TypeEnvironment(loader.coreTypes, loader.hierarchy);
-      constants.transformLibraries(
-          loader.libraries,
-          backendTarget.constantsBackend(loader.coreTypes),
-          environmentDefines,
-          environment,
-          new KernelConstantErrorReporter(loader),
-          desugarSets: !backendTarget.supportsSetLiterals,
-          errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
-      ticker.logMs("Evaluated constants");
-    }
+
+    TypeEnvironment environment =
+        new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.transformLibraries(
+        loader.libraries,
+        backendTarget.constantsBackend(loader.coreTypes),
+        environmentDefines,
+        environment,
+        new KernelConstantErrorReporter(loader),
+        desugarSets: !backendTarget.supportsSetLiterals,
+        enableTripleShift: enableTripleShift,
+        errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+    ticker.logMs("Evaluated constants");
+
     backendTarget.performModularTransformationsOnLibraries(
         component,
         loader.coreTypes,

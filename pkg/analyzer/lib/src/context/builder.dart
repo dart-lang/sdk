@@ -78,7 +78,7 @@ class ContextBuilder {
    * create their own drivers with the same tools, in theory. Here as a stopgap
    * until the official plugin API is complete
    */
-  static Function onCreateAnalysisDriver = null;
+  static Function onCreateAnalysisDriver;
 
   /**
    * The [ResourceProvider] by which paths are converted into [Resource]s.
@@ -160,10 +160,8 @@ class ContextBuilder {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = getAnalysisOptions(path);
-    context.contentCache = contentCache;
     context.sourceFactory = createSourceFactory(path, options);
     context.analysisOptions = options;
-    context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
     return context;

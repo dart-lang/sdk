@@ -9,7 +9,7 @@ import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 
-import 'package:kernel/kernel.dart' show Component, CanonicalName, Library;
+import 'package:kernel/kernel.dart' show Component, Library;
 
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -20,22 +20,26 @@ import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
-import '../api_prototype/front_end.dart' show CompilerResult;
-
 import '../api_prototype/file_system.dart' show FileSystem;
+
+import '../api_prototype/front_end.dart' show CompilerResult;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
-import '../fasta/compiler_context.dart' show CompilerContext;
-
-import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
-
 import '../kernel_generator_impl.dart' show generateKernel;
 
-import 'compiler_state.dart'
-    show InitializedCompilerState, WorkerInputComponent, digestsEqual;
+import 'compiler_state.dart' show InitializedCompilerState;
+
+import 'modular_incremental_compilation.dart' as modular
+    show initializeIncrementalCompiler;
+
+export '../api_prototype/compiler_options.dart'
+    show parseExperimentalFlags, parseExperimentalArguments;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
+
+export '../api_prototype/experimental_flags.dart'
+    show ExperimentalFlag, parseExperimentalFlag;
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
 
@@ -48,14 +52,13 @@ export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
-import 'util.dart' show equalMaps;
-
 /// Initializes the compiler for a modular build.
 ///
-/// Re-uses cached components from [_workerInputCache], and reloads them
+/// Re-uses cached components from [oldState.workerInputCache], and reloads them
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
+    Set<String> tags,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -66,153 +69,26 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Iterable<String> experiments,
     bool outlineOnly,
     {bool trackNeededDillLibraries: false}) async {
-  final List<int> sdkDigest = workerInputDigests[sdkSummary];
-  if (sdkDigest == null) {
-    throw new StateError("Expected to get digest for $sdkSummary");
-  }
-  IncrementalCompiler incrementalCompiler;
-  CompilerOptions options;
-  ProcessedOptions processedOpts;
-  WorkerInputComponent cachedSdkInput;
-  Map<Uri, WorkerInputComponent> workerInputCache =
-      oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
-  bool startOver = false;
+  List<Component> outputLoadedInputSummaries =
+      new List<Component>(summaryInputs.length);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experiments),
       onError: (e) => throw e);
-
-  if (oldState == null ||
-      oldState.incrementalCompiler == null ||
-      oldState.incrementalCompiler.outlineOnly != outlineOnly ||
-      !equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
-    // No - or immediately not correct - previous state.
-    startOver = true;
-
-    // We'll load a new sdk, anything loaded already will have a wrong root.
-    workerInputCache.clear();
-  } else {
-    // We do have a previous state.
-    cachedSdkInput = workerInputCache[sdkSummary];
-    if (cachedSdkInput == null ||
-        !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
-      // The sdk is out of date.
-      startOver = true;
-      // We'll load a new sdk, anything loaded already will have a wrong root.
-      workerInputCache.clear();
-    }
-  }
-
-  if (startOver) {
-    // The sdk was either not cached or it has changed.
-    options = new CompilerOptions()
-      ..sdkSummary = sdkSummary
-      ..packagesFileUri = packagesFile
-      ..librariesSpecificationUri = librariesSpecificationUri
-      ..target = target
-      ..fileSystem = fileSystem
-      ..omitPlatform = true
-      ..environmentDefines = const {}
-      ..experimentalFlags = experimentalFlags;
-
-    processedOpts = new ProcessedOptions(options: options);
-    cachedSdkInput = WorkerInputComponent(
-        sdkDigest, await processedOpts.loadSdkSummary(null));
-    workerInputCache[sdkSummary] = cachedSdkInput;
-
-    incrementalCompiler = new IncrementalCompiler.fromComponent(
-        new CompilerContext(processedOpts),
-        cachedSdkInput.component,
-        outlineOnly);
-    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
-  } else {
-    options = oldState.options;
-    processedOpts = oldState.processedOpts;
-    Component sdkComponent = cachedSdkInput.component;
-    // Reset the state of the component.
-    for (Library lib in sdkComponent.libraries) {
-      lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
-    }
-
-    // Make sure the canonical name root knows about the sdk - otherwise we
-    // won't be able to link to it when loading more outlines.
-    sdkComponent.adoptChildren();
-
-    // TODO(jensj): This is - at least currently - necessary,
-    // although it's not entirely obvious why.
-    // It likely has to do with several outlines containing the same libraries.
-    // Once that stops (and we check for it) we can probably remove this,
-    // and instead only do it when about to reuse an outline in the
-    // 'inputSummaries.add(component);' line further down.
-    for (WorkerInputComponent cachedInput in workerInputCache.values) {
-      cachedInput.component.adoptChildren();
-    }
-
-    // Reuse the incremental compiler, but reset as needed.
-    incrementalCompiler = oldState.incrementalCompiler;
-    incrementalCompiler.invalidateAllSources();
-    incrementalCompiler.trackNeededDillLibraries = trackNeededDillLibraries;
-    options.packagesFileUri = packagesFile;
-    options.fileSystem = fileSystem;
-    processedOpts.clearFileSystemCache();
-  }
-
-  // Then read all the input summary components.
-  CanonicalName nameRoot = cachedSdkInput.component.root;
-  final List<Component> inputSummaries = <Component>[];
-  Map<Uri, Uri> libraryToInputDill;
-  if (trackNeededDillLibraries) {
-    libraryToInputDill = new Map<Uri, Uri>();
-  }
-  List<Uri> loadFromDill = new List<Uri>();
-  for (Uri summary in summaryInputs) {
-    WorkerInputComponent cachedInput = workerInputCache[summary];
-    List<int> summaryDigest = workerInputDigests[summary];
-    if (summaryDigest == null) {
-      throw new StateError("Expected to get digest for $summary");
-    }
-    if (cachedInput == null ||
-        cachedInput.component.root != nameRoot ||
-        !digestsEqual(cachedInput.digest, summaryDigest)) {
-      loadFromDill.add(summary);
-    } else {
-      // Need to reset cached components so they are usable again.
-      Component component = cachedInput.component;
-      for (Library lib in component.libraries) {
-        lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
-        if (trackNeededDillLibraries) {
-          libraryToInputDill[lib.importUri] = summary;
-        }
-      }
-      inputSummaries.add(component);
-    }
-  }
-
-  for (int i = 0; i < loadFromDill.length; i++) {
-    Uri summary = loadFromDill[i];
-    List<int> summaryDigest = workerInputDigests[summary];
-    if (summaryDigest == null) {
-      throw new StateError("Expected to get digest for $summary");
-    }
-    WorkerInputComponent cachedInput = WorkerInputComponent(
-        summaryDigest,
-        await processedOpts.loadComponent(
-            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot,
-            alwaysCreateNewNamedNodes: true));
-    workerInputCache[summary] = cachedInput;
-    inputSummaries.add(cachedInput.component);
-    if (trackNeededDillLibraries) {
-      for (Library lib in cachedInput.component.libraries) {
-        libraryToInputDill[lib.importUri] = summary;
-      }
-    }
-  }
-
-  incrementalCompiler.setModulesToLoadOnNextComputeDelta(inputSummaries);
-
-  return new InitializedCompilerState(options, processedOpts,
-      workerInputCache: workerInputCache,
-      incrementalCompiler: incrementalCompiler,
-      libraryToInputDill: libraryToInputDill);
+  return modular.initializeIncrementalCompiler(
+      oldState,
+      tags,
+      outputLoadedInputSummaries,
+      sdkSummary,
+      packagesFile,
+      librariesSpecificationUri,
+      summaryInputs,
+      workerInputDigests,
+      target,
+      fileSystem: fileSystem,
+      experimentalFlags: experimentalFlags,
+      outlineOnly: outlineOnly,
+      omitPlatform: true,
+      trackNeededDillLibraries: trackNeededDillLibraries);
 }
 
 Future<InitializedCompilerState> initializeCompiler(

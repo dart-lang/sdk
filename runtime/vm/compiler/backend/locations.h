@@ -572,7 +572,7 @@ class RegisterSet : public ValueObject {
 
   void AddAllNonReservedRegisters(bool include_fpu_registers) {
     for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
-      if (kReservedCpuRegisters & (1 << i)) continue;
+      if ((kReservedCpuRegisters & (1 << i)) != 0u) continue;
       Add(Location::RegisterLocation(static_cast<Register>(i)));
     }
 
@@ -607,6 +607,26 @@ class RegisterSet : public ValueObject {
     }
 #endif
   }
+
+#if !defined(TARGET_ARCH_DBC)
+  void AddAllArgumentRegisters() {
+    // All (native) arguments are passed on the stack in IA32.
+#if !defined(TARGET_ARCH_IA32)
+    for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      const Register reg = static_cast<Register>(i);
+      if (IsArgumentRegister(reg)) {
+        Add(Location::RegisterLocation(reg));
+      }
+    }
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      const FpuRegister reg = static_cast<FpuRegister>(i);
+      if (IsFpuArgumentRegister(reg)) {
+        Add(Location::FpuRegisterLocation(reg));
+      }
+    }
+#endif
+  }
+#endif
 
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
@@ -840,7 +860,7 @@ class FrameRebase : public ValueObject {
   FrameRebase(Register old_base, Register new_base, intptr_t stack_delta)
       : old_base_(old_base), new_base_(new_base), stack_delta_(stack_delta) {}
 
-  Location Rebase(Location loc) {
+  Location Rebase(Location loc) const {
     if (loc.IsPairLocation()) {
       return Location::Pair(Rebase(loc.Component(0)), Rebase(loc.Component(1)));
     }

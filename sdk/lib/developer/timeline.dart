@@ -180,11 +180,19 @@ class Timeline {
 /// [TimelineTask] in the other isolate.
 class TimelineTask {
   /// Create a task. The task ID will be set by the system.
-  TimelineTask() : _taskId = _getNextAsyncId() {}
+  ///
+  /// If [parent] is provided, the parent's task ID is provided as argument
+  /// 'parentId' when [start] is called. In DevTools, this argument will result
+  /// in this [TimelineTask] being linked to the [parent] [TimelineTask].
+  TimelineTask({TimelineTask parent})
+      : _parent = parent,
+        _taskId = _getNextAsyncId() {}
 
   /// Create a task with an explicit [taskId]. This is useful if you are
   /// passing a task from one isolate to another.
-  TimelineTask.withTaskId(int taskId) : _taskId = taskId {
+  TimelineTask.withTaskId(int taskId)
+      : _parent = null,
+        _taskId = taskId {
     ArgumentError.checkNotNull(taskId, 'taskId');
   }
 
@@ -194,14 +202,15 @@ class TimelineTask {
     if (!_hasTimeline) return;
     ArgumentError.checkNotNull(name, 'name');
     var block = new _AsyncBlock._(name, _taskId);
-    if (arguments != null) {
-      block._arguments = arguments;
-    }
     _stack.add(block);
-    block._start();
+    block._start({
+      if (arguments != null) ...arguments,
+      if (_parent != null) 'parentId': _parent._taskId.toRadixString(16),
+    });
   }
 
   /// Emit an instant event for this task.
+  /// Optionally takes a [Map] of [arguments].
   void instant(String name, {Map arguments}) {
     if (!_hasTimeline) return;
     ArgumentError.checkNotNull(name, 'name');
@@ -214,7 +223,8 @@ class TimelineTask {
   }
 
   /// Finish the last synchronous operation that was started.
-  void finish() {
+  /// Optionally takes a [Map] of [arguments].
+  void finish({Map arguments}) {
     if (!_hasTimeline) {
       return;
     }
@@ -223,7 +233,7 @@ class TimelineTask {
     }
     // Pop top item off of stack.
     var block = _stack.removeLast();
-    block._finish();
+    block._finish(arguments);
   }
 
   /// Retrieve the [TimelineTask]'s task id. Will throw an exception if the
@@ -238,6 +248,7 @@ class TimelineTask {
     return r;
   }
 
+  final TimelineTask _parent;
   final int _taskId;
   final List<_AsyncBlock> _stack = [];
 }
@@ -254,22 +265,18 @@ class _AsyncBlock {
   /// The asynchronous task id.
   final int _taskId;
 
-  /// An (optional) set of arguments which will be serialized to JSON and
-  /// associated with this block.
-  Map _arguments;
-
   _AsyncBlock._(this.name, this._taskId);
 
   // Emit the start event.
-  void _start() {
-    _reportTaskEvent(
-        _getTraceClock(), _taskId, 'b', category, name, _argumentsAsJson(null));
+  void _start(Map arguments) {
+    _reportTaskEvent(_getTraceClock(), _taskId, 'b', category, name,
+        _argumentsAsJson(arguments));
   }
 
   // Emit the finish event.
-  void _finish() {
+  void _finish(Map arguments) {
     _reportTaskEvent(_getTraceClock(), _taskId, 'e', category, name,
-        _argumentsAsJson(_arguments));
+        _argumentsAsJson(arguments));
   }
 }
 
@@ -302,8 +309,8 @@ class _SyncBlock {
     _reportCompleteEvent(
         _start, _startCpu, category, name, _argumentsAsJson(_arguments));
     if (_flow != null) {
-      _reportFlowEvent(_start, _startCpu, category, name, _flow._type, _flow.id,
-          _argumentsAsJson(null));
+      _reportFlowEvent(_start, _startCpu, category, "${_flow.id}", _flow._type,
+          _flow.id, _argumentsAsJson(null));
     }
   }
 

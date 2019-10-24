@@ -27,7 +27,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    */
   static const int LAZY_THRESHOLD = 4;
 
-  var /* String | LazySubstring */ valueOrLazySubstring;
+  dynamic /* String | LazySubstring */ valueOrLazySubstring;
 
   /**
    * Creates a non-lazy string token. If [canonicalize] is true, the string
@@ -83,7 +83,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
       return valueOrLazySubstring;
     } else {
       assert(valueOrLazySubstring is _LazySubstring);
-      var data = valueOrLazySubstring.data;
+      dynamic data = valueOrLazySubstring.data;
       int start = valueOrLazySubstring.start;
       int end = start + valueOrLazySubstring.length;
       if (data is String) {
@@ -296,7 +296,7 @@ abstract class _LazySubstring {
  * The file html_dart2js.dart is currently around 1MB.
  */
 class _CompactLazySubstring extends _LazySubstring {
-  final data;
+  final dynamic data;
   final int fields;
 
   _CompactLazySubstring(this.data, this.fields) : super.internal();
@@ -307,7 +307,7 @@ class _CompactLazySubstring extends _LazySubstring {
 }
 
 class _FullLazySubstring extends _LazySubstring {
-  final data;
+  final dynamic data;
   final int start;
   final int length;
   final bool boolValue;

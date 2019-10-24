@@ -82,13 +82,13 @@ class ClassHeapStatsTestHelper {
  public:
   static ClassHeapStats* GetHeapStatsForCid(ClassTable* class_table,
                                             intptr_t cid) {
-    return class_table->PreliminaryStatsAt(cid);
+    return class_table->shared_class_table()->PreliminaryStatsAt(cid);
   }
 
   static void DumpClassHeapStats(ClassHeapStats* stats) {
-    OS::PrintErr("%" Pd " ", stats->recent.new_count);
-    OS::PrintErr("%" Pd " ", stats->post_gc.new_count);
-    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count);
+    OS::PrintErr("%" Pd " ", stats->recent.new_count.load());
+    OS::PrintErr("%" Pd " ", stats->post_gc.new_count.load());
+    OS::PrintErr("%" Pd " ", stats->pre_gc.new_count.load());
     OS::PrintErr("\n");
   }
 };

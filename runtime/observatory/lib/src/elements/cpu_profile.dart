@@ -116,7 +116,7 @@ class CpuProfileElement extends CustomElement implements Renderable {
             selectedTag: _tag, queue: _r.queue)
           ..onTagChange.listen((e) {
             _tag = e.element.selectedTag;
-            _request(forceFetch: true);
+            _request();
           }))
         .element);
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {

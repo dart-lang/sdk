@@ -132,7 +132,6 @@ InitializedCompilerState initializeCompiler(
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
-    ..legacyMode = target.legacyMode
     ..linkedDependencies = linkedDependencies
     ..librariesSpecificationUri = librariesSpecificationUri
     ..packagesFileUri = packagesFileUri

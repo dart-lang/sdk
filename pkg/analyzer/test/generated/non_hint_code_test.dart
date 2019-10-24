@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/driver_resolution.dart';
-import 'resolver_test_case.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -190,22 +189,24 @@ f(A a, B b) {
   }
 }
 
-class PubSuggestionCodeTest extends ResolverTestCase {
+class PubSuggestionCodeTest extends DriverResolutionTest {
   // TODO(brianwilkerson) The tests in this class are not being run, and all but
   //  the first would fail. We should implement these checks and enable the
   //  tests.
   test_import_package() async {
     await assertErrorsInCode('''
 import 'package:somepackage/other.dart';
-''', [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+''', [
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0),
+    ]);
   }
 
   test_import_packageWithDotDot() async {
     await assertErrorsInCode('''
 import 'package:somepackage/../other.dart';
 ''', [
-      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-      HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0),
+      error(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, 0, 0),
     ]);
   }
 
@@ -213,71 +214,70 @@ import 'package:somepackage/../other.dart';
     await assertErrorsInCode('''
 import 'package:../other.dart';
 ''', [
-      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-      HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
+      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0),
+      error(HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, 0, 0),
     ]);
   }
 
   test_import_referenceIntoLibDirectory() async {
-    addNamedSource("/myproj/pubspec.yaml", "");
-    addNamedSource("/myproj/lib/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+    newFile("/myproj/pubspec.yaml", content: "");
+    newFile("/myproj/lib/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/web/test.dart", "import '../lib/other.dart';", [
+      error(HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, 0, 0),
+    ]);
   }
 
   test_import_referenceIntoLibDirectory_no_pubspec() async {
-    addNamedSource("/myproj/lib/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+    newFile("/myproj/lib/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/web/test.dart", "import '../lib/other.dart';", []);
   }
 
   test_import_referenceOutOfLibDirectory() async {
-    addNamedSource("/myproj/pubspec.yaml", "");
-    addNamedSource("/myproj/web/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
+    newFile("/myproj/pubspec.yaml", content: "");
+    newFile("/myproj/web/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/lib/test.dart", "import '../web/other.dart';", [
+      error(HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, 0, 0),
+    ]);
   }
 
   test_import_referenceOutOfLibDirectory_no_pubspec() async {
-    addNamedSource("/myproj/web/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+    newFile("/myproj/web/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/lib/test.dart", "import '../web/other.dart';", []);
   }
 
   test_import_valid_inside_lib1() async {
-    addNamedSource("/myproj/pubspec.yaml", "");
-    addNamedSource("/myproj/lib/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+    newFile("/myproj/pubspec.yaml", content: "");
+    newFile("/myproj/lib/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/lib/test.dart", "import 'other.dart';", []);
   }
 
   test_import_valid_inside_lib2() async {
-    addNamedSource("/myproj/pubspec.yaml", "");
-    addNamedSource("/myproj/lib/bar/other.dart", "");
-    Source source = addNamedSource(
-        "/myproj/lib/foo/test.dart", "import '../bar/other.dart';");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+    newFile("/myproj/pubspec.yaml", content: "");
+    newFile("/myproj/lib/bar/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/lib/foo/test.dart", "import '../bar/other.dart';", []);
   }
 
   test_import_valid_outside_lib() async {
-    addNamedSource("/myproj/pubspec.yaml", "");
-    addNamedSource("/myproj/web/other.dart", "");
-    Source source =
-        addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
+    newFile("/myproj/pubspec.yaml", content: "");
+    newFile("/myproj/web/other.dart", content: "");
+    await _assertErrorsInCodeInFile(
+        "/myproj/lib2/test.dart", "import '../web/other.dart';", []);
+  }
+
+  Future<void> _assertErrorsInCodeInFile(
+      String path, String content, List<ExpectedError> expectedErrors) async {
+    path = convertPath(path);
+    newFile(path, content: content);
+    result = await resolveFile(path);
+
+    var errorListener = new GatheringErrorListener();
+    errorListener.addAll(result.errors);
+    errorListener.assertErrors(expectedErrors);
   }
 }

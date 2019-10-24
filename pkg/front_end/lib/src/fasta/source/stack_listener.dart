@@ -525,7 +525,7 @@ class Stack {
   int get length => arrayLength;
 
   Object get last {
-    final value = array[arrayLength - 1];
+    final Object value = array[arrayLength - 1];
     return value is NullValue ? null : value;
   }
 

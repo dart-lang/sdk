@@ -16,6 +16,7 @@ class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
   static const awaitContextVar = ':await_ctx_var';
   static const asyncStackTraceVar = ':async_stack_trace';
+  static const controllerStreamVar = ':controller_stream';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
@@ -59,11 +60,11 @@ class RecursiveContinuationRewriter extends Transformer {
   RecursiveContinuationRewriter(this.helper);
 
   Component rewriteComponent(Component node) {
-    return node.accept(this);
+    return node.accept<TreeNode>(this);
   }
 
   Library rewriteLibrary(Library node) {
-    return node.accept(this);
+    return node.accept<TreeNode>(this);
   }
 
   visitProcedure(Procedure node) {
@@ -135,7 +136,7 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   TreeNode visitTryCatch(TryCatch node) {
     if (node.body != null) {
       ++currentTryDepth;
-      node.body = node.body.accept(this);
+      node.body = node.body.accept<TreeNode>(this);
       node.body?.parent = node;
       --currentTryDepth;
     }
@@ -149,13 +150,13 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   TreeNode visitTryFinally(TryFinally node) {
     if (node.body != null) {
       ++currentTryDepth;
-      node.body = node.body.accept(this);
+      node.body = node.body.accept<TreeNode>(this);
       node.body?.parent = node;
       --currentTryDepth;
     }
     if (node.finalizer != null) {
       ++currentCatchDepth;
-      node.finalizer = node.finalizer.accept(this);
+      node.finalizer = node.finalizer.accept<TreeNode>(this);
       node.finalizer?.parent = node;
       --currentCatchDepth;
     }
@@ -207,7 +208,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
         dartAsyncMarker: AsyncMarker.Sync)
       ..fileOffset = enclosingFunction.fileOffset
       ..fileEndOffset = enclosingFunction.fileEndOffset
-      ..returnType = helper.coreTypes.boolClass.rawType;
+      ..returnType = helper.coreTypes.boolLegacyRawType;
 
     final closureFunction =
         new FunctionDeclaration(nestedClosureVariable, function)
@@ -233,14 +234,14 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //    :iterator.isYieldEach=
     // and return `true` as long as it did something and `false` when it's done.
     return new Block(<Statement>[
-      enclosingFunction.body.accept(this),
+      enclosingFunction.body.accept<TreeNode>(this),
       new ReturnStatement(new BoolLiteral(false))
         ..fileOffset = enclosingFunction.fileEndOffset
     ]);
   }
 
   visitYieldStatement(YieldStatement node) {
-    Expression transformedExpression = node.expression.accept(this);
+    Expression transformedExpression = node.expression.accept<TreeNode>(this);
 
     var statements = <Statement>[];
     if (node.isYieldStar) {
@@ -398,7 +399,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     var saved = statements;
     statements = <Statement>[];
     for (var statement in stmt.statements) {
-      statement.accept(this);
+      statement.accept<TreeNode>(this);
     }
     saved.add(new Block(statements));
     statements = saved;
@@ -414,7 +415,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     var saved = statements;
     statements = <Statement>[];
     for (var statement in stmt.statements) {
-      statement.accept(this);
+      statement.accept<TreeNode>(this);
     }
     saved.add(new Block(statements));
     statements = saved;
@@ -483,7 +484,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   Statement visitDelimited(Statement stmt) {
     var saved = statements;
     statements = <Statement>[];
-    stmt.accept(this);
+    stmt.accept<TreeNode>(this);
     Statement result =
         statements.length == 1 ? statements.first : new Block(statements);
     statements = saved;
@@ -635,7 +636,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
 
     // Place the loop variable declarations at the beginning of the body
     // statements and move their initializers to a guarded list of statements.
-    // Add assignments to the loop variables from the previous iteration's temp
+    // Add assignments to the loop variables from the previous iterations temp
     // variables before the updates.
     //
     // temps.first is the flag 'first'.
@@ -811,7 +812,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         iteratorVariable,
         tryFinally
       ]);
-      block.accept(this);
+      block.accept<TreeNode>(this);
     } else {
       stmt.iterable = expressionRewriter.rewrite(stmt.iterable, statements)
         ..parent = stmt;
@@ -892,7 +893,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   TreeNode visitFunctionDeclaration(FunctionDeclaration stmt) {
-    stmt.function = stmt.function.accept(this)..parent = stmt;
+    stmt.function = stmt.function.accept<TreeNode>(this)..parent = stmt;
     statements.add(stmt);
     return null;
   }
@@ -919,7 +920,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
 
     // dynamic :controller_stream;
     VariableDeclaration controllerStreamVariable =
-        new VariableDeclaration(":controller_stream");
+        new VariableDeclaration(ContinuationVariables.controllerStreamVar);
     statements.add(controllerStreamVariable);
 
     setupAsyncContinuations(statements);

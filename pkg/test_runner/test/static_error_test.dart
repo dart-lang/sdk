@@ -4,13 +4,15 @@
 
 import 'package:expect/expect.dart';
 
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 
 void main() {
   testFlags();
+  testIsSpecifiedFor();
   testCompareTo();
   testDescribeDifferences();
   testSimplify();
+  testValidate();
 }
 
 void testFlags() {
@@ -47,6 +49,59 @@ void testFlags() {
   Expect.isFalse(analyzer.isCfe);
   Expect.isTrue(cfe.isCfe);
   Expect.isTrue(both.isCfe);
+}
+
+void testIsSpecifiedFor() {
+  var specifiedBoth = StaticError(
+      line: 1, column: 2, length: 3, code: "ERR.CODE", message: "Message.");
+  var unspecifiedBoth = StaticError(
+      line: 1,
+      column: 2,
+      length: 3,
+      code: "unspecified",
+      message: "unspecified");
+  var specifiedAnalyzer = StaticError(
+      line: 1, column: 2, length: 3, code: "ERR.CODE", message: "unspecified");
+  var specifiedCfe = StaticError(
+      line: 1, column: 2, length: 3, code: "unspecified", message: "Message.");
+
+  var specifiedAnalyzerOnly =
+      StaticError(line: 1, column: 2, length: 3, code: "ERR.CODE");
+  var specifiedCfeOnly =
+      StaticError(line: 1, column: 2, length: 3, message: "Message.");
+
+  var unspecifiedAnalyzerOnly =
+      StaticError(line: 1, column: 2, length: 3, code: "unspecified");
+  var unspecifiedCfeOnly =
+      StaticError(line: 1, column: 2, length: 3, message: "unspecified");
+
+  var analyzer = StaticError(line: 1, column: 2, length: 3, code: "E.CODE");
+  var cfe = StaticError(line: 1, column: 2, length: 3, message: "E.");
+
+  // isSpecifiedFor().
+  Expect.isTrue(specifiedBoth.isSpecifiedFor(analyzer));
+  Expect.isTrue(specifiedBoth.isSpecifiedFor(cfe));
+
+  Expect.isFalse(unspecifiedBoth.isSpecifiedFor(analyzer));
+  Expect.isFalse(unspecifiedBoth.isSpecifiedFor(cfe));
+
+  Expect.isTrue(specifiedAnalyzer.isSpecifiedFor(analyzer));
+  Expect.isFalse(specifiedAnalyzer.isSpecifiedFor(cfe));
+
+  Expect.isFalse(specifiedCfe.isSpecifiedFor(analyzer));
+  Expect.isTrue(specifiedCfe.isSpecifiedFor(cfe));
+
+  Expect.isTrue(specifiedAnalyzerOnly.isSpecifiedFor(analyzer));
+  Expect.isFalse(specifiedAnalyzerOnly.isSpecifiedFor(cfe));
+
+  Expect.isFalse(specifiedCfeOnly.isSpecifiedFor(analyzer));
+  Expect.isTrue(specifiedCfeOnly.isSpecifiedFor(cfe));
+
+  Expect.isFalse(unspecifiedAnalyzerOnly.isSpecifiedFor(analyzer));
+  Expect.isFalse(unspecifiedAnalyzerOnly.isSpecifiedFor(cfe));
+
+  Expect.isFalse(unspecifiedCfeOnly.isSpecifiedFor(analyzer));
+  Expect.isFalse(unspecifiedCfeOnly.isSpecifiedFor(cfe));
 }
 
 void testCompareTo() {
@@ -401,6 +456,277 @@ void testSimplify() {
   ]);
 }
 
+void testValidate() {
+  // No errors.
+  expectValidate([], [], null);
+
+  // Same errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    // Order doesn't matter.
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+  ], null);
+
+  // Ignore fields that aren't in actual errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    StaticError(line: 1, column: 2, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C"),
+  ], null);
+
+  // Catches differences in any field.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Four."),
+  ], [
+    StaticError(line: 1, column: 9, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 2, column: 2, length: 9, code: "ERR.B", message: "Two."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.Z", message: "Tres."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "Zzz."),
+  ], """
+Wrong static error at line 1, column 2, length 3:
+- Expected on column 2 but was on 9.
+
+Wrong static error at line 2, column 2, length 3:
+- Expected length 3 but was 9.
+
+Wrong static error at line 3, column 2, length 3:
+- Expected error code ERR.C but was ERR.Z.
+
+Wrong static error at line 4, column 2, length 3:
+- Expected error message 'Four.' but was 'Zzz.'.""");
+
+  // Unexpected errors.
+  expectValidate([
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+  ], [
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.W", message: "1."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.A", message: "One."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.X", message: "3."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.B", message: "Two."),
+    StaticError(line: 5, column: 2, length: 3, code: "ERR.Y", message: "5."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.C", message: "Tres."),
+    StaticError(line: 7, column: 2, length: 3, code: "ERR.Z", message: "7."),
+  ], """
+Unexpected static error at line 1, column 2, length 3:
+- Had error code ERR.W.
+- Had error message '1.'.
+
+Unexpected static error at line 3, column 2, length 3:
+- Had error code ERR.X.
+- Had error message '3.'.
+
+Unexpected static error at line 5, column 2, length 3:
+- Had error code ERR.Y.
+- Had error message '5.'.
+
+Unexpected static error at line 7, column 2, length 3:
+- Had error code ERR.Z.
+- Had error message '7.'.""");
+
+  // Missing errors.
+  expectValidate([
+    StaticError(line: 1, column: 2, length: 3, code: "ERR.A", message: "1."),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
+    StaticError(line: 3, column: 2, length: 3, code: "ERR.C", message: "3."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
+    StaticError(line: 5, column: 2, length: 3, code: "ERR.E", message: "5."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
+    StaticError(line: 7, column: 2, length: 3, code: "ERR.G", message: "7."),
+  ], [
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.B", message: "2."),
+    StaticError(line: 4, column: 2, length: 3, code: "ERR.D", message: "4."),
+    StaticError(line: 6, column: 2, length: 3, code: "ERR.F", message: "6."),
+  ], """
+Missing static error at line 1, column 2, length 3:
+- Expected error code ERR.A.
+- Expected error message '1.'.
+
+Missing static error at line 3, column 2, length 3:
+- Expected error code ERR.C.
+- Expected error message '3.'.
+
+Missing static error at line 5, column 2, length 3:
+- Expected error code ERR.E.
+- Expected error message '5.'.
+
+Missing static error at line 7, column 2, length 3:
+- Expected error code ERR.G.
+- Expected error message '7.'.""");
+
+  // Unspecified errors.
+  expectValidate([
+    // Missing.
+    StaticError(line: 1, column: 2, length: 3, code: "unspecified"),
+    StaticError(line: 2, column: 2, length: 3, message: "unspecified"),
+    StaticError(
+        line: 3,
+        column: 2,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+
+    // Right.
+    StaticError(line: 4, column: 2, length: 3, code: "unspecified"),
+    StaticError(line: 5, column: 2, length: 3, message: "unspecified"),
+    StaticError(
+        line: 6,
+        column: 2,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+  ], [
+    StaticError(line: 4, column: 2, length: 3, code: "ACT.UAL"),
+    StaticError(line: 5, column: 2, length: 3, message: "Actual."),
+    StaticError(
+        line: 6, column: 2, length: 3, code: "ACT.UAL", message: "Actual."),
+
+    // Unexpected.
+    StaticError(line: 7, column: 9, length: 3, code: "ACT.UAL"),
+  ], """
+Missing static error at line 1, column 2, length 3:
+- Expected unspecified error code.
+
+Missing static error at line 2, column 2, length 3:
+- Expected unspecified error message.
+
+Missing static error at line 3, column 2, length 3:
+- Expected unspecified error code.
+- Expected unspecified error message.
+
+Unexpected static error at line 7, column 9, length 3:
+- Had error code ACT.UAL.""");
+
+  // Unspecified errors can match multiple errors on the same line.
+
+  // Unspecified CFE-only error.
+  expectValidate([
+    StaticError(line: 2, column: 2, length: 3, message: "unspecified"),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
+    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
+    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
+  ], null);
+
+  // Unspecified on both.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 2,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
+    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
+    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
+  ], null);
+
+  // Unspecified on CFE, specified on analyzer.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 2,
+        length: 3,
+        code: "ERR.CODE",
+        message: "unspecified"),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
+    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
+    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
+  ], null);
+
+  // Specified on CFE, unspecified on analyzer.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 1,
+        length: 3,
+        code: "unspecified",
+        message: "Actual 1."),
+  ], [
+    // These are not matched.
+    StaticError(line: 2, column: 1, length: 3, message: "Actual 1."),
+    StaticError(line: 2, column: 2, length: 3, message: "Actual 2."),
+    StaticError(line: 2, column: 3, length: 3, message: "Actual 3."),
+  ], """
+Unexpected static error at line 2, column 2, length 3:
+- Had error message 'Actual 2.'.
+
+Unexpected static error at line 2, column 3, length 3:
+- Had error message 'Actual 3.'.""");
+
+  // Unspecified analyzer-only error.
+  expectValidate([
+    StaticError(line: 2, column: 1, length: 3, code: "unspecified"),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
+    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
+  ], null);
+
+  // Unspecified on both.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 1,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
+    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
+  ], null);
+
+  // Unspecified on analyzer, specified on CFE.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 1,
+        length: 3,
+        code: "unspecified",
+        message: "Message."),
+  ], [
+    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
+    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
+  ], null);
+
+  // Specified on analyzer, unspecified on CFE.
+  expectValidate([
+    StaticError(
+        line: 2,
+        column: 1,
+        length: 3,
+        code: "ERR.CODE1",
+        message: "unspecified"),
+  ], [
+    // These are not matched.
+    StaticError(line: 2, column: 1, length: 3, code: "ERR.CODE1"),
+    StaticError(line: 2, column: 2, length: 3, code: "ERR.CODE2"),
+    StaticError(line: 2, column: 3, length: 3, code: "ERR.CODE3"),
+  ], """
+Unexpected static error at line 2, column 2, length 3:
+- Had error code ERR.CODE2.
+
+Unexpected static error at line 2, column 3, length 3:
+- Had error code ERR.CODE3.""");
+}
+
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {
   var actualLines = expectedError.describeDifferences(actualError);
   if (actualLines != null) {
@@ -426,4 +752,10 @@ void expectSimplify(List<StaticError> input, List<StaticError> expected) {
   var actual = StaticError.simplify(input);
   Expect.listEquals(expected.map((error) => error.toString()).toList(),
       actual.map((error) => error.toString()).toList());
+}
+
+void expectValidate(List<StaticError> expected, List<StaticError> actual,
+    String expectedValidation) {
+  var actualValidation = StaticError.validateExpectations(expected, actual);
+  Expect.stringEquals(expectedValidation, actualValidation);
 }

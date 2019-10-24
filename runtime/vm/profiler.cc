@@ -57,6 +57,15 @@ DEFINE_FLAG(bool,
             false,
             "Collect native stack traces when tracing Dart allocations.");
 
+DEFINE_FLAG(
+    int,
+    sample_buffer_duration,
+    0,
+    "Defines the size of the profiler sample buffer to contain at least "
+    "N seconds of samples at a given sample rate. If not provided, the "
+    "default is ~4 seconds. Large values will greatly increase memory "
+    "consumption.");
+
 #ifndef PRODUCT
 
 bool Profiler::initialized_ = false;
@@ -72,12 +81,13 @@ void Profiler::Init() {
     return;
   }
   ASSERT(!initialized_);
-  sample_buffer_ = new SampleBuffer();
+  SetSamplePeriod(FLAG_profile_period);
+  intptr_t capacity = CalculateSampleBufferCapacity();
+  sample_buffer_ = new SampleBuffer(capacity);
   Profiler::InitAllocationSampleBuffer();
   // Zero counters.
   memset(&counters_, 0, sizeof(counters_));
   ThreadInterrupter::Init();
-  SetSamplePeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
   initialized_ = true;
 }
@@ -114,6 +124,25 @@ void Profiler::SetSampleDepth(intptr_t depth) {
   } else {
     FLAG_max_profile_depth = depth;
   }
+}
+
+static intptr_t SamplesPerSecond() {
+  const intptr_t kMicrosPerSec = 1000000;
+  return kMicrosPerSec / FLAG_profile_period;
+}
+
+intptr_t Profiler::CalculateSampleBufferCapacity() {
+  if (FLAG_sample_buffer_duration <= 0) {
+    return SampleBuffer::kDefaultBufferCapacity;
+  }
+  // Deeper stacks require more than a single Sample object to be represented
+  // correctly. These samples are chained, so we need to determine the worst
+  // case sample chain length for a single stack.
+  const intptr_t max_sample_chain_length =
+      FLAG_max_profile_depth / kMaxSamplesPerTick;
+  const intptr_t buffer_size = FLAG_sample_buffer_duration *
+                               SamplesPerSecond() * max_sample_chain_length;
+  return buffer_size;
 }
 
 void Profiler::SetSamplePeriod(intptr_t period) {
@@ -163,6 +192,18 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
     OS::PrintErr("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
     OS::PrintErr("Profiler memory usage = %" Pd " bytes\n", size);
   }
+  if (FLAG_sample_buffer_duration != 0) {
+    OS::PrintErr(
+        "** WARNING ** Custom sample buffer size provided via "
+        "--sample-buffer-duration\n");
+    OS::PrintErr(
+        "The sample buffer can hold at least %ds worth of "
+        "samples with stacks depths of up to %d, collected at "
+        "a sample rate of %" Pd "Hz.\n",
+        FLAG_sample_buffer_duration, FLAG_max_profile_depth,
+        SamplesPerSecond());
+    OS::PrintErr("The resulting sample buffer size is %" Pd " bytes.\n", size);
+  }
 }
 
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity)
@@ -185,7 +226,7 @@ Sample* SampleBuffer::At(intptr_t idx) const {
 
 intptr_t SampleBuffer::ReserveSampleSlot() {
   ASSERT(samples_ != NULL);
-  uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
+  uintptr_t cursor = cursor_.fetch_add(1u);
   // Map back into sample buffer range.
   cursor = cursor % capacity_;
   return cursor;
@@ -235,7 +276,7 @@ intptr_t AllocationSampleBuffer::ReserveSampleSlotLocked() {
     return static_cast<intptr_t>((free_sample_ptr - samples_array_ptr) /
                                  Sample::instance_size());
   } else if (cursor_ < static_cast<uintptr_t>(capacity_ - 1)) {
-    return cursor_++;
+    return cursor_ += 1;
   } else {
     return -1;
   }
@@ -748,14 +789,12 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
     if (gap >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
-      AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_fp_step,
-                                         1);
+      counters_->incomplete_sample_fp_step.fetch_add(1);
       return;
     }
 
     if (!ValidFramePointer(fp)) {
-      AtomicOperations::IncrementInt64By(
-          &counters_->incomplete_sample_fp_bounds, 1);
+      counters_->incomplete_sample_fp_bounds.fetch_add(1);
       return;
     }
 
@@ -770,23 +809,20 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
 
       if (fp <= previous_fp) {
         // Frame pointer did not move to a higher address.
-        AtomicOperations::IncrementInt64By(
-            &counters_->incomplete_sample_fp_step, 1);
+        counters_->incomplete_sample_fp_step.fetch_add(1);
         return;
       }
 
       gap = fp - previous_fp;
       if (gap >= kMaxStep) {
         // Frame pointer step is too large.
-        AtomicOperations::IncrementInt64By(
-            &counters_->incomplete_sample_fp_step, 1);
+        counters_->incomplete_sample_fp_step.fetch_add(1);
         return;
       }
 
       if (!ValidFramePointer(fp)) {
         // Frame pointer is outside of isolate stack boundary.
-        AtomicOperations::IncrementInt64By(
-            &counters_->incomplete_sample_fp_bounds, 1);
+        counters_->incomplete_sample_fp_bounds.fetch_add(1);
         return;
       }
 
@@ -797,8 +833,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         // the pc is so large that adding one to it will cause an
         // overflow it is invalid and it will cause headaches later
         // while we are building the profile.  Discard it.
-        AtomicOperations::IncrementInt64By(&counters_->incomplete_sample_bad_pc,
-                                           1);
+        counters_->incomplete_sample_bad_pc.fetch_add(1);
         return;
       }
 
@@ -904,18 +939,18 @@ static void CollectSample(Isolate* isolate,
 
     if (FLAG_profile_vm) {
       // Always walk the native stack collecting both native and Dart frames.
-      AtomicOperations::IncrementInt64By(&counters->stack_walker_native, 1);
+      counters->stack_walker_native.fetch_add(1);
       native_stack_walker->walk();
     } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
-      AtomicOperations::IncrementInt64By(&counters->stack_walker_dart_exit, 1);
+      counters->stack_walker_dart_exit.fetch_add(1);
       // We have a valid exit frame info, use the Dart stack walker.
       dart_stack_walker->walk();
     } else if (StubCode::HasBeenInitialized() && in_dart_code) {
-      AtomicOperations::IncrementInt64By(&counters->stack_walker_dart, 1);
+      counters->stack_walker_dart.fetch_add(1);
       // We are executing Dart code. We have frame pointers.
       dart_stack_walker->walk();
     } else {
-      AtomicOperations::IncrementInt64By(&counters->stack_walker_none, 1);
+      counters->stack_walker_none.fetch_add(1);
       sample->SetAt(0, pc);
     }
 
@@ -1063,6 +1098,9 @@ static Sample* SetupSampleNative(SampleBuffer* sample_buffer, ThreadId tid) {
   // purposes as some samples may be collected when no thread exists.
   if (thread != NULL) {
     sample->set_thread_task(thread->task_kind());
+    sample->set_vm_tag(thread->vm_tag());
+  } else {
+    sample->set_vm_tag(VMTag::kEmbedderTagId);
   }
   return sample;
 }
@@ -1234,16 +1272,14 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    AtomicOperations::IncrementInt64By(
-        &counters_.failure_native_allocation_sample, 1);
+    counters_.failure_native_allocation_sample.fetch_add(1);
     return NULL;
   }
 
   if (!(OSThread::GetCurrentStackBounds(&stack_lower, &stack_upper) &&
         ValidateThreadStackBounds(fp, sp, stack_lower, stack_upper))) {
     // Could not get stack boundary.
-    AtomicOperations::IncrementInt64By(
-        &counters_.failure_native_allocation_sample, 1);
+    counters_.failure_native_allocation_sample.fetch_add(1);
     return NULL;
   }
 
@@ -1305,7 +1341,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
-    AtomicOperations::IncrementInt64By(&counters_.bail_out_unknown_task, 1);
+    counters_.bail_out_unknown_task.fetch_add(1);
     return;
   }
 
@@ -1313,8 +1349,7 @@ void Profiler::SampleThread(Thread* thread,
     // The JumpToFrame stub manually adjusts the stack pointer, frame
     // pointer, and some isolate state.  It is not safe to walk the
     // stack when executing this stub.
-    AtomicOperations::IncrementInt64By(
-        &counters_.bail_out_jump_to_exception_handler, 1);
+    counters_.bail_out_jump_to_exception_handler.fetch_add(1);
     return;
   }
 
@@ -1348,14 +1383,13 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!CheckIsolate(isolate)) {
-    AtomicOperations::IncrementInt64By(&counters_.bail_out_check_isolate, 1);
+    counters_.bail_out_check_isolate.fetch_add(1);
     return;
   }
 
   if (thread->IsMutatorThread()) {
     if (isolate->IsDeoptimizing()) {
-      AtomicOperations::IncrementInt64By(
-          &counters_.single_frame_sample_deoptimizing, 1);
+      counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, pc);
       return;
     }
@@ -1367,8 +1401,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    AtomicOperations::IncrementInt64By(
-        &counters_.single_frame_sample_register_check, 1);
+    counters_.single_frame_sample_register_check.fetch_add(1);
     SampleThreadSingleFrame(thread, pc);
     return;
   }
@@ -1377,8 +1410,7 @@ void Profiler::SampleThread(Thread* thread,
   uword stack_upper = 0;
   if (!GetAndValidateThreadStackBounds(os_thread, thread, fp, sp, &stack_lower,
                                        &stack_upper)) {
-    AtomicOperations::IncrementInt64By(
-        &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);
+    counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, pc);
     return;

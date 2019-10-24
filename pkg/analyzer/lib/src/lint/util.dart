@@ -90,8 +90,11 @@ bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;
 class Spelunker {
   final String path;
   final IOSink sink;
+  FeatureSet featureSet;
 
-  Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
+  Spelunker(this.path, {IOSink sink, FeatureSet featureSet})
+      : this.sink = sink ?? stdout,
+        featureSet = featureSet ?? FeatureSet.fromEnableFlags([]);
 
   void spelunk() {
     var contents = new File(path).readAsStringSync();
@@ -100,8 +103,6 @@ class Spelunker {
 
     var reader = new CharSequenceReader(contents);
     var stringSource = new StringSource(contents, path);
-    // TODO(paulberry): figure out the appropriate featureSet to use here
-    var featureSet = FeatureSet.fromEnableFlags([]);
     var scanner = new Scanner(stringSource, reader, errorListener)
       ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();

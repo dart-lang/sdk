@@ -278,15 +278,22 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
 
   // Value check/conversion.
   switch (array_cid) {
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+#if defined(TARGET_ARCH_IS_32_BIT)
+      // On 32-bit architectures, clamping operations need the exact value
+      // for proper operations. On 64-bit architectures, kUnboxedIntPtr
+      // maps to kUnboxedInt64. All other situations get away with
+      // truncating even non-smi values.
+      builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
+                                               builder.TokenPos()));
+      FALL_THROUGH;
+#endif
     case kTypedDataInt8ArrayCid:
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint16ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
-                                               builder.TokenPos()));
       value = builder.AddUnboxInstr(kUnboxedIntPtr, new Value(value),
                                     /* is_checked = */ false);
       value->AsUnboxInteger()->mark_truncating();

@@ -2,15 +2,15 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class D<X extends (self::D::X, self::D::Y) →* void = dynamic, Y extends (self::D::X*, self::D::Y) →* void = dynamic> extends core::Object {
+class D<X extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void, Y extends (self::D::X*, self::D::Y*) →* void = (core::Null?, core::Null?) →* void> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     ;
 }
-class E<X extends (self::E::X) →* void = dynamic> extends core::Object {
+class E<X extends (self::E::X*) →* void = (core::Null?) →* void> extends core::Object {
   synthetic constructor •() → self::E<self::E::X*>*
     ;
 }
-static field self::D<dynamic, dynamic>* d;
-static field self::E<dynamic>* e;
+static field self::D<(core::Null?, core::Null?) →* void, (core::Null?, core::Null?) →* void>* d;
+static field self::E<(core::Null?) →* void>* e;
 static method main() → dynamic
   ;

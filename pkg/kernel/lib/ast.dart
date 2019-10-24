@@ -64,6 +64,7 @@
 ///
 library kernel.ast;
 
+import 'dart:collection' show ListBase;
 import 'dart:convert' show utf8;
 
 import 'visitor.dart';
@@ -76,13 +77,12 @@ import 'transformations/flags.dart';
 import 'text/ast_to_text.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
-import 'coq_annot.dart';
 
 /// Any type of node in the IR.
 abstract class Node {
   const Node();
 
-  accept(Visitor v);
+  R accept<R>(Visitor<R> v);
   void visitChildren(Visitor v);
 
   /// Returns the textual representation of this node for use in debugging.
@@ -115,9 +115,9 @@ abstract class TreeNode extends Node {
   /// not available (this is the default if none is specifically set).
   int fileOffset = noOffset;
 
-  accept(TreeVisitor v);
-  visitChildren(Visitor v);
-  transformChildren(Transformer v);
+  R accept<R>(TreeVisitor<R> v);
+  void visitChildren(Visitor v);
+  void transformChildren(Transformer v);
 
   /// Replaces [child] with [replacement].
   ///
@@ -174,9 +174,7 @@ abstract class TreeNode extends Node {
 ///
 /// There is a single [reference] belonging to this node, providing a level of
 /// indirection that is needed during serialization.
-@coq
 abstract class NamedNode extends TreeNode {
-  @coqdef
   final Reference reference;
 
   NamedNode(Reference reference)
@@ -200,12 +198,41 @@ abstract class Annotatable {
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
-@coqref
 class Reference {
   CanonicalName canonicalName;
 
-  @nocoq
-  NamedNode node;
+  NamedNode _node;
+
+  NamedNode get node {
+    if (_node == null) {
+      // Either this is an unbound reference or it belongs to a lazy-loaded
+      // (and not yet loaded) class. If it belongs to a lazy-loaded class,
+      // load the class.
+
+      CanonicalName canonicalNameParent = canonicalName?.parent;
+      while (canonicalNameParent != null) {
+        if (canonicalNameParent.name.startsWith("@")) {
+          break;
+        }
+        canonicalNameParent = canonicalNameParent.parent;
+      }
+      if (canonicalNameParent != null) {
+        NamedNode parentNamedNode =
+            canonicalNameParent?.parent?.reference?._node;
+        if (parentNamedNode is Class) {
+          Class parentClass = parentNamedNode;
+          if (parentClass.lazyBuilder != null) {
+            parentClass.ensureLoaded();
+          }
+        }
+      }
+    }
+    return _node;
+  }
+
+  void set node(NamedNode node) {
+    _node = node;
+  }
 
   String toString() {
     if (canonicalName != null) {
@@ -271,7 +298,6 @@ class Reference {
 //                      LIBRARIES and CLASSES
 // ------------------------------------------------------------------------
 
-@coq
 class Library extends NamedNode
     implements Annotatable, Comparable<Library>, FileUriNode {
   /// An import path to this library.
@@ -285,18 +311,18 @@ class Library extends NamedNode
   Uri fileUri;
 
   // TODO(jensj): Do we have a better option than this?
-  static int defaultLangaugeVersionMajor = 2;
-  static int defaultLangaugeVersionMinor = 4;
+  static int defaultLanguageVersionMajor = 2;
+  static int defaultLanguageVersionMinor = 6;
 
   int _languageVersionMajor;
   int _languageVersionMinor;
   int get languageVersionMajor =>
-      _languageVersionMajor ?? defaultLangaugeVersionMajor;
+      _languageVersionMajor ?? defaultLanguageVersionMajor;
   int get languageVersionMinor =>
-      _languageVersionMinor ?? defaultLangaugeVersionMinor;
+      _languageVersionMinor ?? defaultLanguageVersionMinor;
   void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
     if (languageVersionMajor == null || languageVersionMinor == null) {
-      throw new StateError("Trying to set langauge version 'null'");
+      throw new StateError("Trying to set language version 'null'");
     }
     _languageVersionMajor = languageVersionMajor;
     _languageVersionMinor = languageVersionMinor;
@@ -304,6 +330,7 @@ class Library extends NamedNode
 
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
+  static const int NonNullableByDefaultFlag = 1 << 2;
 
   int flags = 0;
 
@@ -328,6 +355,13 @@ class Library extends NamedNode
     flags = value ? (flags | SyntheticFlag) : (flags & ~SyntheticFlag);
   }
 
+  bool get isNonNullableByDefault => (flags & NonNullableByDefaultFlag) != 0;
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | NonNullableByDefaultFlag)
+        : (flags & ~NonNullableByDefaultFlag);
+  }
+
   String name;
 
   /// Problems in this [Library] encoded as json objects.
@@ -336,7 +370,6 @@ class Library extends NamedNode
   /// list is empty.
   List<String> problemsAsJson;
 
-  @nocoq
   final List<Expression> annotations;
 
   final List<LibraryDependency> dependencies;
@@ -344,7 +377,6 @@ class Library extends NamedNode
   /// References to nodes exported by `export` declarations that:
   /// - aren't ambiguous, or
   /// - aren't hidden by local declarations.
-  @nocoq
   final List<Reference> additionalExports = <Reference>[];
 
   @informative
@@ -386,6 +418,23 @@ class Library extends NamedNode
     setParents(this.extensions, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+  }
+
+  Nullability get nullable {
+    return isNonNullableByDefault ? Nullability.nullable : Nullability.legacy;
+  }
+
+  Nullability get nonNullable {
+    return isNonNullableByDefault
+        ? Nullability.nonNullable
+        : Nullability.legacy;
+  }
+
+  Nullability nullableIfTrue(bool isNullable) {
+    if (isNonNullableByDefault) {
+      return isNullable ? Nullability.nullable : Nullability.nonNullable;
+    }
+    return Nullability.legacy;
   }
 
   /// Returns the top-level fields and procedures defined in this library.
@@ -455,6 +504,10 @@ class Library extends NamedNode
       canonicalName.getChild(class_.name).bindTo(class_.reference);
       class_.computeCanonicalNames();
     }
+    for (int i = 0; i < extensions.length; ++i) {
+      Extension extension = extensions[i];
+      canonicalName.getChild(extension.name).bindTo(extension.reference);
+    }
   }
 
   void addDependency(LibraryDependency node) {
@@ -465,7 +518,7 @@ class Library extends NamedNode
     parts.add(node..parent = this);
   }
 
-  accept(TreeVisitor v) => v.visitLibrary(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitLibrary(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -473,6 +526,7 @@ class Library extends NamedNode
     visitList(parts, v);
     visitList(typedefs, v);
     visitList(classes, v);
+    visitList(extensions, v);
     visitList(procedures, v);
     visitList(fields, v);
   }
@@ -483,6 +537,7 @@ class Library extends NamedNode
     transformList(parts, v, this);
     transformList(typedefs, v, this);
     transformList(classes, v, this);
+    transformList(extensions, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
   }
@@ -566,7 +621,7 @@ class LibraryDependency extends TreeNode {
     annotations.add(annotation..parent = this);
   }
 
-  accept(TreeVisitor v) => v.visitLibraryDependency(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitLibraryDependency(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -596,7 +651,7 @@ class LibraryPart extends TreeNode {
     annotations.add(annotation..parent = this);
   }
 
-  accept(TreeVisitor v) => v.visitLibraryPart(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitLibraryPart(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -622,7 +677,7 @@ class Combinator extends TreeNode {
   bool get isHide => !isShow;
 
   @override
-  accept(TreeVisitor v) => v.visitCombinator(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitCombinator(this);
 
   @override
   visitChildren(Visitor v) {}
@@ -669,7 +724,7 @@ class Typedef extends NamedNode implements FileUriNode {
     return new TypedefType(this, _getAsTypeArguments(typeParameters));
   }
 
-  accept(TreeVisitor v) {
+  R accept<R>(TreeVisitor<R> v) {
     return v.visitTypedef(this);
   }
 
@@ -747,13 +802,47 @@ enum ClassLevel {
   Body,
 }
 
+/// List-wrapper that marks the parent-class as dirty if the list is modified.
+///
+/// The idea being, that for non-dirty classes (classes just loaded from dill)
+/// the canonical names has already been calculated, and recalculating them is
+/// not needed. If, however, we change anything, recalculation of the canonical
+/// names can be needed.
+class DirtifyingList<E> extends ListBase<E> {
+  final Class dirtifyClass;
+  final List<E> wrapped;
+
+  DirtifyingList(this.dirtifyClass, this.wrapped);
+
+  @override
+  int get length {
+    return wrapped.length;
+  }
+
+  @override
+  void set length(int length) {
+    dirtifyClass.dirty = true;
+    wrapped.length = length;
+  }
+
+  @override
+  E operator [](int index) {
+    return wrapped[index];
+  }
+
+  @override
+  void operator []=(int index, E value) {
+    dirtifyClass.dirty = true;
+    wrapped[index] = value;
+  }
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
 /// use those from its mixed-in type.  However, the IR does not enforce this
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
-@coq
 class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Start offset of the class in the source file it comes from.
   ///
@@ -776,7 +865,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
-  @nocoq
   List<Expression> annotations = const <Expression>[];
 
   /// Name of the class.
@@ -786,7 +874,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The name may contain characters that are not valid in a Dart identifier,
   /// in particular, the symbol '&' is used in class names generated for mixin
   /// applications.
-  @coq
   String name;
 
   // Must match serialized bit positions.
@@ -890,23 +977,92 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The types from the `implements` clause.
   final List<Supertype> implementedTypes;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If non-null, the function that will have to be called to fill-out the
+  /// content of this class. Note that this should not be called directly though.
+  void Function() lazyBuilder;
+
+  /// Makes sure the class is loaded, i.e. the fields, procedures etc have been
+  /// loaded from the dill. Generally, one should not need to call this as it is
+  /// done automatically when accessing the lists.
+  void ensureLoaded() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding fields when reading the dill file.
+  final List<Field> fieldsInternal;
+  DirtifyingList<Field> _fieldsView;
+
   /// Fields declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<Field> fields;
+  List<Field> get fields {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return fieldsInternal;
+    _fieldsView ??= new DirtifyingList(this, fieldsInternal);
+    return _fieldsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding constructors when reading the dill file.
+  final List<Constructor> constructorsInternal;
+  DirtifyingList<Constructor> _constructorsView;
 
   /// Constructors declared in the class.
-  final List<Constructor> constructors;
+  List<Constructor> get constructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return constructorsInternal;
+    _constructorsView ??= new DirtifyingList(this, constructorsInternal);
+    return _constructorsView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding procedures when reading the dill file.
+  final List<Procedure> proceduresInternal;
+  DirtifyingList<Procedure> _proceduresView;
 
   /// Procedures declared in the class.
   ///
   /// For mixin applications this should only contain forwarding stubs.
-  final List<Procedure> procedures;
+  List<Procedure> get procedures {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return proceduresInternal;
+    _proceduresView ??= new DirtifyingList(this, proceduresInternal);
+    return _proceduresView;
+  }
+
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// Used for adding redirecting factory constructor when reading the dill
+  /// file.
+  final List<RedirectingFactoryConstructor>
+      redirectingFactoryConstructorsInternal;
+  DirtifyingList<RedirectingFactoryConstructor>
+      _redirectingFactoryConstructorsView;
 
   /// Redirecting factory constructors declared in the class.
   ///
   /// For mixin applications this should be empty.
-  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+  List<RedirectingFactoryConstructor> get redirectingFactoryConstructors {
+    ensureLoaded();
+    // If already dirty the caller just might as well add stuff directly too.
+    if (dirty) return redirectingFactoryConstructorsInternal;
+    _redirectingFactoryConstructorsView ??=
+        new DirtifyingList(this, redirectingFactoryConstructorsInternal);
+    return _redirectingFactoryConstructorsView;
+  }
 
   Class(
       {this.name,
@@ -924,23 +1080,24 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this.fields = fields ?? <Field>[],
-        this.constructors = constructors ?? <Constructor>[],
-        this.procedures = procedures ?? <Procedure>[],
-        this.redirectingFactoryConstructors =
+        this.fieldsInternal = fields ?? <Field>[],
+        this.constructorsInternal = constructors ?? <Constructor>[],
+        this.proceduresInternal = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructorsInternal =
             redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    setParents(this.constructors, this);
-    setParents(this.procedures, this);
-    setParents(this.fields, this);
-    setParents(this.redirectingFactoryConstructors, this);
+    setParents(this.constructorsInternal, this);
+    setParents(this.proceduresInternal, this);
+    setParents(this.fieldsInternal, this);
+    setParents(this.redirectingFactoryConstructorsInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
 
   void computeCanonicalNames() {
     assert(canonicalName != null);
+    if (!dirty) return;
     for (int i = 0; i < fields.length; ++i) {
       Field member = fields[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
@@ -957,6 +1114,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       RedirectingFactoryConstructor member = redirectingFactoryConstructors[i];
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
+    dirty = false;
   }
 
   /// The immediate super class, or `null` if this is the root class.
@@ -1013,20 +1171,27 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   /// The library containing this class.
   Library get enclosingLibrary => parent;
 
+  /// Internal. Should *ONLY* be used from within kernel.
+  ///
+  /// If true we have to compute canonical names for all children of this class.
+  /// if false we can skip it.
+  bool dirty = true;
+
   /// Adds a member to this class.
   ///
   /// Throws an error if attempting to add a field or procedure to a mixin
   /// application.
   void addMember(Member member) {
+    dirty = true;
     member.parent = this;
     if (member is Constructor) {
-      constructors.add(member);
+      constructorsInternal.add(member);
     } else if (member is Procedure) {
-      procedures.add(member);
+      proceduresInternal.add(member);
     } else if (member is Field) {
-      fields.add(member);
+      fieldsInternal.add(member);
     } else if (member is RedirectingFactoryConstructor) {
-      redirectingFactoryConstructors.add(member);
+      redirectingFactoryConstructorsInternal.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -1040,8 +1205,8 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     node.parent = this;
   }
 
-  accept(TreeVisitor v) => v.visitClass(this);
-  acceptReference(Visitor v) => v.visitClassReference(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitClass(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitClassReference(this);
 
   /// If true, the class is part of an external library, that is, it is defined
   /// in another build unit.  Only a subset of its members are present.
@@ -1059,18 +1224,12 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     return new Supertype(this, _getAsTypeArguments(typeParameters));
   }
 
-  @nocoq
-  InterfaceType _rawType;
-  InterfaceType get rawType => _rawType ??= new InterfaceType(this);
-
-  @nocoq
   InterfaceType _thisType;
   InterfaceType get thisType {
     return _thisType ??=
         new InterfaceType(this, _getAsTypeArguments(typeParameters));
   }
 
-  @nocoq
   InterfaceType _bottomType;
   InterfaceType get bottomType {
     return _bottomType ??= new InterfaceType(this,
@@ -1155,22 +1314,43 @@ class Extension extends NamedNode implements FileUriNode {
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
-        super(reference);
+        super(reference) {
+    setParents(this.typeParameters, this);
+  }
 
   Library get enclosingLibrary => parent;
 
   @override
-  accept(TreeVisitor v) => v.visitExtension(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitExtension(this);
 
   @override
-  visitChildren(Visitor v) {}
+  visitChildren(Visitor v) {
+    visitList(typeParameters, v);
+    onType?.accept(v);
+  }
 
   @override
-  transformChildren(Transformer v) => v.visitExtension(this);
+  transformChildren(Transformer v) {
+    transformList(typeParameters, v, this);
+    if (onType != null) {
+      onType = v.visitDartType(onType);
+    }
+  }
+}
+
+enum ExtensionMemberKind {
+  Field,
+  Method,
+  Getter,
+  Setter,
+  Operator,
+  TearOff,
 }
 
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
+  static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
+
   /// The name of the extension member.
   ///
   /// The name of the generated top-level member is mangled to ensure
@@ -1178,10 +1358,7 @@ class ExtensionMemberDescriptor {
   /// extension itself.
   Name name;
 
-  /// [ProcedureKind] kind of the original member, if the extension is a
-  /// [Procedure] and `null` otherwise.
-  ///
-  /// This can be either `Method`, `Getter`, `Setter`, or `Operator`.
+  /// [ExtensionMemberKind] kind of the original member.
   ///
   /// An extension method is converted into a regular top-level method. For
   /// instance:
@@ -1201,7 +1378,7 @@ class ExtensionMemberDescriptor {
   /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
-  ProcedureKind kind;
+  ExtensionMemberKind kind;
 
   int flags = 0;
 
@@ -1209,31 +1386,15 @@ class ExtensionMemberDescriptor {
   Reference member;
 
   ExtensionMemberDescriptor(
-      {this.name,
-      this.kind,
-      bool isStatic: false,
-      bool isExternal: false,
-      this.member}) {
+      {this.name, this.kind, bool isStatic: false, this.member}) {
     this.isStatic = isStatic;
-    this.isExternal = isExternal;
   }
 
   /// Return `true` if the extension method was declared as `static`.
-  bool get isStatic => flags & Procedure.FlagStatic != 0;
-
-  /// Return `true` if the extension method was declared as `external`.
-  bool get isExternal => flags & Procedure.FlagExternal != 0;
+  bool get isStatic => flags & FlagStatic != 0;
 
   void set isStatic(bool value) {
-    flags = value
-        ? (flags | Procedure.FlagStatic)
-        : (flags & ~Procedure.FlagStatic);
-  }
-
-  void set isExternal(bool value) {
-    flags = value
-        ? (flags | Procedure.FlagExternal)
-        : (flags & ~Procedure.FlagExternal);
+    flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
   }
 }
 
@@ -1241,7 +1402,6 @@ class ExtensionMemberDescriptor {
 //                            MEMBERS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   /// End offset in the source file it comes from.
   ///
@@ -1254,7 +1414,6 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
   /// annotations if needed.
-  @nocoq
   List<Expression> annotations = const <Expression>[];
 
   Name name;
@@ -1284,7 +1443,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   Class get enclosingClass => parent is Class ? parent : null;
   Library get enclosingLibrary => parent is Class ? parent.parent : parent;
 
-  accept(MemberVisitor v);
+  R accept<R>(MemberVisitor<R> v);
   acceptReference(MemberReferenceVisitor v);
 
   /// If true, the member is part of an external library, that is, it is defined
@@ -1494,7 +1653,7 @@ class Field extends Member {
     if (value) throw 'Fields cannot be external';
   }
 
-  accept(MemberVisitor v) => v.visitField(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitField(this);
 
   acceptReference(MemberReferenceVisitor v) => v.visitFieldReference(this);
 
@@ -1509,7 +1668,7 @@ class Field extends Member {
     type = v.visitDartType(type);
     transformList(annotations, v, this);
     if (initializer != null) {
-      initializer = initializer.accept(v);
+      initializer = initializer.accept<TreeNode>(v);
       initializer?.parent = this;
     }
   }
@@ -1593,7 +1752,7 @@ class Constructor extends Member {
   @override
   bool get isExtensionMember => false;
 
-  accept(MemberVisitor v) => v.visitConstructor(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitConstructor(this);
 
   acceptReference(MemberReferenceVisitor v) =>
       v.visitConstructorReference(this);
@@ -1609,7 +1768,7 @@ class Constructor extends Member {
     transformList(annotations, v, this);
     transformList(initializers, v, this);
     if (function != null) {
-      function = function.accept(v);
+      function = function.accept<TreeNode>(v);
       function?.parent = this;
     }
   }
@@ -1730,7 +1889,7 @@ class RedirectingFactoryConstructor extends Member {
     targetReference = getMemberReference(member);
   }
 
-  accept(MemberVisitor v) => v.visitRedirectingFactoryConstructor(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactoryConstructor(this);
 
   acceptReference(MemberReferenceVisitor v) =>
       v.visitRedirectingFactoryConstructorReference(this);
@@ -1770,7 +1929,6 @@ class RedirectingFactoryConstructor extends Member {
 /// For index-getters/setters, this is `[]` and `[]=`.
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
-@coq
 class Procedure extends Member {
   /// Start offset of the function in the source file it comes from.
   ///
@@ -1981,7 +2139,7 @@ class Procedure extends Member {
     forwardingStubInterfaceTargetReference = getMemberReference(target);
   }
 
-  accept(MemberVisitor v) => v.visitProcedure(this);
+  R accept<R>(MemberVisitor<R> v) => v.visitProcedure(this);
 
   acceptReference(MemberReferenceVisitor v) => v.visitProcedureReference(this);
 
@@ -1994,7 +2152,7 @@ class Procedure extends Member {
   transformChildren(Transformer v) {
     transformList(annotations, v, this);
     if (function != null) {
-      function = function.accept(v);
+      function = function.accept<TreeNode>(v);
       function?.parent = this;
     }
   }
@@ -2032,7 +2190,7 @@ abstract class Initializer extends TreeNode {
   @informative
   bool isSynthetic = false;
 
-  accept(InitializerVisitor v);
+  R accept<R>(InitializerVisitor<R> v);
 }
 
 /// An initializer with a compile-time error.
@@ -2042,7 +2200,7 @@ abstract class Initializer extends TreeNode {
 // DESIGN TODO: The frontend should use this in a lot more cases to catch
 // invalid cases.
 class InvalidInitializer extends Initializer {
-  accept(InitializerVisitor v) => v.visitInvalidInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitInvalidInitializer(this);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -2074,7 +2232,7 @@ class FieldInitializer extends Initializer {
     fieldReference = field?.reference;
   }
 
-  accept(InitializerVisitor v) => v.visitFieldInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitFieldInitializer(this);
 
   visitChildren(Visitor v) {
     field?.acceptReference(v);
@@ -2083,7 +2241,7 @@ class FieldInitializer extends Initializer {
 
   transformChildren(Transformer v) {
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2116,7 +2274,7 @@ class SuperInitializer extends Initializer {
     targetReference = getMemberReference(target);
   }
 
-  accept(InitializerVisitor v) => v.visitSuperInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitSuperInitializer(this);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2125,7 +2283,7 @@ class SuperInitializer extends Initializer {
 
   transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
@@ -2154,7 +2312,7 @@ class RedirectingInitializer extends Initializer {
     targetReference = getMemberReference(target);
   }
 
-  accept(InitializerVisitor v) => v.visitRedirectingInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitRedirectingInitializer(this);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2163,7 +2321,7 @@ class RedirectingInitializer extends Initializer {
 
   transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
@@ -2180,7 +2338,7 @@ class LocalInitializer extends Initializer {
     variable?.parent = this;
   }
 
-  accept(InitializerVisitor v) => v.visitLocalInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitLocalInitializer(this);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -2188,7 +2346,7 @@ class LocalInitializer extends Initializer {
 
   transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
   }
@@ -2201,14 +2359,14 @@ class AssertInitializer extends Initializer {
     statement.parent = this;
   }
 
-  accept(InitializerVisitor v) => v.visitAssertInitializer(this);
+  R accept<R>(InitializerVisitor<R> v) => v.visitAssertInitializer(this);
 
   visitChildren(Visitor v) {
     statement.accept(v);
   }
 
   transformChildren(Transformer v) {
-    statement = statement.accept(v);
+    statement = statement.accept<TreeNode>(v);
     statement.parent = this;
   }
 }
@@ -2221,7 +2379,6 @@ class AssertInitializer extends Initializer {
 ///
 /// This may occur in a procedure, constructor, function expression, or local
 /// function declaration.
-@coq
 class FunctionNode extends TreeNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
@@ -2246,9 +2403,7 @@ class FunctionNode extends TreeNode {
 
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
-  @coqsingledef
   List<VariableDeclaration> positionalParameters;
-  @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
   Statement _body;
@@ -2301,7 +2456,15 @@ class FunctionNode extends TreeNode {
     return new NamedType(node.name, node.type, isRequired: node.isRequired);
   }
 
-  FunctionType get functionType {
+  /// Returns the function type of the node reusing its type parameters.
+  ///
+  /// This getter works similarly to [functionType], but reuses type parameters
+  /// of the function node (or the class enclosing it -- see the comment on
+  /// [functionType] about constructors of generic classes) in the result.  It
+  /// is useful in some contexts, especially when reasoning about the function
+  /// type of the enclosing generic function and in combination with
+  /// [FunctionType.withoutTypeParameters].
+  FunctionType get thisFunctionType {
     TreeNode parent = this.parent;
     List<NamedType> named =
         namedParameters.map(_getNamedTypeOfVariable).toList(growable: false);
@@ -2319,7 +2482,22 @@ class FunctionNode extends TreeNode {
         requiredParameterCount: requiredParameterCount);
   }
 
-  accept(TreeVisitor v) => v.visitFunctionNode(this);
+  /// Returns the function type of the function node.
+  ///
+  /// If the function node describes a generic function, the resulting function
+  /// type will be generic.  If the function node describes a constructor of a
+  /// generic class, the resulting function type will be generic with its type
+  /// parameters constructed after those of the class.  In both cases, if the
+  /// resulting function type is generic, a fresh set of type parameters is used
+  /// in it.
+  FunctionType get functionType {
+    return typeParameters.isEmpty
+        ? thisFunctionType
+        : getFreshTypeParameters(typeParameters)
+            .applyToFunctionType(thisFunctionType);
+  }
+
+  R accept<R>(TreeVisitor<R> v) => v.visitFunctionNode(this);
 
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
@@ -2335,7 +2513,7 @@ class FunctionNode extends TreeNode {
     transformList(namedParameters, v, this);
     returnType = v.visitDartType(returnType);
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -2390,7 +2568,6 @@ enum AsyncMarker {
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
@@ -2416,11 +2593,13 @@ abstract class Expression extends TreeNode {
     // subtypes of Object (not just interface types), and function types are
     // considered subtypes of Function.
     if (superclass.typeParameters.isEmpty) {
-      return superclass.rawType;
+      return types.coreTypes.legacyRawType(superclass);
     }
     var type = getStaticType(types);
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).parameter.bound;
+      TypeParameterType typeParameterType = type;
+      type =
+          typeParameterType.promotedBound ?? typeParameterType.parameter.bound;
     }
     if (type == types.nullType) {
       return superclass.bottomType;
@@ -2432,16 +2611,19 @@ abstract class Expression extends TreeNode {
       return superclass.bottomType;
     }
     types.typeError(this, '$type is not a subtype of $superclass');
-    return superclass.rawType;
+    return types.coreTypes.legacyRawType(superclass);
   }
 
-  accept(ExpressionVisitor v);
-  accept1(ExpressionVisitor1 v, arg);
+  R accept<R>(ExpressionVisitor<R> v);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg);
 }
 
 /// An expression containing compile-time errors.
 ///
 /// Should throw a runtime error when evaluated.
+///
+/// The [fileOffset] of an [InvalidExpression] indicates the location in the
+/// tree where the expression occurs, rather than the location of the error.
 class InvalidExpression extends Expression {
   String message;
 
@@ -2449,18 +2631,17 @@ class InvalidExpression extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
-  accept(ExpressionVisitor v) => v.visitInvalidExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitInvalidExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInvalidExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInvalidExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
 }
 
 /// Read a local variable, a local function, or a function parameter.
-@coq
 class VariableGet extends Expression {
   VariableDeclaration variable;
-  @nocoq
   DartType promotedType; // Null if not promoted.
 
   VariableGet(this.variable, [this.promotedType]);
@@ -2469,8 +2650,9 @@ class VariableGet extends Expression {
     return promotedType ?? variable.type;
   }
 
-  accept(ExpressionVisitor v) => v.visitVariableGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVariableGet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitVariableGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitVariableGet(this, arg);
 
   visitChildren(Visitor v) {
     promotedType?.accept(v);
@@ -2496,8 +2678,9 @@ class VariableSet extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitVariableSet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitVariableSet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitVariableSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitVariableSet(this, arg);
 
   visitChildren(Visitor v) {
     value?.accept(v);
@@ -2505,7 +2688,7 @@ class VariableSet extends Expression {
 
   transformChildren(Transformer v) {
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2514,13 +2697,10 @@ class VariableSet extends Expression {
 /// Expression of form `x.field`.
 ///
 /// This may invoke a getter, read a field, or tear off a method.
-@coq
 class PropertyGet extends Expression {
   Expression receiver;
-  @coq
   Name name;
 
-  @nocoq
   Reference interfaceTargetReference;
 
   PropertyGet(Expression receiver, Name name, [Member interfaceTarget])
@@ -2548,15 +2728,16 @@ class PropertyGet extends Expression {
     // Treat the properties of Object specially.
     String nameString = name.name;
     if (nameString == 'hashCode') {
-      return types.intType;
+      return types.coreTypes.intLegacyRawType;
     } else if (nameString == 'runtimeType') {
-      return types.typeType;
+      return types.coreTypes.typeLegacyRawType;
     }
     return const DynamicType();
   }
 
-  accept(ExpressionVisitor v) => v.visitPropertyGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitPropertyGet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitPropertyGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -2565,7 +2746,7 @@ class PropertyGet extends Expression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
   }
@@ -2602,8 +2783,9 @@ class PropertySet extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitPropertySet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitPropertySet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitPropertySet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -2613,11 +2795,11 @@ class PropertySet extends Expression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2648,13 +2830,14 @@ class DirectPropertyGet extends Expression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
   }
 
-  accept(ExpressionVisitor v) => v.visitDirectPropertyGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertyGet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDirectPropertyGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDirectPropertyGet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
@@ -2695,17 +2878,18 @@ class DirectPropertySet extends Expression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
 
-  accept(ExpressionVisitor v) => v.visitDirectPropertySet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitDirectPropertySet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDirectPropertySet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDirectPropertySet(this, arg);
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 }
@@ -2742,17 +2926,17 @@ class DirectMethodInvocation extends InvocationExpression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
 
-  accept(ExpressionVisitor v) => v.visitDirectMethodInvocation(this);
-  accept1(ExpressionVisitor1 v, arg) =>
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDirectMethodInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
       v.visitDirectMethodInvocation(this, arg);
 
   DartType getStaticType(TypeEnvironment types) {
@@ -2799,8 +2983,9 @@ class SuperPropertyGet extends Expression {
         .substituteType(interfaceTarget.getterType);
   }
 
-  accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertyGet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSuperPropertyGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSuperPropertyGet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -2836,8 +3021,9 @@ class SuperPropertySet extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitSuperPropertySet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSuperPropertySet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSuperPropertySet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSuperPropertySet(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -2846,7 +3032,7 @@ class SuperPropertySet extends Expression {
 
   transformChildren(Transformer v) {
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2869,8 +3055,9 @@ class StaticGet extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => target.getterType;
 
-  accept(ExpressionVisitor v) => v.visitStaticGet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitStaticGet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStaticGet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStaticGet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2902,8 +3089,9 @@ class StaticSet extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitStaticSet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitStaticSet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStaticSet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStaticSet(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -2912,7 +3100,7 @@ class StaticSet extends Expression {
 
   transformChildren(Transformer v) {
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2920,11 +3108,8 @@ class StaticSet extends Expression {
 
 /// The arguments to a function call, divided into type arguments,
 /// positional arguments, and named arguments.
-@coq
 class Arguments extends TreeNode {
-  @nocoq
   final List<DartType> types;
-  @coqsingle
   final List<Expression> positional;
   List<NamedExpression> named;
 
@@ -2952,7 +3137,7 @@ class Arguments extends TreeNode {
             .toList());
   }
 
-  accept(TreeVisitor v) => v.visitArguments(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitArguments(this);
 
   visitChildren(Visitor v) {
     visitList(types, v);
@@ -2976,7 +3161,7 @@ class NamedExpression extends TreeNode {
     value?.parent = this;
   }
 
-  accept(TreeVisitor v) => v.visitNamedExpression(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitNamedExpression(this);
 
   visitChildren(Visitor v) {
     value?.accept(v);
@@ -2984,7 +3169,7 @@ class NamedExpression extends TreeNode {
 
   transformChildren(Transformer v) {
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -2992,7 +3177,6 @@ class NamedExpression extends TreeNode {
 
 /// Common super class for [DirectMethodInvocation], [MethodInvocation],
 /// [SuperMethodInvocation], [StaticInvocation], and [ConstructorInvocation].
-@coq
 abstract class InvocationExpression extends Expression {
   Arguments get arguments;
   set arguments(Arguments value);
@@ -3004,7 +3188,6 @@ abstract class InvocationExpression extends Expression {
 }
 
 /// Expression of form `x.foo(y)`.
-@coq
 class MethodInvocation extends InvocationExpression {
   Expression receiver;
   Name name;
@@ -3063,13 +3246,14 @@ class MethodInvocation extends InvocationExpression {
     }
     if (name.name == '==') {
       // We use this special case to simplify generation of '==' checks.
-      return types.boolType;
+      return types.coreTypes.boolLegacyRawType;
     }
     return const DynamicType();
   }
 
-  accept(ExpressionVisitor v) => v.visitMethodInvocation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitMethodInvocation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitMethodInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     receiver?.accept(v);
@@ -3079,11 +3263,11 @@ class MethodInvocation extends InvocationExpression {
 
   transformChildren(Transformer v) {
     if (receiver != null) {
-      receiver = receiver.accept(v);
+      receiver = receiver.accept<TreeNode>(v);
       receiver?.parent = this;
     }
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
@@ -3124,8 +3308,9 @@ class SuperMethodInvocation extends InvocationExpression {
         .substituteType(returnType);
   }
 
-  accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSuperMethodInvocation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSuperMethodInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSuperMethodInvocation(this, arg);
 
   visitChildren(Visitor v) {
     name?.accept(v);
@@ -3134,7 +3319,7 @@ class SuperMethodInvocation extends InvocationExpression {
 
   transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
@@ -3174,8 +3359,9 @@ class StaticInvocation extends InvocationExpression {
         .substituteType(target.function.returnType);
   }
 
-  accept(ExpressionVisitor v) => v.visitStaticInvocation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitStaticInvocation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStaticInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStaticInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -3184,7 +3370,7 @@ class StaticInvocation extends InvocationExpression {
 
   transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
@@ -3197,10 +3383,8 @@ class StaticInvocation extends InvocationExpression {
 // DESIGN TODO: Should we pass type arguments in a separate field
 // `classTypeArguments`? They are quite different from type arguments to
 // generic functions.
-@coq
 class ConstructorInvocation extends InvocationExpression {
   Reference targetReference;
-  @nocoq
   Arguments arguments;
   bool isConst;
 
@@ -3224,12 +3408,14 @@ class ConstructorInvocation extends InvocationExpression {
 
   DartType getStaticType(TypeEnvironment types) {
     return arguments.types.isEmpty
-        ? target.enclosingClass.rawType
-        : new InterfaceType(target.enclosingClass, arguments.types);
+        ? types.coreTypes.legacyRawType(target.enclosingClass)
+        : new InterfaceType(
+            target.enclosingClass, arguments.types, Nullability.legacy);
   }
 
-  accept(ExpressionVisitor v) => v.visitConstructorInvocation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitConstructorInvocation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitConstructorInvocation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitConstructorInvocation(this, arg);
 
   visitChildren(Visitor v) {
     target?.acceptReference(v);
@@ -3238,15 +3424,21 @@ class ConstructorInvocation extends InvocationExpression {
 
   transformChildren(Transformer v) {
     if (arguments != null) {
-      arguments = arguments.accept(v);
+      arguments = arguments.accept<TreeNode>(v);
       arguments?.parent = this;
     }
   }
 
+  // TODO(dmitryas): Change the getter into a method that accepts a CoreTypes.
   InterfaceType get constructedType {
+    Class enclosingClass = target.enclosingClass;
+    // TODO(dmitryas): Get raw type from a CoreTypes object if arguments is
+    // empty.
     return arguments.types.isEmpty
-        ? target.enclosingClass.rawType
-        : new InterfaceType(target.enclosingClass, arguments.types);
+        ? new InterfaceType(
+            enclosingClass, const <DartType>[], Nullability.legacy)
+        : new InterfaceType(
+            enclosingClass, arguments.types, Nullability.legacy);
   }
 }
 
@@ -3265,8 +3457,9 @@ class Instantiation extends Expression {
         .substituteType(type.withoutTypeParameters);
   }
 
-  accept(ExpressionVisitor v) => v.visitInstantiation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitInstantiation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstantiation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstantiation(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -3275,7 +3468,7 @@ class Instantiation extends Expression {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
     transformTypeList(typeArguments, v);
@@ -3293,10 +3486,11 @@ class Not extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitNot(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitNot(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitNot(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitNot(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -3304,7 +3498,7 @@ class Not extends Expression {
 
   transformChildren(Transformer v) {
     if (operand != null) {
-      operand = operand.accept(v);
+      operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
   }
@@ -3321,10 +3515,12 @@ class LogicalExpression extends Expression {
     right?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitLogicalExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitLogicalExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitLogicalExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitLogicalExpression(this, arg);
 
   visitChildren(Visitor v) {
     left?.accept(v);
@@ -3333,11 +3529,11 @@ class LogicalExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (left != null) {
-      left = left.accept(v);
+      left = left.accept<TreeNode>(v);
       left?.parent = this;
     }
     if (right != null) {
-      right = right.accept(v);
+      right = right.accept<TreeNode>(v);
       right?.parent = this;
     }
   }
@@ -3361,8 +3557,9 @@ class ConditionalExpression extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => staticType;
 
-  accept(ExpressionVisitor v) => v.visitConditionalExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitConditionalExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitConditionalExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitConditionalExpression(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -3373,15 +3570,15 @@ class ConditionalExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept(v);
+      then = then.accept<TreeNode>(v);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept(v);
+      otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
     if (staticType != null) {
@@ -3404,10 +3601,12 @@ class StringConcatenation extends Expression {
     setParents(expressions, this);
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitStringConcatenation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitStringConcatenation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStringConcatenation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStringConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     visitList(expressions, v);
@@ -3437,8 +3636,9 @@ class ListConcatenation extends Expression {
     return types.literalListType(typeArgument);
   }
 
-  accept(ExpressionVisitor v) => v.visitListConcatenation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitListConcatenation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitListConcatenation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitListConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -3473,8 +3673,9 @@ class SetConcatenation extends Expression {
     return types.literalSetType(typeArgument);
   }
 
-  accept(ExpressionVisitor v) => v.visitSetConcatenation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSetConcatenation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSetConcatenation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSetConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -3512,8 +3713,9 @@ class MapConcatenation extends Expression {
     return types.literalMapType(keyType, valueType);
   }
 
-  accept(ExpressionVisitor v) => v.visitMapConcatenation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitMapConcatenation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitMapConcatenation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitMapConcatenation(this, arg);
 
   visitChildren(Visitor v) {
     keyType?.accept(v);
@@ -3530,7 +3732,7 @@ class MapConcatenation extends Expression {
 
 /// Create an instance directly from the field values.
 ///
-/// This expression arises from const constructor calls when one or more field
+/// These expressions arise from const constructor calls when one or more field
 /// initializing expressions, field initializers, assert initializers or unused
 /// arguments contain unevaluated expressions. They only ever occur within
 /// unevaluated constants in constant expressions.
@@ -3548,12 +3750,13 @@ class InstanceCreation extends Expression {
 
   DartType getStaticType(TypeEnvironment types) {
     return typeArguments.isEmpty
-        ? classNode.rawType
+        ? types.coreTypes.legacyRawType(classNode)
         : new InterfaceType(classNode, typeArguments);
   }
 
-  accept(ExpressionVisitor v) => v.visitInstanceCreation(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitInstanceCreation(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceCreation(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitInstanceCreation(this, arg);
 
   visitChildren(Visitor v) {
     classReference.asClass.acceptReference(v);
@@ -3570,7 +3773,7 @@ class InstanceCreation extends Expression {
 
   transformChildren(Transformer v) {
     fieldValues.forEach((Reference fieldRef, Expression value) {
-      Expression transformed = value.accept(v);
+      Expression transformed = value.accept<TreeNode>(v);
       if (transformed != null && !identical(value, transformed)) {
         fieldValues[fieldRef] = transformed;
         transformed.parent = this;
@@ -3578,6 +3781,43 @@ class InstanceCreation extends Expression {
     });
     transformList(asserts, v, this);
     transformList(unusedArguments, v, this);
+  }
+}
+
+/// A marker indicating that a subexpression originates in a different source
+/// file than the surrounding context.
+///
+/// These expressions arise from inlining of const variables during constant
+/// evaluation. They only ever occur within unevaluated constants in constant
+/// expressions.
+class FileUriExpression extends Expression implements FileUriNode {
+  /// The URI of the source file in which the subexpression is located.
+  /// Can be different from the file containing the [FileUriExpression].
+  Uri fileUri;
+
+  Expression expression;
+
+  FileUriExpression(this.expression, this.fileUri) {
+    expression.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      expression.getStaticType(types);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFileUriExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFileUriExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    expression.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    expression = expression.accept<TreeNode>(v)..parent = this;
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return _getLocationInComponent(enclosingComponent, fileUri, offset);
   }
 }
 
@@ -3590,10 +3830,12 @@ class IsExpression extends Expression {
     operand?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitIsExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitIsExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitIsExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitIsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -3602,7 +3844,7 @@ class IsExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (operand != null) {
-      operand = operand.accept(v);
+      operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
     type = v.visitDartType(type);
@@ -3634,8 +3876,9 @@ class AsExpression extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => type;
 
-  accept(ExpressionVisitor v) => v.visitAsExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitAsExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAsExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAsExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -3644,10 +3887,41 @@ class AsExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (operand != null) {
-      operand = operand.accept(v);
+      operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
     type = v.visitDartType(type);
+  }
+}
+
+/// Null check expression of form `x!`.
+///
+/// This expression was added as part of NNBD and is currently only created when
+/// the 'non-nullable' experimental feature is enabled.
+class NullCheck extends Expression {
+  Expression operand;
+
+  NullCheck(this.operand) {
+    operand?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      // TODO(johnniwinther): Return `NonNull(operand.getStaticType(types))`.
+      operand.getStaticType(types);
+
+  R accept<R>(ExpressionVisitor<R> v) => v.visitNullCheck(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitNullCheck(this, arg);
+
+  visitChildren(Visitor v) {
+    operand?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    if (operand != null) {
+      operand = operand.accept<TreeNode>(v);
+      operand?.parent = this;
+    }
   }
 }
 
@@ -3664,10 +3938,12 @@ class StringLiteral extends BasicLiteral {
 
   StringLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.stringType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitStringLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitStringLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitStringLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitStringLiteral(this, arg);
 }
 
 class IntLiteral extends BasicLiteral {
@@ -3679,10 +3955,12 @@ class IntLiteral extends BasicLiteral {
 
   IntLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.intType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.intLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitIntLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitIntLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitIntLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitIntLiteral(this, arg);
 }
 
 class DoubleLiteral extends BasicLiteral {
@@ -3690,10 +3968,12 @@ class DoubleLiteral extends BasicLiteral {
 
   DoubleLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.doubleType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitDoubleLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitDoubleLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitDoubleLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitDoubleLiteral(this, arg);
 }
 
 class BoolLiteral extends BasicLiteral {
@@ -3701,10 +3981,12 @@ class BoolLiteral extends BasicLiteral {
 
   BoolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.boolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.boolLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitBoolLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitBoolLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitBoolLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitBoolLiteral(this, arg);
 }
 
 class NullLiteral extends BasicLiteral {
@@ -3712,8 +3994,9 @@ class NullLiteral extends BasicLiteral {
 
   DartType getStaticType(TypeEnvironment types) => types.nullType;
 
-  accept(ExpressionVisitor v) => v.visitNullLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitNullLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitNullLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitNullLiteral(this, arg);
 }
 
 class SymbolLiteral extends Expression {
@@ -3721,10 +4004,12 @@ class SymbolLiteral extends Expression {
 
   SymbolLiteral(this.value);
 
-  DartType getStaticType(TypeEnvironment types) => types.symbolType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitSymbolLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSymbolLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSymbolLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSymbolLiteral(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -3735,10 +4020,12 @@ class TypeLiteral extends Expression {
 
   TypeLiteral(this.type);
 
-  DartType getStaticType(TypeEnvironment types) => types.typeType;
+  DartType getStaticType(TypeEnvironment types) =>
+      types.coreTypes.typeLegacyRawType;
 
-  accept(ExpressionVisitor v) => v.visitTypeLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitTypeLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitTypeLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitTypeLiteral(this, arg);
 
   visitChildren(Visitor v) {
     type?.accept(v);
@@ -3752,8 +4039,9 @@ class TypeLiteral extends Expression {
 class ThisExpression extends Expression {
   DartType getStaticType(TypeEnvironment types) => types.thisType;
 
-  accept(ExpressionVisitor v) => v.visitThisExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitThisExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitThisExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitThisExpression(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -3762,8 +4050,9 @@ class ThisExpression extends Expression {
 class Rethrow extends Expression {
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
-  accept(ExpressionVisitor v) => v.visitRethrow(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitRethrow(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitRethrow(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitRethrow(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -3778,8 +4067,8 @@ class Throw extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => const BottomType();
 
-  accept(ExpressionVisitor v) => v.visitThrow(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitThrow(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitThrow(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitThrow(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -3787,7 +4076,7 @@ class Throw extends Expression {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
@@ -3808,8 +4097,9 @@ class ListLiteral extends Expression {
     return types.literalListType(typeArgument);
   }
 
-  accept(ExpressionVisitor v) => v.visitListLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitListLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitListLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitListLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -3837,8 +4127,9 @@ class SetLiteral extends Expression {
     return types.literalSetType(typeArgument);
   }
 
-  accept(ExpressionVisitor v) => v.visitSetLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitSetLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitSetLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitSetLiteral(this, arg);
 
   visitChildren(Visitor v) {
     typeArgument?.accept(v);
@@ -3870,8 +4161,9 @@ class MapLiteral extends Expression {
     return types.literalMapType(keyType, valueType);
   }
 
-  accept(ExpressionVisitor v) => v.visitMapLiteral(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitMapLiteral(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitMapLiteral(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitMapLiteral(this, arg);
 
   visitChildren(Visitor v) {
     keyType?.accept(v);
@@ -3895,7 +4187,7 @@ class MapEntry extends TreeNode {
     value?.parent = this;
   }
 
-  accept(TreeVisitor v) => v.visitMapEntry(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitMapEntry(this);
 
   visitChildren(Visitor v) {
     key?.accept(v);
@@ -3904,11 +4196,11 @@ class MapEntry extends TreeNode {
 
   transformChildren(Transformer v) {
     if (key != null) {
-      key = key.accept(v);
+      key = key.accept<TreeNode>(v);
       key?.parent = this;
     }
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -3926,8 +4218,9 @@ class AwaitExpression extends Expression {
     return types.unfutureType(operand.getStaticType(types));
   }
 
-  accept(ExpressionVisitor v) => v.visitAwaitExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitAwaitExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitAwaitExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitAwaitExpression(this, arg);
 
   visitChildren(Visitor v) {
     operand?.accept(v);
@@ -3935,7 +4228,7 @@ class AwaitExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (operand != null) {
-      operand = operand.accept(v);
+      operand = operand.accept<TreeNode>(v);
       operand?.parent = this;
     }
   }
@@ -3958,8 +4251,9 @@ class FunctionExpression extends Expression implements LocalFunction {
 
   DartType getStaticType(TypeEnvironment types) => function.functionType;
 
-  accept(ExpressionVisitor v) => v.visitFunctionExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitFunctionExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitFunctionExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitFunctionExpression(this, arg);
 
   visitChildren(Visitor v) {
     function?.accept(v);
@@ -3967,7 +4261,7 @@ class FunctionExpression extends Expression implements LocalFunction {
 
   transformChildren(Transformer v) {
     if (function != null) {
-      function = function.accept(v);
+      function = function.accept<TreeNode>(v);
       function?.parent = this;
     }
   }
@@ -3983,8 +4277,9 @@ class ConstantExpression extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => type;
 
-  accept(ExpressionVisitor v) => v.visitConstantExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitConstantExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitConstantExpression(this, arg);
 
   visitChildren(Visitor v) {
     constant?.acceptReference(v);
@@ -4009,8 +4304,8 @@ class Let extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => body.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitLet(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitLet(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitLet(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) => v.visitLet(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -4019,11 +4314,11 @@ class Let extends Expression {
 
   transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4040,8 +4335,9 @@ class BlockExpression extends Expression {
 
   DartType getStaticType(TypeEnvironment types) => value.getStaticType(types);
 
-  accept(ExpressionVisitor v) => v.visitBlockExpression(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitBlockExpression(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitBlockExpression(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitBlockExpression(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -4050,11 +4346,11 @@ class BlockExpression extends Expression {
 
   transformChildren(Transformer v) {
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     if (value != null) {
-      value = value.accept(v);
+      value = value.accept<TreeNode>(v);
       value?.parent = this;
     }
   }
@@ -4082,8 +4378,9 @@ class LoadLibrary extends Expression {
     return types.futureType(const DynamicType());
   }
 
-  accept(ExpressionVisitor v) => v.visitLoadLibrary(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitLoadLibrary(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitLoadLibrary(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitLoadLibrary(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -4097,11 +4394,12 @@ class CheckLibraryIsLoaded extends Expression {
   CheckLibraryIsLoaded(this.import);
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.objectType;
+    return types.coreTypes.objectLegacyRawType;
   }
 
-  accept(ExpressionVisitor v) => v.visitCheckLibraryIsLoaded(this);
-  accept1(ExpressionVisitor1 v, arg) => v.visitCheckLibraryIsLoaded(this, arg);
+  R accept<R>(ExpressionVisitor<R> v) => v.visitCheckLibraryIsLoaded(this);
+  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) =>
+      v.visitCheckLibraryIsLoaded(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -4111,13 +4409,11 @@ class CheckLibraryIsLoaded extends Expression {
 //                              STATEMENTS
 // ------------------------------------------------------------------------
 
-@coq
 abstract class Statement extends TreeNode {
-  accept(StatementVisitor v);
-  accept1(StatementVisitor1 v, arg);
+  R accept<R>(StatementVisitor<R> v);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg);
 }
 
-@coq
 class ExpressionStatement extends Statement {
   Expression expression;
 
@@ -4125,8 +4421,9 @@ class ExpressionStatement extends Statement {
     expression?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitExpressionStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitExpressionStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitExpressionStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitExpressionStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -4134,13 +4431,12 @@ class ExpressionStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
 }
 
-@coq
 class Block extends Statement {
   final List<Statement> statements;
 
@@ -4153,8 +4449,8 @@ class Block extends Statement {
     setParents(statements, this);
   }
 
-  accept(StatementVisitor v) => v.visitBlock(this);
-  accept1(StatementVisitor1 v, arg) => v.visitBlock(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitBlock(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) => v.visitBlock(this, arg);
 
   visitChildren(Visitor v) {
     visitList(statements, v);
@@ -4187,8 +4483,9 @@ class AssertBlock extends Statement {
     setParents(statements, this);
   }
 
-  accept(StatementVisitor v) => v.visitAssertBlock(this);
-  accept1(StatementVisitor1 v, arg) => v.visitAssertBlock(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitAssertBlock(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitAssertBlock(this, arg);
 
   transformChildren(Transformer v) {
     transformList(statements, v, this);
@@ -4205,8 +4502,9 @@ class AssertBlock extends Statement {
 }
 
 class EmptyStatement extends Statement {
-  accept(StatementVisitor v) => v.visitEmptyStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitEmptyStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitEmptyStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitEmptyStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -4224,8 +4522,9 @@ class AssertStatement extends Statement {
     message?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitAssertStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitAssertStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitAssertStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitAssertStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -4234,11 +4533,11 @@ class AssertStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (message != null) {
-      message = message.accept(v);
+      message = message.accept<TreeNode>(v);
       message?.parent = this;
     }
   }
@@ -4256,8 +4555,9 @@ class LabeledStatement extends Statement {
     body?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitLabeledStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitLabeledStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitLabeledStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitLabeledStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -4265,7 +4565,7 @@ class LabeledStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4296,8 +4596,9 @@ class BreakStatement extends Statement {
 
   BreakStatement(this.target);
 
-  accept(StatementVisitor v) => v.visitBreakStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitBreakStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitBreakStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitBreakStatement(this, arg);
 
   visitChildren(Visitor v) {}
   transformChildren(Transformer v) {}
@@ -4312,8 +4613,9 @@ class WhileStatement extends Statement {
     body?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitWhileStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitWhileStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitWhileStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitWhileStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -4322,11 +4624,11 @@ class WhileStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4341,8 +4643,9 @@ class DoStatement extends Statement {
     condition?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitDoStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitDoStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitDoStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitDoStatement(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -4351,11 +4654,11 @@ class DoStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
   }
@@ -4374,8 +4677,9 @@ class ForStatement extends Statement {
     body?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitForStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitForStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitForStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitForStatement(this, arg);
 
   visitChildren(Visitor v) {
     visitList(variables, v);
@@ -4387,12 +4691,12 @@ class ForStatement extends Statement {
   transformChildren(Transformer v) {
     transformList(variables, v, this);
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     transformList(updates, v, this);
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4417,26 +4721,27 @@ class ForInStatement extends Statement {
     body?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitForInStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitForInStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitForInStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitForInStatement(this, arg);
 
-  visitChildren(Visitor v) {
+  void visitChildren(Visitor v) {
     variable?.accept(v);
     iterable?.accept(v);
     body?.accept(v);
   }
 
-  transformChildren(Transformer v) {
+  void transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
     if (iterable != null) {
-      iterable = iterable.accept(v);
+      iterable = iterable.accept<TreeNode>(v);
       iterable?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4455,8 +4760,9 @@ class SwitchStatement extends Statement {
     setParents(cases, this);
   }
 
-  accept(StatementVisitor v) => v.visitSwitchStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitSwitchStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitSwitchStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -4465,7 +4771,7 @@ class SwitchStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
     transformList(cases, v, this);
@@ -4500,7 +4806,7 @@ class SwitchCase extends TreeNode {
         body = null,
         isDefault = false;
 
-  accept(TreeVisitor v) => v.visitSwitchCase(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitSwitchCase(this);
 
   visitChildren(Visitor v) {
     visitList(expressions, v);
@@ -4510,7 +4816,7 @@ class SwitchCase extends TreeNode {
   transformChildren(Transformer v) {
     transformList(expressions, v, this);
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4522,8 +4828,8 @@ class ContinueSwitchStatement extends Statement {
 
   ContinueSwitchStatement(this.target);
 
-  accept(StatementVisitor v) => v.visitContinueSwitchStatement(this);
-  accept1(StatementVisitor1 v, arg) =>
+  R accept<R>(StatementVisitor<R> v) => v.visitContinueSwitchStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
       v.visitContinueSwitchStatement(this, arg);
 
   visitChildren(Visitor v) {}
@@ -4541,8 +4847,9 @@ class IfStatement extends Statement {
     otherwise?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitIfStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitIfStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitIfStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitIfStatement(this, arg);
 
   visitChildren(Visitor v) {
     condition?.accept(v);
@@ -4552,21 +4859,20 @@ class IfStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (condition != null) {
-      condition = condition.accept(v);
+      condition = condition.accept<TreeNode>(v);
       condition?.parent = this;
     }
     if (then != null) {
-      then = then.accept(v);
+      then = then.accept<TreeNode>(v);
       then?.parent = this;
     }
     if (otherwise != null) {
-      otherwise = otherwise.accept(v);
+      otherwise = otherwise.accept<TreeNode>(v);
       otherwise?.parent = this;
     }
   }
 }
 
-@coq
 class ReturnStatement extends Statement {
   Expression expression; // May be null.
 
@@ -4574,8 +4880,9 @@ class ReturnStatement extends Statement {
     expression?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitReturnStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitReturnStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitReturnStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitReturnStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -4583,7 +4890,7 @@ class ReturnStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
@@ -4599,8 +4906,9 @@ class TryCatch extends Statement {
     setParents(catches, this);
   }
 
-  accept(StatementVisitor v) => v.visitTryCatch(this);
-  accept1(StatementVisitor1 v, arg) => v.visitTryCatch(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitTryCatch(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitTryCatch(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -4609,7 +4917,7 @@ class TryCatch extends Statement {
 
   transformChildren(Transformer v) {
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     transformList(catches, v, this);
@@ -4630,7 +4938,7 @@ class Catch extends TreeNode {
     body?.parent = this;
   }
 
-  accept(TreeVisitor v) => v.visitCatch(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitCatch(this);
 
   visitChildren(Visitor v) {
     guard?.accept(v);
@@ -4642,15 +4950,15 @@ class Catch extends TreeNode {
   transformChildren(Transformer v) {
     guard = v.visitDartType(guard);
     if (exception != null) {
-      exception = exception.accept(v);
+      exception = exception.accept<TreeNode>(v);
       exception?.parent = this;
     }
     if (stackTrace != null) {
-      stackTrace = stackTrace.accept(v);
+      stackTrace = stackTrace.accept<TreeNode>(v);
       stackTrace?.parent = this;
     }
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
   }
@@ -4665,8 +4973,9 @@ class TryFinally extends Statement {
     finalizer?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitTryFinally(this);
-  accept1(StatementVisitor1 v, arg) => v.visitTryFinally(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitTryFinally(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitTryFinally(this, arg);
 
   visitChildren(Visitor v) {
     body?.accept(v);
@@ -4675,11 +4984,11 @@ class TryFinally extends Statement {
 
   transformChildren(Transformer v) {
     if (body != null) {
-      body = body.accept(v);
+      body = body.accept<TreeNode>(v);
       body?.parent = this;
     }
     if (finalizer != null) {
-      finalizer = finalizer.accept(v);
+      finalizer = finalizer.accept<TreeNode>(v);
       finalizer?.parent = this;
     }
   }
@@ -4713,8 +5022,9 @@ class YieldStatement extends Statement {
     flags = value ? (flags | FlagNative) : (flags & ~FlagNative);
   }
 
-  accept(StatementVisitor v) => v.visitYieldStatement(this);
-  accept1(StatementVisitor1 v, arg) => v.visitYieldStatement(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitYieldStatement(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitYieldStatement(this, arg);
 
   visitChildren(Visitor v) {
     expression?.accept(v);
@@ -4722,7 +5032,7 @@ class YieldStatement extends Statement {
 
   transformChildren(Transformer v) {
     if (expression != null) {
-      expression = expression.accept(v);
+      expression = expression.accept<TreeNode>(v);
       expression?.parent = this;
     }
   }
@@ -4736,7 +5046,6 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-@coqref
 class VariableDeclaration extends Statement {
   /// Offset of the equals sign in the source file it comes from.
   ///
@@ -4767,7 +5076,6 @@ class VariableDeclaration extends Statement {
   /// For parameters, this is the default value.
   ///
   /// Should be null in other cases.
-  @coqopt
   Expression initializer; // May be null.
 
   VariableDeclaration(this.name,
@@ -4889,8 +5197,9 @@ class VariableDeclaration extends Statement {
     annotations.add(annotation..parent = this);
   }
 
-  accept(StatementVisitor v) => v.visitVariableDeclaration(this);
-  accept1(StatementVisitor1 v, arg) => v.visitVariableDeclaration(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitVariableDeclaration(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitVariableDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -4902,7 +5211,7 @@ class VariableDeclaration extends Statement {
     transformList(annotations, v, this);
     type = v.visitDartType(type);
     if (initializer != null) {
-      initializer = initializer.accept(v);
+      initializer = initializer.accept<TreeNode>(v);
       initializer?.parent = this;
     }
   }
@@ -4924,8 +5233,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
     function?.parent = this;
   }
 
-  accept(StatementVisitor v) => v.visitFunctionDeclaration(this);
-  accept1(StatementVisitor1 v, arg) => v.visitFunctionDeclaration(this, arg);
+  R accept<R>(StatementVisitor<R> v) => v.visitFunctionDeclaration(this);
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitFunctionDeclaration(this, arg);
 
   visitChildren(Visitor v) {
     variable?.accept(v);
@@ -4934,11 +5244,11 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   transformChildren(Transformer v) {
     if (variable != null) {
-      variable = variable.accept(v);
+      variable = variable.accept<TreeNode>(v);
       variable?.parent = this;
     }
     if (function != null) {
-      function = function.accept(v);
+      function = function.accept<TreeNode>(v);
       function?.parent = this;
     }
   }
@@ -4958,14 +5268,10 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 ///
 /// The [toString] method returns a human-readable string that includes the
 /// library name for private names; uniqueness is not guaranteed.
-@coq
 abstract class Name implements Node {
   final int hashCode;
-  @coq
   final String name;
-  @nocoq
   Reference get libraryName;
-  @nocoq
   Library get library;
   bool get isPrivate;
 
@@ -4989,7 +5295,7 @@ abstract class Name implements Node {
     return other is Name && name == other.name && library == other.library;
   }
 
-  accept(Visitor v) => v.visitName(this);
+  R accept<R>(Visitor<R> v) => v.visitName(this);
 
   visitChildren(Visitor v) {
     // DESIGN TODO: Should we visit the library as a library reference?
@@ -5075,12 +5381,11 @@ enum Nullability {
 ///
 /// The `==` operator on [DartType]s compare based on type equality, not
 /// object identity.
-@coq
 abstract class DartType extends Node {
   const DartType();
 
-  accept(DartTypeVisitor v);
-  accept1(DartTypeVisitor1 v, arg);
+  R accept<R>(DartTypeVisitor<R> v);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   bool operator ==(Object other);
 
@@ -5095,6 +5400,12 @@ abstract class DartType extends Node {
   /// If this is a typedef type, unfolds its type definition once, otherwise
   /// returns the type itself.
   DartType get unaliasOnce => this;
+
+  /// Creates a copy of the type with the given [nullability] if possible.
+  ///
+  /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
+  /// `void`, or `bottom`.
+  DartType withNullability(Nullability nullability);
 }
 
 /// The type arising from invalid type annotations.
@@ -5106,13 +5417,16 @@ class InvalidType extends DartType {
 
   const InvalidType();
 
-  accept(DartTypeVisitor v) => v.visitInvalidType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitInvalidType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitInvalidType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitInvalidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
 
-  Nullability get nullability => throw "InvalidType doesn't have nullabiliity";
+  Nullability get nullability => throw "InvalidType doesn't have nullability";
+
+  InvalidType withNullability(Nullability nullability) => this;
 }
 
 class DynamicType extends DartType {
@@ -5120,13 +5434,16 @@ class DynamicType extends DartType {
 
   const DynamicType();
 
-  accept(DartTypeVisitor v) => v.visitDynamicType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitDynamicType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitDynamicType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitDynamicType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
 
   Nullability get nullability => Nullability.nullable;
+
+  DynamicType withNullability(Nullability nullability) => this;
 }
 
 class VoidType extends DartType {
@@ -5134,13 +5451,16 @@ class VoidType extends DartType {
 
   const VoidType();
 
-  accept(DartTypeVisitor v) => v.visitVoidType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitVoidType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitVoidType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitVoidType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
 
   Nullability get nullability => Nullability.nullable;
+
+  VoidType withNullability(Nullability nullability) => this;
 }
 
 class BottomType extends DartType {
@@ -5148,22 +5468,23 @@ class BottomType extends DartType {
 
   const BottomType();
 
-  accept(DartTypeVisitor v) => v.visitBottomType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitBottomType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitBottomType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitBottomType(this, arg);
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
 
   Nullability get nullability => Nullability.nonNullable;
+
+  BottomType withNullability(Nullability nullability) => this;
 }
 
-@coq
 class InterfaceType extends DartType {
   Reference className;
 
   final Nullability nullability;
 
-  @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
@@ -5189,8 +5510,9 @@ class InterfaceType extends DartType {
     }
   }
 
-  accept(DartTypeVisitor v) => v.visitInterfaceType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitInterfaceType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitInterfaceType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitInterfaceType(this, arg);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -5218,14 +5540,18 @@ class InterfaceType extends DartType {
     }
     return hash;
   }
+
+  InterfaceType withNullability(Nullability nullability) {
+    return nullability == this.nullability
+        ? this
+        : new InterfaceType.byReference(className, typeArguments, nullability);
+  }
 }
 
 /// A possibly generic function type.
-@coq
 class FunctionType extends DartType {
   final List<TypeParameter> typeParameters;
   final int requiredParameterCount;
-  @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
   final Nullability nullability;
@@ -5246,13 +5572,13 @@ class FunctionType extends DartType {
         this.requiredParameterCount =
             requiredParameterCount ?? positionalParameters.length;
 
-  @nocoq
   Reference get typedefReference => typedefType?.typedefReference;
 
   Typedef get typedef => typedefReference?.asTypedef;
 
-  accept(DartTypeVisitor v) => v.visitFunctionType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitFunctionType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitFunctionType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitFunctionType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
@@ -5304,7 +5630,7 @@ class FunctionType extends DartType {
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
         namedParameters: namedParameters,
-        typedefType: typedefType);
+        typedefType: null);
   }
 
   /// Looks up the type of the named parameter with the given name.
@@ -5351,6 +5677,18 @@ class FunctionType extends DartType {
     }
     return hash;
   }
+
+  FunctionType withNullability(Nullability nullability) {
+    if (nullability == this.nullability) return this;
+    FunctionType result = FunctionType(positionalParameters, returnType,
+        namedParameters: namedParameters,
+        typeParameters: typeParameters,
+        nullability: nullability,
+        requiredParameterCount: requiredParameterCount,
+        typedefType: typedefType?.withNullability(nullability));
+    if (typeParameters.isEmpty) return result;
+    return getFreshTypeParameters(typeParameters).applyToFunctionType(result);
+  }
 }
 
 /// A use of a [Typedef] as a type.
@@ -5372,8 +5710,9 @@ class TypedefType extends DartType {
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
-  accept(DartTypeVisitor v) => v.visitTypedefType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitTypedefType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitTypedefType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitTypedefType(this, arg);
 
   visitChildren(Visitor v) {
     visitList(typeArguments, v);
@@ -5381,7 +5720,9 @@ class TypedefType extends DartType {
   }
 
   DartType get unaliasOnce {
-    return Substitution.fromTypedefType(this).substituteType(typedefNode.type);
+    return Substitution.fromTypedefType(this)
+        .substituteType(typedefNode.type)
+        .withNullability(nullability);
   }
 
   DartType get unalias {
@@ -5410,6 +5751,13 @@ class TypedefType extends DartType {
     }
     return hash;
   }
+
+  TypedefType withNullability(Nullability nullability) {
+    return nullability == this.nullability
+        ? this
+        : new TypedefType.byReference(
+            typedefReference, typeArguments, nullability);
+  }
 }
 
 /// A named parameter in [FunctionType].
@@ -5436,7 +5784,7 @@ class NamedType extends Node implements Comparable<NamedType> {
 
   int compareTo(NamedType other) => name.compareTo(other.name);
 
-  accept(Visitor v) => v.visitNamedType(this);
+  R accept<R>(Visitor<R> v) => v.visitNamedType(this);
 
   void visitChildren(Visitor v) {
     type.accept(v);
@@ -5456,31 +5804,21 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// A type variable has an optional bound because type promotion can change the
 /// bound.  A bound of `null` indicates that the bound has not been promoted and
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
-/// whether the bound has been promoted.
+/// whether the bound has been promoted.  The case of promoted bound can be
+/// viewed as representing an intersection type between the type-parameter type
+/// and the promoted bound.
 class TypeParameterType extends DartType {
-  /// Declared by the programmer on the type.
-  final Nullability declaredNullability;
-
-  /// Actual nullability of the type, calculated from its parts.
+  /// Nullability of the type-parameter type or of its part of the intersection.
   ///
-  /// [nullability] is calculated from [declaredNullability] and the
-  /// nullabilities of [promotedBound] and the bound of [parameter].
-  ///
-  /// For example, in the following program [declaredNullability] both `x` and
-  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
-  /// However, despite [nullability] of `x` is [Nullability.nullable],
-  /// [nullability] of `y` is [Nullability.nonNullable] because of its
-  /// [promotedBound].
-  ///
-  ///     class A<T extends Object?> {
-  ///       foo(T? bar) {
-  ///         var x = bar;
-  ///         if (bar is int) {
-  ///           var y = bar;
-  ///         }
-  ///       }
-  ///     }
-  final Nullability nullability;
+  /// Declarations of type-parameter types can set the nullability of a
+  /// type-parameter type to [Nullability.nullable] (if the `?` marker is used)
+  /// or [Nullability.legacy] (if the type comes from a library opted out from
+  /// NNBD).  Otherwise, it's defined indirectly via the nullability of the
+  /// bound of [parameter].  In cases when the [TypeParameterType] represents an
+  /// intersection between a type-parameter type and [promotedBound],
+  /// [typeParameterTypeNullability] represents the nullability of the left-hand
+  /// side of the intersection.
+  Nullability typeParameterTypeNullability;
 
   TypeParameter parameter;
 
@@ -5491,12 +5829,12 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, this.declaredNullability = Nullability.legacy])
-      : this.nullability =
-            getNullability(parameter, promotedBound, declaredNullability);
+      [this.promotedBound,
+      this.typeParameterTypeNullability = Nullability.legacy]);
 
-  accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
-  accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
+  R accept<R>(DartTypeVisitor<R> v) => v.visitTypeParameterType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitTypeParameterType(this, arg);
 
   visitChildren(Visitor v) {}
 
@@ -5509,69 +5847,121 @@ class TypeParameterType extends DartType {
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
 
-  /// Get nullability of [TypeParameterType] from arguments to its constructor.
+  /// Nullability of the type, calculated from its parts.
   ///
-  /// This method is supposed to be used only in the constructor of
-  /// [TypeParameterType] to compute the value of
-  /// [TypeParameterType.nullability] from the arguments passed to the constructor.
-  static Nullability getNullability(TypeParameter parameter,
-      DartType promotedBound, Nullability declaredNullability) {
-    // If promotedBound is null, getNullability returns the nullability of
-    // either T or T? where T is parameter and the presence of '?' is determined
-    // by nullability.
+  /// [nullability] is calculated from [typeParameterTypeNullability] and the
+  /// nullability of [promotedBound] if it's present.
+  ///
+  /// For example, in the following program [typeParameterTypeNullability] of
+  /// both `x` and `y` is [Nullability.neither], because it's copied from that
+  /// of `bar` and T has a nullable type as its bound.  However, despite
+  /// [nullability] of `x` is [Nullability.neither], [nullability] of `y` is
+  /// [Nullability.nonNullable] because of its [promotedBound].
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
+  Nullability get nullability {
+    return getNullability(
+        typeParameterTypeNullability ?? computeNullabilityFromBound(parameter),
+        promotedBound);
+  }
 
-    // If promotedBound isn't null, getNullability returns the nullability of an
-    // instesection of the left-hand side (referred to as LHS below) and the
-    // right-hand side (referred to as RHS below).  LHS is parameter followed by
-    // nullability, and RHS is promotedBound.  That is, getNullability returns
-    // the nullability of either T & P or T? & P where T is parameter, P is
-    // promotedBound, and the presence of '?' is determined by nullability.
-    // Note that RHS is always a subtype of the bound of the type parameter.
+  /// Gets a new [TypeParameterType] with given [typeParameterTypeNullability].
+  ///
+  /// In contrast with other types, [TypeParameterType.withNullability] doesn't
+  /// set the overall nullability of the returned type but sets that of the
+  /// left-hand side of the intersection type.  In case [promotedBound] is null,
+  /// it is an equivalent of setting the overall nullability.
+  TypeParameterType withNullability(Nullability typeParameterTypeNullability) {
+    return typeParameterTypeNullability == this.typeParameterTypeNullability
+        ? this
+        : new TypeParameterType(
+            parameter, promotedBound, typeParameterTypeNullability);
+  }
 
-    Nullability lhsNullability;
-
-    // If the nullability is explicitly nullable, that is, if the type parameter
-    // type is followed by '?' in the code, the nullability of the type is
-    // 'nullable.'
-    if (declaredNullability == Nullability.nullable) {
-      lhsNullability = Nullability.nullable;
-    } else {
-      // If the bound is nullable, both nullable and non-nullable types can be
-      // passed in for the type parameter, making the corresponding type
-      // parameter types 'neither.'  Otherwise, the nullability matches that of
-      // the bound.
-      DartType bound = parameter.bound ?? const DynamicType();
-      Nullability boundNullability =
-          bound is InvalidType ? Nullability.neither : bound.nullability;
-      lhsNullability = boundNullability == Nullability.nullable
-          ? Nullability.neither
-          : boundNullability;
+  /// Gets the nullability of a type-parameter type based on the bound.
+  ///
+  /// This is a helper function to be used when the bound of the type parameter
+  /// is changing or is being set for the first time, and the update on some
+  /// type-parameter types is required.
+  static Nullability computeNullabilityFromBound(TypeParameter typeParameter) {
+    // If the bound is nullable or 'neither', both nullable and non-nullable
+    // types can be passed in for the type parameter, making the corresponding
+    // type parameter types 'neither.'  Otherwise, the nullability matches that
+    // of the bound.
+    DartType bound = typeParameter.bound;
+    if (bound == null) {
+      throw new StateError("Can't compute nullability from an absent bound.");
     }
+    Nullability boundNullability =
+        bound is InvalidType ? Nullability.neither : bound.nullability;
+    return boundNullability == Nullability.nullable ||
+            boundNullability == Nullability.neither
+        ? Nullability.neither
+        : boundNullability;
+  }
+
+  /// Gets nullability of [TypeParameterType] from arguments to its constructor.
+  ///
+  /// The method combines [typeParameterTypeNullability] and the nullability of
+  /// [promotedBound] to yield the nullability of the intersection type.  If the
+  /// right-hand side of the intersection is absent (that is, if [promotedBound]
+  /// is null), the nullability of the intersection type is simply
+  /// [typeParameterTypeNullability].
+  static Nullability getNullability(
+      Nullability typeParameterTypeNullability, DartType promotedBound) {
+    // If promotedBound is null, getNullability simply returns the nullability
+    // of the type parameter type.
+    Nullability lhsNullability = typeParameterTypeNullability;
     if (promotedBound == null) {
       return lhsNullability;
     }
 
-    // In practice a type parameter of legacy type can only be used in type
-    // annotations within the corresponding class declaration.  If it's legacy,
-    // then the entire library containing the class is opt-out, and any RHS is
-    // deemed to be legacy too.  So, it's necessary to only check LHS for being
-    // legacy.
-    if (lhsNullability == Nullability.legacy) {
-      return Nullability.legacy;
-    }
+    // If promotedBound isn't null, getNullability returns the nullability of an
+    // intersection of the left-hand side (referred to as LHS below) and the
+    // right-hand side (referred to as RHS below).  Note that RHS is always a
+    // subtype of the bound of the type parameter.
 
-    // Intersection is non-nullable if and only if RHS is non-nullable.
+    // The code below implements the rule for the nullability of an intersection
+    // type as per the following table:
     //
-    // The proof is as follows.  Intersection is non-nullable if at least one of
-    // LHS or RHS is non-nullable.  The case of non-nullable RHS is trivial.  In
-    // the case of non-nullable LHS, its bound should be non-nullable.  RHS is
-    // known to always be a subtype of the bound of LHS; therefore, RHS is
-    // non-nullable.
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  | N/A | N/A |  !  |
+    // |     ?     | N/A | N/A | N/A | N/A |
+    // |     *     | N/A | N/A |  *  | N/A |
+    // |     %     |  !  |  %  | N/A |  %  |
     //
-    // Note that it also follows from the above that non-nullable RHS implies
-    // non-nullable LHS, so the check below covers the case lhsNullability ==
-    // Nullability.nonNullable.
-    if (promotedBound.nullability == Nullability.nonNullable) {
+    // In the table, LHS corresponds to lhsNullability in the code below; RHS
+    // corresponds to promotedBound.nullability; !, ?, *, and % correspond to
+    // nonNullable, nullable, legacy, and neither values of the Nullability
+    // enum.
+    //
+    // Whenever there's N/A in the table, it means that the corresponding
+    // combination of the LHS and RHS nullability is not possible when compiling
+    // from Dart source files, so we can define it to be whatever is faster and
+    // more convenient to implement.  The verifier should check that the cases
+    // marked as N/A never occur in the output of the CFE.
+    //
+    // The code below uses the following extension of the table function:
+    //
+    // | LHS \ RHS |  !  |  ?  |  *  |  %  |
+    // |-----------|-----|-----|-----|-----|
+    // |     !     |  !  |  !  |  !  |  !  |
+    // |     ?     |  !  |  *  |  *  |  %  |
+    // |     *     |  !  |  *  |  *  |  %  |
+    // |     %     |  !  |  %  |  %  |  %  |
+
+    // Intersection with a non-nullable type always yields a non-nullable type,
+    // as it's the most restrictive kind of types.
+    if (lhsNullability == Nullability.nonNullable ||
+        promotedBound.nullability == Nullability.nonNullable) {
       return Nullability.nonNullable;
     }
 
@@ -5592,30 +5982,105 @@ class TypeParameterType extends DartType {
     //         }
     //       }
     //     }
-    //
-    // Note that RHS can't be 'legacy' or non-nullable at this point due to the
-    // checks above.
-    if (lhsNullability == Nullability.neither) {
+    if (lhsNullability == Nullability.neither ||
+        promotedBound.nullability == Nullability.neither) {
       return Nullability.neither;
     }
 
-    // At this point the only possibility for LHS is to be nullable, and for RHS
-    // is to be either nullable or legacy.  Both combinations for LHS and RHS
-    // should yield the nullability of RHS as the nullability for the
-    // intersection.  Consider the following code for clarification:
-    //
-    //   class A<X extends Object?, Y extends X> {
-    //     foo(X? x) {
-    //       if (x is Y) {
-    //         x = null;     // Compile-time error.  Consider X = Y = int.
-    //         Object a = x; // Compile-time error.  Consider X = Y = int?.
-    //       }
-    //       if (x is int?) {
-    //         x = null;     // Ok.  Both X? and int? are nullable.
-    //       }
-    //     }
-    //   }
-    return promotedBound.nullability;
+    return Nullability.legacy;
+  }
+}
+
+/// Value set for variance of a type parameter X in a type term T.
+class Variance {
+  /// Used when X does not occur free in T.
+  static const int unrelated = 0;
+
+  /// Used when X occurs free in T, and U <: V implies [U/X]T <: [V/X]T.
+  static const int covariant = 1;
+
+  /// Used when X occurs free in T, and U <: V implies [V/X]T <: [U/X]T.
+  static const int contravariant = 2;
+
+  /// Used when there exists a pair U and V such that U <: V, but [U/X]T and
+  /// [V/X]T are incomparable.
+  static const int invariant = 3;
+
+  /// Variance values form a lattice where [unrelated] is the top, [invariant]
+  /// is the bottom, and [covariant] and [contravariant] are incomparable.
+  /// [meet] calculates the meet of two elements of such lattice.  It can be
+  /// used, for example, to calculate the variance of a typedef type parameter
+  /// if it's encountered on the r.h.s. of the typedef multiple times.
+  static int meet(int a, int b) => a | b;
+
+  /// Combines variances of X in T and Y in S into variance of X in [Y/T]S.
+  ///
+  /// Consider the following examples:
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// List<Y> is [covariant], so variance of X in List<Function(X)> is
+  /// [contravariant];
+  ///
+  /// * variance of X in List<X> is [covariant], variance of Y in Function(Y) is
+  /// [contravariant], so variance of X in Function(List<X>) is [contravariant];
+  ///
+  /// * variance of X in Function(X) is [contravariant], variance of Y in
+  /// Function(Y) is [contravariant], so variance of X in Function(Function(X))
+  /// is [covariant];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef F<Z> = Function();
+  ///
+  /// then variance of X in F<X> is [unrelated], variance of Y in List<Y> is
+  /// [covariant], so variance of X in List<F<X>> is [unrelated];
+  ///
+  /// * let the following be declared:
+  ///
+  ///     typedef G<Z> = Z Function(Z);
+  ///
+  /// then variance of X in List<X> is [covariant], variance of Y in G<Y> is
+  /// [invariant], so variance of `X` in `G<List<X>>` is [invariant].
+  static int combine(int a, int b) {
+    if (a == unrelated || b == unrelated) return unrelated;
+    if (a == invariant || b == invariant) return invariant;
+    return a == b ? covariant : contravariant;
+  }
+
+  /// Returns true if [a] is greater than (above) [b] in the partial order
+  /// induced by the variance lattice.
+  static bool greaterThan(int a, int b) {
+    return greaterThanOrEqual(a, b) && a != b;
+  }
+
+  /// Returns true if [a] is greater than (above) or equal to [b] in the
+  /// partial order induced by the variance lattice.
+  static bool greaterThanOrEqual(int a, int b) {
+    return meet(a, b) == b;
+  }
+
+  /// Returns true if [a] is less than (below) [b] in the partial order
+  /// induced by the variance lattice.
+  static bool lessThan(int a, int b) {
+    return lessThanOrEqual(a, b) && a != b;
+  }
+
+  /// Returns true if [a] is less than (below) or equal to [b] in the
+  /// partial order induced by the variance lattice.
+  static bool lessThanOrEqual(int a, int b) {
+    return meet(a, b) == a;
+  }
+
+  static int fromString(String variance) {
+    if (variance == "in") {
+      return contravariant;
+    } else if (variance == "inout") {
+      return invariant;
+    } else if (variance == "out") {
+      return covariant;
+    } else {
+      return unrelated;
+    }
   }
 }
 
@@ -5652,6 +6117,12 @@ class TypeParameter extends TreeNode {
   /// argument of a dynamic invocation of a generic function.
   DartType defaultType;
 
+  /// Describes variance of the type parameter w.r.t. declaration on which it is
+  /// defined.  It's always [Variance.covariant] for classes, and for typedefs
+  /// it's the variance of the type parameters in the type term on the r.h.s. of
+  /// the typedef.
+  int variance = Variance.covariant;
+
   TypeParameter([this.name, this.bound, this.defaultType]);
 
   // Must match serialized bit positions.
@@ -5678,7 +6149,7 @@ class TypeParameter extends TreeNode {
     annotations.add(annotation..parent = this);
   }
 
-  accept(TreeVisitor v) => v.visitTypeParameter(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
     visitList(annotations, v);
@@ -5712,7 +6183,7 @@ class Supertype extends Node {
 
   Class get classNode => className.asClass;
 
-  accept(Visitor v) => v.visitSupertype(this);
+  R accept<R>(Visitor<R> v) => v.visitSupertype(this);
 
   visitChildren(Visitor v) {
     classNode.acceptReference(v);
@@ -5759,10 +6230,10 @@ abstract class Constant extends Node {
   visitChildren(Visitor v);
 
   /// Calls the `visit*Constant()` method on the visitor [v].
-  accept(ConstantVisitor v);
+  R accept<R>(ConstantVisitor<R> v);
 
   /// Calls the `visit*ConstantReference()` method on the visitor [v].
-  acceptReference(Visitor v);
+  R acceptReference<R>(Visitor<R> v);
 
   /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
   /// constants are not required to be canonicalized, but they have to be deeply
@@ -5795,8 +6266,8 @@ class NullConstant extends PrimitiveConstant<Null> {
   NullConstant() : super(null);
 
   visitChildren(Visitor v) {}
-  accept(ConstantVisitor v) => v.visitNullConstant(this);
-  acceptReference(Visitor v) => v.visitNullConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitNullConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitNullConstantReference(this);
 
   DartType getType(TypeEnvironment types) => types.nullType;
 }
@@ -5805,34 +6276,37 @@ class BoolConstant extends PrimitiveConstant<bool> {
   BoolConstant(bool value) : super(value);
 
   visitChildren(Visitor v) {}
-  accept(ConstantVisitor v) => v.visitBoolConstant(this);
-  acceptReference(Visitor v) => v.visitBoolConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitBoolConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitBoolConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.boolType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.boolLegacyRawType;
 }
 
+/// An integer constant on a non-JS target.
 class IntConstant extends PrimitiveConstant<int> {
   IntConstant(int value) : super(value);
 
   visitChildren(Visitor v) {}
-  accept(ConstantVisitor v) => v.visitIntConstant(this);
-  acceptReference(Visitor v) => v.visitIntConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitIntConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitIntConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.intType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.intLegacyRawType;
 }
 
+/// A double constant on a non-JS target or any numeric constant on a JS target.
 class DoubleConstant extends PrimitiveConstant<double> {
   DoubleConstant(double value) : super(value);
 
   visitChildren(Visitor v) {}
-  accept(ConstantVisitor v) => v.visitDoubleConstant(this);
-  acceptReference(Visitor v) => v.visitDoubleConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitDoubleConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitDoubleConstantReference(this);
 
   int get hashCode => value.isNaN ? 199 : super.hashCode;
   bool operator ==(Object other) =>
       other is DoubleConstant && identical(value, other.value);
 
-  DartType getType(TypeEnvironment types) => types.doubleType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.doubleLegacyRawType;
 }
 
 class StringConstant extends PrimitiveConstant<String> {
@@ -5841,10 +6315,11 @@ class StringConstant extends PrimitiveConstant<String> {
   }
 
   visitChildren(Visitor v) {}
-  accept(ConstantVisitor v) => v.visitStringConstant(this);
-  acceptReference(Visitor v) => v.visitStringConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitStringConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitStringConstantReference(this);
 
-  DartType getType(TypeEnvironment types) => types.stringType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.stringLegacyRawType;
 }
 
 class SymbolConstant extends Constant {
@@ -5855,8 +6330,8 @@ class SymbolConstant extends Constant {
 
   visitChildren(Visitor v) {}
 
-  accept(ConstantVisitor v) => v.visitSymbolConstant(this);
-  acceptReference(Visitor v) => v.visitSymbolConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitSymbolConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitSymbolConstantReference(this);
 
   String toString() {
     return libraryReference != null
@@ -5872,7 +6347,8 @@ class SymbolConstant extends Constant {
           other.name == name &&
           other.libraryReference == libraryReference);
 
-  DartType getType(TypeEnvironment types) => types.symbolType;
+  DartType getType(TypeEnvironment types) =>
+      types.coreTypes.symbolLegacyRawType;
 }
 
 class MapConstant extends Constant {
@@ -5891,8 +6367,8 @@ class MapConstant extends Constant {
     }
   }
 
-  accept(ConstantVisitor v) => v.visitMapConstant(this);
-  acceptReference(Visitor v) => v.visitMapConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitMapConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitMapConstantReference(this);
 
   String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
 
@@ -5939,8 +6415,8 @@ class ListConstant extends Constant {
     }
   }
 
-  accept(ConstantVisitor v) => v.visitListConstant(this);
-  acceptReference(Visitor v) => v.visitListConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitListConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitListConstantReference(this);
 
   String toString() => '${this.runtimeType}<$typeArgument>($entries)';
 
@@ -5973,8 +6449,8 @@ class SetConstant extends Constant {
     }
   }
 
-  accept(ConstantVisitor v) => v.visitSetConstant(this);
-  acceptReference(Visitor v) => v.visitSetConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitSetConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitSetConstantReference(this);
 
   String toString() => '${this.runtimeType}<$typeArgument>($entries)';
 
@@ -6013,8 +6489,8 @@ class InstanceConstant extends Constant {
     }
   }
 
-  accept(ConstantVisitor v) => v.visitInstanceConstant(this);
-  acceptReference(Visitor v) => v.visitInstanceConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitInstanceConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitInstanceConstantReference(this);
 
   String toString() {
     final sb = new StringBuffer();
@@ -6063,8 +6539,9 @@ class PartialInstantiationConstant extends Constant {
     visitList(types, v);
   }
 
-  accept(ConstantVisitor v) => v.visitPartialInstantiationConstant(this);
-  acceptReference(Visitor v) =>
+  R accept<R>(ConstantVisitor<R> v) =>
+      v.visitPartialInstantiationConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
       v.visitPartialInstantiationConstantReference(this);
 
   String toString() {
@@ -6106,17 +6583,18 @@ class TearOffConstant extends Constant {
     procedureReference.asProcedure.acceptReference(v);
   }
 
-  accept(ConstantVisitor v) => v.visitTearOffConstant(this);
-  acceptReference(Visitor v) => v.visitTearOffConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitTearOffConstant(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitTearOffConstantReference(this);
 
   String toString() {
     return '${runtimeType}(${procedure})';
   }
 
-  int get hashCode => procedure.hashCode;
+  int get hashCode => procedureReference.hashCode;
 
   bool operator ==(Object other) {
-    return other is TearOffConstant && other.procedure == procedure;
+    return other is TearOffConstant &&
+        other.procedureReference == procedureReference;
   }
 
   FunctionType getType(TypeEnvironment types) =>
@@ -6132,8 +6610,9 @@ class TypeLiteralConstant extends Constant {
     type.accept(v);
   }
 
-  accept(ConstantVisitor v) => v.visitTypeLiteralConstant(this);
-  acceptReference(Visitor v) => v.visitTypeLiteralConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitTypeLiteralConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitTypeLiteralConstantReference(this);
 
   String toString() => '${runtimeType}(${type})';
 
@@ -6143,7 +6622,7 @@ class TypeLiteralConstant extends Constant {
     return other is TypeLiteralConstant && other.type == type;
   }
 
-  DartType getType(TypeEnvironment types) => types.typeType;
+  DartType getType(TypeEnvironment types) => types.coreTypes.typeLegacyRawType;
 }
 
 class UnevaluatedConstant extends Constant {
@@ -6157,8 +6636,9 @@ class UnevaluatedConstant extends Constant {
     expression.accept(v);
   }
 
-  accept(ConstantVisitor v) => v.visitUnevaluatedConstant(this);
-  acceptReference(Visitor v) => v.visitUnevaluatedConstantReference(this);
+  R accept<R>(ConstantVisitor<R> v) => v.visitUnevaluatedConstant(this);
+  R acceptReference<R>(Visitor<R> v) =>
+      v.visitUnevaluatedConstantReference(this);
 
   DartType getType(TypeEnvironment types) => expression.getStaticType(types);
 
@@ -6232,6 +6712,14 @@ class Component extends TreeNode {
   }
 
   void unbindCanonicalNames() {
+    // TODO(jensj): Get rid of this.
+    for (int i = 0; i < libraries.length; i++) {
+      Library lib = libraries[i];
+      for (int j = 0; j < lib.classes.length; j++) {
+        Class c = lib.classes[j];
+        c.dirty = true;
+      }
+    }
     root.unbindAll();
   }
 
@@ -6241,7 +6729,7 @@ class Component extends TreeNode {
     mainMethodName = getMemberReference(main);
   }
 
-  accept(TreeVisitor v) => v.visitComponent(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitComponent(this);
 
   visitChildren(Visitor v) {
     visitList(libraries, v);
@@ -6310,9 +6798,12 @@ abstract class MetadataRepository<T> {
   /// or referenced from the metadata payload.
   ///
   /// Currently due to binary format specifics Catch and MapEntry nodes
-  /// can't have metadata attached to them.
+  /// can't have metadata attached to them. Also, metadata is not saved on
+  /// Block nodes inside BlockExpressions.
   static bool isSupported(TreeNode node) {
-    return !(node is MapEntry || node is Catch);
+    return !(node is MapEntry ||
+        node is Catch ||
+        (node is Block && node.parent is BlockExpression));
   }
 }
 
@@ -6555,6 +7046,18 @@ CanonicalName getCanonicalNameOfClass(Class class_) {
     throw '$class_ has no canonical name';
   }
   return class_.canonicalName;
+}
+
+/// Returns the canonical name of [extension], or throws an exception if the
+/// class has not been assigned a canonical name yet.
+///
+/// Returns `null` if the extension is `null`.
+CanonicalName getCanonicalNameOfExtension(Extension extension) {
+  if (extension == null) return null;
+  if (extension.canonicalName == null) {
+    throw '$extension has no canonical name';
+  }
+  return extension.canonicalName;
 }
 
 /// Returns the canonical name of [library], or throws an exception if the

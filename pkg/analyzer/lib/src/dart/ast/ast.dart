@@ -716,7 +716,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   /// representing the parameter to which the value of the right operand will be
   /// bound. Otherwise, return `null`.
   ParameterElement get _staticParameterElementForRightHandSide {
-    ExecutableElement executableElement = null;
+    ExecutableElement executableElement;
     if (staticElement != null) {
       executableElement = staticElement;
     } else {
@@ -2175,11 +2175,12 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 ///
 ///    compilationUnitMember ::=
 ///        [ClassDeclaration]
+///      | [MixinDeclaration]
+///      | [ExtensionDeclaration]
+///      | [EnumDeclaration]
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
-///      | [MethodDeclaration]
-///      | [VariableDeclaration]
-///      | [VariableDeclaration]
+///      | [TopLevelVariableDeclaration]
 abstract class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initialize a newly created generic compilation unit member. Either or both
@@ -2395,6 +2396,8 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
     ErrorCode errorCode = error.errorCode;
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
+        case CompileTimeErrorCode
+            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
@@ -2404,8 +2407,7 @@ class ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
-        case CompileTimeErrorCode
-            .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+        case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
         case CompileTimeErrorCode.INVALID_CONSTANT:
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
@@ -3927,6 +3929,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
     name?.accept(visitor);
     _typeParameters?.accept(visitor);
     _extendedType?.accept(visitor);
@@ -5910,8 +5913,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /// index expression is part of a cascade expression.
   ExpressionImpl _target;
 
-  /// The period ("..") before a cascaded index expression, or `null` if this
-  /// index expression is not part of a cascade expression.
+  /// The period (".." | "?..") before a cascaded index expression,
+  /// or `null` if this index expression is not part of a cascade expression.
   @override
   Token period;
 
@@ -5935,7 +5938,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
-  AuxiliaryElements auxiliaryElements = null;
+  AuxiliaryElements auxiliaryElements;
 
   /// Initialize a newly created index expression.
   IndexExpressionImpl.forCascade(
@@ -5986,6 +5989,10 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 
   @override
   bool get isCascaded => period != null;
+
+  @override
+  bool get isNullAware =>
+      leftBracket.type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET;
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -7128,7 +7135,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
   /// The operator that separates the target from the method name, or `null`
   /// if there is no target. In an ordinary method invocation this will be a
   /// period ('.'). In a cascade section this will be the cascade operator
-  /// ('..').
+  /// ('..' | '?..').
   @override
   Token operator;
 
@@ -7177,7 +7184,12 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get isCascaded =>
-      operator != null && operator.type == TokenType.PERIOD_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.PERIOD_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+
+  @override
+  bool get isNullAware => operator?.type == TokenType.QUESTION_PERIOD;
 
   @override
   SimpleIdentifier get methodName => _methodName;
@@ -8434,7 +8446,13 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   bool get isCascaded =>
-      operator != null && operator.type == TokenType.PERIOD_PERIOD;
+      operator != null &&
+      (operator.type == TokenType.PERIOD_PERIOD ||
+          operator.type == TokenType.QUESTION_PERIOD_PERIOD);
+
+  @override
+  bool get isNullAware =>
+      operator != null && operator.type == TokenType.QUESTION_PERIOD;
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -8903,7 +8921,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// If this expression is both in a getter and setter context, the
   /// [AuxiliaryElements] will be set to hold onto the static element from the
   /// getter context.
-  AuxiliaryElements auxiliaryElements = null;
+  AuxiliaryElements auxiliaryElements;
 
   @override
   List<DartType> tearOffTypeArgumentTypes;
@@ -9185,6 +9203,10 @@ class SpreadElementImpl extends AstNodeImpl
   set expression(Expression expression) {
     _expression = _becomeParentOf(expression as ExpressionImpl);
   }
+
+  @override
+  bool get isNullAware =>
+      spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
 
   @override
   E accept<E>(AstVisitor<E> visitor) {

@@ -21,7 +21,7 @@ main() {
   });
 }
 
-class CharacterRangeReaderTest extends EngineTestCase {
+class CharacterRangeReaderTest {
   void test_advance() {
     CharSequenceReader baseReader = new CharSequenceReader("xyzzy");
     CharacterRangeReader reader = new CharacterRangeReader(baseReader, 1, 4);
@@ -78,7 +78,7 @@ class CharacterRangeReaderTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LineInfoTest extends EngineTestCase {
+class LineInfoTest {
   final featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
 
   void test_lineInfo_multilineComment() {
@@ -222,7 +222,7 @@ class TokenStreamValidator {
     if (token == null) {
       return;
     }
-    Token previousToken = null;
+    Token previousToken;
     int previousEnd = -1;
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {

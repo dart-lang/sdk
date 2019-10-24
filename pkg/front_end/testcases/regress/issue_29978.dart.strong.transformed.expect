@@ -12,5 +12,5 @@ import "dart:core" as core;
 static method foo(dynamic a, dynamic b) → dynamic
   return null;
 static method main() → dynamic {
-  self::foo(null, let final () →* core::Null* f = () → core::Null* {} in f);
+  self::foo(null, let final () →* core::Null? f = () → core::Null? {} in f);
 }

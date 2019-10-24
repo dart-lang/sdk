@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -33,7 +34,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   final LinkedElementFactory elementFactory;
   final LibraryElement _libraryElement;
   final Reference unitReference;
-  final bool nnbd;
+
+  /// Indicates whether the library is opted into NNBD.
+  final bool isNNBD;
 
   /// The depth-first number of the next [GenericFunctionType] node.
   int _nextGenericFunctionTypeId = 0;
@@ -49,7 +52,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     this.elementFactory,
     this._libraryElement,
     this.unitReference,
-    this.nnbd,
+    this.isNNBD,
     this.scope,
   ) : reference = unitReference;
 
@@ -143,6 +146,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     LinkingNodeContext(node, functionScope);
 
     node.parameters?.accept(this);
+    node.initializers.accept(
+      _SetGenericFunctionTypeIdVisitor(this),
+    );
 
     scope = outerScope;
     reference = outerReference;
@@ -151,6 +157,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.parameter.accept(this);
+    node.defaultValue?.accept(
+      _SetGenericFunctionTypeIdVisitor(this),
+    );
   }
 
   @override
@@ -204,9 +213,33 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.identifier.name;
+    reference = reference.getChild('@parameter').getChild(name);
+    reference.node = node;
+
+    var element = ParameterElementImpl.forLinkedNode(
+      outerReference.element,
+      reference,
+      node,
+    );
+    node.identifier.staticElement = element;
+    _createTypeParameterElements(node.typeParameters);
+
+    scope = new EnclosedScope(scope);
+    for (var typeParameter in element.typeParameters) {
+      scope.define(typeParameter);
+    }
+
     node.type?.accept(this);
+    node.typeParameters?.accept(this);
     node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+    reference = outerReference;
   }
 
   @override
@@ -265,7 +298,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.returnType?.accept(this);
     node.typeParameters?.accept(this);
+
+    reference = reference.getChild('@function');
+    reference.element = element;
     node.parameters.accept(this);
+
     nodesToBuildType.addDeclaration(node);
 
     scope = outerScope;
@@ -328,7 +365,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters.accept(this);
 
     var nullabilitySuffix = _getNullabilitySuffix(node.question != null);
-    var builder = FunctionTypeBuilder.of(node, nullabilitySuffix);
+    var builder = FunctionTypeBuilder.of(isNNBD, node, nullabilitySuffix);
     (node as GenericFunctionTypeImpl).type = builder;
     nodesToBuildType.addTypeBuilder(builder);
 
@@ -530,7 +567,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   NullabilitySuffix _getNullabilitySuffix(bool hasQuestion) {
-    if (nnbd) {
+    if (isNNBD) {
       if (hasQuestion) {
         return NullabilitySuffix.question;
       } else {

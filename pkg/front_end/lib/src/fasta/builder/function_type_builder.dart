@@ -4,8 +4,6 @@
 
 library fasta.function_type_builder;
 
-import 'builder.dart' show LibraryBuilder, TypeBuilder, TypeVariableBuilder;
-
 import 'package:kernel/ast.dart'
     show
         DartType,
@@ -16,24 +14,22 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypedefType;
 
-import '../fasta_codes.dart'
-    show LocatedMessage, messageSupertypeIsFunction, noLength;
+import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 
-import '../problems.dart' show unsupported;
-
-import '../kernel/kernel_builder.dart'
-    show
-        FormalParameterBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeVariableBuilder;
+import 'formal_parameter_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'type_builder.dart';
+import 'type_variable_builder.dart';
 
 class FunctionTypeBuilder extends TypeBuilder {
   final TypeBuilder returnType;
   final List<TypeVariableBuilder> typeVariables;
   final List<FormalParameterBuilder> formals;
+  final NullabilityBuilder nullabilityBuilder;
 
-  FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals);
+  FunctionTypeBuilder(this.returnType, this.typeVariables, this.formals,
+      this.nullabilityBuilder);
 
   @override
   String get name => null;
@@ -68,7 +64,9 @@ class FunctionTypeBuilder extends TypeBuilder {
         buffer.write(t?.fullNameForErrors);
       }
     }
-    buffer.write(") -> ");
+    buffer.write(") ->");
+    nullabilityBuilder.writeNullabilityOn(buffer);
+    buffer.write(" ");
     buffer.write(returnType?.fullNameForErrors);
     return buffer;
   }
@@ -106,7 +104,8 @@ class FunctionTypeBuilder extends TypeBuilder {
         namedParameters: namedParameters ?? const <NamedType>[],
         typeParameters: typeParameters ?? const <TypeParameter>[],
         requiredParameterCount: requiredParameterCount,
-        typedefType: origin);
+        typedefType: origin,
+        nullability: nullabilityBuilder.build(library));
   }
 
   Supertype buildSupertype(
@@ -119,11 +118,6 @@ class FunctionTypeBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     return buildSupertype(library, charOffset, fileUri);
-  }
-
-  @override
-  buildInvalidType(LocatedMessage message, {List<LocatedMessage> context}) {
-    return unsupported("buildInvalidType", message.charOffset, message.uri);
   }
 
   FunctionTypeBuilder clone(List<TypeBuilder> newTypes) {
@@ -143,8 +137,17 @@ class FunctionTypeBuilder extends TypeBuilder {
       }
     }
     FunctionTypeBuilder newType = new FunctionTypeBuilder(
-        returnType?.clone(newTypes), clonedTypeVariables, clonedFormals);
+        returnType?.clone(newTypes),
+        clonedTypeVariables,
+        clonedFormals,
+        nullabilityBuilder);
     newTypes.add(newType);
     return newType;
+  }
+
+  FunctionTypeBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return new FunctionTypeBuilder(
+        returnType, typeVariables, formals, nullabilityBuilder);
   }
 }

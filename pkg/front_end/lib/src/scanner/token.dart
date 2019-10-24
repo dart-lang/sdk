@@ -209,13 +209,16 @@ class Keyword extends TokenType {
 
   static const Keyword IN = const Keyword("in", "IN");
 
+  static const Keyword INOUT = const Keyword("inout", "INOUT", isPseudo: true);
+
   static const Keyword INTERFACE =
       const Keyword("interface", "INTERFACE", isBuiltIn: true);
 
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
-  static const Keyword LATE = const Keyword("late", "LATE", isModifier: true);
+  static const Keyword LATE =
+      const Keyword("late", "LATE", isModifier: true, isBuiltIn: true);
 
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
@@ -236,6 +239,8 @@ class Keyword extends TokenType {
 
   static const Keyword OPERATOR =
       const Keyword("operator", "OPERATOR", isBuiltIn: true);
+
+  static const Keyword OUT = const Keyword("out", "OUT", isPseudo: true);
 
   static const Keyword PART =
       const Keyword("part", "PART", isBuiltIn: true, isTopLevelKeyword: true);
@@ -321,6 +326,7 @@ class Keyword extends TokenType {
     IMPLEMENTS,
     IMPORT,
     IN,
+    INOUT,
     INTERFACE,
     IS,
     LATE,
@@ -332,6 +338,7 @@ class Keyword extends TokenType {
     OF,
     ON,
     OPERATOR,
+    OUT,
     PART,
     PATCH,
     REQUIRED,
@@ -1449,6 +1456,12 @@ class TokenType {
       'QUESTION_PERIOD_OPEN_SQUARE_BRACKET',
       SELECTOR_PRECEDENCE,
       QUESTION_PERIOD_OPEN_SQUARE_BRACKET_TOKEN);
+
+  static const TokenType QUESTION_PERIOD_PERIOD = const TokenType(
+      '?..',
+      'QUESTION_PERIOD_PERIOD',
+      CASCADE_PRECEDENCE,
+      QUESTION_PERIOD_PERIOD_TOKEN);
 
   static const TokenType AS = Keyword.AS;
 

@@ -46,7 +46,10 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
+import 'package:analysis_server/src/utilities/tee_string_sink.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -104,6 +107,9 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// The instrumentation service that is to be used by this analysis server.
   final InstrumentationService instrumentationService;
+
+  /// The helper for tracking request / response statistics.
+  final RequestStatisticsHelper requestStatistics;
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = new HashSet<ServerService>();
@@ -170,6 +176,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     AnalysisServerOptions options,
     this.sdkManager,
     this.instrumentationService, {
+    this.requestStatistics,
     DiagnosticServer diagnosticServer,
     ResolverProvider fileResolverProvider = null,
     ResolverProvider packageResolverProvider = null,
@@ -197,8 +204,11 @@ class AnalysisServer extends AbstractAnalysisServer {
           sink = io.stdout;
         } else if (name.startsWith('file:')) {
           String path = name.substring('file:'.length);
-          sink = new io.File(path).openWrite(mode: io.FileMode.append);
+          sink = FileStringSink(path);
         }
+      }
+      if (requestStatistics != null) {
+        sink = TeeStringSink(sink, requestStatistics.perfLoggerStringSink);
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }
@@ -744,10 +754,9 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
-  /// Whether or not to enable ML code completion.
-  bool enableCompletionModel = false;
-
   /// Base path to locate trained completion language model files.
+  ///
+  /// ML completion is enabled if this is non-null.
   String completionModelFolder;
 
   /// Whether to enable parsing via the Fasta parser.
@@ -905,14 +914,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     nd.AnalysisDriver analysisDriver = analysisServer.driverMap[contextFolder];
     if (analysisDriver != null) {
-      changeSet.addedSources.forEach((source) {
-        analysisDriver.addFile(source.fullName);
+      changeSet.addedFiles.forEach((path) {
+        analysisDriver.addFile(path);
       });
-      changeSet.changedSources.forEach((source) {
-        analysisDriver.changeFile(source.fullName);
+      changeSet.changedFiles.forEach((path) {
+        analysisDriver.changeFile(path);
       });
-      changeSet.removedSources.forEach((source) {
-        analysisDriver.removeFile(source.fullName);
+      changeSet.removedFiles.forEach((path) {
+        analysisDriver.removeFile(path);
       });
     }
   }

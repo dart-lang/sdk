@@ -6,7 +6,7 @@ class NullEquality extends core::Object {
   synthetic constructor •() → self::NullEquality*
     ;
   @core::override
-  operator ==(core::Object* other) → core::Null*
+  operator ==(core::Object* other) → core::Null?
     ;
 }
 class SubNullEquality extends self::NullEquality {

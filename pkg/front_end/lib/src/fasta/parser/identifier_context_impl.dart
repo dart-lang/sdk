@@ -87,7 +87,14 @@ class CombinatorIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
-    const followingValues = const [';', ',', 'if', 'as', 'show', 'hide'];
+    const List<String> followingValues = const [
+      ';',
+      ',',
+      'if',
+      'as',
+      'show',
+      'hide'
+    ];
 
     if (identifier.isIdentifier) {
       if (!looksLikeStartOfNextTopLevelDeclaration(identifier) ||
@@ -163,7 +170,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
-    const followingValues = const ['.', '==', ')'];
+    const List<String> followingValues = const ['.', '==', ')'];
 
     if (identifier.isIdentifier) {
       // DottedNameIdentifierContext are only used in conditional import
@@ -291,14 +298,19 @@ class ExpressionIdentifierContext extends IdentifierContext {
     // Recovery
     parser.reportRecoverableErrorWithToken(
         identifier, fasta.templateExpectedIdentifier);
-    if (!looksLikeStatementStart(identifier)) {
+    if (optional(r'$', token) &&
+        identifier.isKeyword &&
+        identifier.next.kind == STRING_TOKEN) {
+      // Keyword used as identifier in string interpolation
+      return identifier;
+    } else if (!looksLikeStatementStart(identifier)) {
       if (identifier.isKeywordOrIdentifier) {
         if (isContinuation || !isOneOfOrEof(identifier, const ['as', 'is'])) {
           return identifier;
         }
       } else if (!identifier.isOperator &&
           !isOneOfOrEof(identifier,
-              const ['.', ',', '(', ')', '[', ']', '}', '?', ':', ';'])) {
+              const ['.', ',', '(', ')', '[', ']', '{', '}', '?', ':', ';'])) {
         // When in doubt, consume the token to ensure we make progress
         token = identifier;
         identifier = token.next;
@@ -377,7 +389,17 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    const followingValues = const [':', '=', ',', '(', ')', '[', ']', '{', '}'];
+    const List<String> followingValues = const [
+      ':',
+      '=',
+      ',',
+      '(',
+      ')',
+      '[',
+      ']',
+      '{',
+      '}'
+    ];
     if (looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStatementStart(identifier) ||
         isOneOfOrEof(identifier, followingValues)) {
@@ -411,7 +433,14 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    const followingValues = const [';', 'if', 'show', 'hide', 'deferred', 'as'];
+    const List<String> followingValues = const [
+      ';',
+      'if',
+      'show',
+      'hide',
+      'deferred',
+      'as'
+    ];
     if (identifier.type.isBuiltIn &&
         isOneOfOrEof(identifier.next, followingValues)) {
       parser.reportRecoverableErrorWithToken(
@@ -577,7 +606,7 @@ class LibraryIdentifierContext extends IdentifierContext {
   Token ensureIdentifier(Token token, Parser parser) {
     Token identifier = token.next;
     assert(identifier.kind != IDENTIFIER_TOKEN);
-    const followingValues = const ['.', ';'];
+    const List<String> followingValues = const ['.', ';'];
 
     if (identifier.isIdentifier) {
       Token next = identifier.next;
@@ -822,7 +851,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    const followingValues = const ['(', '<', '=', ';'];
+    const List<String> followingValues = const ['(', '<', '=', ';'];
     if (identifier.type.isBuiltIn &&
         isOneOfOrEof(identifier.next, followingValues)) {
       parser.reportRecoverableErrorWithToken(
@@ -886,7 +915,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
     }
     parser.reportRecoverableErrorWithToken(next, fasta.templateExpectedType);
     if (!isOneOfOrEof(
-        next, const ['>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
+        next, const ['<', '>', ')', '[', ']', '[]', '{', '}', ',', ';'])) {
       // When in doubt, consume the token to ensure we make progress
       token = next;
       next = token.next;
@@ -911,7 +940,14 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    const followingValues = const ['<', '>', ';', '}', 'extends', 'super'];
+    const List<String> followingValues = const [
+      '<',
+      '>',
+      ';',
+      '}',
+      'extends',
+      'super'
+    ];
     if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         looksLikeStartOfNextClassMember(identifier) ||
         looksLikeStatementStart(identifier) ||

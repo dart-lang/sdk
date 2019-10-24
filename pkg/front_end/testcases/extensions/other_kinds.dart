@@ -22,10 +22,16 @@ extension A2 on A1 {
     setInstanceField(value);
   }
 
-  // TODO(johnniwinther): Test operator -() and operator -(val).
-
   int operator +(int value) {
     return getInstanceField() + value;
+  }
+
+  int operator -(int value) {
+    return getInstanceField() - value;
+  }
+
+  int operator -() {
+   return -getInstanceField();
   }
 
   static int staticField = A1.getStaticField();

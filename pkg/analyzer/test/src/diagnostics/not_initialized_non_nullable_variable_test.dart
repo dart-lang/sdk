@@ -39,6 +39,14 @@ class A {
 ''');
   }
 
+  test_staticField_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  static late int v;
+}
+''');
+  }
+
   test_staticField_noInitializer() async {
     await assertErrorsInCode('''
 class A {

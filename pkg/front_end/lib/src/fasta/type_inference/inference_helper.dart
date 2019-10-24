@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' show Arguments, Expression, FunctionType;
+import 'dart:core' hide MapEntry;
+
+import 'package:kernel/ast.dart';
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
@@ -29,6 +31,4 @@ abstract class InferenceHelper {
 
   String constructorNameForDiagnostics(String name,
       {String className, bool isSuper});
-
-  Expression desugarSyntheticExpression(Expression node);
 }

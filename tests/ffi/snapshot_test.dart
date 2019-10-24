@@ -5,9 +5,7 @@
 // Checks that the VM throws an appropriate exception when FFI objects are
 // passed between isolates.
 
-import 'dart:async';
 import 'dart:ffi';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:expect/expect.dart';

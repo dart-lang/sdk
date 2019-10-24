@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
@@ -48,9 +48,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   InterfaceType get intType => typeProvider.intType;
 
-  ClassElement get listElement => typeProvider.listType.element;
+  ClassElement get listElement => typeProvider.listElement;
 
-  ClassElement get mapElement => typeProvider.mapType.element;
+  ClassElement get mapElement => typeProvider.mapElement;
 
   ClassElement get numElement => typeProvider.numType.element;
 
@@ -68,6 +68,26 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void addTestFile(String content) {
     newFile('/test/lib/test.dart', content: content);
+  }
+
+  void assertAuxElement(AstNode node, Element expected) {
+    var auxElements = getNodeAuxElements(node);
+    expect(auxElements?.staticElement, same(expected));
+  }
+
+  void assertAuxMember(
+    Expression node,
+    Element expectedBase,
+    Map<String, String> expectedSubstitution,
+  ) {
+    var actual = getNodeAuxElements(node)?.staticElement as ExecutableMember;
+
+    expect(actual.baseElement, same(expectedBase));
+
+    var actualMapString = actual.substitution.map.map(
+      (k, v) => MapEntry(k.name, '$v'),
+    );
+    expect(actualMapString, expectedSubstitution);
   }
 
   /// Assert that the given [identifier] is a reference to a class, in the
@@ -99,7 +119,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertElement(AstNode node, Element expected) {
     Element actual = getNodeElement(node);
-    actual = _unwrapHandle(actual);
     expect(actual, same(expected));
   }
 
@@ -146,14 +165,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
     expect(element.enclosingElement, expectedEnclosing);
-  }
-
-  @Deprecated('Use assertErrorsInCode')
-  Future<void> assertErrorCodesInCode(
-      String code, List<ErrorCode> errors) async {
-    addTestFile(code);
-    await resolveTestFile();
-    assertTestErrorsWithCodes(errors);
   }
 
   Future<void> assertErrorsInCode(
@@ -352,6 +363,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertTestErrorsWithCodes(const <ErrorCode>[]);
   }
 
+  void assertParameterElement(
+    Expression expression,
+    ParameterElement expected,
+  ) {
+    expect(expression.staticParameterElement, expected);
+  }
+
   void assertPropertyAccess(
     PropertyAccess access,
     Element expectedElement,
@@ -436,6 +454,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
               const <ExpectedMessage>[]}) =>
       ExpectedError(code, offset, length, expectedMessages: expectedMessages);
 
+  AuxiliaryElements getNodeAuxElements(AstNode node) {
+    if (node is IndexExpression) {
+      return node.auxiliaryElements;
+    } else {
+      fail('Unsupported node: (${node.runtimeType}) $node');
+    }
+  }
+
   Element getNodeElement(AstNode node) {
     if (node is Annotation) {
       return node.element;
@@ -477,6 +503,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
+  /// Put the [code] into the test file, and resolve it.
+  Future<void> resolveTestCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+  }
+
   Future<void> resolveTestFile() async {
     var path = convertPath('/test/lib/test.dart');
     result = await resolveFile(path);
@@ -488,13 +520,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
   /// tests.
   String typeString(DartType type) => (type as TypeImpl)
       ?.toString(withNullability: typeToStringWithNullability);
-
-  Element _unwrapHandle(Element element) {
-    if (element is ElementHandle && element is! Member) {
-      return element.actualElement;
-    }
-    return element;
-  }
 
   static String _extractReturnType(String invokeType) {
     int functionIndex = invokeType.indexOf(' Function');

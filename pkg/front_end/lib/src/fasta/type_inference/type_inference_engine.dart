@@ -12,6 +12,7 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         Member,
+        NamedType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -23,8 +24,12 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 
+import '../builder/library_builder.dart';
+
+import '../kernel/forest.dart';
+
 import '../kernel/kernel_builder.dart'
-    show ClassHierarchyBuilder, ImplicitFieldType, LibraryBuilder;
+    show ClassHierarchyBuilder, ImplicitFieldType;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -68,14 +73,14 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
     if (node.returnType.accept(this)) return true;
     Variance oldVariance = _variance;
     _variance = Variance.invariant;
-    for (var parameter in node.typeParameters) {
+    for (TypeParameter parameter in node.typeParameters) {
       if (parameter.bound.accept(this)) return true;
     }
     _variance = invertVariance(oldVariance);
-    for (var parameter in node.positionalParameters) {
+    for (DartType parameter in node.positionalParameters) {
       if (parameter.accept(this)) return true;
     }
-    for (var parameter in node.namedParameters) {
+    for (NamedType parameter in node.namedParameters) {
       if (parameter.type.accept(this)) return true;
     }
     _variance = oldVariance;
@@ -84,7 +89,7 @@ class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    for (var argument in node.typeArguments) {
+    for (DartType argument in node.typeArguments) {
       if (argument.accept(this)) return true;
     }
     return false;
@@ -114,6 +119,9 @@ abstract class TypeInferenceEngine {
   ClassHierarchyBuilder hierarchyBuilder;
 
   CoreTypes coreTypes;
+
+  // TODO(johnniwinther): Shared this with the BodyBuilder.
+  final Forest forest = const Forest();
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;
@@ -156,10 +164,12 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so there cannot be a cyclic
     // dependency.
     for (Constructor constructor in toBeInferred.keys) {
-      for (var declaration in constructor.function.positionalParameters) {
+      for (VariableDeclaration declaration
+          in constructor.function.positionalParameters) {
         inferInitializingFormal(declaration, constructor);
       }
-      for (var declaration in constructor.function.namedParameters) {
+      for (VariableDeclaration declaration
+          in constructor.function.namedParameters) {
         inferInitializingFormal(declaration, constructor);
       }
     }
@@ -195,10 +205,10 @@ abstract class TypeInferenceEngine {
     if (member is Field) {
       DartType type = member.type;
       if (type is ImplicitFieldType) {
-        if (type.member.target != member) {
-          type.member.inferCopiedType(member);
+        if (type.memberBuilder.member != member) {
+          type.memberBuilder.inferCopiedType(member);
         } else {
-          type.member.inferType();
+          type.memberBuilder.inferType();
         }
       }
     }

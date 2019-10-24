@@ -97,7 +97,8 @@ main() {
     }
 
     void processClass(ClassEntity element) {
-      Expect.isTrue(closedWorld.rtiNeed.classNeedsTypeArguments(element));
+      Expect.equals(elementEnvironment.isGenericClass(element),
+          closedWorld.rtiNeed.classNeedsTypeArguments(element));
       elementEnvironment.forEachConstructor(element, processMember);
       elementEnvironment.forEachLocalClassMember(element, processMember);
 

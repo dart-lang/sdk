@@ -13,11 +13,6 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
 
-// TODO(askesc): We should not need to call the constant evaluator
-// explicitly once constant-update-2018 is shipped.
-import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants;
-
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -38,21 +33,18 @@ import 'package:front_end/src/api_unstable/vm.dart'
         printDiagnosticMessage;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart'
-    show Component, Field, Library, Reference, StaticGet;
+import 'package:kernel/ast.dart' show Component, Library, Reference;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/binary/limited_ast_to_binary.dart'
     show LimitedBinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
-import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'bytecode/options.dart' show BytecodeOptions;
 
-import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -106,9 +98,6 @@ void declareCompilerOptions(ArgParser args) {
       help: 'The values for the environment constants (e.g. -Dkey=value).');
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
-  args.addFlag('enable-constant-evaluation',
-      help: 'Whether kernel constant evaluation will be enabled.',
-      defaultsTo: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -167,7 +156,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool dropAST = options['drop-ast'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool enableConstantEvaluation = options['enable-constant-evaluation'];
   final bool useProtobufTreeShaker = options['protobuf-tree-shaker'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final List<String> experimentalFlags = options['enable-experiment'];
@@ -224,19 +212,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     }
     ..embedSourceText = embedSources;
 
-  final component = await compileToKernel(mainUri, compilerOptions,
+  final results = await compileToKernel(mainUri, compilerOptions,
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
       dropAST: dropAST && !splitOutputByPackages,
-      enableConstantEvaluation: enableConstantEvaluation,
       useProtobufTreeShaker: useProtobufTreeShaker);
 
   errorPrinter.printCompilationMessages();
 
-  if (errorDetector.hasCompilationErrors || (component == null)) {
+  if (errorDetector.hasCompilationErrors || (results.component == null)) {
     return compileTimeErrorExitCode;
   }
 
@@ -246,7 +233,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
-  printer.writeComponentFile(component);
+  printer.writeComponentFile(results.component);
   await sink.close();
 
   if (bytecodeOptions.showBytecodeSizeStatistics && !splitOutputByPackages) {
@@ -254,14 +241,17 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   if (depfile != null) {
-    await writeDepfile(fileSystem, component, outputFileName, depfile);
+    await writeDepfile(
+        fileSystem, results.compiledSources, outputFileName, depfile);
   }
 
   if (splitOutputByPackages) {
     await writeOutputSplitByPackages(
       mainUri,
       compilerOptions,
-      component,
+      results.component,
+      results.coreTypes,
+      results.classHierarchy,
       outputFileName,
       genBytecode: genBytecode,
       bytecodeOptions: bytecodeOptions,
@@ -272,19 +262,31 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   return successExitCode;
 }
 
+/// Results of [compileToKernel]: generated kernel [Component] and
+/// collection of compiled sources.
+class KernelCompilationResults {
+  final Component component;
+  final ClassHierarchy classHierarchy;
+  final CoreTypes coreTypes;
+  final Iterable<Uri> compiledSources;
+
+  KernelCompilationResults(this.component, this.classHierarchy, this.coreTypes,
+      this.compiledSources);
+}
+
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source]. Intended for whole program (non-modular) compilation.
 ///
 /// VM-specific replacement of [kernelForProgram].
 ///
-Future<Component> compileToKernel(Uri source, CompilerOptions options,
+Future<KernelCompilationResults> compileToKernel(
+    Uri source, CompilerOptions options,
     {bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     BytecodeOptions bytecodeOptions,
     bool dropAST: false,
-    bool enableConstantEvaluation: true,
     bool useProtobufTreeShaker: false}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
@@ -293,7 +295,9 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
 
   setVMEnvironmentDefines(environmentDefines, options);
   CompilerResult compilerResult = await kernelForProgram(source, options);
+
   Component component = compilerResult?.component;
+  final compiledSources = component?.uriToSource?.keys;
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -303,14 +307,16 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
         component,
         useGlobalTypeFlowAnalysis,
         environmentDefines,
-        enableConstantEvaluation,
         useProtobufTreeShaker,
         errorDetector);
   }
 
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
-      generateBytecode(component, options: bytecodeOptions);
+      generateBytecode(component,
+          hierarchy: compilerResult.classHierarchy,
+          coreTypes: compilerResult.coreTypes,
+          options: bytecodeOptions);
     });
 
     if (dropAST) {
@@ -321,7 +327,8 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return component;
+  return new KernelCompilationResults(component, compilerResult?.classHierarchy,
+      compilerResult?.coreTypes, compiledSources);
 }
 
 void setVMEnvironmentDefines(
@@ -354,13 +361,11 @@ Future _runGlobalTransformations(
     Component component,
     bool useGlobalTypeFlowAnalysis,
     Map<String, String> environmentDefines,
-    bool enableConstantEvaluation,
     bool useProtobufTreeShaker,
     ErrorDetector errorDetector) async {
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
-  _patchVmConstants(coreTypes);
 
   // TODO(alexmarkov, dmitryas): Consider doing canonicalization of identical
   // mixin applications when creating mixin applications in frontend,
@@ -369,13 +374,6 @@ Future _runGlobalTransformations(
   // At least, in addition to VM/AOT case we should run this transformation
   // when building a platform dill file for VM/JIT case.
   mixin_deduplication.transformComponent(component);
-
-  if (enableConstantEvaluation) {
-    await _performConstantEvaluation(
-        source, compilerOptions, component, coreTypes, environmentDefines);
-
-    if (errorDetector.hasCompilationErrors) return;
-  }
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(
@@ -425,40 +423,6 @@ Future<T> runWithFrontEndCompilerContext<T>(Uri source,
 
     return action();
   });
-}
-
-Future _performConstantEvaluation(
-    Uri source,
-    CompilerOptions compilerOptions,
-    Component component,
-    CoreTypes coreTypes,
-    Map<String, String> environmentDefines) async {
-  final vmConstants = new vm_constants.VmConstantsBackend(coreTypes);
-
-  await runWithFrontEndCompilerContext(source, compilerOptions, component, () {
-    // TFA will remove constants fields which are unused (and respects the
-    // vm/embedder entrypoints).
-    constants.transformComponent(component, vmConstants, environmentDefines,
-        new ForwardConstantEvaluationErrors(),
-        keepFields: true,
-        evaluateAnnotations: true,
-        desugarSets: !compilerOptions.target.supportsSetLiterals);
-  });
-}
-
-void _patchVmConstants(CoreTypes coreTypes) {
-  // Fix Endian.host to be a const field equal to Endial.little instead of
-  // a final field. VM does not support big-endian architectures at the
-  // moment.
-  // Can't use normal patching process for this because CFE does not
-  // support patching fields.
-  // See http://dartbug.com/32836 for the background.
-  final Field host =
-      coreTypes.index.getMember('dart:typed_data', 'Endian', 'host');
-  host.isConst = true;
-  host.initializer = new StaticGet(
-      coreTypes.index.getMember('dart:typed_data', 'Endian', 'little'))
-    ..parent = host;
 }
 
 class ErrorDetector {
@@ -636,70 +600,36 @@ Future writeOutputSplitByPackages(
   Uri source,
   CompilerOptions compilerOptions,
   Component component,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
   String outputFileName, {
   bool genBytecode: false,
   BytecodeOptions bytecodeOptions,
   bool dropAST: false,
 }) async {
-  // Package sharing: make the encoding not depend on the order in which parts
-  // of a package are loaded.
-  component.libraries.sort((Library a, Library b) {
-    return a.importUri.toString().compareTo(b.importUri.toString());
-  });
-  component.computeCanonicalNames();
-  for (Library lib in component.libraries) {
-    lib.additionalExports.sort((Reference a, Reference b) {
-      return a.canonicalName.toString().compareTo(b.canonicalName.toString());
-    });
-  }
-
-  final packagesSet = new Set<String>();
-  for (Library lib in component.libraries) {
-    packagesSet.add(packageFor(lib));
-  }
-  packagesSet.remove('main');
-  packagesSet.remove(null);
-
-  final List<String> packages = packagesSet.toList();
-  packages.add('main'); // Make sure main package is last.
-
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
   }
 
-  ClassHierarchy hierarchy;
-  if (genBytecode) {
-    // Calculating class hierarchy is an expensive operation.
-    // Calculate it once and reuse while generating bytecode for each package.
-    hierarchy =
-        new ClassHierarchy(component, onAmbiguousSupertypes: (cls, a, b) {});
-  }
-
+  final packages = new List<String>();
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
-    for (String package in packages) {
+    await forEachPackage(component,
+        (String package, List<Library> libraries) async {
+      packages.add(package);
       final String filename = '$outputFileName-$package.dilp';
       final IOSink sink = new File(filename).openWrite();
 
-      final main = component.mainMethod;
-      final problems = component.problemsAsJson;
-      if (package != 'main') {
-        component.mainMethod = null;
-        component.problemsAsJson = null;
-      }
-
       Component partComponent = component;
       if (genBytecode) {
-        final List<Library> libraries = component.libraries
-            .where((lib) => packageFor(lib) == package)
-            .toList();
-        generateBytecode(component,
+        generateBytecode(partComponent,
             options: bytecodeOptions,
             libraries: libraries,
-            hierarchy: hierarchy);
+            hierarchy: hierarchy,
+            coreTypes: coreTypes);
 
         if (dropAST) {
-          partComponent = createFreshComponentWithBytecode(component);
+          partComponent = createFreshComponentWithBytecode(partComponent);
         }
       }
 
@@ -707,11 +637,8 @@ Future writeOutputSplitByPackages(
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
       printer.writeComponentFile(partComponent);
 
-      component.mainMethod = main;
-      component.problemsAsJson = problems;
-
       await sink.close();
-    }
+    });
   });
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
@@ -738,18 +665,62 @@ String packageFor(Library lib) {
   return 'main';
 }
 
+/// Sort the libraries etc in the component. Helps packages to produce identical
+/// output when their parts are imported in different orders in different
+/// contexts.
+void sortComponent(Component component) {
+  component.libraries.sort((Library a, Library b) {
+    return a.importUri.toString().compareTo(b.importUri.toString());
+  });
+  component.computeCanonicalNames();
+  for (Library lib in component.libraries) {
+    lib.additionalExports.sort((Reference a, Reference b) {
+      return a.canonicalName.toString().compareTo(b.canonicalName.toString());
+    });
+  }
+}
+
+Future<Null> forEachPackage<T>(Component component,
+    T action(String package, List<Library> libraries)) async {
+  sortComponent(component);
+
+  final packages = new Map<String, List<Library>>();
+  for (Library lib in component.libraries) {
+    packages.putIfAbsent(packageFor(lib), () => new List<Library>()).add(lib);
+  }
+  if (packages.containsKey(null)) {
+    packages.remove(null);
+  }
+  // Make sure main package is last.
+  packages['main'] = packages.remove('main') ?? const <Library>[];
+
+  for (String package in packages.keys) {
+    final main = component.mainMethod;
+    final problems = component.problemsAsJson;
+    if (package != 'main') {
+      component.mainMethod = null;
+      component.problemsAsJson = null;
+    }
+
+    await action(package, packages[package]);
+
+    component.mainMethod = main;
+    component.problemsAsJson = problems;
+  }
+}
+
 String _escapePath(String path) {
   return path.replaceAll('\\', '\\\\').replaceAll(' ', '\\ ');
 }
 
 /// Create ninja dependencies file, as described in
 /// https://ninja-build.org/manual.html#_depfile
-Future<void> writeDepfile(FileSystem fileSystem, Component component,
+Future<void> writeDepfile(FileSystem fileSystem, Iterable<Uri> compiledSources,
     String output, String depfile) async {
   final IOSink file = new File(depfile).openWrite();
   file.write(_escapePath(output));
   file.write(':');
-  for (Uri dep in component.uriToSource.keys) {
+  for (Uri dep in compiledSources) {
     // Skip empty or corelib dependencies.
     if (dep == null || dep.scheme == 'org-dartlang-sdk') continue;
     Uri uri = await asFileUri(fileSystem, dep);

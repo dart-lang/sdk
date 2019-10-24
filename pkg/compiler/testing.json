@@ -16,7 +16,8 @@
     "exclude": [
       "^tests/compiler/dart2js/.*/data/.*",
       "^tests/compiler/dart2js/.*/model_data/.*",
-      "^tests/compiler/dart2js/deferred_loading/libs/.*"
+      "^tests/compiler/dart2js/deferred_loading/libs/.*",
+      "^tests/compiler/dart2js/sourcemaps/stacktrace/extension_method.dart"
     ]
   }
 }

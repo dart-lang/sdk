@@ -7,9 +7,3 @@ ffi_runtime_cc_files = [
   "ffi.cc",
   "ffi_dynamic_library.cc",
 ]
-
-ffi_runtime_dart_files = [
-  "ffi_patch.dart",
-  "ffi_dynamic_library_patch.dart",
-  "ffi_native_type_patch.dart",
-]

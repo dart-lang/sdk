@@ -1,3 +1,129 @@
+## 2.6.0 - 2019-11-05
+
+### Language
+
+*   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
+    specially declared static functions to be invoked
+    like instance members on expressions of appropriate static types
+    is available in preview.
+
+    Static extension members are declared using a new `extension`
+    declaration. Example:
+    ```dart
+    extension MyFancyList<T> on List<T> {
+      /// Whether this list has an even length.
+      bool get isLengthEven => this.length.isEven;
+
+      /// Whether this list has an odd length.
+      bool get isLengthOdd => !isLengthEven;
+
+      /// List of values computed for each pairs of adjacent elements.
+      ///
+      /// The result always has one element less than this list,
+      /// if this list has any elements.
+      List<R> combinePairs<R>(R Function(T, T) combine) =>
+          [for (int i = 1; i < this.length; i++)
+              combine(this[i - 1], this[i])];
+    }
+    ```
+    Extension declarations cannot declare instance fields or
+    constructors.
+    Extension members can be invoked explicitly,
+    `MyFancyList(intList).isLengthEven)`,
+    or implicitly, `intList.isLengthEven`,
+    where the latter is recognized by `intList` matching the `List<T>`
+    "on" type of the declaration.
+    An extension member cannot be called implicitly on an expression
+    whose static type has a member with the same base-name.
+    In that case, the interface member takes precedence.
+    If multiple extension members apply to the same implicit
+    invocation, the most specific one is used, if there is one such.
+
+    Extensions can be declared on any type, not just interface types.
+    ```dart
+    extension IntCounter on int {
+      /// The numbers from this number to, but not including, [end].
+      Iterable<int> to(int end) sync* {
+        int step = end < this ? -1 : 1;
+        for (int i = this; i != end; i += step) yield i;
+      }
+    }
+
+    extension CurryFunction<R, S, T> on R Function(S, T) {
+      /// Curry a binary function with its first argument.
+      R Function(T) curry(S first) => (T second) => this(first, second);
+    }
+    ```
+    [Static extension members]: https://github.com/dart-lang/language/blob/master/accepted/2.6/static-extension-members/feature-specification.md
+
+*   **Breaking change** [#37985](https://github.com/dart-lang/sdk/issues/37985):
+    Inference is changed when using `Null` values in a `FutureOr` context.
+    Namely, constraints of the forms similar to `Null` <: `FutureOr<T>` now
+    yield `Null` as the solution for `T`.  For example, the following code will
+    now print "Null", and it was printing "dynamic" before (note that the
+    anonymous closure `() {}` in the example has `Null` as its return type):
+
+```dart
+import 'dart:async';
+void foo<T>(FutureOr<T> Function() f) { print(T); }
+main() { foo(() {}); }
+```
+
+
+### Core libraries
+
+* Default values of parameters of abstract methods are no longer available
+  via `dart:mirrors`.
+
+#### `dart:developer`
+
+* Added optional `parent` parameter to `TimelineTask` constructor to allow for
+  linking of asynchronous timeline events in the DevTools timeline view.
+
+### Dart VM
+
+* Added a new tool for AOT compiling Dart programs to native, self-contained
+executables. See https://dart.dev/tools/dart2native for additional details.
+
+### Foreign Function Interface (`dart:ffi`)
+
+*   **Breaking change**: The API now makes use of static extension members.
+    Static extension members enable the `dart:ffi` API to be more precise with
+    types, and provide convenient access to memory through extension getters and
+    setters. The extension members on `Pointer` provide `.value` and `.value =`
+    for accessing the value in native memory and `[]` and `[]=` for indexed access.
+    The method `asExternalTypedData` has been replaced with `asTypedList` extension
+    methods. And finally, `Structs` do no longer have a type argument and are
+    accessed the extension member `.ref` on `Pointer`.
+    These changes makes the code using `dart:ffi` much more concise.
+*   **Breaking change**: The memory management has been removed (`Pointer.allocate`
+    and `Pointer.free`). Instead, memory management is available in
+    [package:ffi](https://pub.dev/packages/ffi).
+*   **Breaking change**: `Pointer.offsetBy` was removed, use `cast` and `elementAt`
+    instead.
+*   Faster memory load and stores.
+*   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
+*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
+
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Kernel DDC will no longer accept non-dill files as summary inputs.
+* Removed support for the deprecated web extension.
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.101`, which includes:
+
+* fixed `diagnostic_describe_all_properties` to flag properties in `Diagnosticable`s with no debug methods defined
+* fixed `noSuchMethod` exception in `camel_case_extensions` when analyzing unnamed extensions
+* fixed `avoid_print` to catch tear-off usage
+* new lint: `avoid_web_libraries_in_flutter` (experimental)
+* (internal) prepare `unnecessary_lambdas` for coming `MethodInvocation` vs. `FunctionExpressionInvocation` changes
+
 ## 2.5.2 - 2019-10-08
 
 This is a patch release with properly signed binaries required for macOS
@@ -34,7 +160,7 @@ expressions under the appropriate conditions:
 
 ```dart
 // Example: these are now valid constants.
-const i = 3;
+const Object i = 3;
 const list = [i as int];
 const set = {if (list is List<int>) ...list};
 const map = {if (i is int) i : "int"};
@@ -136,7 +262,7 @@ const int x = (s == null) ? 0 : s.length;
 
 #### `dart:io`
 
-* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192):
   The `Cookie` class's constructor's `name` and `value`
   optional positional parameters are now mandatory. The
   signature changes from:
@@ -154,7 +280,7 @@ const int x = (s == null) ? 0 : s.length;
   Since code could not previously correctly omit the parameters, this is not
   really a breaking change.
 
-* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192):
   The `Cookie` class's `name` and `value` setters now
   validates that the strings are made from the allowed character set and are not
   null. The constructor already made these checks and this
@@ -199,6 +325,15 @@ well as a potential crash of our AOT compiler.
 
 [37551]: https://github.com/dart-lang/sdk/issues/37551
 [35121]: https://github.com/dart-lang/sdk/issues/35121
+
+### Dart Dev Compiler (DDC)
+
+Callbacks passed to JS and wrapped with `allowInterop` or
+`allowInteropCaptureThis` are now strict about argument counts and argument
+types. This may mean that tests which were previously passing and relying on
+loose argument checking (too many or too few arguments, or arguments with too
+specific types like `List<Something>` instead of `List<dynamic>`) may start
+failing. This changes makes DDC behave more like dart2js with the default flags.
 
 ## 2.4.0 - 2019-06-27
 

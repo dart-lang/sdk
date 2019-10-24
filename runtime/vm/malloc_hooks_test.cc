@@ -180,7 +180,7 @@ ISOLATE_UNIT_TEST_CASE(StackTraceMallocHookSimpleJSONTest) {
 
   char* var = static_cast<char*>(malloc(16 * sizeof(char)));
   JSONStream js;
-  ProfilerService::PrintNativeAllocationJSON(&js, Profile::kNoTags, -1, -1);
+  ProfilerService::PrintNativeAllocationJSON(&js, -1, -1, false);
   const char* json = js.ToCString();
 
   // Check that all the stack frames from the current down to main are actually

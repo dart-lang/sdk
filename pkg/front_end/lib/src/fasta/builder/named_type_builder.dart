@@ -19,47 +19,41 @@ import '../fasta_codes.dart'
         templateTypeArgumentsOnTypeVariable,
         templateTypeNotFound;
 
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
+
 import '../messages.dart'
     show noLength, templateSupertypeIsIllegal, templateSupertypeIsTypeVariable;
 
 import '../problems.dart' show unhandled;
 
+import '../scope.dart';
+
 import '../severity.dart' show Severity;
 
-import 'builder.dart'
-    show
-        Builder,
-        Identifier,
-        LibraryBuilder,
-        PrefixBuilder,
-        QualifiedName,
-        Scope,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
-
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        InvalidTypeBuilder,
-        LibraryBuilder,
-        TypeBuilder,
-        TypeDeclarationBuilder,
-        TypeVariableBuilder,
-        flattenName;
+import 'builder.dart';
+import 'class_builder.dart';
+import 'invalid_type_declaration_builder.dart';
+import 'library_builder.dart';
+import 'nullability_builder.dart';
+import 'prefix_builder.dart';
+import 'type_builder.dart';
+import 'type_declaration_builder.dart';
+import 'type_variable_builder.dart';
 
 class NamedTypeBuilder extends TypeBuilder {
   final Object name;
 
   List<TypeBuilder> arguments;
 
+  final NullabilityBuilder nullabilityBuilder;
+
   @override
   TypeDeclarationBuilder declaration;
 
-  NamedTypeBuilder(this.name, this.arguments);
+  NamedTypeBuilder(this.name, this.nullabilityBuilder, this.arguments);
 
-  NamedTypeBuilder.fromTypeDeclarationBuilder(this.declaration,
+  NamedTypeBuilder.fromTypeDeclarationBuilder(
+      this.declaration, this.nullabilityBuilder,
       [this.arguments])
       : this.name = declaration.name;
 
@@ -72,7 +66,7 @@ class NamedTypeBuilder extends TypeBuilder {
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (declaration != null) return;
-    final name = this.name;
+    final Object name = this.name;
     Builder member;
     if (name is QualifiedName) {
       Object qualifier = name.qualifier;
@@ -101,7 +95,7 @@ class NamedTypeBuilder extends TypeBuilder {
         Message message =
             templateTypeArgumentsOnTypeVariable.withArguments(typeName);
         library.addProblem(message, typeNameOffset, typeName.length, fileUri);
-        declaration = buildInvalidType(
+        declaration = buildInvalidTypeDeclarationBuilder(
             message.withLocation(fileUri, typeNameOffset, typeName.length));
       }
       return;
@@ -142,7 +136,7 @@ class NamedTypeBuilder extends TypeBuilder {
         name is Identifier ? name.endCharOffset - charOffset : flatName.length;
     Message message = template.withArguments(flatName);
     library.addProblem(message, charOffset, length, fileUri, context: context);
-    declaration = buildInvalidType(
+    declaration = buildInvalidTypeDeclarationBuilder(
         message.withLocation(fileUri, charOffset, length),
         context: context);
   }
@@ -154,8 +148,8 @@ class NamedTypeBuilder extends TypeBuilder {
       Message message = templateTypeArgumentMismatch
           .withArguments(declaration.typeVariablesCount);
       library.addProblem(message, charOffset, noLength, fileUri);
-      declaration =
-          buildInvalidType(message.withLocation(fileUri, charOffset, noLength));
+      declaration = buildInvalidTypeDeclarationBuilder(
+          message.withLocation(fileUri, charOffset, noLength));
     }
   }
 
@@ -181,23 +175,26 @@ class NamedTypeBuilder extends TypeBuilder {
       t.printOn(buffer);
     }
     buffer.write(">");
+    nullabilityBuilder.writeNullabilityOn(buffer);
     return buffer;
   }
 
-  InvalidTypeBuilder buildInvalidType(LocatedMessage message,
+  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
+      LocatedMessage message,
       {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
     // InvalidTypeBuilder?
-    return new InvalidTypeBuilder(
+    return new InvalidTypeDeclarationBuilder(
         flattenName(name, message.charOffset, message.uri), message,
         context: context);
   }
 
   Supertype handleInvalidSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
-    var template = declaration.isTypeVariable
-        ? templateSupertypeIsTypeVariable
-        : templateSupertypeIsIllegal;
+    Template<Message Function(String name)> template =
+        declaration.isTypeVariable
+            ? templateSupertypeIsTypeVariable
+            : templateSupertypeIsIllegal;
     library.addProblem(
         template.withArguments(flattenName(name, charOffset, fileUri)),
         charOffset,
@@ -208,7 +205,7 @@ class NamedTypeBuilder extends TypeBuilder {
 
   DartType build(LibraryBuilder library) {
     assert(declaration != null, "Declaration has not been resolved on $this.");
-    return declaration.buildType(library, arguments);
+    return declaration.buildType(library, nullabilityBuilder, arguments);
   }
 
   Supertype buildSupertype(
@@ -216,7 +213,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildSupertype(library, arguments);
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
@@ -234,7 +231,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
-    } else if (declaration is InvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeDeclarationBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
@@ -264,7 +261,14 @@ class NamedTypeBuilder extends TypeBuilder {
         i++;
       }
       if (arguments != null) {
-        return new NamedTypeBuilder(name, arguments)..bind(declaration);
+        NamedTypeBuilder result =
+            new NamedTypeBuilder(name, nullabilityBuilder, arguments);
+        if (declaration != null) {
+          result.bind(declaration);
+        } else {
+          throw new UnsupportedError("Unbound type in substitution: $result.");
+        }
+        return result;
       }
     }
     return this;
@@ -278,8 +282,15 @@ class NamedTypeBuilder extends TypeBuilder {
         clonedArguments[i] = arguments[i].clone(newTypes);
       }
     }
-    NamedTypeBuilder newType = new NamedTypeBuilder(name, clonedArguments);
+    NamedTypeBuilder newType =
+        new NamedTypeBuilder(name, nullabilityBuilder, clonedArguments);
     newTypes.add(newType);
     return newType;
+  }
+
+  NamedTypeBuilder withNullabilityBuilder(
+      NullabilityBuilder nullabilityBuilder) {
+    return new NamedTypeBuilder(name, nullabilityBuilder, arguments)
+      ..bind(declaration);
   }
 }

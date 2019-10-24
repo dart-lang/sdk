@@ -17,7 +17,7 @@ HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 AVAILABLE_ARCHS = [
-    'ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6', 'simarmv5te',
+    'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarmv5te',
     'armv5te', 'simarm64', 'arm64', 'simdbc', 'simdbc64', 'armsimdbc',
     'armsimdbc64', 'simarm_x64'
 ]
@@ -63,6 +63,13 @@ def BuildOptions():
         help='Target OSs (comma-separated).',
         metavar='[all,host,android]',
         default='host')
+    # TODO(38701): Remove this and everything that references it once the
+    # forked NNBD SDK is merged back in.
+    result.add_option(
+        "--nnbd",
+        help='Use the NNBD fork of the SDK.',
+        default=False,
+        action='store_true')
     result.add_option(
         "-v",
         "--verbose",
@@ -110,7 +117,7 @@ def ProcessOptions(options, args):
                       % (os_name, HOST_OS))
                 return False
             if not arch in [
-                    'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'simdbc',
+                    'ia32', 'x64', 'arm', 'arm_x64', 'armv6', 'armv5te', 'arm64', 'simdbc',
                     'simdbc64'
             ]:
                 print(
@@ -200,7 +207,7 @@ def GenerateBuildfilesIfNeeded():
     return True
 
 
-def RunGNIfNeeded(out_dir, target_os, mode, arch):
+def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd):
     if os.path.isfile(os.path.join(out_dir, 'args.gn')):
         return
     gn_os = 'host' if target_os == HOST_OS else target_os
@@ -215,6 +222,9 @@ def RunGNIfNeeded(out_dir, target_os, mode, arch):
         gn_os,
         '-v',
     ]
+    if use_nnbd:
+        gn_command.append('--nnbd')
+
     process = subprocess.Popen(gn_command)
     process.wait()
     if process.returncode != 0:
@@ -268,12 +278,12 @@ def EnsureGomaStarted(out_dir):
 
 # Returns a tuple (build_config, command to run, whether goma is used)
 def BuildOneConfig(options, targets, target_os, mode, arch):
-    build_config = utils.GetBuildConf(mode, arch, target_os)
-    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+    build_config = utils.GetBuildConf(mode, arch, target_os, options.nnbd)
+    out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, options.nnbd)
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch)
+    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']

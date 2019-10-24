@@ -4,9 +4,9 @@
 
 // Test for F-Bounded Quantification. Regression test for issue 9291.
 
-class Entities<T extends ConceptEntity<T>> implements EntitiesApi {}
+class Entities<T extends ConceptEntity<T>> implements EntitiesApi<T> {}
 
-class ConceptEntity<T extends ConceptEntity<T>> implements EntityApi {}
+class ConceptEntity<T extends ConceptEntity<T>> implements EntityApi<T> {}
 
 abstract class EntityApi<T extends EntityApi<T>> {}
 

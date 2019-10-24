@@ -119,12 +119,12 @@ FlowGraphCompiler::FlowGraphCompiler(
       parsed_function_(parsed_function),
       flow_graph_(*flow_graph),
       block_order_(*flow_graph->CodegenBlockOrder(is_optimizing)),
-      current_block_(NULL),
-      exception_handlers_list_(NULL),
-      pc_descriptors_list_(NULL),
-      stackmap_table_builder_(NULL),
-      code_source_map_builder_(NULL),
-      catch_entry_moves_maps_builder_(NULL),
+      current_block_(nullptr),
+      exception_handlers_list_(nullptr),
+      pc_descriptors_list_(nullptr),
+      compressed_stackmaps_builder_(nullptr),
+      code_source_map_builder_(nullptr),
+      catch_entry_moves_maps_builder_(nullptr),
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
@@ -223,9 +223,8 @@ void FlowGraphCompiler::InitCompiler() {
     const intptr_t num_counters = flow_graph_.preorder().length();
     const Array& edge_counters =
         Array::Handle(Array::New(num_counters, Heap::kOld));
-    const Smi& zero_smi = Smi::Handle(Smi::New(0));
     for (intptr_t i = 0; i < num_counters; ++i) {
-      edge_counters.SetAt(i, zero_smi);
+      edge_counters.SetAt(i, Object::smi_zero());
     }
     edge_counters_array_ = edge_counters.raw();
   }
@@ -241,6 +240,13 @@ bool FlowGraphCompiler::CanOptimizeFunction() const {
 
 bool FlowGraphCompiler::CanOSRFunction() const {
   return isolate()->use_osr() && CanOptimizeFunction() && !is_optimizing();
+}
+
+void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
+  const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
+  AddDescriptor(RawPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
+                /*deopt_id=*/DeoptId::kNone, TokenPosition::kNoSource,
+                /*try_index=*/-1);
 }
 
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
@@ -716,12 +722,11 @@ void FlowGraphCompiler::GenerateDeferredCode() {
 void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
                                             intptr_t outer_try_index,
                                             intptr_t pc_offset,
-                                            TokenPosition token_pos,
                                             bool is_generated,
                                             const Array& handler_types,
                                             bool needs_stacktrace) {
   exception_handlers_list_->AddHandler(try_index, outer_try_index, pc_offset,
-                                       token_pos, is_generated, handler_types,
+                                       is_generated, handler_types,
                                        needs_stacktrace);
 }
 
@@ -927,11 +932,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
       bitmap->Set(bitmap->Length(), true);
     }
 
-    // The slow path area Outside the spill area contains are live registers
-    // and pushed arguments for calls inside the slow path.
-    intptr_t slow_path_bit_count = bitmap->Length() - spill_area_size;
-    stackmap_table_builder()->AddEntry(assembler()->CodeSize(), bitmap,
-                                       slow_path_bit_count);
+    compressed_stackmaps_builder()->AddEntry(assembler()->CodeSize(), bitmap,
+                                             spill_area_size);
   }
 }
 
@@ -942,30 +944,29 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 //     MaterializeObjectInstr::RemapRegisters
 //
 Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
-    Instruction* instruction,
+    Environment* env,
+    LocationSummary* locs,
     intptr_t num_slow_path_args) {
-  const bool using_shared_stub =
-      instruction->locs()->call_on_shared_slow_path();
+  const bool using_shared_stub = locs->call_on_shared_slow_path();
   const bool shared_stub_save_fpu_registers =
-      using_shared_stub &&
-      instruction->locs()->live_registers()->FpuRegisterCount() > 0;
+      using_shared_stub && locs->live_registers()->FpuRegisterCount() > 0;
   // TODO(sjindel): Modify logic below to account for slow-path args with shared
   // stubs.
   ASSERT(!using_shared_stub || num_slow_path_args == 0);
-  if (instruction->env() == NULL) {
+  if (env == nullptr) {
     ASSERT(!is_optimizing());
-    return NULL;
+    return nullptr;
   }
 
-  Environment* env = instruction->env()->DeepCopy(zone());
+  Environment* slow_path_env = env->DeepCopy(zone());
   // 1. Iterate the registers in the order they will be spilled to compute
   //    the slots they will be spilled to.
-  intptr_t next_slot = StackSize() + env->CountArgsPushed();
+  intptr_t next_slot = StackSize() + slow_path_env->CountArgsPushed();
   if (using_shared_stub) {
     // The PC from the call to the shared stub is pushed here.
     next_slot++;
   }
-  RegisterSet* regs = instruction->locs()->live_registers();
+  RegisterSet* regs = locs->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
   const intptr_t kFpuRegisterSpillFactor =
@@ -1000,14 +1001,14 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
 
   // 2. Iterate the environment and replace register locations with the
   //    corresponding spill slot locations.
-  for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+  for (Environment::DeepIterator it(slow_path_env); !it.Done(); it.Advance()) {
     Location loc = it.CurrentLocation();
     Value* value = it.CurrentValue();
     it.SetCurrentLocation(LocationRemapForSlowPath(
         loc, value->definition(), cpu_reg_slots, fpu_reg_slots));
   }
 
-  return env;
+  return slow_path_env;
 }
 
 compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
@@ -1102,12 +1103,14 @@ RawArray* FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
 }
 
 void FlowGraphCompiler::FinalizeStackMaps(const Code& code) {
-  if (stackmap_table_builder_ == NULL) {
-    code.set_stackmaps(Object::null_array());
+  if (compressed_stackmaps_builder_ == NULL) {
+    code.set_compressed_stackmaps(
+        CompressedStackMaps::Handle(CompressedStackMaps::null()));
   } else {
-    // Finalize the stack map array and add it to the code object.
-    code.set_stackmaps(
-        Array::Handle(stackmap_table_builder_->FinalizeStackMaps(code)));
+    // Finalize the compressed stack maps and add it to the code object.
+    const auto& maps =
+        CompressedStackMaps::Handle(compressed_stackmaps_builder_->Finalize());
+    code.set_compressed_stackmaps(maps);
   }
 }
 
@@ -1402,7 +1405,9 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                : ic_data.arguments_descriptor());
   ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() ==
          args_info.type_args_len);
-  if (is_optimizing() && !ForcedOptimization()) {
+  // Force-optimized functions lack the deopt info which allows patching of
+  // optimized static calls.
+  if (is_optimizing() && (!ForcedOptimization() || FLAG_precompiled_mode)) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             args_info.count_with_type_args, deopt_id, token_pos,
                             locs, entry_kind);
@@ -1414,6 +1419,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
                                    kNumArgsChecked, rebind_rule)
               ->raw();
+      call_ic_data = call_ic_data.Original();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
     EmitUnoptimizedStaticCall(args_info.count_with_type_args, deopt_id,

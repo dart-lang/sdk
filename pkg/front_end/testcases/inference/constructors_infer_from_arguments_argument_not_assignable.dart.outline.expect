@@ -7,7 +7,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     ;
 }
-class C<T extends self::A* = dynamic> extends core::Object {
+class C<T extends self::A* = self::A*> extends core::Object {
   constructor •(() →* self::C::T* f) → self::C<self::C::T*>*
     ;
 }

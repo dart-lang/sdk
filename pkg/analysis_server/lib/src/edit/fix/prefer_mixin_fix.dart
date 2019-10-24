@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
@@ -91,7 +92,8 @@ class PreferMixinFix extends FixLintTask implements FixCodeTask {
   @override
   Future<void> processUnit(int phase, ResolvedUnitResult result) async {}
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+  static void task(DartFixRegistrar registrar, DartFixListener listener,
+      EditDartfixParams params) {
     var task = new PreferMixinFix(listener);
     registrar.registerLintTask(Registry.ruleRegistry['prefer_mixin'], task);
     registrar.registerCodeTask(task);

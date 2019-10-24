@@ -81,6 +81,9 @@ class SourceToSummaryDillStep implements IOModularStep {
       extraArgs = ['--packages-file', '$rootScheme:/.packages'];
     }
 
+    Module sdkModule =
+        module.isSdk ? module : module.dependencies.firstWhere((m) => m.isSdk);
+
     List<String> args = [
       _kernelWorkerScript,
       '--summary-only',
@@ -93,8 +96,14 @@ class SourceToSummaryDillStep implements IOModularStep {
       ...extraArgs,
       '--output',
       '${toUri(module, dillId)}',
+      if (!module.isSdk) ...[
+        '--dart-sdk-summary',
+        '${toUri(sdkModule, dillId)}',
+        '--exclude-non-sources',
+      ],
       ...(transitiveDependencies
-          .expand((m) => ['--input-linked', '${toUri(m, dillId)}'])),
+          .where((m) => !m.isSdk)
+          .expand((m) => ['--input-summary', '${toUri(m, dillId)}'])),
       ...(sources.expand((String uri) => ['--source', uri])),
       ...(flags.expand((String flag) => ['--enable-experiment', flag])),
     ];

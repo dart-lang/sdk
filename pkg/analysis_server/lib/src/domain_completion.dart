@@ -19,7 +19,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/token_details/token_detail_builder.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -199,46 +198,10 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var analysisDriver = server.getAnalysisDriver(file);
         var session = analysisDriver.currentSession;
 
-        var fileElement = await session.getUnitElement(file);
-        var libraryPath = fileElement.element.librarySource.fullName;
-
-        var resolvedLibrary = await session.getResolvedLibrary(libraryPath);
-
-        analyzer.LibraryElement requestedLibraryElement;
-        try {
-          requestedLibraryElement = await session.getLibraryByUri(
-            library.uriStr,
-          );
-        } on ArgumentError catch (e) {
-          server.sendResponse(Response.invalidParameter(
-            request,
-            'uri',
-            'Invalid URI: ${library.uriStr}\n$e',
-          ));
-          return;
-        }
-
-        var requestedElement =
-            requestedLibraryElement.exportNamespace.get(requestedName);
-        if (requestedElement == null) {
-          server.sendResponse(Response.invalidParameter(
-            request,
-            'label',
-            'No such element: $requestedName',
-          ));
-          return;
-        }
-
         var completion = params.label;
         var builder = DartChangeBuilder(session);
-        await builder.addFileEdit(libraryPath, (builder) {
-          var result = builder.importLibraryElement(
-            targetLibrary: resolvedLibrary,
-            targetPath: libraryPath,
-            targetOffset: params.offset,
-            requestedLibrary: requestedLibraryElement,
-            requestedElement: requestedElement,
-          );
+        await builder.addFileEdit(file, (builder) {
+          var result = builder.importLibraryElement(library.uri);
           if (result.prefix != null) {
             completion = '${result.prefix}.$completion';
           }
@@ -356,6 +319,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     }
 
     ResolvedUnitResult resolvedUnit = await server.getResolvedUnit(file);
+    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
     if (resolvedUnit?.state == ResultState.VALID) {
       if (offset < 0 || offset > resolvedUnit.content.length) {
         server.sendResponse(new Response.invalidParameter(

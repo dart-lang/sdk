@@ -215,6 +215,13 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
   }
 
   @override
+  visitExtensionElement(ExtensionElement element) {
+    if (!instCreation) {
+      addSuggestion(element);
+    }
+  }
+
+  @override
   visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
       int relevance = element.library == containingLibrary

@@ -33,9 +33,9 @@ class Timer : public ValueObject {
     ASSERT(running());
     stop_ = OS::GetCurrentMonotonicMicros();
     int64_t elapsed = ElapsedMicros();
-    max_contiguous_ = Utils::Maximum(max_contiguous_, elapsed);
+    max_contiguous_ = Utils::Maximum(max_contiguous_.load(), elapsed);
     // Make increment atomic in case it occurs in parallel with aggregation.
-    AtomicOperations::IncrementInt64By(&total_, elapsed);
+    total_.fetch_add(elapsed);
     running_ = false;
   }
 
@@ -71,9 +71,7 @@ class Timer : public ValueObject {
            (max_contiguous_ == 0) && !running_;
   }
 
-  void AddTotal(const Timer& other) {
-    AtomicOperations::IncrementInt64By(&total_, other.total_);
-  }
+  void AddTotal(const Timer& other) { total_.fetch_add(other.total_); }
 
   // Accessors.
   bool report() const { return report_; }
@@ -87,10 +85,10 @@ class Timer : public ValueObject {
     return stop_ - start_;
   }
 
-  ALIGN8 int64_t start_;
-  ALIGN8 int64_t stop_;
-  ALIGN8 int64_t total_;
-  ALIGN8 int64_t max_contiguous_;
+  RelaxedAtomic<int64_t> start_;
+  RelaxedAtomic<int64_t> stop_;
+  RelaxedAtomic<int64_t> total_;
+  RelaxedAtomic<int64_t> max_contiguous_;
   bool report_;
   bool running_;
   const char* message_;

@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /**
@@ -75,6 +76,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   final InstrumentationService _instrumentationService;
 
   /**
+   * The helper for recording request / response statistics.
+   */
+  final RequestStatisticsHelper _requestStatistics;
+
+  /**
    * Completer that will be signalled when the input stream is closed.
    */
   final Completer _closed = new Completer();
@@ -85,7 +91,11 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   bool _closeRequested = false;
 
   ByteStreamServerChannel(
-      this._input, this._output, this._instrumentationService);
+      this._input, this._output, this._instrumentationService,
+      {RequestStatisticsHelper requestStatistics})
+      : _requestStatistics = requestStatistics {
+    _requestStatistics?.serverChannel = this;
+  }
 
   /**
    * Future that will be completed when the input stream is closed.
@@ -124,7 +134,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
       String jsonEncoding = json.encode(notification.toJson());
       _outputLine(jsonEncoding);
-      _instrumentationService.logNotification(jsonEncoding);
+      if (!identical(notification.event, 'server.log')) {
+        _instrumentationService.logNotification(jsonEncoding);
+        _requestStatistics?.logNotification(notification);
+      }
     });
   }
 
@@ -136,6 +149,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     ServerPerformanceStatistics.serverChannel.makeCurrentWhile(() {
+      _requestStatistics?.addResponse(response);
       String jsonEncoding = json.encode(response.toJson());
       _outputLine(jsonEncoding);
       _instrumentationService.logResponse(jsonEncoding);
@@ -171,6 +185,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
         sendResponse(new Response.invalidRequestFormat());
         return;
       }
+      _requestStatistics?.addRequest(request);
       onRequest(request);
     });
   }

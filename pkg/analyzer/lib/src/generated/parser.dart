@@ -560,13 +560,13 @@ class Parser {
   Annotation parseAnnotation() {
     Token atSign = getAndAdvance();
     Identifier name = parsePrefixedIdentifier();
-    Token period = null;
-    SimpleIdentifier constructorName = null;
+    Token period;
+    SimpleIdentifier constructorName;
     if (_matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       constructorName = parseSimpleIdentifier();
     }
-    ArgumentList arguments = null;
+    ArgumentList arguments;
     if (_matches(TokenType.OPEN_PAREN)) {
       arguments = parseArgumentList();
     }
@@ -690,7 +690,7 @@ class Parser {
     if (_matches(TokenType.COMMA)) {
       comma = getAndAdvance();
       if (_matches(TokenType.CLOSE_PAREN)) {
-        comma = null;
+        comma;
       } else {
         message = parseExpression2();
         if (_matches(TokenType.COMMA)) {
@@ -939,7 +939,7 @@ class Parser {
   ///         'break' identifier? ';'
   Statement parseBreakStatement() {
     Token breakKeyword = getAndAdvance();
-    SimpleIdentifier label = null;
+    SimpleIdentifier label;
     if (_matchesIdentifier()) {
       label = _parseSimpleIdentifierUnchecked();
     }
@@ -968,8 +968,8 @@ class Parser {
   ///         assignmentOperator expressionWithoutCascade
   Expression parseCascadeSection() {
     Token period = getAndAdvance();
-    Expression expression = null;
-    SimpleIdentifier functionName = null;
+    Expression expression;
+    SimpleIdentifier functionName;
     if (_matchesIdentifier()) {
       functionName = _parseSimpleIdentifierUnchecked();
     } else if (_currentToken.type == TokenType.OPEN_SQUARE_BRACKET) {
@@ -981,7 +981,7 @@ class Parser {
         Token rightBracket = _expect(TokenType.CLOSE_SQUARE_BRACKET);
         expression = astFactory.indexExpressionForCascade(
             period, leftBracket, index, rightBracket);
-        period = null;
+        period;
       } finally {
         _inInitializer = wasInInitializer;
       }
@@ -998,8 +998,8 @@ class Parser {
         if (functionName != null) {
           expression = astFactory.methodInvocation(expression, period,
               functionName, typeArguments, parseArgumentList());
-          period = null;
-          functionName = null;
+          period;
+          functionName;
         } else if (expression == null) {
           // It should not be possible to get here.
           expression = astFactory.methodInvocation(expression, period,
@@ -1011,7 +1011,7 @@ class Parser {
       } while (_isLikelyArgumentList());
     } else if (functionName != null) {
       expression = astFactory.propertyAccess(expression, period, functionName);
-      period = null;
+      period;
     }
     assert(expression != null);
     bool progress = true;
@@ -1065,7 +1065,7 @@ class Parser {
     Token keyword = getAndAdvance();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     String className = name.name;
-    TypeParameterList typeParameters = null;
+    TypeParameterList typeParameters;
     TokenType type = _currentToken.type;
     if (type == TokenType.LT) {
       typeParameters = parseTypeParameterList();
@@ -1084,9 +1084,9 @@ class Parser {
     // generate errors if they are not in the order required by the
     // specification.
     //
-    ExtendsClause extendsClause = null;
-    WithClause withClause = null;
-    ImplementsClause implementsClause = null;
+    ExtendsClause extendsClause;
+    WithClause withClause;
+    ImplementsClause implementsClause;
     bool foundClause = true;
     while (foundClause) {
       Keyword keyword = _currentToken.keyword;
@@ -1136,7 +1136,7 @@ class Parser {
     //
     // Look for and skip over the extra-lingual 'native' specification.
     //
-    NativeClause nativeClause = null;
+    NativeClause nativeClause;
     if (_matchesKeyword(Keyword.NATIVE) &&
         _tokenMatches(_peek(), TokenType.STRING)) {
       nativeClause = _parseNativeClause();
@@ -1144,9 +1144,9 @@ class Parser {
     //
     // Parse the body of the class.
     //
-    Token leftBracket = null;
-    List<ClassMember> members = null;
-    Token rightBracket = null;
+    Token leftBracket;
+    List<ClassMember> members;
+    Token rightBracket;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = getAndAdvance();
       members = _parseClassMembers(className, _getEndToken(leftBracket));
@@ -1367,9 +1367,9 @@ class Parser {
           parseSimpleIdentifier(allowKeyword: true, isDeclaration: true),
           parseFormalParameterList());
     } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
-      TypeName returnType = null;
+      TypeName returnType;
       SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
-      TypeParameterList typeParameters = null;
+      TypeParameterList typeParameters;
       FormalParameterList parameters = parseFormalParameterList();
       if (_matches(TokenType.COLON) ||
           modifiers.factoryKeyword != null ||
@@ -1484,7 +1484,7 @@ class Parser {
     } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName =
           _parseSimpleIdentifierUnchecked(isDeclaration: true);
-      TypeParameterList typeParameters = null;
+      TypeParameterList typeParameters;
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
         _reportErrorForNode(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type);
@@ -1551,7 +1551,7 @@ class Parser {
   ///         'show' identifier (',' identifier)*
   ///       | 'hide' identifier (',' identifier)*
   List<Combinator> parseCombinators() {
-    List<Combinator> combinators = null;
+    List<Combinator> combinators;
     while (true) {
       Combinator combinator = parseCombinator();
       if (combinator == null) {
@@ -1575,7 +1575,7 @@ class Parser {
     // TODO(brianwilkerson) Consider making the creation of documentation
     // comments be lazy.
     List<DocumentationCommentToken> tokens = parseDocumentationCommentTokens();
-    List<Annotation> metadata = null;
+    List<Annotation> metadata;
     while (_matches(TokenType.AT)) {
       metadata ??= <Annotation>[];
       metadata.add(parseAnnotation());
@@ -1617,7 +1617,7 @@ class Parser {
         return astFactory.commentReference(
             null, astFactory.simpleIdentifier(syntheticToken));
       }
-      Token newKeyword = null;
+      Token newKeyword;
       if (_tokenMatchesKeyword(firstToken, Keyword.NEW)) {
         newKeyword = firstToken;
         firstToken = firstToken.next;
@@ -1715,7 +1715,7 @@ class Parser {
       // Skip GitHub code blocks.
       // https://help.github.com/articles/creating-and-highlighting-code-blocks/
       if (tokens.length != 1) {
-        if (comment.indexOf('```') != -1) {
+        if (comment.contains('```')) {
           isInGitHubCodeBlock = !isInGitHubCodeBlock;
         }
         if (isInGitHubCodeBlock) {
@@ -1800,7 +1800,7 @@ class Parser {
   ///       | topLevelDeclaration
   CompilationUnit parseCompilationUnit2() {
     Token firstToken = _currentToken;
-    ScriptTag scriptTag = null;
+    ScriptTag scriptTag;
     if (_matches(TokenType.SCRIPT_TAG)) {
       scriptTag = astFactory.scriptTag(getAndAdvance());
     }
@@ -2081,7 +2081,7 @@ class Parser {
       return parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, null);
     } else if (_tokenMatches(next, TokenType.OPEN_PAREN)) {
-      TypeName returnType = null;
+      TypeName returnType;
       _validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, returnType);
@@ -2196,8 +2196,8 @@ class Parser {
     Token ifKeyword = getAndAdvance();
     Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
     DottedName name = parseDottedName();
-    Token equalToken = null;
-    StringLiteral value = null;
+    Token equalToken;
+    StringLiteral value;
     if (_matches(TokenType.EQ_EQ)) {
       equalToken = getAndAdvance();
       value = parseStringLiteral();
@@ -2241,14 +2241,14 @@ class Parser {
   ///     fieldInitializer:
   ///         ('this' '.')? identifier '=' conditionalExpression cascadeSection*
   ConstructorFieldInitializer parseConstructorFieldInitializer(bool hasThis) {
-    Token keywordToken = null;
-    Token period = null;
+    Token keywordToken;
+    Token period;
     if (hasThis) {
       keywordToken = getAndAdvance();
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier fieldName = parseSimpleIdentifier();
-    Token equals = null;
+    Token equals;
     TokenType type = _currentToken.type;
     if (type == TokenType.EQ) {
       equals = getAndAdvance();
@@ -2298,8 +2298,8 @@ class Parser {
   ///         type ('.' identifier)?
   ConstructorName parseConstructorName() {
     TypeName type = parseTypeName(false);
-    Token period = null;
-    SimpleIdentifier name = null;
+    Token period;
+    SimpleIdentifier name;
     if (_matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       name = parseSimpleIdentifier();
@@ -2319,7 +2319,7 @@ class Parser {
       _reportErrorForToken(
           ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP, continueKeyword);
     }
-    SimpleIdentifier label = null;
+    SimpleIdentifier label;
     if (_matchesIdentifier()) {
       label = _parseSimpleIdentifierUnchecked();
     }
@@ -2373,7 +2373,7 @@ class Parser {
   ///         scriptTag? directive*
   CompilationUnit parseDirectives2() {
     Token firstToken = _currentToken;
-    ScriptTag scriptTag = null;
+    ScriptTag scriptTag;
     if (_matches(TokenType.SCRIPT_TAG)) {
       scriptTag = astFactory.scriptTag(getAndAdvance());
     }
@@ -2510,9 +2510,9 @@ class Parser {
   EnumDeclaration parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
     Token keyword = getAndAdvance();
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
-    Token leftBracket = null;
+    Token leftBracket;
     List<EnumConstantDeclaration> constants = <EnumConstantDeclaration>[];
-    Token rightBracket = null;
+    Token rightBracket;
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = getAndAdvance();
       if (_matchesIdentifier() || _matches(TokenType.AT)) {
@@ -2720,8 +2720,8 @@ class Parser {
   ///       | type
   FinalConstVarOrType parseFinalConstVarOrType(bool optional,
       {bool inFunctionType: false}) {
-    Token keywordToken = null;
-    TypeAnnotation type = null;
+    Token keywordToken;
+    TypeAnnotation type;
     Keyword keyword = _currentToken.keyword;
     if (keyword == Keyword.FINAL || keyword == Keyword.CONST) {
       keywordToken = getAndAdvance();
@@ -2755,7 +2755,7 @@ class Parser {
     } else {
       // Support parameters such as `(/*=K*/ key, /*=V*/ value)`
       // This is not supported if the type is required.
-      type = null;
+      type;
     }
     return new FinalConstVarOrType(keywordToken, type);
   }
@@ -2883,14 +2883,14 @@ class Parser {
     bool wasInLoop = _inLoop;
     _inLoop = true;
     try {
-      Token awaitKeyword = null;
+      Token awaitKeyword;
       if (_matchesKeyword(Keyword.AWAIT)) {
         awaitKeyword = getAndAdvance();
       }
       Token forKeyword = _expectKeyword(Keyword.FOR);
       Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
-      VariableDeclarationList variableList = null;
-      Expression initialization = null;
+      VariableDeclarationList variableList;
+      Expression initialization;
       if (!_matches(TokenType.SEMICOLON)) {
         CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
         if (_matchesIdentifier() &&
@@ -2915,8 +2915,8 @@ class Parser {
           if (type == TokenType.COLON) {
             _reportErrorForCurrentToken(ParserErrorCode.COLON_IN_PLACE_OF_IN);
           }
-          DeclaredIdentifier loopVariable = null;
-          SimpleIdentifier identifier = null;
+          DeclaredIdentifier loopVariable;
+          SimpleIdentifier identifier;
           if (variableList == null) {
             // We found: <expression> 'in'
             _reportErrorForCurrentToken(
@@ -2981,12 +2981,12 @@ class Parser {
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
       Token leftSeparator = _expect(TokenType.SEMICOLON);
-      Expression condition = null;
+      Expression condition;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
       Token rightSeparator = _expect(TokenType.SEMICOLON);
-      List<Expression> updaters = null;
+      List<Expression> updaters;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = parseExpressionList();
       }
@@ -3051,8 +3051,8 @@ class Parser {
         }
         return astFactory.emptyFunctionBody(getAndAdvance());
       }
-      Token keyword = null;
-      Token star = null;
+      Token keyword;
+      Token star;
       bool foundAsync = false;
       bool foundSync = false;
       if (type.isKeyword) {
@@ -3080,7 +3080,7 @@ class Parser {
         if (keyword != null) {
           if (!foundAsync) {
             _reportErrorForToken(ParserErrorCode.INVALID_SYNC, keyword);
-            keyword = null;
+            keyword;
           } else if (star != null) {
             _reportErrorForToken(
                 ParserErrorCode.INVALID_STAR_AFTER_ASYNC, star);
@@ -3093,7 +3093,7 @@ class Parser {
           _advance();
         }
         Expression expression = parseExpression2();
-        Token semicolon = null;
+        Token semicolon;
         if (!inExpression) {
           semicolon = _expect(TokenType.SEMICOLON);
         }
@@ -3118,7 +3118,7 @@ class Parser {
         return astFactory.blockFunctionBody(keyword, star, parseBlock());
       } else if (_matchesKeyword(Keyword.NATIVE)) {
         Token nativeToken = getAndAdvance();
-        StringLiteral stringLiteral = null;
+        StringLiteral stringLiteral;
         if (_matches(TokenType.STRING)) {
           stringLiteral = _parseStringLiteralUnchecked();
         }
@@ -3153,10 +3153,10 @@ class Parser {
       CommentAndMetadata commentAndMetadata,
       Token externalKeyword,
       TypeAnnotation returnType) {
-    Token keywordToken = null;
+    Token keywordToken;
     bool isGetter = false;
     Keyword keyword = _currentToken.keyword;
-    SimpleIdentifier name = null;
+    SimpleIdentifier name;
     if (keyword == Keyword.GET) {
       keywordToken = getAndAdvance();
       isGetter = true;
@@ -3165,13 +3165,13 @@ class Parser {
     }
     if (keywordToken != null && _matches(TokenType.OPEN_PAREN)) {
       name = astFactory.simpleIdentifier(keywordToken, isDeclaration: true);
-      keywordToken = null;
+      keywordToken;
       isGetter = false;
     } else {
       name = parseSimpleIdentifier(isDeclaration: true);
     }
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
-    FormalParameterList parameters = null;
+    FormalParameterList parameters;
     if (!isGetter) {
       if (_matches(TokenType.OPEN_PAREN)) {
         parameters = _parseFormalParameterListUnchecked();
@@ -3261,7 +3261,7 @@ class Parser {
   ///         type identifier
   GenericFunctionType parseGenericFunctionTypeAfterReturnType(
       TypeAnnotation returnType) {
-    Token functionKeyword = null;
+    Token functionKeyword;
     if (_matchesKeyword(Keyword.FUNCTION)) {
       functionKeyword = getAndAdvance();
     } else if (_matchesIdentifier()) {
@@ -3269,7 +3269,7 @@ class Parser {
     } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_FUNCTION_KEYWORD);
     }
-    TypeParameterList typeParameters = null;
+    TypeParameterList typeParameters;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
@@ -3288,7 +3288,7 @@ class Parser {
   GenericTypeAlias parseGenericTypeAlias(
       CommentAndMetadata commentAndMetadata, Token keyword) {
     Identifier name = _parseSimpleIdentifierUnchecked(isDeclaration: true);
-    TypeParameterList typeParameters = null;
+    TypeParameterList typeParameters;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
@@ -3406,8 +3406,8 @@ class Parser {
     Expression condition = parseExpression2();
     Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
     Statement thenStatement = parseStatement2();
-    Token elseKeyword = null;
-    Statement elseStatement = null;
+    Token elseKeyword;
+    Statement elseStatement;
     if (_matchesKeyword(Keyword.ELSE)) {
       elseKeyword = getAndAdvance();
       elseStatement = parseStatement2();
@@ -3444,9 +3444,9 @@ class Parser {
     Token importKeyword = getAndAdvance();
     StringLiteral libraryUri = _parseUri();
     List<Configuration> configurations = _parseConfigurations();
-    Token deferredToken = null;
-    Token asToken = null;
-    SimpleIdentifier prefix = null;
+    Token deferredToken;
+    Token asToken;
+    SimpleIdentifier prefix;
     if (_matchesKeyword(Keyword.DEFERRED)) {
       deferredToken = getAndAdvance();
     }
@@ -4102,8 +4102,8 @@ class Parser {
     }
     FinalConstVarOrType holder = parseFinalConstVarOrType(!inFunctionType,
         inFunctionType: inFunctionType);
-    Token thisKeyword = null;
-    Token period = null;
+    Token thisKeyword;
+    Token period;
     if (_matchesKeyword(Keyword.THIS)) {
       thisKeyword = getAndAdvance();
       period = _expect(TokenType.PERIOD);
@@ -4339,7 +4339,7 @@ class Parser {
       return parseStringLiteral();
     } else if (type == TokenType.INT) {
       Token token = getAndAdvance();
-      int value = null;
+      int value;
       try {
         value = int.parse(token.lexeme);
       } on FormatException {
@@ -4374,7 +4374,7 @@ class Parser {
       return astFactory.doubleLiteral(token, value);
     } else if (type == TokenType.HEXADECIMAL) {
       Token token = getAndAdvance();
-      int value = null;
+      int value;
       try {
         value = int.parse(token.lexeme);
       } on FormatException {
@@ -4443,8 +4443,8 @@ class Parser {
   RedirectingConstructorInvocation parseRedirectingConstructorInvocation(
       bool hasPeriod) {
     Token keyword = getAndAdvance();
-    Token period = null;
-    SimpleIdentifier constructorName = null;
+    Token period;
+    SimpleIdentifier constructorName;
     if (hasPeriod) {
       period = getAndAdvance();
       if (_matchesIdentifier()) {
@@ -4482,7 +4482,7 @@ class Parser {
           expression, asOperator, parseTypeNotVoid(true));
     } else if (keyword == Keyword.IS) {
       Token isOperator = getAndAdvance();
-      Token notOperator = null;
+      Token notOperator;
       if (_matches(TokenType.BANG)) {
         notOperator = getAndAdvance();
       }
@@ -4614,7 +4614,7 @@ class Parser {
     }
     _treeDepth++;
     try {
-      List<Label> labels = null;
+      List<Label> labels;
       while (
           _matchesIdentifier() && _currentToken.next.type == TokenType.COLON) {
         Label label = parseLabel(isDeclaration: true);
@@ -4664,8 +4664,8 @@ class Parser {
   ///         'super' ('.' identifier)? arguments
   SuperConstructorInvocation parseSuperConstructorInvocation() {
     Token keyword = getAndAdvance();
-    Token period = null;
-    SimpleIdentifier constructorName = null;
+    Token period;
+    SimpleIdentifier constructorName;
     if (_matches(TokenType.PERIOD)) {
       period = getAndAdvance();
       constructorName = parseSimpleIdentifier();
@@ -4695,7 +4695,7 @@ class Parser {
       Expression expression = parseExpression2();
       Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       Token leftBracket = _expect(TokenType.OPEN_CURLY_BRACKET);
-      Token defaultKeyword = null;
+      Token defaultKeyword;
       List<SwitchMember> members = <SwitchMember>[];
       TokenType type = _currentToken.type;
       while (type != TokenType.EOF && type != TokenType.CLOSE_CURLY_BRACKET) {
@@ -4852,20 +4852,20 @@ class Parser {
     Token tryKeyword = getAndAdvance();
     Block body = _parseBlockChecked();
     List<CatchClause> catchClauses = <CatchClause>[];
-    Block finallyClause = null;
+    Block finallyClause;
     while (_matchesKeyword(Keyword.ON) || _matchesKeyword(Keyword.CATCH)) {
-      Token onKeyword = null;
-      TypeName exceptionType = null;
+      Token onKeyword;
+      TypeName exceptionType;
       if (_matchesKeyword(Keyword.ON)) {
         onKeyword = getAndAdvance();
         exceptionType = parseTypeNotVoid(false);
       }
-      Token catchKeyword = null;
-      Token leftParenthesis = null;
-      SimpleIdentifier exceptionParameter = null;
-      Token comma = null;
-      SimpleIdentifier stackTraceParameter = null;
-      Token rightParenthesis = null;
+      Token catchKeyword;
+      Token leftParenthesis;
+      SimpleIdentifier exceptionParameter;
+      Token comma;
+      SimpleIdentifier stackTraceParameter;
+      Token rightParenthesis;
       if (_matchesKeyword(Keyword.CATCH)) {
         catchKeyword = getAndAdvance();
         leftParenthesis = _expect(TokenType.OPEN_PAREN);
@@ -4888,7 +4888,7 @@ class Parser {
           rightParenthesis,
           catchBody));
     }
-    Token finallyKeyword = null;
+    Token finallyKeyword;
     if (_matchesKeyword(Keyword.FINALLY)) {
       finallyKeyword = getAndAdvance();
       finallyClause = _parseBlockChecked();
@@ -4942,7 +4942,7 @@ class Parser {
   ///         typeWithoutFunction
   ///       | functionType
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    TypeAnnotation type = null;
+    TypeAnnotation type;
     if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
       // Generic function type with no return type.
       type = parseGenericFunctionTypeAfterReturnType(null);
@@ -4994,7 +4994,7 @@ class Parser {
   ///         functionType
   ///       | typeNotVoidWithoutFunction
   TypeAnnotation parseTypeNotVoid(bool inExpression) {
-    TypeAnnotation type = null;
+    TypeAnnotation type;
     if (_atGenericFunctionTypeAfterReturnType(_currentToken)) {
       // Generic function type with no return type.
       type = parseGenericFunctionTypeAfterReturnType(null);
@@ -5150,8 +5150,8 @@ class Parser {
     // user is in the middle of inserting "int bar;" prior to
     // "@deprecated foo() {}").
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
-    Token equals = null;
-    Expression initializer = null;
+    Token equals;
+    Expression initializer;
     if (_matches(TokenType.EQ)) {
       equals = getAndAdvance();
       initializer = parseExpression2();
@@ -5268,7 +5268,7 @@ class Parser {
   ///         'yield' '*'? expression ';'
   YieldStatement parseYieldStatement() {
     Token yieldToken = getAndAdvance();
-    Token star = null;
+    Token star;
     if (_matches(TokenType.STAR)) {
       star = getAndAdvance();
     }
@@ -5390,7 +5390,7 @@ class Parser {
   ///
   /// This method must be kept in sync with [parseTypeAnnotation].
   Token skipTypeAnnotation(Token startToken) {
-    Token next = null;
+    Token next;
     if (_atGenericFunctionTypeAfterReturnType(startToken)) {
       // Generic function type with no return type.
       next = skipGenericFunctionTypeAfterReturnType(startToken);
@@ -5643,7 +5643,7 @@ class Parser {
 
   /// Create and return a new token with the given [type]. The token will
   /// replace the first portion of the given [token], so it will have the same
-  /// offset and will have any comments that might have preceeded the token.
+  /// offset and will have any comments that might have preceded the token.
   Token _createToken(Token token, TokenType type, {bool isBegin: false}) {
     CommentToken comments = token.precedingComments;
     if (comments == null) {
@@ -6053,7 +6053,7 @@ class Parser {
     if (_matches(TokenType.COMMA)) {
       comma = getAndAdvance();
       if (_matches(TokenType.CLOSE_PAREN)) {
-        comma = null;
+        comma;
       } else {
         message = parseExpression2();
         if (_matches(TokenType.COMMA)) {
@@ -6142,14 +6142,14 @@ class Parser {
       TypeParameterList typeParameters) {
     Token equals = _expect(TokenType.EQ);
     TypeName superclass = parseTypeName(false);
-    WithClause withClause = null;
+    WithClause withClause;
     if (_matchesKeyword(Keyword.WITH)) {
       withClause = parseWithClause();
     } else {
       _reportErrorForCurrentToken(
           ParserErrorCode.EXPECTED_TOKEN, [Keyword.WITH.lexeme]);
     }
-    ImplementsClause implementsClause = null;
+    ImplementsClause implementsClause;
     if (_matchesKeyword(Keyword.IMPLEMENTS)) {
       implementsClause = parseImplementsClause();
     }
@@ -6186,7 +6186,7 @@ class Parser {
   /// Parse a list of configurations. Return the configurations that were
   /// parsed, or `null` if there are no configurations.
   List<Configuration> _parseConfigurations() {
-    List<Configuration> configurations = null;
+    List<Configuration> configurations;
     while (_matchesKeyword(Keyword.IF)) {
       configurations ??= <Configuration>[];
       configurations.add(parseConfiguration());
@@ -6204,8 +6204,8 @@ class Parser {
       SimpleIdentifier name,
       FormalParameterList parameters) {
     bool bodyAllowed = externalKeyword == null;
-    Token separator = null;
-    List<ConstructorInitializer> initializers = null;
+    Token separator;
+    List<ConstructorInitializer> initializers;
     if (_matches(TokenType.COLON)) {
       separator = getAndAdvance();
       initializers = <ConstructorInitializer>[];
@@ -6239,7 +6239,7 @@ class Parser {
             ParserErrorCode.FACTORY_WITH_INITIALIZERS, factoryKeyword);
       }
     }
-    ConstructorName redirectedConstructor = null;
+    ConstructorName redirectedConstructor;
     FunctionBody body;
     if (_matches(TokenType.EQ)) {
       separator = getAndAdvance();
@@ -6333,17 +6333,17 @@ class Parser {
     // better.
     //
     List<FormalParameter> parameters = <FormalParameter>[];
-    Token leftSquareBracket = null;
-    Token rightSquareBracket = null;
-    Token leftCurlyBracket = null;
-    Token rightCurlyBracket = null;
+    Token leftSquareBracket;
+    Token rightSquareBracket;
+    Token leftCurlyBracket;
+    Token rightCurlyBracket;
     ParameterKind kind = ParameterKind.REQUIRED;
     bool firstParameter = true;
     bool reportedMultiplePositionalGroups = false;
     bool reportedMultipleNamedGroups = false;
     bool reportedMixedGroups = false;
     bool wasOptionalParameter = false;
-    Token initialToken = null;
+    Token initialToken;
     do {
       if (firstParameter) {
         firstParameter = false;
@@ -6430,7 +6430,7 @@ class Parser {
                 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
                 ['}', ']']);
             rightCurlyBracket = rightSquareBracket;
-            rightSquareBracket = null;
+            rightSquareBracket;
             // Skip over synthetic closer inserted by fasta
             // since we've already reported an error
             if (_currentToken.type == TokenType.CLOSE_CURLY_BRACKET &&
@@ -6452,7 +6452,7 @@ class Parser {
                 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
                 [']', '}']);
             rightSquareBracket = rightCurlyBracket;
-            rightCurlyBracket = null;
+            rightCurlyBracket;
             // Skip over synthetic closer inserted by fasta
             // since we've already reported an error
             if (_currentToken.type == TokenType.CLOSE_SQUARE_BRACKET &&
@@ -6535,12 +6535,12 @@ class Parser {
   ///         returnType? name
   FunctionTypeAlias _parseFunctionTypeAlias(
       CommentAndMetadata commentAndMetadata, Token keyword) {
-    TypeAnnotation returnType = null;
+    TypeAnnotation returnType;
     if (hasReturnTypeInTypeAlias) {
       returnType = parseTypeAnnotation(false);
     }
     SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
-    TypeParameterList typeParameters = null;
+    TypeParameterList typeParameters;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
@@ -6989,7 +6989,7 @@ class Parser {
         }
       } else {
         Token openToken = getAndAdvance();
-        Expression expression = null;
+        Expression expression;
         if (_matchesKeyword(Keyword.THIS)) {
           expression = astFactory.thisExpression(getAndAdvance());
         } else {
@@ -7437,7 +7437,7 @@ class Parser {
       return null;
     }
     //
-    // We can't skip a type parameter because it can be preceeded by metadata,
+    // We can't skip a type parameter because it can be preceded by metadata,
     // so we just assume that everything before the matching end token is valid.
     //
     int depth = 1;

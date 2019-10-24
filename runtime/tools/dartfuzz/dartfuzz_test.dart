@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -14,6 +13,7 @@ import 'dartfuzz.dart';
 const debug = false;
 const sigkill = 9;
 const timeout = 60; // in seconds
+const dartHeapSize = 128; // in Mb
 
 // Status of divergence report.
 enum ReportStatus { reported, ignored, rerun, no_divergence }
@@ -29,7 +29,7 @@ class TestResult {
 /// Command runner.
 TestResult runCommand(List<String> cmd, Map<String, String> env) {
   ProcessResult res = Process.runSync(
-      'timeout', ['-s', '$sigkill', '$timeout'] + cmd,
+      'timeout', ['-s', '$sigkill', '$timeout', ...cmd],
       environment: env);
   if (debug) {
     print('\nrunning $cmd yields:\n'
@@ -79,17 +79,21 @@ abstract class TestRunner {
         prefix += '-NOINTRINSIFY';
         extraFlags += ['--intrinsify=false'];
       } else if (r == 2) {
-        prefix += '-COMPACTEVERY';
-        extraFlags += ['--gc_every=1000', '--use_compactor=true'];
+        final freq = rand.nextInt(1000) + 500;
+        prefix += '-COMPACTEVERY-${freq}';
+        extraFlags += ['--gc_every=${freq}', '--use_compactor=true'];
       } else if (r == 3) {
-        prefix += '-MARKSWEEPEVERY';
-        extraFlags += ['--gc_every=1000', '--use_compactor=false'];
+        final freq = rand.nextInt(1000) + 500;
+        prefix += '-MARKSWEEPEVERY-${freq}';
+        extraFlags += ['--gc_every=${freq}', '--use_compactor=false'];
       } else if (r == 4) {
-        prefix += '-DEPOPTEVERY';
-        extraFlags += ['--deoptimize_every=100'];
+        final freq = rand.nextInt(100) + 50;
+        prefix += '-DEPOPTEVERY-${freq}';
+        extraFlags += ['--deoptimize_every=${freq}'];
       } else if (r == 5) {
-        prefix += '-STACKTRACEEVERY';
-        extraFlags += ['--stacktrace_every=100'];
+        final freq = rand.nextInt(100) + 50;
+        prefix += '-STACKTRACEEVERY-${freq}';
+        extraFlags += ['--stacktrace_every=${freq}'];
       } else if (r == 6) {
         prefix += '-OPTCOUNTER';
         extraFlags += ['--optimization_counter_threshold=1'];
@@ -105,18 +109,26 @@ abstract class TestRunner {
       prefix += '-O3';
       extraFlags += ['--optimization_level=3'];
     }
+    // Every once in a while, use the slowpath flag.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-SLOWPATH';
+      extraFlags += ['--use-slow-path'];
+    }
+    // Every once in a while, use the deterministic flag.
+    if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
+      prefix += '-DET';
+      extraFlags += ['--deterministic'];
+    }
     // Construct runner.
     if (mode.startsWith('jit')) {
-      return new TestRunnerJIT(
-          prefix, tag, top, tmp, env, fileName, extraFlags);
+      return TestRunnerJIT(prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('aot')) {
-      return new TestRunnerAOT(
-          prefix, tag, top, tmp, env, fileName, extraFlags);
+      return TestRunnerAOT(prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('kbc')) {
-      return new TestRunnerKBC(
+      return TestRunnerKBC(
           prefix, tag, top, tmp, env, fileName, extraFlags, kbcSrc);
     } else if (mode.startsWith('djs')) {
-      return new TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
+      return TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
     }
     throw ('unknown runner in mode: $mode');
   }
@@ -127,16 +139,15 @@ abstract class TestRunner {
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
-    if (mode.endsWith('debug-dbc32')) return 'DebugSIMDBC';
-    if (mode.endsWith('debug-dbc64')) return 'DebugSIMDBC64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
-    if (mode.endsWith('dbc32')) return 'ReleaseSIMDBC';
-    if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
+
+  // Print steps to reproduce build and run.
+  void printReproductionCommand();
 }
 
 /// Concrete test runner of Dart JIT.
@@ -145,12 +156,19 @@ class TestRunnerJIT implements TestRunner {
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    cmd = [dart, "--deterministic"] + extraFlags + [fileName];
+    cmd = [
+      dart,
+      ...extraFlags,
+      '--old_gen_heap_size=${dartHeapSize}',
+      fileName
+    ];
   }
 
   TestResult run() {
     return runCommand(cmd, env);
   }
+
+  void printReproductionCommand() => print(cmd.join(" "));
 
   String description;
   String dart;
@@ -169,15 +187,22 @@ class TestRunnerAOT implements TestRunner {
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
-    env['OPTIONS'] = extraFlags.join(' ');
+    cmd = [precompiler, ...extraFlags, fileName, snapshot];
   }
 
   TestResult run() {
-    TestResult result = runCommand([precompiler, fileName, snapshot], env);
+    TestResult result = runCommand(cmd, env);
     if (result.exitCode != 0) {
       return result;
     }
-    return runCommand([dart, snapshot], env);
+    return runCommand(
+        [dart, '--old_gen_heap_size=${dartHeapSize}', snapshot], env);
+  }
+
+  void printReproductionCommand() {
+    print(
+        ["DART_CONFIGURATION=${env['DART_CONFIGURATION']}", ...cmd].join(" "));
+    print([dart, snapshot].join(" "));
   }
 
   String description;
@@ -186,6 +211,7 @@ class TestRunnerAOT implements TestRunner {
   String fileName;
   String snapshot;
   Map<String, String> env;
+  List<String> cmd;
 }
 
 /// Concrete test runner of bytecode.
@@ -195,12 +221,17 @@ class TestRunnerKBC implements TestRunner {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
     if (kbcSrc) {
-      cmd = [dart] + extraFlags + [fileName];
+      cmd = [
+        dart,
+        ...extraFlags,
+        '--old_gen_heap_size=${dartHeapSize}',
+        fileName
+      ];
     } else {
       generate = '$top/pkg/vm/tool/gen_kernel';
       platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
       dill = '$tmp/out.dill';
-      cmd = [dart] + extraFlags + [dill];
+      cmd = [dart, ...extraFlags, '--old_gen_heap_size=${dartHeapSize}', dill];
     }
   }
 
@@ -213,6 +244,14 @@ class TestRunnerKBC implements TestRunner {
       }
     }
     return runCommand(cmd, env);
+  }
+
+  void printReproductionCommand() {
+    if (generate != null) {
+      print([generate, '--gen-bytecode', platform, '-o', dill, fileName]
+          .join(" "));
+    }
+    print(cmd.join(" "));
   }
 
   String description;
@@ -240,6 +279,11 @@ class TestRunnerDJS implements TestRunner {
       return result;
     }
     return runCommand(['nodejs', js], env);
+  }
+
+  void printReproductionCommand() {
+    print([dart2js, fileName, '-o', js].join(" "));
+    print(['nodejs', js].join(" "));
   }
 
   String description;
@@ -279,35 +323,53 @@ class DartFuzzTest {
     print('\n${isolate}: done');
     showStatistics();
     print('');
+    if (timeoutSeeds.isNotEmpty) {
+      print('\n${isolate} timeout: ' + timeoutSeeds.join(", "));
+      print('');
+    }
+    if (skippedSeeds.isNotEmpty) {
+      print('\n${isolate} skipped: ' + skippedSeeds.join(", "));
+      print('');
+    }
 
     cleanup();
     return numDivergences;
   }
 
   void setup() {
-    rand = new Random();
+    rand = Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
+    // Testcase generation flags.
+    // Necessary To avoid false divergences between 64 and 32 bit versions.
+    fp = samePrecision(mode1, mode2);
+    // Occasionally test FFI.
+    ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
+    // TODO (https://github.com/dart-lang/sdk/issues/38710):
+    // re-enable non-flat types once hash issue is fixed.
+    // flatTp = !nestedTypesAllowed(mode1, mode2) || (rand.nextInt(5) == 0);
+    flatTp = true;
     runner1 =
         TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
     runner2 =
         TestRunner.getTestRunner(mode2, top, tmpDir.path, env, fileName, rand);
-    fp = samePrecision(mode1, mode2);
-    ffi = ffiCapable(mode1, mode2);
     isolate =
-        'Isolate (${tmpDir.path}) ${ffi ? "" : "NO-"}FFI ${fp ? "" : "NO-"}FP : '
+        'Isolate (${tmpDir.path}) ${fp ? "" : "NO-"}FP ${ffi ? "" : "NO-"}FFI ${flatTp ? "" : "NO-"}FLAT : '
         '${runner1.description} - ${runner2.description}';
 
-    start_time = new DateTime.now().millisecondsSinceEpoch;
+    start_time = DateTime.now().millisecondsSinceEpoch;
     current_time = start_time;
     report_time = start_time;
     end_time = start_time + max(0, time - timeout) * 1000;
 
     numTests = 0;
     numSuccess = 0;
-    numNotRun = 0;
-    numTimeOut = 0;
+    numSkipped = 0;
+    numRerun = 0;
+    numTimeout = 0;
     numDivergences = 0;
+    timeoutSeeds = {};
+    skippedSeeds = {};
   }
 
   bool samePrecision(String mode1, String mode2) =>
@@ -318,9 +380,12 @@ class DartFuzzTest {
       (mode2.startsWith('jit') || mode2.startsWith('kbc')) &&
       (!mode1.contains('arm') && !mode2.contains('arm'));
 
+  bool nestedTypesAllowed(String mode1, String mode2) =>
+      (!mode1.contains('arm') && !mode2.contains('arm'));
+
   bool timeIsUp() {
     if (time > 0) {
-      current_time = new DateTime.now().millisecondsSinceEpoch;
+      current_time = DateTime.now().millisecondsSinceEpoch;
       if (current_time > end_time) {
         return true;
       }
@@ -339,27 +404,35 @@ class DartFuzzTest {
   }
 
   void showStatistics() {
-    stdout.write('\rTests: $numTests Success: $numSuccess Not-Run: '
-        '$numNotRun: Time-Out: $numTimeOut Divergences: $numDivergences');
+    stdout.write('\rTests: $numTests Success: $numSuccess (Rerun: $numRerun) '
+        'Skipped: $numSkipped Timeout: $numTimeout '
+        'Divergences: $numDivergences');
   }
 
   void generateTest() {
-    final file = new File(fileName).openSync(mode: FileMode.write);
-    new DartFuzz(seed, fp, ffi, file).run();
+    final file = File(fileName).openSync(mode: FileMode.write);
+    DartFuzz(seed, fp, ffi, flatTp, file).run();
     file.closeSync();
   }
 
   void runTest() {
     TestResult result1 = runner1.run();
     TestResult result2 = runner2.run();
-    if (checkDivergence(result1, result2) == ReportStatus.rerun && rerun) {
+    var report = checkDivergence(result1, result2);
+    if (report == ReportStatus.rerun && rerun) {
       print("\nCommencing re-run .... \n");
       numDivergences--;
       result1 = runner1.run();
       result2 = runner2.run();
-      if (checkDivergence(result1, result2) == ReportStatus.no_divergence) {
+      report = checkDivergence(result1, result2);
+      if (report == ReportStatus.no_divergence) {
         print("\nNo error on re-run\n");
+        numRerun++;
       }
+    }
+    if (report == ReportStatus.reported ||
+        (!rerun && report == ReportStatus.rerun)) {
+      showReproduce();
     }
   }
 
@@ -378,20 +451,29 @@ class DartFuzzTest {
           break;
         case -sigkill:
           // Both had a time out.
-          numTimeOut++;
+          numTimeout++;
+          timeoutSeeds.add(seed);
           break;
         default:
           // Both had an error.
-          numNotRun++;
+          numSkipped++;
+          skippedSeeds.add(seed);
           break;
       }
     } else {
       // Divergence in result code.
       if (trueDivergence) {
         // When only true divergences are requested, any divergence
-        // with at least one time out is treated as a regular time out.
+        // with at least one time out or out of memory error is
+        // treated as a regular time out or skipped test, respectively.
         if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
-          numTimeOut++;
+          numTimeout++;
+          timeoutSeeds.add(seed);
+          return ReportStatus.ignored;
+        } else if (result1.exitCode == DartFuzz.oomExitCode ||
+            result2.exitCode == DartFuzz.oomExitCode) {
+          numSkipped++;
+          skippedSeeds.add(seed);
           return ReportStatus.ignored;
         }
       }
@@ -437,6 +519,18 @@ class DartFuzzTest {
     }
   }
 
+  void showReproduce() {
+    print("\n-- BEGIN REPRODUCE  --\n");
+    print("dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
+        "--${flatTp ? "" : "no-"}flat "
+        "--seed ${seed} $fileName");
+    print("\n-- RUN 1 --\n");
+    runner1.printReproductionCommand();
+    print("\n-- RUN 2 --\n");
+    runner2.printReproductionCommand();
+    print("\n-- END REPRODUCE  --\n");
+  }
+
   // Context.
   final Map<String, String> env;
   final int repeat;
@@ -456,6 +550,7 @@ class DartFuzzTest {
   TestRunner runner2;
   bool fp;
   bool ffi;
+  bool flatTp;
   String isolate;
   int seed;
 
@@ -468,9 +563,12 @@ class DartFuzzTest {
   // Stats.
   int numTests;
   int numSuccess;
-  int numNotRun;
-  int numTimeOut;
+  int numSkipped;
+  int numRerun;
+  int numTimeout;
   int numDivergences;
+  Set<int> timeoutSeeds;
+  Set<int> skippedSeeds;
 }
 
 /// Class to start fuzz testing session.
@@ -485,7 +583,7 @@ class DartFuzzTestSession {
       this.mode1,
       this.mode2,
       this.rerun)
-      : top = getTop(tp) {}
+      : top = getTop(tp);
 
   start() async {
     print('\n**\n**** Dart Fuzz Testing Session\n**\n');
@@ -501,9 +599,9 @@ class DartFuzzTestSession {
     print('Show Stats      : ${showStats}');
     print('Dart Dev        : ${top}');
     // Fork.
-    List<ReceivePort> ports = new List();
+    List<ReceivePort> ports = List();
     for (int i = 0; i < isolates; i++) {
-      ReceivePort r = new ReceivePort();
+      ReceivePort r = ReceivePort();
       ports.add(r);
       port = r.sendPort;
       await Isolate.spawn(run, this);
@@ -527,7 +625,7 @@ class DartFuzzTestSession {
     try {
       final m1 = getMode(session.mode1, null);
       final m2 = getMode(session.mode2, m1);
-      final fuzz = new DartFuzzTest(
+      final fuzz = DartFuzzTest(
           Platform.environment,
           session.repeat,
           session.time,
@@ -560,7 +658,7 @@ class DartFuzzTestSession {
     // Random when not set.
     if (mode == null || mode == '') {
       // Pick a mode at random (cluster), different from other.
-      Random rand = new Random();
+      Random rand = Random();
       do {
         mode = clusterModes[rand.nextInt(clusterModes.length)];
       } while (mode == other);
@@ -626,11 +724,6 @@ class DartFuzzTestSession {
 
   // Modes not used on cluster runs because they have outstanding issues.
   static const List<String> nonClusterModes = [
-    // Deprecated.
-    'jit-debug-dbc32',
-    'jit-debug-dbc64',
-    'jit-dbc32',
-    'jit-dbc64',
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',
@@ -647,7 +740,7 @@ class DartFuzzTestSession {
 /// Main driver for a fuzz testing session.
 main(List<String> arguments) {
   // Set up argument parser.
-  final parser = new ArgParser()
+  final parser = ArgParser()
     ..addOption('isolates', help: 'number of isolates to use', defaultsTo: '1')
     ..addOption('repeat', help: 'number of tests to run', defaultsTo: '1000')
     ..addOption('time', help: 'time limit in seconds', defaultsTo: '0')
@@ -679,7 +772,7 @@ main(List<String> arguments) {
     if (shards > 1) {
       print('\nSHARD $shard OF $shards');
     }
-    new DartFuzzTestSession(
+    DartFuzzTestSession(
             int.parse(results['isolates']),
             int.parse(results['repeat']),
             int.parse(results['time']),

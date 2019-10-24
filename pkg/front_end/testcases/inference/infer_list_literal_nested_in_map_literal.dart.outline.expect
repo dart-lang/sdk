@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Resource extends core::Object {
+  synthetic constructor •() → self::Resource*
+    ;
+}
+class Folder extends self::Resource {
+  synthetic constructor •() → self::Folder*
+    ;
+}
+class Foo<T extends core::Object* = dynamic> extends core::Object {
+  constructor •(self::Foo::T* t) → self::Foo<self::Foo::T*>*
+    ;
+}
+static method getResource(core::String* str) → self::Resource*
+  ;
+static method main() → dynamic
+  ;

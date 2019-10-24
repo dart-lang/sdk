@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A<X extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X*>*
     ;
-  method foo<generic-covariant-impl Y extends self::A::X* = dynamic>() → dynamic
+  method foo<generic-covariant-impl Y extends self::A::X* = self::A::X*>() → dynamic
     ;
 }
 class B extends self::A<dynamic> {

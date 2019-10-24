@@ -42,11 +42,23 @@ const char kKernelServiceSnapshot[] = "kernel-service.dart.snapshot";
 const char kSnapshotsDirectory[] = "snapshots";
 
 static char* GetDirectoryPrefixFromExeName() {
-  const char* name = Platform::GetExecutableName();
+  const char* name = nullptr;
+  const int kTargetSize = 4096;
+  char target[kTargetSize];
+  intptr_t target_size =
+      Platform::ResolveExecutablePathInto(target, kTargetSize);
+  if (target_size > 0 && target_size < kTargetSize - 1) {
+    target[target_size] = 0;
+    name = target;
+  }
+  if (name == nullptr) {
+    name = Platform::GetExecutableName();
+    target_size = strlen(name);
+  }
   const char* sep = File::PathSeparator();
   const intptr_t sep_length = strlen(sep);
 
-  for (intptr_t i = strlen(name) - 1; i >= 0; --i) {
+  for (intptr_t i = target_size - 1; i >= 0; --i) {
     const char* str = name + i;
     if (strncmp(str, sep, sep_length) == 0
 #if defined(HOST_OS_WINDOWS)
@@ -233,7 +245,7 @@ class WindowsPathSanitizer {
     if (len > 2 && path[1] == ':') {
       *s++ = '/';
     }
-    for (const char *p = path; *p; ++p, ++s) {
+    for (const char* p = path; *p != '\0'; ++p, ++s) {
       *s = *p == '\\' ? '/' : *p;
     }
     *s = '\0';

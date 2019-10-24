@@ -13,6 +13,7 @@
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
+#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -261,14 +262,18 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           intptr_t class_id,
                                           intptr_t instance_size,
                                           RawObject** result) {
+  ASSERT(instance_size > 0);
+  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+
   const uword start = thread->top();
 #ifndef PRODUCT
-  ClassTable* table = thread->isolate()->class_table();
+  auto table = thread->isolate()->shared_class_table();
   if (UNLIKELY(table->TraceAllocationFor(class_id))) {
     return false;
   }
 #endif
-  if (LIKELY((start + instance_size) < thread->end())) {
+  const intptr_t remaining = thread->end() - start;
+  if (LIKELY(remaining >= instance_size)) {
     thread->set_top(start + instance_size);
 #ifndef PRODUCT
     table->UpdateAllocatedNew(class_id, instance_size);
@@ -287,21 +292,25 @@ void LookupCache::Clear() {
 
 bool LookupCache::Lookup(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction** target) const {
   ASSERT(receiver_cid != kIllegalCid);  // Sentinel value.
 
-  const intptr_t hash =
-      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t hash = receiver_cid ^
+                        reinterpret_cast<intptr_t>(function_name) ^
+                        reinterpret_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == receiver_cid &&
-      entries_[probe1].function_name == function_name) {
+      entries_[probe1].function_name == function_name &&
+      entries_[probe1].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe1].target;
     return true;
   }
 
   intptr_t probe2 = (hash >> 3) & kTableMask;
   if (entries_[probe2].receiver_cid == receiver_cid &&
-      entries_[probe2].function_name == function_name) {
+      entries_[probe2].function_name == function_name &&
+      entries_[probe2].arguments_descriptor == arguments_descriptor) {
     *target = entries_[probe2].target;
     return true;
   }
@@ -311,17 +320,21 @@ bool LookupCache::Lookup(intptr_t receiver_cid,
 
 void LookupCache::Insert(intptr_t receiver_cid,
                          RawString* function_name,
+                         RawArray* arguments_descriptor,
                          RawFunction* target) {
   // Otherwise we have to clear the cache or rehash on scavenges too.
   ASSERT(function_name->IsOldObject());
+  ASSERT(arguments_descriptor->IsOldObject());
   ASSERT(target->IsOldObject());
 
-  const intptr_t hash =
-      receiver_cid ^ reinterpret_cast<intptr_t>(function_name);
+  const intptr_t hash = receiver_cid ^
+                        reinterpret_cast<intptr_t>(function_name) ^
+                        reinterpret_cast<intptr_t>(arguments_descriptor);
   const intptr_t probe1 = hash & kTableMask;
   if (entries_[probe1].receiver_cid == kIllegalCid) {
     entries_[probe1].receiver_cid = receiver_cid;
     entries_[probe1].function_name = function_name;
+    entries_[probe1].arguments_descriptor = arguments_descriptor;
     entries_[probe1].target = target;
     return;
   }
@@ -330,12 +343,14 @@ void LookupCache::Insert(intptr_t receiver_cid,
   if (entries_[probe2].receiver_cid == kIllegalCid) {
     entries_[probe2].receiver_cid = receiver_cid;
     entries_[probe2].function_name = function_name;
+    entries_[probe2].arguments_descriptor = arguments_descriptor;
     entries_[probe2].target = target;
     return;
   }
 
   entries_[probe1].receiver_cid = receiver_cid;
   entries_[probe1].function_name = function_name;
+  entries_[probe1].arguments_descriptor = arguments_descriptor;
   entries_[probe1].target = target;
 }
 
@@ -379,6 +394,9 @@ Interpreter::Interpreter()
     }
   }
 #endif
+  // Make sure interpreter's unboxing view is consistent with compiler.
+  supports_unboxed_doubles_ = FlowGraphCompiler::SupportsUnboxedDoubles();
+  supports_unboxed_simd128_ = FlowGraphCompiler::SupportsUnboxedSimd128();
 }
 
 Interpreter::~Interpreter() {
@@ -521,9 +539,10 @@ void Interpreter::Unexit(Thread* thread) {
 // Calling into runtime may trigger garbage collection and relocate objects,
 // so all RawObject* pointers become outdated and should not be used across
 // runtime calls.
-// Note: functions below are marked DART_NOINLINE to recover performance on
-// ARM where inlining these functions into the interpreter loop seemed to cause
-// some code quality issues.
+// Note: functions below are marked DART_NOINLINE to recover performance where
+// inlining these functions into the interpreter loop seemed to cause some code
+// quality issues. Functions with the "returns_twice" attribute, such as setjmp,
+// prevent reusing spill slots and large frame sizes.
 static DART_NOINLINE bool InvokeRuntime(Thread* thread,
                                         Interpreter* interpreter,
                                         RuntimeFunction drt,
@@ -711,57 +730,13 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   }
 }
 
-void Interpreter::InlineCacheMiss(int checked_args,
-                                  Thread* thread,
-                                  RawICData* icdata,
-                                  RawObject** args,
-                                  RawObject** top,
-                                  const KBCInstr* pc,
-                                  RawObject** FP,
-                                  RawObject** SP) {
-  RawObject** result = top;
-  top[0] = 0;  // Clean up result slot.
-
-  // Save arguments descriptor as it may be clobbered by running Dart code
-  // during the call to miss handler (class finalization).
-  top[1] = argdesc_;
-
-  RawObject** miss_handler_args = top + 2;
-  for (intptr_t i = 0; i < checked_args; i++) {
-    miss_handler_args[i] = args[i];
-  }
-  miss_handler_args[checked_args] = icdata;
-  RuntimeFunction handler = NULL;
-  switch (checked_args) {
-    case 1:
-      handler = DRT_InlineCacheMissHandlerOneArg;
-      break;
-    case 2:
-      handler = DRT_InlineCacheMissHandlerTwoArgs;
-      break;
-    default:
-      UNREACHABLE();
-      break;
-  }
-
-  // Handler arguments: arguments to check and an ICData object.
-  const intptr_t miss_handler_argc = checked_args + 1;
-  RawObject** exit_frame = miss_handler_args + miss_handler_argc;
-  Exit(thread, FP, exit_frame, pc);
-  NativeArguments native_args(thread, miss_handler_argc, miss_handler_args,
-                              result);
-  handler(native_args);
-
-  argdesc_ = Array::RawCast(top[1]);
-}
-
-DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
-                                                  RawString* target_name,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP) {
+DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
+                                                 RawString* target_name,
+                                                 RawObject** call_base,
+                                                 RawObject** top,
+                                                 const KBCInstr** pc,
+                                                 RawObject*** FP,
+                                                 RawObject*** SP) {
   const intptr_t type_args_len =
       InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
   const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
@@ -770,7 +745,8 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
       InterpreterHelpers::GetClassId(call_base[receiver_idx]);
 
   RawFunction* target;
-  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, &target))) {
+  if (UNLIKELY(!lookup_cache_.Lookup(receiver_cid, target_name, argdesc_,
+                                     &target))) {
     // Table lookup miss.
     top[0] = 0;  // Clean up slot as it may be visited by GC.
     top[1] = call_base[receiver_idx];
@@ -781,7 +757,7 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     Exit(thread, *FP, top + 5, *pc);
     NativeArguments native_args(thread, 3, /* argv */ top + 1,
                                 /* result */ top + 4);
-    if (!InvokeRuntime(thread, this, DRT_InterpretedInterfaceCallMissHandler,
+    if (!InvokeRuntime(thread, this, DRT_InterpretedInstanceCallMissHandler,
                        native_args)) {
       return false;
     }
@@ -790,103 +766,10 @@ DART_FORCE_INLINE bool Interpreter::InterfaceCall(Thread* thread,
     target_name = static_cast<RawString*>(top[2]);
     argdesc_ = static_cast<RawArray*>(top[3]);
     ASSERT(target->IsFunction());
-    lookup_cache_.Insert(receiver_cid, target_name, target);
+    lookup_cache_.Insert(receiver_cid, target_name, argdesc_, target);
   }
 
   top[0] = target;
-  return Invoke(thread, call_base, top, pc, FP, SP);
-}
-
-DART_FORCE_INLINE bool Interpreter::InstanceCall1(Thread* thread,
-                                                  RawICData* icdata,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP,
-                                                  bool optimized) {
-  ASSERT(icdata->GetClassId() == kICDataCid);
-
-  const intptr_t kCheckedArgs = 1;
-  RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->entries_->ptr();
-
-  const intptr_t type_args_len =
-      InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
-  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
-  RawSmi* receiver_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx]);
-
-  bool found = false;
-  const intptr_t length = Smi::Value(cache->length_);
-  intptr_t i;
-  for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
-    if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
-      found = true;
-      break;
-    }
-  }
-
-  argdesc_ = icdata->ptr()->args_descriptor_;
-
-  if (found) {
-    if (!optimized) {
-      InterpreterHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
-    }
-  } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
-                    *pc, *FP, *SP);
-  }
-
-  return Invoke(thread, call_base, top, pc, FP, SP);
-}
-
-DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
-                                                  RawICData* icdata,
-                                                  RawObject** call_base,
-                                                  RawObject** top,
-                                                  const KBCInstr** pc,
-                                                  RawObject*** FP,
-                                                  RawObject*** SP,
-                                                  bool optimized) {
-  ASSERT(icdata->GetClassId() == kICDataCid);
-
-  const intptr_t kCheckedArgs = 2;
-  RawObject** args = call_base;
-  RawArray* cache = icdata->ptr()->entries_->ptr();
-
-  const intptr_t type_args_len =
-      InterpreterHelpers::ArgDescTypeArgsLen(icdata->ptr()->args_descriptor_);
-  const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
-  RawSmi* receiver_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx]);
-  RawSmi* arg0_cid =
-      InterpreterHelpers::GetClassIdAsSmi(args[receiver_idx + 1]);
-
-  bool found = false;
-  const intptr_t length = Smi::Value(cache->length_);
-  intptr_t i;
-  for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
-    if ((cache->data()[i + 0] == receiver_cid) &&
-        (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
-      found = true;
-      break;
-    }
-  }
-
-  argdesc_ = icdata->ptr()->args_descriptor_;
-
-  if (found) {
-    if (!optimized) {
-      InterpreterHelpers::IncrementICUsageCount(cache->data(), i, kCheckedArgs);
-    }
-  } else {
-    InlineCacheMiss(kCheckedArgs, thread, icdata, call_base + receiver_idx, top,
-                    *pc, *FP, *SP);
-  }
-
   return Invoke(thread, call_base, top, pc, FP, SP);
 }
 
@@ -1136,8 +1019,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
       SP[1] = 0; /* Unused result. */                                          \
       SP[2] = function;                                                        \
       Exit(thread, FP, SP + 3, pc);                                            \
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);                  \
-      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);             \
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction,                           \
+                     NativeArguments(thread, 1, SP + 2, SP + 1));              \
       function = FrameFunction(FP);                                            \
     }                                                                          \
   }
@@ -1153,14 +1036,14 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
     if (thread->isolate()->debugger()->HasBytecodeBreakpointAt(pc)) {          \
       SP[1] = null_value;                                                      \
       Exit(thread, FP, SP + 2, pc);                                            \
-      NativeArguments args(thread, 0, NULL, SP + 1);                           \
-      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)                       \
+      INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                             \
+                     NativeArguments(thread, 0, nullptr, SP + 1))              \
     }                                                                          \
     /* The debugger expects to see the same pc again when single-stepping */   \
     if (thread->isolate()->single_step()) {                                    \
       Exit(thread, FP, SP + 1, pc);                                            \
-      NativeArguments args(thread, 0, NULL, NULL);                             \
-      INVOKE_RUNTIME(DRT_SingleStepHandler, args);                             \
+      INVOKE_RUNTIME(DRT_SingleStepHandler,                                    \
+                     NativeArguments(thread, 0, nullptr, nullptr));            \
     }                                                                          \
   }
 #endif  // PRODUCT
@@ -1757,8 +1640,8 @@ SwitchDispatch:
       if (reinterpret_cast<uword>(SP) >= overflow_stack_limit() ||
           thread->HasScheduledInterrupts()) {
         Exit(thread, FP, SP + 1, pc);
-        NativeArguments args(thread, 0, NULL, NULL);
-        INVOKE_RUNTIME(DRT_StackOverflow, args);
+        INVOKE_RUNTIME(DRT_StackOverflow,
+                       NativeArguments(thread, 0, nullptr, nullptr));
       }
     }
     RawFunction* function = FrameFunction(FP);
@@ -1769,8 +1652,8 @@ SwitchDispatch:
       SP[1] = 0;  // Unused result.
       SP[2] = function;
       Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction,
+                     NativeArguments(thread, 1, SP + 2, SP + 1));
     }
     DISPATCH();
   }
@@ -1812,8 +1695,8 @@ SwitchDispatch:
     SP[3] = SP[0];
     Exit(thread, FP, SP + 4, pc);
     {
-      NativeArguments args(thread, 3, SP + 1, SP - 1);
-      INVOKE_RUNTIME(DRT_InstantiateType, args);
+      INVOKE_RUNTIME(DRT_InstantiateType,
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
     SP -= 1;
     DISPATCH();
@@ -1851,8 +1734,8 @@ SwitchDispatch:
       SP[3] = function_type_args;
 
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments args(thread, 3, SP + 1, SP - 1);
-      INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
+      INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
+                     NativeArguments(thread, 3, SP + 1, SP - 1));
     }
 
   InstantiateTypeArgumentsTOSDone:
@@ -1862,16 +1745,13 @@ SwitchDispatch:
 
   {
     BYTECODE(Throw, A);
-    DEBUG_CHECK;
     {
       SP[1] = 0;  // Space for result.
       Exit(thread, FP, SP + 2, pc);
       if (rA == 0) {  // Throw
-        NativeArguments args(thread, 1, SP, SP + 1);
-        INVOKE_RUNTIME(DRT_Throw, args);
+        INVOKE_RUNTIME(DRT_Throw, NativeArguments(thread, 1, SP, SP + 1));
       } else {  // ReThrow
-        NativeArguments args(thread, 2, SP - 1, SP + 1);
-        INVOKE_RUNTIME(DRT_ReThrow, args);
+        INVOKE_RUNTIME(DRT_ReThrow, NativeArguments(thread, 2, SP - 1, SP + 1));
       }
     }
     DISPATCH();
@@ -1972,6 +1852,27 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(UncheckedDirectCall, D_F);
+    DEBUG_CHECK;
+    // Invoke target function.
+    {
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      *++SP = LOAD_CONSTANT(kidx);
+      RawObject** call_base = SP - argc;
+      RawObject** call_top = SP;
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(InterfaceCall, D_F);
     DEBUG_CHECK;
     {
@@ -1985,8 +1886,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2007,8 +1908,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2057,8 +1958,8 @@ SwitchDispatch:
       RawString* target_name =
           static_cast<RawFunction*>(LOAD_CONSTANT(kidx))->ptr()->name_;
       argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx + 1));
-      if (!InterfaceCall(thread, target_name, call_base, call_top, &pc, &FP,
-                         &SP)) {
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
         HANDLE_EXCEPTION;
       }
     }
@@ -2076,21 +1977,13 @@ SwitchDispatch:
       RawObject** call_base = SP - argc + 1;
       RawObject** call_top = SP + 1;
 
-      RawICData* icdata = RAW_CAST(ICData, LOAD_CONSTANT(kidx));
-      InterpreterHelpers::IncrementUsageCounter(
-          RAW_CAST(Function, icdata->ptr()->owner_));
-      if (ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) == 1) {
-        if (!InstanceCall1(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                           false /* optimized */)) {
-          HANDLE_EXCEPTION;
-        }
-      } else {
-        ASSERT(ICData::NumArgsTestedBits::decode(icdata->ptr()->state_bits_) ==
-               2);
-        if (!InstanceCall2(thread, icdata, call_base, call_top, &pc, &FP, &SP,
-                           false /* optimized */)) {
-          HANDLE_EXCEPTION;
-        }
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      RawUnlinkedCall* selector = RAW_CAST(UnlinkedCall, LOAD_CONSTANT(kidx));
+      RawString* target_name = selector->ptr()->target_name_;
+      argdesc_ = selector->ptr()->args_descriptor_;
+      if (!InstanceCall(thread, target_name, call_base, call_top, &pc, &FP,
+                        &SP)) {
+        HANDLE_EXCEPTION;
       }
     }
 
@@ -2277,11 +2170,12 @@ SwitchDispatch:
         RawObject** incoming_args = SP - num_arguments;
         RawObject** return_slot = SP;
         Exit(thread, FP, SP + 1, pc);
-        NativeArguments args(thread, argc_tag, incoming_args, return_slot);
+        NativeArguments native_args(thread, argc_tag, incoming_args,
+                                    return_slot);
         INVOKE_NATIVE(
             payload->trampoline,
             reinterpret_cast<Dart_NativeFunction>(payload->native_function),
-            reinterpret_cast<Dart_NativeArguments>(&args));
+            reinterpret_cast<Dart_NativeArguments>(&native_args));
 
         *(SP - num_arguments) = *return_slot;
         SP -= num_arguments;
@@ -2354,7 +2248,6 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreStaticTOS, D);
-    DEBUG_CHECK;
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
     field->StorePointer(&field->ptr()->value_.static_value_, value, thread);
@@ -2393,8 +2286,9 @@ SwitchDispatch:
       SP[2] = field;
       SP[3] = value;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments args(thread, 2, /* argv */ SP + 2, /* retval */ SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, args)) {
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid,
+                         NativeArguments(thread, 2, /* argv */ SP + 2,
+                                         /* retval */ SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -2408,7 +2302,7 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
       ASSERT(*(reinterpret_cast<RawDouble**>(instance->ptr()) +
                offset_in_words) == null_value);  // Initializing store.
@@ -2420,7 +2314,8 @@ SwitchDispatch:
       instance->StorePointer(
           reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words, box,
           thread);
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
@@ -2433,7 +2328,8 @@ SwitchDispatch:
       instance->StorePointer(
           reinterpret_cast<RawFloat32x4**>(instance->ptr()) + offset_in_words,
           box, thread);
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       ASSERT(*(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
@@ -2548,8 +2444,7 @@ SwitchDispatch:
     {
       SP[1] = SP[0];  // Context to clone.
       Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 1, SP + 1, SP);
-      INVOKE_RUNTIME(DRT_CloneContext, args);
+      INVOKE_RUNTIME(DRT_CloneContext, NativeArguments(thread, 1, SP + 1, SP));
     }
     DISPATCH();
   }
@@ -2577,8 +2472,8 @@ SwitchDispatch:
     SP[2] = cls;         // Class object.
     SP[3] = null_value;  // Type arguments.
     Exit(thread, FP, SP + 4, pc);
-    NativeArguments args(thread, 2, SP + 2, SP + 1);
-    INVOKE_RUNTIME(DRT_AllocateObject, args);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 2, SP + 1));
     SP++;  // Result is in SP[1].
     DISPATCH();
   }
@@ -2609,8 +2504,8 @@ SwitchDispatch:
     SP[1] = cls;
     SP[2] = type_args;
     Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP - 1);
-    INVOKE_RUNTIME(DRT_AllocateObject, args);
+    INVOKE_RUNTIME(DRT_AllocateObject,
+                   NativeArguments(thread, 2, SP + 1, SP - 1));
     SP -= 1;  // Result is in SP - 1.
     DISPATCH();
   }
@@ -2665,8 +2560,8 @@ SwitchDispatch:
     RawObject** result_slot = SP;
 
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments native_args(thread, 5, args, result_slot);
-    INVOKE_RUNTIME(DRT_SubtypeCheck, native_args);
+    INVOKE_RUNTIME(DRT_SubtypeCheck,
+                   NativeArguments(thread, 5, args, result_slot));
 
     // Result slot not used anymore.
     SP--;
@@ -2680,7 +2575,7 @@ SwitchDispatch:
   {
     BYTECODE(AssertBoolean, A);
     RawObject* value = SP[0];
-    if (rA) {  // Should we perform type check?
+    if (rA != 0u) {  // Should we perform type check?
       if ((value == true_value) || (value == false_value)) {
         goto AssertBooleanOk;
       }
@@ -2692,8 +2587,8 @@ SwitchDispatch:
     {
       SP[1] = SP[0];  // instance
       Exit(thread, FP, SP + 2, pc);
-      NativeArguments args(thread, 1, SP + 1, SP);
-      INVOKE_RUNTIME(DRT_NonBoolTypeError, args);
+      INVOKE_RUNTIME(DRT_NonBoolTypeError,
+                     NativeArguments(thread, 1, SP + 1, SP));
     }
 
   AssertBooleanOk:
@@ -2799,6 +2694,19 @@ SwitchDispatch:
     BYTECODE(EqualsNull, 0);
     DEBUG_CHECK;
     SP[0] = (SP[0] == null_value) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CheckReceiverForNull, D);
+    SP -= 1;
+
+    if (UNLIKELY(SP[0] == null_value)) {
+      // Load selector.
+      SP[0] = LOAD_CONSTANT(rD);
+      goto ThrowNullError;
+    }
+
     DISPATCH();
   }
 
@@ -3169,20 +3077,23 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
+      ASSERT(FlowGraphCompiler::SupportsUnboxedDoubles());
       double raw_value = Double::RawCast(value)->ptr()->value_;
       // AllocateDouble places result at SP[0]
       if (!AllocateDouble(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       // AllocateFloat32x4 places result at SP[0]
       if (!AllocateFloat32x4(thread, raw_value, pc, FP, SP)) {
         HANDLE_EXCEPTION;
       }
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       // AllocateFloat64x2 places result at SP[0]
@@ -3229,10 +3140,9 @@ SwitchDispatch:
         SP[1] = null_value;  // Result.
 
         Exit(thread, FP, SP + 2, pc);
-        NativeArguments native_args(thread, 0, /* argv */ SP + 1,
-                                    /* retval */ SP + 1);
         if (!InvokeRuntime(thread, this, DRT_AllocateSubtypeTestCache,
-                           native_args)) {
+                           NativeArguments(thread, 0, /* argv */ SP + 1,
+                                           /* retval */ SP + 1))) {
           HANDLE_EXCEPTION;
         }
 
@@ -3268,9 +3178,9 @@ SwitchDispatch:
       SP[2] = field;
       SP[3] = value;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 2, /* argv */ SP + 2,
-                                  /* retval */ SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_UpdateFieldCid,
+                         NativeArguments(thread, 2, /* argv */ SP + 2,
+                                         /* retval */ SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3284,20 +3194,22 @@ SwitchDispatch:
         (field->ptr()->is_nullable_ != kNullCid) &&
         Field::UnboxingCandidateBit::decode(field->ptr()->kind_bits_);
     classid_t guarded_cid = field->ptr()->guarded_cid_;
-    if (unboxing && (guarded_cid == kDoubleCid)) {
+    if (unboxing && (guarded_cid == kDoubleCid) && supports_unboxed_doubles_) {
       double raw_value = Double::RawCast(value)->ptr()->value_;
       RawDouble* box =
           *(reinterpret_cast<RawDouble**>(instance->ptr()) + offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       box->ptr()->value_ = raw_value;
-    } else if (unboxing && (guarded_cid == kFloat32x4Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat32x4Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float32x4::RawCast(value)->ptr()->value_);
       RawFloat32x4* box = *(reinterpret_cast<RawFloat32x4**>(instance->ptr()) +
                             offset_in_words);
       ASSERT(box != null_value);  // Non-initializing store.
       raw_value.writeTo(box->ptr()->value_);
-    } else if (unboxing && (guarded_cid == kFloat64x2Cid)) {
+    } else if (unboxing && (guarded_cid == kFloat64x2Cid) &&
+               supports_unboxed_simd128_) {
       simd128_value_t raw_value;
       raw_value.readFrom(Float64x2::RawCast(value)->ptr()->value_);
       RawFloat64x2* box = *(reinterpret_cast<RawFloat64x2**>(instance->ptr()) +
@@ -3331,8 +3243,8 @@ SwitchDispatch:
       SP[1] = 0;  // Unused result of invoking the initializer.
       SP[2] = field;
       Exit(thread, FP, SP + 3, pc);
-      NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_InitStaticField, native_args);
+      INVOKE_RUNTIME(DRT_InitStaticField,
+                     NativeArguments(thread, 1, SP + 2, SP + 1));
 
       // Reload objects after the call which may trigger GC.
       function = FrameFunction(FP);
@@ -3432,8 +3344,8 @@ SwitchDispatch:
       SP[3] = receiver;                // Receiver.
       SP[4] = function->ptr()->name_;  // Field name.
       Exit(thread, FP, SP + 5, pc);
-      NativeArguments native_args(thread, 2, SP + 3, SP + 2);
-      if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_GetFieldForDispatch,
+                         NativeArguments(thread, 2, SP + 3, SP + 2))) {
         HANDLE_EXCEPTION;
       }
       argdesc_ = Array::RawCast(SP[1]);
@@ -3455,8 +3367,8 @@ SwitchDispatch:
       SP[2] = receiver;
       SP[3] = argdesc_;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 2, SP + 2, SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_ResolveCallFunction,
+                         NativeArguments(thread, 2, SP + 2, SP + 1))) {
         HANDLE_EXCEPTION;
       }
       argdesc_ = Array::RawCast(SP[3]);
@@ -3482,8 +3394,8 @@ SwitchDispatch:
       SP[5] = Smi::New(argc);  // length
       SP[6] = null_value;      // type
       Exit(thread, FP, SP + 7, pc);
-      NativeArguments native_args(thread, 2, SP + 5, SP + 4);
-      if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 5, SP + 4))) {
         HANDLE_EXCEPTION;
       }
     }
@@ -3503,8 +3415,8 @@ SwitchDispatch:
     // array of arguments, and target name.
     {
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
-      if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_InvokeNoSuchMethod,
+                         NativeArguments(thread, 4, SP + 2, SP + 1))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3565,8 +3477,8 @@ SwitchDispatch:
         SP[8] = SP[5];       // instantiator_type_args
         SP[9] = null_value;  // function_type_args
         Exit(thread, FP, SP + 10, pc);
-        NativeArguments args(thread, 3, SP + 7, SP + 7);
-        INVOKE_RUNTIME(DRT_InstantiateTypeArguments, args);
+        INVOKE_RUNTIME(DRT_InstantiateTypeArguments,
+                       NativeArguments(thread, 3, SP + 7, SP + 7));
         SP[6] = SP[7];
       }
     }
@@ -3599,8 +3511,8 @@ SwitchDispatch:
         SP[9] = check->ptr()->name_;
         SP[10] = 0;
         Exit(thread, FP, SP + 11, pc);
-        NativeArguments native_args(thread, 5, SP + 5, SP + 10);
-        INVOKE_RUNTIME(DRT_SubtypeCheck, native_args);
+        INVOKE_RUNTIME(DRT_SubtypeCheck,
+                       NativeArguments(thread, 5, SP + 5, SP + 10));
       }
 
       checks = Array::RawCast(SP[1]);  // Reload after runtime call.
@@ -3683,9 +3595,9 @@ SwitchDispatch:
       SP[2] = 0;  // Code result.
       SP[3] = function;
       Exit(thread, FP, SP + 4, pc);
-      NativeArguments native_args(thread, 1, /* argv */ SP + 3,
-                                  /* retval */ SP + 2);
-      if (!InvokeRuntime(thread, this, DRT_CompileFunction, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_CompileFunction,
+                         NativeArguments(thread, 1, /* argv */ SP + 3,
+                                         /* retval */ SP + 2))) {
         HANDLE_EXCEPTION;
       }
       function = Function::RawCast(SP[3]);
@@ -3718,8 +3630,8 @@ SwitchDispatch:
       SP[6] = Smi::New(argc);  // length
       SP[7] = null_value;      // type
       Exit(thread, FP, SP + 8, pc);
-      NativeArguments native_args(thread, 2, SP + 6, SP + 5);
-      if (!InvokeRuntime(thread, this, DRT_AllocateArray, native_args)) {
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 6, SP + 5))) {
         HANDLE_EXCEPTION;
       }
 
@@ -3735,8 +3647,8 @@ SwitchDispatch:
     // and array of arguments.
     {
       Exit(thread, FP, SP + 6, pc);
-      NativeArguments native_args(thread, 4, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue, native_args);
+      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue,
+                     NativeArguments(thread, 4, SP + 2, SP + 1));
       ++SP;  // Result at SP[0]
     }
 
@@ -3748,8 +3660,8 @@ SwitchDispatch:
     // SP[0] contains selector.
     SP[1] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 2, pc);
-    NativeArguments args(thread, 1, SP, SP + 1);
-    INVOKE_RUNTIME(DRT_NullErrorWithSelector, args);
+    INVOKE_RUNTIME(DRT_NullErrorWithSelector,
+                   NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
 
@@ -3757,8 +3669,8 @@ SwitchDispatch:
   ThrowIntegerDivisionByZeroException:
     SP[0] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, 0, SP, SP);
-    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException, args);
+    INVOKE_RUNTIME(DRT_IntegerDivisionByZeroException,
+                   NativeArguments(thread, 0, SP, SP));
     UNREACHABLE();
   }
 
@@ -3767,8 +3679,7 @@ SwitchDispatch:
     // SP[0] contains value.
     SP[1] = 0;  // Unused space for result.
     Exit(thread, FP, SP + 2, pc);
-    NativeArguments args(thread, 1, SP, SP + 1);
-    INVOKE_RUNTIME(DRT_ArgumentError, args);
+    INVOKE_RUNTIME(DRT_ArgumentError, NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
 

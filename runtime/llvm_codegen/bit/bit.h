@@ -31,10 +31,13 @@ StringMap<std::string> GetSubstitutions(const Config& config) {
   sys::path::append(tmp_file, sys::path::Style::native, config.out_dir,
                     basename + ".tmp");
   SmallString<128> codegen;
-  sys::path::append(codegen, sys::path::Style::native, LIT_BINARY_DIR,
+  sys::path::append(codegen, sys::path::Style::native, BIT_BINARY_DIR,
                     "codegen");
   SmallString<128> bit;
-  sys::path::append(bit, sys::path::Style::native, LIT_BINARY_DIR, "bit");
+  sys::path::append(bit, sys::path::Style::native, BIT_BINARY_DIR, "bit");
+
+  SmallString<128> clang;
+  sys::path::append(clang, sys::path::Style::native, BIT_CLANG_DIR, "clang");
 
   // Set up our substitutions.
   StringMap<std::string> subs;
@@ -42,8 +45,9 @@ StringMap<std::string> GetSubstitutions(const Config& config) {
   subs["p"] = test_dir.str();
   subs["P"] = test_dir.str();
   subs["t"] = tmp_file.str().str();
-  subs["codegen"] = codegen.str().str();
-  subs["bit"] = bit.str().str();
+  subs["{codegen}"] = codegen.str().str();
+  subs["{bit}"] = bit.str().str();
+  subs["{clang}"] = clang.str().str();
   return subs;
 }
 

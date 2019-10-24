@@ -89,14 +89,16 @@ typedef Future<void> WorkToWaitAfterComputingResult(String path);
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 87;
+  static const int DATA_VERSION = 88;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
   static int allowedNumberOfContextsToWrite = 10;
 
   /// Whether summary2 should be used to resynthesize elements.
-  static bool useSummary2 = false;
+  @Deprecated('Clients should assume summary2 is used.  '
+      'Summary1 support has been removed.')
+  static bool get useSummary2 => true;
 
   /// The scheduler that schedules analysis work in this, and possibly other
   /// analysis drivers.
@@ -140,11 +142,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The salt to mix into all hashes used as keys for unlinked data.
   final Uint32List _unlinkedSalt =
-      new Uint32List(3 + AnalysisOptionsImpl.unlinkedSignatureLength);
+      new Uint32List(2 + AnalysisOptionsImpl.unlinkedSignatureLength);
 
   /// The salt to mix into all hashes used as keys for linked data.
   final Uint32List _linkedSalt =
-      new Uint32List(3 + AnalysisOptions.signatureLength);
+      new Uint32List(2 + AnalysisOptions.signatureLength);
 
   /// The set of priority files, that should be analyzed sooner.
   final _priorityFiles = new LinkedHashSet<String>();
@@ -1233,6 +1235,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
+      _logger.writeln('Work in $name');
       try {
         _testView.numOfAnalyzedLibraries++;
 
@@ -1250,7 +1253,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             sourceFactory,
             libraryContext.isLibraryUri,
             libraryContext.analysisContext,
-            libraryContext.resynthesizer,
             libraryContext.elementFactory,
             libraryContext.inheritanceManager,
             library,
@@ -1318,7 +1320,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           sourceFactory,
           libraryContext.isLibraryUri,
           libraryContext.analysisContext,
-          libraryContext.resynthesizer,
           libraryContext.elementFactory,
           libraryContext.inheritanceManager,
           library,
@@ -1374,10 +1375,18 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    var libraryContext = _createLibraryContext(library);
-    var element = libraryContext.computeUnitElement(library, file);
-    return new UnitElementResultImpl(
-        currentSession, path, file.uri, library.transitiveSignature, element);
+    return _logger.run('Compute unit element for $path', () {
+      _logger.writeln('Work in $name');
+      var libraryContext = _createLibraryContext(library);
+      var element = libraryContext.computeUnitElement(library, file);
+      return new UnitElementResultImpl(
+        currentSession,
+        path,
+        file.uri,
+        library.transitiveSignature,
+        element,
+      );
+    });
   }
 
   String _computeUnitElementSignature(String path,
@@ -1408,6 +1417,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _byteStore,
       _contentOverlay,
       _resourceProvider,
+      name,
       sourceFactory,
       analysisOptions,
       _unlinkedSalt,
@@ -1436,12 +1446,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         sourceFactory: _sourceFactory,
         externalSummaries: _externalSummaries,
         targetLibrary: library,
-        useSummary2: useSummary2,
       );
-    } else if (useSummary2) {
-      _libraryContext.load2(library);
     } else {
-      _libraryContext.load(library);
+      _libraryContext.load2(library);
     }
     return _libraryContext;
   }
@@ -1464,13 +1471,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void _fillSalt() {
     _unlinkedSalt[0] = DATA_VERSION;
     _unlinkedSalt[1] = enableIndex ? 1 : 0;
-    _unlinkedSalt[2] = useSummary2 ? 1 : 0;
-    _unlinkedSalt.setAll(3, _analysisOptions.unlinkedSignature);
+    _unlinkedSalt.setAll(2, _analysisOptions.unlinkedSignature);
 
     _linkedSalt[0] = DATA_VERSION;
     _linkedSalt[1] = enableIndex ? 1 : 0;
-    _linkedSalt[2] = useSummary2 ? 1 : 0;
-    _linkedSalt.setAll(3, _analysisOptions.signature);
+    _linkedSalt.setAll(2, _analysisOptions.signature);
   }
 
   /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
@@ -1592,7 +1597,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _reportException(String path, exception, StackTrace stackTrace) {
-    String contextKey = null;
+    String contextKey;
     if (exception is _ExceptionState) {
       var state = exception as _ExceptionState;
       exception = state.exception;

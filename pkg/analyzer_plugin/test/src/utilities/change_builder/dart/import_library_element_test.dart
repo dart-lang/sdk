@@ -16,9 +16,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryElementTest);
     defineReflectiveTests(ImportLibraryElement_existingImport_Test);
-    defineReflectiveTests(ImportLibraryElement_incompleteCode_Test);
     defineReflectiveTests(ImportLibraryElement_newImport_withoutPrefix_Test);
-    defineReflectiveTests(ImportLibraryElement_newImport_withPrefix_Test);
   });
 }
 
@@ -160,125 +158,37 @@ import 'package:test/b.dart' as p;
 }
 
 @reflectiveTest
-class ImportLibraryElement_incompleteCode_Test extends _Base {
-  test_fieldDeclaration_atEnd() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-class C {
-  A^
-}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedCode: r'''
-import 'package:test/a.dart';
-
-class C {
-  A
-}
-''',
-    );
-  }
-
-  test_fieldDeclaration_beforeReturnType() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-class C {
-  A^
-  
-  A foo() => null;
-}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedCode: r'''
-import 'package:test/a.dart';
-
-class C {
-  A
-  
-  A foo() => null;
-}
-''',
-    );
-  }
-
-  test_formalParameter_end() async {
-    newFile('/home/test/lib/a.dart', content: 'class AAA {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-f(AAA^) {}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'AAA',
-      expectedCode: r'''
-import 'package:test/a.dart';
-
-f(AAA) {}
-''',
-    );
-  }
-
-  test_formalParameter_start() async {
-    newFile('/home/test/lib/a.dart', content: 'class AAA {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-f(^AAA) {}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'AAA',
-      expectedCode: r'''
-import 'package:test/a.dart';
-
-f(AAA) {}
-''',
-    );
-  }
-
-  test_topLevelVariable_atEnd() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
+class ImportLibraryElement_newImport_withoutPrefix_Test extends _Base {
+  test_constructorName_name() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
     newFile('/home/test/lib/b.dart', content: r'''
-export 'a.dart';
+class B {
+  B.foo();
+}
 ''');
     await _assertImportLibraryElement(
       initialCode: r'''
-A^
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedCode: r'''
-import 'package:test/a.dart';
+import 'package:test/b.dart';
 
-A
-''',
-    );
-  }
-
-  test_topLevelVariable_beforeReturnType() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-A^
-
-A foo() => null;
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedCode: r'''
-import 'package:test/a.dart';
-
-A
-
-A foo() => null;
-''',
-    );
-  }
+main() {
+  B.foo();
 }
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
 
-@reflectiveTest
-class ImportLibraryElement_newImport_withoutPrefix_Test extends _Base {
+main() {
+  B.foo();
+}
+''',
+    );
+  }
+
   test_exported() async {
     newFile('/home/test/lib/a.dart', content: 'class A {}');
     newFile('/home/test/lib/b.dart', content: r'''
@@ -308,6 +218,36 @@ import 'package:test/a.dart';
       expectedCode: r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
+''',
+    );
+  }
+
+  test_methodInvocation_name() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {
+  static void foo() {}
+}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  B.foo();
+}
 ''',
     );
   }
@@ -404,6 +344,36 @@ class C<A> {
     );
   }
 
+  test_prefixedIdentifier_identifier() async {
+    newFile('/home/test/lib/a.dart', content: r'''
+int foo;
+''');
+    newFile('/home/test/lib/b.dart', content: r'''
+class B {
+  static int foo;
+}
+''');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+import 'package:test/b.dart';
+
+main() {
+  B.foo;
+}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'foo',
+      expectedCode: r'''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+main() {
+  B.foo;
+}
+''',
+    );
+  }
+
   test_thisName_notShadowed_localVariable_otherFunction() async {
     newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
     await _assertImportLibraryElement(
@@ -450,369 +420,6 @@ import 'package:test/b.dart';
 }
 
 @reflectiveTest
-class ImportLibraryElement_newImport_withPrefix_Test extends _Base {
-  test_existingImport_nameIsAmbiguous() async {
-    newFile('/home/test/lib/a.dart', content: 'class C {}');
-    newFile('/home/test/lib/b.dart', content: 'class C {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'package:test/a.dart';
-import 'package:test/b.dart';
-''',
-      uriStr: 'package:test/b.dart',
-      name: 'C',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart';
-import 'package:test/b.dart';
-import 'package:test/b.dart' as prefix0;
-''',
-    );
-  }
-
-  test_existingImport_nameIsAmbiguous_prefixed() async {
-    newFile('/home/test/lib/a.dart', content: 'class C {}');
-    newFile('/home/test/lib/b.dart', content: 'class C {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'package:test/a.dart' as p;
-import 'package:test/b.dart' as p;
-''',
-      uriStr: 'package:test/b.dart',
-      name: 'C',
-      expectedCode: r'''
-import 'package:test/a.dart' as p;
-import 'package:test/b.dart' as p;
-import 'package:test/b.dart';
-''',
-    );
-  }
-
-  test_nameIsAmbiguous() async {
-    newFile('/home/test/lib/a.dart', content: 'class C {}');
-    newFile('/home/test/lib/b.dart', content: 'class C {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'package:test/a.dart';
-''',
-      uriStr: 'package:test/b.dart',
-      name: 'C',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart';
-import 'package:test/b.dart' as prefix0;
-''',
-    );
-  }
-
-  test_shadow_otherName_imported() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-class A {}
-''');
-    newFile('/home/test/lib/b.dart', content: r'''
-class A {}
-class B {}
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'package:test/a.dart';
-
-A a;
-''',
-      uriStr: 'package:test/b.dart',
-      name: 'B',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart';
-import 'package:test/b.dart' as prefix0;
-
-A a;
-''',
-    );
-  }
-
-  test_shadow_otherName_inherited() async {
-    newFile('/home/test/lib/b.dart', content: '''
-int foo = 0;
-int bar = 0;
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-class A {
-  void bar() {}
-}
-
-class X extends A {
-  voif f() {
-    bar();
-  }
-}
-''',
-      uriStr: 'package:test/b.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/b.dart' as prefix0;
-
-class A {
-  void bar() {}
-}
-
-class X extends A {
-  voif f() {
-    bar();
-  }
-}
-''',
-    );
-  }
-
-  test_shadowed_class() async {
-    newFile('/home/test/lib/a.dart', content: 'class C {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'package:test/a.dart';
-
-class C {}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'C',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart';
-import 'package:test/a.dart' as prefix0;
-
-class C {}
-''',
-    );
-  }
-
-  test_shadowed_class_inPart() async {
-    newFile('/home/test/lib/a.dart', content: 'class C {}');
-    newFile('/home/test/lib/p.dart', content: 'class C {}');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-part 'p.dart';
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'C',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-part 'p.dart';
-''',
-    );
-  }
-
-  test_shadowed_formalParameter() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-var foo = 0;
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-void f(int foo) {^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-void f(int foo) {}
-''',
-    );
-  }
-
-  test_shadowed_function() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-var foo = 0;
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-void foo() {^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-void foo() {}
-''',
-    );
-  }
-
-  test_shadowed_function_local_after() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-var foo = 0;
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-void f() {
-  void foo() {}
-^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-void f() {
-  void foo() {}
-}
-''',
-    );
-  }
-
-  test_shadowed_function_local_before() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-var foo = 0;
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-void f() {^
-  void foo() {}
-}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-void f() {
-  void foo() {}
-}
-''',
-    );
-  }
-
-  test_shadowed_importPrefix() async {
-    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-import 'dart:math' as foo;
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'dart:math' as foo;
-
-import 'package:test/a.dart' as prefix0;
-''',
-    );
-  }
-
-  test_shadowed_localVariable_after() async {
-    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-main() {
-  var foo = '';
-^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-main() {
-  var foo = '';
-}
-''',
-    );
-  }
-
-  test_shadowed_localVariable_before() async {
-    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-main() {^
-  var foo = '';
-}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-main() {
-  var foo = '';
-}
-''',
-    );
-  }
-
-  test_shadowed_method() async {
-    newFile('/home/test/lib/a.dart', content: 'int foo = 0;');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-class A {
-  void foo() {}
-  
-  void bar() {^}
-}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'foo',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-class A {
-  void foo() {}
-  
-  void bar() {}
-}
-''',
-    );
-  }
-
-  test_shadowed_typeParameter_class() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-class A {}
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-class C<A> {^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-class C<A> {}
-''',
-    );
-  }
-
-  test_shadowed_typeParameter_function() async {
-    newFile('/home/test/lib/a.dart', content: r'''
-class A {}
-''');
-    await _assertImportLibraryElement(
-      initialCode: r'''
-void f<A>() {^}
-''',
-      uriStr: 'package:test/a.dart',
-      name: 'A',
-      expectedPrefix: 'prefix0',
-      expectedCode: r'''
-import 'package:test/a.dart' as prefix0;
-
-void f<A>() {}
-''',
-    );
-  }
-}
-
-@reflectiveTest
 class ImportLibraryElementTest extends _Base {
   test_thisLibrary() async {
     await _assertImportLibraryElement(
@@ -849,21 +456,14 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     var path = convertPath('/home/test/lib/test.dart');
     newFile(path, content: initialCode);
 
-    var resolvedLibrary = await session.getResolvedLibrary(path);
     var requestedLibrary = await session.getLibraryByUri(uriStr);
-
     var requestedElement = requestedLibrary.exportNamespace.get(name);
     expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 
     var builder = newBuilder();
     await builder.addFileEdit(path, (builder) {
-      var result = builder.importLibraryElement(
-        targetLibrary: resolvedLibrary,
-        targetPath: path,
-        targetOffset: offset,
-        requestedLibrary: requestedLibrary,
-        requestedElement: requestedElement,
-      );
+      var uri = Uri.parse(uriStr);
+      var result = builder.importLibraryElement(uri);
       expect(result.prefix, expectedPrefix);
     });
 

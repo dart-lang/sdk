@@ -46,6 +46,6 @@ static method main() → dynamic {
 
 constants  {
   #C1 = null
-  #C2 = <core::Null*>[#C1]
+  #C2 = <core::Null?>[#C1]
   #C3 = self::A<core::int*, core::int*, core::List<dynamic>*> {field:#C2}
 }

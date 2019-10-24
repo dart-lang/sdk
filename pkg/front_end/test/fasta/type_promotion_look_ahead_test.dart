@@ -7,7 +7,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
-import 'package:front_end/src/fasta/builder/builder.dart' show Builder;
+import 'package:front_end/src/fasta/builder/builder.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
@@ -26,15 +26,14 @@ import 'package:front_end/src/fasta/source/type_promotion_look_ahead_listener.da
         TypePromotionState,
         UnspecifiedDeclaration;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
-    show MatchContext;
-
-import 'package:front_end/src/fasta/testing/scanner_chain.dart'
-    show Read, Scan, ScannedFile;
-
 import 'package:kernel/ast.dart' show Source;
 
-import 'package:testing/testing.dart';
+import 'package:testing/testing.dart'
+    show Chain, ChainContext, ExpectationSet, Future, Result, Step, runMe;
+
+import '../utils/kernel_chain.dart' show MatchContext;
+
+import '../utils/scanner_chain.dart' show Read, Scan, ScannedFile;
 
 const String EXPECTATIONS = '''
 [
@@ -188,7 +187,7 @@ class TestListener extends TypePromotionLookAheadListener {
   }
 }
 
-class DebugDeclaration extends Builder {
+class DebugDeclaration extends BuilderImpl {
   final String name;
 
   @override
@@ -228,4 +227,4 @@ class CheckTypePromotionResult
 }
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../../testing.json");
+    runMe(arguments, createContext, configurationPath: "../../testing.json");

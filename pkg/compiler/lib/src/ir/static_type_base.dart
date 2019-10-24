@@ -98,34 +98,36 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
   }
 
   @override
-  ir.DartType visitBoolLiteral(ir.BoolLiteral node) => typeEnvironment.boolType;
+  ir.DartType visitBoolLiteral(ir.BoolLiteral node) =>
+      typeEnvironment.coreTypes.boolLegacyRawType;
 
   @override
   ir.DartType visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded node) =>
-      typeEnvironment.objectType;
+      typeEnvironment.coreTypes.objectLegacyRawType;
 
   @override
   ir.DartType visitStringLiteral(ir.StringLiteral node) =>
-      typeEnvironment.stringType;
+      typeEnvironment.coreTypes.stringLegacyRawType;
 
   @override
   ir.DartType visitStringConcatenation(ir.StringConcatenation node) {
-    return typeEnvironment.stringType;
+    return typeEnvironment.coreTypes.stringLegacyRawType;
   }
 
   @override
   ir.DartType visitNullLiteral(ir.NullLiteral node) => typeEnvironment.nullType;
 
   @override
-  ir.DartType visitIntLiteral(ir.IntLiteral node) => typeEnvironment.intType;
+  ir.DartType visitIntLiteral(ir.IntLiteral node) =>
+      typeEnvironment.coreTypes.intLegacyRawType;
 
   @override
   ir.DartType visitDoubleLiteral(ir.DoubleLiteral node) =>
-      typeEnvironment.doubleType;
+      typeEnvironment.coreTypes.doubleLegacyRawType;
 
   @override
   ir.DartType visitSymbolLiteral(ir.SymbolLiteral node) =>
-      typeEnvironment.symbolType;
+      typeEnvironment.coreTypes.symbolLegacyRawType;
 
   @override
   ir.DartType visitListLiteral(ir.ListLiteral node) {
@@ -181,11 +183,11 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitLogicalExpression(ir.LogicalExpression node) =>
-      typeEnvironment.boolType;
+      typeEnvironment.coreTypes.boolLegacyRawType;
 
   @override
   ir.DartType visitNot(ir.Not node) {
-    return typeEnvironment.boolType;
+    return typeEnvironment.coreTypes.boolLegacyRawType;
   }
 
   @override
@@ -195,11 +197,12 @@ abstract class StaticTypeBase extends ir.Visitor<ir.DartType> {
 
   @override
   ir.DartType visitIsExpression(ir.IsExpression node) {
-    return typeEnvironment.boolType;
+    return typeEnvironment.coreTypes.boolLegacyRawType;
   }
 
   @override
-  ir.DartType visitTypeLiteral(ir.TypeLiteral node) => typeEnvironment.typeType;
+  ir.DartType visitTypeLiteral(ir.TypeLiteral node) =>
+      typeEnvironment.coreTypes.typeLegacyRawType;
 
   @override
   ir.DartType visitFunctionExpression(ir.FunctionExpression node) {

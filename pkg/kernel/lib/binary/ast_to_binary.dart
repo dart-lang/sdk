@@ -5,11 +5,12 @@ library kernel.ast_to_binary;
 
 import 'dart:core' hide MapEntry;
 import 'dart:convert' show utf8;
+import 'dart:developer';
+import 'dart:io' show BytesBuilder;
+import 'dart:typed_data';
 
 import '../ast.dart';
 import 'tag.dart';
-import 'dart:io' show BytesBuilder;
-import 'dart:typed_data';
 
 /// Writes to a binary file.
 ///
@@ -83,6 +84,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     _sink.addBytes(bytes);
   }
 
+  @pragma("vm:prefer-inline")
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
@@ -326,6 +328,15 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
+  void writeExtensionNodeList(List<Extension> nodes) {
+    final len = nodes.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeExtensionNode(node);
+    }
+  }
+
   void writeConstructorNodeList(List<Constructor> nodes) {
     final len = nodes.length;
     writeUInt30(len);
@@ -415,6 +426,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassNode(Class node) {
+    if (_metadataSubsections != null) {
+      _writeNodeMetadata(node);
+    }
+    node.accept(this);
+  }
+
+  void writeExtensionNode(Extension node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -523,30 +541,32 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeComponentFile(Component component) {
-    computeCanonicalNames(component);
-    final componentOffset = getBufferOffset();
-    writeUInt32(Tag.ComponentFile);
-    writeUInt32(Tag.BinaryFormatVersion);
-    writeListOfStrings(component.problemsAsJson);
-    indexLinkTable(component);
-    _collectMetadata(component);
-    if (_metadataSubsections != null) {
-      _writeNodeMetadataImpl(component, componentOffset);
-    }
-    libraryOffsets = <int>[];
-    CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
-    if (main != null) {
-      checkCanonicalName(main);
-    }
-    writeLibraries(component);
-    writeUriToSource(component.uriToSource);
-    writeLinkTable(component);
-    _writeMetadataSection(component);
-    writeStringTable(stringIndexer);
-    writeConstantTable(_constantIndexer);
-    writeComponentIndex(component, component.libraries);
+    Timeline.timeSync("BinaryPrinter.writeComponentFile", () {
+      computeCanonicalNames(component);
+      final componentOffset = getBufferOffset();
+      writeUInt32(Tag.ComponentFile);
+      writeUInt32(Tag.BinaryFormatVersion);
+      writeListOfStrings(component.problemsAsJson);
+      indexLinkTable(component);
+      _collectMetadata(component);
+      if (_metadataSubsections != null) {
+        _writeNodeMetadataImpl(component, componentOffset);
+      }
+      libraryOffsets = <int>[];
+      CanonicalName main = getCanonicalNameOfMember(component.mainMethod);
+      if (main != null) {
+        checkCanonicalName(main);
+      }
+      writeLibraries(component);
+      writeUriToSource(component.uriToSource);
+      writeLinkTable(component);
+      _writeMetadataSection(component);
+      writeStringTable(stringIndexer);
+      writeConstantTable(_constantIndexer);
+      writeComponentIndex(component, component.libraries);
 
-    _flush();
+      _flush();
+    });
   }
 
   void writeListOfStrings(List<String> strings) {
@@ -932,6 +952,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     classOffsets = new List<int>();
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
+    writeExtensionNodeList(node.extensions);
     writeFieldNodeList(node.fields);
     procedureOffsets = new List<int>();
     writeProcedureNodeList(node.procedures);
@@ -1478,6 +1499,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.operand);
   }
 
+  @override
+  void visitNullCheck(NullCheck node) {
+    writeByte(Tag.NullCheck);
+    writeOffset(node.fileOffset);
+    writeNode(node.operand);
+  }
+
   int logicalOperatorIndex(String operator) {
     switch (operator) {
       case '&&':
@@ -1550,6 +1578,14 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     });
     writeNodeList(node.asserts);
     writeNodeList(node.unusedArguments);
+  }
+
+  @override
+  void visitFileUriExpression(FileUriExpression node) {
+    writeByte(Tag.FileUriExpression);
+    writeUriReference(node.fileUri);
+    writeOffset(node.fileOffset);
+    writeNode(node.expression);
   }
 
   @override
@@ -2072,7 +2108,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitTypeParameterType(TypeParameterType node) {
     writeByte(Tag.TypeParameterType);
-    writeByte(node.declaredNullability.index);
+    writeByte(node.typeParameterTypeNullability.index);
     writeUInt30(_typeParameterIndexer[node.parameter]);
     writeOptionalNode(node.promotedBound);
   }
@@ -2089,6 +2125,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitTypeParameter(TypeParameter node) {
     writeByte(node.flags);
     writeAnnotationList(node.annotations);
+    writeByte(node.variance);
     writeStringReference(node.name ?? '');
     writeNode(node.bound);
     writeOptionalNode(node.defaultType);
@@ -2096,8 +2133,29 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitExtension(Extension node) {
-    // TODO(johnniwinther): Support serialization of extension nodes.
-    throw new UnsupportedError('serialization of extension nodes');
+    if (node.canonicalName == null) {
+      throw new ArgumentError('Missing canonical name for $node');
+    }
+    writeByte(Tag.Extension);
+    writeNonNullCanonicalNameReference(getCanonicalNameOfExtension(node));
+    writeStringReference(node.name ?? '');
+    writeUriReference(node.fileUri);
+    writeOffset(node.fileOffset);
+
+    enterScope(typeParameters: node.typeParameters);
+    writeNodeList(node.typeParameters);
+    writeDartType(node.onType);
+    leaveScope(typeParameters: node.typeParameters);
+
+    final int len = node.members.length;
+    writeUInt30(len);
+    for (int i = 0; i < len; i++) {
+      final ExtensionMemberDescriptor descriptor = node.members[i];
+      writeName(descriptor.name);
+      writeByte(descriptor.kind.index);
+      writeByte(descriptor.flags);
+      writeNonNullCanonicalNameReference(descriptor.member.canonicalName);
+    }
   }
 
   // ================================================================
@@ -2215,7 +2273,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitLibraryDependency(LibraryDependency node) {
-    throw new UnsupportedError('serialization of LibraryDependencys');
+    throw new UnsupportedError('serialization of LibraryDependencies');
   }
 
   @override
@@ -2551,6 +2609,7 @@ class BufferedSink {
         _doubleBufferUint8[6], _doubleBufferUint8[7]);
   }
 
+  @pragma("vm:prefer-inline")
   void addByte(int byte) {
     _buffer[length++] = byte;
     if (length == SIZE) {
@@ -2561,6 +2620,7 @@ class BufferedSink {
     }
   }
 
+  @pragma("vm:prefer-inline")
   void addByte2(int byte1, int byte2) {
     if (length < SAFE_SIZE) {
       _buffer[length++] = byte1;
@@ -2571,6 +2631,7 @@ class BufferedSink {
     }
   }
 
+  @pragma("vm:prefer-inline")
   void addByte4(int byte1, int byte2, int byte3, int byte4) {
     if (length < SAFE_SIZE) {
       _buffer[length++] = byte1;
@@ -2664,7 +2725,7 @@ class NotQuiteString {
    * Returns
    *  * Non-negative on success (the new index in [target]).
    *  * -1 when [target] doesn't have enough space. Note that [target] can be
-   *    poluted starting at [index].
+   *    polluted starting at [index].
    *  * -2 on input error, i.e. an unpaired lead or tail surrogate.
    */
   static int writeUtf8(List<int> target, int index, String source,

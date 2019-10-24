@@ -26,6 +26,74 @@ library;
 // class Ef1<X extends Function({int})> {
 //                                  ^
 //
+// pkg/front_end/testcases/general/clone_function_type.dart:67:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// Try changing type arguments so that they conform to the bounds.
+// class Bm2<Z> extends Object with Am2<Function(int), Z> {}
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:70:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+// Try changing type arguments so that they conform to the bounds.
+// class Cm2<Z> extends Object with Am2<Function(int x), Z> {}
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:86:7: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+//  - 'Function' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+// class Jm2<Z> extends Object with Am2<Function, Z> {}
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:89:7: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Object with Am2'.
+//  - 'Function' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+// class Km2<Z> extends Object with Am2<Function(Function Function), Z> {}
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:95:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Mm2'.
+// Try changing type arguments so that they conform to the bounds.
+// class Mm2<Z> = Object with Am2<Function(int), Z>;
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:98:7: Error: Type argument 'dynamic Function(int)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Nm2'.
+// Try changing type arguments so that they conform to the bounds.
+// class Nm2<Z> = Object with Am2<Function(int x), Z>;
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:114:7: Error: Type argument 'Function' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Um2'.
+//  - 'Function' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+// class Um2<Z> = Object with Am2<Function, Z>;
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
+// pkg/front_end/testcases/general/clone_function_type.dart:117:7: Error: Type argument 'dynamic Function(Function)' doesn't conform to the bound 'dynamic Function()' of the type variable 'X' on 'Am2' in the supertype 'Am2' of class 'Vm2'.
+//  - 'Function' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+// class Vm2<Z> = Object with Am2<Function(Function Function), Z>;
+//       ^
+// pkg/front_end/testcases/general/clone_function_type.dart:64:11: Context: This is the type variable whose bound isn't conformed to.
+// class Am2<X extends Function(), Y> {}
+//           ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -197,7 +265,7 @@ class Wm1<Z extends core::Object* = dynamic> = core::Object with self::Am1<() �
     : super core::Object::•()
     ;
 }
-class Am2<X extends () →* dynamic = dynamic, Y extends core::Object* = dynamic> extends core::Object {
+class Am2<X extends () →* dynamic = () →* dynamic, Y extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::Am2<self::Am2::X*, self::Am2::Y*>*
     ;
 }
@@ -449,87 +517,87 @@ class Km3<Z extends core::Object* = dynamic> extends self::_Km3&Object&Am3<self:
   synthetic constructor •() → self::Km3<self::Km3::Z*>*
     ;
 }
-class Af1<X extends (core::int*) →* dynamic = dynamic> extends core::Object {
+class Af1<X extends (core::int*) →* dynamic = (core::int*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::int*) →* dynamic = dynamic>() → self::Af1<self::Af1::foo::X*>*
     ;
 }
-class Bf1<X extends (core::int*) →* dynamic = dynamic> extends core::Object {
+class Bf1<X extends (core::int*) →* dynamic = (core::int*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::int*) →* dynamic = dynamic>() → self::Bf1<self::Bf1::foo::X*>*
     ;
 }
-class Cf1<X extends () →* core::int* = dynamic> extends core::Object {
+class Cf1<X extends () →* core::int* = () →* core::int*> extends core::Object {
   static factory foo<X extends () →* core::int* = dynamic>() → self::Cf1<self::Cf1::foo::X*>*
     ;
 }
-class Df1<X extends () →* dynamic = dynamic> extends core::Object {
+class Df1<X extends () →* dynamic = () →* dynamic> extends core::Object {
   static factory foo<X extends () →* dynamic = dynamic>() → self::Df1<self::Df1::foo::X*>*
     ;
 }
-class Ef1<X extends () →* dynamic = dynamic> extends core::Object {
+class Ef1<X extends () →* dynamic = () →* dynamic> extends core::Object {
   static factory foo<X extends () →* dynamic = dynamic>() → self::Ef1<self::Ef1::foo::X*>*
     ;
 }
-class Ff1<X extends ({x: core::int*}) →* dynamic = dynamic> extends core::Object {
+class Ff1<X extends ({x: core::int*}) →* dynamic = ({x: core::int*}) →* dynamic> extends core::Object {
   static factory foo<X extends ({x: core::int*}) →* dynamic = dynamic>() → self::Ff1<self::Ff1::foo::X*>*
     ;
 }
-class Gf1<X extends ([core::int*]) →* dynamic = dynamic> extends core::Object {
+class Gf1<X extends ([core::int*]) →* dynamic = ([core::int*]) →* dynamic> extends core::Object {
   static factory foo<X extends ([core::int*]) →* dynamic = dynamic>() → self::Gf1<self::Gf1::foo::X*>*
     ;
 }
-class Hf1<X extends ([core::int*]) →* dynamic = dynamic> extends core::Object {
+class Hf1<X extends ([core::int*]) →* dynamic = ([core::int*]) →* dynamic> extends core::Object {
   static factory foo<X extends ([core::int*]) →* dynamic = dynamic>() → self::Hf1<self::Hf1::foo::X*>*
     ;
 }
-class If1<X extends core::Function* = dynamic> extends core::Object {
+class If1<X extends core::Function* = core::Function*> extends core::Object {
   static factory foo<X extends core::Function* = dynamic>() → self::If1<self::If1::foo::X*>*
     ;
 }
-class Jf1<X extends (core::Function*) →* dynamic = dynamic> extends core::Object {
+class Jf1<X extends (core::Function*) →* dynamic = (core::Function*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::Function*) →* dynamic = dynamic>() → self::Jf1<self::Jf1::foo::X*>*
     ;
 }
-class Kf1<X extends () →* (() →* core::Function*) →* dynamic = dynamic> extends core::Object {
+class Kf1<X extends () →* (() →* core::Function*) →* dynamic = () →* (() →* core::Function*) →* dynamic> extends core::Object {
   static factory foo<X extends () →* (() →* core::Function*) →* dynamic = dynamic>() → self::Kf1<self::Kf1::foo::X*>*
     ;
 }
-class Bf2<X extends (core::int*) →* dynamic = dynamic> extends core::Object {
+class Bf2<X extends (core::int*) →* dynamic = (core::int*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::int*) →* dynamic = dynamic>() → self::Bf2<self::Bf2::foo::X*>*
     ;
 }
-class Cf2<X extends (core::int*) →* dynamic = dynamic> extends core::Object {
+class Cf2<X extends (core::int*) →* dynamic = (core::int*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::int*) →* dynamic = dynamic>() → self::Cf2<self::Cf2::foo::X*>*
     ;
 }
-class Df2<X extends () →* core::int* = dynamic> extends core::Object {
+class Df2<X extends () →* core::int* = () →* core::int*> extends core::Object {
   static factory foo<X extends () →* core::int* = dynamic>() → self::Df2<self::Df2::foo::X*>*
     ;
 }
-class Ef2<X extends () →* dynamic = dynamic> extends core::Object {
+class Ef2<X extends () →* dynamic = () →* dynamic> extends core::Object {
   static factory foo<X extends () →* dynamic = dynamic>() → self::Ef2<self::Ef2::foo::X*>*
     ;
 }
-class Ff2<X extends () →* dynamic = dynamic> extends core::Object {
+class Ff2<X extends () →* dynamic = () →* dynamic> extends core::Object {
   static factory foo<X extends () →* dynamic = dynamic>() → self::Ff2<self::Ff2::foo::X*>*
     ;
 }
-class Gf2<X extends ({x: core::int*}) →* dynamic = dynamic> extends core::Object {
+class Gf2<X extends ({x: core::int*}) →* dynamic = ({x: core::int*}) →* dynamic> extends core::Object {
   static factory foo<X extends ({x: core::int*}) →* dynamic = dynamic>() → self::Gf2<self::Gf2::foo::X*>*
     ;
 }
-class Hf2<X extends ([core::int*]) →* dynamic = dynamic> extends core::Object {
+class Hf2<X extends ([core::int*]) →* dynamic = ([core::int*]) →* dynamic> extends core::Object {
   static factory foo<X extends ([core::int*]) →* dynamic = dynamic>() → self::Hf2<self::Hf2::foo::X*>*
     ;
 }
-class If2<X extends ([core::int*]) →* dynamic = dynamic> extends core::Object {
+class If2<X extends ([core::int*]) →* dynamic = ([core::int*]) →* dynamic> extends core::Object {
   static factory foo<X extends ([core::int*]) →* dynamic = dynamic>() → self::If2<self::If2::foo::X*>*
     ;
 }
-class Jf2<X extends (core::Function*) →* dynamic = dynamic> extends core::Object {
+class Jf2<X extends (core::Function*) →* dynamic = (core::Function*) →* dynamic> extends core::Object {
   static factory foo<X extends (core::Function*) →* dynamic = dynamic>() → self::Jf2<self::Jf2::foo::X*>*
     ;
 }
-class Kf2<X extends () →* (() →* core::Function*) →* dynamic = dynamic> extends core::Object {
+class Kf2<X extends () →* (() →* core::Function*) →* dynamic = () →* (() →* core::Function*) →* dynamic> extends core::Object {
   static factory foo<X extends () →* (() →* core::Function*) →* dynamic = dynamic>() → self::Kf2<self::Kf2::foo::X*>*
     ;
 }

@@ -1,15 +1,23 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/dependency_only_if_overloaded.dart:15:5: Error: Can't infer the type of 'a': circularity found during type inference.
+// Specify the type explicitly.
+// var a = /*@ returnType=num* */ () => intValue /*@target=num::+*/ + b;
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 
 static field core::int* intValue;
 static field core::num* numValue;
 static field core::double* doubleValue;
-static field dynamic a;
+static field invalid-type a;
 static field dynamic b;
-static field dynamic c;
-static field dynamic d;
-static field dynamic e;
-static field dynamic f;
+static field () →* core::num* c;
+static field core::num* d;
+static field () →* core::double* e;
+static field core::double* f;
 static method main() → dynamic
   ;

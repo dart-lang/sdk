@@ -5,6 +5,33 @@
 import 'package:kernel/ast.dart' as type;
 
 import '../builder/builder.dart' as type;
+import '../builder/builtin_type_builder.dart' as type;
+import '../builder/class_builder.dart' as type;
+import '../builder/constructor_reference_builder.dart' as type;
+import '../builder/dynamic_type_builder.dart' as type;
+import '../builder/enum_builder.dart' as type;
+import '../builder/field_builder.dart' as type;
+import '../builder/formal_parameter_builder.dart' as type;
+import '../builder/function_builder.dart' as type;
+import '../builder/function_type_builder.dart' as type;
+import '../builder/invalid_type_declaration_builder.dart' as type;
+import '../builder/library_builder.dart' as type;
+import '../builder/member_builder.dart' as type;
+import '../builder/metadata_builder.dart' as type;
+import '../builder/mixin_application_builder.dart' as type;
+import '../builder/modifier_builder.dart' as type;
+import '../builder/name_iterator.dart' as type;
+import '../builder/named_type_builder.dart' as type;
+import '../builder/nullability_builder.dart' as type;
+import '../builder/prefix_builder.dart' as type;
+import '../builder/type_alias_builder.dart' as type;
+import '../builder/type_builder.dart' as type;
+import '../builder/type_declaration_builder.dart' as type;
+import '../builder/type_variable_builder.dart' as type;
+import '../builder/unresolved_type.dart' as type;
+import '../builder/void_type_builder.dart' as type;
+
+import '../identifiers.dart' as type;
 
 import '../kernel/expression_generator.dart' as type;
 
@@ -33,10 +60,12 @@ abstract class ValueKind {
   /// Checks the [value] an returns `true` if the value is of the expected kind.
   bool check(Object value);
 
-  static const ValueKind Arguments = _SingleValueKind<type.Arguments>();
+  static const ValueKind Arguments = const _SingleValueKind<type.Arguments>();
   static const ValueKind ArgumentsOrNull =
-      _SingleValueKind<type.Arguments>(NullValue.Arguments);
+      const _SingleValueKind<type.Arguments>(NullValue.Arguments);
   static const ValueKind Expression = const _SingleValueKind<type.Expression>();
+  static const ValueKind ExpressionOrNull =
+      const _SingleValueKind<type.Expression>(NullValue.Expression);
   static const ValueKind Identifier = const _SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
       const _SingleValueKind<type.Identifier>(NullValue.Identifier);
@@ -47,6 +76,8 @@ abstract class ValueKind {
       const _SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValue.FormalParameters);
   static const ValueKind Generator = const _SingleValueKind<type.Generator>();
+  static const ValueKind Initializer =
+      const _SingleValueKind<type.Initializer>();
   static const ValueKind MethodBody = const _SingleValueKind<type.MethodBody>();
   static const ValueKind Modifiers =
       const _SingleValueKind<List<type.Modifier>>();
@@ -55,20 +86,23 @@ abstract class ValueKind {
   static const ValueKind Name = const _SingleValueKind<String>();
   static const ValueKind NameOrNull =
       const _SingleValueKind<String>(NullValue.Name);
-  static const ValueKind NameOrOperator = _UnionValueKind([Name, Operator]);
+  static const ValueKind NameOrOperator =
+      const _UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
       const _UnionValueKind([Name, QualifiedName, Operator]);
   static const ValueKind NameOrParserRecovery =
       const _UnionValueKind([Name, ParserRecovery]);
   static const ValueKind MetadataListOrNull =
       const _SingleValueKind<List<type.MetadataBuilder>>(NullValue.Metadata);
+  static const ValueKind ObjectList = const _SingleValueKind<List<Object>>();
   static const ValueKind Operator = const _SingleValueKind<type.Operator>();
   static const ValueKind ParserRecovery =
-      _SingleValueKind<type.ParserRecovery>();
+      const _SingleValueKind<type.ParserRecovery>();
   static const ValueKind ProblemBuilder =
-      _SingleValueKind<type.ProblemBuilder>();
+      const _SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const _SingleValueKind<type.QualifiedName>();
+  static const ValueKind Statement = const _SingleValueKind<type.Statement>();
   static const ValueKind Token = const _SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull =
       const _SingleValueKind<type.Token>(NullValue.Token);
@@ -143,5 +177,5 @@ List<ValueKind> repeatedKinds(ValueKind kind, int count) {
 
 /// Helper method for creating a union of a list of [ValueKind]s.
 ValueKind unionOfKinds(List<ValueKind> kinds) {
-  return _UnionValueKind(kinds);
+  return new _UnionValueKind(kinds);
 }

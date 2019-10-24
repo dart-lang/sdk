@@ -37,6 +37,18 @@ import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../blacklisted_classes.dart' show blacklistedCoreClasses;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/enum_builder.dart';
+import '../builder/extension_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
+
 import '../export.dart' show Export;
 
 import '../import.dart' show Import;
@@ -71,19 +83,7 @@ import '../fasta_codes.dart'
 import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        ClassHierarchyBuilder,
-        Builder,
-        DelayedMember,
-        DelayedOverrideCheck,
-        EnumBuilder,
-        FieldBuilder,
-        ProcedureBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        NamedTypeBuilder,
-        TypeBuilder;
+    show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -111,6 +111,8 @@ import '../scanner.dart'
         ScannerResult,
         Token,
         scan;
+
+import '../type_inference/type_inferrer.dart';
 
 import 'diet_listener.dart' show DietListener;
 
@@ -211,9 +213,6 @@ class SourceLoader extends Loader {
             enableExtensionMethods: target.enableExtensionMethods,
             enableNonNullable: target.enableNonNullable),
         languageVersionChanged: (_, LanguageVersionToken version) {
-      // TODO(jensj): What if we have several? What if it is unsupported?
-      // What if the language version was already set via packages and this is
-      // higher? Etc
       library.setLanguageVersion(version.major, version.minor,
           offset: version.offset, length: version.length, explicit: true);
     });
@@ -262,6 +261,9 @@ class SourceLoader extends Loader {
 
       case "dart:_internal":
         return utf8.encode(defaultDartInternalSource);
+
+      case "dart:typed_data":
+        return utf8.encode(defaultDartTypedDataSource);
 
       default:
         return utf8.encode(message == null ? "" : "/* ${message.message} */");
@@ -330,8 +332,8 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilder(null, 0, null, "debugExpr",
-        null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new ProcedureBuilderImpl(null, 0, null,
+        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -469,17 +471,6 @@ class SourceLoader extends Loader {
       }
     });
     ticker.logMs("Resolved $typeCount types");
-  }
-
-  void finalizeInitializingFormals() {
-    int formalCount = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library;
-        formalCount += sourceLibrary.finalizeInitializingFormals();
-      }
-    });
-    ticker.logMs("Finalized $formalCount initializing formals");
   }
 
   void finishDeferredLoadTearoffs() {
@@ -681,7 +672,7 @@ class SourceLoader extends Loader {
     if (mixedInType != null) {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {
-        var builder = mixedInType.declaration;
+        TypeDeclarationBuilder builder = mixedInType.declaration;
         if (builder is ClassBuilder) {
           isClassBuilder = true;
           for (Builder constructor in builder.constructors.local.values) {
@@ -808,13 +799,13 @@ class SourceLoader extends Loader {
   Component computeFullComponent() {
     Set<Library> libraries = new Set<Library>();
     List<Library> workList = <Library>[];
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (!library.isPatch &&
-          (library.loader == this ||
-              library.uri.scheme == "dart" ||
-              library == this.first)) {
-        if (libraries.add(library.target)) {
-          workList.add(library.target);
+    builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
+      if (!libraryBuilder.isPatch &&
+          (libraryBuilder.loader == this ||
+              libraryBuilder.uri.scheme == "dart" ||
+              libraryBuilder == this.first)) {
+        if (libraries.add(libraryBuilder.library)) {
+          workList.add(libraryBuilder.library);
         }
       }
     });
@@ -887,8 +878,6 @@ class SourceLoader extends Loader {
   }
 
   void checkBounds() {
-    if (target.legacyMode) return;
-
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
@@ -920,7 +909,7 @@ class SourceLoader extends Loader {
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
       delayedMemberChecks[i].check(builderHierarchy);
-      changedClasses.add(delayedMemberChecks[i].parent.cls);
+      changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
         "Computed ${delayedMemberChecks.length} combined member signatures");
@@ -932,7 +921,6 @@ class SourceLoader extends Loader {
 
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
     // TODO(ahe): Move this to [ClassHierarchyBuilder].
-    if (target.legacyMode) return;
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         builder.checkRedirectingFactories(
@@ -950,7 +938,7 @@ class SourceLoader extends Loader {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
         if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
-          changedClasses.add(builder.target);
+          changedClasses.add(builder.cls);
         }
       }
     }
@@ -961,10 +949,6 @@ class SourceLoader extends Loader {
   void checkMixins(List<SourceClassBuilder> sourceClasses) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        if (builder.isMixinDeclaration) {
-          builder.checkMixinDeclaration();
-        }
-
         Class mixedInClass = builder.cls.mixedInClass;
         if (mixedInClass != null && mixedInClass.isMixinDeclaration) {
           builder.checkMixinApplication(hierarchy);
@@ -983,6 +967,8 @@ class SourceLoader extends Loader {
           Builder declaration = iterator.current;
           if (declaration is ClassBuilder) {
             declaration.buildOutlineExpressions(library);
+          } else if (declaration is ExtensionBuilder) {
+            declaration.buildOutlineExpressions(library);
           } else if (declaration is MemberBuilder) {
             declaration.buildOutlineExpressions(library);
           }
@@ -1000,13 +986,10 @@ class SourceLoader extends Loader {
   }
 
   void createTypeInferenceEngine() {
-    if (target.legacyMode) return;
     typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
-    if (target.legacyMode) return;
-
     /// The first phase of top level initializer inference, which consists of
     /// creating kernel objects for all fields and top level variables that
     /// might be subject to type inference, and records dependencies between
@@ -1045,8 +1028,7 @@ class SourceLoader extends Loader {
       node.accept(collectionTransformer ??= new CollectionTransformer(this));
     }
     if (transformSetLiterals) {
-      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this,
-          transformConst: !target.enableConstantUpdate2018));
+      node.accept(setLiteralTransformer ??= new SetLiteralTransformer(this));
     }
   }
 
@@ -1060,9 +1042,8 @@ class SourceLoader extends Loader {
       }
     }
     if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+      SetLiteralTransformer transformer =
+          setLiteralTransformer ??= new SetLiteralTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
@@ -1119,6 +1100,11 @@ class SourceLoader extends Loader {
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
+  }
+
+  BodyBuilder createBodyBuilderForField(
+      FieldBuilder field, TypeInferrer typeInferrer) {
+    return new BodyBuilder.forField(field, typeInferrer);
   }
 }
 
@@ -1260,6 +1246,16 @@ class _UnmodifiableSet {
 const String defaultDartInternalSource = """
 class Symbol {
   const Symbol(String name);
+}
+""";
+
+/// A minimal implementation of dart:typed_data that is sufficient to create an
+/// instance of [CoreTypes] and compile program.
+const String defaultDartTypedDataSource = """
+class Endian {
+  static const Endian little = null;
+  static const Endian big = null;
+  static final Endian host = null;
 }
 """;
 

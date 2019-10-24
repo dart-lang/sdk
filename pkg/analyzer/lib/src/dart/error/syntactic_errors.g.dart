@@ -97,6 +97,15 @@ final fastaAnalyzerErrorCodes = <ErrorCode>[
   _EXTERNAL_CONSTRUCTOR_WITH_BODY,
   _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS,
   _VAR_AND_TYPE,
+  _INVALID_INITIALIZER,
+  _ANNOTATION_WITH_TYPE_ARGUMENTS,
+  _EXTENSION_DECLARES_CONSTRUCTOR,
+  _EXTENSION_DECLARES_INSTANCE_FIELD,
+  _EXTENSION_DECLARES_ABSTRACT_MEMBER,
+  _MIXIN_DECLARES_CONSTRUCTOR,
+  _NULL_AWARE_CASCADE_OUT_OF_ORDER,
+  _MULTIPLE_VARIANCE_MODIFIERS,
+  _INVALID_USE_OF_COVARIANT_IN_EXTENSION,
 ];
 
 const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
@@ -104,6 +113,10 @@ const ParserErrorCode _ABSTRACT_CLASS_MEMBER = const ParserErrorCode(
     r"Members of classes can't be declared to be 'abstract'.",
     correction:
         "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.");
+
+const ParserErrorCode _ANNOTATION_WITH_TYPE_ARGUMENTS = const ParserErrorCode(
+    'ANNOTATION_WITH_TYPE_ARGUMENTS',
+    r"An annotation (metadata) can't use type arguments.");
 
 const ParserErrorCode _BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
     'BREAK_OUTSIDE_OF_LOOP',
@@ -190,7 +203,7 @@ const ParserErrorCode _DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode(
 
 const ParserErrorCode _DUPLICATED_MODIFIER = const ParserErrorCode(
     'DUPLICATED_MODIFIER', r"The modifier '#lexeme' was already specified.",
-    correction: "Try removing all but one occurence of the modifier.");
+    correction: "Try removing all but one occurrence of the modifier.");
 
 const ParserErrorCode _DUPLICATE_DEFERRED = const ParserErrorCode(
     'DUPLICATE_DEFERRED',
@@ -213,8 +226,8 @@ const ParserErrorCode _ENUM_IN_CLASS = const ParserErrorCode(
 
 const ParserErrorCode _EQUALITY_CANNOT_BE_EQUALITY_OPERAND = const ParserErrorCode(
     'EQUALITY_CANNOT_BE_EQUALITY_OPERAND',
-    r"An equality expression can't be an operand of another equality expression.",
-    correction: "Try re-writing the expression.");
+    r"A comparison expression can't be an operand of another comparison expression.",
+    correction: "Try putting parentheses around one of the comparisons.");
 
 const ParserErrorCode _EXPECTED_BODY = const ParserErrorCode(
     'EXPECTED_BODY', r"A #string must have a body, even if it is empty.",
@@ -237,6 +250,24 @@ const ParserErrorCode _EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
         r"Export directives must precede part directives.",
         correction:
             "Try moving the export directives before the part directives.");
+
+const ParserErrorCode _EXTENSION_DECLARES_ABSTRACT_MEMBER =
+    const ParserErrorCode('EXTENSION_DECLARES_ABSTRACT_MEMBER',
+        r"Extensions can't declare abstract members.",
+        correction: "Try providing an implementation for the member.",
+        hasPublishedDocs: true);
+
+const ParserErrorCode _EXTENSION_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'EXTENSION_DECLARES_CONSTRUCTOR', r"Extensions can't declare constructors.",
+    correction: "Try removing the constructor declaration.",
+    hasPublishedDocs: true);
+
+const ParserErrorCode _EXTENSION_DECLARES_INSTANCE_FIELD =
+    const ParserErrorCode('EXTENSION_DECLARES_INSTANCE_FIELD',
+        r"Extensions can't declare instance fields",
+        correction:
+            "Try removing the field declaration or making it a static field",
+        hasPublishedDocs: true);
 
 const ParserErrorCode _EXTERNAL_CLASS = const ParserErrorCode(
     'EXTERNAL_CLASS', r"Classes can't be declared to be 'external'.",
@@ -263,7 +294,8 @@ const ParserErrorCode _EXTERNAL_FACTORY_WITH_BODY = const ParserErrorCode(
 
 const ParserErrorCode _EXTERNAL_FIELD = const ParserErrorCode(
     'EXTERNAL_FIELD', r"Fields can't be declared to be 'external'.",
-    correction: "Try removing the keyword 'external'.");
+    correction:
+        "Try removing the keyword 'external', or replacing the field by an external getter and/or setter.");
 
 const ParserErrorCode _EXTERNAL_METHOD_WITH_BODY = const ParserErrorCode(
     'EXTERNAL_METHOD_WITH_BODY',
@@ -284,7 +316,7 @@ const ParserErrorCode _FACTORY_TOP_LEVEL_DECLARATION = const ParserErrorCode(
 
 const ParserErrorCode _FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS =
     const ParserErrorCode('FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS',
-        r"A field can only be initialized in it's declaring class",
+        r"A field can only be initialized in its declaring class",
         correction:
             "Try passing a value into the superclass constructor, or moving the initialization into the constructor body.");
 
@@ -342,6 +374,10 @@ const ParserErrorCode _INVALID_HEX_ESCAPE = const ParserErrorCode(
     'INVALID_HEX_ESCAPE',
     r"An escape sequence starting with '\x' must be followed by 2 hexadecimal digits.");
 
+const ParserErrorCode _INVALID_INITIALIZER = const ParserErrorCode(
+    'INVALID_INITIALIZER', r"Not a valid initializer.",
+    correction: "To initialize a field, use the syntax 'name = value'.");
+
 const ParserErrorCode _INVALID_OPERATOR = const ParserErrorCode(
     'INVALID_OPERATOR',
     r"The string '#lexeme' isn't a user-definable operator.");
@@ -363,6 +399,11 @@ const ParserErrorCode _INVALID_UNICODE_ESCAPE = const ParserErrorCode(
     'INVALID_UNICODE_ESCAPE',
     r"An escape sequence starting with '\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.");
 
+const ParserErrorCode _INVALID_USE_OF_COVARIANT_IN_EXTENSION =
+    const ParserErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+        r"Can't have modifier '#lexeme' in an extension.",
+        correction: "Try removing '#lexeme'.");
+
 const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode(
     'LIBRARY_DIRECTIVE_NOT_FIRST',
     r"The library directive must appear before all other directives.",
@@ -371,7 +412,7 @@ const ParserErrorCode _LIBRARY_DIRECTIVE_NOT_FIRST = const ParserErrorCode(
 
 const ParserErrorCode _MISSING_ASSIGNABLE_SELECTOR = const ParserErrorCode(
     'MISSING_ASSIGNABLE_SELECTOR',
-    r"Missing selector such as '.<identifier>' or '[0]'.",
+    r"Missing selector such as '.identifier' or '[0]'.",
     correction: "Try adding a selector.");
 
 const ParserErrorCode _MISSING_ASSIGNMENT_IN_INITIALIZER =
@@ -407,10 +448,14 @@ const ParserErrorCode _MISSING_KEYWORD_OPERATOR = const ParserErrorCode(
 const ParserErrorCode _MISSING_PREFIX_IN_DEFERRED_IMPORT =
     const ParserErrorCode('MISSING_PREFIX_IN_DEFERRED_IMPORT',
         r"Deferred imports should have a prefix.",
-        correction: "Try adding a prefix to the import.");
+        correction:
+            "Try adding a prefix to the import by adding an 'as' clause.");
 
 const ParserErrorCode _MISSING_STATEMENT =
     const ParserErrorCode('MISSING_STATEMENT', r"Expected a statement.");
+
+const ParserErrorCode _MIXIN_DECLARES_CONSTRUCTOR = const ParserErrorCode(
+    'MIXIN_DECLARES_CONSTRUCTOR', r"Mixins can't declare constructors.");
 
 const ParserErrorCode _MODIFIER_OUT_OF_ORDER = const ParserErrorCode(
     'MODIFIER_OUT_OF_ORDER',
@@ -438,6 +483,11 @@ const ParserErrorCode _MULTIPLE_PART_OF_DIRECTIVES = const ParserErrorCode(
     r"Only one part-of directive may be declared in a file.",
     correction: "Try removing all but one of the part-of directives.");
 
+const ParserErrorCode _MULTIPLE_VARIANCE_MODIFIERS = const ParserErrorCode(
+    'MULTIPLE_VARIANCE_MODIFIERS',
+    r"Each type parameter can have at most one variance modifier.",
+    correction: "Use at most one of the 'in', 'out', or 'inout' modifiers.");
+
 const ParserErrorCode _MULTIPLE_WITH_CLAUSES = const ParserErrorCode(
     'MULTIPLE_WITH_CLAUSES',
     r"Each class definition can have at most one with clause.",
@@ -448,6 +498,12 @@ const ParserErrorCode _NATIVE_CLAUSE_SHOULD_BE_ANNOTATION = const ParserErrorCod
     r"Native clause in this form is deprecated.",
     correction:
         "Try removing this native clause and adding @native() or @native('native-name') before the declaration.");
+
+const ParserErrorCode _NULL_AWARE_CASCADE_OUT_OF_ORDER = const ParserErrorCode(
+    'NULL_AWARE_CASCADE_OUT_OF_ORDER',
+    r"The '?..' cascade operator must be first in the cascade sequence.",
+    correction:
+        "Try moving the '?..' operator to be the first cascade operator in the sequence.");
 
 const ParserErrorCode _PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
     'PREFIX_AFTER_COMBINATOR',

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -32,6 +31,7 @@ class B<T> implements A<List<T>> {}
     ]);
   }
 
+  @failingTest
   test_accessPrivateEnumField() async {
     await assertErrorsInCode(r'''
 enum E { ONE }
@@ -375,8 +375,6 @@ void main(){
   }
 
   test_constConstructorWithFieldInitializedByNonConst() async {
-    // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
-    // redundant and ought to be suppressed.
     await assertErrorsInCode(r'''
 class A {
   final int i = f();
@@ -386,8 +384,6 @@ int f() {
   return 3;
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 26,
-          3),
       error(
           CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -928,6 +924,27 @@ main() {
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 45, 1),
     ]);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38352')
+  test_constWithNonConstantArgument_classShadowedBySetter() async {
+    // TODO(paulberry): once this is fixed, change this test to use
+    // assertErrorsInCode and verify the exact error message(s).
+    var code = '''
+class Annotation {
+  const Annotation(Object obj);
+}
+
+class Bar {}
+
+class Foo {
+  @Annotation(Bar)
+  set Bar(int value) {}
+}
+''';
+    addTestFile(code);
+    await resolveTestFile();
+    assertHasTestErrors();
   }
 
   test_constWithNonConstantArgument_instanceCreation() async {
@@ -1571,7 +1588,7 @@ f() {
 }
 ''', [
       error(HintCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-      error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 28, 1),
+      error(StaticWarningCode.ASSIGNMENT_TO_CONST, 28, 1),
     ]);
   }
 
@@ -1682,20 +1699,7 @@ typedef T foo<T extends S Function<S>(S)>(T t);
     var code = '''
 void g(T f<T>(T x)) {}
 ''';
-    if (AnalysisDriver.useSummary2) {
-      await assertNoErrorsInCode(code);
-    } else {
-      // Once dartbug.com/28515 is fixed, this syntax should no longer generate an
-      // error.
-      await assertErrorsInCode(code, [
-        // Due to dartbug.com/28515, some additional errors appear when using the
-        // new analysis driver.
-        error(StaticWarningCode.UNDEFINED_CLASS, 7, 1),
-        error(CompileTimeErrorCode.GENERIC_FUNCTION_TYPED_PARAM_UNSUPPORTED, 7,
-            11),
-        error(StaticWarningCode.UNDEFINED_CLASS, 14, 1),
-      ]);
-    }
+    await assertNoErrorsInCode(code);
   }
 
   test_implementsDeferredClass() async {
@@ -3735,7 +3739,7 @@ main() {
   const A();
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 48, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 2),
     ]);
   }
 
@@ -3748,7 +3752,7 @@ class B extends A {
   const B() : super();
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 69, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 69, 2),
     ]);
   }
 
@@ -4739,7 +4743,7 @@ var s5 = const Symbol('x', foo: 'x');
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 9, 17),
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 37, 15),
       error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 50, 1),
-      error(CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS, 75, 2),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 75, 2),
       error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 100, 10),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 139, 3),
     ]);
@@ -4789,18 +4793,10 @@ typedef A(A b());
   }
 
   test_typeAliasCannotReferenceItself_generic() async {
-    List<ExpectedError> expectedErrors;
-    if (AnalysisDriver.useSummary2) {
-      expectedErrors = [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-        error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
-      ];
-    } else {
-      expectedErrors = [
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
-        error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 38, 37),
-      ];
-    }
+    List<ExpectedError> expectedErrors = [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 37),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, 101, 1),
+    ];
     await assertErrorsInCode(r'''
 typedef F = void Function(List<G> l);
 typedef G = void Function(List<F> l);
@@ -4938,7 +4934,7 @@ f() {
   return const A();
 }
 ''', [
-      error(StaticWarningCode.UNDEFINED_CLASS, 21, 1),
+      error(CompileTimeErrorCode.UNDEFINED_CLASS, 21, 1),
     ]);
   }
 

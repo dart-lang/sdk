@@ -33,7 +33,8 @@ bool MethodCanSkipTypeChecksForNonCovariantArguments(
   // In AOT mode we don't dynamically generate such trampolines but instead rely
   // on a static analysis to discover which methods can be invoked dynamically,
   // and generate the necessary trampolines during precompilation.
-  if (method.name() == Symbols::Call().raw()) {
+  if (method.name() == Symbols::Call().raw() ||
+      method.CanReceiveDynamicInvocation()) {
     // Currently we consider all call methods to be invoked dynamically and
     // don't mangle their names.
     // TODO(vegorov) remove this once we also introduce special type checking
@@ -188,8 +189,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                   ExternalTypedData::Handle(Z, class_field.KernelData());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
-              AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
-                                          field_offset);
+              AlternativeReadingScopeWithNewData alt(
+                  &helper_.reader_, &kernel_data, field_offset);
               FieldHelper field_helper(&helper_);
               field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
               Tag initializer_tag =
@@ -473,8 +474,8 @@ void ScopeBuilder::VisitConstructor() {
             ExternalTypedData::Handle(Z, class_field.KernelData());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(&helper_.reader_, &kernel_data,
-                                    field_offset);
+        AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
+                                               field_offset);
         FieldHelper field_helper(&helper_);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
         Tag initializer_tag = helper_.ReadTag();
@@ -763,6 +764,10 @@ void ScopeBuilder::VisitExpression() {
     case kNot:
       VisitExpression();  // read expression.
       return;
+    case kNullCheck:
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
+      return;
     case kLogicalExpression:
       needs_expr_temp_ = true;
       VisitExpression();     // read left.
@@ -789,8 +794,9 @@ void ScopeBuilder::VisitExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -1637,6 +1643,7 @@ void ScopeBuilder::FinalizeExceptionVariable(
     raw_variable =
         new LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                           symbol, AbstractType::dynamic_type());
+    raw_variable->set_is_forced_stack();
     const bool ok = scope_->AddVariable(raw_variable);
     ASSERT(ok);
   } else {
@@ -1737,7 +1744,8 @@ StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
-  AlternativeReadingScope alt(&helper_.reader_, &kernel_data, kernel_offset);
+  AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
+                                         kernel_offset);
   VariableDeclarationHelper helper(&helper_);
   helper.ReadUntilIncluding(VariableDeclarationHelper::kNameIndex);
   return helper.name_index_;

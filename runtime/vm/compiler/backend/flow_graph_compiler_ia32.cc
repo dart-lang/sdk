@@ -970,7 +970,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
       zone(),
-      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+      MegamorphicCacheTable::Lookup(thread(), name, arguments_descriptor));
 
   __ Comment("MegamorphicCall");
   // Load receiver into EBX.

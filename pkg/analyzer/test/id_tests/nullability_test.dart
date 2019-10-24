@@ -70,7 +70,9 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
 
   @override
   String computeNodeValue(Id id, AstNode node) {
-    if (node is SimpleIdentifier && node.inGetterContext()) {
+    if (node is SimpleIdentifier &&
+        node.inGetterContext() &&
+        !node.inDeclarationContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
         TypeImpl promotedType = node.staticType;

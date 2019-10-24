@@ -37,12 +37,12 @@ var tests = <IsolateTest>[
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(469, 26),
-      'endPos': ifKernel(536, 51),
+      'startPos': 469,
+      'endPos': 536,
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([469, 509, 520, 524], [26, 37, 41, 45]),
-        'misses': ifKernel([], [])
+        'hits': [469, 509, 520, 524],
+        'misses': []
       }
     };
 

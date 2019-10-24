@@ -18,7 +18,7 @@ template("bit_test") {
   assert(defined(invoker.tests), "tests must be defined for $target_name")
 
   action_foreach(target_name) {
-    script = "../../../build/gn_run_binary.py"
+    script = "//runtime/llvm_codegen/test/run_bit.py"
     sources = invoker.tests
 
     deps = [
@@ -33,10 +33,9 @@ template("bit_test") {
       "$target_gen_dir/{{source_name_part}}}",
     ]
     args = [
-      "compiled_action",
-      rebase_path("${root_out_dir}/bit"),
-      "{{source}}",
-      rebase_path(target_gen_dir),
+      "--bit", rebase_path("${root_out_dir}/bit"),
+      "--test", "{{source}}",
+      "--out", rebase_path(target_gen_dir),
     ]
   }
 }

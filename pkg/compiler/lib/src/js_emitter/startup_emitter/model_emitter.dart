@@ -49,11 +49,18 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
+import '../../js_backend/native_data.dart' show NativeData;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
+import '../../js_backend/type_reference.dart'
+    show
+        TypeReferenceFinalizer,
+        TypeReferenceFinalizerImpl,
+        TypeReferenceResource;
 import '../../options.dart';
+import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';
 import '../code_emitter_task.dart';

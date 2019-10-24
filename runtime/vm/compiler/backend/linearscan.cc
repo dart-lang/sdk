@@ -603,7 +603,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     // Check if any values live into the loop can be spilled for free.
     if (block->IsLoopHeader()) {
-      current_interference_set = NULL;
+      ASSERT(loop_info != nullptr);
+      current_interference_set = nullptr;
       for (BitVector::Iterator it(liveness_.GetLiveInSetAt(i)); !it.Done();
            it.Advance()) {
         LiveRange* range = GetLiveRange(it.Current());
@@ -1150,6 +1151,8 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
       live_registers->Add(*in_ref, range->representation());
     }
     MoveOperands* move = AddMoveAt(pos - 1, *in_ref, Location::Any());
+    ASSERT(!in_ref->IsRegister() ||
+           ((1 << in_ref->reg()) & kDartAvailableCpuRegs) != 0);
     BlockLocation(*in_ref, pos - 1, pos + 1);
     range->AddUseInterval(block->start_pos(), pos - 1);
     range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
@@ -1216,6 +1219,8 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
     //    register        [--)
     //    output             [-------
     //
+    ASSERT(!out->IsRegister() ||
+           ((1 << out->reg()) & kDartAvailableCpuRegs) != 0);
     BlockLocation(*out, pos, pos + 1);
 
     if (range->vreg() == kTempVirtualRegister) return;
@@ -1419,6 +1424,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // We do not support pair locations for temporaries.
     ASSERT(!temp.IsPairLocation());
     if (temp.IsMachineRegister()) {
+      ASSERT(!temp.IsRegister() ||
+             ((1 << temp.reg()) & kDartAvailableCpuRegs) != 0);
       BlockLocation(temp, pos, pos + 1);
     } else if (temp.IsUnallocated()) {
       LiveRange* range = MakeLiveRangeForTemporary();

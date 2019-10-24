@@ -4,12 +4,16 @@
 
 library fasta.field_builder;
 
-import 'package:kernel/ast.dart' show DartType, Expression;
-
-import 'builder.dart' show LibraryBuilder, MemberBuilder;
-
 import 'package:kernel/ast.dart'
-    show Class, DartType, Expression, Field, InvalidType, Name, NullLiteral;
+    show
+        Class,
+        DartType,
+        Expression,
+        Field,
+        InvalidType,
+        Member,
+        Name,
+        NullLiteral;
 
 import '../constant_context.dart' show ConstantContext;
 
@@ -20,14 +24,9 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        ImplicitFieldType,
-        TypeBuilder,
-        LibraryBuilder,
-        MetadataBuilder;
+import '../kernel/kernel_builder.dart' show ImplicitFieldType;
+
+import '../modifier.dart' show covariantMask, hasInitializerMask, lateMask;
 
 import '../problems.dart' show internalProblem;
 
@@ -42,34 +41,87 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
-import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
+import '../type_inference/type_inferrer.dart'
+    show ExpressionInferenceResult, TypeInferrerImpl;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
+import 'builder.dart';
+import 'class_builder.dart';
 import 'extension_builder.dart';
+import 'library_builder.dart';
+import 'member_builder.dart';
+import 'metadata_builder.dart';
+import 'type_builder.dart';
 
-class FieldBuilder extends MemberBuilder {
+abstract class FieldBuilder implements MemberBuilder {
+  Field get field;
+
+  List<MetadataBuilder> get metadata;
+
+  TypeBuilder get type;
+
+  Token get constInitializerToken;
+
+  bool hadTypesInferred;
+
+  bool get isCovariant;
+
+  bool get isLate;
+
+  bool get hasInitializer;
+
+  void set initializer(Expression value);
+
+  bool get isEligibleForInference;
+
+  Field build(SourceLibraryBuilder libraryBuilder);
+
+  DartType get builtType;
+}
+
+class FieldBuilderImpl extends MemberBuilderImpl implements FieldBuilder {
+  @override
   final String name;
 
+  @override
   final int modifiers;
 
+  @override
   final Field field;
+
+  @override
   final List<MetadataBuilder> metadata;
+
+  @override
   final TypeBuilder type;
+
+  @override
   Token constInitializerToken;
 
   bool hadTypesInferred = false;
 
-  FieldBuilder(this.metadata, this.type, this.name, this.modifiers,
+  FieldBuilderImpl(this.metadata, this.type, this.name, this.modifiers,
       Builder compilationUnit, int charOffset, int charEndOffset)
       : field = new Field(null, fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(compilationUnit, charOffset);
 
+  Member get member => field;
+
   String get debugName => "FieldBuilder";
 
   bool get isField => true;
+
+  @override
+  bool get isLate => (modifiers & lateMask) != 0;
+
+  @override
+  bool get isCovariant => (modifiers & covariantMask) != 0;
+
+  @override
+  bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
   void set initializer(Expression value) {
     if (!hasInitializer && value is! NullLiteral && !isConst && !isFinal) {
@@ -80,12 +132,10 @@ class FieldBuilder extends MemberBuilder {
   }
 
   bool get isEligibleForInference {
-    return !library.legacyMode &&
-        type == null &&
-        (hasInitializer || isClassInstanceMember);
+    return type == null && (hasInitializer || isClassInstanceMember);
   }
 
-  Field build(SourceLibraryBuilder library) {
+  Field build(SourceLibraryBuilder libraryBuilder) {
     field
       ..isCovariant = isCovariant
       ..isFinal = isFinal
@@ -93,7 +143,7 @@ class FieldBuilder extends MemberBuilder {
       ..isLate = isLate;
     if (isExtensionMember) {
       ExtensionBuilder extension = parent;
-      field.name = new Name('${extension.name}|$name', library.target);
+      field.name = new Name('${extension.name}|$name', libraryBuilder.library);
       field
         ..hasImplicitGetter = false
         ..hasImplicitSetter = false
@@ -101,7 +151,7 @@ class FieldBuilder extends MemberBuilder {
         ..isExtensionMember = true;
     } else {
       // TODO(johnniwinther): How can the name already have been computed.
-      field.name ??= new Name(name, library.target);
+      field.name ??= new Name(name, libraryBuilder.library);
       bool isInstanceMember = !isStatic && !isTopLevel;
       field
         ..hasImplicitGetter = isInstanceMember
@@ -110,12 +160,13 @@ class FieldBuilder extends MemberBuilder {
         ..isExtensionMember = false;
     }
     if (type != null) {
-      field.type = type.build(library);
+      field.type = type.build(libraryBuilder);
 
       if (!isFinal && !isConst) {
         IncludesTypeParametersNonCovariantly needsCheckVisitor;
         if (parent is ClassBuilder) {
-          Class enclosingClass = parent.target;
+          ClassBuilder enclosingClassBuilder = parent;
+          Class enclosingClass = enclosingClassBuilder.cls;
           if (enclosingClass.typeParameters.isNotEmpty) {
             needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
                 enclosingClass.typeParameters,
@@ -151,10 +202,11 @@ class FieldBuilder extends MemberBuilder {
                 classBuilder.hasConstConstructor)) &&
         constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
-          isConst ? ConstantContext.inferred : ConstantContext.none;
+          isConst ? ConstantContext.inferred : ConstantContext.required;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
         ..parent = field;
       bodyBuilder.typeInferrer
@@ -169,8 +221,6 @@ class FieldBuilder extends MemberBuilder {
     constInitializerToken = null;
   }
 
-  Field get target => field;
-
   @override
   void inferType() {
     SourceLibraryBuilder library = this.library;
@@ -179,9 +229,9 @@ class FieldBuilder extends MemberBuilder {
       return;
     }
     ImplicitFieldType type = field.type;
-    if (type.member != this) {
+    if (type.memberBuilder != this) {
       // The implicit type was inherited.
-      FieldBuilder other = type.member;
+      FieldBuilder other = type.memberBuilder;
       other.inferCopiedType(field);
       return;
     }
@@ -197,16 +247,19 @@ class FieldBuilder extends MemberBuilder {
     type.isStarted = true;
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
-            fileUri, field.enclosingClass?.thisType, null);
-    BodyBuilder bodyBuilder = new BodyBuilder.forField(this, typeInferrer);
+            fileUri, field.enclosingClass?.thisType, library);
+    BodyBuilder bodyBuilder =
+        library.loader.createBodyBuilderForField(this, typeInferrer);
     bodyBuilder.constantContext =
         isConst ? ConstantContext.inferred : ConstantContext.none;
     initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);
     type.initializerToken = null;
 
-    DartType inferredType = typeInferrer.inferDeclarationType(typeInferrer
-        .inferExpression(field.initializer, const UnknownType(), true,
-            isVoidAllowed: true));
+    ExpressionInferenceResult result = typeInferrer.inferExpression(
+        field.initializer, const UnknownType(), true,
+        isVoidAllowed: true);
+    DartType inferredType =
+        typeInferrer.inferDeclarationType(result.inferredType);
 
     if (field.type is ImplicitFieldType) {
       // `field.type` may have changed if a circularity was detected when
@@ -215,7 +268,8 @@ class FieldBuilder extends MemberBuilder {
 
       IncludesTypeParametersNonCovariantly needsCheckVisitor;
       if (parent is ClassBuilder) {
-        Class enclosingClass = parent.target;
+        ClassBuilder enclosingClassBuilder = parent;
+        Class enclosingClass = enclosingClassBuilder.cls;
         if (enclosingClass.typeParameters.isNotEmpty) {
           needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
               enclosingClass.typeParameters,

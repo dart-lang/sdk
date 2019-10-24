@@ -18,7 +18,10 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 
 import 'package:kernel/type_environment.dart' show SubtypeTester;
 
-import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show createFreshComponentWithBytecode, generateBytecode;
+
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -303,6 +306,7 @@ void _appendDillForUri(DillTarget dillTarget, Uri uri) {
 Future<void> compilePlatform(List<String> arguments) async {
   await withGlobalOptions("compile_platform", arguments, false,
       (CompilerContext c, List<String> restArguments) {
+    c.compilingPlatform = true;
     Uri hostPlatform = Uri.base.resolveUri(new Uri.file(restArguments[2]));
     Uri outlineOutput = Uri.base.resolveUri(new Uri.file(restArguments[4]));
     return compilePlatformInternal(
@@ -328,11 +332,18 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 
+  Component component = result.component;
   if (c.options.bytecode) {
-    generateBytecode(result.component);
+    generateBytecode(component,
+        options: new BytecodeOptions(
+            enableAsserts: true,
+            emitSourceFiles: true,
+            emitSourcePositions: true,
+            environmentDefines: c.options.environmentDefines));
+    component = createFreshComponentWithBytecode(component);
   }
 
-  await writeComponentToFile(result.component, fullOutput,
+  await writeComponentToFile(component, fullOutput,
       filter: (lib) => !lib.isExternal);
 
   c.options.ticker.logMs("Wrote component to ${fullOutput.toFilePath()}");

@@ -19,6 +19,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
+
 import 'package:kernel/src/hierarchy_based_type_environment.dart'
     show HierarchyBasedTypeEnvironment;
 
@@ -35,7 +37,7 @@ FunctionType substituteTypeParams(
     FunctionType type,
     Map<TypeParameter, DartType> substitutionMap,
     List<TypeParameter> newTypeParameters) {
-  var substitution = Substitution.fromMap(substitutionMap);
+  Substitution substitution = Substitution.fromMap(substitutionMap);
   return new FunctionType(
       type.positionalParameters.map(substitution.substituteType).toList(),
       substitution.substituteType(type.returnType),
@@ -102,7 +104,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2) {
-    return hierarchy.getLegacyLeastUpperBound(type1, type2);
+    return hierarchy.getLegacyLeastUpperBound(type1, type2, this.coreTypes);
   }
 
   /// Modify the given [constraint]'s lower bound to include [lower].
@@ -120,11 +122,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // TODO(paulberry): this matches what is defined in the spec.  It would be
     // nice if we could change kernel to match the spec and not have to
     // override.
-    if (type1 == intType) {
-      if (type2 == intType) return type2;
-      if (type2 == doubleType) return type2;
+    if (type1 == coreTypes.intLegacyRawType) {
+      if (type2 == coreTypes.intLegacyRawType) return type2;
+      if (type2 == coreTypes.doubleLegacyRawType) return type2;
     }
-    return numType;
+    return coreTypes.numLegacyRawType;
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -166,7 +168,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // to be inferred. It will optimistically assume these type parameters can
     // be subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var gatherer = new TypeConstraintGatherer(this, typeParametersToInfer);
+    TypeConstraintGatherer gatherer =
+        new TypeConstraintGatherer(this, typeParametersToInfer);
 
     if (!isEmptyContext(returnContextType)) {
       if (isConst) {
@@ -228,7 +231,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
 
-      var typeParamBound = typeParam.bound;
+      DartType typeParamBound = typeParam.bound;
       DartType extendsConstraint;
       if (!hasOmittedBound(typeParam)) {
         extendsConstraint =
@@ -236,7 +239,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
                 .substituteType(typeParamBound);
       }
 
-      var constraint = constraints[typeParam];
+      TypeConstraint constraint = constraints[typeParam];
       if (downwardsInferPhase) {
         inferredTypes[i] =
             _inferTypeParameterFromContext(constraint, extendsConstraint);
@@ -253,20 +256,21 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     }
 
     // Check the inferred types against all of the constraints.
-    var knownTypes = <TypeParameter, DartType>{};
+    Map<TypeParameter, DartType> knownTypes = <TypeParameter, DartType>{};
     for (int i = 0; i < typeParametersToInfer.length; i++) {
       TypeParameter typeParam = typeParametersToInfer[i];
-      var constraint = constraints[typeParam];
-      var typeParamBound =
+      TypeConstraint constraint = constraints[typeParam];
+      DartType typeParamBound =
           Substitution.fromPairs(typeParametersToInfer, inferredTypes)
               .substituteType(typeParam.bound);
 
-      var inferred = inferredTypes[i];
+      DartType inferred = inferredTypes[i];
       bool success = typeSatisfiesConstraint(inferred, constraint);
       if (success && !hasOmittedBound(typeParam)) {
         // If everything else succeeded, check the `extends` constraint.
-        var extendsConstraint = typeParamBound;
-        success = isSubtypeOf(inferred, extendsConstraint);
+        DartType extendsConstraint = typeParamBound;
+        success = isSubtypeOf(inferred, extendsConstraint,
+            SubtypeCheckMode.ignoringNullabilities);
       }
 
       if (!success) {
@@ -287,10 +291,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   @override
-  bool isSubtypeOf(DartType subtype, DartType supertype) {
+  bool isSubtypeOf(
+      DartType subtype, DartType supertype, SubtypeCheckMode mode) {
     if (subtype is UnknownType) return true;
     if (subtype == Null && supertype is UnknownType) return true;
-    return super.isSubtypeOf(subtype, supertype);
+    return super.isSubtypeOf(subtype, supertype, mode);
   }
 
   bool isEmptyContext(DartType context) {
@@ -358,8 +363,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, TypeConstraint constraint) {
-    return isSubtypeOf(constraint.lower, type) &&
-        isSubtypeOf(type, constraint.upper);
+    return isSubtypeOf(
+            constraint.lower, type, SubtypeCheckMode.ignoringNullabilities) &&
+        isSubtypeOf(
+            type, constraint.upper, SubtypeCheckMode.ignoringNullabilities);
   }
 
   DartType _inferTypeParameterFromAll(DartType typeFromContextInference,
@@ -404,12 +411,12 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 class TypeVariableEliminator extends Substitution {
   final CoreTypes _coreTypes;
 
+  // TODO(dmitryas): Instead of a CoreTypes object pass null and an Object type
+  // explicitly, with the suitable nullability on the latter.
   TypeVariableEliminator(this._coreTypes);
 
   @override
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
-    return upperBound
-        ? _coreTypes.nullClass.rawType
-        : _coreTypes.objectClass.rawType;
+    return upperBound ? _coreTypes.nullType : _coreTypes.objectLegacyRawType;
   }
 }

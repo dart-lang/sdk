@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -145,24 +144,24 @@ class DartUnitHighlightsComputer2 {
   }
 
   bool _addIdentifierRegion_dynamicLocal(SimpleIdentifier node) {
-    // has dynamic static type
-    DartType staticType = node.staticType;
-    if (staticType == null || !staticType.isDynamic) {
-      return false;
-    }
-    // OK
     Element element = node.staticElement;
     if (element is LocalVariableElement) {
-      HighlightRegionType type = node.inDeclarationContext()
-          ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
-          : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
-      return _addRegion_node(node, type);
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        HighlightRegionType type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION
+            : HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE;
+        return _addRegion_node(node, type);
+      }
     }
     if (element is ParameterElement) {
-      HighlightRegionType type = node.inDeclarationContext()
-          ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
-          : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
-      return _addRegion_node(node, type);
+      var elementType = element.type;
+      if (elementType?.isDynamic == true) {
+        HighlightRegionType type = node.inDeclarationContext()
+            ? HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION
+            : HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE;
+        return _addRegion_node(node, type);
+      }
     }
     return false;
   }
@@ -425,10 +424,8 @@ class DartUnitHighlightsComputer2 {
   }
 
   static bool _isDynamicExpression(Expression e) {
-    if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
-      return false;
-    }
-    return resolutionMap.staticTypeForExpression(e).isDynamic;
+    var type = e.staticType;
+    return type != null && type.isDynamic;
   }
 }
 

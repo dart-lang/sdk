@@ -16,8 +16,8 @@ namespace bin {
 
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
-// be kept in sync with the constants in socket_impl.dart. For more
-// information see the comments in socket_impl.dart
+// be kept in sync with the constants in socket_patch.dart. For more
+// information see the comments in socket_patch.dart
 enum MessageFlags {
   kInEvent = 0,
   kOutEvent = 1,

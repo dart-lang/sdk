@@ -5083,7 +5083,7 @@ class Wrong<T> {
     MethodInvocation methodInvocation = parseCascadeSection('..()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
-      // Cascade section is preceeded by `null` in this test
+      // Cascade section is preceded by `null` in this test
       // and error is reported on '('.
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
     ]);
@@ -5097,7 +5097,7 @@ class Wrong<T> {
     MethodInvocation methodInvocation = parseCascadeSection('..<E>()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors([
-      // Cascade section is preceeded by `null` in this test
+      // Cascade section is preceded by `null` in this test
       // and error is reported on '<'.
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1)
     ]);
@@ -9412,9 +9412,7 @@ class NonErrorParserTest extends ParserTestCase {
  * Implementation of [AbstractParserTestCase] specialized for testing the
  * analyzer parser.
  */
-class ParserTestCase extends EngineTestCase
-    with ParserTestHelpers
-    implements AbstractParserTestCase {
+class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
   /**
    * A flag indicating whether parser is to parse function bodies.
    */
@@ -10046,9 +10044,7 @@ class ParserTestCase extends EngineTestCase
     }
   }
 
-  @override
   void setUp() {
-    super.setUp();
     parseFunctionBodies = true;
   }
 }

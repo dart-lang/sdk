@@ -876,9 +876,9 @@ const char* LoopInfo::ToCString() const {
     num_blocks++;
   }
   f.Print("#blocks=%" Pd, num_blocks);
-  if (outer_) f.Print(" outer=%" Pd, outer_->id_);
-  if (inner_) f.Print(" inner=%" Pd, inner_->id_);
-  if (next_) f.Print(" next=%" Pd, next_->id_);
+  if (outer_ != nullptr) f.Print(" outer=%" Pd, outer_->id_);
+  if (inner_ != nullptr) f.Print(" inner=%" Pd, inner_->id_);
+  if (next_ != nullptr) f.Print(" next=%" Pd, next_->id_);
   f.Print(" [");
   for (intptr_t i = 0, n = back_edges_.length(); i < n; i++) {
     f.Print(" B%" Pd, back_edges_[i]->block_id());

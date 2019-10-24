@@ -7,7 +7,7 @@ import 'package:expect/expect.dart';
 
 isCheckedMode() {
   try {
-    var i = 1;
+    dynamic i = 1;
     String s = i;
     return false;
   } on TypeError {
@@ -15,7 +15,7 @@ isCheckedMode() {
   }
 }
 
-var x = 'a';
+dynamic x = 'a';
 
 Future<int> foo() async {
   return x;

@@ -892,38 +892,38 @@ class B extends A {}
 class C implements B {}
 class D with C {}
 ''', [
-      token('class', null, null),
-      token('A', 'Type',
-          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
-      token('{', null, null),
-      token('}', null, null),
-      token('class', null, null),
-      token('B', 'Type',
-          ['declaration']), //token('B', 'dart:core;Type', ['declaration']),
-      token('extends', null, null),
-      token('A', 'dart:core;Type<A>', [
+      token('class', 0, null, null),
+      token('A', 6, 'Type',
+          ['declaration']), //token('A', 6, 'dart:core;Type', ['declaration']),
+      token('{', 8, null, null),
+      token('}', 9, null, null),
+      token('class', 11, null, null),
+      token('B', 17, 'Type',
+          ['declaration']), //token('B', 17, 'dart:core;Type', ['declaration']),
+      token('extends', 19, null, null),
+      token('A', 27, 'dart:core;Type<A>', [
         'reference'
-      ]), //token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
-      token('{', null, null),
-      token('}', null, null),
-      token('class', null, null),
-      token('C', 'Type',
-          ['declaration']), //token('C', 'dart:core;Type', ['declaration']),
-      token('implements', null, null),
-      token('B', 'dart:core;Type<B>', [
+      ]), //token('A', 27, 'dart:core;Type<$testFileUri;A>', ['reference']),
+      token('{', 29, null, null),
+      token('}', 30, null, null),
+      token('class', 32, null, null),
+      token('C', 38, 'Type',
+          ['declaration']), //token('C', 38, 'dart:core;Type', ['declaration']),
+      token('implements', 40, null, null),
+      token('B', 51, 'dart:core;Type<B>', [
         'reference'
-      ]), //token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
-      token('{', null, null),
-      token('}', null, null),
-      token('class', null, null),
-      token('D', 'Type',
-          ['declaration']), //token('D', 'dart:core;Type', ['declaration']),
-      token('with', null, null),
-      token('C', 'dart:core;Type<C>', [
+      ]), //token('B', 51, 'dart:core;Type<$testFileUri;B>', ['reference']),
+      token('{', 53, null, null),
+      token('}', 54, null, null),
+      token('class', 56, null, null),
+      token('D', 62, 'Type',
+          ['declaration']), //token('D', 62, 'dart:core;Type', ['declaration']),
+      token('with', 64, null, null),
+      token('C', 69, 'dart:core;Type<C>', [
         'reference'
-      ]), //token('C', 'dart:core;Type<$testFileUri;C>', ['reference']),
-      token('{', null, null),
-      token('}', null, null),
+      ]), //token('C', 69, 'dart:core;Type<$testFileUri;C>', ['reference']),
+      token('{', 71, null, null),
+      token('}', 72, null, null),
     ]);
   }
 
@@ -931,19 +931,19 @@ class D with C {}
     await expectTokens('''
 List<int> x = null;
 ''', [
-      token('List', 'dart:core;Type<List>', [
+      token('List', 0, 'dart:core;Type<List>', [
         'reference'
-      ]), //token('List', 'dart:core;Type<dart:core;List>', ['reference']),
-      token('<', null, null),
-      token('int', 'dart:core;Type<int>', [
+      ]), //token('List', 0, 'dart:core;Type<dart:core;List>', ['reference']),
+      token('<', 4, null, null),
+      token('int', 5, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', null, null),
-      token('x', 'List',
-          ['declaration']), //token('x', 'dart:core;List', ['declaration']),
-      token('=', null, null),
-      token('null', null, null),
-      token(';', null, null),
+      ]), //token('int', 5, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('>', 8, null, null),
+      token('x', 10, 'List',
+          ['declaration']), //token('x', 10, 'dart:core;List', ['declaration']),
+      token('=', 12, null, null),
+      token('null', 14, null, null),
+      token(';', 18, null, null),
     ]);
   }
 
@@ -951,15 +951,16 @@ List<int> x = null;
     await expectTokens('''
 var x = 'a'.length;
 ''', [
-      token('var', null, null),
-      token('x', 'int',
-          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
-      token('=', null, null),
-      token("'a'", 'String', null), //token("'a'", 'dart:core;String', null),
-      token('.', null, null),
-      token('length', 'int',
-          ['reference']), //token('length', 'dart:core;int', ['reference']),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'int',
+          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
+      token('=', 6, null, null),
+      token("'a'", 8, 'String',
+          null), //token("'a'", 8, 'dart:core;String', null),
+      token('.', 11, null, null),
+      token('length', 12, 'int',
+          ['reference']), //token('length', 12, 'dart:core;int', ['reference']),
+      token(';', 18, null, null),
     ]);
   }
 
@@ -967,12 +968,13 @@ var x = 'a'.length;
     await expectTokens('''
 var x = true;
 ''', [
-      token('var', null, null),
-      token('x', 'bool',
-          ['declaration']), //token('x', 'dart:core;bool', ['declaration']),
-      token('=', null, null),
-      token('true', 'bool', null), //token('true', 'dart:core;bool', null),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'bool',
+          ['declaration']), //token('x', 4, 'dart:core;bool', ['declaration']),
+      token('=', 6, null, null),
+      token(
+          'true', 8, 'bool', null), //token('true', 8, 'dart:core;bool', null),
+      token(';', 12, null, null),
     ]);
   }
 
@@ -980,12 +982,14 @@ var x = true;
     await expectTokens('''
 var x = 3.4;
 ''', [
-      token('var', null, null),
-      token('x', 'double',
-          ['declaration']), //token('x', 'dart:core;double', ['declaration']),
-      token('=', null, null),
-      token('3.4', 'double', null), //token('3.4', 'dart:core;double', null),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'double', [
+        'declaration'
+      ]), //token('x', 4, 'dart:core;double', ['declaration']),
+      token('=', 6, null, null),
+      token('3.4', 8, 'double',
+          null), //token('3.4', 8, 'dart:core;double', null),
+      token(';', 11, null, null),
     ]);
   }
 
@@ -993,12 +997,12 @@ var x = 3.4;
     await expectTokens('''
 var x = 7;
 ''', [
-      token('var', null, null),
-      token('x', 'int',
-          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
-      token('=', null, null),
-      token('7', 'int', null), //token('7', 'dart:core;int', null),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'int',
+          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
+      token('=', 6, null, null),
+      token('7', 8, 'int', null), //token('7', 8, 'dart:core;int', null),
+      token(';', 9, null, null),
     ]);
   }
 
@@ -1006,18 +1010,18 @@ var x = 7;
     await expectTokens('''
 var x = <int>[];
 ''', [
-      token('var', null, null),
-      token('x', 'List',
-          ['declaration']), //token('x', 'dart:core;List', ['declaration']),
-      token('=', null, null),
-      token('<', null, null),
-      token("int", 'dart:core;Type<int>', [
+      token('var', 0, null, null),
+      token('x', 4, 'List',
+          ['declaration']), //token('x', 4, 'dart:core;List', ['declaration']),
+      token('=', 6, null, null),
+      token('<', 8, null, null),
+      token("int", 9, 'dart:core;Type<int>', [
         'reference'
-      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', null, null),
-      token('[', null, null),
-      token(']', null, null),
-      token(';', null, null),
+      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('>', 12, null, null),
+      token('[', 13, null, null),
+      token(']', 14, null, null),
+      token(';', 15, null, null),
     ]);
   }
 
@@ -1025,22 +1029,22 @@ var x = <int>[];
     await expectTokens('''
 var x = <int, int>{};
 ''', [
-      token('var', null, null),
-      token('x', 'Map',
-          ['declaration']), //token('x', 'dart:core;Map', ['declaration']),
-      token('=', null, null),
-      token('<', null, null),
-      token("int", 'dart:core;Type<int>', [
+      token('var', 0, null, null),
+      token('x', 4, 'Map',
+          ['declaration']), //token('x', 4, 'dart:core;Map', ['declaration']),
+      token('=', 6, null, null),
+      token('<', 8, null, null),
+      token("int", 9, 'dart:core;Type<int>', [
         'reference'
-      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
+      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
 //      token(',', null, null),
-      token("int", 'dart:core;Type<int>', [
+      token("int", 14, 'dart:core;Type<int>', [
         'reference'
-      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', null, null),
-      token('{', null, null),
-      token('}', null, null),
-      token(';', null, null),
+      ]), //token("int", 14, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('>', 17, null, null),
+      token('{', 18, null, null),
+      token('}', 19, null, null),
+      token(';', 20, null, null),
     ]);
   }
 
@@ -1048,11 +1052,11 @@ var x = <int, int>{};
     await expectTokens('''
 var x = null;
 ''', [
-      token('var', null, null),
-      token('x', 'dynamic', ['declaration']),
-      token('=', null, null),
-      token('null', null, null),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'dynamic', ['declaration']),
+      token('=', 6, null, null),
+      token('null', 8, null, null),
+      token(';', 12, null, null),
     ]);
   }
 
@@ -1060,18 +1064,18 @@ var x = null;
     await expectTokens('''
 var x = <int>{};
 ''', [
-      token('var', null, null),
-      token('x', 'Set',
-          ['declaration']), //token('x', 'dart:core;Set', ['declaration']),
-      token('=', null, null),
-      token('<', null, null),
-      token("int", 'dart:core;Type<int>', [
+      token('var', 0, null, null),
+      token('x', 4, 'Set',
+          ['declaration']), //token('x', 4, 'dart:core;Set', ['declaration']),
+      token('=', 6, null, null),
+      token('<', 8, null, null),
+      token("int", 9, 'dart:core;Type<int>', [
         'reference'
-      ]), //token("int", 'dart:core;Type<dart:core;int>', ['reference']),
-      token('>', null, null),
-      token('{', null, null),
-      token('}', null, null),
-      token(';', null, null),
+      ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('>', 12, null, null),
+      token('{', 13, null, null),
+      token('}', 14, null, null),
+      token(';', 15, null, null),
     ]);
   }
 
@@ -1079,12 +1083,14 @@ var x = <int>{};
     await expectTokens('''
 var x = 'a';
 ''', [
-      token('var', null, null),
-      token('x', 'String',
-          ['declaration']), //token('x', 'dart:core;String', ['declaration']),
-      token('=', null, null),
-      token("'a'", 'String', null), //token("'a'", 'dart:core;String', null),
-      token(';', null, null),
+      token('var', 0, null, null),
+      token('x', 4, 'String', [
+        'declaration'
+      ]), //token('x', 4, 'dart:core;String', ['declaration']),
+      token('=', 6, null, null),
+      token("'a'", 8, 'String',
+          null), //token("'a'", 8, 'dart:core;String', null),
+      token(';', 11, null, null),
     ]);
   }
 
@@ -1094,32 +1100,32 @@ class A {
   String c(int x, int y) {}
 }
 ''', [
-      token('class', null, null),
-      token('A', 'Type',
-          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
-      token('{', null, null),
-      token('String', 'dart:core;Type<String>', [
+      token('class', 0, null, null),
+      token('A', 6, 'Type',
+          ['declaration']), //token('A', 6, 'dart:core;Type', ['declaration']),
+      token('{', 8, null, null),
+      token('String', 12, 'dart:core;Type<String>', [
         'reference'
-      ]), //token('String', 'dart:core;Type<dart:core;String>', ['reference']),
-      token('c',
+      ]), //token('String', 12, 'dart:core;Type<dart:core;String>', ['reference']),
+      token('c', 19,
           'String Function(int, int)', //'dart:core;String Function(dart:core;int, dart:core;int)',
           ['declaration']),
-      token('(', null, null),
-      token('int', 'dart:core;Type<int>', [
+      token('(', 20, null, null),
+      token('int', 21, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 'int',
-          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
+      ]), //token('int', 21, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('x', 25, 'int',
+          ['declaration']), //token('x', 25, 'dart:core;int', ['declaration']),
 //      token(',', null, null),
-      token('int', 'dart:core;Type<int>', [
+      token('int', 28, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('y', 'int',
-          ['declaration']), //token('y', 'dart:core;int', ['declaration']),
-      token(')', null, null),
-      token('{', null, null),
-      token('}', null, null),
-      token('}', null, null),
+      ]), //token('int', 28, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('y', 32, 'int',
+          ['declaration']), //token('y', 32, 'dart:core;int', ['declaration']),
+      token(')', 33, null, null),
+      token('{', 35, null, null),
+      token('}', 36, null, null),
+      token('}', 38, null, null),
     ]);
   }
 
@@ -1127,22 +1133,23 @@ class A {
     await expectTokens('''
 var x = 'radar'.indexOf('r', 1);
 ''', [
-      token('var', null, null),
-      token('x', 'int',
-          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
-      token('=', null, null),
-      token("'radar'", 'String',
-          null), //token("'radar'", 'dart:core;String', null),
-      token('.', null, null),
-      token('indexOf',
+      token('var', 0, null, null),
+      token('x', 4, 'int',
+          ['declaration']), //token('x', 4, 'dart:core;int', ['declaration']),
+      token('=', 6, null, null),
+      token("'radar'", 8, 'String',
+          null), //token("'radar'", 8, 'dart:core;String', null),
+      token('.', 15, null, null),
+      token('indexOf', 16,
           'int Function(Pattern, int)', //'dart:core;int Function(dart:core;Pattern, dart:core;int)',
           ['reference']),
-      token('(', null, null),
-      token("'r'", 'String', null), //token("'r'", 'dart:core;String', null),
+      token('(', 23, null, null),
+      token("'r'", 24, 'String',
+          null), //token("'r'", 24, 'dart:core;String', null),
 //      token(',', null, null),
-      token('1', 'int', null), //token('1', 'dart:core;int', null),
-      token(')', null, null),
-      token(';', null, null),
+      token('1', 29, 'int', null), //token('1', 29, 'dart:core;int', null),
+      token(')', 30, null, null),
+      token(';', 31, null, null),
     ]);
   }
 
@@ -1152,29 +1159,29 @@ class A {}
 class B {}
 mixin D on A implements B {}
 ''', [
-      token('class', null, null),
-      token('A', 'Type',
-          ['declaration']), //token('A', 'dart:core;Type', ['declaration']),
-      token('{', null, null),
-      token('}', null, null),
-      token('class', null, null),
-      token('B', 'Type',
-          ['declaration']), //token('B', 'dart:core;Type', ['declaration']),
-      token('{', null, null),
-      token('}', null, null),
-      token('mixin', null, null),
-      token('D', 'Type',
-          ['declaration']), //token('D', 'dart:core;Type', ['declaration']),
-      token('on', null, null),
-      token('A', 'dart:core;Type<A>', [
+      token('class', 0, null, null),
+      token('A', 6, 'Type',
+          ['declaration']), //token('A', 6, 'dart:core;Type', ['declaration']),
+      token('{', 8, null, null),
+      token('}', 9, null, null),
+      token('class', 11, null, null),
+      token('B', 17, 'Type',
+          ['declaration']), //token('B', 17, 'dart:core;Type', ['declaration']),
+      token('{', 19, null, null),
+      token('}', 20, null, null),
+      token('mixin', 22, null, null),
+      token('D', 28, 'Type',
+          ['declaration']), //token('D', 28, 'dart:core;Type', ['declaration']),
+      token('on', 30, null, null),
+      token('A', 33, 'dart:core;Type<A>', [
         'reference'
-      ]), //token('A', 'dart:core;Type<$testFileUri;A>', ['reference']),
-      token('implements', null, null),
-      token('B', 'dart:core;Type<B>', [
+      ]), //token('A', 33, 'dart:core;Type<$testFileUri;A>', ['reference']),
+      token('implements', 35, null, null),
+      token('B', 46, 'dart:core;Type<B>', [
         'reference'
       ]), //token('B', 'dart:core;Type<$testFileUri;B>', ['reference']),
-      token('{', null, null),
-      token('}', null, null),
+      token('{', 48, null, null),
+      token('}', 49, null, null),
     ]);
   }
 
@@ -1184,25 +1191,25 @@ int f(int p) {
   return p;
 }
 ''', [
-      token('int', 'dart:core;Type<int>', [
+      token('int', 0, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('f', 'int Function(int)', [
+      ]), //token('int', 0, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('f', 4, 'int Function(int)', [
         'declaration'
-      ]), //token('f', 'dart:core;int Function(dart:core;int)', ['declaration']),
-      token('(', null, null),
-      token('int', 'dart:core;Type<int>', [
+      ]), //token('f', 4, 'dart:core;int Function(dart:core;int)', ['declaration']),
+      token('(', 5, null, null),
+      token('int', 6, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('p', 'int',
-          ['declaration']), //token('p', 'dart:core;int', ['declaration']),
-      token(')', null, null),
-      token('{', null, null),
-      token('return', null, null),
-      token('p', 'int',
-          ['reference']), //token('p', 'dart:core;int', ['reference']),
-      token(';', null, null),
-      token('}', null, null),
+      ]), //token('int', 6, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('p', 10, 'int',
+          ['declaration']), //token('p', 10, 'dart:core;int', ['declaration']),
+      token(')', 11, null, null),
+      token('{', 13, null, null),
+      token('return', 17, null, null),
+      token('p', 24, 'int',
+          ['reference']), //token('p', 24, 'dart:core;int', ['reference']),
+      token(';', 25, null, null),
+      token('}', 27, null, null),
     ]);
   }
 
@@ -1211,17 +1218,19 @@ int f(int p) {
 /// Doc comment [x] with reference.
 int x;
 ''', [
-      token('int', 'dart:core;Type<int>', [
+      token('int', 36, 'dart:core;Type<int>', [
         'reference'
-      ]), //token('int', 'dart:core;Type<dart:core;int>', ['reference']),
-      token('x', 'int',
-          ['declaration']), //token('x', 'dart:core;int', ['declaration']),
-      token(';', null, null),
+      ]), //token('int', 36, 'dart:core;Type<dart:core;int>', ['reference']),
+      token('x', 40, 'int',
+          ['declaration']), //token('x', 40, 'dart:core;int', ['declaration']),
+      token(';', 41, null, null),
     ]);
   }
 
-  TokenDetails token(String lexeme, String type, List<String> kinds) {
-    return new TokenDetails(lexeme, type: type, validElementKinds: kinds);
+  TokenDetails token(
+      String lexeme, int offset, String type, List<String> kinds) {
+    return new TokenDetails(lexeme, offset,
+        type: type, validElementKinds: kinds);
   }
 
   void _compareTokens(List<Map<String, dynamic>> actualTokens,
@@ -1236,6 +1245,11 @@ int x;
         errors.add('Lexeme at $i: '
             'expected "${expected.lexeme}", '
             'actual "${actual['lexeme']}"');
+      }
+      if (actual['offset'] != expected.offset) {
+        errors.add('Offset at $i: ("${expected.lexeme}"): '
+            'expected "${expected.offset}", '
+            'actual "${actual['offset']}"');
       }
       if (actual['type'] != expected.type) {
         errors.add('Type at $i ("${expected.lexeme}"): '

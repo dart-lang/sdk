@@ -257,7 +257,7 @@ class CompletionRunner {
    */
   bool _isNamedExpressionName(SimpleIdentifier identifier) {
     AstNode parent = identifier.parent;
-    return parent is NamedExpression && parent.name == identifier;
+    return parent is NamedExpression && parent.name.label == identifier;
   }
 
   /**

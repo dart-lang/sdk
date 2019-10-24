@@ -317,10 +317,10 @@ Token::Kind MethodTokenRecognizer::RecognizeTokenKind(const String& name_) {
 static struct {
   intptr_t symbol_id;
   intptr_t cid;
-  intptr_t finger_print;
+  uint32_t finger_print;
   const char* name;
 } factory_recognizer_list[] = {RECOGNIZED_LIST_FACTORY_LIST(RECOGNIZE_FACTORY){
-    Symbols::kIllegal, -1, -1, NULL}};
+    Symbols::kIllegal, -1, 0, NULL}};
 
 #undef RECOGNIZE_FACTORY
 

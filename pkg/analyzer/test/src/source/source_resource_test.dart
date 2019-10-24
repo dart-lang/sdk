@@ -4,7 +4,6 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -84,14 +83,6 @@ class FileSourceTest with ResourceProviderMixin {
     expect(FileSource.fileReadMode('\ra'), '\na');
 
     FileSource.fileReadMode = (String s) => s;
-  }
-
-  void test_getEncoding() {
-    SourceFactory factory =
-        new SourceFactory([new ResourceUriResolver(resourceProvider)]);
-    File file = getFile("/does/not/exist.dart");
-    FileSource source = new FileSource(file);
-    expect(factory.fromEncoding(source.encoding), source);
   }
 
   void test_getFullName() {

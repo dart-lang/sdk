@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -48,7 +47,7 @@ class ConstructorInitializerResolver {
       constructorElement,
     );
 
-    _astResolver = AstResolver(_linker, _libraryElement, initializerScope);
+    _astResolver = AstResolver(_linker, _unitElement, initializerScope);
 
     FunctionBodyImpl body = _constructorNode.body;
     body.localVariableInfo = LocalVariableInfo();
@@ -66,13 +65,10 @@ class ConstructorInitializerResolver {
       return;
     }
 
-    var holder = ElementHolder();
-    var elementBuilder = LocalElementBuilder(holder, _unitElement);
-    initializers.accept(elementBuilder);
-
     for (var initializer in initializers) {
       _astResolver.resolve(
         initializer,
+        () => initializer,
         enclosingClassElement: _classElement,
         enclosingExecutableElement: _constructorElement,
         enclosingFunctionBody: _constructorNode.body,
@@ -85,6 +81,7 @@ class ConstructorInitializerResolver {
     if (redirected != null) {
       _astResolver.resolve(
         redirected,
+        () => redirected,
         enclosingClassElement: _classElement,
         enclosingExecutableElement: _constructorElement,
       );

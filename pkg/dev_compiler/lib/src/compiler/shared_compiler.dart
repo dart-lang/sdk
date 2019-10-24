@@ -252,6 +252,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     /// runtime call.
     js_ast.TemporaryId initPrivateNameSymbol() {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
+      idName = idName.replaceAll('.', '_');
       var id = js_ast.TemporaryId(idName);
       moduleItems.add(js.statement('const # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));
@@ -260,6 +261,17 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
     var privateNames = _privateNames.putIfAbsent(library, () => HashMap());
     return privateNames.putIfAbsent(name, initPrivateNameSymbol);
+  }
+
+  /// Emits a private name JS Symbol for [memberName] unique to a Dart
+  /// class [className].
+  ///
+  /// This is now required for fields of constant objects that may be
+  /// overridden within the same library.
+  @protected
+  js_ast.TemporaryId emitClassPrivateNameSymbol(
+      Library library, String className, String memberName) {
+    return emitPrivateNameSymbol(library, '$className.$memberName');
   }
 
   /// Emits an expression to set the property [nameExpr] on the class [className],
@@ -434,10 +446,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Returns the canonical name to refer to the Dart library.
   @protected
   js_ast.Identifier emitLibraryName(Library library) {
+    // Avoid adding the dart:_runtime to _imports when our runtime unit tests
+    // import it explicitly. It will always be implicitly imported.
+    if (isSdkInternalRuntime(library)) return runtimeModule;
+
     // It's either one of the libraries in this module, or it's an import.
-    var libraryId = js_ast.TemporaryId(jsLibraryName(library));
     return _libraries[library] ??
-        _imports.putIfAbsent(library, () => libraryId);
+        _imports.putIfAbsent(
+            library, () => js_ast.TemporaryId(jsLibraryName(library)));
   }
 
   /// Emits imports and extension methods into [items].

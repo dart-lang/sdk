@@ -3,8 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../utils/compile_platform.gni")
-import("../create_timestamp.gni")
 import("../application_snapshot.gni")
+import("../create_timestamp.gni")
 
 create_timestamp_file("dart2js_files_stamp") {
   path = rebase_path("../../pkg/compiler/lib")
@@ -21,17 +21,12 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-dart_action("dart2js_create_snapshot_entry") {
+prebuilt_dart_action("dart2js_create_snapshot_entry") {
   deps = [
     ":dart2js_files_stamp",
     ":dartdoc_files_stamp",
     ":runtime_lib_files_stamp",
   ]
-
-  # dart_action() needs kernel service snapshot to run in Dart 2 mode.
-  # This can't be added as a dependency to dart_action() itself as it will
-  # create a circular dependency.
-  deps += [ "../../utils/kernel-service:kernel-service" ]
 
   output_dir = rebase_path(target_gen_dir)
 

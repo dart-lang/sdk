@@ -6,21 +6,16 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_bundle_context.dart' as summary2;
@@ -44,7 +39,6 @@ class DevCompilerResynthesizerBuilder {
   List<int> summaryBytes;
 
   RestrictedAnalysisContext context;
-  SummaryResynthesizer resynthesizer;
   summary2.LinkedElementFactory elementFactory;
 
   DevCompilerResynthesizerBuilder({
@@ -77,7 +71,8 @@ class DevCompilerResynthesizerBuilder {
     );
     _fileCrawler.crawl();
 
-    _buildPackageBundleBytes();
+    _computeLinkedLibraries2();
+    summaryBytes = _assembler.assemble().toBuffer();
     var bundle = PackageBundle.fromBuffer(summaryBytes);
 
     // Create an analysis context to contain the state for this build unit.
@@ -87,46 +82,7 @@ class DevCompilerResynthesizerBuilder {
     );
     context = RestrictedAnalysisContext(synchronousSession, _sourceFactory);
 
-    if (AnalysisDriver.useSummary2) {
-      _createElementFactory(bundle);
-    } else {
-      resynthesizer = StoreBasedSummaryResynthesizer(
-        context,
-        null,
-        context.sourceFactory,
-        /*strongMode*/ true,
-        SummaryDataStore([])
-          ..addStore(_summaryData)
-          ..addBundle(null, bundle),
-      );
-      resynthesizer.finishCoreAsyncLibraries();
-      context.typeProvider = resynthesizer.typeProvider;
-    }
-  }
-
-  void _buildPackageBundleBytes() {
-    if (AnalysisDriver.useSummary2) {
-      _computeLinkedLibraries2();
-    } else {
-      _computeLinkedLibraries1();
-    }
-    summaryBytes = _assembler.assemble().toBuffer();
-  }
-
-  void _computeLinkedLibraries1() {
-    _fileCrawler.sourceToUnlinkedUnit.forEach((source, unlinkedUnit) {
-      _assembler.addUnlinkedUnit(source, unlinkedUnit);
-    });
-
-    var linkResult = link(
-        _fileCrawler.libraryUris.toSet(),
-        (uri) => _summaryData.linkedMap[uri],
-        (uri) =>
-            _summaryData.unlinkedMap[uri] ??
-            _fileCrawler.uriToUnlinkedUnit[uri],
-        _declaredVariables,
-        _analysisOptions);
-    linkResult.forEach(_assembler.addLinkedLibrary);
+    _createElementFactory(bundle);
   }
 
   /// Link libraries, and fill [_assembler].
@@ -247,9 +203,7 @@ class DevCompilerResynthesizerBuilder {
 
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
+    var typeProvider = TypeProviderImpl(dartCore, dartAsync);
     context.typeProvider = typeProvider;
 
     dartCore.createLoadLibraryFunction(typeProvider);
@@ -282,8 +236,6 @@ class _SourceCrawler {
   /// them as units.
   final List<Source> _invalidLibrarySources = [];
 
-  final Map<Source, UnlinkedUnitBuilder> sourceToUnlinkedUnit = {};
-  final Map<String, UnlinkedUnitBuilder> uriToUnlinkedUnit = {};
   final Map<Source, CompilationUnit> sourceToUnit = {};
   final List<String> libraryUris = [];
   final List<Source> librarySources = [];
@@ -331,10 +283,6 @@ class _SourceCrawler {
     var file = _fsState.getFileForPath(source.fullName);
     var unit = file.parse();
     sourceToUnit[source] = unit;
-
-    var unlinkedUnit = serializeAstUnlinked(unit);
-    uriToUnlinkedUnit[uriStr] = unlinkedUnit;
-    sourceToUnlinkedUnit[source] = unlinkedUnit;
 
     void enqueueSource(String relativeUri, bool shouldBeLibrary) {
       var sourceUri = resolveRelativeUri(uri, Uri.parse(relativeUri));

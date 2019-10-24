@@ -15,12 +15,19 @@ class InitializedCompilerState {
   final CompilerOptions options;
   final ProcessedOptions processedOpts;
   final Map<Uri, WorkerInputComponent> workerInputCache;
+
+  /// A map from library import uri to dill uri, i.e. where a library came from,
+  /// for all cached libraries.
+  final Map<Uri, Uri> workerInputCacheLibs;
   final IncrementalCompiler incrementalCompiler;
+  final Set<String> tags;
   final Map<Uri, Uri> libraryToInputDill;
 
   InitializedCompilerState(this.options, this.processedOpts,
       {this.workerInputCache,
+      this.workerInputCacheLibs,
       this.incrementalCompiler,
+      this.tags,
       this.libraryToInputDill});
 }
 

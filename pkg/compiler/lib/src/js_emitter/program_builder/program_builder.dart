@@ -30,6 +30,7 @@ import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesEncoder;
 import '../../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding;
+import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../js_model/type_recipe.dart'
@@ -254,7 +255,8 @@ class ProgramBuilder {
     List<Holder> holders = _registry.holders.toList(growable: false);
 
     bool needsNativeSupport =
-        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses;
+        _nativeCodegenEnqueuer.hasInstantiatedNativeClasses ||
+            _nativeData.isAllowInteropUsed;
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
@@ -851,8 +853,12 @@ class ProgramBuilder {
   void associateNamedTypeVariablesNewRti() {
     for (TypeVariableType typeVariable in _codegenWorld.namedTypeVariablesNewRti
         .union(_lateNamedTypeVariablesNewRti)) {
-      for (ClassEntity entity
-          in _classHierarchy.subtypesOf(typeVariable.element.typeDeclaration)) {
+      ClassEntity declaration = typeVariable.element.typeDeclaration;
+      Iterable<ClassEntity> subtypes =
+          newRti.mustCheckAllSubtypes(_closedWorld, declaration)
+              ? _classHierarchy.subtypesOf(declaration)
+              : _classHierarchy.subclassesOf(declaration);
+      for (ClassEntity entity in subtypes) {
         Class cls = _classes[entity];
         if (cls == null) continue;
         cls.namedTypeVariablesNewRti.add(typeVariable);
@@ -982,12 +988,23 @@ class ProgramBuilder {
 
   js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
+    InterfaceType enclosingType;
+    if (enclosingClass != null && type.containsTypeVariables) {
+      enclosingType = _elementEnvironment.getThisType(enclosingClass);
+      if (!_rtiNeed.classNeedsTypeArguments(enclosingClass)) {
+        // Erase type arguments.
+        List<DartType> typeArguments = enclosingType.typeArguments;
+        type = type.subst(
+            List<DartType>.filled(typeArguments.length, const DynamicType()),
+            typeArguments);
+      }
+    }
+
     if (type.containsTypeVariables) {
       if (_options.experimentNewRti) {
         RecipeEncoding encoding = _rtiRecipeEncoder.encodeRecipe(
             _task.emitter,
-            FullTypeEnvironmentStructure(
-                classType: _elementEnvironment.getThisType(enclosingClass)),
+            FullTypeEnvironmentStructure(classType: enclosingType),
             TypeExpressionRecipe(type));
         _lateNamedTypeVariablesNewRti.addAll(encoding.typeVariables);
         return encoding.recipe;

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -11,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
@@ -20,6 +22,23 @@ import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 
 import 'abstract_single_unit.dart';
+
+/// A [NodeMatcher] that matches any node, and records what node it matched to.
+class AnyNodeMatcher implements NodeMatcher {
+  final List<NullabilityNode> _matchingNodes = [];
+
+  NullabilityNode get matchingNode => _matchingNodes.single;
+
+  @override
+  void matched(NullabilityNode node) {
+    _matchingNodes.add(node);
+  }
+
+  @override
+  bool matches(NullabilityNode node) {
+    return true;
+  }
+}
 
 /// Mixin allowing unit tests to create decorated types easily.
 mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
@@ -66,12 +85,23 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
         namedParameters: named);
   }
 
+  DecoratedType future(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(
+        typeProvider.futureType2(parameter.type), node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
+  DecoratedType futureOr(DecoratedType parameter, {NullabilityNode node}) {
+    return DecoratedType(
+        typeProvider.futureOrType2(parameter.type), node ?? newNode(),
+        typeArguments: [parameter]);
+  }
+
   DecoratedType int_({NullabilityNode node}) =>
       DecoratedType(typeProvider.intType, node ?? newNode());
 
   DecoratedType list(DecoratedType elementType, {NullabilityNode node}) =>
-      DecoratedType(typeProvider.listType.instantiate([elementType.type]),
-          node ?? newNode(),
+      DecoratedType(typeProvider.listType2(elementType.type), node ?? newNode(),
           typeArguments: [elementType]);
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
@@ -87,8 +117,14 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   }
 
   DecoratedType typeParameterType(TypeParameterElement typeParameter,
-          {NullabilityNode node}) =>
-      DecoratedType(typeParameter.type, node ?? newNode());
+      {NullabilityNode node}) {
+    return DecoratedType(
+      typeParameter.instantiate(
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      node ?? newNode(),
+    );
+  }
 }
 
 /// Base functionality that must be implemented by classes mixing in
@@ -99,12 +135,35 @@ abstract class DecoratedTypeTesterBase {
   TypeProvider get typeProvider;
 }
 
+class EdgeBuilderTestBase extends MigrationVisitorTestBase {
+  DecoratedClassHierarchy decoratedClassHierarchy;
+
+  /// Analyzes the given source code, producing constraint variables and
+  /// constraints for it.
+  @override
+  Future<CompilationUnit> analyze(String code) async {
+    var unit = await super.analyze(code);
+    decoratedClassHierarchy = DecoratedClassHierarchy(variables, graph);
+    unit.accept(EdgeBuilder(typeProvider, typeSystem, variables, graph,
+        testSource, null, decoratedClassHierarchy));
+    return unit;
+  }
+}
+
 /// Mixin allowing unit tests to check for the presence of graph edges.
 mixin EdgeTester {
+  /// Returns a [NodeMatcher] that matches any node whatsoever.
+  AnyNodeMatcher get anyNode => AnyNodeMatcher();
+
   NullabilityGraphForTesting get graph;
 
-  NullabilityEdge assertEdge(
-      NullabilityNode source, NullabilityNode destination,
+  /// Asserts that an edge exists with a node matching [source] and a node
+  /// matching [destination], and with the given [hard]ness and [guards].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  //  /// a [NodeMatcher] or a [NullabilityNode].
+  NullabilityEdge assertEdge(Object source, Object destination,
       {@required bool hard, List<NullabilityNode> guards = const []}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
@@ -113,36 +172,70 @@ mixin EdgeTester {
       fail('Found multiple edges $source -> $destination');
     } else {
       var edge = edges[0];
-      expect(edge.hard, hard);
+      expect(edge.isHard, hard);
       expect(edge.guards, unorderedEquals(guards));
       return edge;
     }
   }
 
-  void assertNoEdge(NullabilityNode source, NullabilityNode destination) {
+  /// Asserts that no edge exists with a node matching [source] and a node
+  /// matching [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  void assertNoEdge(Object source, Object destination) {
     var edges = getEdges(source, destination);
     if (edges.isNotEmpty) {
       fail('Expected no edge $source -> $destination, found ${edges.length}');
     }
   }
 
-  void assertUnion(NullabilityNode x, NullabilityNode y) {
+  /// Asserts that a union-type edge exists between nodes [x] and [y].
+  ///
+  /// [x] and [y] are converted to [NodeMatcher] objects if they aren't already.
+  /// In practice this means that the caller can pass in either a [NodeMatcher]
+  /// or a [NullabilityNode].
+  void assertUnion(Object x, Object y) {
     var edges = getEdges(x, y);
     for (var edge in edges) {
       if (edge.isUnion) {
-        expect(edge.sources, hasLength(1));
+        expect(edge.upstreamNodes, hasLength(1));
         return;
       }
     }
     fail('Expected union between $x and $y, not found');
   }
 
-  List<NullabilityEdge> getEdges(
-          NullabilityNode source, NullabilityNode destination) =>
-      graph
-          .getUpstreamEdges(destination)
-          .where((e) => e.primarySource == source)
-          .toList();
+  /// Gets a list of all edges whose source matches [source] and whose
+  /// destination matches [destination].
+  ///
+  /// [source] and [destination] are converted to [NodeMatcher] objects if they
+  /// aren't already.  In practice this means that the caller can pass in either
+  /// a [NodeMatcher] or a [NullabilityNode].
+  List<NullabilityEdge> getEdges(Object source, Object destination) {
+    var sourceMatcher = NodeMatcher(source);
+    var destinationMatcher = NodeMatcher(destination);
+    var result = <NullabilityEdge>[];
+    for (var edge in graph.getAllEdges()) {
+      if (sourceMatcher.matches(edge.sourceNode) &&
+          destinationMatcher.matches(edge.destinationNode)) {
+        sourceMatcher.matched(edge.sourceNode);
+        destinationMatcher.matched(edge.destinationNode);
+        result.add(edge);
+      }
+    }
+    return result;
+  }
+
+  /// Creates a [NodeMatcher] matching a substitution node whose inner and outer
+  /// nodes match [inner] and [outer].
+  ///
+  /// [inner] and [outer] are converted to [NodeMatcher] objects if they aren't
+  /// already.  In practice this means that the caller can pass in either a
+  /// [NodeMatcher] or a [NullabilityNode].
+  NodeMatcher substitutionNode(Object inner, Object outer) =>
+      _SubstitutionNodeMatcher(NodeMatcher(inner), NodeMatcher(outer));
 }
 
 /// Mock representation of constraint variables.
@@ -151,14 +244,15 @@ class InstrumentedVariables extends Variables {
 
   final _decoratedExpressionTypes = <Expression, DecoratedType>{};
 
-  final _expressionChecks = <Expression, ExpressionChecks>{};
+  final _expressionChecks = <Expression, ExpressionChecksOrigin>{};
 
   final _possiblyOptional = <DefaultFormalParameter, NullabilityNode>{};
 
-  InstrumentedVariables(NullabilityGraph graph) : super(graph);
+  InstrumentedVariables(NullabilityGraph graph, TypeProvider typeProvider)
+      : super(graph, typeProvider);
 
   /// Gets the [ExpressionChecks] associated with the given [expression].
-  ExpressionChecks checkExpression(Expression expression) =>
+  ExpressionChecksOrigin checkExpression(Expression expression) =>
       _expressionChecks[_normalizeExpression(expression)];
 
   /// Gets the [conditionalDiscard] associated with the given [expression].
@@ -188,9 +282,9 @@ class InstrumentedVariables extends Variables {
 
   @override
   void recordExpressionChecks(
-      Source source, Expression expression, ExpressionChecks checks) {
-    super.recordExpressionChecks(source, expression, checks);
-    _expressionChecks[_normalizeExpression(expression)] = checks;
+      Source source, Expression expression, ExpressionChecksOrigin origin) {
+    super.recordExpressionChecks(source, expression, origin);
+    _expressionChecks[_normalizeExpression(expression)] = origin;
   }
 
   @override
@@ -209,27 +303,14 @@ class InstrumentedVariables extends Variables {
   }
 }
 
-class EdgeBuilderTestBase extends MigrationVisitorTestBase {
-  /// Analyzes the given source code, producing constraint variables and
-  /// constraints for it.
-  @override
-  Future<CompilationUnit> analyze(String code) async {
-    var unit = await super.analyze(code);
-    unit.accept(EdgeBuilder(
-        typeProvider, typeSystem, variables, graph, testSource, null));
-    return unit;
-  }
-}
-
 class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
-  final InstrumentedVariables variables;
+  InstrumentedVariables variables;
 
   final NullabilityGraphForTesting graph;
 
   MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
-  MigrationVisitorTestBase._(this.graph)
-      : variables = InstrumentedVariables(graph);
+  MigrationVisitorTestBase._(this.graph);
 
   NullabilityNode get always => graph.always;
 
@@ -241,6 +322,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
+    variables = InstrumentedVariables(graph, typeProvider);
     testUnit
         .accept(NodeBuilder(variables, testSource, null, graph, typeProvider));
     return testUnit;
@@ -282,5 +364,61 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
+  }
+}
+
+/// Abstract base class representing a thing that can be matched against
+/// nullability nodes.
+abstract class NodeMatcher {
+  factory NodeMatcher(Object expectation) {
+    if (expectation is NodeMatcher) return expectation;
+    if (expectation is NullabilityNode) return _ExactNodeMatcher(expectation);
+    fail(
+        'Unclear how to match node expectation of type ${expectation.runtimeType}');
+  }
+
+  void matched(NullabilityNode node);
+
+  bool matches(NullabilityNode node);
+}
+
+/// A [NodeMatcher] that matches exactly one node.
+class _ExactNodeMatcher implements NodeMatcher {
+  final NullabilityNode _expectation;
+
+  _ExactNodeMatcher(this._expectation);
+
+  @override
+  void matched(NullabilityNode node) {}
+
+  @override
+  bool matches(NullabilityNode node) => node == _expectation;
+}
+
+/// A [NodeMatcher] that matches a substitution node with the given inner and
+/// outer nodes.
+class _SubstitutionNodeMatcher implements NodeMatcher {
+  final NodeMatcher inner;
+  final NodeMatcher outer;
+
+  _SubstitutionNodeMatcher(this.inner, this.outer);
+
+  @override
+  void matched(NullabilityNode node) {
+    if (node is NullabilityNodeForSubstitution) {
+      inner.matched(node.innerNode);
+      outer.matched(node.outerNode);
+    } else {
+      throw StateError(
+          'matched should only be called on nodes for which matches returned '
+          'true');
+    }
+  }
+
+  @override
+  bool matches(NullabilityNode node) {
+    return node is NullabilityNodeForSubstitution &&
+        inner.matches(node.innerNode) &&
+        outer.matches(node.outerNode);
   }
 }

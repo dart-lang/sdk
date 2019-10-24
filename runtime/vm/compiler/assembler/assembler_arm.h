@@ -392,13 +392,14 @@ class Assembler : public AssemblerBase {
 #endif  // TESTING || DEBUG
 
   // Debugging and bringup support.
-  void Breakpoint() { bkpt(0); }
+  void Breakpoint() override { bkpt(0); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
+  void ands(Register rd, Register rn, Operand o, Condition cond = AL);
 
   void eor(Register rd, Register rn, Operand o, Condition cond = AL);
 
@@ -444,6 +445,7 @@ class Assembler : public AssemblerBase {
 
   // Miscellaneous data-processing instructions.
   void clz(Register rd, Register rm, Condition cond = AL);
+  void rbit(Register rd, Register rm, Condition cond = AL);
 
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
@@ -535,8 +537,13 @@ class Assembler : public AssemblerBase {
   void TransitionGeneratedToNative(Register destination_address,
                                    Register exit_frame_fp,
                                    Register scratch0,
-                                   Register scratch1);
-  void TransitionNativeToGenerated(Register scratch0, Register scratch1);
+                                   Register scratch1,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch0,
+                                   Register scratch1,
+                                   bool exit_safepoint);
+  void EnterSafepoint(Register scratch0, Register scratch1);
+  void ExitSafepoint(Register scratch0, Register scratch1);
 
   // Miscellaneous instructions.
   void clrex();
@@ -1330,9 +1337,6 @@ class Assembler : public AssemblerBase {
                              Label* label,
                              CanBeSmi can_be_smi,
                              BarrierFilterMode barrier_filter_mode);
-
-  void EnterSafepointSlowly();
-  void ExitSafepointSlowly();
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Condition, Register)>

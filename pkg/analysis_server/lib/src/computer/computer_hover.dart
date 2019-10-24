@@ -111,11 +111,9 @@ class DartUnitHoverComputer {
       // types
       {
         AstNode parent = expression.parent;
-        DartType staticType = null;
-        if (element is ParameterElement) {
-          staticType = element.type;
-        } else if (element == null || element is VariableElement) {
-          staticType = expression.staticType;
+        DartType staticType;
+        if (element == null || element is VariableElement) {
+          staticType = _getTypeOfDeclarationOrReference(node);
         }
         if (parent is MethodInvocation && parent.methodName == expression) {
           staticType = parent.staticInvokeType;
@@ -164,6 +162,22 @@ class DartUnitHoverComputer {
       }
     }
     return null;
+  }
+
+  static DartType _getTypeOfDeclarationOrReference(Expression node) {
+    if (node is SimpleIdentifier) {
+      var element = node.staticElement;
+      if (element is VariableElement) {
+        if (node.inDeclarationContext()) {
+          return element.type;
+        }
+        var parent2 = node.parent.parent;
+        if (parent2 is NamedExpression && parent2.name.label == node) {
+          return element.type;
+        }
+      }
+    }
+    return node.staticType;
   }
 
   static String _safeToString(obj) => obj?.toString();

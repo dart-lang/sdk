@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 // Only OK to use here because this is test code.
-#include <thread>
+#include <thread>  // NOLINT(build/c++11)
 #endif
 
 #include <setjmp.h>
@@ -39,6 +39,9 @@ namespace dart {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.
+//
+// Note: If this interface is changed please also update
+// sdk/runtime/tools/dartfuzz/ffiapi.dart
 
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
@@ -113,6 +116,14 @@ DART_EXPORT int64_t IntComputation(int8_t a, int16_t b, int32_t c, int64_t d) {
   std::cout << "IntComputation(" << static_cast<int>(a) << ", " << b << ", "
             << c << ", " << d << ")\n";
   int64_t retval = d - c + b - a;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Used in regress_39044_test.dart.
+DART_EXPORT int64_t Regress39044(int64_t a, int8_t b) {
+  std::cout << "Regress39044(" << a << ", " << static_cast<int>(b) << ")\n";
+  const int64_t retval = a - b;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -309,7 +320,7 @@ typedef Coord* (*CoordUnOp)(Coord* coord);
 // Coordinate.
 // Used for testing function pointers with structs.
 DART_EXPORT Coord* CoordinateUnOpTrice(CoordUnOp unop, Coord* coord) {
-  std::cout << "CoordinateUnOpTrice(" << unop << ", " << coord << ")\n";
+  std::cout << "CoordinateUnOpTrice(" << &unop << ", " << coord << ")\n";
   Coord* retval = unop(unop(unop(coord)));
   std::cout << "returning " << retval << "\n";
   return retval;
@@ -324,7 +335,7 @@ typedef intptr_t (*IntptrBinOp)(intptr_t a, intptr_t b);
 DART_EXPORT IntptrBinOp IntptrAdditionClosure() {
   std::cout << "IntptrAdditionClosure()\n";
   IntptrBinOp retval = [](intptr_t a, intptr_t b) { return a + b; };
-  std::cout << "returning " << retval << "\n";
+  std::cout << "returning " << &retval << "\n";
   return retval;
 }
 
@@ -343,7 +354,7 @@ DART_EXPORT intptr_t ApplyTo42And74(IntptrBinOp binop) {
 DART_EXPORT int64_t* NullableInt64ElemAt1(int64_t* a) {
   std::cout << "NullableInt64ElemAt1(" << a << ")\n";
   int64_t* retval;
-  if (a) {
+  if (a != nullptr) {
     std::cout << "not null pointer, address: " << a << "\n";
     retval = a + 1;
   } else {
@@ -436,7 +447,7 @@ DART_EXPORT int64_t SumVeryLargeStruct(VeryLargeStruct* vls) {
   retval += vls->k;
   retval += vls->smallLastField;
   std::cout << retval << "\n";
-  if (vls->parent) {
+  if (vls->parent != nullptr) {
     std::cout << "has parent\n";
     retval += vls->parent->a;
   }
@@ -499,30 +510,39 @@ DART_EXPORT float InventFloatValue() {
 // Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(1));
   uint64_t origin = 0x8100000082000000;
   return reinterpret_cast<void*>(origin);
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
   Dart_ExecuteInternalCommand("gc-now", nullptr);
+}
+
+DART_EXPORT void CollectOnNthAllocation(intptr_t num_allocations) {
+  Dart_ExecuteInternalCommand("gc-on-nth-allocation",
+                              reinterpret_cast<void*>(num_allocations));
 }
 
 // Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
@@ -567,29 +587,42 @@ DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
   return nullptr;
 }
 
-DART_EXPORT void* UnprotectCode() {
+struct HelperThreadState {
   std::mutex mutex;
   std::condition_variable cvar;
-  std::unique_lock<std::mutex> lock(mutex);  // locks the mutex
-  std::thread* helper = new std::thread(UnprotectCodeOtherThread,
-                                        Dart_CurrentIsolate(), &cvar, &mutex);
+  std::unique_ptr<std::thread> helper;
+};
 
-  cvar.wait(lock);
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void*)) {
+  HelperThreadState* state = new HelperThreadState;
 
-  return helper;
+  {
+    std::unique_lock<std::mutex> lock(state->mutex);  // locks the mutex
+    state->helper.reset(new std::thread(UnprotectCodeOtherThread,
+                                        Dart_CurrentIsolate(), &state->cvar,
+                                        &state->mutex));
+
+    state->cvar.wait(lock);
+  }
+
+  if (fn != nullptr) {
+    fn(state);
+    return nullptr;
+  } else {
+    return state;
+  }
 }
 
-DART_EXPORT void WaitForHelper(void* helper) {
-  std::thread* thread = reinterpret_cast<std::thread*>(helper);
-  thread->join();
-  delete thread;
+DART_EXPORT void WaitForHelper(HelperThreadState* helper) {
+  helper->helper->join();
+  delete helper;
 }
 #else
 // Our version of VSC++ doesn't support std::thread yet.
-DART_EXPORT void* UnprotectCode() {
+DART_EXPORT void WaitForHelper(void* helper) {}
+DART_EXPORT void* TestUnprotectCode(void (*fn)(void)) {
   return nullptr;
 }
-DART_EXPORT void WaitForHelper(void* helper) {}
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -734,7 +767,7 @@ DART_EXPORT int TestThrowExceptionDouble(double (*fn)()) {
 }
 
 DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
-  CHECK_EQ(fn(), reinterpret_cast<void*>(42));
+  CHECK_EQ(fn(), nullptr);
   return 0;
 }
 
@@ -829,5 +862,32 @@ DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
 }
 
 #endif  // defined(TARGET_OS_LINUX)
+
+// Receives some pointer (Pointer<NativeType> in Dart) and writes some bits.
+DART_EXPORT void NativeTypePointerParam(void* p) {
+  uint8_t* p2 = reinterpret_cast<uint8_t*>(p);
+  p2[0] = 42;
+}
+
+// Manufactures some pointer (Pointer<NativeType> in Dart) with a bogus address.
+DART_EXPORT void* NativeTypePointerReturn() {
+  uint64_t bogus_address = 0x13370000;
+  return reinterpret_cast<void*>(bogus_address);
+}
+
+// Passes some pointer (Pointer<NativeType> in Dart) to Dart as argument.
+DART_EXPORT void CallbackNativeTypePointerParam(void (*f)(void*)) {
+  void* pointer = malloc(sizeof(int64_t));
+  f(pointer);
+  free(pointer);
+}
+
+// Receives some pointer (Pointer<NativeType> in Dart) from Dart as return
+// value.
+DART_EXPORT void CallbackNativeTypePointerReturn(void* (*f)()) {
+  void* p = f();
+  uint8_t* p2 = reinterpret_cast<uint8_t*>(p);
+  p2[0] = 42;
+}
 
 }  // namespace dart

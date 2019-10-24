@@ -39,6 +39,7 @@ import '../js_model/locals.dart' show JumpVisitor;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/element_map.dart';
 import '../js_model/js_strategy.dart';
+import '../js_model/type_recipe.dart';
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
@@ -4038,14 +4039,33 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> inputs = <HInstruction>[closure];
     List<DartType> typeArguments = <DartType>[];
 
-    thisType.typeArguments.forEach((_typeVariable) {
-      TypeVariableType variable = _typeVariable;
-      typeArguments.add(variable);
-      HInstruction readType = new HTypeInfoReadVariable.intercepted(
-          variable, interceptor, object, _abstractValueDomain.dynamicType);
-      add(readType);
-      inputs.add(readType);
-    });
+    if (options.experimentNewRti) {
+      closedWorld.registerExtractTypeArguments(cls);
+      HInstruction instanceType =
+          HInstanceEnvironment(object, _abstractValueDomain.dynamicType);
+      add(instanceType);
+      TypeEnvironmentStructure envStructure =
+          FullTypeEnvironmentStructure(classType: thisType);
+
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        TypeRecipe recipe = TypeExpressionRecipe(variable);
+        HInstruction typeEval = new HTypeEval(instanceType, envStructure,
+            recipe, _abstractValueDomain.dynamicType);
+        add(typeEval);
+        inputs.add(typeEval);
+      });
+    } else {
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType variable = _typeVariable;
+        typeArguments.add(variable);
+        HInstruction readType = new HTypeInfoReadVariable.intercepted(
+            variable, interceptor, object, _abstractValueDomain.dynamicType);
+        add(readType);
+        inputs.add(readType);
+      });
+    }
 
     // TODO(sra): In compliance mode, insert a check that [closure] is a
     // function of N type arguments.
@@ -4673,13 +4693,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       stack.add(graph.addConstantNull(closedWorld));
       return;
     }
-    // TODO(sra): Introduce 'any' type.
+    // TODO(sra): This should be JSArray<any>, created via
+    // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
     InterfaceType interopType =
-        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
+        InterfaceType(_commonElements.jsArrayClass, [const DynamicType()]);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
-    HInstruction rti = HLoadType(interopType, _abstractValueDomain.dynamicType)
-      ..sourceInformation = sourceInformation;
+    HInstruction rti =
+        HLoadType.type(interopType, _abstractValueDomain.dynamicType)
+          ..sourceInformation = sourceInformation;
     push(rti);
   }
 
@@ -6025,7 +6047,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       FunctionEntity function, TypeVariableType typeVariable) {
     DartType bound =
         _elementEnvironment.getTypeVariableDefaultType(typeVariable.element);
-    if (bound.containsTypeVariables) {
+    if (bound.containsTypeVariables && !options.experimentNewRti) {
       // TODO(33422): Support type variables in default
       // types. Temporarily using the "any" type (encoded as -2) to
       // avoid failing on bounds checks.

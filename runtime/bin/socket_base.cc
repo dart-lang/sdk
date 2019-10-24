@@ -49,7 +49,8 @@ bool SocketAddress::AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
       return false;
     }
     return memcmp(&a.in6.sin6_addr, &b.in6.sin6_addr,
-                  sizeof(a.in6.sin6_addr)) == 0;
+                  sizeof(a.in6.sin6_addr)) == 0 &&
+           a.in6.sin6_scope_id == b.in6.sin6_scope_id;
   } else {
     UNREACHABLE();
     return false;
@@ -140,6 +141,18 @@ CObjectUint8Array* SocketAddress::ToCObject(const RawAddr& addr) {
   }
   memmove(data->Buffer(), in_addr, in_addr_len);
   return data;
+}
+void SocketAddress::SetAddrScope(RawAddr* addr, intptr_t scope_id) {
+  if (addr->addr.sa_family != AF_INET6) return;
+  addr->in6.sin6_scope_id = scope_id;
+}
+
+intptr_t SocketAddress::GetAddrScope(const RawAddr& addr) {
+  if (addr.addr.sa_family == AF_INET6) {
+    return addr.in6.sin6_scope_id;
+  } else {
+    return 0;
+  }
 }
 
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {

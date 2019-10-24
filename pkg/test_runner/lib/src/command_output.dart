@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
-import 'package:test_runner/src/test_file.dart';
+import 'package:test_runner/src/static_error.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -23,7 +23,7 @@ import 'utils.dart';
 /// and the time the process took to run. It does not contain a pointer to the
 /// [TestCase] this is the output of, so some functions require the test case
 /// to be passed as an argument.
-class CommandOutput extends UniqueObject {
+class CommandOutput {
   final Command command;
 
   final bool hasTimedOut;
@@ -493,17 +493,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
             compilationSkipped, 0);
-
-  @override
-  void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
-      _validateExpectedErrors(testCase, output);
-    }
-
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
-      super.describe(testCase, progress, output);
-    }
-  }
 
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
@@ -1097,50 +1086,6 @@ class FastaCommandOutput extends CompilationCommandOutput
   }
 }
 
-CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
-    List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
-    [int pid = 0]) {
-  if (command is AnalysisCommand) {
-    return AnalysisCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompareAnalyzerCfeCommand) {
-    return CompareAnalyzerCfeCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is SpecParseCommand) {
-    return SpecParseCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is VmCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is VMKernelCompilationCommand) {
-    return VMKernelCompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is AdbPrecompilationCommand) {
-    return VMCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is FastaCompilationCommand) {
-    return FastaCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is CompilationCommand) {
-    if (command.displayName == 'precompiler' ||
-        command.displayName == 'app_jit') {
-      return VMCommandOutput(
-          command, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (command.displayName == 'dartdevc') {
-      return DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
-          stderr, time, compilationSkipped, pid);
-    }
-    return CompilationCommandOutput(
-        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-  } else if (command is JSCommandlineCommand) {
-    return JSCommandLineOutput(
-        command, exitCode, timedOut, stdout, stderr, time);
-  }
-
-  return CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
-      compilationSkipped, pid);
-}
-
 /// Mixin for outputs from a command that implement a Dart front end which
 /// reports static errors.
 mixin _StaticErrorOutput on CommandOutput {
@@ -1174,11 +1119,18 @@ mixin _StaticErrorOutput on CommandOutput {
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
-    if (testCase.testFile.isStaticErrorTest) {
+    // Handle static error test output specially. We don't want to show the raw
+    // stdout if we can give the user the parsed expectations instead.
+    if (testCase.testFile.isStaticErrorTest && !hasCrashed && !hasTimedOut) {
       _validateExpectedErrors(testCase, output);
     }
 
-    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+    // Don't show the "raw" output unless something strange happened or the
+    // user explicitly requests all the output.
+    if (hasTimedOut ||
+        hasCrashed ||
+        !testCase.testFile.isStaticErrorTest ||
+        progress == Progress.verbose) {
       super.describe(testCase, progress, output);
     }
   }
@@ -1225,52 +1177,18 @@ mixin _StaticErrorOutput on CommandOutput {
   Expectation _validateExpectedErrors(TestCase testCase,
       [OutputWriter writer]) {
     // Filter out errors that aren't for this configuration.
-    var expected = testCase.testFile.expectedErrors
-        .where((error) =>
-            testCase.configuration.compiler == Compiler.dart2analyzer
-                ? error.isAnalyzer
-                : error.isCfe)
-        .toList();
-    var actual = errors.toList();
+    var expected = testCase.testFile.expectedErrors.where((error) =>
+        testCase.configuration.compiler == Compiler.dart2analyzer
+            ? error.isAnalyzer
+            : error.isCfe);
 
-    // Don't require the test or analyzer to output in any specific order.
-    expected.sort();
-    actual.sort();
+    var validation = StaticError.validateExpectations(expected, errors);
+    if (validation == null) return Expectation.pass;
 
-    writer?.subsection("incorrect static errors");
+    writer?.subsection("static error failures");
+    writer?.write(validation);
 
-    var success = expected.length == actual.length;
-    for (var i = 0; i < expected.length && i < actual.length; i++) {
-      var differences = expected[i].describeDifferences(actual[i]);
-      if (differences == null) continue;
-
-      if (writer != null) {
-        writer.write(actual[i].location);
-        for (var difference in differences) {
-          writer.write("- $difference");
-        }
-        writer.separator();
-      }
-
-      success = false;
-    }
-
-    if (writer != null) {
-      writer.subsection("missing expected static errors");
-      for (var i = actual.length; i < expected.length; i++) {
-        writer.write(expected[i].toString());
-        writer.separator();
-      }
-
-      writer.subsection("reported unexpected static errors");
-      for (var i = expected.length; i < actual.length; i++) {
-        writer.write(actual[i].toString());
-        writer.separator();
-      }
-    }
-
-    // TODO(rnystrom): Is there a better expectation we can use?
-    return success ? Expectation.pass : Expectation.missingCompileTimeError;
+    return Expectation.missingCompileTimeError;
   }
 }
 

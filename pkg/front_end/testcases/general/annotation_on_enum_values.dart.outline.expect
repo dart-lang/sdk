@@ -14,7 +14,7 @@ class Foo extends core::Object {
   static const field core::List<self::Foo*>* values = const <self::Foo*>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];
   @self::hest
   static const field self::Foo* bar = const self::Foo::•(0, "Foo.bar");
-  @self::Fisk::fisk<dynamic>(self::hest)
+  @self::Fisk::fisk<core::int*>(self::hest)
   static const field self::Foo* baz = const self::Foo::•(1, "Foo.baz");
   static const field self::Foo* cafebabe = const self::Foo::•(2, "Foo.cafebabe");
   const constructor •(core::int* index, core::String* _name) → self::Foo*

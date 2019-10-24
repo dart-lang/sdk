@@ -176,8 +176,6 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
- *   "docComplete": optional String
- *   "docSummary": optional String
  *   "parameterNames": optional List<String>
  *   "parameterTypes": optional List<String>
  *   "relevanceTags": optional List<AvailableSuggestionRelevanceTag>
@@ -192,8 +190,6 @@ final Matcher isAvailableSuggestion =
         }, optionalFields: {
           "defaultArgumentListString": isString,
           "defaultArgumentListTextRanges": isListOf(isInt),
-          "docComplete": isString,
-          "docSummary": isString,
           "parameterNames": isListOf(isString),
           "parameterTypes": isListOf(isString),
           "relevanceTags": isListOf(isAvailableSuggestionRelevanceTag),
@@ -1708,13 +1704,41 @@ final Matcher isSearchResultKind = new MatchesEnum("SearchResultKind", [
 ]);
 
 /**
+ * ServerLogEntry
+ *
+ * {
+ *   "time": int
+ *   "kind": ServerLogEntryKind
+ *   "data": String
+ * }
+ */
+final Matcher isServerLogEntry = new LazyMatcher(() => new MatchesJsonObject(
+    "ServerLogEntry",
+    {"time": isInt, "kind": isServerLogEntryKind, "data": isString}));
+
+/**
+ * ServerLogEntryKind
+ *
+ * enum {
+ *   NOTIFICATION
+ *   RAW
+ *   REQUEST
+ *   RESPONSE
+ * }
+ */
+final Matcher isServerLogEntryKind = new MatchesEnum(
+    "ServerLogEntryKind", ["NOTIFICATION", "RAW", "REQUEST", "RESPONSE"]);
+
+/**
  * ServerService
  *
  * enum {
+ *   LOG
  *   STATUS
  * }
  */
-final Matcher isServerService = new MatchesEnum("ServerService", ["STATUS"]);
+final Matcher isServerService =
+    new MatchesEnum("ServerService", ["LOG", "STATUS"]);
 
 /**
  * SourceChange
@@ -1771,11 +1795,13 @@ final Matcher isSourceFileEdit = new LazyMatcher(() => new MatchesJsonObject(
  *   "lexeme": String
  *   "type": optional String
  *   "validElementKinds": optional List<String>
+ *   "offset": int
  * }
  */
 final Matcher isTokenDetails = new LazyMatcher(() => new MatchesJsonObject(
         "TokenDetails", {
-      "lexeme": isString
+      "lexeme": isString,
+      "offset": isInt
     }, optionalFields: {
       "type": isString,
       "validElementKinds": isListOf(isString)
@@ -2535,6 +2561,7 @@ final Matcher isDiagnosticGetServerPortResult = new LazyMatcher(() =>
  *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
+ *   "outputDir": optional FilePath
  * }
  */
 final Matcher isEditDartfixParams =
@@ -2544,7 +2571,8 @@ final Matcher isEditDartfixParams =
           "includedFixes": isListOf(isString),
           "includePedanticFixes": isBool,
           "includeRequiredFixes": isBool,
-          "excludedFixes": isListOf(isString)
+          "excludedFixes": isListOf(isString),
+          "outputDir": isFilePath
         }));
 
 /**
@@ -3513,6 +3541,16 @@ final Matcher isServerGetVersionParams = isNull;
  */
 final Matcher isServerGetVersionResult = new LazyMatcher(() =>
     new MatchesJsonObject("server.getVersion result", {"version": isString}));
+
+/**
+ * server.log params
+ *
+ * {
+ *   "entry": ServerLogEntry
+ * }
+ */
+final Matcher isServerLogParams = new LazyMatcher(() =>
+    new MatchesJsonObject("server.log params", {"entry": isServerLogEntry}));
 
 /**
  * server.setSubscriptions params

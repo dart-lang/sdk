@@ -37,15 +37,18 @@ class FlutterTarget extends VmTarget {
         // PRODUCT mode.
         'dart:mirrors',
 
-        'dart:profiler',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
+        'dart:wasm',
 
         // Required for flutter.
         'dart:ui',
         'dart:vmservice_io',
       ];
+
+  @override
+  List<String> get extraRequiredLibrariesPlatform => const <String>[];
 
   @override
   void performPreConstantEvaluationTransformations(
@@ -54,6 +57,9 @@ class FlutterTarget extends VmTarget {
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
+    super.performPreConstantEvaluationTransformations(
+        component, coreTypes, libraries, diagnosticReporter,
+        logger: logger);
     if (flags.trackWidgetCreation) {
       if (_widgetTracker == null) {
         _widgetTracker = WidgetCreatorTracker();

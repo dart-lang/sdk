@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -53,6 +55,7 @@ class TypesBuilder {
     TypeParameterList typeParameterList,
     TypeAnnotation returnTypeNode,
     FormalParameterList parameterList,
+    NullabilitySuffix nullabilitySuffix,
   ) {
     var returnType = returnTypeNode?.type ?? _dynamicType;
 
@@ -78,6 +81,7 @@ class TypesBuilder {
       returnType,
       typeParameters,
       formalParameters,
+      nullabilitySuffix: nullabilitySuffix,
     );
   }
 
@@ -147,6 +151,7 @@ class TypesBuilder {
         node.typeParameters,
         node.type,
         parameterList,
+        _nullability(node, true), // TODO(scheglov) use 'question' token
       );
       LazyAst.setType(node, type);
     } else {
@@ -164,8 +169,32 @@ class TypesBuilder {
       node.typeParameters,
       node.returnType,
       node.parameters,
+      _nullability(node, node.question != null),
     );
     LazyAst.setType(node, type);
+  }
+
+  NullabilitySuffix _noneOrStarSuffix(AstNode node) {
+    return _nonNullableEnabled(node)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
+  bool _nonNullableEnabled(AstNode node) {
+    var unit = node.thisOrAncestorOfType<CompilationUnit>();
+    return unit.featureSet.isEnabled(Feature.non_nullable);
+  }
+
+  NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
+    if (_nonNullableEnabled(node)) {
+      if (hasQuestion) {
+        return NullabilitySuffix.question;
+      } else {
+        return NullabilitySuffix.none;
+      }
+    } else {
+      return NullabilitySuffix.star;
+    }
   }
 
   static DartType _getType(FormalParameter node) {
@@ -179,12 +208,21 @@ class TypesBuilder {
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
   final Dart2TypeSystem typeSystem;
+  final FeatureSet featureSet;
+  final InterfaceType classType;
 
-  InterfaceType classType;
   List<InterfaceType> mixinTypes = [];
   List<InterfaceType> supertypesForMixinInference;
 
-  _MixinInference(this.typeSystem, this.classType);
+  _MixinInference(this.typeSystem, this.featureSet, this.classType);
+
+  NullabilitySuffix get _noneOrStarSuffix {
+    return _nonNullableEnabled
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+  }
+
+  bool get _nonNullableEnabled => featureSet.isEnabled(Feature.non_nullable);
 
   void perform(WithClause withClause) {
     if (withClause == null) return;
@@ -282,12 +320,16 @@ class _MixinInference {
     // Try to pattern match matchingInterfaceTypes against
     // mixinSupertypeConstraints to find the correct set of type
     // parameters to apply to the mixin.
-    var inferredMixin = typeSystem.matchSupertypeConstraints(
+    var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
       mixinElement,
       mixinSupertypeConstraints,
       matchingInterfaceTypes,
     );
-    if (inferredMixin != null) {
+    if (inferredTypeArguments != null) {
+      var inferredMixin = mixinElement.instantiate(
+        typeArguments: inferredTypeArguments,
+        nullabilitySuffix: _noneOrStarSuffix,
+      );
       mixinType = inferredMixin;
       mixinNode.type = inferredMixin;
     }
@@ -342,7 +384,9 @@ class _MixinsInference {
   void _infer(ClassElementImpl element, WithClause withClause) {
     element.linkedMixinInferenceCallback = _callbackWhenLoop;
     try {
-      _MixinInference(typeSystem, element.type).perform(withClause);
+      var featureSet = _unitFeatureSet(element);
+      _MixinInference(typeSystem, featureSet, element.thisType)
+          .perform(withClause);
     } finally {
       element.linkedMixinInferenceCallback = null;
     }
@@ -354,5 +398,10 @@ class _MixinsInference {
     } else if (node is ClassTypeAlias) {
       _infer(node.declaredElement, node.withClause);
     }
+  }
+
+  static FeatureSet _unitFeatureSet(ClassElementImpl element) {
+    var unit = element.linkedNode.parent as CompilationUnit;
+    return unit.featureSet;
   }
 }

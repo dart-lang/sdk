@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.25
+# Dart VM Service Protocol 3.27
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.25_ of the Dart VM Service Protocol. This
+This document describes of _version 3.27_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,10 +27,12 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
   - [addBreakpointAtEntry](#addbreakpointatentry)
+  - [clearCpuSamples](#clearcpusamples)
   - [clearVMTimeline](#clearvmtimeline)
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
   - [getInboundReferences](#getinboundreferences)
@@ -73,6 +75,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [CodeKind](#codekind)
   - [Context](#context)
   - [ContextElement](#contextelement)
+  - [CpuSamples](#cpusamples)
+  - [CpuSample](#cpusample)
   - [Error](#error)
   - [ErrorKind](#errorkind)
   - [Event](#event)
@@ -94,6 +98,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [MapAssociation](#mapassociation)
   - [MemoryUsage](#memoryusage)
   - [Message](#message)
+  - [NativeFunction](#nativefunction)
   - [Null](#null)
   - [Object](#object)
   - [ReloadReport](#reloadreport)
@@ -261,7 +266,20 @@ _streamNotify_, and the _params_ will have _streamId_ and _event_ properties:
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully.
 
+## Binary Events
 
+Some events are associated with bulk binary data. These events are delivered as
+WebSocket binary frames instead of text frames. A binary event's metadata
+should be interpreted as UTF-8 encoded JSON, with the same properties as
+described above for ordinary events.
+
+```
+type BinaryEvent {
+  dataOffset : uint32,
+  metadata : uint8[dataOffset-4],
+  data : uint8[],
+}
+```
 
 ## Types
 
@@ -496,6 +514,15 @@ See [Breakpoint](#breakpoint).
 
 Note that breakpoints are added and removed on a per-isolate basis.
 
+### clearCpuSamples
+
+```
+Success clearCpuSamples(string isolateId)
+```
+
+Clears all CPU profiling samples.
+
+See [Success](#success).
 
 ### clearVMTimeline
 
@@ -637,6 +664,22 @@ before collecting allocation information.
 If _gc_ is provided and is set to true, a garbage collection will be attempted
 before collecting allocation information. There is no guarantee that a garbage
 collection will be actually be performed.
+
+### getCpuSamples
+
+```
+CpuSamples getCpuSamples(string isolateId,
+                         int timeOriginMicros,
+                         int timeExtentMicros)
+```
+
+The _getCpuSamples_ RPC is used to retrieve samples collected by the CPU
+profiler. Only samples collected in the time range `[timeOriginMicros,
+timeOriginMicros + timeExtentMicros]` will be reported.
+
+If the profiler is disabled, an error response will be returned.
+
+See [CpuSamples](#cpusamples).
 
 ### getFlagList
 
@@ -1003,6 +1046,20 @@ Note that breakpoints are added and removed on a per-isolate basis.
 
 See [Success](#success).
 
+### requestHeapSnapshot
+
+```
+Success requestHeapSnapshot(string isolateId)
+```
+
+Requests a dump of the Dart heap of the given isolate.
+
+This method immediately returns success. The VM will then begin delivering
+binary events on the `HeapSnapshot` event stream. The binary data in these
+events, when concatenated together, conforms to the SnapshotGraph type. The
+splitting of the SnapshotGraph into events can happen at any byte offset,
+including the middle of scalar fields.
+
 ### resume
 
 ```
@@ -1053,8 +1110,8 @@ All  | Pause isolate on all thrown exceptions
 ### setFlag
 
 ```
-Success setFlag(string name,
-                string value)
+Success|Error setFlag(string name,
+                      string value)
 ```
 
 The _setFlag_ RPC is used to set a VM flag at runtime. Returns an error if the
@@ -1160,6 +1217,7 @@ Extension | Extension
 Timeline | TimelineEvents
 Logging | Logging
 Service | ServiceRegistered, ServiceUnregistered
+HeapSnapshot | HeapSnapshot
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1521,6 +1579,83 @@ class ContextElement {
 }
 ```
 
+### CpuSamples
+
+```
+class CpuSamples extends Response {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The timespan the set of returned samples covers, in microseconds.
+  int timeSpan;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A list of functions seen in the relevant samples. These references can be
+  // looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // which function was on the stack.
+  ProfileFunction[] functions;
+
+  // A list of samples collected in the range
+  // `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  CpuSample[] samples;
+}
+```
+
+See [getCpuSamples](#getcpusamples) and [CpuSample](#cpusample).
+
+### CpuSample
+
+```
+class CpuSample {
+  // The thread ID representing the thread on which this sample was collected.
+  int tid;
+
+  // The time this sample was collected in microseconds.
+  int timestamp;
+
+  // The name of VM tag set when this sample was collected. Omitted if the VM
+  // tag for the sample is not considered valid.
+  string vmTag [optional];
+
+  // The name of the User tag set when this sample was collected. Omitted if no
+  // User tag was set when this sample was collected.
+  string userTag [optional];
+
+  // Provided and set to true if the sample's stack was truncated. This can
+  // happen if the stack is deeper than the `stackDepth` in the `CpuSamples`
+  // response.
+  bool truncated [optional];
+
+  // The call stack at the time this sample was collected. The stack is to be
+  // interpreted as top to bottom. Each element in this array is a key into the
+  // `functions` array in `CpuSamples`.
+  //
+  // Example:
+  //
+  // `functions[stack[0]] = @Function(bar())`
+  // `functions[stack[1]] = @Function(foo())`
+  // `functions[stack[2]] = @Function(main())`
+  int[] stack;
+}
+```
+
+See [getCpuSamples](#getcpusamples) and [CpuSamples](#cpusamples).
+
 ### Error
 
 ```
@@ -1719,6 +1854,12 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   VMFlagUpdate
   String newValue [optional];
+
+  // Specifies whether this event is the last of a group of events.
+  //
+  // This is provided for the event kinds:
+  //   HeapSnapshot
+  bool last [optional];
 }
 ```
 
@@ -2060,6 +2201,18 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   RegExp
   @Instance pattern [optional];
+
+  // The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Context closureContext [optional];
 }
 ```
 
@@ -2210,18 +2363,6 @@ class Instance extends Object {
   //   Float32x4List
   //   Float64x2List
   string bytes [optional];
-
-  // The function associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Function closureFunction [optional];
-
-  // The context associated with a Closure instance.
-  //
-  // Provided for instance kinds:
-  //   Closure
-  @Context closureContext [optional];
 
   // The referent of a MirrorReference instance.
   //
@@ -2662,6 +2803,17 @@ class Message extends Response {
 A _Message_ provides information about a pending isolate message and the
 function that will be invoked to handle it.
 
+### NativeFunction
+
+```
+class NativeFunction {
+  // The name of the native function this object represents.
+  string name;
+}
+```
+
+A _NativeFunction_ object is used to represent native functions in profiler
+samples. See [CpuSamples](#cpusamples);
 
 ### Null
 
@@ -2735,6 +2887,33 @@ class Object extends Response {
 ```
 
 An _Object_ is a  persistent object that is owned by some isolate.
+
+### ProfileFunction
+
+```
+class ProfileFunction {
+  // The kind of function this object represents.
+  string kind;
+
+  // The number of times function appeared on the stack during sampling events.
+  int inclusiveTicks;
+
+  // The number of times function appeared on the top of the stack during
+  // sampling events.
+  int exclusiveTicks;
+
+  // The resolved URL for the script containing function.
+  string resolvedUrl;
+
+  // The function captured during profiling.
+  (@Function|NativeFunction) function;
+}
+```
+
+A _ProfileFunction_ contains profiling information about a Dart or native
+function.
+
+See [CpuSamples](#cpusamples).
 
 ### ReloadReport
 
@@ -3294,5 +3473,7 @@ version | comments
 3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
 3.24 | Add `operatingSystem` property to `VM` object.
 3.25 | Add 'getInboundReferences', 'getRetainingPath' RPCs, and 'InboundReferences', 'InboundReference', 'RetainingPath', and 'RetainingObject' objects.
+3.26 | Add 'requestHeapSnapshot'.
+3.27 | Add 'clearCpuSamples', 'getCpuSamples' RPCs and 'CpuSamples', 'CpuSample' objects.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

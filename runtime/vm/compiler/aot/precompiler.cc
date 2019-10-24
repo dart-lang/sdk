@@ -4,6 +4,8 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
+#ifndef DART_PRECOMPILED_RUNTIME
+
 #include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
@@ -15,6 +17,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -65,10 +68,6 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
-DEFINE_FLAG(charp,
-            serialize_flow_graphs_to,
-            nullptr,
-            "Serialize flow graphs to the given file");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -87,6 +86,17 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(bool, print_instruction_stats);
+
+DEFINE_FLAG(charp,
+            serialize_flow_graphs_to,
+            nullptr,
+            "Serialize flow graphs to the given file");
+
+DEFINE_FLAG(bool,
+            populate_llvm_constant_pool,
+            false,
+            "Add constant pool entries from flow graphs to a special pool "
+            "serialized in AOT snapshots (with --serialize_flow_graphs_to)");
 
 Precompiler* Precompiler::singleton_ = nullptr;
 
@@ -158,9 +168,11 @@ Precompiler::Precompiler(Thread* thread)
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
-      enqueued_functions_(),
+      enqueued_functions_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       fields_to_retain_(),
-      functions_to_retain_(),
+      functions_to_retain_(
+          HashTables::New<FunctionSet>(/*initial_capacity=*/1024)),
       classes_to_retain_(),
       typeargs_to_retain_(),
       types_to_retain_(),
@@ -173,6 +185,10 @@ Precompiler::Precompiler(Thread* thread)
 }
 
 Precompiler::~Precompiler() {
+  // We have to call Release() in DEBUG mode.
+  enqueued_functions_.Release();
+  functions_to_retain_.Release();
+
   ASSERT(Precompiler::singleton_ == this);
   Precompiler::singleton_ = NULL;
 }
@@ -183,16 +199,6 @@ void Precompiler::DoCompileAll() {
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
-
-    // Check that both the file open and write callbacks are available, though
-    // we only use the latter during IL processing.
-    if (FLAG_serialize_flow_graphs_to != nullptr &&
-        Dart::file_write_callback() != nullptr) {
-      if (auto file_open = Dart::file_open_callback()) {
-        auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
-        set_il_serialization_stream(file);
-      }
-    }
 
     if (FLAG_use_bare_instructions) {
       // Since we keep the object pool until the end of AOT compilation, it
@@ -228,6 +234,32 @@ void Precompiler::DoCompileAll() {
 
       ClassFinalizer::ClearAllCode(
           /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+
+      // After this point, it should be safe to serialize flow graphs produced
+      // during compilation and add constants to the LLVM constant pool.
+      //
+      // Check that both the file open and write callbacks are available, though
+      // we only use the latter during IL processing.
+      if (FLAG_serialize_flow_graphs_to != nullptr &&
+          Dart::file_write_callback() != nullptr) {
+        if (auto file_open = Dart::file_open_callback()) {
+          auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
+          set_il_serialization_stream(file);
+        }
+        if (FLAG_populate_llvm_constant_pool) {
+          auto const object_store = I->object_store();
+          auto& llvm_constants = GrowableObjectArray::Handle(
+              Z, GrowableObjectArray::New(16, Heap::kOld));
+          auto& llvm_functions = GrowableObjectArray::Handle(
+              Z, GrowableObjectArray::New(16, Heap::kOld));
+          auto& llvm_constant_hash_table = Array::Handle(
+              Z, HashTables::New<FlowGraphSerializer::LLVMPoolMap>(16,
+                                                                   Heap::kOld));
+          object_store->set_llvm_constant_pool(llvm_constants);
+          object_store->set_llvm_function_pool(llvm_functions);
+          object_store->set_llvm_constant_hash_table(llvm_constant_hash_table);
+        }
+      }
 
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
@@ -316,6 +348,19 @@ void Precompiler::DoCompileAll() {
 
       I->set_compilation_allowed(false);
 
+      if (FLAG_serialize_flow_graphs_to != nullptr &&
+          Dart::file_write_callback() != nullptr) {
+        if (auto file_close = Dart::file_close_callback()) {
+          file_close(il_serialization_stream());
+        }
+        set_il_serialization_stream(nullptr);
+        if (FLAG_populate_llvm_constant_pool) {
+          // We don't want the Array backing for any mappings in the snapshot,
+          // only the pools themselves.
+          I->object_store()->set_llvm_constant_hash_table(Array::null_array());
+        }
+      }
+
       TraceForRetainedFunctions();
       DropFunctions();
       DropFields();
@@ -344,6 +389,7 @@ void Precompiler::DoCompileAll() {
       I->object_store()->set_async_star_move_next_helper(null_function);
       I->object_store()->set_complete_on_async_return(null_function);
       I->object_store()->set_async_star_stream_controller(null_class);
+      I->object_store()->set_bytecode_attributes(Array::null_array());
       DropMetadata();
       DropLibraryEntries();
     }
@@ -355,13 +401,6 @@ void Precompiler::DoCompileAll() {
     Obfuscate();
 
     ProgramVisitor::Dedup();
-
-    if (il_serialization_stream() != nullptr) {
-      auto file_close = Dart::file_close_callback();
-      ASSERT(file_close != nullptr);
-      file_close(il_serialization_stream());
-      set_il_serialization_stream(nullptr);
-    }
 
     zone_ = NULL;
   }
@@ -700,11 +739,11 @@ void Precompiler::AddTypesOf(const Class& cls) {
 
 void Precompiler::AddTypesOf(const Function& function) {
   if (function.IsNull()) return;
-  if (functions_to_retain_.HasKey(&function)) return;
+  if (functions_to_retain_.ContainsKey(function)) return;
   // We don't expect to see a reference to a redirecting factory. Only its
   // target should remain.
   ASSERT(!function.IsRedirectingFactory());
-  functions_to_retain_.Insert(&Function::ZoneHandle(Z, function.raw()));
+  functions_to_retain_.Insert(function);
 
   AbstractType& type = AbstractType::Handle(Z);
   type = function.result_type();
@@ -938,9 +977,9 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field) {
 }
 
 void Precompiler::AddFunction(const Function& function) {
-  if (enqueued_functions_.HasKey(&function)) return;
+  if (enqueued_functions_.ContainsKey(function)) return;
 
-  enqueued_functions_.Insert(&Function::ZoneHandle(Z, function.raw()));
+  enqueued_functions_.Insert(function);
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -1340,7 +1379,7 @@ void Precompiler::TraceForRetainedFunctions() {
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = enqueued_functions_.HasKey(&function);
+        bool retain = enqueued_functions_.ContainsKey(function);
         if (!retain && function.HasImplicitClosureFunction()) {
           // It can happen that all uses of an implicit closure inline their
           // target function, leaving the target function uncompiled. Keep
@@ -1360,7 +1399,7 @@ void Precompiler::TraceForRetainedFunctions() {
   closures = isolate()->object_store()->closure_functions();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = enqueued_functions_.HasKey(&function);
+    bool retain = enqueued_functions_.ContainsKey(function);
     if (retain) {
       AddTypesOf(function);
 
@@ -1400,8 +1439,9 @@ void Precompiler::DropFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        bool retain = functions_to_retain_.HasKey(&function);
+        bool retain = functions_to_retain_.ContainsKey(function);
         function.DropUncompiledImplicitClosureFunction();
+        function.ClearBytecode();
         if (retain) {
           retained_functions.Add(function);
         } else {
@@ -1426,7 +1466,8 @@ void Precompiler::DropFunctions() {
   retained_functions = GrowableObjectArray::New();
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
-    bool retain = functions_to_retain_.HasKey(&function);
+    bool retain = functions_to_retain_.ContainsKey(function);
+    function.ClearBytecode();
     if (retain) {
       retained_functions.Add(function);
     } else {
@@ -1447,6 +1488,7 @@ void Precompiler::DropFields() {
   Field& field = Field::Handle(Z);
   GrowableObjectArray& retained_fields = GrowableObjectArray::Handle(Z);
   AbstractType& type = AbstractType::Handle(Z);
+  Function& initializer_function = Function::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1462,6 +1504,10 @@ void Precompiler::DropFields() {
       for (intptr_t j = 0; j < fields.Length(); j++) {
         field ^= fields.At(j);
         bool retain = fields_to_retain_.HasKey(&field);
+        if (field.HasInitializerFunction()) {
+          initializer_function = field.InitializerFunction();
+          initializer_function.ClearBytecode();
+        }
         if (retain) {
           retained_fields.Add(field);
           type = field.type();
@@ -1763,7 +1809,7 @@ void Precompiler::DropLibraryEntries() {
           continue;
         }
       } else if (entry.IsFunction()) {
-        if (functions_to_retain_.HasKey(&Function::Cast(entry))) {
+        if (functions_to_retain_.ContainsKey(Function::Cast(entry))) {
           used++;
           continue;
         }
@@ -1999,10 +2045,11 @@ void Precompiler::BindStaticCalls() {
   // finally clauses, and not all functions are compiled through the
   // tree-shaker's queue
   ProgramVisitor::VisitFunctions(&visitor);
-  FunctionSet::Iterator it(enqueued_functions_.GetIterator());
-  for (const Function** current = it.Next(); current != NULL;
-       current = it.Next()) {
-    visitor.Visit(**current);
+  FunctionSet::Iterator it(&enqueued_functions_);
+  Function& handle = Function::Handle();
+  while (it.MoveNext()) {
+    handle ^= enqueued_functions_.GetKey(it.Current());
+    visitor.Visit(handle);
   }
 }
 
@@ -2085,10 +2132,11 @@ void Precompiler::DedupUnlinkedCalls() {
     // duplicated finally clauses, and not all functions are compiled through
     // the tree-shaker's queue
     ProgramVisitor::VisitFunctions(&visitor);
-    FunctionSet::Iterator it(enqueued_functions_.GetIterator());
-    for (const Function** current = it.Next(); current != NULL;
-         current = it.Next()) {
-      visitor.Visit(**current);
+    FunctionSet::Iterator it(&enqueued_functions_);
+    Function& current = Function::Handle();
+    while (it.MoveNext()) {
+      current ^= enqueued_functions_.GetKey(it.Current());
+      visitor.Visit(current);
     }
   }
 #endif
@@ -2219,8 +2267,6 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     function.set_unoptimized_code(code);
     function.AttachCode(code);
   }
-  ASSERT(!parsed_function()->HasDeferredPrefixes());
-  ASSERT(FLAG_load_deferred_eagerly);
 }
 
 // Return false if bailed out.
@@ -2285,7 +2331,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       pass_state.reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized());
 
-      if (optimized()) {
+      if (function.ForceOptimize()) {
+        ASSERT(optimized());
+        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+        flow_graph = CompilerPass::RunForceOptimizedPipeline(CompilerPass::kAOT,
+                                                             &pass_state);
+      } else if (optimized()) {
         TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
 
         pass_state.inline_id_to_function.Add(&function);
@@ -2302,7 +2353,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                             &speculative_policy);
         pass_state.call_specializer = &call_specializer;
 
-        CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
+        flow_graph = CompilerPass::RunPipeline(CompilerPass::kAOT, &pass_state);
       }
 
       ASSERT(pass_state.inline_id_to_function.length() ==
@@ -2699,22 +2750,56 @@ RawString* Obfuscator::ObfuscationState::NewAtomicRename(
 
 RawString* Obfuscator::ObfuscationState::BuildRename(const String& name,
                                                      bool atomic) {
-  const bool is_private = name.CharAt(0) == '_';
-  if (!atomic && is_private) {
+  if (atomic) {
+    return NewAtomicRename(name.CharAt(0) == '_');
+  }
+
+  intptr_t start = 0;
+  intptr_t end = name.Length();
+
+  // Follow the rules:
+  //
+  //         Rename(get:foo) = get:Rename(foo).
+  //         Rename(set:foo) = set:Rename(foo).
+  //
+  bool is_getter = false;
+  bool is_setter = false;
+  if (Field::IsGetterName(name)) {
+    is_getter = true;
+    start = kGetterPrefixLength;
+  } else if (Field::IsSetterName(name)) {
+    is_setter = true;
+    start = kSetterPrefixLength;
+  }
+
+  // Follow the rule:
+  //
+  //         Rename(_ident@key) = Rename(_ident)@private_key_.
+  //
+  const bool is_private = name.CharAt(start) == '_';
+  if (is_private) {
     // Find the first '@'.
-    intptr_t i = 0;
+    intptr_t i = start;
     while (i < name.Length() && name.CharAt(i) != '@') {
       i++;
     }
-    const intptr_t end = i;
+    end = i;
+  }
 
-    // Follow the rule:
-    //
-    //         Rename(_ident@key) = Rename(_ident)@private_key_.
-    //
-    string_ = Symbols::New(thread_, name, 0, end);
+  if (is_getter || is_setter || is_private) {
+    string_ = Symbols::New(thread_, name, start, end - start);
+    // It's OK to call RenameImpl() recursively because 'string_' is used
+    // only if atomic == false.
     string_ = RenameImpl(string_, /*atomic=*/true);
-    return Symbols::FromConcat(thread_, string_, private_key_);
+    if (is_private && (end < name.Length())) {
+      string_ = Symbols::FromConcat(thread_, string_, private_key_);
+    }
+    if (is_getter) {
+      return Symbols::FromGet(thread_, string_);
+    } else if (is_setter) {
+      return Symbols::FromSet(thread_, string_);
+    }
+    return string_.raw();
   } else {
     return NewAtomicRename(is_private);
   }
@@ -2881,3 +2966,5 @@ const char** Obfuscator::SerializeMap(Thread* thread) {
         // !defined(TARGET_ARCH_IA32)
 
 }  // namespace dart
+
+#endif  // DART_PRECOMPILED_RUNTIME

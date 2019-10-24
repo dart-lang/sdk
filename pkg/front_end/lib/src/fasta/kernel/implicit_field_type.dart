@@ -5,33 +5,41 @@
 library fasta.implicit_type;
 
 import 'package:kernel/ast.dart'
-    show DartType, DartTypeVisitor, DartTypeVisitor1, Visitor;
+    show DartType, DartTypeVisitor, DartTypeVisitor1, Nullability, Visitor;
 
 import '../../scanner/token.dart' show Token;
 
+import '../builder/member_builder.dart';
+
 import '../problems.dart' show unsupported;
 
-import 'kernel_builder.dart' show MemberBuilder;
-
 class ImplicitFieldType extends DartType {
-  final MemberBuilder member;
+  final MemberBuilder memberBuilder;
   Token initializerToken;
   bool isStarted = false;
 
-  get nullability =>
-      unsupported("nullability", member.charOffset, member.fileUri);
+  ImplicitFieldType(this.memberBuilder, this.initializerToken);
 
-  ImplicitFieldType(this.member, this.initializerToken);
+  Nullability get nullability => unsupported(
+      "nullability", memberBuilder.charOffset, memberBuilder.fileUri);
 
-  accept(DartTypeVisitor<Object> v) {
-    unsupported("accept", member.charOffset, member.fileUri);
+  R accept<R>(DartTypeVisitor<R> v) {
+    throw unsupported(
+        "accept", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 
-  accept1(DartTypeVisitor1<Object, Object> v, arg) {
-    unsupported("accept1", member.charOffset, member.fileUri);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, arg) {
+    throw unsupported(
+        "accept1", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 
   visitChildren(Visitor<Object> v) {
-    unsupported("visitChildren", member.charOffset, member.fileUri);
+    unsupported(
+        "visitChildren", memberBuilder.charOffset, memberBuilder.fileUri);
+  }
+
+  ImplicitFieldType withNullability(Nullability nullability) {
+    return unsupported(
+        "withNullability", memberBuilder.charOffset, memberBuilder.fileUri);
   }
 }

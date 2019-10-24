@@ -1499,8 +1499,33 @@ void Assembler::notl(Register reg) {
   EmitUint8(0xD0 | reg);
 }
 
+void Assembler::bsfl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBC);
+  EmitRegisterOperand(dst, src);
+}
+
 void Assembler::bsrl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBD);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::popcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::popcnt_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0x0F);
+  EmitUint8(0xB8);
+  EmitRegisterOperand(dst, src);
+}
+
+void Assembler::lzcntl(Register dst, Register src) {
+  ASSERT(TargetCPUFeatures::abm_supported());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
   EmitUint8(0x0F);
   EmitUint8(0xBD);
   EmitRegisterOperand(dst, src);
@@ -2141,9 +2166,41 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   }
 }
 
+void Assembler::EnterSafepoint(Register scratch) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+
+  // Compare and swap the value at Thread::safepoint_state from unacquired to
+  // acquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
+  pushl(EAX);
+  movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
+  movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+  LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+
+  if (!FLAG_use_slow_path) {
+    j(EQUAL, &done);
+  }
+
+  Bind(&slow_path);
+  movl(scratch, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
+  call(scratch);
+
+  Bind(&done);
+}
+
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
-                                            Register scratch) {
+                                            Register scratch,
+                                            bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
        new_exit_frame);
@@ -2153,49 +2210,57 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   movl(Address(THR, target::Thread::execution_state_offset()),
        Immediate(target::Thread::native_execution_state()));
 
-  // Compare and swap the value at Thread::safepoint_state from unacquired to
-  // acquired. On success, jump to 'success'; otherwise, fallthrough.
-  Label done;
+  if (enter_safepoint) {
+    EnterSafepoint(scratch);
+  }
+}
+
+void Assembler::ExitSafepoint(Register scratch) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
+
+  // Compare and swap the value at Thread::safepoint_state from acquired to
+  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
+  Label done, slow_path;
+  if (FLAG_use_slow_path) {
+    jmp(&slow_path);
+  }
+
+  pushl(EAX);
+  movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
+  movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+  LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()), scratch);
+  movl(scratch, EAX);
+  popl(EAX);
+  cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+
   if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
-    movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
-    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
-                 scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
     j(EQUAL, &done);
   }
 
-  movl(scratch, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  Bind(&slow_path);
+  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(Register scratch) {
-  // Compare and swap the value at Thread::safepoint_state from acquired to
-  // unacquired. On success, jump to 'success'; otherwise, fallthrough.
-  Label done;
-  if (!FLAG_use_slow_path) {
-    pushl(EAX);
-    movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
-    movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
-    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
-                 scratch);
-    movl(scratch, EAX);
-    popl(EAX);
-    cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
-    j(EQUAL, &done);
+void Assembler::TransitionNativeToGenerated(Register scratch,
+                                            bool exit_safepoint) {
+  if (exit_safepoint) {
+    ExitSafepoint(scratch);
+  } else {
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    movl(scratch, Address(THR, target::Thread::safepoint_state_offset()));
+    andl(scratch, Immediate(1 << target::Thread::safepoint_state_inside_bit()));
+    Label ok;
+    j(ZERO, &ok);
+    Breakpoint();
+    Bind(&ok);
+#endif
   }
-
-  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
-  call(scratch);
-
-  Bind(&done);
 
   // Mark that the thread is executing Dart code.
   movl(Assembler::VMTagAddress(),
@@ -2338,11 +2403,17 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      bool near_jump) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
-  intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+  const intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  movl(temp_reg, Address(temp_reg, shared_table_offset));
   movl(temp_reg, Address(temp_reg, table_offset));
   state_address = Address(temp_reg, state_offset);
   testb(state_address,
@@ -2354,11 +2425,17 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
   ASSERT(cid > 0);
-  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+  const intptr_t counter_offset =
+      target::ClassTable::NewSpaceCounterOffsetFor(cid);
+
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  movl(temp_reg, Address(temp_reg, shared_table_offset));
   movl(temp_reg, Address(temp_reg, table_offset));
   incl(Address(temp_reg, counter_offset));
 }
@@ -2593,12 +2670,12 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
+
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
   LoadIsolate(result);
-  const intptr_t offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::table_offset();
-  movl(result, Address(result, offset));
-  ASSERT(target::ClassTable::kSizeOfClassPairLog2 == 3);
-  movl(result, Address(result, class_id, TIMES_8, 0));
+  movl(result, Address(result, table_offset));
+  movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
 void Assembler::CompareClassId(Register object,

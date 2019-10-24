@@ -9,7 +9,6 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
-#include "vm/hash.h"
 #include "vm/hash_map.h"
 #include "vm/zone.h"
 
@@ -61,6 +60,7 @@ class SExpression : public ZoneAllocated {
   static intptr_t const kInvalidPos = -1;
 
   static SExpression* FromCString(Zone* zone, const char* cstr);
+  const char* ToCString(Zone* zone) const;
   intptr_t start() const { return start_; }
 
 #define S_EXPRESSION_TYPE_CHECK(name, value_type)                              \
@@ -115,6 +115,7 @@ class SExpAtom : public SExpression {
         : SExpAtom(start), val_(val) {}                                        \
     value_type value() const { return val_; }                                  \
     virtual bool Equals(SExpression* sexp) const;                              \
+    bool Equals(value_type val) const;                                         \
     virtual void SerializeToLine(TextBuffer* buffer) const;                    \
     DEFINE_S_EXPRESSION_TYPE_CHECK(name)                                       \
    private:                                                                    \
@@ -132,36 +133,7 @@ class SExpList : public SExpression {
   explicit SExpList(Zone* zone, intptr_t start = kInvalidPos)
       : SExpression(start), contents_(zone, 2), extra_info_(zone) {}
 
-  template <typename V>
-  class CStringPointerKeyValueTrait {
-   public:
-    typedef const char* Key;
-    typedef V Value;
-
-    struct Pair {
-      Key key;
-      Value value;
-      Pair() : key(NULL), value() {}
-      Pair(const Key key, const Value& value) : key(key), value(value) {}
-      Pair(const Pair& other) : key(other.key), value(other.value) {}
-    };
-
-    static Key KeyOf(Pair kv) { return kv.key; }
-    static Value ValueOf(Pair kv) { return kv.value; }
-    static intptr_t Hashcode(Key key) {
-      intptr_t hash = 0;
-      for (size_t i = 0; i < strlen(key); i++) {
-        hash = CombineHashes(hash, key[i]);
-      }
-      return FinalizeHash(hash, kBitsPerWord - 1);
-    }
-    static bool IsKeyEqual(Pair kv, Key key) {
-      return kv.key == key || strcmp(kv.key, key) == 0;
-    }
-  };
-
-  using ExtraInfoKeyValueTrait = CStringPointerKeyValueTrait<SExpression*>;
-  using ExtraInfoHashMap = DirectChainedHashMap<ExtraInfoKeyValueTrait>;
+  using ExtraInfoHashMap = CStringMap<SExpression*>;
 
   void Add(SExpression* sexp);
   void AddExtra(const char* label, SExpression* value);
@@ -174,8 +146,15 @@ class SExpList : public SExpression {
     return extra_info_.GetIterator();
   }
   bool ExtraHasKey(const char* cstr) const { return extra_info_.HasKey(cstr); }
-  ExtraInfoKeyValueTrait::Value ExtraLookupValue(const char* cstr) const {
+  SExpression* ExtraLookupValue(const char* cstr) const {
     return extra_info_.LookupValue(cstr);
+  }
+
+  // Shortcut for retrieving the tag from a tagged list (list that contains an
+  // initial symbol). Returns nullptr if the list is not a tagged list.
+  SExpSymbol* Tag() const {
+    if (Length() == 0 || !At(0)->IsSymbol()) return nullptr;
+    return At(0)->AsSymbol();
   }
 
   DEFINE_S_EXPRESSION_TYPE_CHECK(List)
@@ -292,7 +271,7 @@ class SExpParser : public ValueObject {
   SExpression* TokenToSExpression(Token* token);
   Token* GetNextToken();
   void Reset();
-  void StoreError(intptr_t pos, const char* format, ...);
+  void StoreError(intptr_t pos, const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
 
   static bool IsSymbolContinue(char c);
 

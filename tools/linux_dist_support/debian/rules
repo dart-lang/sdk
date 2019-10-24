@@ -40,7 +40,7 @@ endif
 ifneq (,$(findstring $(DEB_HOST_ARCH_CPU),$(AOT_SUPPORTED_ARCHS)))
 AOT_BUILD_CMD := \
 python tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) \
-		copy_gen_kernel_snapshot copy_dart2aot; \
+		copy_gen_kernel_snapshot; \
 python tools/build.py -v -m product -a $(ARCH) $(TOOLCHAIN) \
 		copy_gen_snapshot copy_dartaotruntime; \
 mkdir -p out/$(BUILD_TYPE)/dart-sdk/bin/utils; \

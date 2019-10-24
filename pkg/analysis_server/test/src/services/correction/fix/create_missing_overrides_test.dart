@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -79,21 +78,7 @@ abstract class A {
 class B extends A {
 }
 ''');
-    if (AnalysisDriver.useSummary2) {
-      await assertHasFix('''
-abstract class A {
-  void forEach(int f(double p1, String p2));
-}
-
-class B extends A {
-  @override
-  void forEach(int Function(double, String) f) {
-    // TODO: implement forEach
-  }
-}
-''');
-    } else {
-      await assertHasFix('''
+    await assertHasFix('''
 abstract class A {
   void forEach(int f(double p1, String p2));
 }
@@ -105,7 +90,6 @@ class B extends A {
   }
 }
 ''');
-    }
   }
 
   test_generics_typeArguments() async {

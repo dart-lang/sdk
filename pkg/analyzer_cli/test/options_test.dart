@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/experiments_impl.dart'
     show overrideKnownFeatures;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -53,7 +52,6 @@ main() {
         expect(options.buildAnalysisOutput, isNull);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
-        expect(options.buildSummaryOnlyUnlinked, isFalse);
         expect(options.buildSummaryOutput, isNull);
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
@@ -409,29 +407,6 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     ]);
     expect(options.buildMode, isTrue);
     expect(options.buildSummaryOnly, isTrue);
-  }
-
-  test_buildSummaryOnlyUnlinked() {
-    _parse([
-      '--build-mode',
-      '--build-summary-output=/path/to/aaa.sum',
-      '--build-summary-only',
-      '--build-summary-only-unlinked',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart'
-    ]);
-    if (AnalysisDriver.useSummary2) {
-      expect(
-        errorStringBuffer.toString(),
-        contains(
-          'The option --build-summary-only-unlinked can not be used '
-          'together with summary2.',
-        ),
-      );
-    } else {
-      expect(options.buildMode, isTrue);
-      expect(options.buildSummaryOnly, isTrue);
-      expect(options.buildSummaryOnlyUnlinked, isTrue);
-    }
   }
 
   test_buildSummaryOutput() {

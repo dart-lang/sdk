@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part check_bounds_lib.dart;
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    ;
+}
+class Class<T extends self::A* = self::A*> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    ;
+}
+extension Extension<T extends self::B* = dynamic> on self::Class<T*>* {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  method genericMethod = self::Extension|genericMethod;
+  tearoff genericMethod = self::Extension|get#genericMethod;
+}
+static final field self::A* a;
+static final field self::Class<self::A*>* classA;
+static final field dynamic field1;
+static final field dynamic field2;
+static final field dynamic field3;
+static final field dynamic field4;
+static final field dynamic field5;
+static final field dynamic field6;
+static final field dynamic field7;
+static final field dynamic field8;
+static final field dynamic field9;
+static final field dynamic field10;
+static final field dynamic field11;
+static final field dynamic field12;
+static final field dynamic field13;
+static final field self::Class<self::B*>* classB;
+static final field dynamic field14;
+static final field dynamic field15;
+static final field dynamic field16;
+static final field dynamic field17;
+static final field dynamic field18;
+static final field dynamic field19;
+static final field dynamic field20;
+static final field dynamic field21;
+static final field dynamic field22;
+static final field dynamic field23;
+static final field dynamic field24;
+static final field dynamic field25;
+static final field dynamic field26;
+static final field dynamic field27;
+static final field dynamic field28;
+static final field dynamic field29;
+static method Extension|method<T extends self::B* = dynamic>(final self::Class<self::Extension|method::T*>* #this) → dynamic
+  ;
+static method Extension|get#method<T extends self::B* = dynamic>(final self::Class<self::Extension|get#method::T*>* #this) → () →* dynamic
+  return () → dynamic => self::Extension|method<self::Extension|get#method::T*>(#this);
+static method Extension|genericMethod<T extends self::B* = dynamic, S extends self::B* = dynamic>(final self::Class<self::Extension|genericMethod::T*>* #this, self::Extension|genericMethod::S* s) → dynamic
+  ;
+static method Extension|get#genericMethod<T extends self::B* = dynamic>(final self::Class<self::Extension|get#genericMethod::T*>* #this) → <S extends self::B* = dynamic>(S*) →* dynamic
+  return <S extends self::B* = dynamic>(S* s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T*, S*>(#this, s);
+static method main() → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart() → dynamic
+  ;

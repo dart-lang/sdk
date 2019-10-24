@@ -10,10 +10,18 @@ import 'dart:collection' show Queue;
 
 import 'package:kernel/ast.dart' show Class, DartType, Library;
 
-import 'builder/builder.dart'
-    show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
+import 'scope.dart';
+
+import 'builder/class_builder.dart';
+import 'builder/declaration_builder.dart';
+import 'builder/library_builder.dart';
+import 'builder/member_builder.dart';
+import 'builder/modifier_builder.dart';
+import 'builder/type_builder.dart';
 
 import 'crash.dart' show firstSourceUri;
+
+import 'kernel/body_builder.dart' show BodyBuilder;
 
 import 'messages.dart'
     show
@@ -118,6 +126,9 @@ abstract class Loader {
 
           default:
             fileUri = uri;
+            // Check for empty package name entry (redirecting to package name
+            // from which we should get the fragment part).
+            packageFragment = target.uriTranslator?.getDefaultPackageFragment();
             break;
         }
       }
@@ -140,10 +151,10 @@ abstract class Loader {
             }
 
             hasPackageSpecifiedLanguageVersion = true;
-            String langaugeVersionString = property.substring(5);
+            String languageVersionString = property.substring(5);
 
             // Verify that the version is x.y[whatever]
-            List<String> dotSeparatedParts = langaugeVersionString.split(".");
+            List<String> dotSeparatedParts = languageVersionString.split(".");
             if (dotSeparatedParts.length >= 2) {
               packageSpecifiedLanguageVersionMajor =
                   int.tryParse(dotSeparatedParts[0]);
@@ -155,6 +166,11 @@ abstract class Loader {
       }
       LibraryBuilder library =
           target.createLibraryBuilder(uri, fileUri, origin);
+      if (library == null) {
+        throw new StateError("createLibraryBuilder for uri $uri, "
+            "fileUri $fileUri returned null.");
+      }
+
       if (hasPackageSpecifiedLanguageVersion) {
         library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
             packageSpecifiedLanguageVersionMinor,
@@ -298,17 +314,6 @@ charOffset: $charOffset
 fileUri: $fileUri
 severity: $severity
 """;
-    // TODO(askesc): Swap message and context around for interface checks
-    // and mixin overrides to make comparing context here unnecessary.
-    if (context != null) {
-      for (LocatedMessage contextMessage in context) {
-        trace += """
-message: ${contextMessage.message}
-charOffset: ${contextMessage.charOffset}
-fileUri: ${contextMessage.uri}
-""";
-      }
-    }
     if (!seenMessages.add(trace)) return null;
     if (message.code.severity == Severity.context) {
       internalProblem(
@@ -332,19 +337,29 @@ fileUri: ${contextMessage.uri}
     return formattedMessage;
   }
 
-  Builder getAbstractClassInstantiationError() {
+  MemberBuilder getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
 
-  Builder getCompileTimeError() => target.getCompileTimeError(this);
+  MemberBuilder getCompileTimeError() => target.getCompileTimeError(this);
 
-  Builder getDuplicatedFieldInitializerError() {
+  MemberBuilder getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
 
-  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
+  MemberBuilder getNativeAnnotation() => target.getNativeAnnotation(this);
 
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
   TypeBuilder computeTypeBuilder(DartType type);
+
+  BodyBuilder createBodyBuilderForOutlineExpression(
+      LibraryBuilder library,
+      DeclarationBuilder declarationBuilder,
+      ModifierBuilder member,
+      Scope scope,
+      Uri fileUri) {
+    return new BodyBuilder.forOutlineExpression(
+        library, declarationBuilder, member, scope, fileUri);
+  }
 }

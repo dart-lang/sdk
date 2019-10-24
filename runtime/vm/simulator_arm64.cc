@@ -31,6 +31,11 @@ DEFINE_FLAG(uint64_t,
             ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+DEFINE_FLAG(bool,
+            sim_allow_unaligned_accesses,
+            true,
+            "Allow unaligned accesses to Normal memory.");
+
 // This macro provides a platform independent use of sscanf. The reason for
 // SScanF not being implemented in a platform independent way through
 // OS in the same way as SNPrint is that the Windows C Run-Time
@@ -886,7 +891,10 @@ void Simulator::set_register(Instr* instr,
                              R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+#if !defined(TARGET_OS_FUCHSIA)
   ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
+#endif
+
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = value;
     // If we're setting CSP, make sure it is 16-byte aligned. In truth, CSP
@@ -996,9 +1004,10 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   FATAL("Cannot continue execution after illegal memory access.");
 }
 
-// The ARMv8 manual advises that an unaligned access may generate a fault,
-// and if not, will likely take a number of additional cycles to execute,
-// so let's just not generate any.
+// ARMv8 supports unaligned memory accesses to normal memory without trapping
+// for all instructions except Load-Exclusive/Store-Exclusive and
+// Load-Acquire/Store-Release.
+// See B2.4.2 "Alignment of data accesses" for more information.
 void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   char buffer[128];
   snprintf(buffer, sizeof(buffer), "unaligned %s at 0x%" Px ", pc=%p\n", msg,
@@ -1024,8 +1033,12 @@ bool Simulator::IsTracingExecution() const {
   return icount_ > FLAG_trace_sim_after;
 }
 
-intptr_t Simulator::ReadX(uword addr, Instr* instr) {
-  if ((addr & 7) == 0) {
+intptr_t Simulator::ReadX(uword addr,
+                          Instr* instr,
+                          bool must_be_aligned /* = false */) {
+  const bool allow_unaligned_access =
+      FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
+  if (allow_unaligned_access || (addr & 7) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     return *ptr;
   }
@@ -1034,7 +1047,7 @@ intptr_t Simulator::ReadX(uword addr, Instr* instr) {
 }
 
 void Simulator::WriteX(uword addr, intptr_t value, Instr* instr) {
-  if ((addr & 7) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 7) == 0) {
     intptr_t* ptr = reinterpret_cast<intptr_t*>(addr);
     *ptr = value;
     return;
@@ -1042,8 +1055,12 @@ void Simulator::WriteX(uword addr, intptr_t value, Instr* instr) {
   UnalignedAccess("write", addr, instr);
 }
 
-uint32_t Simulator::ReadWU(uword addr, Instr* instr) {
-  if ((addr & 3) == 0) {
+uint32_t Simulator::ReadWU(uword addr,
+                           Instr* instr,
+                           bool must_be_aligned /* = false */) {
+  const bool allow_unaligned_access =
+      FLAG_sim_allow_unaligned_accesses && !must_be_aligned;
+  if (allow_unaligned_access || (addr & 3) == 0) {
     uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
     return *ptr;
   }
@@ -1052,7 +1069,7 @@ uint32_t Simulator::ReadWU(uword addr, Instr* instr) {
 }
 
 int32_t Simulator::ReadW(uword addr, Instr* instr) {
-  if ((addr & 3) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
     int32_t* ptr = reinterpret_cast<int32_t*>(addr);
     return *ptr;
   }
@@ -1061,7 +1078,7 @@ int32_t Simulator::ReadW(uword addr, Instr* instr) {
 }
 
 void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
-  if ((addr & 3) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 3) == 0) {
     uint32_t* ptr = reinterpret_cast<uint32_t*>(addr);
     *ptr = value;
     return;
@@ -1070,7 +1087,7 @@ void Simulator::WriteW(uword addr, uint32_t value, Instr* instr) {
 }
 
 uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
-  if ((addr & 1) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     return *ptr;
   }
@@ -1079,7 +1096,7 @@ uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
 }
 
 int16_t Simulator::ReadH(uword addr, Instr* instr) {
-  if ((addr & 1) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
     int16_t* ptr = reinterpret_cast<int16_t*>(addr);
     return *ptr;
   }
@@ -1088,7 +1105,7 @@ int16_t Simulator::ReadH(uword addr, Instr* instr) {
 }
 
 void Simulator::WriteH(uword addr, uint16_t value, Instr* instr) {
-  if ((addr & 1) == 0) {
+  if (FLAG_sim_allow_unaligned_accesses || (addr & 1) == 0) {
     uint16_t* ptr = reinterpret_cast<uint16_t*>(addr);
     *ptr = value;
     return;
@@ -1118,13 +1135,13 @@ void Simulator::ClearExclusive() {
 
 intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
   exclusive_access_addr_ = addr;
-  exclusive_access_value_ = ReadX(addr, instr);
+  exclusive_access_value_ = ReadX(addr, instr, /*must_be_aligned=*/true);
   return exclusive_access_value_;
 }
 
 intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
   exclusive_access_addr_ = addr;
-  exclusive_access_value_ = ReadWU(addr, instr);
+  exclusive_access_value_ = ReadWU(addr, instr, /*must_be_aligned=*/true);
   return exclusive_access_value_;
 }
 
@@ -2430,6 +2447,17 @@ void Simulator::DecodeMiscDP1Source(Instr* instr) {
       if (instr->SFField() == 1) {
         set_register(instr, rd, rd_val, R31IsZR);
       } else {
+        set_wregister(rd, rd_val, R31IsZR);
+      }
+      break;
+    }
+    case 0: {
+      // Format(instr, "rbit'sf 'rd, 'rn");
+      if (instr->SFField() == 1) {
+        const uint64_t rd_val = Utils::ReverseBits64(rn_val64);
+        set_register(instr, rd, rd_val, R31IsZR);
+      } else {
+        const uint32_t rd_val = Utils::ReverseBits32(rn_val32);
         set_wregister(rd, rd_val, R31IsZR);
       }
       break;

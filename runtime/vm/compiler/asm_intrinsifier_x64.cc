@@ -1977,13 +1977,19 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ ret();
 }
 
-// Allocates one-byte string of length 'end - start'. The content is not
-// initialized. 'length-reg' contains tagged length.
+// Allocates a _OneByteString. The content is not initialized.
+// 'length-reg' contains the desired length as a _Smi or _Mint.
 // Returns new string as tagged pointer in RAX.
-static void TryAllocateOnebyteString(Assembler* assembler,
+static void TryAllocateOneByteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  // _Mint length: call to runtime to produce error.
+  __ BranchIfNotSmi(length_reg, failure);
+  // negative length: call to runtime to produce error.
+  __ cmpq(length_reg, Immediate(0));
+  __ j(LESS, failure);
+
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, failure, false));
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
@@ -2076,7 +2082,7 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subq(RDI, Address(RSP, +kStartIndexOffset));
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, RDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, RDI);
   __ Bind(&ok);
   // RAX: new string as tagged pointer.
   // Copy string.
@@ -2126,7 +2132,7 @@ void AsmIntrinsifier::OneByteString_allocate(Assembler* assembler,
                                              Label* normal_ir_body) {
   __ movq(RDI, Address(RSP, +1 * target::kWordSize));  // Length.v=
   Label ok;
-  TryAllocateOnebyteString(assembler, &ok, normal_ir_body, RDI);
+  TryAllocateOneByteString(assembler, &ok, normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

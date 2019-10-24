@@ -60,7 +60,7 @@ class VariableIndex {
 
   explicit VariableIndex(int value = kInvalidIndex) : value_(value) {}
 
-  int operator==(const VariableIndex& other) { return value_ == other.value_; }
+  bool operator==(const VariableIndex& other) { return value_ == other.value_; }
 
   bool IsValid() const { return value_ != kInvalidIndex; }
 

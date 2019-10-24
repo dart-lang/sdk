@@ -20,11 +20,13 @@
 
 import 'dart:core' hide MapEntry;
 
-import 'package:kernel/ast.dart' as kernel show Expression, Initializer;
-
 import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart';
+
+import 'package:kernel/clone.dart';
 
 import '../../base/instrumentation.dart'
     show
@@ -32,6 +34,8 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
+
+import '../builder/library_builder.dart' show LibraryBuilder;
 
 import '../fasta_codes.dart'
     show
@@ -50,10 +54,14 @@ import '../fasta_codes.dart'
         templateSpreadMapEntryElementValueTypeMismatch,
         templateSpreadMapEntryTypeMismatch,
         templateSpreadTypeMismatch,
+        templateSuperclassHasNoMethod,
         templateSwitchExpressionNotAssignable,
+        templateUndefinedMethod,
         templateWebLiteralCannotBeRepresentedExactly;
 
-import '../problems.dart' show getFileUri, unhandled, unsupported;
+import '../names.dart';
+
+import '../problems.dart' show unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
@@ -64,8 +72,7 @@ import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
-import '../type_inference/type_inferrer.dart'
-    show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
+import '../type_inference/type_inferrer.dart';
 
 import '../type_inference/type_promotion.dart'
     show TypePromoter, TypePromoterImpl, TypePromotionFact, TypePromotionScope;
@@ -75,7 +82,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 import '../type_inference/type_schema_elimination.dart' show greatestClosure;
 
 import '../type_inference/type_schema_environment.dart'
-    show TypeSchemaEnvironment, getPositionalParameterType;
+    show TypeSchemaEnvironment;
 
 import 'body_builder.dart' show combineStatements;
 
@@ -97,7 +104,6 @@ import 'expression_generator.dart' show makeLet;
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 part "inference_visitor.dart";
-part "inferred_type_visitor.dart";
 
 /// Computes the return type of a (possibly factory) constructor.
 InterfaceType computeConstructorReturnType(Member constructor) {
@@ -108,9 +114,118 @@ InterfaceType computeConstructorReturnType(Member constructor) {
   }
 }
 
+int getExtensionTypeParameterCount(Arguments arguments) {
+  if (arguments is ArgumentsImpl) {
+    return arguments._extensionTypeParameterCount;
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return 0;
+  }
+}
+
+int getExtensionTypeArgumentCount(Arguments arguments) {
+  if (arguments is ArgumentsImpl) {
+    return arguments._explicitExtensionTypeArgumentCount;
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return 0;
+  }
+}
+
+List<DartType> getExplicitExtensionTypeArguments(Arguments arguments) {
+  if (arguments is ArgumentsImpl) {
+    if (arguments._explicitExtensionTypeArgumentCount == 0) {
+      return null;
+    } else {
+      return arguments.types
+          .take(arguments._explicitExtensionTypeArgumentCount)
+          .toList();
+    }
+  } else {
+    // TODO(johnniwinther): Remove this path or assert why it is accepted.
+    return null;
+  }
+}
+
+/// Information about explicit/implicit type arguments used for error
+/// reporting.
+abstract class TypeArgumentsInfo {
+  const TypeArgumentsInfo();
+
+  /// Returns `true` if the [index]th type argument was inferred.
+  bool isInferred(int index);
+
+  /// Returns the offset to use when reporting an error on the [index]th type
+  /// arguments, using [offset] as the default offset.
+  int getOffsetForIndex(int index, int offset) => offset;
+}
+
+class AllInferredTypeArgumentsInfo extends TypeArgumentsInfo {
+  const AllInferredTypeArgumentsInfo();
+
+  bool isInferred(int index) => true;
+}
+
+class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
+  const NoneInferredTypeArgumentsInfo();
+
+  bool isInferred(int index) => false;
+}
+
+class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
+  final ArgumentsImpl arguments;
+
+  ExtensionMethodTypeArgumentsInfo(this.arguments);
+
+  bool isInferred(int index) {
+    if (index < arguments._extensionTypeParameterCount) {
+      // The index refers to a type argument for a type parameter declared on
+      // the extension. Check whether we have enough explicit extension type
+      // arguments.
+      return index >= arguments._explicitExtensionTypeArgumentCount;
+    }
+    // The index refers to a type argument for a type parameter declared on
+    // the method. Check whether we have enough explicit regular type arguments.
+    return index - arguments._extensionTypeParameterCount >=
+        arguments._explicitTypeArgumentCount;
+  }
+
+  int getOffsetForIndex(int index, int offset) {
+    if (index < arguments._extensionTypeParameterCount) {
+      return arguments._extensionTypeArgumentOffset ?? offset;
+    }
+    return offset;
+  }
+}
+
+TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
+  if (arguments is ArgumentsImpl) {
+    if (arguments._extensionTypeParameterCount == 0) {
+      return arguments._explicitTypeArgumentCount == 0
+          ? const AllInferredTypeArgumentsInfo()
+          : const NoneInferredTypeArgumentsInfo();
+    } else {
+      return new ExtensionMethodTypeArgumentsInfo(arguments);
+    }
+  } else {
+    // This code path should only be taken in situations where there are no
+    // type arguments at all, e.g. calling a user-definable operator.
+    assert(arguments.types.isEmpty);
+    return const NoneInferredTypeArgumentsInfo();
+  }
+}
+
 List<DartType> getExplicitTypeArguments(Arguments arguments) {
-  if (arguments is ArgumentsJudgment) {
-    return arguments._hasExplicitTypeArguments ? arguments.types : null;
+  if (arguments is ArgumentsImpl) {
+    if (arguments._explicitTypeArgumentCount == 0) {
+      return null;
+    } else if (arguments._extensionTypeParameterCount == 0) {
+      return arguments.types;
+    } else {
+      return arguments.types
+          .skip(arguments._extensionTypeParameterCount)
+          .toList();
+    }
   } else {
     // This code path should only be taken in situations where there are no
     // type arguments at all, e.g. calling a user-definable operator.
@@ -137,76 +252,127 @@ class ClassInferenceInfo {
   ClassInferenceInfo(this.builder);
 }
 
-/// Concrete shadow object representing a set of invocation arguments.
-class ArgumentsJudgment extends Arguments {
-  bool _hasExplicitTypeArguments;
+enum InternalExpressionKind {
+  Cascade,
+  CompoundExtensionIndexSet,
+  CompoundIndexSet,
+  CompoundPropertySet,
+  CompoundSuperIndexSet,
+  DeferredCheck,
+  ExtensionIndexSet,
+  ExtensionTearOff,
+  ExtensionSet,
+  IfNull,
+  IfNullExtensionIndexSet,
+  IfNullIndexSet,
+  IfNullPropertySet,
+  IfNullSet,
+  IfNullSuperIndexSet,
+  IndexSet,
+  LoadLibraryTearOff,
+  LocalPostIncDec,
+  NullAwareCompoundSet,
+  NullAwareExtension,
+  NullAwareIfNullSet,
+  NullAwareMethodInvocation,
+  NullAwarePropertyGet,
+  NullAwarePropertySet,
+  PropertyPostIncDec,
+  StaticPostIncDec,
+  SuperIndexSet,
+  SuperPostIncDec,
+}
 
-  List<Expression> get positionalJudgments => positional.cast();
+/// Common base class for internal expressions.
+abstract class InternalExpression extends Expression {
+  InternalExpressionKind get kind;
 
-  ArgumentsJudgment(List<Expression> positional,
+  /// Replaces this [InternalExpression] with a semantically equivalent
+  /// [Expression] and returns the replacing [Expression].
+  ///
+  /// This method most be called after inference has been performed to ensure
+  /// that [InternalExpression] nodes do not leak.
+  Expression replace() {
+    throw new UnsupportedError('$runtimeType.replace()');
+  }
+
+  @override
+  R accept<R>(ExpressionVisitor<R> visitor) => visitor.defaultExpression(this);
+
+  @override
+  R accept1<R, A>(ExpressionVisitor1<R, A> visitor, A arg) =>
+      visitor.defaultExpression(this, arg);
+
+  @override
+  DartType getStaticType(types) =>
+      unsupported("${runtimeType}.getStaticType", -1, null);
+}
+
+/// Front end specific implementation of [Argument].
+class ArgumentsImpl extends Arguments {
+  // TODO(johnniwinther): Move this to the static invocation instead.
+  final int _extensionTypeParameterCount;
+
+  final int _explicitExtensionTypeArgumentCount;
+
+  final int _extensionTypeArgumentOffset;
+
+  int _explicitTypeArgumentCount;
+
+  ArgumentsImpl(List<Expression> positional,
       {List<DartType> types, List<NamedExpression> named})
-      : _hasExplicitTypeArguments = types != null && types.isNotEmpty,
+      : _explicitTypeArgumentCount = types?.length ?? 0,
+        _extensionTypeParameterCount = 0,
+        _explicitExtensionTypeArgumentCount = 0,
+        // The offset is unused in this case.
+        _extensionTypeArgumentOffset = null,
         super(positional, types: types, named: named);
 
+  ArgumentsImpl.forExtensionMethod(int extensionTypeParameterCount,
+      int typeParameterCount, Expression receiver,
+      {List<DartType> extensionTypeArguments = const <DartType>[],
+      int extensionTypeArgumentOffset,
+      List<DartType> typeArguments = const <DartType>[],
+      List<Expression> positionalArguments = const <Expression>[],
+      List<NamedExpression> namedArguments = const <NamedExpression>[]})
+      : _extensionTypeParameterCount = extensionTypeParameterCount,
+        _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
+        _explicitTypeArgumentCount = typeArguments.length,
+        _extensionTypeArgumentOffset = extensionTypeArgumentOffset,
+        assert(
+            extensionTypeArguments.isEmpty ||
+                extensionTypeArguments.length == extensionTypeParameterCount,
+            "Extension type arguments must be empty or complete."),
+        super(<Expression>[receiver]..addAll(positionalArguments),
+            named: namedArguments,
+            types: <DartType>[]
+              ..addAll(_normalizeTypeArguments(
+                  extensionTypeParameterCount, extensionTypeArguments))
+              ..addAll(
+                  _normalizeTypeArguments(typeParameterCount, typeArguments)));
+
+  static List<DartType> _normalizeTypeArguments(
+      int length, List<DartType> arguments) {
+    if (arguments.isEmpty && length > 0) {
+      return new List<DartType>.filled(length, const UnknownType());
+    }
+    return arguments;
+  }
+
   static void setNonInferrableArgumentTypes(
-      ArgumentsJudgment arguments, List<DartType> types) {
+      ArgumentsImpl arguments, List<DartType> types) {
     arguments.types.clear();
     arguments.types.addAll(types);
-    arguments._hasExplicitTypeArguments = true;
+    arguments._explicitTypeArgumentCount = types.length;
   }
 
-  static void removeNonInferrableArgumentTypes(ArgumentsJudgment arguments) {
+  static void removeNonInferrableArgumentTypes(ArgumentsImpl arguments) {
     arguments.types.clear();
-    arguments._hasExplicitTypeArguments = false;
+    arguments._explicitTypeArgumentCount = 0;
   }
 }
 
-/// Concrete shadow object representing an assert initializer in kernel form.
-class AssertInitializerJudgment extends AssertInitializer
-    implements InitializerJudgment {
-  AssertInitializerJudgment(AssertStatement statement) : super(statement);
-
-  AssertStatementJudgment get judgment => statement;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitAssertInitializerJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing an assertion statement in kernel form.
-class AssertStatementJudgment extends AssertStatement
-    implements StatementJudgment {
-  AssertStatementJudgment(Expression condition,
-      {Expression message, int conditionStartOffset, int conditionEndOffset})
-      : super(condition,
-            message: message,
-            conditionStartOffset: conditionStartOffset,
-            conditionEndOffset: conditionEndOffset);
-
-  Expression get conditionJudgment => condition;
-
-  Expression get messageJudgment => message;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitAssertStatementJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a statement block in kernel form.
-class BlockJudgment extends Block implements StatementJudgment {
-  BlockJudgment(List<Statement> statements) : super(statements);
-
-  List<Statement> get judgments => statements;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitBlockJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a cascade expression.
+/// Internal expression representing a cascade expression.
 ///
 /// A cascade expression of the form `a..b()..c()` is represented as the kernel
 /// expression:
@@ -220,32 +386,45 @@ class BlockJudgment extends Block implements StatementJudgment {
 /// variable"--this is the variable that remembers the value of the expression
 /// preceding the first `..` while the cascades are being evaluated.
 ///
-/// After constructing a [CascadeJudgment], the caller should
+/// After constructing a [Cascade], the caller should
 /// call [finalize] with an expression representing the expression after the
 /// `..`.  If a further `..` follows that expression, the caller should call
 /// [extend] followed by [finalize] for each subsequent cascade.
-class CascadeJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
+// TODO(johnniwinther): Change the representation to be direct and perform
+// the [Let] encoding in [replace].
+class Cascade extends InternalExpression {
+  VariableDeclaration variable;
 
-  /// Pointer to the last "let" expression in the cascade.
-  Let nextCascade;
+  /// Pointer to the first "let" expression in the cascade, i.e. `e1` in
+  /// `e..e1..e2..e3`;
+  Let _firstCascade;
 
-  /// Creates a [CascadeJudgment] using [variable] as the cascade
+  /// Pointer to the last "let" expression in the cascade, i.e. `e3` in
+  //  /// `e..e1..e2..e3`;
+  Let _lastCascade;
+
+  /// Creates a [Cascade] using [variable] as the cascade
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  CascadeJudgment(VariableDeclarationJudgment variable)
-      : super(
-            variable,
-            makeLet(new VariableDeclaration.forValue(new _UnfinishedCascade()),
-                new VariableGet(variable))) {
-    nextCascade = body;
+  Cascade(this.variable) {
+    _lastCascade = _firstCascade = makeLet(
+        new VariableDeclaration.forValue(new _UnfinishedCascade()),
+        new VariableGet(variable));
+    variable?.parent = this;
+    _firstCascade.parent = this;
   }
 
-  Expression get targetJudgment => variable.initializer;
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.Cascade;
 
-  Iterable<Expression> get cascadeJudgments sync* {
-    Let section = body;
+  /// The initial expression of the cascade, i.e. `e` in `e..e1..e2..e3`.
+  Expression get expression => variable.initializer;
+
+  /// Returns the cascade expressions of the cascade, i.e. `e1`, `e2`, and `e3`
+  /// in `e..e1..e2..e3`.
+  Iterable<Expression> get cascades sync* {
+    Let section = _firstCascade;
     while (true) {
       yield section.variable.initializer;
       if (section.body is! Let) break;
@@ -256,398 +435,129 @@ class CascadeJudgment extends Let implements ExpressionJudgment {
   /// Adds a new unfinalized section to the end of the cascade.  Should be
   /// called after the previous cascade section has been finalized.
   void extend() {
-    assert(nextCascade.variable.initializer is! _UnfinishedCascade);
+    assert(_lastCascade.variable.initializer is! _UnfinishedCascade);
     Let newCascade = makeLet(
         new VariableDeclaration.forValue(new _UnfinishedCascade()),
-        nextCascade.body);
-    nextCascade.body = newCascade;
-    newCascade.parent = nextCascade;
-    nextCascade = newCascade;
+        _lastCascade.body);
+    _lastCascade.body = newCascade;
+    newCascade.parent = _lastCascade;
+    _lastCascade = newCascade;
   }
 
   /// Finalizes the last cascade section with the given [expression].
   void finalize(Expression expression) {
-    assert(nextCascade.variable.initializer is _UnfinishedCascade);
-    nextCascade.variable.initializer = expression;
-    expression.parent = nextCascade.variable;
+    assert(_lastCascade.variable.initializer is _UnfinishedCascade);
+    _lastCascade.variable.initializer = expression;
+    expression.parent = _lastCascade.variable;
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitCascadeJudgment(this, typeContext);
+  Expression replace() {
+    Expression replacement;
+    parent.replaceChild(
+        this,
+        replacement = new Let(variable, _firstCascade)
+          ..fileOffset = fileOffset);
+    return replacement;
   }
-}
-
-/// Abstract shadow object representing a complex assignment in kernel form.
-///
-/// Since there are many forms a complex assignment might have been desugared
-/// to, this class wraps the desugared assignment rather than extending it.
-///
-/// TODO(paulberry): once we know exactly what constitutes a "complex
-/// assignment", document it here.
-abstract class ComplexAssignmentJudgment extends SyntheticExpressionJudgment {
-  /// In a compound assignment, the expression that reads the old value, or
-  /// `null` if this is not a compound assignment.
-  Expression read;
-
-  /// The expression appearing on the RHS of the assignment.
-  final Expression rhs;
-
-  /// The expression that performs the write (e.g. `a.[]=(b, a.[](b) + 1)` in
-  /// `++a[b]`).
-  Expression write;
-
-  /// In a compound assignment without shortcut semantics, the expression that
-  /// combines the old and new values, or `null` if this is not a compound
-  /// assignment.
-  ///
-  /// Note that in a compound assignment with shortcut semantics, this is not
-  /// used; [nullAwareCombiner] is used instead.
-  MethodInvocation combiner;
-
-  /// In a compound assignment with shortcut semantics, the conditional
-  /// expression that determines whether the assignment occurs.
-  ///
-  /// Note that in a compound assignment without shortcut semantics, this is not
-  /// used; [combiner] is used instead.
-  ConditionalExpression nullAwareCombiner;
-
-  /// Indicates whether the expression arose from a post-increment or
-  /// post-decrement.
-  bool isPostIncDec = false;
-
-  /// Indicates whether the expression arose from a pre-increment or
-  /// pre-decrement.
-  bool isPreIncDec = false;
-
-  ComplexAssignmentJudgment._(this.rhs) : super._(null);
-
-  String toString() {
-    var parts = _getToStringParts();
-    return '${runtimeType}(${parts.join(', ')})';
-  }
-
-  List<String> _getToStringParts() {
-    List<String> parts = [];
-    if (desugared != null) parts.add('desugared=$desugared');
-    if (read != null) parts.add('read=$read');
-    if (rhs != null) parts.add('rhs=$rhs');
-    if (write != null) parts.add('write=$write');
-    if (combiner != null) parts.add('combiner=$combiner');
-    if (nullAwareCombiner != null) {
-      parts.add('nullAwareCombiner=$nullAwareCombiner');
-    }
-    if (isPostIncDec) parts.add('isPostIncDec=true');
-    if (isPreIncDec) parts.add('isPreIncDec=true');
-    return parts;
-  }
-
-  _ComplexAssignmentInferenceResult _inferRhs(
-      ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
-    assert(writeContext != null);
-    if (readType is VoidType &&
-        (combiner != null || nullAwareCombiner != null)) {
-      inferrer.helper
-          ?.addProblem(messageVoidExpression, read.fileOffset, noLength);
-    }
-    var writeOffset = write == null ? -1 : write.fileOffset;
-    Procedure combinerMember;
-    DartType combinedType;
-    if (combiner != null) {
-      bool isOverloadedArithmeticOperator = false;
-      combinerMember = inferrer.findMethodInvocationMember(readType, combiner,
-          instrumented: false);
-      if (combinerMember is Procedure) {
-        isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
-            .isOverloadedArithmeticOperatorAndType(combinerMember, readType);
-      }
-      DartType rhsType;
-      var combinerType = inferrer.getCalleeFunctionType(
-          inferrer.getCalleeType(combinerMember, readType), false);
-      if (isPreIncDec || isPostIncDec) {
-        rhsType = inferrer.coreTypes.intClass.rawType;
-      } else {
-        // It's not necessary to call _storeLetType for [rhs] because the RHS
-        // is always passed directly to the combiner; it's never stored in a
-        // temporary variable first.
-        assert(identical(combiner.arguments.positional.first, rhs));
-        // Analyzer uses a null context for the RHS here.
-        // TODO(paulberry): improve on this.
-        inferrer.inferExpression(rhs, const UnknownType(), true);
-        rhsType = getInferredType(rhs, inferrer);
-        // Do not use rhs after this point because it may be a Shadow node
-        // that has been replaced in the tree with its desugaring.
-        var expectedType = getPositionalParameterType(combinerType, 0);
-        inferrer.ensureAssignable(expectedType, rhsType,
-            combiner.arguments.positional.first, combiner.fileOffset);
-      }
-      if (isOverloadedArithmeticOperator) {
-        combinedType = inferrer.typeSchemaEnvironment
-            .getTypeOfOverloadedArithmetic(readType, rhsType);
-      } else {
-        combinedType = combinerType.returnType;
-      }
-      var checkKind = inferrer.preCheckInvocationContravariance(read, readType,
-          combinerMember, combiner, combiner.arguments, combiner);
-      var replacedCombiner = inferrer.handleInvocationContravariance(
-          checkKind,
-          combiner,
-          combiner.arguments,
-          combiner,
-          combinedType,
-          combinerType,
-          combiner.fileOffset);
-      var replacedCombiner2 = inferrer.ensureAssignable(
-          writeContext, combinedType, replacedCombiner, writeOffset);
-      if (replacedCombiner2 != null) {
-        replacedCombiner = replacedCombiner2;
-      }
-      _storeLetType(inferrer, replacedCombiner, combinedType);
-    } else {
-      inferrer.inferExpression(rhs, writeContext ?? const UnknownType(), true,
-          isVoidAllowed: true);
-      var rhsType = getInferredType(rhs, inferrer);
-      var replacedRhs = inferrer.ensureAssignable(
-          writeContext, rhsType, rhs, writeOffset,
-          isVoidAllowed: writeContext is VoidType);
-      _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
-      if (nullAwareCombiner != null) {
-        MethodInvocation equalsInvocation = nullAwareCombiner.condition;
-        inferrer.findMethodInvocationMember(
-            greatestClosure(inferrer.coreTypes, writeContext), equalsInvocation,
-            instrumented: false);
-        // Note: the case of readType=null only happens for erroneous code.
-        combinedType = readType == null
-            ? rhsType
-            : inferrer.typeSchemaEnvironment
-                .getStandardUpperBound(readType, rhsType);
-        nullAwareCombiner.staticType = combinedType;
-      } else {
-        combinedType = rhsType;
-      }
-    }
-    if (this is IndexAssignmentJudgment) {
-      _storeLetType(inferrer, write, const VoidType());
-    } else {
-      _storeLetType(inferrer, write, combinedType);
-    }
-    inferredType =
-        isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
-    return new _ComplexAssignmentInferenceResult(combinerMember);
-  }
-}
-
-/// Abstract shadow object representing a complex assignment involving a
-/// receiver.
-abstract class ComplexAssignmentJudgmentWithReceiver
-    extends ComplexAssignmentJudgment {
-  /// The receiver of the assignment target (e.g. `a` in `a[b] = c`).
-  final Expression receiver;
-
-  /// Indicates whether this assignment uses `super`.
-  final bool isSuper;
-
-  ComplexAssignmentJudgmentWithReceiver._(
-      this.receiver, Expression rhs, this.isSuper)
-      : super._(rhs);
 
   @override
-  List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
-    if (receiver != null) parts.add('receiver=$receiver');
-    if (isSuper) parts.add('isSuper=true');
-    return parts;
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    _firstCascade?.accept(v);
   }
 
-  DartType _inferReceiver(ShadowTypeInferrer inferrer) {
-    if (receiver != null) {
-      inferrer.inferExpression(receiver, const UnknownType(), true);
-      var receiverType = getInferredType(receiver, inferrer);
-      _storeLetType(inferrer, receiver, receiverType);
-      return receiverType;
-    } else if (isSuper) {
-      return inferrer.classHierarchy.getTypeAsInstanceOf(
-          inferrer.thisType, inferrer.thisType.classNode.supertype.classNode);
-    } else {
-      return inferrer.thisType;
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (_firstCascade != null) {
+      _firstCascade = _firstCascade.accept<TreeNode>(v);
+      _firstCascade?.parent = this;
     }
   }
 }
 
-/// Concrete shadow object representing a continue statement from a switch
-/// statement, in kernel form.
-class ContinueSwitchJudgment extends ContinueSwitchStatement
-    implements StatementJudgment {
-  ContinueSwitchJudgment(SwitchCase target) : super(target);
+/// Internal expression representing a deferred check.
+// TODO(johnniwinther): Change the representation to be direct and perform
+// the [Let] encoding in [replace].
+class DeferredCheck extends InternalExpression {
+  VariableDeclaration _variable;
+  Expression expression;
 
-  SwitchCaseJudgment get targetJudgment => target;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitContinueSwitchJudgment(this);
+  DeferredCheck(this._variable, this.expression) {
+    _variable?.parent = this;
+    expression?.parent = this;
   }
-}
 
-/// Shadow object representing a deferred check in kernel form.
-class DeferredCheckJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
-  DeferredCheckJudgment(VariableDeclaration variable, Expression body)
-      : super(variable, body);
-
-  Expression get judgment => body;
+  InternalExpressionKind get kind => InternalExpressionKind.DeferredCheck;
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitDeferredCheckJudgment(this, typeContext);
+  Expression replace() {
+    Expression replacement;
+    parent.replaceChild(this,
+        replacement = new Let(_variable, expression)..fileOffset = fileOffset);
+    return replacement;
   }
-}
-
-/// Concrete shadow object representing a do loop in kernel form.
-class DoJudgment extends DoStatement implements StatementJudgment {
-  DoJudgment(Statement body, Expression condition) : super(body, condition);
-
-  Expression get conditionJudgment => condition;
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitDoJudgment(this);
+  void visitChildren(Visitor<dynamic> v) {
+    _variable?.accept(v);
+    expression?.accept(v);
   }
-}
-
-/// Concrete shadow object representing a double literal in kernel form.
-class DoubleJudgment extends DoubleLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  DoubleJudgment(double value) : super(value);
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitDoubleJudgment(this, typeContext);
+  void transformChildren(Transformer v) {
+    if (_variable != null) {
+      _variable = _variable.accept<TreeNode>(v);
+      _variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
   }
 }
 
 /// Common base class for shadow objects representing expressions in kernel
 /// form.
 abstract class ExpressionJudgment extends Expression {
-  DartType inferredType;
-
   /// Calls back to [inferrer] to perform type inference for whatever concrete
   /// type of [Expression] this is.
-  void acceptInference(InferenceVisitor visitor, DartType typeContext);
-}
-
-/// Concrete shadow object representing an empty statement in kernel form.
-class EmptyStatementJudgment extends EmptyStatement
-    implements StatementJudgment {
-  EmptyStatementJudgment();
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitEmptyStatementJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing an expression statement in kernel form.
-class ExpressionStatementJudgment extends ExpressionStatement
-    implements StatementJudgment {
-  ExpressionStatementJudgment(Expression expression) : super(expression);
-
-  Expression get judgment => expression;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitExpressionStatementJudgment(this);
-  }
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext);
 }
 
 /// Shadow object for [StaticInvocation] when the procedure being invoked is a
 /// factory constructor.
 class FactoryConstructorInvocationJudgment extends StaticInvocation
     implements ExpressionJudgment {
-  DartType inferredType;
+  bool hasBeenInferred = false;
 
   FactoryConstructorInvocationJudgment(
-      Procedure target, ArgumentsJudgment arguments,
+      Procedure target, ArgumentsImpl arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
 
-  ArgumentsJudgment get argumentJudgments => arguments;
-
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitFactoryConstructorInvocationJudgment(this, typeContext);
   }
 }
 
-/// Concrete shadow object representing a field initializer in kernel form.
-class ShadowFieldInitializer extends FieldInitializer
-    implements InitializerJudgment {
-  ShadowFieldInitializer(Field field, Expression value) : super(field, value);
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitShadowFieldInitializer(this);
-  }
-}
-
-/// Concrete shadow object representing a classic for loop in kernel form.
-class ForJudgment extends ForStatement implements StatementJudgment {
-  ForJudgment(List<VariableDeclaration> variables, Expression condition,
-      List<Expression> updates, Statement body)
-      : super(variables ?? [], condition, updates, body);
-
-  Expression get conditionJudgment => condition;
-
-  List<Expression> get updateJudgments => updates.cast();
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitForJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a function expression in kernel form.
-class FunctionNodeJudgment extends FunctionNode {
-  FunctionNodeJudgment(Statement body,
-      {List<TypeParameter> typeParameters,
-      List<VariableDeclaration> positionalParameters,
-      List<VariableDeclaration> namedParameters,
-      int requiredParameterCount,
-      DartType returnType: const DynamicType(),
-      AsyncMarker asyncMarker: AsyncMarker.Sync,
-      AsyncMarker dartAsyncMarker})
-      : super(body,
-            typeParameters: typeParameters,
-            positionalParameters: positionalParameters,
-            namedParameters: namedParameters,
-            requiredParameterCount: requiredParameterCount,
-            returnType: returnType,
-            asyncMarker: asyncMarker,
-            dartAsyncMarker: dartAsyncMarker);
-}
-
-/// Concrete shadow object representing a local function declaration in kernel
-/// form.
-class FunctionDeclarationJudgment extends FunctionDeclaration
-    implements StatementJudgment {
+/// Front end specific implementation of [FunctionDeclaration].
+class FunctionDeclarationImpl extends FunctionDeclaration {
   bool _hasImplicitReturnType = false;
 
-  FunctionDeclarationJudgment(
-      VariableDeclarationJudgment variable, FunctionNodeJudgment function)
+  FunctionDeclarationImpl(
+      VariableDeclarationImpl variable, FunctionNode function)
       : super(variable, function);
 
-  VariableDeclarationJudgment get variableJudgment => variable;
-
-  FunctionNodeJudgment get functionJudgment => function;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitFunctionDeclarationJudgment(this);
-  }
-
   static void setHasImplicitReturnType(
-      FunctionDeclarationJudgment declaration, bool hasImplicitReturnType) {
+      FunctionDeclarationImpl declaration, bool hasImplicitReturnType) {
     declaration._hasImplicitReturnType = hasImplicitReturnType;
   }
 }
@@ -656,7 +566,7 @@ class FunctionDeclarationJudgment extends FunctionDeclaration
 class InvalidSuperInitializerJudgment extends LocalInitializer
     implements InitializerJudgment {
   final Constructor target;
-  final ArgumentsJudgment argumentsJudgment;
+  final ArgumentsImpl argumentsJudgment;
 
   InvalidSuperInitializerJudgment(
       this.target, this.argumentsJudgment, VariableDeclaration variable)
@@ -668,96 +578,40 @@ class InvalidSuperInitializerJudgment extends LocalInitializer
   }
 }
 
-/// Concrete shadow object representing an if-null expression.
+/// Internal expression representing an if-null expression.
 ///
-/// An if-null expression of the form `a ?? b` is represented as the kernel
-/// expression:
+/// An if-null expression of the form `a ?? b` is encoded as:
 ///
 ///     let v = a in v == null ? b : v
-class IfNullJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
+///
+class IfNullExpression extends InternalExpression {
+  Expression left;
+  Expression right;
 
-  IfNullJudgment(VariableDeclaration variable, Expression body)
-      : super(variable, body);
-
-  @override
-  ConditionalExpression get body => super.body;
-
-  /// Returns the expression to the left of `??`.
-  Expression get leftJudgment => variable.initializer;
-
-  /// Returns the expression to the right of `??`.
-  Expression get rightJudgment => body.then;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIfNullJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an if statement in kernel form.
-class IfJudgment extends IfStatement implements StatementJudgment {
-  IfJudgment(Expression condition, Statement then, Statement otherwise)
-      : super(condition, then, otherwise);
-
-  Expression get conditionJudgment => condition;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitIfJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing an assignment to a target for which
-/// assignment is not allowed.
-class IllegalAssignmentJudgment extends ComplexAssignmentJudgment {
-  /// The offset at which the invalid assignment should be stored.
-  /// If `-1`, then there is no separate location for invalid assignment.
-  final int assignmentOffset;
-
-  IllegalAssignmentJudgment._(Expression rhs, {this.assignmentOffset: -1})
-      : super._(rhs) {
-    rhs.parent = this;
+  IfNullExpression(this.left, this.right) {
+    left?.parent = this;
+    right?.parent = this;
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIllegalAssignmentJudgment(this, typeContext);
+  InternalExpressionKind get kind => InternalExpressionKind.IfNull;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    left?.accept(v);
+    right?.accept(v);
   }
-}
 
-/// Concrete shadow object representing an assignment to a target of the form
-/// `a[b]`.
-class IndexAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// In an assignment to an index expression, the index expression.
-  final Expression index;
-
-  IndexAssignmentJudgment._(Expression receiver, this.index, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  Arguments _getInvocationArguments(
-      ShadowTypeInferrer inferrer, Expression invocation) {
-    if (invocation is MethodInvocation) {
-      return invocation.arguments;
-    } else if (invocation is SuperMethodInvocation) {
-      return invocation.arguments;
-    } else {
-      throw unhandled("${invocation.runtimeType}", "_getInvocationArguments",
-          fileOffset, inferrer.uri);
+  @override
+  void transformChildren(Transformer v) {
+    if (left != null) {
+      left = left.accept<TreeNode>(v);
+      left?.parent = this;
     }
-  }
-
-  @override
-  List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
-    if (index != null) parts.add('index=$index');
-    return parts;
-  }
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitIndexAssignmentJudgment(this, typeContext);
+    if (right != null) {
+      right = right.accept<TreeNode>(v);
+      right?.parent = this;
+    }
   }
 }
 
@@ -772,41 +626,39 @@ abstract class InitializerJudgment implements Initializer {
 Expression checkWebIntLiteralsErrorIfUnexact(
     ShadowTypeInferrer inferrer, int value, String literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
-  if (inferrer.library == null) return null;
+  if (inferrer.isTopLevel) return null;
   if (!inferrer.library.loader.target.backendTarget
       .errorOnUnexactWebIntLiterals) return null;
-  BigInt asInt = BigInt.from(value).toUnsigned(64);
-  BigInt asDouble = BigInt.from(asInt.toDouble());
+  BigInt asInt = new BigInt.from(value).toUnsigned(64);
+  BigInt asDouble = new BigInt.from(asInt.toDouble());
   if (asInt == asDouble) return null;
   String text = literal ?? value.toString();
   String nearest = text.startsWith('0x') || text.startsWith('0X')
       ? '0x${asDouble.toRadixString(16)}'
       : asDouble.toString();
   int length = literal?.length ?? noLength;
-  return inferrer.helper.desugarSyntheticExpression(inferrer.helper
-      .buildProblem(
-          templateWebLiteralCannotBeRepresentedExactly.withArguments(
-              text, nearest),
-          charOffset,
-          length));
+  return inferrer.helper.buildProblem(
+      templateWebLiteralCannotBeRepresentedExactly.withArguments(text, nearest),
+      charOffset,
+      length);
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
 class IntJudgment extends IntLiteral implements ExpressionJudgment {
-  DartType inferredType;
   final String literal;
 
   IntJudgment(int value, this.literal) : super(value);
 
   double asDouble({bool negated: false}) {
     if (value == 0 && negated) return -0.0;
-    BigInt intValue = BigInt.from(negated ? -value : value);
+    BigInt intValue = new BigInt.from(negated ? -value : value);
     double doubleValue = intValue.toDouble();
-    return intValue == BigInt.from(doubleValue) ? doubleValue : null;
+    return intValue == new BigInt.from(doubleValue) ? doubleValue : null;
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitIntJudgment(this, typeContext);
   }
 }
@@ -816,8 +668,6 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   final int fileOffset;
   bool isParenthesized = false;
 
-  DartType inferredType;
-
   ShadowLargeIntLiteral(this.literal, this.fileOffset) : super(0);
 
   double asDouble({bool negated: false}) {
@@ -826,7 +676,7 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
     double doubleValue = intValue.toDouble();
     return !doubleValue.isNaN &&
             !doubleValue.isInfinite &&
-            intValue == BigInt.from(doubleValue)
+            intValue == new BigInt.from(doubleValue)
         ? doubleValue
         : null;
   }
@@ -836,7 +686,8 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitShadowLargeIntLiteral(this, typeContext);
   }
 }
@@ -864,82 +715,21 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
     value?.parent = this;
   }
 
-  Expression get judgment => value;
-
   @override
   void acceptInference(InferenceVisitor visitor) {
     return visitor.visitShadowInvalidFieldInitializer(this);
   }
 }
 
-/// Type inference derivation for [ListLiteral].
-class ListLiteralJudgment extends ListLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  ListLiteralJudgment(List<Expression> expressions,
-      {DartType typeArgument, bool isConst: false})
-      : assert(typeArgument != null),
-        super(expressions, typeArgument: typeArgument, isConst: isConst);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitListLiteralJudgment(this, typeContext);
-  }
-}
-
-/// Type inference derivation for [SetLiteral].
-class SetLiteralJudgment extends SetLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  SetLiteralJudgment(List<Expression> expressions,
-      {DartType typeArgument, bool isConst: false})
-      : assert(typeArgument != null),
-        super(expressions, typeArgument: typeArgument, isConst: isConst);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSetLiteralJudgment(this, typeContext);
-  }
-}
-
-/// Type inference derivation for [MapLiteral].
-class MapLiteralJudgment extends MapLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  MapLiteralJudgment(List<MapEntry> judgments,
-      {DartType keyType, DartType valueType, bool isConst: false})
-      : assert(keyType != null),
-        assert(valueType != null),
-        super(judgments,
-            keyType: keyType, valueType: valueType, isConst: isConst);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitMapLiteralJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for [MethodInvocation].
-class MethodInvocationJudgment extends MethodInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
+/// Front end specific implementation of [MethodInvocation].
+class MethodInvocationImpl extends MethodInvocation {
   /// Indicates whether this method invocation is a call to a `call` method
   /// resulting from the invocation of a function expression.
-  final bool _isImplicitCall;
+  final bool isImplicitCall;
 
-  MethodInvocationJudgment(
-      Expression receiver, Name name, ArgumentsJudgment arguments,
-      {bool isImplicitCall: false, Member interfaceTarget})
-      : _isImplicitCall = isImplicitCall,
-        super(receiver, name, arguments, interfaceTarget);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitMethodInvocationJudgment(this, typeContext);
-  }
+  MethodInvocationImpl(Expression receiver, Name name, ArgumentsImpl arguments,
+      {this.isImplicitCall: false, Member interfaceTarget})
+      : super(receiver, name, arguments, interfaceTarget);
 }
 
 /// Concrete shadow object representing a named function expression.
@@ -953,383 +743,145 @@ class MethodInvocationJudgment extends MethodInvocation
 ///     let f = () { ... } in f
 class NamedFunctionExpressionJudgment extends Let
     implements ExpressionJudgment {
-  DartType inferredType;
-
-  NamedFunctionExpressionJudgment(VariableDeclarationJudgment variable)
+  NamedFunctionExpressionJudgment(VariableDeclarationImpl variable)
       : super(variable, new VariableGet(variable));
 
-  VariableDeclarationJudgment get variableJudgment => variable;
-
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitor visitor, DartType typeContext) {
     return visitor.visitNamedFunctionExpressionJudgment(this, typeContext);
   }
 }
 
-/// Concrete shadow object representing a null-aware method invocation.
+/// Internal expression representing a null-aware method invocation.
 ///
-/// A null-aware method invocation of the form `a?.b(...)` is represented as the
-/// expression:
+/// A null-aware method invocation of the form `a?.b(...)` is encoded as:
 ///
 ///     let v = a in v == null ? null : v.b(...)
-class NullAwareMethodInvocationJudgment extends Let
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  NullAwareMethodInvocationJudgment(
-      VariableDeclaration variable, Expression body)
-      : super(variable, body);
-
-  @override
-  ConditionalExpression get body => super.body;
-
-  MethodInvocation get _desugaredInvocation => body.otherwise;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitNullAwareMethodInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a null-aware read from a property.
 ///
-/// A null-aware property get of the form `a?.b` is represented as the kernel
-/// expression:
-///
-///     let v = a in v == null ? null : v.b
-class NullAwarePropertyGetJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
+class NullAwareMethodInvocation extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
 
-  NullAwarePropertyGetJudgment(
-      VariableDeclaration variable, ConditionalExpression body)
-      : super(variable, body);
+  /// The expression that invokes the method on [variable].
+  Expression invocation;
 
-  @override
-  ConditionalExpression get body => super.body;
-
-  PropertyGet get _desugaredGet => body.otherwise;
-
-  Expression get receiverJudgment => variable.initializer;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitNullAwarePropertyGetJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing an assignment to a property.
-class PropertyAssignmentJudgment extends ComplexAssignmentJudgmentWithReceiver {
-  /// If this assignment uses null-aware access (`?.`), the conditional
-  /// expression that guards the access; otherwise `null`.
-  ConditionalExpression nullAwareGuard;
-
-  PropertyAssignmentJudgment._(Expression receiver, Expression rhs,
-      {bool isSuper: false})
-      : super._(receiver, rhs, isSuper);
-
-  @override
-  List<String> _getToStringParts() {
-    var parts = super._getToStringParts();
-    if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
-    return parts;
-  }
-
-  Object _handleWriteContravariance(
-      ShadowTypeInferrer inferrer, DartType receiverType) {
-    return inferrer.findPropertySetMember(receiverType, write);
+  NullAwareMethodInvocation(this.variable, this.invocation) {
+    variable?.parent = this;
+    invocation?.parent = this;
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitPropertyAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a redirecting initializer in kernel
-/// form.
-class RedirectingInitializerJudgment extends RedirectingInitializer
-    implements InitializerJudgment {
-  RedirectingInitializerJudgment(
-      Constructor target, ArgumentsJudgment arguments)
-      : super(target, arguments);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwareMethodInvocation;
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitRedirectingInitializerJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a return statement in kernel form.
-class ReturnJudgment extends ReturnStatement implements StatementJudgment {
-  final String returnKeywordLexeme;
-
-  ReturnJudgment(this.returnKeywordLexeme, [Expression expression])
-      : super(expression);
-
-  Expression get judgment => expression;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitReturnJudgment(this);
-  }
-}
-
-/// Common base class for shadow objects representing statements in kernel
-/// form.
-abstract class StatementJudgment extends Statement {
-  /// Calls back to [inferrer] to perform type inference for whatever concrete
-  /// type of [StatementJudgment] this is.
-  void acceptInference(InferenceVisitor visitor);
-}
-
-/// Concrete shadow object representing an assignment to a static variable.
-class StaticAssignmentJudgment extends ComplexAssignmentJudgment {
-  StaticAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitStaticAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a super initializer in kernel form.
-class SuperInitializerJudgment extends SuperInitializer
-    implements InitializerJudgment {
-  SuperInitializerJudgment(Constructor target, ArgumentsJudgment arguments)
-      : super(target, arguments);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitSuperInitializerJudgment(this);
-  }
-}
-
-/// Shadow object for [SuperMethodInvocation].
-class SuperMethodInvocationJudgment extends SuperMethodInvocation
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  SuperMethodInvocationJudgment(Name name, ArgumentsJudgment arguments,
-      {Procedure interfaceTarget})
-      : super(name, arguments, interfaceTarget);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSuperMethodInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for [SuperPropertyGet].
-class SuperPropertyGetJudgment extends SuperPropertyGet
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  SuperPropertyGetJudgment(Name name, {Member interfaceTarget})
-      : super(name, interfaceTarget);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSuperPropertyGetJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a switch case.
-class SwitchCaseJudgment extends SwitchCase {
-  SwitchCaseJudgment(
-      List<Expression> expressions, List<int> expressionOffsets, Statement body,
-      {bool isDefault: false})
-      : super(expressions, expressionOffsets, body, isDefault: isDefault);
-
-  SwitchCaseJudgment.defaultCase(Statement body) : super.defaultCase(body);
-
-  SwitchCaseJudgment.empty() : super.empty();
-
-  List<Expression> get expressionJudgments => expressions.cast();
-}
-
-/// Concrete shadow object representing a switch statement in kernel form.
-class SwitchStatementJudgment extends SwitchStatement
-    implements StatementJudgment {
-  SwitchStatementJudgment(Expression expression, List<SwitchCase> cases)
-      : super(expression, cases);
-
-  Expression get expressionJudgment => expression;
-
-  List<SwitchCaseJudgment> get caseJudgments => cases.cast();
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitSwitchStatementJudgment(this);
-  }
-}
-
-/// Shadow object for [SymbolLiteral].
-class SymbolLiteralJudgment extends SymbolLiteral
-    implements ExpressionJudgment {
-  DartType inferredType;
-
-  SymbolLiteralJudgment(String value) : super(value);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSymbolLiteralJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// constructor, or a constructor that cannot be invoked, or a resolved
-/// constructor with wrong number of arguments.
-// TODO(ahe): Remove this?
-class InvalidConstructorInvocationJudgment extends SyntheticExpressionJudgment {
-  final Member constructor;
-  final Arguments arguments;
-
-  InvalidConstructorInvocationJudgment._(
-      kernel.Expression desugared, this.constructor, this.arguments)
-      : super._(desugared);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidConstructorInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to the
-/// [expression] which is not assignable.
-class InvalidWriteJudgment extends SyntheticExpressionJudgment {
-  final Expression expression;
-
-  InvalidWriteJudgment._(kernel.Expression desugared, this.expression)
-      : super._(desugared);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitInvalidWriteJudgment(this, typeContext);
-  }
-}
-
-/// Shadow object for expressions that are introduced by the front end as part
-/// of desugaring or the handling of error conditions.
-///
-/// These expressions are removed by type inference and replaced with their
-/// desugared equivalents.
-class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
-  DartType inferredType;
-
-  SyntheticExpressionJudgment._(Expression desugared)
-      : super(new VariableDeclaration('_', initializer: new NullLiteral()),
-            desugared);
-
-  /// The desugared kernel representation of this synthetic expression.
-  Expression get desugared => body;
-
-  void set desugared(Expression value) {
-    this.body = value;
-    value.parent = this;
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    invocation?.accept(v);
   }
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitSyntheticExpressionJudgment(this, typeContext);
-  }
-
-  /// Removes this expression from the expression tree, replacing it with
-  /// [desugared].
-  void _replaceWithDesugared() {
-    parent.replaceChild(this, desugared);
-    parent = null;
-  }
-
-  /// Updates any [Let] nodes in the desugared expression to account for the
-  /// fact that [expression] has the given [type].
-  void _storeLetType(
-      TypeInferrerImpl inferrer, Expression expression, DartType type) {
-    Expression desugared = this.desugared;
-    while (true) {
-      if (desugared is Let) {
-        Let desugaredLet = desugared;
-        var variable = desugaredLet.variable;
-        if (identical(variable.initializer, expression)) {
-          variable.type = type;
-          return;
-        }
-        desugared = desugaredLet.body;
-      } else if (desugared is ConditionalExpression) {
-        // When a null-aware assignment is desugared, often the "then" or "else"
-        // branch of the conditional expression often contains "let" nodes that
-        // need to be updated.
-        ConditionalExpression desugaredConditionalExpression = desugared;
-        if (desugaredConditionalExpression.then is Let) {
-          desugared = desugaredConditionalExpression.then;
-        } else {
-          desugared = desugaredConditionalExpression.otherwise;
-        }
-      } else {
-        break;
-      }
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (invocation != null) {
+      invocation = invocation.accept<TreeNode>(v);
+      invocation?.parent = this;
     }
   }
+}
 
-  @override
-  accept(ExpressionVisitor<dynamic> v) {
-    // This is designed to throw an exception during serialization. It can also
-    // lead to exceptions during transformations, but we have to accept a
-    // [Transformer] as this is used to implement `replaceChild`.
-    if (v is Transformer) return super.accept(v);
-    unsupported("accept", fileOffset, getFileUri(this));
+/// Internal expression representing a null-aware read from a property.
+///
+/// A null-aware property get of the form `a?.b` is encoded as:
+///
+///     let v = a in v == null ? null : v.b
+///
+class NullAwarePropertyGet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  NullAwarePropertyGet(this.variable, this.read) {
+    variable?.parent = this;
+    read?.parent = this;
   }
 
   @override
-  accept1(ExpressionVisitor1<dynamic, dynamic> v, arg) {
-    unsupported("accept1", fileOffset, getFileUri(this));
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwarePropertyGet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    read?.accept(v);
   }
 
   @override
-  visitChildren(Visitor<dynamic> v) {
-    unsupported("visitChildren", fileOffset, getFileUri(this));
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
   }
 }
 
-/// Concrete shadow object representing a catch clause.
-class CatchJudgment extends Catch {
-  CatchJudgment(VariableDeclaration exception, Statement body,
-      {DartType guard: const DynamicType(), VariableDeclaration stackTrace})
-      : super(exception, body, guard: guard, stackTrace: stackTrace);
+/// Internal expression representing a null-aware read from a property.
+///
+/// A null-aware property get of the form `a?.b = c` is encoded as:
+///
+///     let v = a in v == null ? null : v.b = c
+///
+class NullAwarePropertySet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
 
-  VariableDeclarationJudgment get exceptionJudgment => exception;
+  /// The expression that writes the value to the property in [variable].
+  Expression write;
 
-  VariableDeclarationJudgment get stackTraceJudgment => stackTrace;
-}
-
-/// Concrete shadow object representing a try-catch block in kernel form.
-class TryCatchJudgment extends TryCatch implements StatementJudgment {
-  TryCatchJudgment(Statement body, List<Catch> catches) : super(body, catches);
-
-  List<CatchJudgment> get catchJudgments => catches.cast();
+  NullAwarePropertySet(this.variable, this.write) {
+    variable?.parent = this;
+    write?.parent = this;
+  }
 
   @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitTryCatchJudgment(this);
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwarePropertySet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
   }
 }
 
-/// Concrete shadow object representing a try-finally block in kernel form.
-class TryFinallyJudgment extends TryFinally implements StatementJudgment {
-  TryFinallyJudgment(Statement body, Statement finalizer)
-      : super(body, finalizer);
+/// Front end specific implementation of [ReturnStatement].
+class ReturnStatementImpl extends ReturnStatement {
+  final bool isArrow;
 
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitTryFinallyJudgment(this);
-  }
+  ReturnStatementImpl(this.isArrow, [Expression expression])
+      : super(expression);
 }
 
 /// Concrete implementation of [TypeInferenceEngine] specialized to work with
@@ -1355,7 +907,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 /// objects.
 class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
-  final typePromoter;
+  final TypePromoter typePromoter;
 
   ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
       bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)
@@ -1368,8 +920,8 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  DartType inferExpression(
-      kernel.Expression expression, DartType typeContext, bool typeNeeded,
+  ExpressionInferenceResult inferExpression(
+      Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false}) {
     // `null` should never be used as the type context.  An instance of
     // `UnknownType` should be used instead.
@@ -1387,36 +939,39 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
-    if (!typeNeeded) return null;
+    if (!typeNeeded) return const ExpressionInferenceResult(null);
 
     InferenceVisitor visitor = new InferenceVisitor(this);
+    ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
-      expression.acceptInference(visitor, typeContext);
+      result = expression.acceptInference(visitor, typeContext);
     } else {
-      expression.accept1(visitor, typeContext);
+      result = expression.accept1(visitor, typeContext);
     }
-    DartType inferredType = getInferredType(expression, this);
+    DartType inferredType = result.inferredType;
+    assert(inferredType != null, "No type inferred for $expression.");
     if (inferredType is VoidType && !isVoidAllowed) {
-      if (expression.parent is! ArgumentsJudgment) {
+      if (expression.parent is! ArgumentsImpl) {
         helper?.addProblem(
             messageVoidExpression, expression.fileOffset, noLength);
       }
     }
-    return inferredType;
+    return result;
   }
 
   @override
-  void inferInitializer(
-      InferenceHelper helper, kernel.Initializer initializer) {
-    assert(initializer is InitializerJudgment);
+  void inferInitializer(InferenceHelper helper, Initializer initializer) {
     this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
-    InitializerJudgment kernelInitializer = initializer;
-    kernelInitializer.acceptInference(new InferenceVisitor(this));
+    if (initializer is InitializerJudgment) {
+      initializer.acceptInference(new InferenceVisitor(this));
+    } else {
+      initializer.accept(new InferenceVisitor(this));
+    }
     this.helper = null;
   }
 
@@ -1425,37 +980,9 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);
-
-    if (statement is StatementJudgment) {
-      // Use polymorphic dispatch on [KernelStatement] to perform whatever kind
-      // of type inference is correct for this kind of statement.
-      // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-      // so that the type hierarchy will be simpler (which may speed up "is"
-      // checks).
-      return statement.acceptInference(new InferenceVisitor(this));
-    } else if (statement is ForInStatement) {
-      return statement.accept1(new InferenceVisitor(this), null);
-    } else if (statement is LabeledStatement) {
-      return statement.accept1(new InferenceVisitor(this), null);
-    } else if (statement is BreakStatement) {
-      return statement.accept1(new InferenceVisitor(this), null);
-    } else {
-      // Encountered a statement type for which type inference is not yet
-      // implemented, so just skip it for now.
-      // TODO(paulberry): once the BodyBuilder uses shadow classes for
-      // everything, this case should no longer be needed.
+    if (statement != null) {
+      statement.accept(new InferenceVisitor(this));
     }
-  }
-}
-
-class TypeLiteralJudgment extends TypeLiteral implements ExpressionJudgment {
-  DartType inferredType;
-
-  TypeLiteralJudgment(DartType type) : super(type);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitTypeLiteralJudgment(this, typeContext);
   }
 }
 
@@ -1467,7 +994,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   int getVariableFunctionNestingLevel(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       return variable._functionNestingLevel;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1480,8 +1007,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool isPromotionCandidate(VariableDeclaration variable) {
-    assert(variable is VariableDeclarationJudgment);
-    VariableDeclarationJudgment kernelVariableDeclaration = variable;
+    assert(variable is VariableDeclarationImpl);
+    VariableDeclarationImpl kernelVariableDeclaration = variable;
     return !kernelVariableDeclaration._isLocalFunction;
   }
 
@@ -1492,7 +1019,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       variable._mutatedAnywhere = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1504,7 +1031,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   void setVariableMutatedInClosure(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       variable._mutatedInClosure = true;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1516,7 +1043,7 @@ class ShadowTypePromoter extends TypePromoterImpl {
 
   @override
   bool wasVariableMutatedAnywhere(VariableDeclaration variable) {
-    if (variable is VariableDeclarationJudgment) {
+    if (variable is VariableDeclarationImpl) {
       return variable._mutatedAnywhere;
     } else {
       // Hack to deal with the fact that BodyBuilder still creates raw
@@ -1528,18 +1055,8 @@ class ShadowTypePromoter extends TypePromoterImpl {
   }
 }
 
-class VariableAssignmentJudgment extends ComplexAssignmentJudgment {
-  VariableAssignmentJudgment._(Expression rhs) : super._(rhs);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a variable declaration in kernel form.
-class VariableDeclarationJudgment extends VariableDeclaration
-    implements StatementJudgment {
+/// Front end specific implementation of [VariableDeclaration].
+class VariableDeclarationImpl extends VariableDeclaration {
   final bool forSyntheticToken;
 
   final bool _implicitlyTyped;
@@ -1560,7 +1077,7 @@ class VariableDeclarationJudgment extends VariableDeclaration
   // TODO(ahe): Investigate if this can be removed.
   final bool _isLocalFunction;
 
-  VariableDeclarationJudgment(String name, this._functionNestingLevel,
+  VariableDeclarationImpl(String name, this._functionNestingLevel,
       {this.forSyntheticToken: false,
       Expression initializer,
       DartType type,
@@ -1583,226 +1100,1581 @@ class VariableDeclarationJudgment extends VariableDeclaration
             isLate: isLate,
             isRequired: isRequired);
 
-  VariableDeclarationJudgment.forEffect(
-      Expression initializer, this._functionNestingLevel)
+  VariableDeclarationImpl.forEffect(Expression initializer)
       : forSyntheticToken = false,
+        _functionNestingLevel = 0,
         _implicitlyTyped = false,
         _isLocalFunction = false,
         super.forValue(initializer);
 
-  VariableDeclarationJudgment.forValue(
-      Expression initializer, this._functionNestingLevel)
+  VariableDeclarationImpl.forValue(Expression initializer)
       : forSyntheticToken = false,
+        _functionNestingLevel = 0,
         _implicitlyTyped = true,
         _isLocalFunction = false,
         super.forValue(initializer);
 
-  Expression get initializerJudgment => initializer;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitVariableDeclarationJudgment(this);
-  }
-
-  /// Determine whether the given [VariableDeclarationJudgment] had an implicit
+  /// Determine whether the given [VariableDeclarationImpl] had an implicit
   /// type.
   ///
   /// This is static to avoid introducing a method that would be visible to
   /// the kernel.
-  static bool isImplicitlyTyped(VariableDeclarationJudgment variable) =>
+  static bool isImplicitlyTyped(VariableDeclarationImpl variable) =>
       variable._implicitlyTyped;
 
-  /// Determines whether the given [VariableDeclarationJudgment] represents a
+  /// Determines whether the given [VariableDeclarationImpl] represents a
   /// local function.
   ///
   /// This is static to avoid introducing a method that would be visible to the
   /// kernel.
-  static bool isLocalFunction(VariableDeclarationJudgment variable) =>
+  static bool isLocalFunction(VariableDeclarationImpl variable) =>
       variable._isLocalFunction;
 }
 
-/// Synthetic judgment class representing an attempt to invoke an unresolved
-/// target.
-class UnresolvedTargetInvocationJudgment extends SyntheticExpressionJudgment {
-  final ArgumentsJudgment argumentsJudgment;
-
-  UnresolvedTargetInvocationJudgment._(
-      kernel.Expression desugared, this.argumentsJudgment)
-      : super._(desugared);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedTargetInvocationJudgment(this, typeContext);
-  }
-}
-
-/// Synthetic judgment class representing an attempt to assign to an unresolved
-/// variable.
-class UnresolvedVariableAssignmentJudgment extends SyntheticExpressionJudgment {
-  final bool isCompound;
-  final Expression rhs;
-
-  UnresolvedVariableAssignmentJudgment._(
-      kernel.Expression desugared, this.isCompound, this.rhs)
-      : super._(desugared);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitUnresolvedVariableAssignmentJudgment(this, typeContext);
-  }
-}
-
-/// Concrete shadow object representing a read from a variable in kernel form.
-class VariableGetJudgment extends VariableGet implements ExpressionJudgment {
-  DartType inferredType;
-
+/// Front end specific implementation of [VariableGet].
+class VariableGetImpl extends VariableGet {
   final TypePromotionFact _fact;
 
   final TypePromotionScope _scope;
 
-  VariableGetJudgment(VariableDeclaration variable, this._fact, this._scope)
+  VariableGetImpl(VariableDeclaration variable, this._fact, this._scope)
       : super(variable);
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitVariableGetJudgment(this, typeContext);
-  }
 }
 
-/// Concrete shadow object representing a while loop in kernel form.
-class WhileJudgment extends WhileStatement implements StatementJudgment {
-  WhileJudgment(Expression condition, Statement body) : super(condition, body);
-
-  Expression get conditionJudgment => condition;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitWhileJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a yield statement in kernel form.
-class YieldJudgment extends YieldStatement implements StatementJudgment {
-  YieldJudgment(bool isYieldStar, Expression expression)
-      : super(expression, isYieldStar: isYieldStar);
-
-  Expression get judgment => expression;
-
-  @override
-  void acceptInference(InferenceVisitor visitor) {
-    return visitor.visitYieldJudgment(this);
-  }
-}
-
-/// Concrete shadow object representing a deferred load library call.
-class LoadLibraryJudgment extends LoadLibrary implements ExpressionJudgment {
+/// Front end specific implementation of [LoadLibrary].
+class LoadLibraryImpl extends LoadLibrary {
   final Arguments arguments;
 
-  DartType inferredType;
-
-  LoadLibraryJudgment(LibraryDependency import, this.arguments) : super(import);
-
-  ArgumentsJudgment get argumentJudgments => arguments;
-
-  @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitLoadLibraryJudgment(this, typeContext);
-  }
+  LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 }
 
-/// Concrete shadow object representing a tear-off of a `loadLibrary` function.
-class LoadLibraryTearOffJudgment extends StaticGet
-    implements ExpressionJudgment {
-  final LibraryDependency import;
+/// Internal expression representing a tear-off of a `loadLibrary` function.
+class LoadLibraryTearOff extends InternalExpression {
+  LibraryDependency import;
+  Procedure target;
 
-  DartType inferredType;
-
-  LoadLibraryTearOffJudgment(this.import, Procedure target) : super(target);
+  LoadLibraryTearOff(this.import, this.target);
 
   @override
-  void acceptInference(InferenceVisitor visitor, DartType typeContext) {
-    return visitor.visitLoadLibraryTearOffJudgment(this, typeContext);
+  InternalExpressionKind get kind => InternalExpressionKind.LoadLibraryTearOff;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    parent.replaceChild(
+        this, replacement = new StaticGet(target)..fileOffset = fileOffset);
+    return replacement;
   }
-}
 
-/// The result of inference for a RHS of an assignment.
-class _ComplexAssignmentInferenceResult {
-  /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or
-  /// `null` if the assignment is not compound.
-  final Procedure combiner;
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    import?.accept(v);
+    target?.accept(v);
+  }
 
-  _ComplexAssignmentInferenceResult(this.combiner);
+  @override
+  void transformChildren(Transformer v) {
+    if (import != null) {
+      import = import.accept<TreeNode>(v);
+    }
+    if (target != null) {
+      target = target.accept<TreeNode>(v);
+    }
+  }
 }
 
 class _UnfinishedCascade extends Expression {
-  accept(v) => unsupported("accept", -1, null);
+  R accept<R>(v) => unsupported("accept", -1, null);
 
-  accept1(v, arg) => unsupported("accept1", -1, null);
+  R accept1<R, A>(v, arg) => unsupported("accept1", -1, null);
 
-  getStaticType(types) => unsupported("getStaticType", -1, null);
+  DartType getStaticType(types) => unsupported("getStaticType", -1, null);
 
-  transformChildren(v) => unsupported("transformChildren", -1, null);
+  void transformChildren(v) => unsupported("transformChildren", -1, null);
 
-  visitChildren(v) => unsupported("visitChildren", -1, null);
+  void visitChildren(v) => unsupported("visitChildren", -1, null);
 }
 
-class SyntheticWrapper {
-  static Expression wrapIllegalAssignment(Expression rhs,
-      {int assignmentOffset: -1}) {
-    return new IllegalAssignmentJudgment._(rhs,
-        assignmentOffset: assignmentOffset)
-      ..fileOffset = rhs.fileOffset;
+/// Internal expression representing an if-null property set.
+///
+/// An if-null property set of the form `o.a ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in let v2 = v1.a in v2 == null ? v1.a = b : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in v1.a == null ? v1.a = b : null
+///
+class IfNullPropertySet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression write;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullPropertySet(this.variable, this.read, this.write, {this.forEffect})
+      : assert(forEffect != null) {
+    variable?.parent = this;
+    read?.parent = this;
+    write?.parent = this;
   }
 
-  static Expression wrapIndexAssignment(
-      Expression receiver, Expression index, Expression rhs,
-      {bool isSuper: false}) {
-    return new IndexAssignmentJudgment._(receiver, index, rhs, isSuper: isSuper)
-      ..fileOffset = index.fileOffset;
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullPropertySet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    read?.accept(v);
+    write?.accept(v);
   }
 
-  static Expression wrapInvalidConstructorInvocation(
-      kernel.Expression desugared, Member constructor, Arguments arguments) {
-    return new InvalidConstructorInvocationJudgment._(
-        desugared, constructor, arguments)
-      ..fileOffset = desugared.fileOffset;
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null assignment.
+///
+/// An if-null assignment of the form `a ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = a in v1 == null ? a = b : v1
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     a == null ? a = b : null
+///
+class IfNullSet extends InternalExpression {
+  /// The expression that reads the property from [variable].
+  Expression read;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression write;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullSet(this.read, this.write, {this.forEffect})
+      : assert(forEffect != null) {
+    read?.parent = this;
+    write?.parent = this;
   }
 
-  static Expression wrapInvalidWrite(
-      Expression desugared, Expression expression) {
-    return new InvalidWriteJudgment._(desugared, expression)
-      ..fileOffset = desugared.fileOffset;
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
   }
 
-  static Expression wrapPropertyAssignment(Expression receiver, Expression rhs,
-      {bool isSuper: false}) {
-    return new PropertyAssignmentJudgment._(receiver, rhs, isSuper: isSuper)
-      ..fileOffset = rhs.fileOffset;
+  @override
+  void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an compound property assignment.
+///
+/// An compound property assignment of the form `o.a += b` is encoded as the
+/// expression:
+///
+///     let v1 = o in v1.a = v1.a + b
+///
+class CompoundPropertySet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  VariableDeclaration variable;
+
+  /// The expression that writes the result of the binary operation to the
+  /// property on [variable].
+  Expression write;
+
+  CompoundPropertySet(this.variable, this.write) {
+    variable?.parent = this;
+    write?.parent = this;
   }
 
-  static Expression wrapStaticAssignment(Expression rhs) {
-    return new StaticAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.CompoundPropertySet;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(variable, write)..fileOffset = fileOffset);
+    return replacement;
   }
 
-  static Expression wrapSyntheticExpression(Expression desugared) {
-    return new SyntheticExpressionJudgment._(desugared)
-      ..fileOffset = desugared.fileOffset;
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    write?.accept(v);
   }
 
-  static Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments) {
-    return new UnresolvedTargetInvocationJudgment._(desugared, arguments)
-      ..fileOffset = desugared.fileOffset;
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an compound property assignment.
+///
+/// An compound property assignment of the form `o.a++` is encoded as the
+/// expression:
+///
+///     let v1 = o in let v2 = v1.a in let v3 = v1.a = v2 + 1 in v2
+///
+class PropertyPostIncDec extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  ///
+  /// This is `null` if the receiver is read-only and therefore does not need to
+  /// be stored in a temporary variable.
+  VariableDeclaration variable;
+
+  /// The expression that reads the property on [variable].
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// property on [variable].
+  VariableDeclaration write;
+
+  PropertyPostIncDec(this.variable, this.read, this.write) {
+    variable?.parent = this;
+    read?.parent = this;
+    write?.parent = this;
   }
 
-  static Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs) {
-    return new UnresolvedVariableAssignmentJudgment._(
-        desugared, isCompound, rhs)
-      ..fileOffset = desugared.fileOffset;
+  PropertyPostIncDec.onReadOnly(
+      VariableDeclaration read, VariableDeclaration write)
+      : this(null, read, write);
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.PropertyPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    if (variable != null) {
+      replaceWith(replacement = new Let(
+          variable, createLet(read, createLet(write, createVariableGet(read))))
+        ..fileOffset = fileOffset);
+    } else {
+      replaceWith(
+          replacement = new Let(read, createLet(write, createVariableGet(read)))
+            ..fileOffset = fileOffset);
+    }
+    return replacement;
   }
 
-  static Expression wrapVariableAssignment(Expression rhs) {
-    return new VariableAssignmentJudgment._(rhs)..fileOffset = rhs.fileOffset;
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    read?.accept(v);
+    write?.accept(v);
   }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an local variable post inc/dec expression.
+///
+/// An local variable post inc/dec expression of the form `a++` is encoded as
+/// the expression:
+///
+///     let v1 = a in let v2 = a = v1 + 1 in v1
+///
+class LocalPostIncDec extends InternalExpression {
+  /// The expression that reads the local variable.
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// local variable.
+  VariableDeclaration write;
+
+  LocalPostIncDec(this.read, this.write) {
+    read?.parent = this;
+    write?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.LocalPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(read, createLet(write, createVariableGet(read)))
+          ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an static member post inc/dec expression.
+///
+/// An local variable post inc/dec expression of the form `a++` is encoded as
+/// the expression:
+///
+///     let v1 = a in let v2 = a = v1 + 1 in v1
+///
+class StaticPostIncDec extends InternalExpression {
+  /// The expression that reads the static member.
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// static member.
+  VariableDeclaration write;
+
+  StaticPostIncDec(this.read, this.write) {
+    read?.parent = this;
+    write?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.StaticPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(read, createLet(write, createVariableGet(read)))
+          ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an static member post inc/dec expression.
+///
+/// An local variable post inc/dec expression of the form `super.a++` is encoded
+/// as the expression:
+///
+///     let v1 = super.a in let v2 = super.a = v1 + 1 in v1
+///
+class SuperPostIncDec extends InternalExpression {
+  /// The expression that reads the static member.
+  VariableDeclaration read;
+
+  /// The expression that writes the result of the binary operation to the
+  /// static member.
+  VariableDeclaration write;
+
+  SuperPostIncDec(this.read, this.write) {
+    read?.parent = this;
+    write?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.SuperPostIncDec;
+
+  @override
+  Expression replace() {
+    Expression replacement;
+    replaceWith(
+        replacement = new Let(read, createLet(write, createVariableGet(read)))
+          ..fileOffset = fileOffset);
+    return replacement;
+  }
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    read?.accept(v);
+    write?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (read != null) {
+      read = read.accept<TreeNode>(v);
+      read?.parent = this;
+    }
+    if (write != null) {
+      write = write.accept<TreeNode>(v);
+      write?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an index set expression.
+///
+/// An index set expression of the form `o[a] = b` used for value is encoded as
+/// the expression:
+///
+///     let v1 = o in let v2 = a in let v3 = b in let _ = o.[]=(v2, v3) in v3
+///
+/// An index set expression used for effect is encoded as
+///
+///    o.[]=(a, b)
+///
+/// using [MethodInvocationImpl].
+///
+class IndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  // TODO(johnniwinther): Add `readOnlyReceiver` capability.
+  IndexSet(this.receiver, this.index, this.value) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a  super index set expression.
+///
+/// A super index set expression of the form `super[a] = b` used for value is
+/// encoded as the expression:
+///
+///     let v1 = a in let v2 = b in let _ = super.[]=(v1, v2) in v2
+///
+/// An index set expression used for effect is encoded as
+///
+///    super.[]=(a, b)
+///
+/// using [SuperMethodInvocation].
+///
+class SuperIndexSet extends InternalExpression {
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  SuperIndexSet(this.setter, this.index, this.value) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.SuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an extension index set expression.
+///
+/// An extension index set expression of the form `Extension(o)[a] = b` used
+/// for value is encoded as the expression:
+///
+///     let receiverVariable = o
+///     let indexVariable = a in
+///     let valueVariable = b in '
+///     let writeVariable =
+///         receiverVariable.[]=(indexVariable, valueVariable) in
+///           valueVariable
+///
+/// An extension index set expression used for effect is encoded as
+///
+///    o.[]=(a, b)
+///
+/// using [StaticInvocation].
+///
+class ExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  /// The receiver of the extension access.
+  Expression receiver;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  ExtensionIndexSet(this.extension, this.explicitTypeArguments, this.receiver,
+      this.setter, this.index, this.value)
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null index assignment.
+///
+/// An if-null index assignment of the form `o[a] ??= b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1[v2] in
+///       v3 == null
+///        ? (let v4 = b in
+///           let _ = v1.[]=(v2, v4) in
+///           v4)
+///        : v3
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1[v2] in
+///        v3 == null ? v1.[]=(v2, b) : null
+///
+/// If the [readOnlyReceiver] is true, no temporary variable is created for the
+/// receiver and its use is inlined.
+class IfNullIndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  IfNullIndexSet(this.receiver, this.index, this.value,
+      {this.readOffset,
+      this.testOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.readOnlyReceiver: false})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null super index set expression.
+///
+/// An if-null super index set expression of the form `super[a] ??= b` is, if
+/// used for value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///       v2 == null
+///        ? (let v3 = b in
+///           let _ = super.[]=(v1, v3) in
+///           v3)
+///        : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///        v2 == null ? super.[]=(v1, b) : null
+///
+class IfNullSuperIndexSet extends InternalExpression {
+  /// The [] member;
+  Member getter;
+
+  /// The []= member;
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullSuperIndexSet(this.getter, this.setter, this.index, this.value,
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.IfNullSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an if-null super index set expression.
+///
+/// An if-null super index set expression of the form `super[a] ??= b` is, if
+/// used for value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///       v2 == null
+///        ? (let v3 = b in
+///           let _ = super.[]=(v1, v3) in
+///           v3)
+///        : v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) in
+///        v2 == null ? super.[]=(v1, b) : null
+///
+class IfNullExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  /// The extension receiver;
+  Expression receiver;
+
+  /// The [] member;
+  Member getter;
+
+  /// The []= member;
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The value expression of the operation.
+  Expression value;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  IfNullExtensionIndexSet(this.extension, this.explicitTypeArguments,
+      this.receiver, this.getter, this.setter, this.index, this.value,
+      {this.readOffset, this.testOffset, this.writeOffset, this.forEffect})
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOffset != null),
+        assert(testOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.IfNullExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound index assignment.
+///
+/// An if-null index assignment of the form `o[a] += b` is, if used for value,
+/// encoded as the expression:
+///
+///     let v1 = o in
+///     let v2 = a in
+///     let v3 = v1.[](v2) + b
+///     let v4 = v1.[]=(v2, c3) in v3
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = o in let v2 = a in v1.[]=(v2, v1.[](v2) + b)
+///
+class CompoundIndexSet extends InternalExpression {
+  /// The receiver on which the index set operation is performed.
+  Expression receiver;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  /// If `true`, the receiver is read-only and therefore doesn't need a
+  /// temporary variable for its value.
+  final bool readOnlyReceiver;
+
+  CompoundIndexSet(this.receiver, this.index, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec,
+      this.readOnlyReceiver: false})
+      : assert(forEffect != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.CompoundIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a null-aware compound assignment.
+///
+/// A null-aware compound assignment of the form
+///
+///     receiver?.property binaryName= rhs
+///
+/// is, if used for value as a normal compound or prefix operation, encoded as
+/// the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let valueVariable = leftVariable binaryName rhs in
+///             let writeVariable =
+///                 receiverVariable.propertyName = valueVariable in
+///               valueVariable
+///
+/// and, if used for value as a postfix operation, encoded as
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         let leftVariable = receiverVariable.propertyName in
+///           let writeVariable =
+///               receiverVariable.propertyName =
+///                   leftVariable binaryName rhs in
+///             leftVariable
+///
+/// and, if used for effect, encoded as:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         receiverVariable.propertyName = receiverVariable.propertyName + rhs
+///
+class NullAwareCompoundSet extends InternalExpression {
+  /// The receiver on which the null aware operation is performed.
+  Expression receiver;
+
+  /// The name of the null-aware property.
+  Name propertyName;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a postfix inc/dec expression.
+  final bool forPostIncDec;
+
+  NullAwareCompoundSet(
+      this.receiver, this.propertyName, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null),
+        assert(forPostIncDec != null) {
+    receiver?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.NullAwareCompoundSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an null-aware if-null property set.
+///
+/// A null-aware if-null property set of the form
+///
+///    receiver?.name ??= value
+///
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (let readVariable = receiverVariable.name in
+///           readVariable == null ?
+///             receiverVariable.name = value : readVariable)
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///       receiverVariable == null ? null :
+///         (receiverVariable.name == null ?
+///           receiverVariable.name = value : null)
+///
+///
+class NullAwareIfNullSet extends InternalExpression {
+  /// The synthetic variable whose initializer hold the receiver.
+  Expression receiver;
+
+  /// The expression that reads the property from [variable].
+  Name name;
+
+  /// The expression that writes the value to the property on [variable].
+  Expression value;
+
+  /// The file offset for the read operation.
+  final int readOffset;
+
+  /// The file offset for the write operation.
+  final int writeOffset;
+
+  /// The file offset for the == operation.
+  final int testOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  NullAwareIfNullSet(this.receiver, this.name, this.value,
+      {this.readOffset, this.writeOffset, this.testOffset, this.forEffect})
+      : assert(readOffset != null),
+        assert(writeOffset != null),
+        assert(testOffset != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareIfNullSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound super index assignment.
+///
+/// An if-null index assignment of the form `super[a] += b` is, if used for
+/// value, encoded as the expression:
+///
+///     let v1 = a in
+///     let v2 = super.[](v1) + b
+///     let v3 = super.[]=(v1, v2) in v2
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let v1 = a in super.[]=(v2, super.[](v2) + b)
+///
+class CompoundSuperIndexSet extends InternalExpression {
+  /// The [] member.
+  Member getter;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundSuperIndexSet(
+      this.getter, this.setter, this.index, this.binaryName, this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(forEffect != null) {
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundSuperIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing a compound extension index assignment.
+///
+/// An compound extension index assignment of the form `Extension(o)[a] += b`
+/// is, if used for value, encoded as the expression:
+///
+///     let receiverVariable = o;
+///     let indexVariable = a in
+///     let valueVariable = receiverVariable.[](indexVariable) + b
+///     let writeVariable =
+///       receiverVariable.[]=(indexVariable, valueVariable) in
+///         valueVariable
+///
+/// and, if used for effect, encoded as the expression:
+///
+///     let receiverVariable = o;
+///     let indexVariable = a in
+///         receiverVariable.[]=(indexVariable,
+///             receiverVariable.[](indexVariable) + b)
+///
+class CompoundExtensionIndexSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  Expression receiver;
+
+  /// The [] member.
+  Member getter;
+
+  /// The []= member.
+  Member setter;
+
+  /// The index expression of the operation.
+  Expression index;
+
+  /// The name of the binary operation.
+  Name binaryName;
+
+  /// The right-hand side of the binary expression.
+  Expression rhs;
+
+  /// The file offset for the [] operation.
+  final int readOffset;
+
+  /// The file offset for the []= operation.
+  final int writeOffset;
+
+  /// The file offset for the binary operation.
+  final int binaryOffset;
+
+  /// If `true`, the expression is only need for effect and not for its value.
+  final bool forEffect;
+
+  /// If `true`, the expression is a post-fix inc/dec expression.
+  final bool forPostIncDec;
+
+  CompoundExtensionIndexSet(
+      this.extension,
+      this.explicitTypeArguments,
+      this.receiver,
+      this.getter,
+      this.setter,
+      this.index,
+      this.binaryName,
+      this.rhs,
+      {this.readOffset,
+      this.binaryOffset,
+      this.writeOffset,
+      this.forEffect,
+      this.forPostIncDec})
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOffset != null),
+        assert(binaryOffset != null),
+        assert(writeOffset != null),
+        assert(forEffect != null),
+        assert(forPostIncDec != null) {
+    receiver?.parent = this;
+    index?.parent = this;
+    rhs?.parent = this;
+    fileOffset = binaryOffset;
+  }
+
+  @override
+  InternalExpressionKind get kind =>
+      InternalExpressionKind.CompoundExtensionIndexSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    index?.accept(v);
+    rhs?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (index != null) {
+      index = index.accept<TreeNode>(v);
+      index?.parent = this;
+    }
+    if (rhs != null) {
+      rhs = rhs.accept<TreeNode>(v);
+      rhs?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an assignment to an extension setter.
+///
+/// An extension set of the form `receiver.target = value` is, if used for
+/// value, encoded as the expression:
+///
+///     let receiverVariable = receiver in
+///     let valueVariable = value in
+///     let writeVariable = target(receiverVariable, valueVariable) in
+///        valueVariable
+///
+/// or if the receiver is read-only, like `this` or a final variable,
+///
+///     let valueVariable = value in
+///     let writeVariable = target(receiver, valueVariable) in
+///        valueVariable
+///
+/// and, if used for effect, encoded as a [StaticInvocation]:
+///
+///     target(receiver, value)
+///
+// TODO(johnniwinther): Rename read-only to side-effect-free.
+class ExtensionSet extends InternalExpression {
+  final Extension extension;
+
+  final List<DartType> explicitTypeArguments;
+
+  /// The receiver for the assignment.
+  Expression receiver;
+
+  /// The extension member called for the assignment.
+  Member target;
+
+  /// The right-hand side value of the assignment.
+  Expression value;
+
+  /// If `true` the assignment is only needed for effect and not its result
+  /// value.
+  final bool forEffect;
+
+  /// If `true` the receiver can be cloned instead of creating a temporary
+  /// variable.
+  final bool readOnlyReceiver;
+
+  ExtensionSet(this.extension, this.explicitTypeArguments, this.receiver,
+      this.target, this.value,
+      {this.readOnlyReceiver, this.forEffect})
+      : assert(explicitTypeArguments == null ||
+            explicitTypeArguments.length == extension.typeParameters.length),
+        assert(readOnlyReceiver != null),
+        assert(forEffect != null) {
+    receiver?.parent = this;
+    value?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionSet;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    receiver?.accept(v);
+    value?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (receiver != null) {
+      receiver = receiver.accept<TreeNode>(v);
+      receiver?.parent = this;
+    }
+    if (value != null) {
+      value = value.accept<TreeNode>(v);
+      value?.parent = this;
+    }
+  }
+}
+
+/// Internal expression representing an null-aware extension expression.
+///
+/// An null-aware extension expression of the form `Extension(receiver)?.target`
+/// is encoded as the expression:
+///
+///     let variable = receiver in
+///       variable == null ? null : expression
+///
+/// where `expression` is an encoding of `receiverVariable.target`.
+class NullAwareExtension extends InternalExpression {
+  VariableDeclaration variable;
+  Expression expression;
+
+  NullAwareExtension(this.variable, this.expression) {
+    variable?.parent = this;
+    expression?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.NullAwareExtension;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    variable?.accept(v);
+    expression?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (variable != null) {
+      variable = variable.accept<TreeNode>(v);
+      variable?.parent = this;
+    }
+    if (expression != null) {
+      expression = expression.accept<TreeNode>(v);
+      expression?.parent = this;
+    }
+  }
+}
+
+/// Front end specific implementation of [PropertySet].
+class PropertySetImpl extends PropertySet {
+  /// If `true` the assignment is need for its effect and not for its value.
+  final bool forEffect;
+
+  /// If `true` the receiver can be cloned and doesn't need a temporary variable
+  /// for multiple reads.
+  final bool readOnlyReceiver;
+
+  PropertySetImpl(Expression receiver, Name name, Expression value,
+      {Member interfaceTarget, this.forEffect, this.readOnlyReceiver})
+      : assert(forEffect != null),
+        super(receiver, name, value, interfaceTarget);
+}
+
+/// Internal representation of a read of an extension instance member.
+///
+/// A read of an extension instance member `o.foo` is encoded as the
+/// [StaticInvocation]
+///
+///     extension|foo(o)
+///
+/// where `extension|foo` is the top level method created for reading the
+/// `foo` member. If `foo` is an extension instance method, then `extension|foo`
+/// the special tear-off function created for extension instance methods.
+/// Otherwise `extension|foo` is the top level method corresponding to the
+/// extension instance getter being read.
+class ExtensionTearOff extends InternalExpression {
+  /// The top-level method that is that target for the read operation.
+  Member target;
+
+  /// The arguments provided to the top-level method.
+  Arguments arguments;
+
+  ExtensionTearOff(this.target, this.arguments) {
+    arguments?.parent = this;
+  }
+
+  @override
+  InternalExpressionKind get kind => InternalExpressionKind.ExtensionTearOff;
+
+  @override
+  void visitChildren(Visitor<dynamic> v) {
+    arguments?.accept(v);
+  }
+
+  @override
+  void transformChildren(Transformer v) {
+    if (arguments != null) {
+      arguments = arguments.accept<TreeNode>(v);
+      arguments?.parent = this;
+    }
+  }
+}
+
+/// Creates a [Let] of [variable] with the given [body] using
+/// `variable.fileOffset` as the file offset for the let.
+///
+/// This is useful for create let expressions in replacement code.
+Let createLet(VariableDeclaration variable, Expression body) {
+  return new Let(variable, body)..fileOffset = variable.fileOffset;
+}
+
+/// Creates a [VariableDeclaration] for [expression] with the static [type]
+/// using `expression.fileOffset` as the file offset for the declaration.
+///
+/// This is useful for creating let variables for expressions in replacement
+/// code.
+VariableDeclaration createVariable(Expression expression, DartType type) {
+  return new VariableDeclaration.forValue(expression, type: type)
+    ..fileOffset = expression.fileOffset;
+}
+
+/// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
+/// file offset for the expression.
+///
+/// This is useful for referencing let variables for expressions in replacement
+/// code.
+VariableGet createVariableGet(VariableDeclaration variable) {
+  return new VariableGet(variable)..fileOffset = variable.fileOffset;
+}
+
+/// Creates a `e == null` test for the expression [left] using the [fileOffset]
+/// as file offset for the created nodes and [equalsMember] as the interface
+/// target of the created method invocation.
+MethodInvocation createEqualsNull(
+    int fileOffset, Expression left, Member equalsMember) {
+  return new MethodInvocation(
+      left,
+      equalsName,
+      new Arguments(<Expression>[new NullLiteral()..fileOffset = fileOffset])
+        ..fileOffset = fileOffset)
+    ..fileOffset = fileOffset
+    ..interfaceTarget = equalsMember;
 }

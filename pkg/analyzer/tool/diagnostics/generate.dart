@@ -10,42 +10,91 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/src/context.dart';
+
+import '../../test/utils/package_root.dart' as package_root;
 
 /// Generate the file `diagnostics.md` based on the documentation associated
 /// with the declarations of the error codes.
 void main() async {
-  Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
-  String packageRoot = pathContext.normalize(package_root.packageRoot);
-  String analyzerPath = pathContext.join(packageRoot, 'analyzer');
-  List<String> docPaths = [
-    pathContext.join(
-        analyzerPath, 'lib', 'src', 'dart', 'error', 'hint_codes.dart'),
-    pathContext.join(analyzerPath, 'lib', 'src', 'error', 'codes.dart'),
-  ];
-  String outputPath =
-      pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
-
-  IOSink sink = File(outputPath).openWrite();
-  DocumentationGenerator generator = DocumentationGenerator(docPaths);
+  IOSink sink = File(computeOutputPath()).openWrite();
+  DocumentationGenerator generator = DocumentationGenerator(computeCodePaths());
   generator.writeDocumentation(sink);
   await sink.flush();
   await sink.close();
+}
+
+/// Compute a list of the code paths for the files containing diagnostics that
+/// have been documented.
+List<CodePath> computeCodePaths() {
+  Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  String packageRoot = pathContext.normalize(package_root.packageRoot);
+  String analyzerPath = pathContext.join(packageRoot, 'analyzer');
+  return CodePath.from([
+    [analyzerPath, 'lib', 'src', 'dart', 'error', 'hint_codes.dart'],
+    [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.dart'],
+    [analyzerPath, 'lib', 'src', 'error', 'codes.dart'],
+  ], [
+    null,
+    [analyzerPath, 'lib', 'src', 'dart', 'error', 'syntactic_errors.g.dart'],
+    null,
+  ]);
+}
+
+/// Compute the path to the file into which documentation is being generated.
+String computeOutputPath() {
+  Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  String packageRoot = pathContext.normalize(package_root.packageRoot);
+  String analyzerPath = pathContext.join(packageRoot, 'analyzer');
+  return pathContext.join(
+      analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
+}
+
+/// A representation of the paths to the documentation and declaration of a set
+/// of diagnostic codes.
+class CodePath {
+  /// The path to the file containing the declarations of the diagnostic codes
+  /// that might have documentation associated with them.
+  final String documentationPath;
+
+  /// The path to the file containing the generated definition of the diagnostic
+  /// codes that include the message, or `null` if the
+  final String declarationPath;
+
+  /// Initialize a newly created code path from the [documentationPath] and
+  /// [declarationPath].
+  CodePath(this.documentationPath, this.declarationPath);
+
+  /// Return a list of code paths computed by joining the path segments in the
+  /// corresponding lists from [documentationPaths] and [declarationPaths].
+  static List<CodePath> from(List<List<String>> documentationPaths,
+      List<List<String>> declarationPaths) {
+    Context pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    List<CodePath> paths = [];
+    for (int i = 0; i < documentationPaths.length; i++) {
+      String docPath = pathContext.joinAll(documentationPaths[i]);
+      String declPath;
+      if (declarationPaths[i] != null) {
+        declPath = pathContext.joinAll(declarationPaths[i]);
+      }
+      paths.add(CodePath(docPath, declPath));
+    }
+    return paths;
+  }
 }
 
 /// A class used to generate diagnostic documentation.
 class DocumentationGenerator {
   /// The absolute paths of the files containing the declarations of the error
   /// codes.
-  final List<String> docPaths;
+  final List<CodePath> codePaths;
 
   /// A map from the name of a diagnostic code to the lines of the documentation
   /// for that code.
   Map<String, List<String>> docsByCode = {};
 
   /// Initialize a newly created documentation generator.
-  DocumentationGenerator(this.docPaths) {
+  DocumentationGenerator(this.codePaths) {
     _extractAllDocs();
   }
 
@@ -65,11 +114,30 @@ class DocumentationGenerator {
   /// Extract documentation from all of the files containing the definitions of
   /// diagnostics.
   void _extractAllDocs() {
+    List<String> includedPaths = [];
+    for (CodePath codePath in codePaths) {
+      includedPaths.add(codePath.documentationPath);
+      if (codePath.declarationPath != null) {
+        includedPaths.add(codePath.declarationPath);
+      }
+    }
     AnalysisContextCollection collection = new AnalysisContextCollection(
-        includedPaths: docPaths,
+        includedPaths: includedPaths,
         resourceProvider: PhysicalResourceProvider.INSTANCE);
-    for (String docPath in docPaths) {
-      _extractDocs(_parse(collection, docPath));
+    for (CodePath codePath in codePaths) {
+      String docPath = codePath.documentationPath;
+      String declPath = codePath.declarationPath;
+      if (declPath == null) {
+        _extractDocs(_parse(collection, docPath), null);
+      } else {
+        File file = File(declPath);
+        if (file.existsSync()) {
+          _extractDocs(
+              _parse(collection, docPath), _parse(collection, declPath));
+        } else {
+          _extractDocs(_parse(collection, docPath), null);
+        }
+      }
     }
   }
 
@@ -85,6 +153,8 @@ class DocumentationGenerator {
       String lexeme = comments.lexeme;
       if (lexeme.startsWith('// TODO')) {
         break;
+      } else if (lexeme.startsWith('// %')) {
+        // Ignore lines containing directives for testing support.
       } else if (lexeme.startsWith('// ')) {
         String trimmedLine = lexeme.substring(3);
         if (trimmedLine == '```dart') {
@@ -112,8 +182,9 @@ class DocumentationGenerator {
   }
 
   /// Extract documentation from the file that was parsed to produce the given
-  /// [result].
-  void _extractDocs(ParsedUnitResult result) {
+  /// [result]. If a [generatedResult] is provided, then the messages might be
+  /// in the file parsed to produce the result.
+  void _extractDocs(ParsedUnitResult result, ParsedUnitResult generatedResult) {
     CompilationUnit unit = result.unit;
     for (CompilationUnitMember declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
@@ -127,10 +198,7 @@ class DocumentationGenerator {
                 throw StateError('Duplicate diagnostic code');
               }
               String message =
-                  ((variable.initializer as InstanceCreationExpression)
-                          .argumentList
-                          .arguments[1] as StringLiteral)
-                      .stringValue;
+                  _extractMessage(variable.initializer, generatedResult);
               docs = [
                 '### ${variableName.toLowerCase()}',
                 '',
@@ -144,6 +212,40 @@ class DocumentationGenerator {
         }
       }
     }
+  }
+
+  /// Extract the message from the [expression]. If the expression is the name
+  /// of a generated code, then the [generatedResult] should have the unit in
+  /// which the message can be found.
+  String _extractMessage(
+      Expression expression, ParsedUnitResult generatedResult) {
+    if (expression is InstanceCreationExpression) {
+      return (expression.argumentList.arguments[1] as StringLiteral)
+          .stringValue;
+    } else if (expression is SimpleIdentifier && generatedResult != null) {
+      VariableDeclaration variable =
+          _findVariable(expression.name, generatedResult.unit);
+      if (variable != null) {
+        return _extractMessage(variable.initializer, null);
+      }
+    }
+    throw StateError(
+        'Cannot extract a message from a ${expression.runtimeType}');
+  }
+
+  /// Return the declaration of the top-level variable with the [name] in the
+  /// compilation unit, or `null` if there is no such variable.
+  VariableDeclaration _findVariable(String name, CompilationUnit unit) {
+    for (CompilationUnitMember member in unit.declarations) {
+      if (member is TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable in member.variables.variables) {
+          if (variable.name.name == name) {
+            return variable;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /// Use the analysis context [collection] to parse the file at the given
@@ -212,8 +314,8 @@ the `const` keyword because it's implied by the fact that everything in that
 region is required to be a constant. The following locations are constant
 contexts:
 
-* Everything inside a list, map or set literal that's prefixed by the keyword
-  `const`. Example:
+* Everything inside a list, map or set literal that's prefixed by the
+  `const` keyword. Example:
 
   ```dart
   var l = const [/*constant context*/];
@@ -225,7 +327,7 @@ contexts:
   var p = const Point(/*constant context*/);
   ```
 
-* The initializer for a variable that's prefixed by the keyword `const`.
+* The initializer for a variable that's prefixed by the `const` keyword.
   Example:
 
   ```dart

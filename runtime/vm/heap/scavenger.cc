@@ -281,7 +281,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
       : HandleVisitor(thread),
         scavenger_(scavenger),
-        class_table_(thread->isolate()->class_table()) {
+        class_table_(thread->isolate()->shared_class_table()) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -307,7 +307,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
 
  private:
   Scavenger* scavenger_;
-  ClassTable* class_table_;
+  SharedClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -375,6 +375,8 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 #ifdef DEBUG
     result->reserved_->Protect(VirtualMemory::kReadWrite);
 #endif
+    // Initialized by generated code.
+    MSAN_UNPOISON(result->reserved_->address(), size_in_words << kWordSizeLog2);
     return result;
   }
 
@@ -392,18 +394,21 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
 #if defined(DEBUG)
     memset(memory->address(), Heap::kZapByte, size_in_bytes);
 #endif  // defined(DEBUG)
+    // Initialized by generated code.
+    MSAN_UNPOISON(memory->address(), size_in_bytes);
     return new SemiSpace(memory);
   }
 }
 
 void SemiSpace::Delete() {
-#ifdef DEBUG
   if (reserved_ != nullptr) {
     const intptr_t size_in_bytes = size_in_words() << kWordSizeLog2;
+#ifdef DEBUG
     memset(reserved_->address(), Heap::kZapByte, size_in_bytes);
     reserved_->Protect(VirtualMemory::kNoAccess);
-  }
 #endif
+    MSAN_POISON(reserved_->address(), size_in_bytes);
+  }
   SemiSpace* old_cache = nullptr;
   {
     MutexLocker locker(mutex_);
@@ -486,7 +491,7 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 }
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
-  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
+  NOT_IN_PRODUCT(isolate->shared_class_table()->ResetCountersNew());
 
   isolate->ReleaseStoreBuffers();
   AbandonTLABs(isolate);
@@ -593,7 +598,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
     heap_->UpdateGlobalMaxUsed();
   }
 
-  NOT_IN_PRODUCT(isolate->class_table()->UpdatePromoted());
+  NOT_IN_PRODUCT(isolate->shared_class_table()->UpdatePromoted());
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
@@ -708,7 +713,7 @@ void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   Thread* thread = Thread::Current();
-  NOT_IN_PRODUCT(ClassTable* class_table = thread->isolate()->class_table());
+  NOT_IN_PRODUCT(auto class_table = visitor->isolate()->shared_class_table());
 
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
@@ -847,16 +852,12 @@ uword Scavenger::ProcessWeakProperty(RawWeakProperty* raw_weak,
 }
 
 void Scavenger::ProcessWeakReferences() {
-  // Rehash the weak tables now that we know which objects survive this cycle.
-  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
-    WeakTable* table =
-        heap_->GetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel));
-    heap_->SetWeakTable(Heap::kNew, static_cast<Heap::WeakSelector>(sel),
-                        WeakTable::NewFrom(table));
+  auto rehash_weak_table = [](WeakTable* table, WeakTable* replacement_new,
+                              WeakTable* replacement_old) {
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
-      if (table->IsValidEntryAt(i)) {
-        RawObject* raw_obj = table->ObjectAt(i);
+      if (table->IsValidEntryAtExclusive(i)) {
+        RawObject* raw_obj = table->ObjectAtExclusive(i);
         ASSERT(raw_obj->IsHeapObject());
         uword raw_addr = RawObject::ToAddr(raw_obj);
         uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -864,14 +865,38 @@ void Scavenger::ProcessWeakReferences() {
           // The object has survived.  Preserve its record.
           uword new_addr = ForwardedAddr(header);
           raw_obj = RawObject::FromAddr(new_addr);
-          heap_->SetWeakEntry(raw_obj, static_cast<Heap::WeakSelector>(sel),
-                              table->ValueAt(i));
+          auto replacement =
+              raw_obj->IsNewObject() ? replacement_new : replacement_old;
+          replacement->SetValueExclusive(raw_obj, table->ValueAtExclusive(i));
         }
       }
     }
+  };
+
+  // Rehash the weak tables now that we know which objects survive this cycle.
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    const auto selector = static_cast<Heap::WeakSelector>(sel);
+    auto table = heap_->GetWeakTable(Heap::kNew, selector);
+    auto table_old = heap_->GetWeakTable(Heap::kOld, selector);
+
+    // Create a new weak table for the new-space.
+    auto table_new = WeakTable::NewFrom(table);
+    rehash_weak_table(table, table_new, table_old);
+    heap_->SetWeakTable(Heap::kNew, selector, table_new);
+
     // Remove the old table as it has been replaced with the newly allocated
     // table above.
     delete table;
+  }
+
+  // Each isolate might have a weak table used for fast snapshot writing (i.e.
+  // isolate communication). Rehash those tables if need be.
+  auto isolate = heap_->isolate();
+  auto table = isolate->forward_table_new();
+  if (table != NULL) {
+    auto replacement = WeakTable::NewFrom(table);
+    rehash_weak_table(table, replacement, isolate->forward_table_old());
+    isolate->set_forward_table_new(replacement);
   }
 
   // The queued weak properties at this point do not refer to reachable keys,
@@ -1141,7 +1166,8 @@ void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
   NOT_IN_PRODUCT(
-      heap_->isolate()->class_table()->UpdateAllocatedExternalNew(cid, size));
+      heap_->isolate()->shared_class_table()->UpdateAllocatedExternalNew(cid,
+                                                                         size));
 }
 
 void Scavenger::FreeExternal(intptr_t size) {

@@ -179,9 +179,6 @@ bool isCompileTimeError(Severity severity) {
     case Severity.internalProblem:
       return true;
 
-    case Severity.errorLegacyWarning:
-      return !CompilerContext.current.options.legacyMode;
-
     case Severity.warning:
     case Severity.context:
       return false;

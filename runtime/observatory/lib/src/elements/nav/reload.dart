@@ -35,9 +35,9 @@ class NavReloadElement extends CustomElement implements Renderable {
   factory NavReloadElement(M.IsolateRef isolate, M.IsolateRepository isolates,
       M.EventRepository events,
       {RenderingQueue queue}) {
-    assert(isolate == null);
-    assert(isolates == null);
-    assert(events == null);
+    assert(isolate != null);
+    assert(isolates != null);
+    assert(events != null);
     NavReloadElement e = new NavReloadElement.created();
     e._r = new RenderingScheduler<NavReloadElement>(e, queue: queue);
     e._isolate = isolate;

@@ -4509,9 +4509,9 @@ static Dart_NativeFunction TestNativeFieldsAccess_lookup(Dart_Handle name,
   }
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
-  if (!strcmp(function_name, "TestNativeFieldsAccess_init")) {
+  if (strcmp(function_name, "TestNativeFieldsAccess_init") == 0) {
     return reinterpret_cast<Dart_NativeFunction>(&TestNativeFieldsAccess_init);
-  } else if (!strcmp(function_name, "TestNativeFieldsAccess_access")) {
+  } else if (strcmp(function_name, "TestNativeFieldsAccess_access") == 0) {
     return reinterpret_cast<Dart_NativeFunction>(
         &TestNativeFieldsAccess_access);
   } else {
@@ -5754,9 +5754,9 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
   *auto_scope_setup = true;
   const char* function_name = obj.ToCString();
   ASSERT(function_name != NULL);
-  if (!strcmp(function_name, "NativeArgument_Create")) {
+  if (strcmp(function_name, "NativeArgument_Create") == 0) {
     return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCreate);
-  } else if (!strcmp(function_name, "NativeArgument_Access")) {
+  } else if (strcmp(function_name, "NativeArgument_Access") == 0) {
     return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentAccess);
   }
   return NULL;
@@ -6958,13 +6958,13 @@ static Dart_NativeFunction MyNativeClosureResolver(Dart_Handle name,
   const char* kNativeFoo2 = "NativeFoo2";
   const char* kNativeFoo3 = "NativeFoo3";
   const char* kNativeFoo4 = "NativeFoo4";
-  if (!strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1))) {
+  if (strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1)) == 0) {
     return &NativeFoo1;
-  } else if (!strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2))) {
+  } else if (strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2)) == 0) {
     return &NativeFoo2;
-  } else if (!strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3))) {
+  } else if (strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3)) == 0) {
     return &NativeFoo3;
-  } else if (!strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4))) {
+  } else if (strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4)) == 0) {
     return &NativeFoo4;
   } else {
     UNREACHABLE();
@@ -7098,13 +7098,13 @@ static Dart_NativeFunction MyStaticNativeClosureResolver(
   const char* kNativeFoo2 = "StaticNativeFoo2";
   const char* kNativeFoo3 = "StaticNativeFoo3";
   const char* kNativeFoo4 = "StaticNativeFoo4";
-  if (!strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1))) {
+  if (strncmp(function_name, kNativeFoo1, strlen(kNativeFoo1)) == 0) {
     return &StaticNativeFoo1;
-  } else if (!strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2))) {
+  } else if (strncmp(function_name, kNativeFoo2, strlen(kNativeFoo2)) == 0) {
     return &StaticNativeFoo2;
-  } else if (!strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3))) {
+  } else if (strncmp(function_name, kNativeFoo3, strlen(kNativeFoo3)) == 0) {
     return &StaticNativeFoo3;
-  } else if (!strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4))) {
+  } else if (strncmp(function_name, kNativeFoo4, strlen(kNativeFoo4)) == 0) {
     return &StaticNativeFoo4;
   } else {
     UNREACHABLE();
@@ -7912,7 +7912,7 @@ TEST_CASE(DartAPI_NotifyLowMemory) {
 TEST_CASE(DartAPI_InvokeImportedFunction) {
   const char* kScriptChars =
       "import 'dart:math';\n"
-      "import 'dart:profiler';\n"
+      "import 'dart:developer';\n"
       "main() {}";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
@@ -7924,11 +7924,6 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
   EXPECT_ERROR(result,
                "NoSuchMethodError: No top-level method 'max' declared.");
 
-  // The function 'getCurrentTag' is actually defined in the library
-  // dart:developer. However, the library dart:profiler exports dart:developer
-  // and exposes the function 'getCurrentTag'.
-  // NOTE: dart:profiler is deprecated. So, its use in this test is only
-  // an interim solution until we fix DartAPI_Invoke_CrossLibrary.
   Dart_Handle getCurrentTag = Dart_NewStringFromCString("getCurrentTag");
   result = Dart_Invoke(lib, getCurrentTag, 0, NULL);
   EXPECT_ERROR(

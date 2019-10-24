@@ -5,6 +5,7 @@
 #include "vm/thread.h"
 
 #include "vm/dart_api_state.h"
+#include "vm/ffi_callback_trampolines.h"
 #include "vm/growable_array.h"
 #include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
@@ -41,7 +42,7 @@ Thread::~Thread() {
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
-  if (api_reusable_scope_) {
+  if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }
@@ -947,12 +948,41 @@ int32_t Thread::AllocateFfiCallbackId() {
   }
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
   array.Add(Code::Handle(Z, Code::null()));
-  return array.Length() - 1;
+  const int32_t id = array.Length() - 1;
+
+  // Allocate a native callback trampoline if necessary.
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(TARGET_ARCH_DBC)
+  if (NativeCallbackTrampolines::Enabled()) {
+    auto* const tramps = isolate()->native_callback_trampolines();
+    ASSERT(tramps->next_callback_id() == id);
+    tramps->AllocateTrampoline();
+  }
+#endif
+
+  return id;
 }
 
 void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
   Zone* Z = isolate()->current_zone();
+
+  /// In AOT the callback ID might have been allocated during compilation but
+  /// 'ffi_callback_code_' is initialized to empty again when the program
+  /// starts. Therefore we may need to initialize or expand it to accomodate
+  /// the callback ID.
+
+  if (ffi_callback_code_ == GrowableObjectArray::null()) {
+    ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
+  }
+
   const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
+
+  if (callback_id >= array.Length()) {
+    if (callback_id >= array.Capacity()) {
+      array.Grow(callback_id + 1);
+    }
+    array.SetLength(callback_id + 1);
+  }
+
   array.SetAt(callback_id, code);
 }
 
@@ -972,11 +1002,15 @@ void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
     FATAL("Cannot invoke callback on incorrect isolate.");
   }
 
-  RawObject** const code_array =
-      Array::DataOf(GrowableObjectArray::NoSafepointData(array));
-  const RawCode* const code = Code::RawCast(code_array[callback_id]);
-  if (!Code::ContainsInstructionAt(code, entry)) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
+  if (entry != 0) {
+    RawObject** const code_array =
+        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
+    // RawCast allocates handles in ASSERTs.
+    const RawCode* const code =
+        reinterpret_cast<RawCode*>(code_array[callback_id]);
+    if (!Code::ContainsInstructionAt(code, entry)) {
+      FATAL("Cannot invoke callback on incorrect isolate.");
+    }
   }
 }
 

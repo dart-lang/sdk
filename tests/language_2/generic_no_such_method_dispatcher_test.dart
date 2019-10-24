@@ -41,13 +41,13 @@ class C {
 }
 
 main() {
-  var a = new A();
+  dynamic a = new A();
   for (var i = 0; i < 20; ++i) Expect.equals(123, a.foo<int, A>());
   Expect.throws(() => (a.foo)());
   Expect.throws(() => (a.foo)<int, A>());
   Expect.equals("123", (a.foo).toString());
 
-  var b = new B();
+  dynamic b = new B();
   for (var i = 0; i < 20; ++i) {
     Expect.equals(2, b.bar<int, A>(1));
     Expect.equals(2, b.bar(1));
@@ -63,7 +63,7 @@ main() {
   }
 
   // Test type, named, and positional arguments.
-  var c = new C([int, A], [100], {"n1": 101, "n2": 102});
+  dynamic c = new C([int, A], [100], {"n1": 101, "n2": 102});
   for (var i = 0; i < 20; ++i) {
     Expect.equals(123, c.bar<int, A>(100, n1: 101, n2: 102));
     Expect.equals(123, c.bar<int, A>(100, n2: 102, n1: 101));

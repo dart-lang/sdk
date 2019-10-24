@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -80,10 +81,8 @@ class TypeArgumentsVerifier {
 
   void checkTypeName(TypeName node) {
     _checkForTypeArgumentNotMatchingBounds(node);
-    if (node.parent is ConstructorName &&
-        node.parent.parent is InstanceCreationExpression) {
-      _checkForInferenceFailureOnInstanceCreation(node, node.parent.parent);
-    } else {
+    if (node.parent is! ConstructorName ||
+        node.parent.parent is! InstanceCreationExpression) {
       _checkForRawTypeName(node);
     }
   }
@@ -147,27 +146,6 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Checks a type on an instance creation expression for an inference
-  /// failure, and reports the appropriate error if
-  /// [AnalysisOptionsImpl.strictInference] is set.
-  ///
-  /// This checks if [node] refers to a generic type and does not have explicit
-  /// or inferred type arguments. When that happens, it reports a
-  /// HintMode.INFERENCE_FAILURE_ON_INSTANCE_CREATION error.
-  void _checkForInferenceFailureOnInstanceCreation(
-      TypeName node, InstanceCreationExpression inferenceContextNode) {
-    if (!_options.strictInference || node == null) return;
-    if (node.typeArguments != null) {
-      // Type has explicit type arguments.
-      return;
-    }
-    if (_isMissingTypeArguments(
-        node, node.type, node.name.staticElement, inferenceContextNode)) {
-      _errorReporter.reportErrorForNode(
-          HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, node, [node.type]);
-    }
-  }
-
   /// Checks a type annotation for a raw generic type, and reports the
   /// appropriate error if [AnalysisOptionsImpl.strictRawTypes] is set.
   ///
@@ -194,12 +172,9 @@ class TypeArgumentsVerifier {
     if (_isMissingTypeArguments(
         node, node.type, node.name.staticElement, null)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
-      if (unwrappedParent is AsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_AS, node, [node.type]);
-      } else if (unwrappedParent is IsExpression) {
-        _errorReporter.reportErrorForNode(
-            HintCode.STRICT_RAW_TYPE_IN_IS, node, [node.type]);
+      if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
+        // Do not report a "Strict raw type" error in this case; too noisy.
+        // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
         _errorReporter
             .reportErrorForNode(HintCode.STRICT_RAW_TYPE, node, [node.type]);
@@ -238,8 +213,6 @@ class TypeArgumentsVerifier {
             'Unexpected element associated with parameterized type: '
             '${element.runtimeType}');
       }
-      var parameterTypes =
-          parameterElements.map<DartType>((p) => p.type).toList();
       List<DartType> arguments = type.typeArguments;
       // iterate over each bounded type parameter and corresponding argument
       NodeList<TypeAnnotation> argumentNodes =
@@ -248,7 +221,7 @@ class TypeArgumentsVerifier {
       int loopThroughIndex =
           math.min(typeArguments.length, parameterElements.length);
       bool shouldSubstitute =
-          arguments.isNotEmpty && arguments.length == parameterTypes.length;
+          arguments.isNotEmpty && arguments.length == parameterElements.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         DartType argType = typeArguments[i];
         TypeAnnotation argumentNode =
@@ -265,7 +238,8 @@ class TypeArgumentsVerifier {
         DartType boundType = parameterElements[i].bound;
         if (argType != null && boundType != null) {
           if (shouldSubstitute) {
-            boundType = boundType.substitute2(arguments, parameterTypes);
+            boundType = Substitution.fromPairs(parameterElements, arguments)
+                .substituteType(boundType);
           }
 
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
@@ -334,8 +308,7 @@ class TypeArgumentsVerifier {
     var genericType = node.function.staticType;
     var instantiatedType = node.staticInvokeType;
     if (genericType is FunctionType && instantiatedType is FunctionType) {
-      var fnTypeParams =
-          TypeParameterTypeImpl.getTypes(genericType.typeFormals);
+      var fnTypeParams = genericType.typeFormals;
       var typeArgs = typeArgumentList.map((t) => t.type).toList();
 
       // If the amount mismatches, clean up the lists to be substitutable. The
@@ -352,7 +325,7 @@ class TypeArgumentsVerifier {
         //
         //     <TFrom, TTo extends TFrom>
         //     <TFrom, TTo extends Iterable<TFrom>>
-        //     <T extends Clonable<T>>
+        //     <T extends Cloneable<T>>
         //
         DartType argType = typeArgs[i];
 
@@ -364,8 +337,13 @@ class TypeArgumentsVerifier {
           continue;
         }
 
-        DartType bound =
-            fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
+        var rawBound = fnTypeParams[i].bound;
+        if (rawBound == null) {
+          continue;
+        }
+
+        var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
+        var bound = substitution.substituteType(rawBound);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {
           _errorReporter.reportTypeErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,

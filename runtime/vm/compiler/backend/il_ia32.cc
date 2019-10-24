@@ -174,7 +174,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // This will reset the exit frame info to old_exit_frame_reg *before* entering
   // the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp);
+  //
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, tmp,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   // Move XMM0 into ST0 if needed.
   if (return_in_st0) {
@@ -191,6 +196,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(EDI);
   __ popl(ESI);
   __ popl(EBX);
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Leave the entry frame.
   __ LeaveFrame();
@@ -913,9 +924,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();  // volatile
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
-  const Register tmp = locs()->temp(1).reg();  // callee-saved
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -938,8 +949,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator tmp_alloc(tmp);
-    compiler->EmitMove(target, origin, &tmp_alloc);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, origin, &temp_alloc);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the
@@ -950,26 +961,27 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
   __ Bind(&get_pc);
-  __ popl(tmp);
-  __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
+  __ popl(temp);
+  __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, tmp);
+    __ TransitionGeneratedToNative(branch, FPREG, temp,
+                                   /*enter_safepoint=*/true);
     __ call(branch);
-    __ TransitionNativeToGenerated(tmp);
+    __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
     // safepoint to a stub which in the VM isolate's heap, which will never lose
     // execute permission.
-    __ movl(tmp,
+    __ movl(temp,
             compiler::Address(
                 THR, compiler::target::Thread::
                          call_native_through_safepoint_entry_point_offset()));
 
     // Calls EAX within a safepoint and clobbers EBX.
-    ASSERT(tmp == EBX && branch == EAX);
-    __ call(tmp);
+    ASSERT(temp == EBX && branch == EAX);
+    __ call(temp);
   }
 
   // The x86 calling convention requires floating point values to be returned on
@@ -988,7 +1000,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveFrame();
 
   // Instead of returning to the "fake" return address, we just pop it.
-  __ popl(tmp);
+  __ popl(temp);
 }
 
 void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
@@ -1024,20 +1036,28 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ xorl(EAX, EAX);
   __ pushl(EAX);
 
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save ABI callee-saved registers.
   __ pushl(EBX);
   __ pushl(ESI);
   __ pushl(EDI);
 
   // Load the thread object.
-  // TOOD(35934): Exclude native callbacks from snapshots.
-  // Linking in AOT is not relevant here since we don't support AOT for IA32.
+  //
   // Create another frame to align the frame before continuing in "native" code.
-  {
+  // If we were called by a trampoline, it has already loaded the thread.
+  ASSERT(!FLAG_precompiled_mode);  // No relocation for AOT linking.
+  if (!NativeCallbackTrampolines::Enabled()) {
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
+    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
 
-    __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
+    __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id_));
+    __ movl(EAX, compiler::Immediate(reinterpret_cast<intptr_t>(
                      DLRT_GetThreadForNativeCallback)));
     __ call(EAX);
     __ movl(THR, EAX);
@@ -1064,18 +1084,11 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // TransitionNativeToGenerated will reset top exit frame info to 0 *after*
-  // leaving the safepoint.
-  __ TransitionNativeToGenerated(EAX);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
-  // TODO(35934): fix linking issue
-  __ pushl(compiler::Immediate(callback_id_));
-  __ movl(EAX,
-          compiler::Address(
-              THR, compiler::target::Thread::verify_callback_entry_offset()));
-  __ call(EAX);
-  __ popl(EAX);
 
   // Load the code object.
   __ movl(EAX, compiler::Address(
@@ -2760,10 +2773,9 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(catch_try_index(), try_index(),
-                                compiler->assembler()->CodeSize(),
-                                handler_token_pos(), is_generated(),
-                                catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(
+      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
+      is_generated(), catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
   const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
@@ -6111,8 +6123,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged && to() == kUnboxedInt32) ||
+           (from() == kUntagged && to() == kUnboxedUint32) ||
+           (from() == kUnboxedInt32 && to() == kUntagged) ||
+           (from() == kUnboxedUint32 && to() == kUntagged));
     ASSERT(!CanDeoptimize());
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());
@@ -6141,8 +6155,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
 
 void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const bool is_nop_conversion =
-      (from() == kUntagged && to() == kUnboxedIntPtr) ||
-      (from() == kUnboxedIntPtr && to() == kUntagged);
+      (from() == kUntagged && to() == kUnboxedInt32) ||
+      (from() == kUntagged && to() == kUnboxedUint32) ||
+      (from() == kUnboxedInt32 && to() == kUntagged) ||
+      (from() == kUnboxedUint32 && to() == kUntagged);
   if (is_nop_conversion) {
     ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
     return;

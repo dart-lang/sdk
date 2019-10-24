@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/summary2/type_builder.dart';
 
 /// The context of a unit - the context of the bundle, and the unit tokens.
 class LinkedUnitContext {
@@ -148,6 +150,8 @@ class LinkedUnitContext {
       }
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeLength(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeLength(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeLength(this, node);
     } else if (node is ExtensionDeclaration) {
@@ -181,6 +185,8 @@ class LinkedUnitContext {
       return 0;
     } else if (node is ConstructorDeclaration) {
       return LazyConstructorDeclaration.getCodeOffset(this, node);
+    } else if (node is EnumConstantDeclaration) {
+      return LazyEnumConstantDeclaration.getCodeOffset(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeOffset(this, node);
     } else if (node is ExtensionDeclaration) {
@@ -233,7 +239,12 @@ class LinkedUnitContext {
   }
 
   DartType getDefaultType(TypeParameter node) {
-    return LazyTypeParameter.getDefaultType(_astReader, node);
+    var type = LazyTypeParameter.getDefaultType(_astReader, node);
+    if (type is TypeBuilder) {
+      type = (type as TypeBuilder).build();
+      LazyAst.setDefaultType(node, type);
+    }
+    return type;
   }
 
   String getDefaultValueCode(AstNode node) {
@@ -647,7 +658,7 @@ class LinkedUnitContext {
     } else if (node is ExtensionDeclaration) {
       return node.typeParameters;
     } else if (node is FieldFormalParameter) {
-      return null;
+      return node.typeParameters;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readFunctionExpression(_astReader, node);
       return getTypeParameters2(node.functionExpression);

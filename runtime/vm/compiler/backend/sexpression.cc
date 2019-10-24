@@ -19,9 +19,23 @@ SExpression* SExpression::FromCString(Zone* zone, const char* str) {
   return sexp;
 }
 
+const char* SExpression::ToCString(Zone* zone) const {
+  TextBuffer buf(1 * KB);
+  SerializeToLine(&buf);
+  auto const buf_len = buf.length();
+  char* ret = zone->Alloc<char>(buf_len + 1);
+  strncpy(ret, buf.buf(), buf_len);
+  ret[buf_len] = '\0';
+  return ret;
+}
+
 bool SExpBool::Equals(SExpression* sexp) const {
-  if (!sexp->IsBool()) return false;
-  return this->value() == sexp->AsBool()->value();
+  if (auto const b = sexp->AsBool()) return b->Equals(value());
+  return false;
+}
+
+bool SExpBool::Equals(bool val) const {
+  return value() == val;
 }
 
 void SExpBool::SerializeToLine(TextBuffer* buffer) const {
@@ -30,8 +44,12 @@ void SExpBool::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpDouble::Equals(SExpression* sexp) const {
-  if (!sexp->IsDouble()) return false;
-  return this->value() == sexp->AsDouble()->value();
+  if (auto const d = sexp->AsDouble()) return d->Equals(value());
+  return false;
+}
+
+bool SExpDouble::Equals(double val) const {
+  return value() == val;
 }
 
 void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
@@ -43,8 +61,12 @@ void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpInteger::Equals(SExpression* sexp) const {
-  if (!sexp->IsInteger()) return false;
-  return this->value() == sexp->AsInteger()->value();
+  if (auto const i = sexp->AsInteger()) return i->Equals(value());
+  return false;
+}
+
+bool SExpInteger::Equals(int64_t val) const {
+  return value() == val;
 }
 
 void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
@@ -52,8 +74,12 @@ void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpString::Equals(SExpression* sexp) const {
-  if (!sexp->IsString()) return false;
-  return strcmp(this->value(), sexp->AsString()->value()) == 0;
+  if (auto const s = sexp->AsString()) return s->Equals(value());
+  return false;
+}
+
+bool SExpString::Equals(const char* str) const {
+  return strcmp(value(), str) == 0;
 }
 
 void SExpString::SerializeToLine(TextBuffer* buffer) const {
@@ -63,8 +89,12 @@ void SExpString::SerializeToLine(TextBuffer* buffer) const {
 }
 
 bool SExpSymbol::Equals(SExpression* sexp) const {
-  if (!sexp->IsSymbol()) return false;
-  return strcmp(this->value(), sexp->AsSymbol()->value()) == 0;
+  if (auto const s = sexp->AsSymbol()) return s->Equals(value());
+  return false;
+}
+
+bool SExpSymbol::Equals(const char* str) const {
+  return strcmp(value(), str) == 0;
 }
 
 void SExpSymbol::SerializeToLine(TextBuffer* buffer) const {
@@ -112,7 +142,7 @@ static intptr_t HandleLineBreaking(Zone* zone,
   const intptr_t leading_length = leading_space ? 1 : 0;
 
   if ((leading_length + single_line_width) < remaining) {
-    if (leading_space != 0) buffer->AddChar(' ');
+    if (leading_space) buffer->AddChar(' ');
     buffer->AddString(line_buffer->buf());
     line_buffer->Clear();
     return remaining - (leading_length + single_line_width);
@@ -498,7 +528,7 @@ SExpression* SExpParser::TokenToSExpression(Token* token) {
 SExpParser::Token* SExpParser::GetNextToken() {
   intptr_t start_pos = cur_pos_;
   while (start_pos < buffer_size_) {
-    if (!isspace(buffer_[start_pos])) break;
+    if (isspace(buffer_[start_pos]) == 0) break;
     start_pos++;
   }
   if (start_pos >= buffer_size_) return nullptr;
@@ -572,7 +602,7 @@ SExpParser::Token* SExpParser::GetNextToken() {
     }
     // If we find a character that can't appear in a number, then fall back
     // to symbol-ness.
-    if (!isdigit(start[len])) type = kSymbol;
+    if (isdigit(start[len]) == 0) type = kSymbol;
     len++;
   }
   cur_pos_ = start_pos + len;
@@ -605,7 +635,7 @@ SExpParser::Token* SExpParser::GetNextToken() {
 }
 
 bool SExpParser::IsSymbolContinue(char c) {
-  return !isspace(c) && c != '(' && c != ')' && c != ',' && c != '{' &&
+  return (isspace(c) == 0) && c != '(' && c != ')' && c != ',' && c != '{' &&
          c != '}' && c != '"';
 }
 

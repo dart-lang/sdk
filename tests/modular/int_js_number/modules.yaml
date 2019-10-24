@@ -6,5 +6,3 @@
 # after serialization across modules.
 dependencies:
   main: def
-flags:
-  - constant-update-2018

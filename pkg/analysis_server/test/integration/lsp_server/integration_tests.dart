@@ -57,8 +57,8 @@ class AbstractLspAnalysisServerIntegrationTest
   @override
   Future<ResponseMessage> sendRequestToServer(RequestMessage request) {
     final completer = new Completer<ResponseMessage>();
-    final id = request.id.map(
-        (num) => num, (string) => throw 'String IDs not supported in tests');
+    final id = request.id.map((number) => number,
+        (string) => throw 'String IDs not supported in tests');
     _completers[id] = completer;
 
     client.channel.sendRequest(request);
@@ -87,7 +87,7 @@ class AbstractLspAnalysisServerIntegrationTest
     await client.start();
     client.serverToClient.listen((message) {
       if (message is ResponseMessage) {
-        final id = message.id.map((num) => num,
+        final id = message.id.map((number) => number,
             (string) => throw 'String IDs not supported in tests');
 
         final completer = _completers[id];
@@ -144,11 +144,24 @@ class LspServerClient {
 
     String dartBinary = Platform.executable;
 
-    // TODO(dantup): The other servers integration tests can run with a snapshot
-    // which is much faster - we may wish to investigate doing the same here.
-    final rootDir =
-        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
-    final serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    final bool useSnapshot = true;
+    String serverPath;
+
+    if (useSnapshot) {
+      // Look for snapshots/analysis_server.dart.snapshot.
+      serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+          'snapshots', 'analysis_server.dart.snapshot'));
+
+      if (!FileSystemEntity.isFileSync(serverPath)) {
+        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
+        serverPath = normalize(join(dirname(Platform.resolvedExecutable),
+            'dart-sdk', 'bin', 'snapshots', 'analysis_server.dart.snapshot'));
+      }
+    } else {
+      final rootDir =
+          findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+      serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    }
 
     final arguments = [serverPath, '--lsp', '--suppress-analytics'];
     _process = await Process.start(dartBinary, arguments);

@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_STACK_FRAME_IA32_H_
 #define RUNTIME_VM_STACK_FRAME_IA32_H_
 
+#if !defined(RUNTIME_VM_STACK_FRAME_H_)
+#error Do not include stack_frame_ia32.h directly; use stack_frame.h instead.
+#endif
+
 namespace dart {
 
 /* IA32 Dart Frame Layout
@@ -48,6 +52,9 @@ static const int kExitLinkSlotFromEntryFp = -7;
 
 // All arguments are passed on the stack, so none need to be saved. Therefore
 // there is no frame for holding the saved arguments.
+//
+// If NativeCallbackTrampolines::Enabled(), then
+// kNativeCallbackTrampolineStackDelta must be added as well.
 constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 0;
 
 }  // namespace dart

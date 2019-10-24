@@ -93,10 +93,15 @@ class Rti {
   // Precomputed derived types. These fields are used to hold derived types that
   // are computed eagerly.
   // TODO(sra): Implement precomputed type optimizations.
+  @pragma('dart2js:noElision')
   dynamic _precomputed1;
   dynamic _precomputed2;
   dynamic _precomputed3;
   dynamic _precomputed4;
+
+  static void _setPrecomputed1(Rti rti, Rti precomputed) {
+    rti._precomputed1 = precomputed;
+  }
 
   // The Type object corresponding to this Rti.
   Object _cachedRuntimeType;
@@ -363,6 +368,11 @@ Rti evalInInstance(instance, String recipe) {
 @pragma('dart2js:noInline')
 Rti instantiatedGenericFunctionType(
     Rti genericFunctionRti, Rti instantiationRti) {
+  // If --lax-runtime-type-to-string is enabled and we never check the function
+  // type, then the function won't have a signature, so its RTI will be null. In
+  // this case, there is nothing to instantiate, so we return `null` and the
+  // instantiation appears to be an interface type instead.
+  if (genericFunctionRti == null) return null;
   var bounds = Rti._getGenericFunctionBounds(genericFunctionRti);
   var typeArguments = Rti._getInterfaceTypeArguments(instantiationRti);
   assert(_Utils.arrayLength(bounds) == _Utils.arrayLength(typeArguments));
@@ -1202,8 +1212,16 @@ class _Universe {
   static Object typeRules(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.typeRules);
 
-  static Object findRule(universe, String targetType) =>
+  static Object _findRule(universe, String targetType) =>
       JS('', '#.#', typeRules(universe), targetType);
+
+  static Object findRule(universe, String targetType) {
+    Object rule = _findRule(universe, targetType);
+    while (_Utils.isString(rule)) {
+      rule = _findRule(universe, _Utils.asString(rule));
+    }
+    return rule;
+  }
 
   static void addRules(universe, rules) {
     // TODO(fishythefish): Use `Object.assign()` when IE11 is deprecated.
@@ -1482,6 +1500,10 @@ class _Universe {
     Rti._setKind(rti, Rti.kindInterface);
     Rti._setPrimary(rti, name);
     Rti._setRest(rti, typeArguments);
+    int length = _Utils.arrayLength(typeArguments);
+    if (length > 0) {
+      Rti._setPrecomputed1(rti, _castToRti(_Utils.arrayAt(typeArguments, 0)));
+    }
     Rti._setCanonicalRecipe(rti, key);
     return _finishRti(universe, rti);
   }
@@ -2121,11 +2143,6 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     return false;
   }
 
-  // Generic function type parameters must match exactly, which would have
-  // exited earlier.
-  if (isGenericFunctionTypeParameter(s)) return false;
-  if (isGenericFunctionTypeParameter(t)) return false;
-
   if (isNullType(s)) return true;
 
   if (isFutureOrType(t)) {
@@ -2147,11 +2164,28 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     }
   }
 
+  // If [s] and [t] are both generic function type parameters, they must be
+  // equal (as de Bruijn indices). This case is taken care of by the reflexivity
+  // check above, so it suffices to check that B <: [t] where B is the bound of
+  // [s].
+  if (isGenericFunctionTypeParameter(s)) {
+    int index = Rti._getGenericFunctionParameterIndex(s);
+    Rti bound = _castToRti(_Utils.arrayAt(sEnv, index));
+    return _isSubtype(universe, bound, sEnv, t, tEnv);
+  }
+
+  if (isGenericFunctionTypeParameter(t)) return false;
+
+  // TODO(fishythefish): Disallow JavaScriptFunction as a subtype of function
+  // types using features inaccessible from JavaScript.
+
   if (isGenericFunctionKind(t)) {
+    if (isJsFunctionType(s)) return true;
     return _isGenericFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
   if (isFunctionKind(t)) {
+    if (isJsFunctionType(s)) return true;
     return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
@@ -2173,9 +2207,9 @@ bool _isGenericFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   var sBounds = Rti._getGenericFunctionBounds(s);
   var tBounds = Rti._getGenericFunctionBounds(t);
   if (!typesEqual(sBounds, tBounds)) return false;
-  // TODO(fishythefish): Extend [sEnv] and [tEnv] with bindings for the [s]
-  // and [t] type parameters to enable checking the bound against
-  // non-type-parameter terms.
+
+  sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
+  tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
 
   return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
       Rti._getGenericFunctionBase(t), tEnv);
@@ -2397,6 +2431,11 @@ bool isNullType(Rti t) =>
 bool isFunctionType(Rti t) =>
     Rti._getKind(t) == Rti.kindInterface &&
     Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME);
+
+bool isJsFunctionType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) ==
+        JS_GET_NAME(JsGetName.JS_FUNCTION_CLASS_TYPE_NAME);
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);

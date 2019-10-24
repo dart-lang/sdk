@@ -324,22 +324,12 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   static String _VM_PLATFORM = "VM_PLATFORM";
 
   /**
-   * A flag indicating whether the dart2js path should be used when it is
-   * available.
-   */
-  final bool _useDart2jsPaths;
-
-  /**
    * The library map that is populated by visiting the AST structure parsed from
    * the contents of the libraries file.
    */
   LibraryMap _librariesMap = new LibraryMap();
 
-  /**
-   * Initialize a newly created library builder to use the dart2js path if
-   * [_useDart2jsPaths] is `true`.
-   */
-  SdkLibrariesReader_LibraryBuilder(this._useDart2jsPaths);
+  SdkLibrariesReader_LibraryBuilder([@deprecated bool useDart2jsPaths]);
 
   /**
    * Return the library map that was populated by visiting the AST structure
@@ -367,7 +357,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    String libraryName = null;
+    String libraryName;
     Expression key = node.key;
     if (key is SimpleStringLiteral) {
       libraryName = "$_LIBRARY_PREFIX${key.value}";
@@ -398,7 +388,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
                 library.setDart2JsLibrary();
               }
             }
-          } else if (_useDart2jsPaths && name == _DART2JS_PATH) {
+          } else if (name == _DART2JS_PATH) {
             if (expression is SimpleStringLiteral) {
               library.path = expression.value;
             }
@@ -486,7 +476,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * 'lib' directory within the SDK.
    */
   @override
-  String path = null;
+  String path;
 
   /**
    * The name of the category containing the library. Unless otherwise specified

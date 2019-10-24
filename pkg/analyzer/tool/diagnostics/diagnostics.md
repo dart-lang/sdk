@@ -23,8 +23,8 @@ the `const` keyword because it's implied by the fact that everything in that
 region is required to be a constant. The following locations are constant
 contexts:
 
-* Everything inside a list, map or set literal that's prefixed by the keyword
-  `const`. Example:
+* Everything inside a list, map or set literal that's prefixed by the
+  `const` keyword. Example:
 
   ```dart
   var l = const [/*constant context*/];
@@ -36,7 +36,7 @@ contexts:
   var p = const Point(/*constant context*/);
   ```
 
-* The initializer for a variable that's prefixed by the keyword `const`.
+* The initializer for a variable that's prefixed by the `const` keyword.
   Example:
 
   ```dart
@@ -61,6 +61,94 @@ contexts:
 The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
+
+### abstract_super_member_reference
+
+_The {0} '{1}' is always abstract in the supertype._
+
+#### Description
+
+The analyzer produces this diagnostic when an inherited member is
+referenced using `super`, but there is no concrete implementation of the
+member in the superclass chain. Abstract members can't be invoked.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+abstract class A {
+  int get a;
+}
+class B extends A {
+  int get a => super.[!a!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invocation of the abstract member, possibly replacing it with an
+invocation of a concrete member.
+
+### ambiguous_extension_member_access
+
+_A member named '{0}' is defined in extensions '{1}' and '{2}' and neither is
+more specific._
+
+#### Description
+
+When code refers to a member of an object (for example, `o.m()` or `o.m` or
+`o[i]`) where the static type of `o` doesn't declare the member (`m` or
+`[]`, for example), then the analyzer tries to find the member in an
+extension. For example, if the member is `m`, then the analyzer looks for
+extensions that declare a member named `m` and have an extended type that
+the static type of `o` can be assigned to. When there's more than one such
+extension in scope, the extension whose extended type is most specific is
+selected.
+
+The analyzer produces this diagnostic when none of the extensions has an
+extended type that's more specific than the extended types of all of the
+other extensions, making the reference to the member ambiguous.
+
+#### Example
+
+The following code produces this diagnostic because there's no way to
+choose between the member in `E1` and the member in `E2`:
+
+{% prettify dart %}
+extension E1 on String {
+  int get charCount => 1;
+}
+
+extension E2 on String {
+  int get charCount => 2;
+}
+
+void f(String s) {
+  print(s.[!charCount!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need both extensions, then you can delete or hide one of them.
+
+If you need both, then explicitly select the one you want to use by using
+an extension override:
+
+{% prettify dart %}
+extension E1 on String {
+  int get charCount => length;
+}
+
+extension E2 on String {
+  int get charCount => length;
+}
+
+void f(String s) {
+  print(E2(s).charCount);
+}
+{% endprettify %}
 
 ### ambiguous_set_or_map_literal_both
 
@@ -175,7 +263,7 @@ original code looks like this:
 
 {% prettify dart %}
 union(a, b) {
-  var x = {...a, ...b};
+  var x = [!{...a, ...b}!];
   return x;
 }
 {% endprettify %}
@@ -203,8 +291,8 @@ can't be assigned to the static type of the corresponding parameter.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f([!y!]);
+String f(String x) => x;
+String g(num y) => f([!y!]);
 {% endprettify %}
 
 #### Common fixes
@@ -213,8 +301,8 @@ If possible, rewrite the code so that the static type is assignable. In the
 example above you might be able to change the type of the parameter `y`:
 
 {% prettify dart %}
-int f(int x) => x;
-int g(int y) => f(y);
+String f(String x) => x;
+String g(String y) => f(y);
 {% endprettify %}
 
 If that fix isn't possible, then add code to handle the case where the
@@ -222,15 +310,15 @@ argument value isn't the required type. One approach is to coerce other
 types to the required type:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y.floor());
+String f(String x) => x;
+String g(num y) => f(y.toString());
 {% endprettify %}
 
 Another approach is to add explicit type tests and fallback code:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y is int ? y : 0);
+String f(String x) => x;
+String g(num y) => f(y is String ? y : '');
 {% endprettify %}
 
 If you believe that the runtime type of the argument will always be the
@@ -238,8 +326,56 @@ same as the static type of the parameter, and you're willing to risk having
 an exception thrown at runtime if you're wrong, then add an explicit cast:
 
 {% prettify dart %}
-int f(int x) => x;
-num g(num y) => f(y as int);
+String f(String x) => x;
+String g(num y) => f(y as String);
+{% endprettify %}
+
+### built_in_identifier_as_extension_name
+
+_The built-in identifier '{0}' can't be used as an extension name._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of an extension is a
+built-in identifier. Built-in identifiers can’t be used as extension names.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension [!mixin!] on int {}
+{% endprettify %}
+
+#### Common fixes
+
+Choose a different name for the extension.
+
+### cast_to_non_type
+
+_The name '{0}' isn't a type, so it can't be used in an 'as' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name following the `as` in a
+cast expression is defined to be something other than a type.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+num x = 0;
+int y = x as [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a type:
+
+{% prettify dart %}
+num x = 0;
+int y = x as int;
 {% endprettify %}
 
 ### const_initialized_with_non_constant_value
@@ -278,6 +414,96 @@ modifier from the variable, possibly using `final` in its place:
 {% prettify dart %}
 var x = 0;
 final y = x;
+{% endprettify %}
+
+### const_spread_expected_list_or_set
+
+_A list or a set is expected in this spread._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression of a spread
+operator in a constant list or set evaluates to something other than a list
+or a set.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const List<int> list1 = null;
+const List<int> list2 = [...[!list1!]];
+{% endprettify %}
+
+#### Common fixes
+
+Change the expression to something that evaluates to either a constant list
+or a constant set:
+
+{% prettify dart %}
+const List<int> list1 = [];
+const List<int> list2 = [...list1];
+{% endprettify %}
+
+### const_spread_expected_map
+
+_A map is expected in this spread._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression of a spread
+operator in a constant map evaluates to something other than a map.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const Map<String, int> map1 = null;
+const Map<String, int> map2 = {...[!map1!]};
+{% endprettify %}
+
+#### Common fixes
+
+Change the expression to something that evaluates to a constant map:
+
+{% prettify dart %}
+const Map<String, int> map1 = {};
+const Map<String, int> map2 = {...map1};
+{% endprettify %}
+
+### const_with_non_constant_argument
+
+_Arguments of a constant creation must be constant expressions._
+
+#### Description
+
+The analyzer produces this diagnostic when a const constructor is invoked
+with an argument that isn't a constant expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  final int i;
+  const C(this.i);
+}
+C f(int i) => const C([!i!]);
+{% endprettify %}
+
+#### Common fixes
+
+Either make all of the arguments constant expressions, or remove the
+`const` keyword to use the non-constant form of the constructor:
+
+{% prettify dart %}
+class C {
+  final int i;
+  const C(this.i);
+}
+C f(int i) => C(i);
 {% endprettify %}
 
 ### deprecated_member_use
@@ -330,6 +556,63 @@ The fix depends on what's been deprecated and what the replacement is. The
 documentation for deprecated declarations should indicate what code to use
 in place of the deprecated code.
 
+### duplicate_definition
+
+_The name '{0}' is already defined._
+
+#### Description
+
+The analyzer produces this diagnostic when a name is declared, and there is
+a previous declaration with the same name in the same scope.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+int x = 0;
+int [!x!] = 1;
+{% endprettify %}
+
+#### Common fixes
+
+Choose a different name for one of the declarations.
+
+{% prettify dart %}
+int x = 0;
+int y = 1;
+{% endprettify %}
+
+### equal_elements_in_const_set
+
+_Two values in a constant set can't be equal._
+
+#### Description
+
+The analyzer produces this diagnostic when two elements in a constant set
+literal have the same value. The set can only contain each value once,
+which means that one of the values is unnecessary.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const Set<String> set = {'a', [!'a'!]};
+{% endprettify %}
+
+#### Common fixes
+
+Remove one of the duplicate values:
+
+{% prettify dart %}
+const Set<String> set = {'a'};
+{% endprettify %}
+
+Note that literal sets preserve the order of their elements, so the choice
+of which element to remove might affect the order in which elements are
+returned by an iterator.
+
 ### equal_keys_in_const_map
 
 _Two keys in a constant map literal can't be equal._
@@ -351,17 +634,23 @@ const map = <int, String>{1: 'a', 2: 'b', [!1!]: 'c', 4: 'd'};
 
 #### Common fixes
 
-If one of the keys was supposed to be different, then replace it:
+If both entries should be included in the map, then change one of the keys
+to be different:
 
 {% prettify dart %}
 const map = <int, String>{1: 'a', 2: 'b', 3: 'c', 4: 'd'};
 {% endprettify %}
 
-Otherwise, remove the key/value pair that isn't intended to be in the map:
+If only one of the entries is needed, then remove the one that isn't
+needed:
 
 {% prettify dart %}
 const map = <int, String>{1: 'a', 2: 'b', 4: 'd'};
 {% endprettify %}
+
+Note that literal maps preserve the order of their entries, so the choice
+of which entry to remove might affect the order in which keys and values
+are returned by an iterator.
 
 ### expression_in_map
 
@@ -380,7 +669,7 @@ The following code generates this diagnostic:
 var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the expression is intended to compute either a key or a value in an
 entry, fix the issue by replacing the expression with the key or the value.
@@ -388,6 +677,604 @@ For example:
 
 {% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
+{% endprettify %}
+
+### extension_as_expression
+
+_Extension '{0}' can't be used as an expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name of an extension is used
+in an expression other than in an extension override or to qualify an
+access to a static member of the extension.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on int {
+  static String m() => '';
+}
+
+var x = [!E!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name of the extension with a name that can be referenced, such
+as a static member defined on the extension:
+
+{% prettify dart %}
+extension E on int {
+  static String m() => '';
+}
+
+var x = E.m();
+{% endprettify %}
+
+### extension_conflicting_static_and_instance
+
+_Extension '{0}' can't define static member '{1}' and an instance member with
+the same name._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension declaration
+contains both an instance member and a static member that have the same
+name. The instance member and the static member can't have the same name
+because it's unclear which member is being referenced by an unqualified use
+of the name within the body of the extension.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on Object {
+  int get a => 0;
+  static int [!a!]() => 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rename or remove one of the members:
+
+{% prettify dart %}
+extension E on Object {
+  int get a => 0;
+  static int b() => 0;
+}
+{% endprettify %}
+
+### extension_declares_abstract_member
+
+_Extensions can't declare abstract members._
+
+#### Description
+
+The analyzer produces this diagnostic when an abstract declaration is
+declared in an extension. Extensions can declare only concrete members.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  int [!a!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Either provide an implementation for the member or remove it.
+
+### extension_declares_constructor
+
+_Extensions can't declare constructors._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor declaration is
+found in an extension. It isn't valid to define a constructor because
+extensions aren't classes, and it isn't possible to create an instance of
+an extension.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  [!E!]() : super();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the constructor or replace it with a static method.
+
+### extension_declares_instance_field
+
+_Extensions can't declare instance fields_
+
+#### Description
+
+The analyzer produces this diagnostic when an instance field declaration is
+found in an extension. It isn't valid to define an instance field because
+extensions can only add behavior, not state.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  String [!s!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the field, make it a static field, or convert it to be a getter,
+setter, or method.
+
+### extension_declares_member_of_object
+
+_Extensions can't declare members with the same name as a member declared by
+'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension declaration
+declares a member with the same name as a member declared in the class
+`Object`. Such a member can never be used because the member in `Object` is
+always found first.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  String [!toString!]() => this;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the member or rename it so that the name doesn't conflict with the
+member in `Object`:
+
+{% prettify dart %}
+extension E on String {
+  String displayString() => this;
+}
+{% endprettify %}
+
+### extension_override_access_to_static_member
+
+_An extension override can't be used to access a static member from an
+extension._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is the
+target of the invocation of a static member. Similar to static members in
+classes, the static members of an extension should be accessed using the
+name of the extension, not an extension override.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  static void staticMethod() {}
+}
+
+void f() {
+  E('').[!staticMethod!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the extension override with the name of the extension:
+
+{% prettify dart %}
+extension E on String {
+  static void staticMethod() {}
+}
+
+void f() {
+  E.staticMethod();
+}
+{% endprettify %}
+
+### extension_override_argument_not_assignable
+
+_The type of the argument to the extension override '{0}' isn't assignable to
+the extended type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the argument to an extension
+override isn't assignable to the type being extended by the extension.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  void method() {}
+}
+
+void f() {
+  E([!3!]).method();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you're using the correct extension, then update the argument to have the
+correct type:
+
+{% prettify dart %}
+extension E on String {
+  void method() {}
+}
+
+void f() {
+  E(3.toString()).method();
+}
+{% endprettify %}
+
+If there's a different extension that's valid for the type of the argument,
+then either replace the name of the extension or unwrap the target so that
+the correct extension is found.
+
+### extension_override_without_access
+
+_An extension override can only be used to access instance members._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is found
+that isn't being used to access one of the members of the extension. The
+extension override syntax doesn't have any runtime semantics; it only
+controls which member is selected at compile time.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on int {
+  int get a => 0;
+}
+
+void f(int i) {
+  print([!E(i)!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you want to invoke one of the members of the extension, then add the
+invocation:
+
+{% prettify dart %}
+extension E on int {
+  int get a => 0;
+}
+
+void f(int i) {
+  print(E(i).a);
+}
+{% endprettify %}
+
+If you don't want to invoke a member, then unwrap the target:
+
+{% prettify dart %}
+extension E on int {
+  int get a => 0;
+}
+
+void f(int i) {
+  print(i);
+}
+{% endprettify %}
+
+### extension_override_with_cascade
+
+_Extension overrides have no value so they can't be used as the target of a
+cascade expression._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is used as
+the target of a cascade expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on int {
+  void m() {}
+}
+f() {
+  E(3)[!..!]m();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use '.' rather than '..':
+
+{% prettify dart %}
+extension E on int {
+  void m() {}
+}
+f() {
+  E(3).m();
+}
+{% endprettify %}
+
+If there are multiple cascaded accesses, you'll need to duplicate the
+extension override for each one.
+
+### extra_positional_arguments
+
+_Too many positional arguments: {0} expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has more positional arguments than the method or function allows.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f[!(1, 2, 3)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the arguments that don't correspond to parameters:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f(1, 2);
+}
+{% endprettify %}
+
+### extra_positional_arguments_could_be_named
+
+_Too many positional arguments: {0} expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has more positional arguments than the method or function allows, but the
+method or function defines named parameters.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f[!(1, 2, 3)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If some of the arguments should be values for named parameters, then add
+the names before the arguments:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f(1, 2, c: 3);
+}
+{% endprettify %}
+
+Otherwise, remove the arguments that don't correspond to positional
+parameters:
+
+{% prettify dart %}
+void f(int a, int b, {int c}) {}
+void g() {
+  f(1, 2);
+}
+{% endprettify %}
+
+### final_not_initialized
+
+_The final variable '{0}' must be initialized._
+
+#### Description
+
+The analyzer produces this diagnostic when a final field or variable isn't
+initialized.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+final [!x!];
+{% endprettify %}
+
+#### Common fixes
+
+For variables and static fields, you can add an initializer:
+
+{% prettify dart %}
+final x = 0;
+{% endprettify %}
+
+For instance fields, you can add an initializer as shown in the previous
+example, or you can initialize the field in every constructor. You can
+initialize the field by using a field formal parameter:
+
+{% prettify dart %}
+class C {
+  final int x;
+  C(this.x);
+}
+{% endprettify %}
+
+You can also initialize the field by using an initializer in the
+constructor:
+
+{% prettify dart %}
+class C {
+  final int x;
+  C(int y) : x = y * 2;
+}
+{% endprettify %}
+
+### implements_non_class
+
+_Classes and mixins can only implement other classes and mixins._
+
+#### Description
+
+The analyzer produces this diagnostic when a name used in the implements
+clause of a class or mixin declaration is defined to be something other
+than a class or mixin.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var x;
+class C implements [!x!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the name is the name of an existing class or mixin that's already being
+imported, then add a prefix to the import so that the local definition of
+the name doesn't shadow the imported name.
+
+If the name is the name of an existing class or mixin that isn't being
+imported, then add an import, with a prefix, for the library in which it’s
+declared.
+
+Otherwise, either replace the name in the implements clause with the name
+of an existing class or mixin, or remove the name from the implements
+clause.
+
+### invalid_assignment
+
+_A value of type '{0}' can't be assigned to a variable of type '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of an expression
+that is assigned to a variable isn't assignable to the type of the
+variable.
+
+#### Example
+
+The following code produces this diagnostic because the type of the
+initializer (`int`) isn't assignable to the type of the variable
+(`String`):
+
+{% prettify dart %}
+int i = 0;
+String s = [!i!];
+{% endprettify %}
+
+#### Common fixes
+
+If the value being assigned is always assignable at runtime, even though
+the static types don't reflect that, then add an explicit cast.
+
+Otherwise, change the value being assigned so that it has the expected
+type. In the previous example, this might look like:
+
+{% prettify dart %}
+int i = 0;
+String s = i.toString();
+{% endprettify %}
+
+If you can’t change the value, then change the type of the variable to be
+compatible with the type of the value being assigned:
+
+{% prettify dart %}
+int i = 0;
+int s = i;
+{% endprettify %}
+
+### invalid_extension_argument_count
+
+_Extension overrides must have exactly one argument: the value of 'this' in the
+extension method._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override doesn't
+have exactly one argument. The argument is the expression used to compute
+the value of `this` within the extension method, so there must be one
+argument.
+
+#### Example
+
+The following code produces this diagnostic because there are no arguments:
+
+{% prettify dart %}
+extension E on String {
+  String join(String other) => '$this $other';
+}
+
+void f() {
+  E[!()!].join('b');
+}
+{% endprettify %}
+
+And, the following code produces this diagnostic because there's more than
+one argument:
+
+{% prettify dart %}
+extension E on String {
+  String join(String other) => '$this $other';
+}
+
+void f() {
+  E[!('a', 'b')!].join('c');
+}
+{% endprettify %}
+
+#### Common fixes
+
+Provide one argument for the extension override:
+
+{% prettify dart %}
+extension E on String {
+  String join(String other) => '$this $other';
+}
+
+void f() {
+  E('a').join('b');
+}
 {% endprettify %}
 
 ### invalid_literal_annotation
@@ -404,6 +1291,8 @@ to a const constructor.
 The following code produces this diagnostic:
 
 {% prettify dart %}
+import 'package:meta/meta.dart';
+
 [!@literal!]
 var x;
 {% endprettify %}
@@ -414,6 +1303,37 @@ Remove the annotation:
 
 {% prettify dart %}
 var x;
+{% endprettify %}
+
+### invalid_use_of_covariant_in_extension
+
+_Can't have modifier '#lexeme' in an extension._
+
+#### Description
+
+The analyzer produces this diagnostic when a member declared inside an
+extension uses the keyword `covariant` in the declaration of a parameter.
+Extensions aren't classes and don't have subclasses, so the keyword serves
+no purpose.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on String {
+  void a([!covariant!] int i) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the 'covariant' keyword:
+
+{% prettify dart %}
+extension E on String {
+  void a(int i) {}
+}
 {% endprettify %}
 
 ### invocation_of_non_function
@@ -432,6 +1352,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 typedef Binary = int Function(int, int);
+
 int f() {
   return [!Binary!](1, 2);
 }
@@ -441,6 +1362,44 @@ int f() {
 
 Replace the name with the name of a function.
 
+### map_entry_not_in_map
+
+_Map entries can only be used in a map literal._
+
+#### Description
+
+The analyzer produces this diagnostic when a map entry (a key/value pair)
+is found in a set literal.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+const collection = <String>{[!'a' : 'b'!]};
+{% endprettify %}
+
+#### Common fixes
+
+If you intended for the collection to be a map, then change the code so
+that it is a map. In the previous example, you could do this by adding
+another type argument:
+
+{% prettify dart %}
+const collection = <String, String>{'a' : 'b'};
+{% endprettify %}
+
+In other cases, you might need to change the explicit type from `Set` to
+`Map`.
+
+If you intended for the collection to be a set, then remove the map entry,
+possibly by replacing the colon with a comma if both values should be
+included in the set:
+
+{% prettify dart %}
+const collection = <String>{'a', 'b'};
+{% endprettify %}
+
 ### missing_return
 
 _This function has a return type of '{0}', but doesn't end with a return
@@ -448,7 +1407,7 @@ statement._
 
 #### Description
 
-Any function or method that doesn’t end with either an explicit return or a
+Any function or method that doesn't end with either an explicit return or a
 throw implicitly returns `null`. This is rarely the desired behavior. The
 analyzer produces this diagnostic when it finds an implicit return.
 
@@ -469,6 +1428,42 @@ The following code produces this diagnostic:
 Add a return statement that makes the return value explicit, even if `null`
 is the appropriate value.
 
+### non_constant_case_expression
+
+_Case expressions must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when the expression in a case clause
+isn't a constant expression.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int i, int j) {
+  switch (i) {
+    case [!j!]:
+      // ...
+      break;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Either make the expression a constant expression, or rewrite the switch
+statement as a sequence of if statements:
+
+{% prettify dart %}
+void f(int i, int j) {
+  if (i == j) {
+    // ...
+  }
+}
+{% endprettify %}
+
 ### non_constant_list_element
 
 _The values in a const list literal must be constants._
@@ -477,8 +1472,8 @@ _The values in a const list literal must be constants._
 
 The analyzer produces this diagnostic when an element in a constant list
 literal isn't a constant value. The list literal can be constant either
-explicitly (because it's prefixed by the keyword `const`) or implicitly
-(because it appears in a <a href=”#constant-context”>constant context</a>).
+explicitly (because it's prefixed by the `const` keyword) or implicitly
+(because it appears in a [constant context](#constant-context)).
 
 #### Example
 
@@ -486,29 +1481,145 @@ The following code produces this diagnostic because `x` isn't a constant,
 even though it appears in an implicitly constant list literal:
 
 {% prettify dart %}
-int x = 2;
-const y = <int>[0, 1, [!x!]];
+var x = 2;
+var y = const <int>[0, 1, [!x!]];
 {% endprettify %}
 
 #### Common fixes
 
 If the list needs to be a constant list, then convert the element to be a
-constant. In the example above, you might add the keyword `const`
-to the declaration of `x`:
+constant. In the example above, you might add the `const` keyword to the
+declaration of `x`:
 
 {% prettify dart %}
-const int x = 2;
-const y = <int>[0, 1, x];
+const x = 2;
+var y = const <int>[0, 1, x];
 {% endprettify %}
 
 If the expression can't be made a constant, then the list can't be a
 constant either, so you must change the code so that the list isn't a
-constant. In the example above this means removing the `const` keyword from
-the declaration of `y`:
+constant. In the example above this means removing the `const` keyword
+before the list literal:
 
 {% prettify dart %}
-int x = 2;
+var x = 2;
 var y = <int>[0, 1, x];
+{% endprettify %}
+
+### non_constant_map_element
+
+_The elements in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when an if element or a spread
+element in a constant map isn't a constant element.
+
+#### Example
+
+The following code produces this diagnostic because it is attempting to
+spread a non-constant map:
+
+{% prettify dart %}
+var notConst = <int, int>{};
+var map = const <int, int>{...[!notConst!]};
+{% endprettify %}
+
+Similarly, the following code produces this diagnostic because the
+condition in the if element isn't a constant expression:
+
+{% prettify dart %}
+bool notConst = true;
+var map = const <int, int>{if ([!notConst!]) 1 : 2};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the elements  constants.
+In the spread example, you might do that by making the collection being
+spread a constant:
+
+{% prettify dart %}
+const notConst = <int, int>{};
+var map = const <int, int>{...notConst};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+bool notConst = true;
+var map = <int, int>{if (notConst) 1 : 2};
+{% endprettify %}
+
+### non_constant_map_key
+
+_The keys in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in a constant map literal
+isn't a constant value.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var a = 'a';
+var m = const {[!a!]: 0};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the key a constant:
+
+{% prettify dart %}
+const a = 'a';
+var m = const {a: 0};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+var a = 'a';
+var m = {a: 0};
+{% endprettify %}
+
+### non_constant_map_value
+
+_The values in a const map literal must be constant._
+
+#### Description
+
+The analyzer produces this diagnostic when a value in a constant map
+literal isn't a constant value.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var a = 'a';
+var m = const {0: [!a!]};
+{% endprettify %}
+
+#### Common fixes
+
+If the map needs to be a constant map, then make the key a constant:
+
+{% prettify dart %}
+const a = 'a';
+var m = const {0: a};
+{% endprettify %}
+
+If the map doesn't need to be a constant map, then remove the `const`
+keyword:
+
+{% prettify dart %}
+var a = 'a';
+var m = {0: a};
 {% endprettify %}
 
 ### non_type_as_type_argument
@@ -554,14 +1665,44 @@ The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
 f() {}
-main() {
-  [!f!] v = null;
-}
+g([!f!] v) {}
 {% endprettify %}
 
 #### Common fixes
 
 Replace the name with the name of a type.
+
+### not_enough_positional_arguments
+
+_{0} positional argument(s) expected, but {1} found._
+
+#### Description
+
+The analyzer produces this diagnostic when a method or function invocation
+has fewer positional arguments than the number of required positional
+parameters.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f[!(0)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add arguments corresponding to the remaining parameters:
+
+{% prettify dart %}
+void f(int a, int b) {}
+void g() {
+  f(0, 1);
+}
+{% endprettify %}
 
 ### not_iterable_spread
 
@@ -582,7 +1723,7 @@ var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...[!m!]};
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 The most common fix is to replace the expression with one that produces an
 iterable object:
@@ -590,6 +1731,35 @@ iterable object:
 {% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...m.keys};
+{% endprettify %}
+
+### not_map_spread
+
+_Spread elements in map literals must implement 'Map'._
+
+#### Description
+
+The analyzer produces this diagnostic when the static type of the
+expression of a spread element that appears in a map literal doesn't
+implement the type `Map`.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+var l =  <String>['a', 'b'];
+var m = <int, String>{...[!l!]};
+{% endprettify %}
+
+#### Common fixes
+
+The most common fix is to replace the expression with one that produces a
+map:
+
+{% prettify dart %}
+var l =  <String>['a', 'b'];
+var m = <int, String>{...l.asMap()};
 {% endprettify %}
 
 ### redirect_to_non_class
@@ -608,7 +1778,8 @@ constructor.
 The following code produces this diagnostic because `f` is a function:
 
 {% prettify dart %}
-C f() {}
+C f() => null;
+
 class C {
   factory C() = [!f!];
 }
@@ -626,10 +1797,375 @@ If you're trying to return the value returned by a function, then rewrite
 the constructor to return the value from the constructor's body:
 
 {% prettify dart %}
-C f() {}
+C f() => null;
+
 class C {
   factory C() => f();
 }
+{% endprettify %}
+
+### referenced_before_declaration
+
+_Local variable '{0}' can't be referenced before it is declared._
+
+#### Description
+
+The analyzer produces this diagnostic when a variable is referenced before
+it’s declared. In Dart, variables are visible everywhere in the block in
+which they are declared, but can only be referenced after they are
+declared.
+
+The analyzer also produces a context message that indicates where the
+declaration is located.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f() {
+  print([!i!]);
+  int i = 5;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you intended to reference the local variable, move the declaration
+before the first reference:
+
+{% prettify dart %}
+void f() {
+  int i = 5;
+  print(i);
+}
+{% endprettify %}
+
+If you intended to reference a name from an outer scope, such as a
+parameter, instance field or top-level variable, then rename the local
+declaration so that it doesn't hide the outer variable.
+
+{% prettify dart %}
+void f(int i) {
+  print(i);
+  int x = 5;
+  print(x);
+}
+{% endprettify %}
+
+### sdk_version_async_exported_from_core
+
+_The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this
+code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when either the class `Future` or
+`Stream` is referenced in a library that doesn't import `dart:async` in
+code that has an SDK constraint whose lower bound is less than 2.1.0. In
+earlier versions, these classes weren't defined in `dart:core`, so the
+import was necessary.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.1.0:
+
+```yaml
+environment:
+  sdk: '>=2.0.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart %}
+void f([!Future!] f) {}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the classes to be referenced:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then import the
+`dart:async` library.
+
+{% prettify dart %}
+import 'dart:async';
+
+void f(Future f) {}
+{% endprettify %}
+
+### sdk_version_as_expression_in_const_context
+
+_The use of an as expression in a constant expression wasn't supported until
+version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an as expression inside a
+[constant context](#constant-context) is found in code that has an SDK
+constraint whose lower bound is less than 2.3.2. Using an as expression in
+a [constant context](#constant-context) wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following generates
+this diagnostic:
+
+{% prettify dart %}
+const num n = 3;
+const int i = [!n as int!];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the expression to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use an as expression, or change the code so that the as
+expression is not in a [constant context](#constant-context).:
+
+{% prettify dart %}
+num x = 3;
+int y = x as int;
+{% endprettify %}
+
+### sdk_version_bool_operator_in_const_context
+
+_The use of the operator '{0}' for 'bool' operands in a constant context wasn't
+supported until version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when any use of the `&`, `|` or `^`
+operators on the class `bool` inside a
+[constant context](#constant-context) is found in code that has an SDK
+constraint whose lower bound is less than 2.3.2. Using these operators in a
+[constant context](#constant-context) wasn't supported in earlier versions,
+so this code won't be able to run against earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart %}
+const bool a = true;
+const bool b = false;
+const bool c = a [!&!] b;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operators to be used:
+
+```yaml
+environment:
+ sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use these operators, or change the code so that the expression
+is not in a [constant context](#constant-context).:
+
+{% prettify dart %}
+const bool a = true;
+const bool b = false;
+bool c = a & b;
+{% endprettify %}
+
+### sdk_version_eq_eq_operator_in_const_context
+
+_Using the operator '==' for non-primitive types wasn't supported until version
+2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when the operator `==` is used on a
+non-primitive type inside a [constant context](#constant-context) is found
+in code that has an SDK constraint whose lower bound is less than 2.3.2.
+Using this operator in a [constant context](#constant-context) wasn't
+supported in earlier versions, so this code won't be able to run against
+earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following produces this
+diagnostic:
+
+{% prettify dart %}
+class C {}
+const C a = null;
+const C b = null;
+const bool same = a [!==!] b;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the operator to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use the `==` operator, or change the code so that the
+expression is not in a [constant context](#constant-context).:
+
+{% prettify dart %}
+class C {}
+const C a = null;
+const C b = null;
+bool same = a == b;
+{% endprettify %}
+
+### sdk_version_extension_methods
+
+_Extension methods weren't supported until version 2.6.0, but this code is
+required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension declaration or an
+extension override is found in code that has an SDK constraint whose lower
+bound is less than 2.6.0. Using extensions wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.6.0:
+
+```yaml
+environment:
+ sdk: '>=2.4.0 <2.7.0'
+```
+
+In the package that has that pubspec, code like the following generates
+this diagnostic:
+
+{% prettify dart %}
+[!extension!] E on String {
+  void sayHello() {
+    print('Hello $this');
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.6.0 <2.7.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of extensions. The most common way to do this is to rewrite
+the members of the extension as top-level functions (or methods) that take
+the value that would have been bound to `this` as a parameter:
+
+{% prettify dart %}
+void sayHello(String s) {
+  print('Hello $s');
+}
+{% endprettify %}
+
+### sdk_version_is_expression_in_const_context
+
+_The use of an is expression in a constant context wasn't supported until
+version 2.3.2, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an is expression inside a
+[constant context](#constant-context) is found in code that has an SDK
+constraint whose lower bound is less than 2.3.2. Using an is expression in
+a [constant context](#constant-context) wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.2:
+
+```yaml
+environment:
+  sdk: '>=2.1.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following generates
+this diagnostic:
+
+{% prettify dart %}
+const x = 4;
+const y = [!x is int!] ? 0 : 1;
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the expression to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.2 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then either rewrite the
+code to not use the is operator, or, if that's not possible, change the
+code so that the is expression is not in a
+[constant context](#constant-context).:
+
+{% prettify dart %}
+const x = 4;
+var y = x is int ? 0 : 1;
 {% endprettify %}
 
 ### sdk_version_set_literal
@@ -640,21 +2176,22 @@ be able to run on earlier versions._
 #### Description
 
 The analyzer produces this diagnostic when a set literal is found in code
-that has an SDK constraint whose lower bound is less than 2.2. Set literals
-weren't supported in earlier versions, so this code won't be able to run
-against earlier versions of the SDK.
+that has an SDK constraint whose lower bound is less than 2.2.0. Set
+literals weren't supported in earlier versions, so this code won't be able
+to run against earlier versions of the SDK.
 
 #### Example
 
-In a package that defines the SDK constraint (in the pubspec.yaml file),
-with a lower bound of less than 2.2. For example:
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.2.0:
 
 ```yaml
 environment:
   sdk: '>=2.1.0 <2.4.0'
 ```
 
-The following code generates this diagnostic:
+In the package that has that pubspec, code like the following produces this
+diagnostic:
 
 {% prettify dart %}
 var s = [!<int>{}!];
@@ -677,6 +2214,150 @@ literal with code that creates the set without the use of a literal:
 var s = new Set<int>();
 {% endprettify %}
 
+### sdk_version_ui_as_code
+
+_The for, if, and spread elements weren't supported until version 2.3.0, but
+this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when a for, if, or spread element is
+found in code that has an SDK constraint whose lower bound is less than
+2.3.0. Using a for, if, or spread element wasn't supported in earlier
+versions, so this code won't be able to run against earlier versions of the
+SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.3.0:
+
+```yaml
+environment:
+  sdk: '>=2.2.0 <2.4.0'
+```
+
+In the package that has that pubspec, code like the following generates
+this diagnostic:
+
+{% prettify dart %}
+var digits = [[!for (int i = 0; i < 10; i++) i!]];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.3.0 <2.4.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of those elements:
+
+{% prettify dart %}
+var digits = _initializeDigits();
+
+List<int> _initializeDigits() {
+  var digits = <int>[];
+  for (int i = 0; i < 10; i++) {
+    digits.add(i);
+  }
+  return digits;
+}
+{% endprettify %}
+
+### sdk_version_ui_as_code_in_const_context
+
+_The if and spread elements weren't supported in constant expressions until
+version 2.5.0, but this code is required to be able to run on earlier versions._
+
+#### Description
+
+The analyzer produces this diagnostic when an if or spread element inside
+a [constant context](#constant-context) is found in code that has an
+SDK constraint whose lower bound is less than 2.5.0. Using an if or
+spread element inside a [constant context](#constant-context) wasn't
+supported in earlier versions, so this code won't be able to run against
+earlier versions of the SDK.
+
+#### Example
+
+Here's an example of a pubspec that defines an SDK constraint with a lower
+bound of less than 2.5.0:
+
+```yaml
+environment:
+  sdk: '>=2.4.0 <2.6.0'
+```
+
+In the package that has that pubspec, code like the following generates
+this diagnostic:
+
+{% prettify dart %}
+const a = [1, 2];
+const b = [[!...a!]];
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need to support older versions of the SDK, then you can
+increase the SDK constraint to allow the syntax to be used:
+
+```yaml
+environment:
+  sdk: '>=2.5.0 <2.6.0'
+```
+
+If you need to support older versions of the SDK, then rewrite the code to
+not make use of those elements:
+
+{% prettify dart %}
+const a = [1, 2];
+const b = [1, 2];
+{% endprettify %}
+
+If that's not possible, change the code so that the element is not in a
+[constant context](#constant-context).:
+
+{% prettify dart %}
+const a = [1, 2];
+var b = [...a];
+{% endprettify %}
+
+### super_in_extension
+
+_The 'super' keyword can't be used in an extension because an extension doesn't
+have a superclass._
+
+#### Description
+
+The analyzer produces this diagnostic when a member declared inside an
+extension uses the `super` keyword . Extensions aren't classes and don't
+have superclasses, so the `super` keyword serves no purpose.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+extension E on Object {
+  String get displayString => [!super!].toString();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the `super` keyword :
+
+{% prettify dart %}
+extension E on Object {
+  String get displayString => toString();
+}
+{% endprettify %}
+
 ### type_argument_not_matching_bounds
 
 _'{0}' doesn't extend '{1}'._
@@ -692,6 +2373,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 class A<E extends num> {}
+
 var a = A<[!String!]>();
 {% endprettify %}
 
@@ -701,8 +2383,81 @@ Change the type argument to be a subclass of the bounds:
 
 {% prettify dart %}
 class A<E extends num> {}
+
 var a = A<int>();
 {% endprettify %}
+
+### type_test_with_undefined_name
+
+_The name '{0}' isn't defined, so it can't be used in an 'is' expression._
+
+#### Description
+
+The analyzer produces this diagnostic when the name following the `is` in a
+type test expression isn't defined.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+void f(Object o) {
+  if (o is [!Srting!]) {
+    // ...
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the name with the name of a type:
+
+{% prettify dart %}
+void f(Object o) {
+  if (o is String) {
+    // ...
+  }
+}
+{% endprettify %}
+
+### undefined_annotation
+
+_Undefined name '{0}' used as an annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a name that isn't defined is
+used as an annotation.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+[!@undefined!]
+void f() {}
+{% endprettify %}
+
+#### Common fixes
+
+If the name is correct, but it isn’t declared yet, then declare the name as
+a constant value:
+
+{% prettify dart %}
+const undefined = 'undefined';
+
+@undefined
+void f() {}
+{% endprettify %}
+
+If the name is wrong, replace the name with the name of a valid constant:
+
+{% prettify dart %}
+@deprecated
+void f() {}
+{% endprettify %}
+
+Otherwise, remove the annotation.
 
 ### undefined_class
 
@@ -720,9 +2475,8 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 class Point {}
-void main() {
-  [!Piont!] p;
-}
+
+void f([!Piont!] p) {}
 {% endprettify %}
 
 #### Common fixes
@@ -733,13 +2487,293 @@ fixing the spelling of the class:
 
 {% prettify dart %}
 class Point {}
-void main() {
-  Point p;
-}
+
+void f(Point p) {}
 {% endprettify %}
 
 If the class is defined but isn't visible, then you probably need to add an
 import.
+
+### undefined_extension_getter
+
+_The getter '{0}' isn't defined for the extension '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is used to
+invoke a getter, but the getter isn't defined by the specified extension.
+The analyzer also produces this diagnostic when a static getter is
+referenced but isn't defined by the specified extension.
+
+#### Example
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare an instance getter named `b`:
+
+{% prettify dart %}
+extension E on String {
+  String get a => 'a';
+}
+
+extension F on String {
+  String get b => 'b';
+}
+
+void f() {
+  E('c').[!b!];
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare a static getter named `a`:
+
+{% prettify dart %}
+extension E on String {}
+
+var x = E.[!a!];
+{% endprettify %}
+
+#### Common fixes
+
+If the name of the getter is incorrect, then change it to the name of an
+existing getter:
+
+{% prettify dart %}
+extension E on String {
+  String get a => 'a';
+}
+
+extension F on String {
+  String get b => 'b';
+}
+
+void f() {
+  E('c').a;
+}
+{% endprettify %}
+
+If the name of the getter is correct but the name of the extension is
+wrong, then change the name of the extension to the correct name:
+
+{% prettify dart %}
+extension E on String {
+  String get a => 'a';
+}
+
+extension F on String {
+  String get b => 'b';
+}
+
+void f() {
+  F('c').b;
+}
+{% endprettify %}
+
+If the name of the getter and extension are both correct, but the getter
+isn't defined, then define the getter:
+
+{% prettify dart %}
+extension E on String {
+  String get a => 'a';
+  String get b => 'z';
+}
+
+extension F on String {
+  String get b => 'b';
+}
+
+void f() {
+  E('c').b;
+}
+{% endprettify %}
+
+### undefined_extension_method
+
+_The method '{0}' isn't defined for the extension '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is used to
+invoke a method, but the method isn't defined by the specified extension.
+The analyzer also produces this diagnostic when a static method is
+referenced but isn't defined by the specified extension.
+
+#### Example
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare an instance method named `b`:
+
+{% prettify dart %}
+extension E on String {
+  String a() => 'a';
+}
+
+extension F on String {
+  String b() => 'b';
+}
+
+void f() {
+  E('c').[!b!]();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare a static method named `a`:
+
+{% prettify dart %}
+extension E on String {}
+
+var x = E.[!a!]();
+{% endprettify %}
+
+#### Common fixes
+
+If the name of the method is incorrect, then change it to the name of an
+existing method:
+
+{% prettify dart %}
+extension E on String {
+  String a() => 'a';
+}
+
+extension F on String {
+  String b() => 'b';
+}
+
+void f() {
+  E('c').a();
+}
+{% endprettify %}
+
+If the name of the method is correct, but the name of the extension is
+wrong, then change the name of the extension to the correct name:
+
+{% prettify dart %}
+extension E on String {
+  String a() => 'a';
+}
+
+extension F on String {
+  String b() => 'b';
+}
+
+void f() {
+  F('c').b();
+}
+{% endprettify %}
+
+If the name of the method and extension are both correct, but the method
+isn't defined, then define the method:
+
+{% prettify dart %}
+extension E on String {
+  String a() => 'a';
+  String b() => 'z';
+}
+
+extension F on String {
+  String b() => 'b';
+}
+
+void f() {
+  E('c').b();
+}
+{% endprettify %}
+
+### undefined_extension_setter
+
+_The setter '{0}' isn't defined for the extension '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension override is used to
+invoke a setter, but the setter isn't defined by the specified extension.
+The analyzer also produces this diagnostic when a static setter is
+referenced but isn't defined by the specified extension.
+
+#### Example
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare an instance setter named `b`:
+
+{% prettify dart %}
+extension E on String {
+  set a(String v) {}
+}
+
+extension F on String {
+  set b(String v) {}
+}
+
+void f() {
+  E('c').[!b!] = 'd';
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the extension `E`
+doesn't declare a static setter named `a`:
+
+{% prettify dart %}
+extension E on String {}
+
+void f() {
+  E.[!a!] = 3;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the name of the setter is incorrect, then change it to the name of an
+existing setter:
+
+{% prettify dart %}
+extension E on String {
+  set a(String v) {}
+}
+
+extension F on String {
+  set b(String v) {}
+}
+
+void f() {
+  E('c').a = 'd';
+}
+{% endprettify %}
+
+If the name of the setter is correct, but the name of the extension is
+wrong, then change the name of the extension to the correct name:
+
+{% prettify dart %}
+extension E on String {
+  set a(String v) {}
+}
+
+extension F on String {
+  set b(String v) {}
+}
+
+void f() {
+  F('c').b = 'd';
+}
+{% endprettify %}
+
+If the name of the setter and extension are both correct, but the setter
+isn't defined, then define the setter:
+
+{% prettify dart %}
+extension E on String {
+  set a(String v) {}
+  set b(String v) {}
+}
+
+extension F on String {
+  set b(String v) {}
+}
+
+void f() {
+  E('c').b = 'd';
+}
+{% endprettify %}
 
 ### undefined_function
 
@@ -757,6 +2791,7 @@ The following code produces this diagnostic:
 
 {% prettify dart %}
 List<int> empty() => [];
+
 void main() {
   print([!emty!]());
 }
@@ -770,6 +2805,7 @@ by fixing the spelling of the function:
 
 {% prettify dart %}
 List<int> empty() => [];
+
 void main() {
   print(empty());
 }
@@ -793,27 +2829,17 @@ visible in the scope in which it's being referenced.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-class Point {
-  final int x;
-  final int y;
-  Point(this.x, this.y);
-  operator +(Point other) => Point(x + other.x, y + other.[!z!]);
-}
+int f(String s) => s.[!len!];
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a getter that is defined. The example above can be corrected by
 fixing the spelling of the getter:
 
 {% prettify dart %}
-class Point {
-  final int x;
-  final int y;
-  Point(this.x, this.y);
-  operator +(Point other) => Point(x + other.x, y + other.y);
-}
+int f(String s) => s.length;
 {% endprettify %}
 
 ### undefined_identifier
@@ -865,7 +2891,7 @@ The following code produces this diagnostic:
 int f(List<int> l) => l.[!removeMiddle!]();
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a method that is defined. The example above can be corrected by
@@ -882,7 +2908,7 @@ _The named parameter '{0}' isn't defined._
 #### Description
 
 The analyzer produces this diagnostic when a method or function invocation
-has a named argument, but the method or function being invoked doesn’t
+has a named argument, but the method or function being invoked doesn't
 define a parameter with the same name.
 
 #### Example
@@ -893,6 +2919,7 @@ The following code produces this diagnostic:
 class C {
   m({int b}) {}
 }
+
 void f(C c) {
   c.m([!a!]: 1);
 }
@@ -907,6 +2934,7 @@ The example above can be fixed by changing `a` to `b`:
 class C {
   m({int b}) {}
 }
+
 void f(C c) {
   c.m(b: 1);
 }
@@ -919,9 +2947,11 @@ target to the subclass:
 class C {
   m({int b}) {}
 }
+
 class D extends C {
   m({int a, int b}) {}
 }
+
 void f(C c) {
   (c as D).m(a: 1);
 }
@@ -933,10 +2963,42 @@ If the parameter should be added to the function, then add it:
 class C {
   m({int a, int b}) {}
 }
+
 void f(C c) {
   c.m(a: 1);
 }
 {% endprettify %}
+
+### undefined_prefixed_name
+
+_The name '{0}' is being referenced through the prefix '{1}', but it isn't
+defined in any of the libraries imported using that prefix._
+
+#### Description
+
+The analyzer produces this diagnostic when a prefixed identifier is found
+where the prefix is valid, but the identifier isn't declared in any of the
+libraries imported using that prefix.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+import 'dart:core' as p;
+
+void f() {
+  p.[!a!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the library in which the name is declared isn't imported yet, add an
+import for the library.
+
+If the name is wrong, then change it to one of the names that's declared in
+the imported libraries.
 
 ### undefined_setter
 
@@ -953,32 +3015,120 @@ visible in the scope in which the identifier is being referenced.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-class Point {
-  int x;
-  int y;
-  Point(this.x, this.y);
-  void shiftBy(Point other) {
-    this.x += other.x;
-    this.[!z!] += other.y;
+class C {
+  int x = 0;
+  void m(int y) {
+    this.[!z!] = y;
   }
 }
 {% endprettify %}
 
-#### Common fix
+#### Common fixes
 
 If the identifier isn't defined, then either define it or replace it with
 the name of a setter that is defined. The example above can be corrected by
 fixing the spelling of the setter:
 
 {% prettify dart %}
-class Point {
-  int x;
-  int y;
-  Point(this.x, this.y);
-  void shiftBy(Point other) {
-    this.x += other.x;
-    this.y += other.y;
+class C {
+  int x = 0;
+  void m(int y) {
+    this.x = y;
   }
+}
+{% endprettify %}
+
+### undefined_super_method
+
+_The method '{0}' isn't defined in a superclass of '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an inherited method is
+referenced using `super`, but there’s no method with that name in the
+superclass chain.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  void m() {
+    super.[!n!]();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the inherited method you intend to invoke has a different name, then
+make the name of the invoked method  match the inherited method.
+
+If the method you intend to invoke is defined in the same class, then
+remove the `super.`.
+
+If not, then either add the method to one of the superclasses or remove the
+invocation.
+
+### unqualified_reference_to_static_member_of_extended_type
+
+_Static members from the extended type or one of its superclasses must be
+qualified by the name of the defining type._
+
+#### Description
+
+The analyzer produces this diagnostic when an undefined name is found, and
+the name is the same as a static member of the extended type or one of its
+superclasses.
+
+#### Example
+
+The following code produces this diagnostic:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    [!m!]();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you're trying to reference a static member that's declared outside the
+extension, then add the name of the class or extension before the reference
+to the member:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    C.m();
+  }
+}
+{% endprettify %}
+
+If you're referencing a member that isn't declared yet, add a declaration:
+
+{% prettify dart %}
+class C {
+  static void m() {}
+}
+
+extension E on C {
+  void f() {
+    m();
+  }
+
+  void m() {}
 }
 {% endprettify %}
 
@@ -1049,8 +3199,7 @@ The following code produces this diagnostic:
 {% prettify dart %}
 import [!'dart:async'!];
 
-void main() {
-}
+void main() {}
 {% endprettify %}
 
 #### Common fixes

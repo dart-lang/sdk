@@ -9,8 +9,6 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../generated/test_support.dart';
-
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeclaredVariablesTest);
@@ -18,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class DeclaredVariablesTest extends EngineTestCase {
+class DeclaredVariablesTest {
   void test_getBool_false() {
     TestTypeProvider typeProvider = new TestTypeProvider();
     String variableName = "var";

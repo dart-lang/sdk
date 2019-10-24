@@ -5,6 +5,10 @@
 #ifndef RUNTIME_VM_CPU_X64_H_
 #define RUNTIME_VM_CPU_X64_H_
 
+#if !defined(RUNTIME_VM_CPU_H_)
+#error Do not include cpu_x64.h directly; use cpu.h instead.
+#endif
+
 #include "vm/allocation.h"
 #include "vm/flags.h"
 
@@ -28,13 +32,21 @@ class HostCPUFeatures : public AllStatic {
     DEBUG_ASSERT(initialized_);
     return sse4_1_supported_ && FLAG_use_sse41;
   }
+  static bool popcnt_supported() {
+    DEBUG_ASSERT(initialized_);
+    return popcnt_supported_;
+  }
+  static bool abm_supported() {
+    DEBUG_ASSERT(initialized_);
+    return abm_supported_;
+  }
 
  private:
-  static const uint64_t kSSE2BitMask = static_cast<uint64_t>(1) << 26;
-  static const uint64_t kSSE4_1BitMask = static_cast<uint64_t>(1) << 51;
   static const char* hardware_;
   static bool sse2_supported_;
   static bool sse4_1_supported_;
+  static bool popcnt_supported_;
+  static bool abm_supported_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -47,6 +59,8 @@ class TargetCPUFeatures : public AllStatic {
   static const char* hardware() { return HostCPUFeatures::hardware(); }
   static bool sse2_supported() { return HostCPUFeatures::sse2_supported(); }
   static bool sse4_1_supported() { return HostCPUFeatures::sse4_1_supported(); }
+  static bool popcnt_supported() { return HostCPUFeatures::popcnt_supported(); }
+  static bool abm_supported() { return HostCPUFeatures::abm_supported(); }
   static bool double_truncate_round_supported() { return false; }
 };
 

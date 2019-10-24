@@ -4,14 +4,14 @@
 
 ## Using the Dart LSP server in editors
 
-- [Using Dart LSP in Vim](README_vim.md)
+- [Using LSP with Dart-Vim](https://github.com/dart-lang/dart-vim-plugin/blob/master/README.md#how-do-i-configure-an-lsp-plugin-to-start-the-analysis-server)
 
 ## Running the Server
 
-Run the server from source to ensure you're running code that matches the status shown below. If you don't have a locally built SDK then a recent nightly should do. Pass the `--lsp` flag to start the server in LSP mode:
+The analysis server snapshot is included in the `bin/snapshots` folder of the Dart SDK. Pass the `--lsp` flag to start the server in LSP mode:
 
 ```
-dart pkg/analysis_server/bin/server.dart --lsp
+dart bin/snapshots/analysis_server.dart.snapshot --lsp
 ```
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).

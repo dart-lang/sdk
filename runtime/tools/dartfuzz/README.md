@@ -16,10 +16,14 @@ To generate a single random Dart program, run
 
 where
 
-    --help     : prints help and exits
-    --seed     : defines random seed (system-set by default)
-    --[no-]fp  : enables/disables floating-point operations (default: on)
-    --[no-]ffi : enables/disables FFI method calls (default: off)
+    --help      : prints help and exits
+    --seed      : defines random seed (system-set by default)
+    --[no-]fp   : enables/disables floating-point operations (default: on)
+    --[no-]ffi  : enables/disables FFI method calls (default: off)
+    --[no-]flat : enables/disables flat types (default: off)
+    --[no-]mini : enables minimization mode (default: off)
+    --smask     : bitmask indicating which statements to omit (Bit=1 omits, defaults to "0")
+    --emask     : bitmask indicating which expressions to omit (Bit=1 omits, defaults to "0")
 
 The tool provides a runnable main isolate. A typical single
 test run looks as:
@@ -51,7 +55,7 @@ where
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[debug-][ia32|x64|arm32|arm64|dbc32|dbc64]   = Dart JIT
+        jit-[debug-][ia32|x64|arm32|arm64]               = Dart JIT
         aot-[debug-][x64|arm32|arm64]                    = Dart AOT
         kbc-[int|mix|cmp]-[debug-][ia32|x64|arm32|arm64] = Dart KBC
                                                            (interpreted/

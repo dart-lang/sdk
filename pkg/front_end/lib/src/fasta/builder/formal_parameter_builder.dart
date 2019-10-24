@@ -4,6 +4,8 @@
 
 library fasta.formal_parameter_builder;
 
+import 'package:kernel/ast.dart' show VariableDeclaration;
+
 import '../parser.dart' show FormalParameterKind;
 
 import '../parser/formal_parameter_kind.dart'
@@ -12,14 +14,9 @@ import '../parser/formal_parameter_kind.dart'
         isOptionalNamedFormalParameterKind,
         isOptionalPositionalFormalParameterKind;
 
-import 'builder.dart'
-    show LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
-
-import 'package:kernel/ast.dart' show VariableDeclaration;
-
 import '../constant_context.dart' show ConstantContext;
 
-import '../modifier.dart' show finalMask, initializingFormalMask, requiredMask;
+import '../modifier.dart';
 
 import '../scanner.dart' show Token;
 
@@ -31,21 +28,20 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        Builder,
-        ConstructorBuilder,
-        FieldBuilder,
-        LibraryBuilder,
-        MetadataBuilder,
-        TypeBuilder;
+import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationImpl;
 
-import '../kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
+import 'builder.dart';
+import 'class_builder.dart';
+import 'constructor_builder.dart';
+import 'field_builder.dart';
+import 'library_builder.dart';
+import 'metadata_builder.dart';
+import 'modifier_builder.dart';
+import 'type_builder.dart';
 
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
-class FormalParameterBuilder extends ModifierBuilder {
+class FormalParameterBuilder extends ModifierBuilderImpl {
   /// List of metadata builders for the metadata declared on this parameter.
   final List<MetadataBuilder> metadata;
 
@@ -60,7 +56,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   FormalParameterKind kind = FormalParameterKind.mandatory;
 
   /// The variable declaration created for this formal parameter.
-  VariableDeclaration declaration;
+  VariableDeclaration variable;
 
   /// The first token of the default value, if any.
   ///
@@ -69,8 +65,9 @@ class FormalParameterBuilder extends ModifierBuilder {
   Token initializerToken;
 
   FormalParameterBuilder(this.metadata, this.modifiers, this.type, this.name,
-      LibraryBuilder compilationUnit, int charOffset)
-      : super(compilationUnit, charOffset);
+      LibraryBuilder compilationUnit, int charOffset,
+      [Uri fileUri])
+      : super(compilationUnit, charOffset, fileUri);
 
   String get debugName => "FormalParameterBuilder";
 
@@ -78,6 +75,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   // named parameters.
   bool get isRequired => isMandatoryFormalParameterKind(kind);
 
+  // TODO(johnniwinther): Rename to `isRequired`.
   bool get isNamedRequired => (modifiers & requiredMask) != 0;
 
   bool get isPositional {
@@ -91,15 +89,19 @@ class FormalParameterBuilder extends ModifierBuilder {
 
   bool get isLocal => true;
 
+  bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
+
+  bool get isCovariant => (modifiers & covariantMask) != 0;
+
   @override
   String get fullNameForErrors => name;
 
-  VariableDeclaration get target => declaration;
+  VariableDeclaration get target => variable;
 
   VariableDeclaration build(
       SourceLibraryBuilder library, int functionNestingLevel) {
-    if (declaration == null) {
-      declaration = new VariableDeclarationJudgment(name, functionNestingLevel,
+    if (variable == null) {
+      variable = new VariableDeclarationImpl(name, functionNestingLevel,
           type: type?.build(library),
           isFinal: isFinal,
           isConst: isConst,
@@ -108,19 +110,19 @@ class FormalParameterBuilder extends ModifierBuilder {
           isRequired: isNamedRequired)
         ..fileOffset = charOffset;
     }
-    return declaration;
+    return variable;
   }
 
   FormalParameterBuilder clone(List<TypeBuilder> newTypes) {
     // TODO(dmitryas):  It's not clear how [metadata] is used currently, and
     // how it should be cloned.  Consider cloning it instead of reusing it.
-    return new FormalParameterBuilder(
-        metadata, modifiers, type?.clone(newTypes), name, parent, charOffset)
+    return new FormalParameterBuilder(metadata, modifiers,
+        type?.clone(newTypes), name, parent, charOffset, fileUri)
       ..kind = kind;
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
-    assert(declaration != null);
+    assert(variable != null);
     return !isInitializingFormal
         ? this
         : (new FormalParameterBuilder(
@@ -129,17 +131,18 @@ class FormalParameterBuilder extends ModifierBuilder {
             type,
             name,
             null,
-            charOffset)
+            charOffset,
+            fileUri)
           ..parent = parent
-          ..declaration = declaration);
+          ..variable = variable);
   }
 
   void finalizeInitializingFormal() {
     Object cls = parent.parent;
     if (cls is ClassBuilder) {
-      Builder field = cls.scope.lookup(name, charOffset, fileUri);
-      if (field is FieldBuilder) {
-        target.type = field.target.type;
+      Builder fieldBuilder = cls.scope.lookup(name, charOffset, fileUri);
+      if (fieldBuilder is FieldBuilder) {
+        variable.type = fieldBuilder.field.type;
       }
     }
   }
@@ -152,23 +155,27 @@ class FormalParameterBuilder extends ModifierBuilder {
     // constant evaluation. Similarly we need to include initializers for
     // optional and named parameters of instance methods because these might be
     // needed to generated noSuchMethod forwarders.
-    final bool isConstConstructorParameter =
-        (parent is ConstructorBuilder && parent.target.isConst);
+    bool isConstConstructorParameter = false;
+    if (parent is ConstructorBuilder) {
+      ConstructorBuilder constructorBuilder = parent;
+      isConstConstructorParameter = constructorBuilder.constructor.isConst;
+    }
     if ((isConstConstructorParameter || parent.isClassInstanceMember) &&
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;
-      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
-          library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = library.loader
+          .createBodyBuilderForOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      target.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
-        ..parent = target;
+      variable.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
+        ..parent = variable;
       bodyBuilder.typeInferrer?.inferParameterInitializer(
-          bodyBuilder, target.initializer, target.type);
+          bodyBuilder, variable.initializer, variable.type);
       if (library.loader is SourceLoader) {
         SourceLoader loader = library.loader;
-        loader.transformPostInference(target, bodyBuilder.transformSetLiterals,
-            bodyBuilder.transformCollections);
+        loader.transformPostInference(variable,
+            bodyBuilder.transformSetLiterals, bodyBuilder.transformCollections);
       }
       bodyBuilder.resolveRedirectingFactoryTargets();
     }

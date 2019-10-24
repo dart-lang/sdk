@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:linter/src/rules.dart';
 
 import 'src/utilities/mock_packages.dart';
 
@@ -115,6 +116,11 @@ class AbstractContextTest with ResourceProviderMixin {
     createAnalysisContexts();
   }
 
+  void addVectorMathPackage() {
+    Folder libFolder = MockPackages.instance.addVectorMath(resourceProvider);
+    addTestPackageDependency('vector_math', libFolder.parent.path);
+  }
+
   /// Create all analysis contexts in `/home`.
   void createAnalysisContexts() {
     _analysisContextCollection = AnalysisContextCollectionImpl(
@@ -129,8 +135,10 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Create an analysis options file based on the given arguments.
-  void createAnalysisOptionsFile({List<String> experiments}) {
+  void createAnalysisOptionsFile(
+      {List<String> experiments, List<String> lints}) {
     StringBuffer buffer = new StringBuffer();
+
     if (experiments != null) {
       buffer.writeln('analyzer:');
       buffer.writeln('  enable-experiment:');
@@ -138,6 +146,15 @@ class AbstractContextTest with ResourceProviderMixin {
         buffer.writeln('    - $experiment');
       }
     }
+
+    if (lints != null) {
+      buffer.writeln('linter:');
+      buffer.writeln('  rules:');
+      for (String lint in lints) {
+        buffer.writeln('    - $lint');
+      }
+    }
+
     newFile(analysisOptionsPath, content: buffer.toString());
     if (_driver != null) {
       createAnalysisContexts();
@@ -166,6 +183,8 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   void setUp() {
+    registerLintRules();
+
     setupResourceProvider();
     overlayResourceProvider = OverlayResourceProvider(resourceProvider);
 

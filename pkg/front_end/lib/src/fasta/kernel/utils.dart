@@ -12,14 +12,15 @@ import 'package:kernel/clone.dart' show CloneVisitor;
 
 import 'package:kernel/ast.dart'
     show
+        Class,
+        Component,
         DartType,
         Library,
-        Component,
         Procedure,
-        Class,
+        Supertype,
+        TreeNode,
         TypeParameter,
-        TypeParameterType,
-        Supertype;
+        TypeParameterType;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -78,18 +79,22 @@ Uint8List serializeComponent(Component component,
 const String kDebugClassName = "#DebugClass";
 
 Component createExpressionEvaluationComponent(Procedure procedure) {
-  Library fakeLibrary =
-      new Library(new Uri(scheme: 'evaluate', path: 'source'));
+  Library realLibrary = procedure.enclosingLibrary;
+
+  Library fakeLibrary = new Library(new Uri(scheme: 'evaluate', path: 'source'))
+    ..setLanguageVersion(
+        realLibrary.languageVersionMajor, realLibrary.languageVersionMinor);
 
   if (procedure.parent is Class) {
     Class realClass = procedure.parent;
 
-    Class fakeClass = new Class(name: kDebugClassName);
+    Class fakeClass = new Class(name: kDebugClassName)..parent = fakeLibrary;
     Map<TypeParameter, TypeParameter> typeParams =
         <TypeParameter, TypeParameter>{};
     Map<TypeParameter, DartType> typeSubstitution = <TypeParameter, DartType>{};
     for (TypeParameter typeParam in realClass.typeParameters) {
-      var newNode = new TypeParameter(typeParam.name);
+      TypeParameter newNode = new TypeParameter(typeParam.name)
+        ..parent = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] = new TypeParameterType(newNode);
     }
@@ -97,10 +102,9 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         typeSubstitution: typeSubstitution, typeParams: typeParams);
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(typeParam.accept(cloner));
+      fakeClass.typeParameters.add(typeParam.accept<TreeNode>(cloner));
     }
 
-    fakeClass.parent = fakeLibrary;
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
@@ -109,7 +113,7 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
     }
 
     // Rebind the type parameters in the procedure.
-    procedure = procedure.accept(cloner);
+    procedure = procedure.accept<TreeNode>(cloner);
     procedure.parent = fakeClass;
     fakeClass.procedures.add(procedure);
     fakeLibrary.classes.add(fakeClass);

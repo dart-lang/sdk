@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method add(core::int* x) → void
+  ;
+static method add2(core::int* y) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

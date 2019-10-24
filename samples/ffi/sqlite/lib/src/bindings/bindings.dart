@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:ffi";
+import "package:ffi/ffi.dart";
 
-import "../ffi/utf8.dart";
 import "../ffi/dylib_utils.dart";
 
 import "signatures.dart";

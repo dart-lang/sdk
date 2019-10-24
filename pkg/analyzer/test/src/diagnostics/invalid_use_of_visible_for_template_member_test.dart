@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/package_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +14,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidUseOfVisibleForTemplateMemberTest);
+    defineReflectiveTests(InvalidUseOfVisibleForTemplateMember_InExtensionTest);
   });
 }
 
@@ -225,5 +228,57 @@ void main() {
   /// Similar to ResolutionTest.resolveTestFile, but a custom path is supported.
   Future<void> _resolveTestFile(String path) async {
     result = await resolveFile(convertPath(path));
+  }
+}
+
+@reflectiveTest
+class InvalidUseOfVisibleForTemplateMember_InExtensionTest
+    extends InvalidUseOfVisibleForTemplateMemberTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_functionInExtension() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+extension E on List {
+  @visibleForTemplate
+  int m() => 1;
+}
+''');
+    newFile('/lib2.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  E([]).m();
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib2.dart');
+    assertTestErrorsWithCodes(
+        [HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER]);
+  }
+
+  test_functionInExtension_fromTemplate() async {
+    addAngularMetaPackage();
+    newFile('/lib1.dart', content: r'''
+import 'package:angular_meta/angular_meta.dart';
+extension E on List {
+  @visibleForTemplate
+  int m() => 1;
+}
+''');
+    newFile('/lib1.template.dart', content: r'''
+import 'lib1.dart';
+void main() {
+  E([]).m();
+}
+''');
+
+    await _resolveTestFile('/lib1.dart');
+    await _resolveTestFile('/lib1.template.dart');
+    assertNoTestErrors();
   }
 }

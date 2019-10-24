@@ -17,14 +17,13 @@ import 'package:front_end/src/api_prototype/diagnostic_message.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/fasta/builder/procedure_builder.dart';
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
-
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show ProcedureBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -51,14 +50,14 @@ class MockLibraryBuilder extends SourceLibraryBuilder {
             new KernelTarget(
                     null,
                     false,
-                    new DillTarget(null, null,
-                        new NoneTarget(new TargetFlags(legacyMode: true))),
+                    new DillTarget(
+                        null, null, new NoneTarget(new TargetFlags())),
                     null)
                 .loader,
             null);
 
   ProcedureBuilder mockProcedure(String name) {
-    return new ProcedureBuilder(null, 0, null, name, null, null,
+    return new ProcedureBuilderImpl(null, 0, null, name, null, null,
         ProcedureKind.Getter, this, -1, -1, -1, -1);
   }
 }
@@ -67,7 +66,7 @@ class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
       : super(
-            library: libraryBuilder,
+            libraryBuilder: libraryBuilder,
             member: libraryBuilder.mockProcedure(name),
             enclosingScope: scope,
             formalParameterScope: scope,

@@ -6,214 +6,86 @@ library object_graph;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 
-class _JenkinsSmiHash {
-  static int combine(int hash, int value) {
-    hash = 0x1fffffff & (hash + value);
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
+class _ReadStream {
+  final Uint8List _buffer;
+  int _position = 0;
 
-  static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
+  _ReadStream(this._buffer);
 
-  static int hash3(a, b, c) => finish(combine(combine(combine(0, a), b), c));
-}
+  int readByte() => _buffer[_position++];
 
-// Map<[uint32, uint32, uint32], uint32>
-class AddressMapper {
-  final Uint32List _table;
-
-  // * 4 ~/3 for 75% load factor
-  // * 4 for four-tuple entries
-  AddressMapper(int N) : _table = new Uint32List((N * 4 ~/ 3) * 4);
-
-  int _scanFor(int high, int mid, int low) {
-    var hash = _JenkinsSmiHash.hash3(high, mid, low);
-    var start = (hash % _table.length) & ~3;
-    var index = start;
-    do {
-      if (_table[index + 3] == 0) return index;
-      if (_table[index] == high &&
-          _table[index + 1] == mid &&
-          _table[index + 2] == low) return index;
-      index = (index + 4) % _table.length;
-    } while (index != start);
-
-    throw new Exception("Interal error: table full");
-  }
-
-  int get(int high, int mid, int low) {
-    int index = _scanFor(high, mid, low);
-    if (_table[index + 3] == 0) return null;
-    return _table[index + 3];
-  }
-
-  int put(int high, int mid, int low, int id) {
-    if (id == 0) throw new Exception("Internal error: invalid id");
-
-    int index = _scanFor(high, mid, low);
-    if ((_table[index + 3] != 0)) {
-      throw new Exception("Internal error: attempt to overwrite key");
-    }
-    _table[index] = high;
-    _table[index + 1] = mid;
-    _table[index + 2] = low;
-    _table[index + 3] = id;
-    return id;
-  }
-}
-
-// Port of dart::ReadStream from vm/datastream.h.
-//
-// The heap snapshot is a series of variable-length unsigned integers. For
-// each byte in the stream, the high bit marks the last byte of an integer and
-// the low 7 bits are the payload. The payloads are sent in little endian
-// order.
-// The largest values used are 64-bit addresses.
-// We read in 4 payload chunks (28-bits) to stay in Smi range on Javascript.
-// We read them into instance variables ('low', 'mid' and 'high') to avoid
-// allocating a container.
-class ReadStream {
-  int position = 0;
-  int _size = 0;
-  final List<ByteData> _chunks;
-
-  ReadStream(this._chunks) {
-    int n = _chunks.length;
-    for (var i = 0; i < n; i++) {
-      var chunk = _chunks[i];
-      if (i + 1 != n) {
-        assert(chunk.lengthInBytes == (1 << 20));
+  /// Read one ULEB128 number.
+  int readUnsigned() {
+    int result = 0;
+    int shift = 0;
+    for (;;) {
+      int part = readByte();
+      result |= (part & 0x7F) << shift;
+      if ((part & 0x80) == 0) {
+        break;
       }
-      _size += chunk.lengthInBytes;
+      shift += 7;
     }
+    return result;
   }
 
-  int get pendingBytes => _size - position;
-
-  int _getUint8(i) {
-    return _chunks[i >> 20].getUint8(i & 0xFFFFF);
+  /// Read one SLEB128 number.
+  int readSigned() {
+    int result = 0;
+    int shift = 0;
+    for (;;) {
+      int part = readByte();
+      result |= (part & 0x7F) << shift;
+      shift += 7;
+      if ((part & 0x80) == 0) {
+        if ((part & 0x40) != 0) {
+          result |= (-1 << shift);
+        }
+        break;
+      }
+    }
+    return result;
   }
 
-  int low = 0;
-  int mid = 0;
-  int high = 0;
-
-  int get clampedUint32 {
-    if (high != 0 || mid > 0xF) {
-      return 0xFFFFFFFF;
-    } else {
-      // Not shift as JS shifts are signed 32-bit.
-      return mid * 0x10000000 + low;
+  double readFloat64() {
+    var bytes = new Uint8List(8);
+    for (var i = 0; i < 8; i++) {
+      bytes[i] = readByte();
     }
+    return new Float64List.view(bytes.buffer)[0];
   }
 
-  int get highUint32 {
-    return high * (1 << 24) + (mid >> 4);
+  String readUtf8() {
+    int len = readUnsigned();
+    var bytes = new Uint8List(len);
+    for (var i = 0; i < len; i++) {
+      bytes[i] = readByte();
+    }
+    return new Utf8Codec(allowMalformed: true).decode(bytes);
   }
 
-  int get lowUint32 {
-    return (mid & 0xF) * (1 << 28) + low;
+  String readLatin1() {
+    int len = readUnsigned();
+    var codeUnits = new Uint8List(len);
+    for (var i = 0; i < len; i++) {
+      codeUnits[i] = readByte();
+    }
+    return new String.fromCharCodes(codeUnits);
   }
 
-  bool get isZero {
-    return (high == 0) && (mid == 0) && (low == 0);
+  String readUtf16() {
+    int len = readUnsigned();
+    var codeUnits = new Uint16List(len);
+    for (var i = 0; i < len; i++) {
+      codeUnits[i] = readByte() | (readByte() << 8);
+    }
+    return new String.fromCharCodes(codeUnits);
   }
-
-  void readUnsigned() {
-    low = 0;
-    mid = 0;
-    high = 0;
-
-    // Low 28 bits.
-    var digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      low |= (digit & byteMask << 0);
-      return;
-    }
-    low |= (digit << 0);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      low |= ((digit & byteMask) << 7);
-      return;
-    }
-    low |= (digit << 7);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      low |= ((digit & byteMask) << 14);
-      return;
-    }
-    low |= (digit << 14);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      low |= ((digit & byteMask) << 21);
-      return;
-    }
-    low |= (digit << 21);
-
-    // Mid 28 bits.
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      mid |= (digit & byteMask << 0);
-      return;
-    }
-    mid |= (digit << 0);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      mid |= ((digit & byteMask) << 7);
-      return;
-    }
-    mid |= (digit << 7);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      mid |= ((digit & byteMask) << 14);
-      return;
-    }
-    mid |= (digit << 14);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      mid |= ((digit & byteMask) << 21);
-      return;
-    }
-    mid |= (digit << 21);
-
-    // High 28 bits.
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      high |= (digit & byteMask << 0);
-      return;
-    }
-    high |= (digit << 0);
-
-    digit = _getUint8(position++);
-    if (digit > maxUnsignedDataPerByte) {
-      high |= ((digit & byteMask) << 7);
-      return;
-    }
-    high |= (digit << 7);
-    throw new Exception("Format error: snapshot field exceeds 64 bits");
-  }
-
-  void skipUnsigned() {
-    while (_getUint8(position++) <= maxUnsignedDataPerByte);
-  }
-
-  static const int dataBitsPerByte = 7;
-  static const int byteMask = (1 << dataBitsPerByte) - 1;
-  static const int maxUnsignedDataPerByte = byteMask;
 }
 
 // Node indices for the root and sentinel nodes. Note that using 0 as the
@@ -222,73 +94,90 @@ class ReadStream {
 const ROOT = 1;
 const SENTINEL = 0;
 
-class ObjectVertex {
+abstract class SnapshotObject {
+  String get label;
+  String get description;
+  SnapshotClass get klass;
+  int get shallowSize;
+  int get externalSize;
+  int get retainedSize;
+  Iterable<SnapshotObject> get successors;
+  Iterable<SnapshotObject> get predecessors;
+  SnapshotObject get parent;
+  Iterable<SnapshotObject> get children;
+  List<SnapshotObject> get objects;
+}
+
+class _SnapshotObject implements SnapshotObject {
   final int _id;
-  final ObjectGraph _graph;
+  final _SnapshotGraph _graph;
+  final String label;
 
-  ObjectVertex._(this._id, this._graph);
+  _SnapshotObject._(this._id, this._graph, this.label);
 
-  bool get isRoot => ROOT == _id;
-  bool get isStack => vmCid == _graph._kStackCid;
+  bool operator ==(other) {
+    if (other is _SnapshotObject) {
+      return _id == other._id && _graph == other._graph;
+    }
+    return false;
+  }
 
-  bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
-
-  int get retainedSize => _graph._retainedSizes[_id];
-  ObjectVertex get dominator => new ObjectVertex._(_graph._doms[_id], _graph);
 
   int get shallowSize => _graph._shallowSizes[_id];
   int get externalSize => _graph._externalSizes[_id];
-  int get vmCid => _graph._cids[_id];
+  int get retainedSize => _graph._retainedSizes[_id];
 
-  get successors => new _SuccessorsIterable(_graph, _id);
+  String get description => _graph._describeObject(_id);
+  SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
-  String get address {
-    // Note that everywhere else in this file, "address" really means an address
-    // scaled down by kObjectAlignment. They were scaled down so they would fit
-    // into Smis on the client.
+  Iterable<SnapshotObject> get successors =>
+      new _SuccessorsIterable(_graph, _id);
 
-    var high32 = _graph._addressesHigh[_id];
-    var low32 = _graph._addressesLow[_id];
-
-    // Complicated way to do (high:low * _kObjectAlignment).toHexString()
-    // without intermediate values exceeding int32.
-
-    var strAddr = "";
-    var carry = 0;
-    combine4(nibble) {
-      nibble = nibble * _graph._kObjectAlignment + carry;
-      carry = nibble >> 4;
-      nibble = nibble & 0xF;
-      strAddr = nibble.toRadixString(16) + strAddr;
-    }
-
-    combine32(thirtyTwoBits) {
-      for (int shift = 0; shift < 32; shift += 4) {
-        combine4((thirtyTwoBits >> shift) & 0xF);
+  Iterable<SnapshotObject> get predecessors {
+    var result = new List<SnapshotObject>();
+    var firstSuccs = _graph._firstSuccs;
+    var succs = _graph._succs;
+    var id = _id;
+    var N = _graph._N;
+    for (var predId = 1; predId <= N; predId++) {
+      var base = firstSuccs[predId];
+      var limit = firstSuccs[predId + 1];
+      for (var i = base; i < limit; i++) {
+        if (succs[i] == id) {
+          var cid = _graph._cids[predId];
+          var name = _graph._edgeName(cid, i - base);
+          result.add(new _SnapshotObject._(predId, _graph, name));
+        }
       }
     }
-
-    combine32(low32);
-    combine32(high32);
-    return strAddr;
+    return result;
   }
 
-  List<ObjectVertex> dominatorTreeChildren() {
+  SnapshotObject get parent {
+    if (_id == ROOT) {
+      return this;
+    }
+    return new _SnapshotObject._(_graph._doms[_id], _graph, "");
+  }
+
+  Iterable<SnapshotObject> get children {
     var N = _graph._N;
     var doms = _graph._doms;
 
     var parentId = _id;
-    var domChildren = <ObjectVertex>[];
+    var domChildren = <SnapshotObject>[];
 
     for (var childId = ROOT; childId <= N; childId++) {
       if (doms[childId] == parentId) {
-        domChildren.add(new ObjectVertex._(childId, _graph));
+        domChildren.add(new _SnapshotObject._(childId, _graph, ""));
       }
     }
 
     return domChildren;
   }
+
+  List<SnapshotObject> get objects => <SnapshotObject>[this];
 }
 
 // A node in the dominator tree where siblings with the same class are merged.
@@ -299,17 +188,16 @@ class ObjectVertex {
 // different class.
 class MergedObjectVertex {
   final int _id;
-  final ObjectGraph _graph;
+  final _SnapshotGraph _graph;
 
   MergedObjectVertex._(this._id, this._graph);
 
   bool get isRoot => ROOT == _id;
-  bool get isStack => vmCid == _graph._kStackCid;
 
   bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
 
-  int get vmCid => _graph._cids[_id];
+  SnapshotClass get klass => _graph._classes[_graph._cids[_id]];
 
   int get shallowSize {
     var cids = _graph._cids;
@@ -355,6 +243,17 @@ class MergedObjectVertex {
     return count;
   }
 
+  List<SnapshotObject> get objects {
+    var result = <SnapshotObject>[];
+    var cids = _graph._cids;
+    var sibling = _id;
+    while (sibling != SENTINEL && cids[sibling] == cids[_id]) {
+      result.add(new _SnapshotObject._(sibling, _graph, ""));
+      sibling = _graph._mergedDomNext[sibling];
+    }
+    return result;
+  }
+
   List<MergedObjectVertex> dominatorTreeChildren() {
     var next = _graph._mergedDomNext;
     var cids = _graph._cids;
@@ -376,192 +275,307 @@ class MergedObjectVertex {
   }
 }
 
-class _SuccessorsIterable extends IterableBase<ObjectVertex> {
-  final ObjectGraph _graph;
+class _SuccessorsIterable extends IterableBase<SnapshotObject> {
+  final _SnapshotGraph _graph;
   final int _id;
 
   _SuccessorsIterable(this._graph, this._id);
 
-  Iterator<ObjectVertex> get iterator => new _SuccessorsIterator(_graph, _id);
+  Iterator<SnapshotObject> get iterator => new _SuccessorsIterator(_graph, _id);
 }
 
-class _SuccessorsIterator implements Iterator<ObjectVertex> {
-  final ObjectGraph _graph;
+class _SuccessorsIterator implements Iterator<SnapshotObject> {
+  final _SnapshotGraph _graph;
+  int _cid;
+  int _startSuccIndex;
   int _nextSuccIndex;
   int _limitSuccIndex;
 
-  ObjectVertex current;
+  SnapshotObject current;
 
   _SuccessorsIterator(this._graph, int id) {
-    _nextSuccIndex = _graph._firstSuccs[id];
+    _cid = _graph._cids[id];
+    _startSuccIndex = _graph._firstSuccs[id];
+    _nextSuccIndex = _startSuccIndex;
     _limitSuccIndex = _graph._firstSuccs[id + 1];
   }
 
   bool moveNext() {
     if (_nextSuccIndex < _limitSuccIndex) {
+      var index = _nextSuccIndex - _startSuccIndex;
       var succId = _graph._succs[_nextSuccIndex++];
-      current = new ObjectVertex._(succId, _graph);
+      var name = _graph._edgeName(_cid, index);
+      current = new _SnapshotObject._(succId, _graph, name);
       return true;
     }
     return false;
   }
 }
 
-class _VerticesIterable extends IterableBase<ObjectVertex> {
-  final ObjectGraph _graph;
+class _VerticesIterable extends IterableBase<SnapshotObject> {
+  final _SnapshotGraph _graph;
 
   _VerticesIterable(this._graph);
 
-  Iterator<ObjectVertex> get iterator => new _VerticesIterator(_graph);
+  Iterator<SnapshotObject> get iterator => new _VerticesIterator(_graph);
 }
 
-class _VerticesIterator implements Iterator<ObjectVertex> {
-  final ObjectGraph _graph;
+class _VerticesIterator implements Iterator<SnapshotObject> {
+  final _SnapshotGraph _graph;
 
   int _nextId = 0;
-  ObjectVertex current;
+  SnapshotObject current;
 
   _VerticesIterator(this._graph);
 
   bool moveNext() {
     if (_nextId == _graph._N) return false;
-    current = new ObjectVertex._(_nextId++, _graph);
+    current = new _SnapshotObject._(_nextId++, _graph, "");
     return true;
   }
 }
 
-class ObjectGraph {
-  ObjectGraph(List<ByteData> chunks, int nodeCount)
-      : this._chunks = chunks,
-        this._N = nodeCount;
+class _InstancesIterable extends IterableBase<SnapshotObject> {
+  final _SnapshotGraph _graph;
+  final int _cid;
 
-  int get internalSize => _internalSize;
-  int get externalSize => _externalSize;
-  int get vertexCount => _N;
-  int get edgeCount => _E;
+  _InstancesIterable(this._graph, this._cid);
 
-  ObjectVertex get root => new ObjectVertex._(ROOT, this);
+  Iterator<SnapshotObject> get iterator => new _InstancesIterator(_graph, _cid);
+}
+
+class _InstancesIterator implements Iterator<SnapshotObject> {
+  final _SnapshotGraph _graph;
+  final int _cid;
+
+  int _nextId = 0;
+  SnapshotObject current;
+
+  _InstancesIterator(this._graph, this._cid);
+
+  bool moveNext() {
+    while (_nextId < _graph._N) {
+      if (_graph._cids[_nextId] == _cid) {
+        current = new _SnapshotObject._(_nextId++, _graph, "");
+        return true;
+      }
+      _nextId++;
+    }
+    return false;
+  }
+}
+
+abstract class SnapshotClass {
+  String get name;
+  int get externalSize;
+  int get shallowSize;
+  int get ownedSize;
+  int get instanceCount;
+  Iterable<SnapshotObject> get instances;
+}
+
+class _SnapshotClass implements SnapshotClass {
+  final _SnapshotGraph _graph;
+  final int _cid;
+  final String name;
+  final String libName;
+  final String libUri;
+  final Map<int, String> fields = new Map<int, String>();
+
+  int totalExternalSize = 0;
+  int totalShallowSize = 0;
+  int totalInstanceCount = 0;
+
+  int ownedSize = 0;
+
+  int liveExternalSize = 0;
+  int liveShallowSize = 0;
+  int liveInstanceCount = 0;
+
+  int get shallowSize => liveShallowSize;
+  int get externalSize => liveExternalSize;
+  int get instanceCount => liveInstanceCount;
+
+  Iterable<SnapshotObject> get instances =>
+      new _InstancesIterable(_graph, _cid);
+
+  _SnapshotClass(this._graph, this._cid, this.name, this.libName, this.libUri);
+}
+
+abstract class SnapshotGraph {
+  int get shallowSize;
+  int get externalSize;
+  int get size;
+  int get capacity;
+
+  SnapshotObject get root;
+  MergedObjectVertex get mergedRoot;
+  Iterable<SnapshotClass> get classes;
+  Iterable<SnapshotObject> get objects;
+
+  factory SnapshotGraph(Uint8List encoded) => new _SnapshotGraph(encoded);
+  Stream<String> process();
+}
+
+const kNoData = 0;
+const kNullData = 1;
+const kBoolData = 2;
+const kIntData = 3;
+const kDoubleData = 4;
+const kLatin1Data = 5;
+const kUtf16Data = 6;
+const kLengthData = 7;
+const kNameData = 8;
+
+const kSentinelName = "<omitted-object>";
+const kRootName = "Root";
+const kUnknownFieldName = "<unknown>";
+
+class _SnapshotGraph implements SnapshotGraph {
+  _SnapshotGraph(Uint8List encoded) : this._encoded = encoded;
+
+  int get size => _liveShallowSize + _liveExternalSize;
+  int get shallowSize => _liveShallowSize;
+  int get externalSize => _liveExternalSize;
+  int get capacity => _capacity;
+
+  SnapshotObject get root => new _SnapshotObject._(ROOT, this, "Root");
   MergedObjectVertex get mergedRoot => new MergedObjectVertex._(ROOT, this);
-  Iterable<ObjectVertex> get vertices => new _VerticesIterable(this);
+  Iterable<SnapshotObject> get objects => new _VerticesIterable(this);
 
-  int get numCids => _numCids;
-  int getOwnedByCid(int cid) => _ownedSizesByCid[cid];
-
-  Iterable<ObjectVertex> getMostRetained({int classId, int limit}) {
-    if (limit != null && limit < 20) {
-      SplayTreeSet<int> workingSet = new SplayTreeSet<int>((int e1, int e2) {
-        int result = _retainedSizes[e2] - _retainedSizes[e1];
-        if (result != 0) return result;
-        return e2 - e1;
-      });
-
-      for (int i = ROOT + 1; i < _N; i++) {
-        if (classId != null && _cids[i] != classId) continue;
-        workingSet.add(i);
-        if (workingSet.length > limit) {
-          int smallest = workingSet.last;
-          workingSet.remove(smallest);
-        }
-      }
-
-      List<ObjectVertex> result = new List<ObjectVertex>();
-      for (int id in workingSet) {
-        result.add(new ObjectVertex._(id, this));
-      }
-      return result;
+  String _describeObject(int oid) {
+    if (oid == SENTINEL) {
+      return kSentinelName;
+    }
+    if (oid == ROOT) {
+      return kRootName;
+    }
+    var cls = _className(oid);
+    var data = _nonReferenceData[oid];
+    if (data == null) {
+      return cls;
     } else {
-      List<ObjectVertex> _mostRetained =
-          new List<ObjectVertex>.from(vertices.where((u) => !u.isRoot));
-      _mostRetained.sort((u, v) => v.retainedSize - u.retainedSize);
-
-      Iterable<ObjectVertex> result = _mostRetained;
-      if (classId != null) {
-        result = result.where((u) => u.vmCid == classId);
-      }
-      if (limit != null) {
-        result = result.take(limit);
-      }
-      return result;
+      return "$cls($data)";
     }
   }
 
-  Stream<List> process() {
-    final controller = new StreamController<List>.broadcast();
+  String _className(int oid) {
+    var cid = _cids[oid];
+    var cls = _classes[cid];
+    if (cls == null) {
+      return "Class$cid";
+    }
+    return cls.name;
+  }
+
+  String _edgeName(int cid, int index) {
+    var c = _classes[cid];
+    if (c == null) {
+      return kUnknownFieldName;
+    }
+    var n = c.fields[index];
+    if (n == null) {
+      return kUnknownFieldName;
+    }
+    return n;
+  }
+
+  List<SnapshotClass> get classes {
+    var result = new List<SnapshotClass>();
+    for (var c in _classes) {
+      if (c != null) {
+        result.add(c);
+      }
+    }
+    return result;
+  }
+
+  Stream<String> process() {
+    final controller = new StreamController<String>.broadcast();
     (() async {
       // We build futures here instead of marking the steps as async to avoid the
       // heavy lifting being inside a transformed method.
+      var stream = new _ReadStream(_encoded);
+      _encoded = null;
 
-      controller.add(["Remapping $_N objects...", 0.0]);
-      await new Future(() => _remapNodes());
+      controller.add("Loading classes...");
+      await new Future(() => _readClasses(stream));
 
-      controller.add(["Remapping $_E references...", 10.0]);
-      await new Future(() => _remapEdges());
+      controller.add("Loading objects...");
+      await new Future(() => _readObjects(stream));
 
-      _addrToId = null;
-      _chunks = null;
+      controller.add("Loading external properties...");
+      await new Future(() => _readExternalProperties(stream));
+      stream = null;
 
-      controller.add(["Finding depth-first order...", 20.0]);
+      controller.add("Compute class table...");
+      await new Future(() => _computeClassTable());
+
+      controller.add("Finding depth-first order...");
       await new Future(() => _dfs());
 
-      controller.add(["Finding predecessors...", 30.0]);
+      controller.add("Finding predecessors...");
       await new Future(() => _buildPredecessors());
 
-      controller.add(["Finding dominators...", 40.0]);
+      controller.add("Finding dominators...");
       await new Future(() => _buildDominators());
 
       _semi = null;
       _parent = null;
 
-      controller.add(["Finding in-degree(1) groups...", 50.0]);
+      controller.add("Finding in-degree(1) groups...");
       await new Future(() => _buildOwnedSizes());
 
       _firstPreds = null;
       _preds = null;
 
-      controller.add(["Finding retained sizes...", 60.0]);
+      controller.add("Finding retained sizes...");
       await new Future(() => _calculateRetainedSizes());
 
       _vertex = null;
 
-      controller.add(["Linking dominator tree children...", 70.0]);
+      controller.add("Linking dominator tree children...");
       await new Future(() => _linkDominatorChildren());
 
-      controller.add(["Sorting dominator tree children...", 80.0]);
+      controller.add("Sorting dominator tree children...");
       await new Future(() => _sortDominatorChildren());
 
-      controller.add(["Merging dominator tree siblings...", 90.0]);
+      controller.add("Merging dominator tree siblings...");
       await new Future(() => _mergeDominatorSiblings());
 
-      controller.add(["Processed", 100.0]);
+      controller.add("Loaded");
       controller.close();
     }());
     return controller.stream;
   }
 
-  List<ByteData> _chunks;
+  Uint8List _encoded;
 
-  int _kObjectAlignment;
   int _kStackCid;
   int _kFieldCid;
   int _numCids;
   int _N; // Objects in the snapshot.
   int _Nconnected; // Objects reachable from root.
   int _E; // References in the snapshot.
-  int _internalSize;
-  int _externalSize;
+
+  int _capacity;
+  int _liveShallowSize;
+  int _liveExternalSize;
+  int _totalShallowSize;
+  int _totalExternalSize;
+
+  List<_SnapshotClass> _classes;
 
   // Indexed by node id, with id 0 representing invalid/uninitialized.
   // From snapshot.
+  List _nonReferenceData;
   Uint16List _cids;
   Uint32List _shallowSizes;
   Uint32List _externalSizes;
   Uint32List _firstSuccs;
   Uint32List _succs;
-  Uint32List _addressesLow; // No Uint64List in Javascript.
-  Uint32List _addressesHigh;
 
   // Intermediates.
-  AddressMapper _addrToId;
   Uint32List _vertex;
   Uint32List _parent;
   Uint32List _semi;
@@ -573,119 +587,167 @@ class ObjectGraph {
   Uint32List _retainedSizes;
   Uint32List _mergedDomHead;
   Uint32List _mergedDomNext;
-  Uint32List _ownedSizesByCid;
 
-  void _remapNodes() {
-    var N = _N;
-    var E = 0;
-    var addrToId = new AddressMapper(N);
+  void _readClasses(_ReadStream stream) {
+    for (var i = 0; i < 8; i++) {
+      stream.readByte(); // Magic value.
+    }
+    stream.readUnsigned(); // Flags
+    stream.readUtf8(); // Name
 
-    var addressesHigh = new Uint32List(N + 1);
-    var addressesLow = new Uint32List(N + 1);
-    var shallowSizes = new Uint32List(N + 1);
-    var externalSizes = new Uint32List(N + 1);
-    var cids = new Uint16List(N + 1);
+    _totalShallowSize = stream.readUnsigned();
+    _capacity = stream.readUnsigned();
+    _totalExternalSize = stream.readUnsigned();
 
-    var stream = new ReadStream(_chunks);
-    stream.readUnsigned();
-    _kObjectAlignment = stream.clampedUint32;
-    stream.readUnsigned();
-    _kStackCid = stream.clampedUint32;
-    stream.readUnsigned();
-    _kFieldCid = stream.clampedUint32;
-    stream.readUnsigned();
-    _numCids = stream.clampedUint32;
+    var K = stream.readUnsigned();
+    var classes = new List<_SnapshotClass>(K + 1);
+    classes[0] = new _SnapshotClass(this, 0, "Root", "", "");
 
-    var id = ROOT;
-    while (id <= N) {
-      stream.readUnsigned(); // addr
-      addrToId.put(stream.high, stream.mid, stream.low, id);
-      addressesHigh[id] = stream.highUint32;
-      addressesLow[id] = stream.lowUint32;
-      stream.readUnsigned(); // shallowSize
-      shallowSizes[id] = stream.clampedUint32;
-      stream.readUnsigned(); // cid
-      cids[id] = stream.clampedUint32;
-
-      stream.readUnsigned();
-      while (!stream.isZero) {
-        E++;
-        stream.readUnsigned();
+    for (var cid = 1; cid <= K; cid++) {
+      int flags = stream.readUnsigned();
+      String name = stream.readUtf8();
+      String libName = stream.readUtf8();
+      String libUri = stream.readUtf8();
+      String reserved = stream.readUtf8();
+      final cls = new _SnapshotClass(this, cid, name, libName, libUri);
+      int edgeCount = stream.readUnsigned();
+      for (int i = 0; i < edgeCount; i++) {
+        int flags = stream.readUnsigned();
+        int index = stream.readUnsigned();
+        String fieldName = stream.readUtf8();
+        String reserved = stream.readUtf8();
+        cls.fields[index] = fieldName;
       }
-      id++;
+      classes[cid] = cls;
     }
 
-    assert(ROOT == addrToId.get(0, 0, 0));
-
-    stream.readUnsigned();
-    assert(stream.isZero);
-
-    stream.readUnsigned(); // addr
-    while (!stream.isZero) {
-      var nodeId = addrToId.get(stream.high, stream.mid, stream.low);
-      stream.readUnsigned(); // externalSize
-      // The handle's object might be in the VM isolate or an immediate object,
-      // in which case the object isn't included in the snapshot.
-      if (nodeId != null) {
-        externalSizes[nodeId] += stream.clampedUint32;
-      }
-
-      stream.readUnsigned(); // addr
-    }
-
-    _E = E;
-    _addrToId = addrToId;
-    _addressesLow = addressesLow;
-    _addressesHigh = addressesHigh;
-    _shallowSizes = shallowSizes;
-    _externalSizes = externalSizes;
-    _cids = cids;
+    _numCids = K;
+    _classes = classes;
   }
 
-  void _remapEdges() {
-    var N = _N;
-    var E = _E;
-    var addrToId = _addrToId;
+  void _readObjects(_ReadStream stream) {
+    var E = stream.readUnsigned();
+    var N = stream.readUnsigned();
 
+    _N = N;
+    _E = E;
+
+    var shallowSizes = new Uint32List(N + 1);
+    var cids = new Uint16List(N + 1);
+    var nonReferenceData = new List(N + 1);
     var firstSuccs = new Uint32List(N + 2);
     var succs = new Uint32List(E);
+    var eid = 0;
+    for (var oid = 1; oid <= N; oid++) {
+      var cid = stream.readUnsigned();
+      cids[oid] = cid;
 
-    var stream = new ReadStream(_chunks);
-    stream.skipUnsigned(); // kObjectAlignment
-    stream.skipUnsigned(); // kStackCid
-    stream.skipUnsigned(); // kFieldCid
-    stream.skipUnsigned(); // numCids
+      var shallowSize = stream.readUnsigned();
+      shallowSizes[oid] = shallowSize;
 
-    var id = 1, edge = 0;
-    while (id <= N) {
-      stream.skipUnsigned(); // addr
-      stream.skipUnsigned(); // shallowSize
-      stream.skipUnsigned(); // cid
-
-      firstSuccs[id] = edge;
-
-      stream.readUnsigned();
-      while (!stream.isZero) {
-        var childId = addrToId.get(stream.high, stream.mid, stream.low);
-        if (childId != null) {
-          succs[edge] = childId;
-          edge++;
-        } else {
-          throw new Exception(
-              "Heap snapshot contains an edge but lacks its target node");
-        }
-        stream.readUnsigned();
+      var nonReferenceDataTag = stream.readUnsigned();
+      switch (nonReferenceDataTag) {
+        case kNoData:
+          break;
+        case kNullData:
+          nonReferenceData[oid] = "null";
+          break;
+        case kBoolData:
+          nonReferenceData[oid] = stream.readByte() != 0;
+          break;
+        case kIntData:
+          nonReferenceData[oid] = stream.readSigned();
+          break;
+        case kDoubleData:
+          nonReferenceData[oid] = stream.readFloat64();
+          break;
+        case kLatin1Data:
+          var len = stream.readUnsigned();
+          var str = stream.readLatin1();
+          if (str.length < len) {
+            nonReferenceData[oid] = '$str...';
+          } else {
+            nonReferenceData[oid] = str;
+          }
+          break;
+        case kUtf16Data:
+          int len = stream.readUnsigned();
+          var str = stream.readUtf16();
+          if (str.length < len) {
+            nonReferenceData[oid] = '$str...';
+          } else {
+            nonReferenceData[oid] = str;
+          }
+          break;
+        case kLengthData:
+          nonReferenceData[oid] = stream.readUnsigned(); // Length
+          break;
+        case kNameData:
+          nonReferenceData[oid] = stream.readUtf8(); // Name
+          break;
+        default:
+          throw "Unknown tag $nonReferenceDataTag";
       }
-      id++;
+
+      firstSuccs[oid] = eid;
+      var referenceCount = stream.readUnsigned();
+      while (referenceCount > 0) {
+        var childOid = stream.readUnsigned();
+        succs[eid] = childOid;
+        eid++;
+        referenceCount--;
+      }
     }
-    firstSuccs[id] = edge; // Extra entry for cheap boundary detection.
+    firstSuccs[N + 1] = eid;
 
-    assert(id == N + 1);
-    assert(edge == E);
-
-    _E = edge;
+    assert(eid <= E);
+    _E = eid;
+    _shallowSizes = shallowSizes;
+    _cids = cids;
+    _nonReferenceData = nonReferenceData;
     _firstSuccs = firstSuccs;
     _succs = succs;
+  }
+
+  void _readExternalProperties(_ReadStream stream) {
+    var N = _N;
+    var externalPropertyCount = stream.readUnsigned();
+
+    var externalSizes = new Uint32List(N + 1);
+    for (var i = 0; i < externalPropertyCount; i++) {
+      var oid = stream.readUnsigned();
+      var externalSize = stream.readUnsigned();
+      var name = stream.readUtf8();
+      externalSizes[oid] += externalSize;
+    }
+
+    _externalSizes = externalSizes;
+  }
+
+  void _computeClassTable() {
+    var N = _N;
+    var classes = _classes;
+    var cids = _cids;
+    var shallowSizes = _shallowSizes;
+    var externalSizes = _externalSizes;
+    var totalShallowSize = 0;
+    var totalExternalSize = 0;
+
+    for (var oid = 1; oid <= N; oid++) {
+      var shallowSize = shallowSizes[oid];
+      totalShallowSize += shallowSize;
+
+      var externalSize = externalSizes[oid];
+      totalExternalSize += externalSize;
+
+      var cls = classes[cids[oid]];
+      cls.totalShallowSize += shallowSize;
+      cls.totalExternalSize += externalSize;
+      cls.totalInstanceCount++;
+    }
+
+    _totalShallowSize = totalShallowSize;
+    _totalExternalSize = totalExternalSize;
   }
 
   void _dfs() {
@@ -723,7 +785,9 @@ class ObjectGraph {
         edgePos++;
         stackCurrentEdgePos[stackTop] = edgePos;
 
-        if (semi[childId] == 0) {
+        if (childId == SENTINEL) {
+          // Omitted target.
+        } else if (semi[childId] == 0) {
           parent[childId] = v;
 
           // Push child.
@@ -739,7 +803,8 @@ class ObjectGraph {
 
     if (dfsNumber != N) {
       // This may happen in filtered snapshots.
-      Logger.root.warning('Heap snapshot contains unreachable nodes.');
+      Logger.root.warning(
+          'Heap snapshot contains ${N - dfsNumber} unreachable nodes.');
     }
 
     assert(() {
@@ -852,7 +917,6 @@ class ObjectGraph {
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
       ownedSizes[v] = shallowSizes[v] + externalSizes[v];
-      assert((ownedSizes[v] != 0) || cids[v] == kStackCid || v == ROOT);
     }
 
     for (var i = Nconnected; i > 1; i--) {
@@ -884,7 +948,7 @@ class ObjectGraph {
           (onlyPred != ROOT) &&
           (cids[onlyPred] != kStackCid) &&
           (cids[onlyPred] != kFieldCid)) {
-        assert(ownedSizes[w] != 0);
+        assert(onlyPred != w);
         ownedSizes[onlyPred] += ownedSizes[w];
         ownedSizes[w] = 0;
       }
@@ -892,14 +956,13 @@ class ObjectGraph {
 
     // TODO(rmacnak): Maybe keep the per-objects sizes to be able to provide
     // examples of large owners for each class.
-    var ownedSizesByCid = new Uint32List(_numCids);
+    var classes = _classes;
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
       var cid = cids[v];
-      ownedSizesByCid[cid] += ownedSizes[v];
+      var cls = classes[cid];
+      cls.ownedSize += ownedSizes[v];
     }
-
-    _ownedSizesByCid = ownedSizesByCid;
   }
 
   static int _eval(int v, Uint32List ancestor, Uint32List semi,
@@ -1057,8 +1120,10 @@ class ObjectGraph {
     var N = _N;
     var Nconnected = _Nconnected;
 
-    var internalSize = 0;
-    var externalSize = 0;
+    var liveShallowSize = 0;
+    var liveExternalSize = 0;
+    var classes = _classes;
+    var cids = _cids;
     var shallowSizes = _shallowSizes;
     var externalSizes = _externalSizes;
     var vertex = _vertex;
@@ -1067,8 +1132,15 @@ class ObjectGraph {
     // Sum internal and external sizes.
     for (var i = 1; i <= Nconnected; i++) {
       var v = vertex[i];
-      internalSize += shallowSizes[v];
-      externalSize += externalSizes[v];
+      var shallowSize = shallowSizes[v];
+      var externalSize = externalSizes[v];
+      liveShallowSize += shallowSize;
+      liveExternalSize += externalSize;
+
+      var cls = classes[cids[v]];
+      cls.liveShallowSize += shallowSize;
+      cls.liveExternalSize += externalSize;
+      cls.liveInstanceCount++;
     }
 
     // Start with retained size as shallow size + external size.
@@ -1086,11 +1158,19 @@ class ObjectGraph {
     }
 
     // Root retains everything.
-    assert(retainedSizes[ROOT] == (internalSize + externalSize));
+    assert(retainedSizes[ROOT] == (liveShallowSize + liveExternalSize));
 
     _retainedSizes = retainedSizes;
-    _internalSize = internalSize;
-    _externalSize = externalSize;
+    _liveShallowSize = liveShallowSize;
+    _liveExternalSize = liveExternalSize;
+
+    Logger.root
+        .info("internal-garbage: ${_totalShallowSize - _liveShallowSize}");
+    Logger.root
+        .info("external-garbage: ${_totalExternalSize - _liveExternalSize}");
+    Logger.root.info("fragmentation: ${_capacity - _totalShallowSize}");
+    assert(_liveShallowSize <= _totalShallowSize);
+    assert(_totalShallowSize <= _capacity);
   }
 
   // Build linked lists of the children for each node in the dominator tree.

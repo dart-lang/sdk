@@ -7,6 +7,14 @@ void isType() {
     if (x is String) {
       /*String*/ x;
     }
+  }
+}
+
+void isType_mutatedInClosure() {
+  void g(Object x) {
+    if (x is String) {
+      /*String*/ x;
+    }
     x = 42;
   }
 }

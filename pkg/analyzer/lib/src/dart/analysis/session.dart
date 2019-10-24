@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -218,6 +219,7 @@ class SynchronousSession {
     return _typeSystem ??= Dart2TypeSystem(
       typeProvider,
       implicitCasts: analysisOptions.implicitCasts,
+      strictInference: analysisOptions.strictInference,
     );
   }
 

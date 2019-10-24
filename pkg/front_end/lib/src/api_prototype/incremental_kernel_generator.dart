@@ -17,18 +17,25 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
+import '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+
 import '../fasta/scanner/string_scanner.dart' show StringScanner;
 
 import 'compiler_options.dart' show CompilerOptions;
 
+export '../fasta/incremental_serializer.dart' show IncrementalSerializer;
+
 abstract class IncrementalKernelGenerator {
   factory IncrementalKernelGenerator(CompilerOptions options, Uri entryPoint,
-      [Uri initializeFromDillUri, bool outlineOnly]) {
+      [Uri initializeFromDillUri,
+      bool outlineOnly,
+      IncrementalSerializer incrementalSerializer]) {
     return new IncrementalCompiler(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFromDillUri,
-        outlineOnly);
+        outlineOnly,
+        incrementalSerializer);
   }
 
   /// Initialize the incremental compiler from a component.
@@ -37,7 +44,7 @@ abstract class IncrementalKernelGenerator {
   /// platform will be loaded.
   factory IncrementalKernelGenerator.fromComponent(
       CompilerOptions options, Uri entryPoint, Component component,
-      [bool outlineOnly]) {
+      [bool outlineOnly, IncrementalSerializer incrementalSerializer]) {
     return new IncrementalCompiler.fromComponent(
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [entryPoint])),

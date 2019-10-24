@@ -99,7 +99,9 @@ class Test implements Comparable {
   bool get isApproved => result == null || result == approvedResult;
   List<String> get flakyModes =>
       flakinessData != null ? flakinessData["outcomes"].cast<String>() : null;
-  bool get isFlake => flakinessData != null && flakyModes.contains(result);
+  bool get isFlake =>
+      resultData != null && resultData["flaky"] ||
+      flakinessData != null && flakyModes.contains(result);
 }
 
 /// Loads the results file as as a map if the file exists, otherwise returns the
@@ -486,6 +488,9 @@ ${parser.usage}""");
             "error: $prefix$changelist has no try runs for patchset $patchset");
         exitCode = 1;
         return;
+      }
+      if (object["builds"] == null) {
+        break;
       }
       builds.addAll(object["builds"]);
       cursor = object["next_cursor"];

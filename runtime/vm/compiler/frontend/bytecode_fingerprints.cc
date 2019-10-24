@@ -173,15 +173,17 @@ static uint32_t FingerprintA_B_C(uint32_t fp,
 uint32_t BytecodeFingerprintHelper::CalculateFunctionFingerprint(
     const Function& function) {
   ASSERT(function.is_declared_in_bytecode());
+  const intptr_t kHashBits = 30;
+  uint32_t fp = 0;
+  fp = CombineHashes(fp, String::Handle(function.UserVisibleName()).Hash());
   if (function.is_abstract()) {
-    return 0;
+    return FinalizeHash(fp, kHashBits);
   }
   if (!function.HasBytecode()) {
     kernel::BytecodeReader::ReadFunctionBytecode(Thread::Current(), function);
   }
   const Bytecode& code = Bytecode::Handle(function.bytecode());
   const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-  uint32_t fp = 0;
   const KBCInstr* const start =
       reinterpret_cast<const KBCInstr*>(code.instructions());
   for (const KBCInstr* instr = start; (instr - start) < code.Size();
@@ -200,7 +202,7 @@ uint32_t BytecodeFingerprintHelper::CalculateFunctionFingerprint(
     }
   }
 
-  return FinalizeHash(fp, 30);
+  return FinalizeHash(fp, kHashBits);
 }
 
 }  // namespace kernel

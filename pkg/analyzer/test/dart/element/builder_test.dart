@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/generated/testing/node_search.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -221,8 +223,8 @@ class C {
   void test_metadata_localVariableDeclaration() {
     var code = 'f() { @a int x, y; }';
     buildElementsForText(code);
-    var x = findLocalVariable(code, 'x, ');
-    var y = findLocalVariable(code, 'x, ');
+    var x = findLocalVariable('x, ');
+    var y = findLocalVariable('x, ');
     checkMetadata(x);
     checkMetadata(y);
     expect(x.metadata, same(y.metadata));
@@ -231,15 +233,15 @@ class C {
   void test_metadata_visitDeclaredIdentifier() {
     var code = 'f() { for (@a var x in y) {} }';
     buildElementsForText(code);
-    var x = findLocalVariable(code, 'x in');
+    var x = findLocalVariable('x in');
     checkMetadata(x);
   }
 
   void test_visitCatchClause() {
     var code = 'f() { try {} catch (e, s) {} }';
     buildElementsForText(code);
-    var e = findLocalVariable(code, 'e, ');
-    var s = findLocalVariable(code, 's) {}');
+    var e = findLocalVariable('e, ');
+    var s = findLocalVariable('s) {}');
 
     expect(e, isNotNull);
     expect(e.name, 'e');
@@ -262,7 +264,7 @@ class C {
   void test_visitCatchClause_withType() {
     var code = 'f() { try {} on E catch (e) {} }';
     buildElementsForText(code);
-    var e = findLocalVariable(code, 'e) {}');
+    var e = findLocalVariable('e) {}');
     expect(e, isNotNull);
     expect(e.name, 'e');
     expect(e.hasImplicitType, isFalse);
@@ -291,7 +293,7 @@ class C {
   void test_visitDeclaredIdentifier_noType() {
     var code = 'f() { for (var i in []) {} }';
     buildElementsForText(code);
-    var variable = findLocalVariable(code, 'i in');
+    var variable = findLocalVariable('i in');
     assertHasCodeRange(variable, 11, 5);
     expect(variable, isNotNull);
     expect(variable.hasImplicitType, isTrue);
@@ -308,7 +310,7 @@ class C {
   void test_visitDeclaredIdentifier_type() {
     var code = 'f() { for (int i in []) {} }';
     buildElementsForText(code);
-    var variable = findLocalVariable(code, 'i in');
+    var variable = findLocalVariable('i in');
     assertHasCodeRange(variable, 11, 5);
     expect(variable.hasImplicitType, isFalse);
     expect(variable.isConst, isFalse);
@@ -521,7 +523,7 @@ class C {
   void test_visitLabeledStatement() {
     String code = 'f() { l: print(42); }';
     buildElementsForText(code);
-    LabelElement label = findLabel(code, 'l:');
+    LabelElement label = findLabel('l:');
     expect(label, isNotNull);
     expect(label.name, 'l');
     expect(label.isSynthetic, isFalse);
@@ -547,13 +549,13 @@ class C {
     expect(parameter, isNotNull);
     expect(parameter.name, parameterName);
 
-    var v = findLocalVariable(code, 'v;');
+    var v = findLocalVariable('v;');
     expect(v.name, 'v');
 
-    var e = findLocalVariable(code, 'e) {}');
+    var e = findLocalVariable('e) {}');
     expect(e.name, 'e');
 
-    LabelElement label = findLabel(code, 'l:');
+    LabelElement label = findLabel('l:');
     expect(label, isNotNull);
     expect(label.name, labelName);
   }
@@ -749,7 +751,7 @@ class C {
   void test_visitVariableDeclaration_inConstructor() {
     var code = 'class C { C() { var v = 1; } }';
     buildElementsForText(code);
-    var v = findLocalVariable(code, 'v =');
+    var v = findLocalVariable('v =');
     assertHasCodeRange(v, 16, 9);
     expect(v.hasImplicitType, isTrue);
     expect(v.name, 'v');
@@ -1062,11 +1064,12 @@ main() {
     main.encloseElements(holder.functions);
     main.encloseElements(holder.localVariables);
 
-    var f1 = findLocalFunction(code, 'f1() {');
-    var f2 = findLocalFunction(code, 'f2() {');
-    var v1 = findLocalVariable(code, 'v1;');
-    var v2 = findLocalVariable(code, 'v2;');
-    var v3 = findLocalVariable(code, 'v3;');
+    findNode = FindNode(code, _compilationUnit);
+    var f1 = findLocalFunction('f1() {');
+    var f2 = findLocalFunction('f2() {');
+    var v1 = findLocalVariable('v1;');
+    var v2 = findLocalVariable('v2;');
+    var v3 = findLocalVariable('v3;');
 
     expect(v1.enclosingElement, main);
     {
@@ -1197,7 +1200,7 @@ main() {
   void test_visitVariableDeclaration_local() {
     var code = 'class C { m() { T v = null; } }';
     buildElementsForText(code);
-    LocalVariableElement element = findIdentifier(code, 'v =').staticElement;
+    LocalVariableElement element = findNode.simple('v =').staticElement;
     expect(element.hasImplicitType, isFalse);
     expect(element.name, 'v');
     expect(element.initializer, isNotNull);
@@ -2540,7 +2543,13 @@ mixin M<T, U> on A, B implements C {
     expect(alias, isNotNull);
     assertHasCodeRange(alias, 50, 31);
     expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
+    expect(
+      alias.instantiate2(
+        typeArguments: [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      isNotNull,
+    );
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
     expect(parameters, hasLength(2));
@@ -2567,7 +2576,6 @@ mixin M<T, U> on A, B implements C {
     GenericTypeAliasElementImpl alias = aliases[0];
     expect(alias, isNotNull);
     expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
     expect(alias.isSynthetic, isFalse);
     List<VariableElement> parameters = alias.parameters;
     expect(parameters, isNotNull);
@@ -2601,6 +2609,7 @@ mixin M<T, U> on A, B implements C {
 abstract class _BaseTest extends ParserTestCase {
   CompilationUnitElement compilationUnitElement;
   CompilationUnit _compilationUnit;
+  FindNode findNode;
 
   CompilationUnit get compilationUnit => _compilationUnit;
 
@@ -2661,20 +2670,16 @@ abstract class _BaseTest extends ParserTestCase {
 
   AstVisitor createElementBuilder(ElementHolder holder);
 
-  SimpleIdentifier findIdentifier(String code, String prefix) {
-    return EngineTestCase.findSimpleIdentifier(compilationUnit, code, prefix);
+  LabelElement findLabel(String prefix) {
+    return findNode.simple(prefix).staticElement;
   }
 
-  LabelElement findLabel(String code, String prefix) {
-    return findIdentifier(code, prefix).staticElement;
+  FunctionElement findLocalFunction(String search) {
+    return findNode.functionDeclaration(search).declaredElement;
   }
 
-  FunctionElement findLocalFunction(String code, String prefix) {
-    return findIdentifier(code, prefix).staticElement;
-  }
-
-  LocalVariableElement findLocalVariable(String code, String prefix) {
-    return findIdentifier(code, prefix).staticElement;
+  LocalVariableElement findLocalVariable(String search) {
+    return findNode.simple(search).staticElement;
   }
 
   void setUp() {
@@ -2696,6 +2701,7 @@ abstract class _BaseTest extends ParserTestCase {
     AnalysisEngine.instance.logger = logger;
     try {
       _compilationUnit = parseCompilationUnit(code);
+      findNode = FindNode(code, _compilationUnit);
       compilationUnit.accept(visitor);
     } finally {
       expect(logger.log, hasLength(0));

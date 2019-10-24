@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -90,9 +91,11 @@ main() {
 
   test_checkInitialConditions_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-void main() {}
+void main() {
+  void foo() {}
+}
 ''');
-    _createRefactoringWithSuffix('main', '()');
+    _createRefactoringWithSuffix('foo', '()');
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
@@ -120,7 +123,7 @@ main() {
 ''');
     _createRefactoringForString('abc');
     // check conditions
-    _assertInitialConditions_fatal_selection();
+    await _assertInitialConditions_fatal_selection();
   }
 
   test_checkInitialConditions_notPartOfFunction() async {
@@ -732,6 +735,23 @@ main() {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.isAvailable(), isTrue);
+  }
+
+  test_lint_prefer_final_locals() async {
+    createAnalysisOptionsFile(lints: [LintNames.prefer_final_locals]);
+    await indexTestUnit('''
+main() {
+  print(1 + 2);
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  final res = 1 + 2;
+  print(res);
+}
+''');
   }
 
   test_occurrences_differentName_samePrefix() async {

@@ -8,32 +8,14 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show jsonDecode;
 
-import 'dart:io' show File, Platform;
+import 'dart:io' show Directory, File, Platform;
 
-import 'package:kernel/ast.dart'
-    show AwaitExpression, Component, Library, Node, Visitor;
-
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
-import 'package:kernel/core_types.dart' show CoreTypes;
-
-import 'package:kernel/kernel.dart' show loadComponentFromBytes;
-
-import 'package:kernel/target/targets.dart'
-    show TargetFlags, DiagnosticReporter;
-
-import 'package:testing/testing.dart'
+import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
-        Chain,
-        ChainContext,
-        Expectation,
-        ExpectationSet,
-        Result,
-        Step,
-        TestDescription,
-        StdioProcess;
-
-import 'package:vm/target/vm.dart' show VmTarget;
+        CompilerOptions,
+        DiagnosticMessage,
+        parseExperimentalArguments,
+        parseExperimentalFlags;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
@@ -66,7 +48,36 @@ import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
-import 'package:front_end/src/fasta/testing/kernel_chain.dart'
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
+
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+
+import 'package:kernel/core_types.dart' show CoreTypes;
+
+import 'package:kernel/kernel.dart' show loadComponentFromBytes;
+
+import 'package:kernel/target/targets.dart'
+    show TargetFlags, DiagnosticReporter;
+
+import 'package:testing/testing.dart'
+    show
+        Chain,
+        ChainContext,
+        Expectation,
+        ExpectationSet,
+        Result,
+        Step,
+        TestDescription,
+        StdioProcess;
+
+import 'package:vm/target/vm.dart' show VmTarget;
+
+import '../../utils/kernel_chain.dart'
     show
         KernelTextSerialization,
         MatchContext,
@@ -76,16 +87,10 @@ import 'package:front_end/src/fasta/testing/kernel_chain.dart'
         Verify,
         WriteDill;
 
-import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
+import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
 export 'package:testing/testing.dart' show Chain, runMe;
-
-const String LEGACY_MODE = " legacy mode ";
 
 const String ENABLE_FULL_COMPILE = " full compile ";
 
@@ -126,15 +131,18 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
-String generateExpectationName(bool legacyMode) {
-  return legacyMode ? "legacy" : "strong";
+const String experimentalFlagOptions = '--enable-experiment=';
+
+class TestOptions {
+  final Map<ExperimentalFlag, bool> experimentalFlags;
+
+  TestOptions(this.experimentalFlags);
 }
 
 class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
   final Uri vm;
-  final bool legacyMode;
   final bool onlyCrashes;
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool skipVm;
@@ -143,6 +151,7 @@ class FastaContext extends ChainContext with MatchContext {
   final Map<Component, StringBuffer> componentToDiagnostics =
       <Component, StringBuffer>{};
   final Uri platformBinaries;
+  final Map<Uri, TestOptions> _testOptions = {};
 
   @override
   final bool updateExpectations;
@@ -157,7 +166,6 @@ class FastaContext extends ChainContext with MatchContext {
 
   FastaContext(
       this.vm,
-      this.legacyMode,
       this.platformBinaries,
       this.onlyCrashes,
       this.experimentalFlags,
@@ -169,30 +177,24 @@ class FastaContext extends ChainContext with MatchContext {
       this.uriTranslator,
       bool fullCompile)
       : steps = <Step>[
-          new Outline(fullCompile, legacyMode, updateComments: updateComments),
+          new Outline(fullCompile, updateComments: updateComments),
           const Print(),
           new Verify(fullCompile)
         ] {
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(fullCompile
-          ? ".${generateExpectationName(legacyMode)}.expect"
-          : ".outline.expect"));
+      steps.add(new MatchExpectation(
+          fullCompile ? ".strong.expect" : ".outline.expect"));
     }
-    if (!legacyMode) {
-      steps.add(const TypeCheck());
-    }
+    steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
-    }
-    if (legacyMode && !fullCompile) {
-      steps.add(new MatchHierarchy());
     }
     if (fullCompile) {
       steps.add(const Transform());
       if (!ignoreExpectations) {
         steps.add(new MatchExpectation(fullCompile
-            ? ".${generateExpectationName(legacyMode)}.transformed.expect"
+            ? ".strong.transformed.expect"
             : ".outline.transformed.expect"));
       }
       steps.add(const EnsureNoErrors());
@@ -203,12 +205,46 @@ class FastaContext extends ChainContext with MatchContext {
     }
   }
 
+  /// Computes the experimental flag for [description].
+  ///
+  /// [forcedExperimentalFlags] is used to override the default flags for
+  /// [description].
+  Map<ExperimentalFlag, bool> computeExperimentalFlags(
+      TestDescription description,
+      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    // TODO(johnniwinther): Support nested test folders?
+    TestOptions testOptions = _testOptions[directory.uri];
+    if (testOptions == null) {
+      List<String> experimentalFlagsArguments = [];
+      File optionsFile =
+          new File.fromUri(directory.uri.resolve('test.options'));
+      if (optionsFile.existsSync()) {
+        for (String line in optionsFile.readAsStringSync().split('\n')) {
+          // TODO(johnniwinther): Support more options if need.
+          if (line.startsWith(experimentalFlagOptions)) {
+            experimentalFlagsArguments =
+                line.substring(experimentalFlagOptions.length).split('\n');
+          }
+        }
+      }
+      testOptions = new TestOptions(parseExperimentalFlags(
+          parseExperimentalArguments(experimentalFlagsArguments),
+          onError: (String message) => throw new ArgumentError(message),
+          onWarning: (String message) => throw new ArgumentError(message)));
+      _testOptions[directory.uri] = testOptions;
+    }
+    Map<ExperimentalFlag, bool> flags =
+        new Map.from(testOptions.experimentalFlags);
+    flags.addAll(forcedExperimentalFlags);
+    return flags;
+  }
+
   Expectation get verificationError => expectationSet["VerificationError"];
 
   Future ensurePlatformUris() async {
     if (platformUri == null) {
-      platformUri = platformBinaries
-          .resolve(legacyMode ? "vm_platform.dill" : "vm_platform_strong.dill");
+      platformUri = platformBinaries.resolve("vm_platform_strong.dill");
     }
   }
 
@@ -248,17 +284,19 @@ class FastaContext extends ChainContext with MatchContext {
     Uri sdk = Uri.base.resolve("sdk/");
     Uri vm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
     Uri packages = Uri.base.resolve(".packages");
-    bool legacyMode = environment.containsKey(LEGACY_MODE);
-    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
-      ExperimentalFlag.controlFlowCollections:
-          environment["enableControlFlowCollections"] != "false" && !legacyMode,
-      ExperimentalFlag.spreadCollections:
-          environment["enableSpreadCollections"] != "false" && !legacyMode,
-      ExperimentalFlag.extensionMethods:
-          environment["enableExtensionMethods"] != "false" && !legacyMode,
-      ExperimentalFlag.nonNullable:
-          environment["enableNonNullable"] != "false" && !legacyMode,
-    };
+    Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{};
+
+    void addForcedExperimentalFlag(String name, ExperimentalFlag flag) {
+      if (environment.containsKey(name)) {
+        experimentalFlags[flag] = environment[name] == "true";
+      }
+    }
+
+    addForcedExperimentalFlag(
+        "enableExtensionMethods", ExperimentalFlag.extensionMethods);
+    addForcedExperimentalFlag(
+        "enableNonNullable", ExperimentalFlag.nonNullable);
+
     var options = new ProcessedOptions(
         options: new CompilerOptions()
           ..onDiagnostic = (DiagnosticMessage message) {
@@ -282,7 +320,6 @@ class FastaContext extends ChainContext with MatchContext {
     }
     return new FastaContext(
         vm,
-        legacyMode,
         platformBinaries == null
             ? computePlatformBinariesLocation(forceBuildDir: true)
             : Uri.base.resolve(platformBinaries),
@@ -328,10 +365,7 @@ class Run extends Step<Uri, int, FastaContext> {
 class Outline extends Step<TestDescription, Component, FastaContext> {
   final bool fullCompile;
 
-  final bool legacyMode;
-
-  const Outline(this.fullCompile, this.legacyMode,
-      {this.updateComments: false});
+  const Outline(this.fullCompile, {this.updateComments: false});
 
   final bool updateComments;
 
@@ -346,7 +380,6 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
     StringBuffer errors = new StringBuffer();
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
-          ..legacyMode = legacyMode
           ..onDiagnostic = (DiagnosticMessage message) {
             if (errors.isNotEmpty) {
               errors.write("\n\n");
@@ -354,7 +387,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             errors.writeAll(message.plainTextFormatted, "\n");
           }
           ..environmentDefines = {}
-          ..experimentalFlags = context.experimentalFlags,
+          ..experimentalFlags = context.computeExperimentalFlags(
+              description, context.experimentalFlags),
         inputs: <Uri>[description.uri]);
     return await CompilerContext.runWithOptions(options, (_) async {
       // Disable colors to ensure that expectation files are the same across
@@ -362,8 +396,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       CompilerContext.current.disableColors();
       Component platform = await context.loadPlatform();
       Ticker ticker = new Ticker();
-      DillTarget dillTarget = new DillTarget(ticker, context.uriTranslator,
-          new TestVmTarget(new TargetFlags(legacyMode: legacyMode)));
+      DillTarget dillTarget = new DillTarget(
+          ticker, context.uriTranslator, new TestVmTarget(new TargetFlags()));
       dillTarget.loader.appendLibraries(platform);
       // We create a new URI translator to avoid reading platform libraries from
       // file system.
@@ -376,11 +410,9 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
       await dillTarget.buildOutlines();
       ValidatingInstrumentation instrumentation;
-      if (!legacyMode) {
-        instrumentation = new ValidatingInstrumentation();
-        await instrumentation.loadExpectations(description.uri);
-        sourceTarget.loader.instrumentation = instrumentation;
-      }
+      instrumentation = new ValidatingInstrumentation();
+      await instrumentation.loadExpectations(description.uri);
+      sourceTarget.loader.instrumentation = instrumentation;
       Component p = await sourceTarget.buildOutlines();
       context.componentToTarget.clear();
       context.componentToTarget[p] = sourceTarget;

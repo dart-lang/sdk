@@ -44,6 +44,9 @@ abstract class DartType {
   /// Is `true` if this type is the dynamic type.
   bool get isDynamic => false;
 
+  /// Is `true` if this type is the any type.
+  bool get isAny => false;
+
   /// Is `true` if this type is the void type.
   bool get isVoid => false;
 
@@ -75,12 +78,13 @@ abstract class DartType {
   /// variable.
   // TODO(sra): Review uses of [containsTypeVariables] for update with
   // [containsFreeTypeVariables].
-  bool get containsFreeTypeVariables => _containsFreeTypeVariables(null);
+  bool get containsFreeTypeVariables =>
+      _ContainsFreeTypeVariablesVisitor().run(this);
 
   /// Is `true` if this type is the 'Object' type defined in 'dart:core'.
   bool get isObject => false;
 
-  /// Applies [f] to each occurence of a [TypeVariableType] within this
+  /// Applies [f] to each occurrence of a [TypeVariableType] within this
   /// type. This excludes function type variables, whether free or bound.
   void forEachTypeVariable(f(TypeVariableType variable)) {}
 
@@ -93,14 +97,20 @@ abstract class DartType {
   /// See [TypeVariableType] for a motivation for this method.
   ///
   /// Invariant: There must be the same number of [arguments] and [parameters].
-  DartType subst(List<DartType> arguments, List<DartType> parameters);
+  DartType subst(List<DartType> arguments, List<DartType> parameters) {
+    assert(arguments.length == parameters.length);
+    if (parameters.isEmpty) return this;
+    return SimpleDartTypeSubstitutionVisitor(arguments, parameters)
+        .substitute(this);
+  }
 
   /// Calls the visit method on [visitor] corresponding to this type.
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument);
 
   bool _equals(DartType other, _Assumptions assumptions);
 
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => false;
+  @override
+  String toString() => _DartTypeToStringVisitor().run(this);
 }
 
 /// Pairs of [FunctionTypeVariable]s that are currently assumed to be
@@ -164,7 +174,8 @@ class InterfaceType extends DartType {
   final ClassEntity element;
   final List<DartType> typeArguments;
 
-  InterfaceType(this.element, this.typeArguments);
+  InterfaceType(this.element, this.typeArguments)
+      : assert(typeArguments.every((e) => e != null));
 
   @override
   bool get isInterfaceType => true;
@@ -182,32 +193,6 @@ class InterfaceType extends DartType {
   @override
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    return typeArguments
-        .any((type) => type._containsFreeTypeVariables(bindings));
-  }
-
-  @override
-  InterfaceType subst(List<DartType> arguments, List<DartType> parameters) {
-    if (typeArguments.isEmpty) {
-      // Return fast on non-generic types.
-      return this;
-    }
-    if (parameters.isEmpty) {
-      assert(arguments.isEmpty);
-      // Return fast on empty substitutions.
-      return this;
-    }
-    List<DartType> newTypeArguments =
-        _substTypes(typeArguments, arguments, parameters);
-    if (!identical(typeArguments, newTypeArguments)) {
-      // Create a new type only if necessary.
-      return new InterfaceType(element, newTypeArguments);
-    }
-    return this;
   }
 
   @override
@@ -250,25 +235,6 @@ class InterfaceType extends DartType {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(element.name);
-    if (typeArguments.isNotEmpty) {
-      sb.write('<');
-      bool needsComma = false;
-      for (DartType typeArgument in typeArguments) {
-        if (needsComma) {
-          sb.write(',');
-        }
-        sb.write(typeArgument);
-        needsComma = true;
-      }
-      sb.write('>');
-    }
-    return sb.toString();
-  }
 }
 
 class TypedefType extends DartType {
@@ -289,32 +255,6 @@ class TypedefType extends DartType {
   @override
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArguments.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
-      typeArguments.any((type) => type._containsFreeTypeVariables(bindings));
-
-  @override
-  TypedefType subst(List<DartType> arguments, List<DartType> parameters) {
-    if (typeArguments.isEmpty) {
-      // Return fast on non-generic types.
-      return this;
-    }
-    if (parameters.isEmpty) {
-      assert(arguments.isEmpty);
-      // Return fast on empty substitutions.
-      return this;
-    }
-    List<DartType> newTypeArguments =
-        _substTypes(typeArguments, arguments, parameters);
-    FunctionType newUnaliased = unaliased.subst(arguments, parameters);
-    if (!identical(typeArguments, newTypeArguments) ||
-        !identical(unaliased, newUnaliased)) {
-      // Create a new type only if necessary.
-      return new TypedefType(element, newTypeArguments, newUnaliased);
-    }
-    return this;
   }
 
   @override
@@ -357,25 +297,6 @@ class TypedefType extends DartType {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(element.name);
-    if (typeArguments.isNotEmpty) {
-      sb.write('<');
-      bool needsComma = false;
-      for (DartType typeArgument in typeArguments) {
-        if (needsComma) {
-          sb.write(',');
-        }
-        sb.write(typeArgument);
-        needsComma = true;
-      }
-      sb.write('>');
-    }
-    return sb.toString();
-  }
 }
 
 class TypeVariableType extends DartType {
@@ -392,24 +313,6 @@ class TypeVariableType extends DartType {
   @override
   void forEachTypeVariable(f(TypeVariableType variable)) {
     f(this);
-  }
-
-  @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) => true;
-
-  @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    assert(arguments.length == parameters.length);
-    if (parameters.isEmpty) {
-      // Return fast on empty substitutions.
-      return this;
-    }
-    int index = parameters.indexOf(this);
-    if (index != -1) {
-      return arguments[index];
-    }
-    // The type variable was not substituted.
-    return this;
   }
 
   @override
@@ -432,9 +335,6 @@ class TypeVariableType extends DartType {
     }
     return false;
   }
-
-  @override
-  String toString() => '${element.typeDeclaration.name}.${element.name}';
 }
 
 /// A type variable declared on a function type.
@@ -457,7 +357,7 @@ class FunctionTypeVariable extends DartType {
   FunctionTypeVariable(this.index);
 
   DartType get bound {
-    assert(_bound != null, "Bound hasn't been set.");
+    assert(_bound != null, "Bound has not been set.");
     return _bound;
   }
 
@@ -468,28 +368,6 @@ class FunctionTypeVariable extends DartType {
 
   @override
   bool get isFunctionTypeVariable => true;
-
-  @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    if (bindings == null) return true;
-    if (bindings.indexOf(this) >= 0) return false;
-    return true;
-  }
-
-  @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    assert(arguments.length == parameters.length);
-    if (parameters.isEmpty) {
-      // Return fast on empty substitutions.
-      return this;
-    }
-    int index = parameters.indexOf(this);
-    if (index != -1) {
-      return arguments[index];
-    }
-    // The function type variable was not substituted.
-    return this;
-  }
 
   @override
   int get hashCode => index.hashCode * 19;
@@ -512,9 +390,6 @@ class FunctionTypeVariable extends DartType {
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFunctionTypeVariable(this, argument);
-
-  @override
-  String toString() => '#${new String.fromCharCode(0x41 + index)}';
 }
 
 class VoidType extends DartType {
@@ -522,12 +397,6 @@ class VoidType extends DartType {
 
   @override
   bool get isVoid => true;
-
-  @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    // `void` cannot be substituted.
-    return this;
-  }
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -540,9 +409,6 @@ class VoidType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
-
-  @override
-  String toString() => 'void';
 }
 
 class DynamicType extends DartType {
@@ -555,12 +421,6 @@ class DynamicType extends DartType {
   bool get treatAsDynamic => true;
 
   @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    // `dynamic` cannot be substituted.
-    return this;
-  }
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitDynamicType(this, argument);
 
@@ -571,9 +431,35 @@ class DynamicType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
+}
+
+/// Represents a type which is simultaneously top and bottom.
+///
+/// This is not a standard Dart type, but an extension of the standard Dart type
+/// system for dart2js. Because 'any' is both top and bottom, it is useful for
+/// ensuring that type checks succeed so that we can avoid spurious failures
+/// when our analysis is incorrect or incomplete.
+///
+/// Use cases include:
+/// * Representing inscrutable JS-interop types.
+/// * Representing types appearing as generic method bounds which contain type
+/// variables. (See issue 33422.)
+class AnyType extends DartType {
+  const AnyType();
 
   @override
-  String toString() => 'dynamic';
+  bool get isAny => true;
+
+  @override
+  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
+      visitor.visitAnyType(this, argument);
+
+  @override
+  int get hashCode => 95;
+
+  @override
+  bool _equals(DartType other, _Assumptions assumptions) =>
+      identical(this, other);
 }
 
 class FunctionType extends DartType {
@@ -627,87 +513,7 @@ class FunctionType extends DartType {
   }
 
   @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) {
-    int restore;
-    if (typeVariables.isNotEmpty) {
-      if (bindings == null) {
-        bindings = <FunctionTypeVariable>[];
-      } else {
-        restore = bindings.length;
-      }
-      bindings.addAll(typeVariables);
-    }
-
-    bool hasFree(DartType type) => type._containsFreeTypeVariables(bindings);
-
-    bool result = hasFree(returnType) ||
-        typeVariables.any((type) => hasFree(type.bound)) ||
-        parameterTypes.any(hasFree) ||
-        optionalParameterTypes.any(hasFree) ||
-        namedParameterTypes.any(hasFree);
-
-    if (restore != null) bindings.length = restore;
-    return result;
-  }
-
-  @override
   bool get isFunctionType => true;
-
-  @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    if (parameters.isEmpty) {
-      assert(arguments.isEmpty);
-      // Return fast on empty substitutions.
-      return this;
-    }
-    DartType newReturnType = returnType.subst(arguments, parameters);
-    bool changed = !identical(newReturnType, returnType);
-    List<DartType> newParameterTypes =
-        _substTypes(parameterTypes, arguments, parameters);
-    List<DartType> newOptionalParameterTypes =
-        _substTypes(optionalParameterTypes, arguments, parameters);
-    List<DartType> newNamedParameterTypes =
-        _substTypes(namedParameterTypes, arguments, parameters);
-    if (!changed &&
-        (!identical(parameterTypes, newParameterTypes) ||
-            !identical(optionalParameterTypes, newOptionalParameterTypes) ||
-            !identical(namedParameterTypes, newNamedParameterTypes))) {
-      changed = true;
-    }
-    List<FunctionTypeVariable> newTypeVariables;
-    if (typeVariables.isNotEmpty) {
-      if (parameters == typeVariables) {
-        newTypeVariables = const <FunctionTypeVariable>[];
-        changed = true;
-      } else {
-        int index = 0;
-        for (FunctionTypeVariable typeVariable in typeVariables) {
-          DartType newBound = typeVariable.bound.subst(arguments, parameters);
-          if (!identical(typeVariable.bound, newBound)) {
-            newTypeVariables ??= typeVariables.sublist(0, index);
-            changed = true;
-          } else {
-            newTypeVariables?.add(typeVariable);
-          }
-          index++;
-        }
-        newTypeVariables ??= typeVariables;
-      }
-    } else {
-      newTypeVariables = typeVariables;
-    }
-    if (changed) {
-      // Create a new type only if necessary.
-      return new FunctionType(
-          newReturnType,
-          newParameterTypes,
-          newOptionalParameterTypes,
-          namedParameters,
-          newNamedParameterTypes,
-          newTypeVariables);
-    }
-    return this;
-  }
 
   FunctionType instantiate(List<DartType> arguments) {
     return subst(arguments, typeVariables);
@@ -778,74 +584,6 @@ class FunctionType extends DartType {
     }
     return result;
   }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write(returnType);
-    sb.write(' Function');
-    if (typeVariables.isNotEmpty) {
-      sb.write('<');
-      bool needsComma = false;
-      for (FunctionTypeVariable typeVariable in typeVariables) {
-        if (needsComma) {
-          sb.write(',');
-        }
-        sb.write(typeVariable);
-        DartType bound = typeVariable.bound;
-        if (!bound.isObject) {
-          sb.write(' extends ');
-          sb.write(typeVariable.bound);
-        }
-        needsComma = true;
-      }
-      sb.write('>');
-    }
-    sb.write('(');
-    bool needsComma = false;
-    for (DartType parameterType in parameterTypes) {
-      if (needsComma) {
-        sb.write(',');
-      }
-      sb.write(parameterType);
-      needsComma = true;
-    }
-    if (optionalParameterTypes.isNotEmpty) {
-      if (needsComma) {
-        sb.write(',');
-      }
-      sb.write('[');
-      bool needsOptionalComma = false;
-      for (DartType typeArgument in optionalParameterTypes) {
-        if (needsOptionalComma) {
-          sb.write(',');
-        }
-        sb.write(typeArgument);
-        needsOptionalComma = true;
-      }
-      sb.write(']');
-      needsComma = true;
-    }
-    if (namedParameters.isNotEmpty) {
-      if (needsComma) {
-        sb.write(',');
-      }
-      sb.write('{');
-      bool needsNamedComma = false;
-      for (int index = 0; index < namedParameters.length; index++) {
-        if (needsNamedComma) {
-          sb.write(',');
-        }
-        sb.write(namedParameterTypes[index]);
-        sb.write(' ');
-        sb.write(namedParameters[index]);
-        needsNamedComma = true;
-      }
-      sb.write('}');
-    }
-    sb.write(')');
-    return sb.toString();
-  }
 }
 
 class FutureOrType extends DartType {
@@ -857,23 +595,12 @@ class FutureOrType extends DartType {
   bool get isFutureOr => true;
 
   @override
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    DartType newTypeArgument = typeArgument.subst(arguments, parameters);
-    if (identical(typeArgument, newTypeArgument)) return this;
-    return new FutureOrType(newTypeArgument);
-  }
-
-  @override
   bool get containsTypeVariables => typeArgument.containsTypeVariables;
 
   @override
   void forEachTypeVariable(f(TypeVariableType variable)) {
     typeArgument.forEachTypeVariable(f);
   }
-
-  @override
-  bool _containsFreeTypeVariables(List<FunctionTypeVariable> bindings) =>
-      typeArgument._containsFreeTypeVariables(bindings);
 
   @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
@@ -899,36 +626,6 @@ class FutureOrType extends DartType {
   bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
     return typeArgument._equals(other.typeArgument, assumptions);
   }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('FutureOr');
-    sb.write('<');
-    sb.write(typeArgument);
-    sb.write('>');
-    return sb.toString();
-  }
-}
-
-/// Helper method for performing substitution of a list of types.
-///
-/// If no types are changed by the substitution, the [types] is returned
-/// instead of a newly created list.
-List<DartType> _substTypes(
-    List<DartType> types, List<DartType> arguments, List<DartType> parameters) {
-  bool changed = false;
-  List<DartType> result =
-      new List<DartType>.generate(types.length, (int index) {
-    DartType type = types[index];
-    DartType argument = type.subst(arguments, parameters);
-    if (!changed && !identical(argument, type)) {
-      changed = true;
-    }
-    return argument;
-  });
-  // Use the new List only if necessary.
-  return changed ? result : types;
 }
 
 bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
@@ -961,6 +658,8 @@ abstract class DartTypeVisitor<R, A> {
   R visitTypedefType(covariant TypedefType type, A argument) => null;
 
   R visitDynamicType(covariant DynamicType type, A argument) => null;
+
+  R visitAnyType(covariant AnyType type, A argument) => null;
 
   R visitFutureOrType(covariant FutureOrType type, A argument) => null;
 }
@@ -996,8 +695,598 @@ abstract class BaseDartTypeVisitor<R, A> extends DartTypeVisitor<R, A> {
       visitType(type, argument);
 
   @override
+  R visitAnyType(covariant AnyType type, A argument) =>
+      visitType(type, argument);
+
+  @override
   R visitFutureOrType(covariant FutureOrType type, A argument) =>
       visitType(type, argument);
+}
+
+abstract class DartTypeSubstitutionVisitor<A>
+    extends DartTypeVisitor<DartType, A> {
+  // The input type is a DAG and we must preserve the sharing.
+  Map<DartType, DartType> _map = Map.identity();
+
+  DartType _mapped(DartType oldType, DartType newType) {
+    assert(_map[oldType] == null);
+    return _map[oldType] = newType;
+  }
+
+  /// Returns the replacement for the type variable [type]. Returns the original
+  /// [type] if not substituted. The substitution algorithm sometimes visits the
+  /// same subterm more than once. When this happens, [freshReference] is `true`
+  /// on only one visit. This allows the substitution visitor to count the
+  /// number of times the replacement term occurs in the final term.
+  DartType substituteTypeVariableType(
+      TypeVariableType type, A argument, bool freshReference);
+
+  /// Returns the replacement for the function type variable [type]. Returns the
+  /// original [type] if not substituted. The substitution algorithm sometimes
+  /// visits the same subterm more than once. When this happens,
+  /// [freshReference] is `true` on only one visit. This allows the substitution
+  /// visitor to count the number of times the replacement term occurs in the
+  /// final term.
+  DartType substituteFunctionTypeVariable(
+          FunctionTypeVariable type, A argument, bool freshReference) =>
+      type;
+
+  @override
+  DartType visitTypeVariableType(covariant TypeVariableType type, A argument) {
+    return substituteTypeVariableType(type, argument, true);
+  }
+
+  @override
+  DartType visitFunctionTypeVariable(
+      covariant FunctionTypeVariable type, A argument) {
+    // Function type variables are added to the map only for type variables that
+    // need to be replaced with updated bounds.
+    DartType seen = _map[type];
+    if (seen != null) return seen;
+    return substituteFunctionTypeVariable(type, argument, true);
+  }
+
+  @override
+  DartType visitVoidType(covariant VoidType type, A argument) => type;
+
+  @override
+  DartType visitFunctionType(covariant FunctionType type, A argument) {
+    DartType seen = _map[type];
+    if (seen != null) return seen;
+
+    List<FunctionTypeVariable> newTypeVariables =
+        _handleFunctionTypeVariables(type.typeVariables, argument);
+
+    DartType newReturnType = visit(type.returnType, argument);
+    List<DartType> newParameterTypes =
+        _substTypes(type.parameterTypes, argument);
+    List<DartType> newOptionalParameterTypes =
+        _substTypes(type.optionalParameterTypes, argument);
+    List<DartType> newNamedParameterTypes =
+        _substTypes(type.namedParameterTypes, argument);
+
+    // Create a new type only if necessary.
+    if (identical(type.typeVariables, newTypeVariables) &&
+        identical(type.returnType, newReturnType) &&
+        identical(type.parameterTypes, newParameterTypes) &&
+        identical(type.optionalParameterTypes, newOptionalParameterTypes) &&
+        identical(type.namedParameterTypes, newNamedParameterTypes)) {
+      return _mapped(type, type);
+    }
+
+    return _mapped(
+        type,
+        FunctionType(
+            newReturnType,
+            newParameterTypes,
+            newOptionalParameterTypes,
+            type.namedParameters,
+            newNamedParameterTypes,
+            newTypeVariables));
+  }
+
+  List<FunctionTypeVariable> _handleFunctionTypeVariables(
+      List<FunctionTypeVariable> variables, A argument) {
+    if (variables.isEmpty) return variables;
+
+    // Are the function type variables being substituted (i.e. generic function
+    // type instantiation).
+    // TODO(sra): This should happen only from via
+    // [FunctionType.instantiate]. Perhaps it would be handled better there.
+    int count = 0;
+    for (int i = 0; i < variables.length; i++) {
+      FunctionTypeVariable variable = variables[i];
+      if (variable !=
+          substituteFunctionTypeVariable(variable, argument, false)) {
+        count++;
+      }
+    }
+    if (count == variables.length) return const <FunctionTypeVariable>[];
+    assert(count == 0, 'Generic function type instantiation is all-or-none');
+
+    // Type variables may depend on each other. Consider:
+    //
+    //     <A extends List<B>,
+    //      B extends Set<A>,
+    //      C extends D,
+    //      D extends Map<B, F>>(){}
+    //
+    // A and B have a cycle but are not changed by the subsitution of F->G. C is
+    // indirectly changed by the substitution of F. When D is replaced by `D2
+    // extends Map<B,G>`, C must be replaced by `C2 extends D2`.
+
+    List<FunctionTypeVariable> undecided = variables.toList();
+    List<FunctionTypeVariable> newVariables;
+
+    _DependencyCheck<A> dependencyCheck = _DependencyCheck<A>(this, argument);
+
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      for (int i = 0; i < undecided.length; i++) {
+        FunctionTypeVariable variable = undecided[i];
+        if (variable == null) continue;
+        if (dependencyCheck.run(variable.bound)) {
+          changed = true;
+          undecided[i] = null;
+          newVariables ??= variables.toList();
+          FunctionTypeVariable newVariable =
+              FunctionTypeVariable(variable.index);
+          newVariables[i] = newVariable;
+          _mapped(variable, newVariable);
+        }
+      }
+    }
+    if (newVariables == null) return variables;
+
+    // Substitute the bounds of the new variables;
+    for (int i = 0; i < newVariables.length; i++) {
+      FunctionTypeVariable oldVariable = variables[i];
+      FunctionTypeVariable newVariable = newVariables[i];
+      if (identical(oldVariable, newVariable)) continue;
+      newVariable.bound = visit(oldVariable.bound, argument);
+    }
+    return newVariables;
+  }
+
+  @override
+  DartType visitInterfaceType(covariant InterfaceType type, A argument) {
+    List<DartType> typeArguments = type.typeArguments;
+    if (typeArguments.isEmpty) {
+      // Return fast on non-generic types.
+      return type;
+    }
+
+    DartType seen = _map[type];
+    if (seen != null) return seen;
+
+    List<DartType> newTypeArguments = _substTypes(typeArguments, argument);
+    // Create a new type only if necessary.
+    if (identical(typeArguments, newTypeArguments)) {
+      return _mapped(type, type);
+    }
+    return _mapped(type, InterfaceType(type.element, newTypeArguments));
+  }
+
+  @override
+  DartType visitTypedefType(covariant TypedefType type, A argument) {
+    DartType seen = _map[type];
+    if (seen != null) return seen;
+
+    List<DartType> newTypeArguments = _substTypes(type.typeArguments, argument);
+    FunctionType newUnaliased = visit(type.unaliased, argument);
+    // Create a new type only if necessary.
+    if (identical(type.typeArguments, newTypeArguments) &&
+        identical(type.unaliased, newUnaliased)) {
+      return _mapped(type, type);
+    }
+    return _mapped(
+        type, TypedefType(type.element, newTypeArguments, newUnaliased));
+  }
+
+  @override
+  DartType visitDynamicType(covariant DynamicType type, A argument) => type;
+
+  @override
+  DartType visitAnyType(covariant AnyType type, A argument) => type;
+
+  @override
+  DartType visitFutureOrType(covariant FutureOrType type, A argument) {
+    DartType seen = _map[type];
+    if (seen != null) return seen;
+
+    DartType newTypeArgument = visit(type.typeArgument, argument);
+    // Create a new type only if necessary.
+    if (identical(type.typeArgument, newTypeArgument)) {
+      return _mapped(type, type);
+    }
+    return _mapped(type, FutureOrType(newTypeArgument));
+  }
+
+  List<DartType> _substTypes(List<DartType> types, A argument) {
+    List<DartType> result;
+    for (int i = 0; i < types.length; i++) {
+      DartType oldType = types[i];
+      DartType newType = visit(oldType, argument);
+      if (!identical(newType, oldType)) {
+        result ??= types.sublist(0, i);
+      }
+      result?.add(newType);
+    }
+    return result ?? types;
+  }
+}
+
+class _DependencyCheck<A> extends DartTypeStructuralPredicateVisitor {
+  final DartTypeSubstitutionVisitor<A> _substitutionVisitor;
+  final A argument;
+
+  _DependencyCheck(this._substitutionVisitor, this.argument);
+
+  @override
+  bool handleTypeVariableType(TypeVariableType type) {
+    return !identical(type,
+        _substitutionVisitor.substituteTypeVariableType(type, argument, false));
+  }
+
+  @override
+  bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) {
+    // Function type variables are added to the map for type variables that need
+    // to be replaced with updated bounds.
+    DartType seen = _substitutionVisitor._map[type];
+    if (seen != null) return seen != type;
+    return !identical(
+        type,
+        _substitutionVisitor.substituteFunctionTypeVariable(
+            type, argument, false));
+  }
+}
+
+/// A visitor that by default visits the substructure of the type until some
+/// visit returns `true`.  The default handers return `false` which will search
+/// the whole structure unless overridden.
+abstract class DartTypeStructuralPredicateVisitor
+    extends DartTypeVisitor<bool, List<FunctionTypeVariable>> {
+  const DartTypeStructuralPredicateVisitor();
+
+  bool run(DartType type) => visit(type, null);
+
+  bool handleVoidType(VoidType type) => false;
+  bool handleTypeVariableType(TypeVariableType type) => false;
+  bool handleBoundFunctionTypeVariable(FunctionTypeVariable type) => false;
+  bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) => false;
+  bool handleFunctionType(FunctionType type) => false;
+  bool handleInterfaceType(InterfaceType type) => false;
+  bool handleTypedefType(TypedefType type) => false;
+  bool handleDynamicType(DynamicType type) => false;
+  bool handleAnyType(AnyType type) => false;
+  bool handleFutureOrType(FutureOrType type) => false;
+
+  @override
+  bool visitVoidType(VoidType type, List<FunctionTypeVariable> bindings) =>
+      handleVoidType(type);
+
+  @override
+  bool visitTypeVariableType(
+          TypeVariableType type, List<FunctionTypeVariable> bindings) =>
+      handleTypeVariableType(type);
+
+  @override
+  bool visitFunctionTypeVariable(
+      FunctionTypeVariable type, List<FunctionTypeVariable> bindings) {
+    return bindings != null && bindings.indexOf(type) >= 0
+        ? handleBoundFunctionTypeVariable(type)
+        : handleFreeFunctionTypeVariable(type);
+  }
+
+  @override
+  bool visitFunctionType(
+      FunctionType type, List<FunctionTypeVariable> bindings) {
+    if (handleFunctionType(type)) return true;
+    List<FunctionTypeVariable> typeVariables = type.typeVariables;
+    if (typeVariables.isNotEmpty) {
+      bindings ??= <FunctionTypeVariable>[];
+      bindings.addAll(typeVariables);
+    }
+
+    bool result = visit(type.returnType, bindings);
+    result = result ||
+        _visitAll(type.typeVariables.map((variable) => variable.bound).toList(),
+            bindings);
+    result = result || _visitAll(type.parameterTypes, bindings);
+    result = result || _visitAll(type.optionalParameterTypes, bindings);
+    result = result || _visitAll(type.namedParameterTypes, bindings);
+
+    bindings?.length -= typeVariables.length;
+    return result;
+  }
+
+  @override
+  bool visitInterfaceType(
+      InterfaceType type, List<FunctionTypeVariable> bindings) {
+    if (handleInterfaceType(type)) return true;
+    return _visitAll(type.typeArguments, bindings);
+  }
+
+  @override
+  bool visitTypedefType(TypedefType type, List<FunctionTypeVariable> bindings) {
+    if (handleTypedefType(type)) return true;
+    if (_visitAll(type.typeArguments, bindings)) return true;
+    return visit(type.unaliased, bindings);
+  }
+
+  @override
+  bool visitDynamicType(
+          DynamicType type, List<FunctionTypeVariable> bindings) =>
+      handleDynamicType(type);
+
+  @override
+  bool visitAnyType(AnyType type, List<FunctionTypeVariable> bindings) =>
+      handleAnyType(type);
+
+  @override
+  bool visitFutureOrType(
+      FutureOrType type, List<FunctionTypeVariable> bindings) {
+    if (handleFutureOrType(type)) return true;
+    return visit(type.typeArgument, bindings);
+  }
+
+  bool _visitAll(List<DartType> types, List<FunctionTypeVariable> bindings) {
+    for (DartType type in types) {
+      if (visit(type, bindings)) return true;
+    }
+    return false;
+  }
+}
+
+class _ContainsFreeTypeVariablesVisitor
+    extends DartTypeStructuralPredicateVisitor {
+  @override
+  bool handleTypeVariableType(TypeVariableType type) => true;
+
+  @override
+  bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) => true;
+}
+
+class SimpleDartTypeSubstitutionVisitor
+    extends DartTypeSubstitutionVisitor<Null> {
+  final List<DartType> arguments;
+  final List<DartType> parameters;
+
+  SimpleDartTypeSubstitutionVisitor(this.arguments, this.parameters);
+
+  DartType substitute(DartType input) => visit(input, null);
+
+  @override
+  DartType substituteTypeVariableType(
+      TypeVariableType type, Null _, bool freshReference) {
+    int index = this.parameters.indexOf(type);
+    if (index != -1) {
+      return this.arguments[index];
+    }
+    // The type variable was not substituted.
+    return type;
+  }
+
+  @override
+  DartType substituteFunctionTypeVariable(
+      covariant FunctionTypeVariable type, Null _, bool freshReference) {
+    int index = this.parameters.indexOf(type);
+    if (index != -1) {
+      return this.arguments[index];
+    }
+    // The function type variable was not substituted.
+    return type;
+  }
+}
+
+class _DeferredName {
+  String name;
+  _DeferredName();
+  @override
+  String toString() => name;
+}
+
+class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
+  final List _fragments = []; // Strings and _DeferredNames
+  bool _lastIsIdentifier = false;
+  List<FunctionTypeVariable> _boundVariables;
+  Map<FunctionTypeVariable, _DeferredName> _variableToName;
+  Set<FunctionType> _genericFunctions;
+
+  String run(DartType type) {
+    _visit(type);
+    if (_variableToName != null &&
+        _variableToName.values.any((deferred) => deferred.name == null)) {
+      // Assign names to _DeferredNames that were not assigned while visiting a
+      // generic function type.
+      Set<String> usedNames =
+          _variableToName.values.map((deferred) => deferred.name).toSet();
+      int startGroup = (_genericFunctions?.length ?? 0) + 1;
+      for (var entry in _variableToName.entries) {
+        if (entry.value.name != null) continue;
+        for (int group = startGroup;; group++) {
+          String name = _functionTypeVariableName(entry.key, group);
+          if (!usedNames.add(name)) continue;
+          entry.value.name = name;
+          break;
+        }
+      }
+    }
+    return _fragments.join();
+  }
+
+  String _functionTypeVariableName(FunctionTypeVariable variable, int group) {
+    String prefix = String.fromCharCode(0x41 + variable.index);
+    String suffix = group == 1 ? '' : '$group';
+    return prefix + suffix;
+  }
+
+  void _identifier(String text) {
+    if (_lastIsIdentifier) _fragments.add(' ');
+    _fragments.add(text);
+    _lastIsIdentifier = true;
+  }
+
+  void _deferredNameIdentifier(_DeferredName name) {
+    if (_lastIsIdentifier) _fragments.add(' ');
+    _fragments.add(name);
+    _lastIsIdentifier = true;
+  }
+
+  void _token(String text) {
+    _fragments.add(text);
+    _lastIsIdentifier = false;
+  }
+
+  bool _comma(bool needsComma) {
+    if (needsComma) _token(',');
+    return true;
+  }
+
+  void _visit(DartType type) {
+    type.accept(this, null);
+  }
+
+  @override
+  void visitVoidType(covariant VoidType type, _) {
+    _identifier('void');
+  }
+
+  @override
+  void visitDynamicType(covariant DynamicType type, _) {
+    _identifier('dynamic');
+  }
+
+  @override
+  void visitAnyType(covariant AnyType type, _) {
+    _identifier('any');
+  }
+
+  @override
+  void visitTypeVariableType(covariant TypeVariableType type, _) {
+    _identifier(type.element.typeDeclaration.name);
+    _token('.');
+    _identifier(type.element.name);
+  }
+
+  _DeferredName _nameFor(FunctionTypeVariable type) {
+    _variableToName ??= Map.identity();
+    return _variableToName[type] ??= _DeferredName();
+  }
+
+  @override
+  void visitFunctionTypeVariable(covariant FunctionTypeVariable type, _) {
+    // The first letter of the variable name indicates the 'index'.  Names have
+    // suffixes corresponding to the different generic function types (A, A2,
+    // A3, etc).
+    _token('#');
+    _deferredNameIdentifier(_nameFor(type));
+    if (_boundVariables == null || !_boundVariables.contains(type)) {
+      _token('/*free*/');
+    }
+  }
+
+  @override
+  void visitFunctionType(covariant FunctionType type, _) {
+    if (type.typeVariables.isNotEmpty) {
+      // Enter function type variable scope.
+      _boundVariables ??= [];
+      _boundVariables.addAll(type.typeVariables);
+      // Assign names for the function type variables. We could have already
+      // assigned names for this node if we are printing a DAG.
+      _genericFunctions ??= Set.identity();
+      if (_genericFunctions.add(type)) {
+        int group = _genericFunctions.length;
+        for (FunctionTypeVariable variable in type.typeVariables) {
+          _DeferredName deferredName = _nameFor(variable);
+          // If there is a structural error where one FunctionTypeVariable is
+          // used in two [FunctionType]s it might already have a name.
+          deferredName.name ??= _functionTypeVariableName(variable, group);
+        }
+      }
+    }
+    _visit(type.returnType);
+    _token(' ');
+    _identifier('Function');
+    if (type.typeVariables.isNotEmpty) {
+      _token('<');
+      bool needsComma = false;
+      for (FunctionTypeVariable typeVariable in type.typeVariables) {
+        needsComma = _comma(needsComma);
+        _visit(typeVariable);
+        DartType bound = typeVariable.bound;
+        if (!bound.isObject) {
+          _token(' extends ');
+          _visit(typeVariable.bound);
+        }
+      }
+      _token('>');
+    }
+    _token('(');
+    bool needsComma = false;
+    for (DartType parameterType in type.parameterTypes) {
+      needsComma = _comma(needsComma);
+      _visit(parameterType);
+    }
+    if (type.optionalParameterTypes.isNotEmpty) {
+      needsComma = _comma(needsComma);
+      _token('[');
+      bool needsOptionalComma = false;
+      for (DartType typeArgument in type.optionalParameterTypes) {
+        needsOptionalComma = _comma(needsOptionalComma);
+        _visit(typeArgument);
+      }
+      _token(']');
+    }
+    if (type.namedParameters.isNotEmpty) {
+      needsComma = _comma(needsComma);
+      _token('{');
+      bool needsNamedComma = false;
+      for (int index = 0; index < type.namedParameters.length; index++) {
+        needsNamedComma = _comma(needsNamedComma);
+        _visit(type.namedParameterTypes[index]);
+        _token(' ');
+        _identifier(type.namedParameters[index]);
+      }
+      _token('}');
+    }
+    _token(')');
+    // Exit function type variable scope.
+    _boundVariables?.length -= type.typeVariables.length;
+  }
+
+  @override
+  void visitInterfaceType(covariant InterfaceType type, _) {
+    _identifier(type.element.name);
+    _optionalTypeArguments(type.typeArguments);
+  }
+
+  @override
+  void visitTypedefType(covariant TypedefType type, _) {
+    _identifier(type.element.name);
+    _optionalTypeArguments(type.typeArguments);
+  }
+
+  void _optionalTypeArguments(List<DartType> types) {
+    if (types.isNotEmpty) {
+      _token('<');
+      bool needsComma = false;
+      for (DartType typeArgument in types) {
+        needsComma = _comma(needsComma);
+        _visit(typeArgument);
+      }
+      _token('>');
+    }
+  }
+
+  @override
+  void visitFutureOrType(covariant FutureOrType type, _) {
+    _identifier('FutureOr');
+    _token('<');
+    _visit(type.typeArgument);
+    _token('>');
+  }
 }
 
 /// Abstract visitor for determining relations between types.
@@ -1244,6 +1533,8 @@ abstract class MoreSpecificVisitor<T extends DartType>
     extends AbstractTypeRelation<T> {
   bool isMoreSpecific(T t, T s) {
     if (identical(t, s) ||
+        t.isAny ||
+        s.isAny ||
         s.treatAsDynamic ||
         s.isVoid ||
         s == commonElements.objectType ||
@@ -1296,6 +1587,7 @@ abstract class MoreSpecificVisitor<T extends DartType>
 abstract class SubtypeVisitor<T extends DartType>
     extends MoreSpecificVisitor<T> {
   bool isSubtype(DartType t, DartType s) {
+    if (t.isAny || s.isAny) return true;
     if (s.isFutureOr) {
       FutureOrType sFutureOr = s;
       if (isSubtype(t, sFutureOr.typeArgument)) {
@@ -1360,6 +1652,7 @@ abstract class PotentialSubtypeVisitor<T extends DartType>
 
   @override
   bool isSubtype(DartType t, DartType s) {
+    if (t.isAny || s.isAny) return true;
     if (t is TypeVariableType || s is TypeVariableType) {
       return true;
     }

@@ -30,7 +30,8 @@ namespace bin {
   V(load_type_feedback, load_type_feedback_filename)                           \
   V(root_certs_file, root_certs_file)                                          \
   V(root_certs_cache, root_certs_cache)                                        \
-  V(namespace, namespc)
+  V(namespace, namespc)                                                        \
+  V(write_service_info, vm_write_service_info_filename)
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.

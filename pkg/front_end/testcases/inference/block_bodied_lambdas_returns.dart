@@ -6,24 +6,24 @@
 library test;
 
 main() {
-  var /*@ type=() ->* Null* */ a = /*@ returnType=Null* */ () {};
-  var /*@ type=() ->* Null* */ b = /*@ returnType=Null* */ () {
+  var /*@ type=() ->* Null? */ a = /*@ returnType=Null? */ () {};
+  var /*@ type=() ->* Null? */ b = /*@ returnType=Null? */ () {
     return;
   };
-  var /*@ type=() ->* Null* */ c = /*@ returnType=Null* */ () {
+  var /*@ type=() ->* Null? */ c = /*@ returnType=Null? */ () {
     return null;
   };
   var /*@ type=() ->* int* */ d = /*@ returnType=int* */ () {
     return 0;
   };
-  var /*@ type=(bool*) ->* Null* */ e = /*@ returnType=Null* */ (bool b) {
+  var /*@ type=(bool*) ->* Null? */ e = /*@ returnType=Null? */ (bool b) {
     if (b) {
       return;
     } else {
       return;
     }
   };
-  var /*@ type=(bool*) ->* Null* */ f = /*@ returnType=Null* */ (bool b) {
+  var /*@ type=(bool*) ->* Null? */ f = /*@ returnType=Null? */ (bool b) {
     if (b) {
       return;
     } else {
@@ -37,14 +37,14 @@ main() {
       return 0;
     }
   };
-  var /*@ type=(bool*) ->* Null* */ h = /*@ returnType=Null* */ (bool b) {
+  var /*@ type=(bool*) ->* Null? */ h = /*@ returnType=Null? */ (bool b) {
     if (b) {
       return null;
     } else {
       return;
     }
   };
-  var /*@ type=(bool*) ->* Null* */ i = /*@ returnType=Null* */ (bool b) {
+  var /*@ type=(bool*) ->* Null? */ i = /*@ returnType=Null? */ (bool b) {
     if (b) {
       return null;
     } else {

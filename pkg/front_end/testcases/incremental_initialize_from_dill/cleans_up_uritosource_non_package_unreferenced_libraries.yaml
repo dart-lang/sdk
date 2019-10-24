@@ -14,7 +14,13 @@ worlds:
         import "b.dart";
         main() { b(); }
       b.dart: |
-        b() {}
+        part 'c.dart';
+        b() {
+          c();
+        }
+      c.dart: |
+        part of 'b.dart';
+        c() {}
     expectedLibraryCount: 2
   - entry: main.dart
     worldType: updated
@@ -27,6 +33,7 @@ worlds:
     expectedLibraryCount: 1
     uriToSourcesDoesntInclude:
       - b.dart
+      - c.dart
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -38,3 +45,4 @@ worlds:
     expectedLibraryCount: 1
     uriToSourcesDoesntInclude:
       - b.dart
+      - c.dart

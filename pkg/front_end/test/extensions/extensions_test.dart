@@ -3,9 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-import 'package:front_end/src/fasta/builder/builder.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart'
+    show ExperimentalFlag;
+
+import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/builder/formal_parameter_builder.dart';
+import 'package:front_end/src/fasta/builder/function_builder.dart';
+import 'package:front_end/src/fasta/builder/library_builder.dart';
+import 'package:front_end/src/fasta/builder/member_builder.dart';
+import 'package:front_end/src/fasta/builder/type_builder.dart';
+import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
+
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:front_end/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing.dart'
@@ -22,8 +31,11 @@ main(List<String> args) async {
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ExtensionsDataComputer(), [cfeExtensionMethodsConfig]));
+      runTest: runTestFor(const ExtensionsDataComputer(), [
+        new TestConfig(cfeMarker, 'cfe with extension methods',
+            experimentalFlags: const {ExperimentalFlag.extensionMethods: true},
+            librariesSpecificationUri: createUriForFileName('libraries.json'))
+      ]));
 }
 
 class ExtensionsDataComputer extends DataComputer<Features> {
@@ -41,6 +53,13 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
+  }
+
+  void computeLibraryData(InternalCompilerResult compilerResult,
+      Library library, Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    new ExtensionsDataExtractor(compilerResult, actualMap)
+        .computeForLibrary(library);
   }
 
   @override
@@ -84,6 +103,7 @@ class Tags {
   static const String builderRequiredParameters = 'builder-params';
   static const String builderPositionalParameters = 'builder-pos-params';
   static const String builderNamedParameters = 'builder-named-params';
+  static const String builderScope = 'scope';
 
   static const String clsName = 'cls-name';
   static const String clsTypeParameters = 'cls-type-params';
@@ -110,6 +130,22 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   ExtensionsDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<Features>> actualMap)
       : super(compilerResult, actualMap);
+
+  @override
+  Features computeLibraryValue(Id id, Library library) {
+    Features features = new Features();
+    LibraryBuilder libraryBuilder =
+        lookupLibraryBuilder(compilerResult, library);
+    libraryBuilder.scope.forEachExtension((ExtensionBuilder extension) {
+      LibraryBuilder library = extension.parent;
+      String libraryPrefix = '';
+      if (library != libraryBuilder) {
+        libraryPrefix = '${library.fileUri.pathSegments.last}.';
+      }
+      features.addElement(Tags.builderScope, '$libraryPrefix${extension.name}');
+    });
+    return features;
+  }
 
   @override
   Features computeClassValue(Id id, Class cls) {

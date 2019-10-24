@@ -75,7 +75,10 @@ bool File::IsClosed() {
   return handle_->fd() == kClosedFd;
 }
 
-MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
+MappedMemory* File::Map(MapType type,
+                        int64_t position,
+                        int64_t length,
+                        void* start) {
   ASSERT(handle_->fd() >= 0);
   ASSERT(length > 0);
   int prot = PROT_NONE;
@@ -86,14 +89,16 @@ MappedMemory* File::Map(MapType type, int64_t position, int64_t length) {
     case kReadExecute:
       prot = PROT_READ | PROT_EXEC;
       break;
-    default:
-      return NULL;
+    case kReadWrite:
+      prot = PROT_READ | PROT_WRITE;
+      break;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
+  const int flags = MAP_PRIVATE | (start != nullptr ? MAP_FIXED : 0);
+  void* addr = mmap(start, length, prot, flags, handle_->fd(), position);
   if (addr == MAP_FAILED) {
     return NULL;
   }
-  return new MappedMemory(addr, length);
+  return new MappedMemory(addr, length, /*should_unmap=*/start == nullptr);
 }
 
 void MappedMemory::Unmap() {
@@ -572,31 +577,45 @@ bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL) && (pathname[0] == '/');
 }
 
-const char* File::ReadLink(const char* pathname) {
+intptr_t File::ReadLinkInto(const char* pathname,
+                            char* result,
+                            size_t result_size) {
   ASSERT(pathname != NULL);
   ASSERT(IsAbsolutePath(pathname));
   struct stat64 link_stats;
   if (TEMP_FAILURE_RETRY(lstat64(pathname, &link_stats)) != 0) {
-    return NULL;
+    return -1;
   }
   if (!S_ISLNK(link_stats.st_mode)) {
     errno = ENOENT;
-    return NULL;
+    return -1;
   }
+  size_t target_size =
+      TEMP_FAILURE_RETRY(readlink(pathname, result, result_size));
+  if (target_size <= 0) {
+    return -1;
+  }
+  // readlink returns non-zero terminated strings. Append.
+  if (target_size < result_size) {
+    result[target_size] = '\0';
+    target_size++;
+  }
+  return target_size;
+}
+
+const char* File::ReadLink(const char* pathname) {
   // Don't rely on the link_stats.st_size for the size of the link
   // target. For some filesystems, e.g. procfs, this value is always
   // 0. Also the link might have changed before the readlink call.
   const int kBufferSize = PATH_MAX + 1;
   char target[kBufferSize];
-  size_t target_size =
-      TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
+  size_t target_size = ReadLinkInto(pathname, target, kBufferSize);
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  char* target_name = DartUtils::ScopedCString(target_size);
   ASSERT(target_name != NULL);
   memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
   return target_name;
 }
 

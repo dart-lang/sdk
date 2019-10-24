@@ -33,7 +33,7 @@ abstract class BasicSource extends Source {
   String get encoding => uri.toString();
 
   @override
-  String get fullName => encoding;
+  String get fullName => '$uri';
 
   @override
   int get hashCode => uri.hashCode;
@@ -50,6 +50,8 @@ abstract class BasicSource extends Source {
 
 /**
  * A cache used to override the default content of a [Source].
+ *
+ * TODO(scheglov) Remove it.
  */
 class ContentCache {
   /**
@@ -388,6 +390,7 @@ abstract class Source implements AnalysisTarget {
    * @return an encoded representation of this source
    * See [SourceFactory.fromEncoding].
    */
+  @deprecated
   String get encoding;
 
   /**
@@ -595,7 +598,6 @@ abstract class SourceFactory {
    * @param encoding the encoding of a source object
    * @return a source object that is described by the given encoding
    * @throws IllegalArgumentException if the argument is not a valid encoding
-   * See [Source.encoding].
    */
   Source fromEncoding(String encoding);
 

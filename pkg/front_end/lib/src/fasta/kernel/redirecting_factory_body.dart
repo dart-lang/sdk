@@ -7,7 +7,6 @@ library fasta.redirecting_factory_body;
 import 'package:kernel/ast.dart'
     show
         DartType,
-        DynamicType,
         Expression,
         ExpressionStatement,
         FunctionNode,
@@ -40,12 +39,12 @@ class RedirectingFactoryBody extends ExpressionStatement {
       : this.internal(new StringLiteral(name));
 
   Member get target {
-    var value = getValue(expression);
+    dynamic value = getValue(expression);
     return value is StaticGet ? value.target : null;
   }
 
   String get unresolvedName {
-    var value = getValue(expression);
+    dynamic value = getValue(expression);
     return value is StringLiteral ? value.value : null;
   }
 
@@ -132,8 +131,7 @@ class RedirectionTarget {
   RedirectionTarget(this.target, this.typeArguments);
 }
 
-RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper,
-    {bool legacyMode}) {
+RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper) {
   List<DartType> typeArguments = <DartType>[]..length =
       member.function.typeParameters.length;
   for (int i = 0; i < typeArguments.length; i++) {
@@ -155,27 +153,15 @@ RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper,
     Member nextTortoise = tortoiseBody.target;
     helper.ensureLoaded(nextTortoise);
     List<DartType> nextTypeArguments = tortoiseBody.typeArguments;
-    if (!legacyMode && nextTypeArguments == null) {
+    if (nextTypeArguments == null) {
       nextTypeArguments = <DartType>[];
     }
 
-    if (!legacyMode || nextTypeArguments != null) {
-      Substitution sub = Substitution.fromPairs(
-          tortoise.function.typeParameters, typeArguments);
-      typeArguments = <DartType>[]..length = nextTypeArguments.length;
-      for (int i = 0; i < typeArguments.length; i++) {
-        typeArguments[i] = sub.substituteType(nextTypeArguments[i]);
-      }
-    } else {
-      // In Dart 1, we need to throw away the extra type arguments and use
-      // `dynamic` in place of the missing ones.
-      int typeArgumentCount = typeArguments.length;
-      int nextTypeArgumentCount =
-          nextTortoise.enclosingClass.typeParameters.length;
-      typeArguments.length = nextTypeArgumentCount;
-      for (int i = typeArgumentCount; i < nextTypeArgumentCount; i++) {
-        typeArguments[i] = const DynamicType();
-      }
+    Substitution sub =
+        Substitution.fromPairs(tortoise.function.typeParameters, typeArguments);
+    typeArguments = <DartType>[]..length = nextTypeArguments.length;
+    for (int i = 0; i < typeArguments.length; i++) {
+      typeArguments[i] = sub.substituteType(nextTypeArguments[i]);
     }
 
     tortoise = nextTortoise;

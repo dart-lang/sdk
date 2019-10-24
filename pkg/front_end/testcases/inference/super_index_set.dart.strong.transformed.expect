@@ -16,7 +16,7 @@ class C extends self::B {
     ;
   operator []=(core::Object* x, core::Object* y) → void {}
   method h() → void {
-    super.{self::B::[]=}(self::f<dynamic>() as{TypeError} core::int*, self::f<core::String*>());
+    super.{self::B::[]=}(self::f<core::int*>(), self::f<core::String*>());
   }
 }
 static method f<T extends core::Object* = dynamic>() → self::f::T*

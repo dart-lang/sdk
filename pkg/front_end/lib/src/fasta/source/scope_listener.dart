@@ -133,7 +133,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endDoWhileStatementBody(Token token) {
     debugEvent("endDoWhileStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -147,7 +147,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endWhileStatementBody(Token token) {
     debugEvent("endWhileStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -161,7 +161,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endForStatementBody(Token token) {
     debugEvent("endForStatementBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -175,7 +175,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endForInBody(Token token) {
     debugEvent("endForInBody");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -189,7 +189,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endThenStatement(Token token) {
     debugEvent("endThenStatement");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }
@@ -203,7 +203,7 @@ abstract class ScopeListener<J> extends StackListener {
   @override
   void endElseStatement(Token token) {
     debugEvent("endElseStatement");
-    var body = pop();
+    Object body = pop();
     exitLocalScope();
     push(body);
   }

@@ -34,6 +34,7 @@ abstract class ExpressionVisitor<R> {
   R visitConstructorInvocation(ConstructorInvocation node) =>
       defaultExpression(node);
   R visitNot(Not node) => defaultExpression(node);
+  R visitNullCheck(NullCheck node) => defaultExpression(node);
   R visitLogicalExpression(LogicalExpression node) => defaultExpression(node);
   R visitConditionalExpression(ConditionalExpression node) =>
       defaultExpression(node);
@@ -43,6 +44,7 @@ abstract class ExpressionVisitor<R> {
   R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
   R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
   R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
+  R visitFileUriExpression(FileUriExpression node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -161,6 +163,7 @@ class TreeVisitor<R>
   R visitConstructorInvocation(ConstructorInvocation node) =>
       defaultExpression(node);
   R visitNot(Not node) => defaultExpression(node);
+  R visitNullCheck(NullCheck node) => defaultExpression(node);
   R visitLogicalExpression(LogicalExpression node) => defaultExpression(node);
   R visitConditionalExpression(ConditionalExpression node) =>
       defaultExpression(node);
@@ -170,6 +173,7 @@ class TreeVisitor<R>
   R visitSetConcatenation(SetConcatenation node) => defaultExpression(node);
   R visitMapConcatenation(MapConcatenation node) => defaultExpression(node);
   R visitInstanceCreation(InstanceCreation node) => defaultExpression(node);
+  R visitFileUriExpression(FileUriExpression node) => defaultExpression(node);
   R visitIsExpression(IsExpression node) => defaultExpression(node);
   R visitAsExpression(AsExpression node) => defaultExpression(node);
   R visitSymbolLiteral(SymbolLiteral node) => defaultExpression(node);
@@ -403,7 +407,7 @@ class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
 /// value for each subnode. The visitor caches the computed values ensuring that
 /// each subnode is only visited once.
 class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
-  _ConstantCallbackVisitor _visitor;
+  _ConstantCallbackVisitor<R> _visitor;
   Map<Constant, R> cache = new LinkedHashMap.identity();
 
   ComputeOnceConstantVisitor() {
@@ -671,6 +675,7 @@ abstract class ExpressionVisitor1<R, T> {
   R visitConstructorInvocation(ConstructorInvocation node, T arg) =>
       defaultExpression(node, arg);
   R visitNot(Not node, T arg) => defaultExpression(node, arg);
+  R visitNullCheck(NullCheck node, T arg) => defaultExpression(node, arg);
   R visitLogicalExpression(LogicalExpression node, T arg) =>
       defaultExpression(node, arg);
   R visitConditionalExpression(ConditionalExpression node, T arg) =>
@@ -685,6 +690,8 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitInstanceCreation(InstanceCreation node, T arg) =>
       defaultExpression(node, arg);
+  R visitFileUriExpression(FileUriExpression node, T arg) =>
+      defaultExpression(node, arg);
   R visitIsExpression(IsExpression node, T arg) => defaultExpression(node, arg);
   R visitAsExpression(AsExpression node, T arg) => defaultExpression(node, arg);
   R visitSymbolLiteral(SymbolLiteral node, T arg) =>
@@ -692,7 +699,7 @@ abstract class ExpressionVisitor1<R, T> {
   R visitTypeLiteral(TypeLiteral node, T arg) => defaultExpression(node, arg);
   R visitThisExpression(ThisExpression node, T arg) =>
       defaultExpression(node, arg);
-  R visitConstantExpression(ConstantExpression node, arg) =>
+  R visitConstantExpression(ConstantExpression node, T arg) =>
       defaultExpression(node, arg);
   R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
   R visitThrow(Throw node, T arg) => defaultExpression(node, arg);

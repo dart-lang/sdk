@@ -1,33 +1,5 @@
-This license applies to all parts of Dart that are not externally
-maintained libraries. The external maintained libraries used by
-Dart are:
+Copyright 2012, the Dart project authors.
 
-7-Zip - in third_party/7zip
-JSCRE - in runtime/third_party/jscre
-Ant - in third_party/apache_ant
-args4j - in third_party/args4j
-bzip2 - in third_party/bzip2
-Commons IO - in third_party/commons-io
-Commons Lang in third_party/commons-lang
-Eclipse - in third_party/eclipse
-gsutil - in third_party/gsutil
-Guava - in third_party/guava
-hamcrest - in third_party/hamcrest
-Httplib2 - in samples/third_party/httplib2
-JSON - in third_party/json
-JUnit - in third_party/junit
-NSS - in third_party/nss and third_party/net_nss
-Oauth - in samples/third_party/oauth2client
-SQLite - in third_party/sqlite
-weberknecht - in third_party/weberknecht
-zlib - in third_party/zlib
-fest - in third_party/fest
-mockito - in third_party/mockito
-
-The libraries may have their own licenses; we recommend you read them,
-as their terms may differ from the terms below.
-
-Copyright 2012, the Dart project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:

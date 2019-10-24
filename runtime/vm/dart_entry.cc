@@ -39,14 +39,7 @@ class ScopedIsolateStackLimits : public ValueObject {
  public:
   NO_SANITIZE_SAFE_STACK
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
-      : thread_(thread),
-#if defined(USING_SAFE_STACK)
-        saved_stack_limit_(0),
-        saved_safestack_limit_(0)
-#else
-        saved_stack_limit_(0)
-#endif
-  {
+      : thread_(thread) {
     ASSERT(thread != NULL);
     // Set the thread's stack_base based on the current
     // stack pointer, we keep refining this value as we
@@ -85,10 +78,10 @@ class ScopedIsolateStackLimits : public ValueObject {
 
  private:
   Thread* thread_;
-  uword saved_stack_limit_;
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_;
+  uword saved_safestack_limit_ = 0;
 #endif
+  uword saved_stack_limit_ = 0;
 };
 
 // Clears/restores Thread::long_jump_base on construction/destruction.
@@ -152,7 +145,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       }
 
       // If we have bytecode but no native code then invoke the interpreter.
-      if (function.HasBytecode()) {
+      if (function.HasBytecode() && (FLAG_compilation_counter_threshold != 0)) {
         ASSERT(thread->no_callback_scope_depth() == 0);
         SuspendLongJumpScope suspend_long_jump_scope(thread);
         TransitionToGenerated transition(thread);
@@ -160,7 +153,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
                                             arguments, thread);
       }
 
-      // No bytecode, fall back to compilation.
+      // Fall back to compilation.
     }
 
     const Object& result =

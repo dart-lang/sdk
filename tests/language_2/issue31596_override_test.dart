@@ -14,31 +14,25 @@ class C {
   void f(B x) {}
 }
 
-abstract class I1 {
-  void f(covariant A x);
+abstract class I1<X> {
+  void f(X x);
 }
 
 // This class contains a forwarding stub for f to allow it to satisfy the
-// interface I, while still ensuring that the x argument is type checked before
-// C.f is executed.
-//
-// For purposes of override checking, the forwarding stub is ignored.
-class D extends C implements I1 {}
+// interface I<B>, while still ensuring that the x argument is type checked
+// before C.f is executed.
+class D extends C implements I1<B> {}
 
 class Test extends D {
-  // Valid override - A assignable to A and B
   void f(A x) {} //# 01: ok
   void f(covariant A x) {} //# 02: ok
 
-  // Valid override - B assignable to A and B
   void f(B x) {} //# 03: ok
   void f(covariant B x) {} //# 04: ok
 
-  // Invalid override - I0 not assignable to A
-  void f(I0 x) {} //# 05: compile-time error
-  void f(covariant I0 x) {} //# 06: compile-time error
+  void f(I0 x) {} //# 05: ok
+  void f(covariant I0 x) {} //# 06: ok
 
-  // Invalid override - B2 not assignable to B
   void f(B2 x) {} //# 07: compile-time error
   void f(covariant B2 x) {} //# 08: compile-time error
 }

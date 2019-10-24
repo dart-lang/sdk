@@ -25,7 +25,7 @@ import 'package:kernel/target/targets.dart';
 main(List<String> args) async {
   ArgResults flags = _argParser.parse(args);
   var options = new CompilerOptions()
-    ..target = new Dart2jsTarget("dart2js", new TargetFlags(legacyMode: true))
+    ..target = new Dart2jsTarget("dart2js", new TargetFlags())
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..setExitCodeOnProblem = true
     ..linkedDependencies = [

@@ -8,9 +8,9 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 import 'package:analyzer/dart/ast/token.dart' show Keyword;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -20,14 +20,13 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show NonExistingSource, UriKind;
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'analysis_context_factory.dart';
+import 'test_analysis_context.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -57,10 +56,6 @@ abstract class AbstractTypeSystemTest {
 
   InterfaceType get intType => typeProvider.intType;
 
-  InterfaceType get iterableType => typeProvider.iterableType;
-
-  InterfaceType get listType => typeProvider.listType;
-
   DartType get neverType => typeProvider.neverType;
 
   DartType get nullType => typeProvider.nullType;
@@ -71,18 +66,184 @@ abstract class AbstractTypeSystemTest {
 
   InterfaceType get stringType => typeProvider.stringType;
 
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting();
+  }
+
   DartType get voidType => VoidTypeImpl.instance;
 
+  DartType futureOrType(DartType T) {
+    var futureOrElement = typeProvider.futureOrElement;
+    return _interfaceType(futureOrElement, typeArguments: [T]);
+  }
+
+  DartType futureType(DartType T) {
+    var futureElement = typeProvider.futureElement;
+    return _interfaceType(futureElement, typeArguments: [T]);
+  }
+
+  DartType iterableType(DartType T) {
+    var iterableElement = typeProvider.iterableElement;
+    return _interfaceType(iterableElement, typeArguments: [T]);
+  }
+
+  DartType listType(DartType T) {
+    var listElement = typeProvider.listElement;
+    return _interfaceType(listElement, typeArguments: [T]);
+  }
+
   void setUp() {
-    typeProvider = new TestTypeProvider();
-    typeSystem = new Dart2TypeSystem(typeProvider);
+    var analysisContext = TestAnalysisContext(
+      featureSet: testFeatureSet,
+    );
+    typeProvider = analysisContext.typeProvider;
+    typeSystem = analysisContext.typeSystem;
+  }
+
+  ClassElementImpl _class({
+    @required String name,
+    bool isAbstract = false,
+    InterfaceType superType,
+    List<TypeParameterElement> typeParameters = const [],
+    List<InterfaceType> interfaces = const [],
+    List<InterfaceType> mixins = const [],
+    List<MethodElement> methods = const [],
+  }) {
+    var element = ClassElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.supertype = superType ?? objectType;
+    element.interfaces = interfaces;
+    element.mixins = mixins;
+    element.methods = methods;
+    return element;
+  }
+
+  /**
+   * Creates a function type with the given parameter and return types.
+   *
+   * The return type defaults to `void` if omitted.
+   */
+  FunctionType _functionType({
+    List<TypeParameterElement> typeFormals,
+    List<DartType> required,
+    List<DartType> optional,
+    Map<String, DartType> named,
+    DartType returns,
+    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+  }) {
+    if (optional != null && named != null) {
+      throw ArgumentError(
+        'Cannot have both optional positional and named parameters.',
+      );
+    }
+
+    var parameters = <ParameterElement>[];
+    if (required != null) {
+      for (var i = 0; i < required.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'r$i',
+            required[i],
+            ParameterKind.REQUIRED,
+          ),
+        );
+      }
+    }
+    if (optional != null) {
+      for (var i = 0; i < optional.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'p$i',
+            optional[i],
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      }
+    }
+    if (named != null) {
+      for (var namedEntry in named.entries) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            namedEntry.key,
+            namedEntry.value,
+            ParameterKind.NAMED,
+          ),
+        );
+      }
+    }
+
+    return FunctionTypeImpl.synthetic(
+      returns ?? voidType,
+      typeFormals ?? const <TypeParameterElement>[],
+      parameters,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  InterfaceType _interfaceType(
+    ClassElement element, {
+    List<DartType> typeArguments = const [],
+    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+  }) {
+    return InterfaceTypeImpl.explicit(
+      element,
+      typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  MethodElementImpl _method(
+    String name,
+    DartType returnType, {
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
+  }) {
+    var element = MethodElementImpl(name, 0)
+      ..parameters = parameters
+      ..returnType = returnType
+      ..typeParameters = typeFormals;
+    element.type = _typeOfExecutableElement(element);
+    return element;
+  }
+
+  ParameterElement _requiredParameter(String name, DartType type) {
+    var parameter = ParameterElementImpl(name, 0);
+    parameter.parameterKind = ParameterKind.REQUIRED;
+    parameter.type = type;
+    return parameter;
+  }
+
+  /// TODO(scheglov) We should do the opposite - build type in the element.
+  /// But build a similar synthetic / structured type.
+  FunctionType _typeOfExecutableElement(ExecutableElement element) {
+    return FunctionTypeImpl.synthetic(
+      element.returnType,
+      element.typeParameters,
+      element.parameters,
+    );
+  }
+
+  TypeParameterElementImpl _typeParameter(String name, {DartType bound}) {
+    var element = TypeParameterElementImpl.synthetic(name);
+    element.bound = bound;
+    return element;
+  }
+
+  TypeParameterTypeImpl _typeParameterType(
+    TypeParameterElement element, {
+    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+  }) {
+    return TypeParameterTypeImpl(
+      element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
 
 @reflectiveTest
 class AssignabilityTest extends AbstractTypeSystemTest {
   void test_isAssignableTo_bottom_isBottom() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> interassignable = <DartType>[
       dynamicType,
       objectType,
@@ -90,53 +251,59 @@ class AssignabilityTest extends AbstractTypeSystemTest {
       doubleType,
       numType,
       stringType,
-      interfaceType,
-      bottomType
+      _interfaceType(A),
+      bottomType,
     ];
 
     _checkGroups(bottomType, interassignable: interassignable);
   }
 
   void test_isAssignableTo_call_method() {
-    ClassElementImpl classBottom = ElementFactory.classElement2("B");
-    MethodElement methodBottom =
-        ElementFactory.methodElement("call", objectType, <DartType>[intType]);
-    classBottom.methods = <MethodElement>[methodBottom];
+    var B = _class(
+      name: 'B',
+      methods: [
+        _method('call', objectType, parameters: [
+          _requiredParameter('_', intType),
+        ]),
+      ],
+    );
 
-    DartType top =
-        TypeBuilder.function(required: <DartType>[intType], result: objectType);
-    InterfaceType bottom = classBottom.type;
-
-    _checkIsStrictAssignableTo(bottom, top);
+    _checkIsStrictAssignableTo(
+      _interfaceType(B),
+      _functionType(required: [intType], returns: objectType),
+    );
   }
 
   void test_isAssignableTo_classes() {
-    ClassElement classTop = ElementFactory.classElement2("A");
-    ClassElement classLeft = ElementFactory.classElement("B", classTop.type);
-    ClassElement classRight = ElementFactory.classElement("C", classTop.type);
-    ClassElement classBottom = ElementFactory.classElement("D", classLeft.type)
-      ..interfaces = <InterfaceType>[classRight.type];
-    InterfaceType top = classTop.type;
-    InterfaceType left = classLeft.type;
-    InterfaceType right = classRight.type;
-    InterfaceType bottom = classBottom.type;
+    var classTop = _class(name: 'A');
+    var classLeft = _class(name: 'B', superType: _interfaceType(classTop));
+    var classRight = _class(name: 'C', superType: _interfaceType(classTop));
+    var classBottom = _class(
+      name: 'D',
+      superType: _interfaceType(classLeft),
+      interfaces: [_interfaceType(classRight)],
+    );
+    var top = _interfaceType(classTop);
+    var left = _interfaceType(classLeft);
+    var right = _interfaceType(classRight);
+    var bottom = _interfaceType(classBottom);
 
     _checkLattice(top, left, right, bottom);
   }
 
   void test_isAssignableTo_double() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> interassignable = <DartType>[
       dynamicType,
       objectType,
       doubleType,
       numType,
-      bottomType
+      bottomType,
     ];
     List<DartType> unrelated = <DartType>[
       intType,
       stringType,
-      interfaceType,
+      _interfaceType(A),
     ];
 
     _checkGroups(doubleType,
@@ -144,7 +311,7 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void test_isAssignableTo_dynamic_isTop() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> interassignable = <DartType>[
       dynamicType,
       objectType,
@@ -152,42 +319,49 @@ class AssignabilityTest extends AbstractTypeSystemTest {
       doubleType,
       numType,
       stringType,
-      interfaceType,
-      bottomType
+      _interfaceType(A),
+      bottomType,
     ];
     _checkGroups(dynamicType, interassignable: interassignable);
   }
 
   void test_isAssignableTo_generics() {
-    ClassElementImpl LClass = ElementFactory.classElement2('L', ["T"]);
-    InterfaceType LType = LClass.type;
-    ClassElementImpl MClass = ElementFactory.classElement2('M', ["T"]);
-    DartType typeParam = MClass.typeParameters[0].type;
-    InterfaceType superType = LType.instantiate(<DartType>[typeParam]);
-    MClass.interfaces = <InterfaceType>[superType];
-    InterfaceType MType = MClass.type;
+    var LT = _typeParameter('T');
+    var L = _class(name: 'L', typeParameters: [LT]);
 
-    InterfaceType top = LType.instantiate(<DartType>[dynamicType]);
-    InterfaceType left = MType.instantiate(<DartType>[dynamicType]);
-    InterfaceType right = LType.instantiate(<DartType>[intType]);
-    InterfaceType bottom = MType.instantiate(<DartType>[intType]);
+    var MT = _typeParameter('T');
+    var M = _class(
+      name: 'M',
+      typeParameters: [MT],
+      interfaces: [
+        _interfaceType(
+          L,
+          typeArguments: [_typeParameterType(MT)],
+        ),
+      ],
+    );
+
+    var top = _interfaceType(L, typeArguments: [dynamicType]);
+    var left = _interfaceType(M, typeArguments: [dynamicType]);
+    var right = _interfaceType(L, typeArguments: [intType]);
+    var bottom = _interfaceType(M, typeArguments: [intType]);
 
     _checkCrossLattice(top, left, right, bottom);
   }
 
   void test_isAssignableTo_int() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> interassignable = <DartType>[
       dynamicType,
       objectType,
       intType,
       numType,
-      bottomType
+      bottomType,
     ];
     List<DartType> unrelated = <DartType>[
       doubleType,
       stringType,
-      interfaceType,
+      _interfaceType(A),
     ];
 
     _checkGroups(intType,
@@ -195,36 +369,36 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void test_isAssignableTo_named_optional() {
-    DartType r =
-        TypeBuilder.function(required: <DartType>[intType], result: intType);
-    DartType o = TypeBuilder.function(
-        required: <DartType>[], optional: <DartType>[intType], result: intType);
-    DartType n = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType},
-        result: intType);
-    DartType rr = TypeBuilder.function(
-        required: <DartType>[intType, intType], result: intType);
-    DartType ro = TypeBuilder.function(
-        required: <DartType>[intType],
-        optional: <DartType>[intType],
-        result: intType);
-    DartType rn = TypeBuilder.function(
-        required: <DartType>[intType],
-        named: <String, DartType>{'x': intType},
-        result: intType);
-    DartType oo = TypeBuilder.function(
-        required: <DartType>[],
-        optional: <DartType>[intType, intType],
-        result: intType);
-    DartType nn = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType, 'y': intType},
-        result: intType);
-    DartType nnn = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType},
-        result: intType);
+    var r = _functionType(required: [intType], returns: intType);
+    var o = _functionType(optional: [intType], returns: intType);
+    var n = _functionType(named: {'x': intType}, returns: intType);
+
+    var rr = _functionType(
+      required: [intType, intType],
+      returns: intType,
+    );
+    var ro = _functionType(
+      required: [intType],
+      optional: [intType],
+      returns: intType,
+    );
+    var rn = _functionType(
+      required: [intType],
+      named: {'x': intType},
+      returns: intType,
+    );
+    var oo = _functionType(
+      optional: [intType, intType],
+      returns: intType,
+    );
+    var nn = _functionType(
+      named: {'x': intType, 'y': intType},
+      returns: intType,
+    );
+    var nnn = _functionType(
+      named: {'x': intType, 'y': intType, 'z': intType},
+      returns: intType,
+    );
 
     _checkGroups(r,
         interassignable: [r, o, ro, rn, oo], unrelated: [n, rr, nn, nnn]);
@@ -245,18 +419,18 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void test_isAssignableTo_num() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> interassignable = <DartType>[
       dynamicType,
       objectType,
       numType,
       intType,
       doubleType,
-      bottomType
+      bottomType,
     ];
     List<DartType> unrelated = <DartType>[
       stringType,
-      interfaceType,
+      _interfaceType(A),
     ];
 
     _checkGroups(numType,
@@ -264,23 +438,17 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void test_isAssignableTo_simple_function() {
-    FunctionType top =
-        TypeBuilder.function(required: <DartType>[intType], result: objectType);
-    FunctionType left =
-        TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
-    FunctionType bottom =
-        TypeBuilder.function(required: <DartType>[objectType], result: intType);
+    var top = _functionType(required: [intType], returns: objectType);
+    var left = _functionType(required: [intType], returns: intType);
+    var right = _functionType(required: [objectType], returns: objectType);
+    var bottom = _functionType(required: [objectType], returns: intType);
 
     _checkCrossLattice(top, left, right, bottom);
   }
 
   void test_isAssignableTo_void_functions() {
-    FunctionType top =
-        TypeBuilder.function(required: <DartType>[intType], result: voidType);
-    FunctionType bottom =
-        TypeBuilder.function(required: <DartType>[objectType], result: intType);
+    var top = _functionType(required: [intType], returns: voidType);
+    var bottom = _functionType(required: [objectType], returns: intType);
 
     _checkEquivalent(bottom, top);
   }
@@ -348,49 +516,10 @@ class AssignabilityTest extends AbstractTypeSystemTest {
 /**
  * Base class for testing LUB and GLB in spec and strong mode.
  */
-abstract class BoundTestBase {
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
-  FunctionType simpleFunctionType;
-
-  DartType get bottomType => typeProvider.bottomType;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  DartType get dynamicType => typeProvider.dynamicType;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get futureOrType => typeProvider.futureOrType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get iterableType => typeProvider.iterableType;
-
-  InterfaceType get listType => typeProvider.listType;
-
-  InterfaceType get nullType => typeProvider.nullType;
-
-  InterfaceType get numType => typeProvider.numType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
-        resourceProvider: new MemoryResourceProvider());
-    typeProvider = context.typeProvider;
-    var simpleFunctionElement =
-        ElementFactory.genericTypeAliasElement('A', returnType: voidType);
-    simpleFunctionType = simpleFunctionElement.type;
-  }
-
+abstract class BoundTestBase extends AbstractTypeSystemTest {
   void _checkGreatestLowerBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType glb = typeSystem.getGreatestLowerBound(type1, type2);
+    var glb = typeSystem.getGreatestLowerBound(type1, type2);
     expect(glb, expectedResult);
     // Check that the result is a lower bound.
     expect(typeSystem.isSubtypeOf(glb, type1), true);
@@ -412,7 +541,7 @@ abstract class BoundTestBase {
 
   void _checkLeastUpperBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    DartType lub = typeSystem.getLeastUpperBound(type1, type2);
+    var lub = typeSystem.getLeastUpperBound(type1, type2);
     expect(lub, expectedResult);
     // Check that the result is an upper bound.
     expect(typeSystem.isSubtypeOf(type1, lub), true);
@@ -432,152 +561,68 @@ abstract class BoundTestBase {
       expect(lub, expectedResult);
     }
   }
-
-  /**
-   * Creates a function type with the given parameter and return types.
-   *
-   * The return type defaults to `void` if omitted.
-   */
-  FunctionType _functionType({
-    List<TypeParameterElement> typeFormals,
-    List<DartType> required,
-    List<DartType> optional,
-    Map<String, DartType> named,
-    DartType returns,
-  }) {
-    if (optional != null && named != null) {
-      throw ArgumentError(
-        'Cannot have both optional positional and named parameters.',
-      );
-    }
-
-    var parameters = <ParameterElement>[];
-    if (required != null) {
-      for (var i = 0; i < required.length; ++i) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            'r$i',
-            required[i],
-            ParameterKind.REQUIRED,
-          ),
-        );
-      }
-    }
-    if (optional != null) {
-      for (var i = 0; i < optional.length; ++i) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            'p$i',
-            optional[i],
-            ParameterKind.POSITIONAL,
-          ),
-        );
-      }
-    }
-    if (named != null) {
-      for (var namedEntry in named.entries) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            namedEntry.key,
-            namedEntry.value,
-            ParameterKind.NAMED,
-          ),
-        );
-      }
-    }
-
-    return FunctionTypeImpl.synthetic(
-      returns ?? voidType,
-      typeFormals ?? const <TypeParameterElement>[],
-      parameters,
-    );
-  }
-
-  TypeParameterElementImpl _typeParameterElement(String name,
-      {DartType bound}) {
-    var element = TypeParameterElementImpl.synthetic(name);
-    element.bound = bound ?? typeProvider.objectType;
-    return element;
-  }
 }
 
 @reflectiveTest
-class ConstraintMatchingTest {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
+class ConstraintMatchingTest extends AbstractTypeSystemTest {
   TypeParameterType T;
 
-  DartType get dynamicType => DynamicTypeImpl.instance;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get nullType => typeProvider.nullType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
-
-  DartType fn(DartType paramType, DartType returnType) =>
-      new FunctionElementImpl.synthetic([
-        new ParameterElementImpl.synthetic(
-            'value', paramType, ParameterKind.REQUIRED)
-      ], returnType)
-          .type;
-
-  DartType future(DartType T) => typeProvider.futureType.instantiate([T]);
-
-  DartType futureOr(DartType T) => typeProvider.futureOrType.instantiate([T]);
-
-  DartType iterable(DartType T) => typeProvider.iterableType.instantiate([T]);
-
-  DartType list(DartType T) => typeProvider.listType.instantiate([T]);
-
   void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
-    T = _newTypeParameter('T');
+    super.setUp();
+    T = _typeParameterType(
+      _typeParameter('T'),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   void test_function_coreFunction() {
-    _checkOrdinarySubtypeMatch(fn(intType, stringType), functionType, [T],
-        covariant: true);
+    _checkOrdinarySubtypeMatch(
+      _functionType(required: [intType], returns: stringType),
+      functionType,
+      [T],
+      covariant: true,
+    );
   }
 
   void test_function_parameter_types() {
     _checkIsSubtypeMatchOf(
-        fn(T, intType), fn(stringType, intType), [T], ['String <: T'],
-        covariant: true);
+      _functionType(required: [T], returns: intType),
+      _functionType(required: [stringType], returns: intType),
+      [T],
+      ['String <: T'],
+      covariant: true,
+    );
   }
 
   void test_function_return_types() {
     _checkIsSubtypeMatchOf(
-        fn(intType, T), fn(intType, stringType), [T], ['T <: String'],
-        covariant: true);
+      _functionType(required: [intType], returns: T),
+      _functionType(required: [intType], returns: stringType),
+      [T],
+      ['T <: String'],
+      covariant: true,
+    );
   }
 
   void test_futureOr_futureOr() {
     _checkIsSubtypeMatchOf(
-        futureOr(T), futureOr(stringType), [T], ['T <: String'],
+        futureOrType(T), futureOrType(stringType), [T], ['T <: String'],
         covariant: true);
   }
 
   void test_futureOr_x_fail_future_branch() {
     // FutureOr<List<T>> <: List<String> can't be satisfied because
     // Future<List<T>> <: List<String> can't be satisfied
-    _checkIsNotSubtypeMatchOf(futureOr(list(T)), list(stringType), [T],
+    _checkIsNotSubtypeMatchOf(
+        futureOrType(listType(T)), listType(stringType), [T],
         covariant: true);
   }
 
   void test_futureOr_x_fail_nonFuture_branch() {
     // FutureOr<List<T>> <: Future<List<String>> can't be satisfied because
     // List<T> <: Future<List<String>> can't be satisfied
-    _checkIsNotSubtypeMatchOf(futureOr(list(T)), future(list(stringType)), [T],
+    _checkIsNotSubtypeMatchOf(
+        futureOrType(listType(T)), futureType(listType(stringType)), [T],
         covariant: true);
   }
 
@@ -585,7 +630,7 @@ class ConstraintMatchingTest {
     // FutureOr<T> <: Future<T> can be satisfied by T=Null.  At this point in
     // the type inference algorithm all we figure out is that T must be a
     // subtype of both String and Future<String>.
-    _checkIsSubtypeMatchOf(futureOr(T), future(stringType), [T],
+    _checkIsSubtypeMatchOf(futureOrType(T), futureType(stringType), [T],
         ['T <: String', 'T <: Future<String>'],
         covariant: true);
   }
@@ -595,14 +640,18 @@ class ConstraintMatchingTest {
     _checkIsSubtypeMatchOf(nullType, T, [T], ['Null <: T'], covariant: false);
     // For any other type X, Null <: X is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(nullType, list(T), [T], covariant: false);
+    _checkOrdinarySubtypeMatch(nullType, listType(T), [T], covariant: false);
     _checkOrdinarySubtypeMatch(nullType, stringType, [T], covariant: false);
     _checkOrdinarySubtypeMatch(nullType, voidType, [T], covariant: false);
     _checkOrdinarySubtypeMatch(nullType, dynamicType, [T], covariant: false);
     _checkOrdinarySubtypeMatch(nullType, objectType, [T], covariant: false);
     _checkOrdinarySubtypeMatch(nullType, nullType, [T], covariant: false);
-    _checkOrdinarySubtypeMatch(nullType, fn(intType, stringType), [T],
-        covariant: false);
+    _checkOrdinarySubtypeMatch(
+      nullType,
+      _functionType(required: [intType], returns: stringType),
+      [T],
+      covariant: false,
+    );
   }
 
   void test_param_on_lhs_contravariant_direct() {
@@ -615,8 +664,11 @@ class ConstraintMatchingTest {
     //
     // In other words, List<S> <: List<T> is satisfied provided that
     // S <: T.
-    var S = _newTypeParameter('S');
-    _checkIsSubtypeMatchOf(list(S), list(T), [T], ['S <: T'], covariant: false);
+    var S = _typeParameterType(
+      _typeParameter('S'),
+    );
+    _checkIsSubtypeMatchOf(listType(S), listType(T), [T], ['S <: T'],
+        covariant: false);
   }
 
   void test_param_on_lhs_contravariant_via_bound() {
@@ -627,8 +679,14 @@ class ConstraintMatchingTest {
     //
     // In other words, S <: List<T> is satisfied provided that
     // bound(S) <: List<T>.
-    var S = _newTypeParameter('S', list(stringType));
-    _checkIsSubtypeMatchOf(S, list(T), [T], ['String <: T'], covariant: false);
+    var S = _typeParameterType(
+      _typeParameter(
+        'S',
+        bound: listType(stringType),
+      ),
+    );
+    _checkIsSubtypeMatchOf(S, listType(T), [T], ['String <: T'],
+        covariant: false);
   }
 
   void test_param_on_lhs_covariant() {
@@ -654,7 +712,9 @@ class ConstraintMatchingTest {
     //
     // In other words, T <: S can be satisfied trivially by the constraint
     // T <: S.
-    var S = _newTypeParameter('S');
+    var S = _typeParameterType(
+      _typeParameter('S'),
+    );
     _checkIsSubtypeMatchOf(T, S, [T], ['T <: S'], covariant: true);
   }
 
@@ -668,17 +728,20 @@ class ConstraintMatchingTest {
     //
     // In other words, no match can be found for List<T> <: S because regardless
     // of T, we can't guarantee that List<T> <: S for all S.
-    var S = _newTypeParameter('S');
-    _checkIsNotSubtypeMatchOf(list(T), S, [T], covariant: true);
+    var S = _typeParameterType(
+      _typeParameter('S'),
+    );
+    _checkIsNotSubtypeMatchOf(listType(T), S, [T], covariant: true);
   }
 
   void test_related_interface_types_failure() {
-    _checkIsNotSubtypeMatchOf(iterable(T), list(stringType), [T],
+    _checkIsNotSubtypeMatchOf(iterableType(T), listType(stringType), [T],
         covariant: true);
   }
 
   void test_related_interface_types_success() {
-    _checkIsSubtypeMatchOf(list(T), iterable(stringType), [T], ['T <: String'],
+    _checkIsSubtypeMatchOf(
+        listType(T), iterableType(stringType), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -688,14 +751,18 @@ class ConstraintMatchingTest {
         covariant: true);
     // For any other type X, X <: dynamic is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(list(T), dynamicType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listType(T), dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(stringType, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidType, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(dynamicType, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(objectType, dynamicType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(nullType, dynamicType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(fn(intType, stringType), dynamicType, [T],
-        covariant: true);
+    _checkOrdinarySubtypeMatch(
+      _functionType(required: [intType], returns: stringType),
+      dynamicType,
+      [T],
+      covariant: true,
+    );
   }
 
   void test_rhs_object() {
@@ -704,14 +771,18 @@ class ConstraintMatchingTest {
         covariant: true);
     // For any other type X, X <: Object is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(list(T), objectType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listType(T), objectType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(stringType, objectType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidType, objectType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(dynamicType, objectType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(objectType, objectType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(nullType, objectType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(fn(intType, stringType), objectType, [T],
-        covariant: true);
+    _checkOrdinarySubtypeMatch(
+      _functionType(required: [intType], returns: stringType),
+      objectType,
+      [T],
+      covariant: true,
+    );
   }
 
   void test_rhs_void() {
@@ -719,25 +790,30 @@ class ConstraintMatchingTest {
     _checkIsSubtypeMatchOf(T, voidType, [T], ['T <: void'], covariant: true);
     // For any other type X, X <: void is satisfied without the need for any
     // constraints.
-    _checkOrdinarySubtypeMatch(list(T), voidType, [T], covariant: true);
+    _checkOrdinarySubtypeMatch(listType(T), voidType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(stringType, voidType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(voidType, voidType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(dynamicType, voidType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(objectType, voidType, [T], covariant: true);
     _checkOrdinarySubtypeMatch(nullType, voidType, [T], covariant: true);
-    _checkOrdinarySubtypeMatch(fn(intType, stringType), voidType, [T],
-        covariant: true);
+    _checkOrdinarySubtypeMatch(
+      _functionType(required: [intType], returns: stringType),
+      voidType,
+      [T],
+      covariant: true,
+    );
   }
 
   void test_same_interface_types() {
-    _checkIsSubtypeMatchOf(list(T), list(stringType), [T], ['T <: String'],
+    _checkIsSubtypeMatchOf(
+        listType(T), listType(stringType), [T], ['T <: String'],
         covariant: true);
   }
 
   void test_x_futureOr_fail_both_branches() {
     // List<T> <: FutureOr<String> can't be satisfied because neither
     // List<T> <: Future<String> nor List<T> <: int can be satisfied
-    _checkIsNotSubtypeMatchOf(list(T), futureOr(stringType), [T],
+    _checkIsNotSubtypeMatchOf(listType(T), futureOrType(stringType), [T],
         covariant: true);
   }
 
@@ -749,7 +825,7 @@ class ConstraintMatchingTest {
     // constraint Future<String> <: T.  We keep the constraint based on trying
     // to match Future<String> <: Future<T>, so String <: T.
     _checkIsSubtypeMatchOf(
-        future(stringType), futureOr(T), [T], ['String <: T'],
+        futureType(stringType), futureOrType(T), [T], ['String <: T'],
         covariant: false);
   }
 
@@ -760,7 +836,7 @@ class ConstraintMatchingTest {
     // T <: Object, whereas trying to match Future<T> <: Object generates no
     // constraints, so we keep the constraint T <: Object.
     _checkIsSubtypeMatchOf(
-        future(T), futureOr(objectType), [T], ['T <: Object'],
+        futureType(T), futureOrType(objectType), [T], ['T <: Object'],
         covariant: true);
   }
 
@@ -770,7 +846,7 @@ class ConstraintMatchingTest {
     // Trying to match Null <: FutureOr<T> generates no constraints, whereas
     // trying to match Null <: T generates the constraint Null <: T,
     // so we keep the constraint Null <: T.
-    _checkIsSubtypeMatchOf(nullType, futureOr(T), [T], ['Null <: T'],
+    _checkIsSubtypeMatchOf(nullType, futureOrType(T), [T], ['Null <: T'],
         covariant: false);
   }
 
@@ -778,7 +854,8 @@ class ConstraintMatchingTest {
     // Future<String> <: FutureOr<Object> is satisfied because both
     // Future<String> <: Future<Object> and Future<String> <: Object.
     // No constraints are recorded.
-    _checkIsSubtypeMatchOf(future(stringType), futureOr(objectType), [T], [],
+    _checkIsSubtypeMatchOf(
+        futureType(stringType), futureOrType(objectType), [T], [],
         covariant: true);
   }
 
@@ -786,7 +863,7 @@ class ConstraintMatchingTest {
     // Future<T> <: FutureOr<String> can be satisfied because
     // Future<T> <: Future<String> can be satisfied
     _checkIsSubtypeMatchOf(
-        future(T), futureOr(stringType), [T], ['T <: String'],
+        futureType(T), futureOrType(stringType), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -794,7 +871,7 @@ class ConstraintMatchingTest {
     // List<T> <: FutureOr<List<String>> can be satisfied because
     // List<T> <: List<String> can be satisfied
     _checkIsSubtypeMatchOf(
-        list(T), futureOr(list(stringType)), [T], ['T <: String'],
+        listType(T), futureOrType(listType(stringType)), [T], ['T <: String'],
         covariant: true);
   }
 
@@ -841,66 +918,68 @@ class ConstraintMatchingTest {
       _checkIsNotSubtypeMatchOf(t1, t2, typeFormals);
     }
   }
-
-  TypeParameterType _newTypeParameter(String name, [DartType bound]) {
-    var element = new TypeParameterElementImpl(name, 0);
-    if (bound != null) {
-      element.bound = bound;
-    }
-    return new TypeParameterTypeImpl(element);
-  }
 }
 
 @reflectiveTest
 class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
-    var tFrom = TypeBuilder.variable('TFrom');
+    var tFrom = _typeParameter('TFrom');
     var tTo =
-        TypeBuilder.variable('TTo', bound: iterableType.instantiate([tFrom]));
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
-    expect(_inferCall(cast, [stringType]), [
-      stringType,
-      iterableType.instantiate([stringType])
-    ]);
+        _typeParameter('TTo', bound: iterableType(_typeParameterType(tFrom)));
+    var cast = _functionType(
+      typeFormals: [tFrom, tTo],
+      required: [_typeParameterType(tFrom)],
+      returns: _typeParameterType(tTo),
+    );
+    expect(
+        _inferCall(cast, [stringType]), [stringType, iterableType(stringType)]);
   }
 
   void test_boundedByOuterClass() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var a = ElementFactory.classElement('A', objectType);
+    var A = _class(name: 'A', superType: objectType);
+    var typeA = _interfaceType(A);
 
     // class B extends A {}
-    var b = ElementFactory.classElement('B', a.type);
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
 
     // class C<T extends A> {
-    var c = ElementFactory.classElement('C', objectType, ['T']);
-    (c.typeParameters[0] as TypeParameterElementImpl).bound = a.type;
+    var CT = _typeParameter('T', bound: typeA);
+    var C = _class(
+      name: 'C',
+      superType: objectType,
+      typeParameters: [CT],
+    );
     //   S m<S extends T>(S);
-    var s = TypeBuilder.variable('S');
-    (s.element as TypeParameterElementImpl).bound = c.typeParameters[0].type;
-    var m = ElementFactory.methodElement('m', s, [s]);
-    m.typeParameters = [s.element];
-    c.methods = [m];
+    var S = _typeParameter('S', bound: _typeParameterType(CT));
+    var m = _method(
+      'm',
+      _typeParameterType(S),
+      typeFormals: [S],
+      parameters: [_requiredParameter('_', _typeParameterType(S))],
+    );
+    C.methods = [m];
     // }
 
     // C<Object> cOfObject;
-    var cOfObject = c.type.instantiate([objectType]);
+    var cOfObject = _interfaceType(C, typeArguments: [objectType]);
     // C<A> cOfA;
-    var cOfA = c.type.instantiate([a.type]);
+    var cOfA = _interfaceType(C, typeArguments: [typeA]);
     // C<B> cOfB;
-    var cOfB = c.type.instantiate([b.type]);
+    var cOfB = _interfaceType(C, typeArguments: [typeB]);
     // B b;
     // cOfB.m(b); // infer <B>
-    expect(_inferCall2(cOfB.getMethod('m').type, [b.type]).toString(),
+    expect(_inferCall2(cOfB.getMethod('m').type, [typeB]).toString(),
         'B Function(B)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall2(cOfA.getMethod('m').type, [b.type]).toString(),
+    expect(_inferCall2(cOfA.getMethod('m').type, [typeB]).toString(),
         'B Function(B)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall2(cOfObject.getMethod('m').type, [b.type]).toString(),
+    expect(_inferCall2(cOfObject.getMethod('m').type, [typeB]).toString(),
         'B Function(B)');
   }
 
@@ -908,31 +987,40 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
     // class A {}
-    var a = ElementFactory.classElement('A', objectType);
+    var A = _class(name: 'A', superType: objectType);
+    var typeA = _interfaceType(A);
 
     // class B extends A {}
-    var b = ElementFactory.classElement('B', a.type);
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
 
     // class C<T extends A> {
-    var c = ElementFactory.classElement('C', objectType, ['T']);
-    (c.typeParameters[0] as TypeParameterElementImpl).bound = a.type;
+    var CT = _typeParameter('T', bound: typeA);
+    var C = _class(
+      name: 'C',
+      superType: objectType,
+      typeParameters: [CT],
+    );
     //   S m<S extends Iterable<T>>(S);
-    var s = TypeBuilder.variable('S');
-    var iterableOfT = iterableType.instantiate([c.typeParameters[0].type]);
-    (s.element as TypeParameterElementImpl).bound = iterableOfT;
-    var m = ElementFactory.methodElement('m', s, [s]);
-    m.typeParameters = [s.element];
-    c.methods = [m];
+    var iterableOfT = iterableType(_typeParameterType(CT));
+    var S = _typeParameter('S', bound: iterableOfT);
+    var m = _method(
+      'm',
+      _typeParameterType(S),
+      typeFormals: [S],
+      parameters: [_requiredParameter('_', _typeParameterType(S))],
+    );
+    C.methods = [m];
     // }
 
     // C<Object> cOfObject;
-    var cOfObject = c.type.instantiate([objectType]);
+    var cOfObject = _interfaceType(C, typeArguments: [objectType]);
     // C<A> cOfA;
-    var cOfA = c.type.instantiate([a.type]);
+    var cOfA = _interfaceType(C, typeArguments: [typeA]);
     // C<B> cOfB;
-    var cOfB = c.type.instantiate([b.type]);
+    var cOfB = _interfaceType(C, typeArguments: [typeB]);
     // List<B> b;
-    var listOfB = listType.instantiate([b.type]);
+    var listOfB = listType(typeB);
     // cOfB.m(b); // infer <B>
     expect(_inferCall2(cOfB.getMethod('m').type, [listOfB]).toString(),
         'List<B> Function(List<B>)');
@@ -945,196 +1033,315 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    // class Clonable<T extends Clonable<T>>
-    ClassElementImpl clonable =
-        ElementFactory.classElement('Clonable', objectType, ['T']);
-    (clonable.typeParameters[0] as TypeParameterElementImpl).bound =
-        clonable.type;
-    // class Foo extends Clonable<Foo>
-    ClassElementImpl foo = ElementFactory.classElement('Foo', null);
-    foo.supertype = clonable.type.instantiate([foo.type]);
+    // class A<T extends A<T>>
+    var T = _typeParameter('T');
+    var A = _class(
+      name: 'Cloneable',
+      superType: objectType,
+      typeParameters: [T],
+    );
+    T.bound = _interfaceType(
+      A,
+      typeArguments: [_typeParameterType(T)],
+    );
 
-    // <S extends Clonable<S>>
-    var s = TypeBuilder.variable('S');
-    (s.element as TypeParameterElementImpl).bound =
-        clonable.type.instantiate([s]);
+    // class B extends A<B> {}
+    var B = _class(name: 'B', superType: null);
+    B.supertype = _interfaceType(A, typeArguments: [_interfaceType(B)]);
+    var typeB = _interfaceType(B);
+
+    // <S extends A<S>>
+    var S = _typeParameter('S');
+    var typeS = _typeParameterType(S);
+    S.bound = _interfaceType(A, typeArguments: [typeS]);
+
     // (S, S) -> S
-    var clone = TypeBuilder.function(types: [s], required: [s, s], result: s);
-    expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
+    var clone = _functionType(
+      typeFormals: [S],
+      required: [typeS, typeS],
+      returns: typeS,
+    );
+    expect(_inferCall(clone, [typeB, typeB]), [typeB]);
 
     // Something invalid...
-    expect(_inferCall(clone, [stringType, numType], expectError: true),
-        [objectType]);
+    expect(
+      _inferCall(clone, [stringType, numType], expectError: true),
+      [objectType],
+    );
   }
 
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
-    var tFrom = TypeBuilder.variable('TFrom');
-    var tTo = TypeBuilder.variable('TTo');
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var tFrom = _typeParameter('TFrom');
+    var tTo = _typeParameter('TTo');
+    var cast = _functionType(
+      typeFormals: [tFrom, tTo],
+      required: [_typeParameterType(tFrom)],
+      returns: _typeParameterType(tTo),
+    );
     expect(_inferCall(cast, [intType]), [intType, dynamicType]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
-    var tFrom = TypeBuilder.variable('TFrom');
-    var tTo = TypeBuilder.variable('TTo', bound: tFrom);
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var tFrom = _typeParameter('TFrom');
+    var tTo = _typeParameter('TTo', bound: _typeParameterType(tFrom));
+    var cast = _functionType(
+      typeFormals: [tFrom, tTo],
+      required: [_typeParameterType(tFrom)],
+      returns: _typeParameterType(tTo),
+    );
     expect(_inferCall(cast, [intType]), [intType, intType]);
   }
 
   void test_parametersToFunctionParam() {
     // <T>(f(T t)) -> T
-    var t = TypeBuilder.variable('T');
-    var cast = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: dynamicType)
-    ], result: t);
+    var T = _typeParameter('T');
+    var cast = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [_typeParameterType(T)],
+          returns: dynamicType,
+        )
+      ],
+      returns: _typeParameterType(T),
+    );
     expect(
-        _inferCall(cast, [
-          TypeBuilder.function(required: [numType], result: dynamicType)
-        ]),
-        [numType]);
+      _inferCall(cast, [
+        _functionType(
+          required: [numType],
+          returns: dynamicType,
+        )
+      ]),
+      [numType],
+    );
   }
 
   void test_parametersUseLeastUpperBound() {
     // <T>(T x, T y) -> T
-    var t = TypeBuilder.variable('T');
-    var cast = TypeBuilder.function(types: [t], required: [t, t], result: t);
+    var T = _typeParameter('T');
+    var cast = _functionType(
+      typeFormals: [T],
+      required: [
+        _typeParameterType(T),
+        _typeParameterType(T),
+      ],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(cast, [intType, doubleType]), [numType]);
   }
 
   void test_parameterTypeUsesUpperBound() {
     // <T extends num>(T) -> dynamic
-    var t = TypeBuilder.variable('T', bound: numType);
-    var f =
-        TypeBuilder.function(types: [t], required: [t], result: dynamicType);
+    var T = _typeParameter('T', bound: numType);
+    var f = _functionType(
+      typeFormals: [T],
+      required: [
+        _typeParameterType(T),
+      ],
+      returns: dynamicType,
+    );
     expect(_inferCall(f, [intType]), [intType]);
   }
 
   void test_returnFunctionWithGenericParameter() {
     // <T>(T -> T) -> (T -> void)
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: t)
-    ], result: TypeBuilder.function(required: [t], result: voidType));
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [
+            _typeParameterType(T),
+          ],
+          returns: _typeParameterType(T),
+        )
+      ],
+      returns: _functionType(
+        required: [
+          _typeParameterType(T),
+        ],
+        returns: voidType,
+      ),
+    );
     expect(
-        _inferCall(f, [
-          TypeBuilder.function(required: [numType], result: intType)
-        ]),
-        [intType]);
+      _inferCall(f, [
+        _functionType(required: [numType], returns: intType)
+      ]),
+      [intType],
+    );
   }
 
   void test_returnFunctionWithGenericParameterAndContext() {
     // <T>(T -> T) -> (T -> Null)
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: t)
-    ], result: TypeBuilder.function(required: [t], result: nullType));
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [
+            _typeParameterType(T),
+          ],
+          returns: _typeParameterType(T),
+        )
+      ],
+      returns: _functionType(
+        required: [
+          _typeParameterType(T),
+        ],
+        returns: nullType,
+      ),
+    );
     expect(
-        _inferCall(f, [],
-            returnType:
-                TypeBuilder.function(required: [numType], result: intType)),
-        [numType]);
+      _inferCall(
+        f,
+        [],
+        returnType: _functionType(
+          required: [numType],
+          returns: intType,
+        ),
+      ),
+      [numType],
+    );
   }
 
   void test_returnFunctionWithGenericParameterAndReturn() {
     // <T>(T -> T) -> (T -> T)
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: t)
-    ], result: TypeBuilder.function(required: [t], result: t));
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [
+            _typeParameterType(T),
+          ],
+          returns: _typeParameterType(T),
+        )
+      ],
+      returns: _functionType(
+        required: [
+          _typeParameterType(T),
+        ],
+        returns: _typeParameterType(T),
+      ),
+    );
     expect(
-        _inferCall(f, [
-          TypeBuilder.function(required: [numType], result: intType)
-        ]),
-        [intType]);
+      _inferCall(f, [
+        _functionType(
+          required: [numType],
+          returns: intType,
+        )
+      ]),
+      [intType],
+    );
   }
 
   void test_returnFunctionWithGenericReturn() {
     // <T>(T -> T) -> (() -> T)
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: t)
-    ], result: TypeBuilder.function(required: [], result: t));
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [
+            _typeParameterType(T),
+          ],
+          returns: _typeParameterType(T),
+        )
+      ],
+      returns: _functionType(
+        returns: _typeParameterType(T),
+      ),
+    );
     expect(
-        _inferCall(f, [
-          TypeBuilder.function(required: [numType], result: intType)
-        ]),
-        [intType]);
+      _inferCall(f, [
+        _functionType(
+          required: [numType],
+          returns: intType,
+        )
+      ]),
+      [intType],
+    );
   }
 
   void test_returnTypeFromContext() {
     // <T>() -> T
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(f, [], returnType: stringType), [stringType]);
   }
 
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
-    var t = TypeBuilder.variable('T', bound: numType);
-    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    var T = _typeParameter('T', bound: numType);
+    var f = _functionType(
+      typeFormals: [T],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(f, [], returnType: doubleType), [doubleType]);
   }
 
   void test_returnTypeWithBoundFromInvalidContext() {
     // <T extends num>() -> T
-    var t = TypeBuilder.variable('T', bound: numType);
-    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    var T = _typeParameter('T', bound: numType);
+    var f = _functionType(
+      typeFormals: [T],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(f, [], returnType: stringType), [nullType]);
   }
 
   void test_unifyParametersToFunctionParam() {
     // <T>(f(T t), g(T t)) -> T
-    var t = TypeBuilder.variable('T');
-    var cast = TypeBuilder.function(types: [
-      t
-    ], required: [
-      TypeBuilder.function(required: [t], result: dynamicType),
-      TypeBuilder.function(required: [t], result: dynamicType)
-    ], result: t);
+    var T = _typeParameter('T');
+    var cast = _functionType(
+      typeFormals: [T],
+      required: [
+        _functionType(
+          required: [_typeParameterType(T)],
+          returns: dynamicType,
+        ),
+        _functionType(
+          required: [_typeParameterType(T)],
+          returns: dynamicType,
+        )
+      ],
+      returns: _typeParameterType(T),
+    );
     expect(
-        _inferCall(cast, [
-          TypeBuilder.function(required: [intType], result: dynamicType),
-          TypeBuilder.function(required: [doubleType], result: dynamicType)
-        ]),
-        [nullType]);
+      _inferCall(cast, [
+        _functionType(required: [intType], returns: dynamicType),
+        _functionType(required: [doubleType], returns: dynamicType)
+      ]),
+      [nullType],
+    );
   }
 
   void test_unusedReturnTypeIsDynamic() {
     // <T>() -> T
-    var t = TypeBuilder.variable('T');
-    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    var T = _typeParameter('T');
+    var f = _functionType(
+      typeFormals: [T],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(f, []), [dynamicType]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
     // <T extends num>() -> T
-    var t = TypeBuilder.variable('T', bound: numType);
-    var f = TypeBuilder.function(types: [t], required: [], result: t);
+    var T = _typeParameter('T', bound: numType);
+    var f = _functionType(
+      typeFormals: [T],
+      returns: _typeParameterType(T),
+    );
     expect(_inferCall(f, []), [numType]);
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
-      {DartType returnType, bool expectError: false}) {
-    FunctionType inferred = _inferCall2(ft, arguments,
-        returnType: returnType, expectError: expectError);
-    return inferred?.typeArguments;
-  }
-
-  FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
       {DartType returnType, bool expectError: false}) {
     var listener = new RecordingErrorListener();
 
@@ -1143,10 +1350,15 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         new NonExistingSource(
             '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
 
-    FunctionType inferred = typeSystem.inferGenericFunctionOrType(
-        ft, ft.parameters, arguments, returnType,
-        errorReporter: reporter,
-        errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)));
+    var typeArguments = typeSystem.inferGenericFunctionOrType(
+      typeParameters: ft.typeFormals,
+      parameters: ft.parameters,
+      declaredReturnType: ft.returnType,
+      argumentTypes: arguments,
+      contextReturnType: returnType,
+      errorReporter: reporter,
+      errorNode: astFactory.nullLiteral(new KeywordToken(Keyword.NULL, 0)),
+    );
 
     if (expectError) {
       expect(listener.errors.map((e) => e.errorCode).toList(),
@@ -1155,44 +1367,47 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
-    return inferred;
+    return typeArguments;
+  }
+
+  FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
+      {DartType returnType, bool expectError: false}) {
+    var typeArguments = _inferCall(
+      ft,
+      arguments,
+      returnType: returnType,
+      expectError: expectError,
+    );
+    return ft.instantiate(typeArguments);
   }
 }
 
 @reflectiveTest
 class GreatestLowerBoundTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_bottom_function() {
-    _checkGreatestLowerBound(bottomType, simpleFunctionType, bottomType);
+    _checkGreatestLowerBound(bottomType, _functionType(), bottomType);
   }
 
   void test_bottom_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(bottomType, interfaceType, bottomType);
+    var A = _class(name: 'A');
+    _checkGreatestLowerBound(bottomType, _interfaceType(A), bottomType);
   }
 
   void test_bottom_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(bottomType, typeParam, bottomType);
+    var T = _typeParameter('T');
+    _checkGreatestLowerBound(bottomType, _typeParameterType(T), bottomType);
   }
 
   void test_bounds_of_top_types_complete() {
     // Test every combination of a subset of Tops programatically.
-    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
-    final futureOrObjectType = futureOrType.instantiate([objectType]);
-    final futureOrVoidType = futureOrType.instantiate([voidType]);
-    final futureOrFutureOrDynamicType =
-        futureOrType.instantiate([futureOrDynamicType]);
-    final futureOrFutureOrObjectType =
-        futureOrType.instantiate([futureOrObjectType]);
-    final futureOrFutureOrVoidType =
-        futureOrType.instantiate([futureOrVoidType]);
+    var futureOrDynamicType = futureOrType(dynamicType);
+    var futureOrObjectType = futureOrType(objectType);
+    var futureOrVoidType = futureOrType(voidType);
+    final futureOrFutureOrDynamicType = futureOrType(futureOrDynamicType);
+    final futureOrFutureOrObjectType = futureOrType(futureOrObjectType);
+    final futureOrFutureOrVoidType = futureOrType(futureOrVoidType);
 
-    final orderedTops = [
+    var orderedTops = [
       // Lower index, so lower Top
       voidType,
       dynamicType,
@@ -1227,9 +1442,8 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_bounds_of_top_types_sanity() {
-    final futureOrDynamicType = futureOrType.instantiate([dynamicType]);
-    final futureOrFutureOrDynamicType =
-        futureOrType.instantiate([futureOrDynamicType]);
+    var futureOrDynamicType = futureOrType(dynamicType);
+    final futureOrFutureOrDynamicType = futureOrType(futureOrDynamicType);
 
     // Sanity check specific cases of top for GLB/LUB.
     _checkLeastUpperBound(objectType, dynamicType, dynamicType);
@@ -1246,22 +1460,28 @@ class GreatestLowerBoundTest extends BoundTestBase {
     // class A
     // class B extends A
     // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+    var A = _class(name: 'A');
+    var B = _class(name: 'B', superType: _interfaceType(A));
+    var C = _class(name: 'C', superType: _interfaceType(B));
+    _checkGreatestLowerBound(
+      _interfaceType(A),
+      _interfaceType(C),
+      _interfaceType(C),
+    );
   }
 
   void test_classAndSuperinterface() {
     // class A
     // class B implements A
     // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+    var A = _class(name: 'A');
+    var B = _class(name: 'B', interfaces: [_interfaceType(A)]);
+    var C = _class(name: 'C', interfaces: [_interfaceType(B)]);
+    _checkGreatestLowerBound(
+      _interfaceType(A),
+      _interfaceType(C),
+      _interfaceType(C),
+    );
   }
 
   void test_dynamic_bottom() {
@@ -1269,18 +1489,19 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_dynamic_function() {
-    _checkGreatestLowerBound(
-        dynamicType, simpleFunctionType, simpleFunctionType);
+    _checkGreatestLowerBound(dynamicType, _functionType(), _functionType());
   }
 
   void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+    _checkGreatestLowerBound(dynamicType, typeA, typeA);
   }
 
   void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
+    var T = _typeParameter('T');
+    var typeT = _typeParameterType(T);
+    _checkGreatestLowerBound(dynamicType, typeT, typeT);
   }
 
   void test_dynamic_void() {
@@ -1306,7 +1527,6 @@ class GreatestLowerBoundTest extends BoundTestBase {
       optional: [intType],
     );
     var type2 = _functionType(
-      required: [],
       optional: [doubleType, stringType, objectType],
     );
     var expected = _functionType(
@@ -1406,7 +1626,6 @@ class GreatestLowerBoundTest extends BoundTestBase {
       named: {'a': intType},
     );
     var type2 = _functionType(
-      required: [],
       named: {'a': intType},
     );
     _checkGreatestLowerBound(type1, type2, bottomType);
@@ -1457,8 +1676,9 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_interface_function() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(interfaceType, simpleFunctionType, bottomType);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+    _checkGreatestLowerBound(typeA, _functionType(), bottomType);
   }
 
   void test_mixin() {
@@ -1466,27 +1686,38 @@ class GreatestLowerBoundTest extends BoundTestBase {
     // class B
     // class C
     // class D extends A with B, C
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement2("B");
-    ClassElement classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement("D", classA.type);
-    classD.mixins = <InterfaceType>[classB.type, classC.type];
-    _checkGreatestLowerBound(classA.type, classD.type, classD.type);
-    _checkGreatestLowerBound(classB.type, classD.type, classD.type);
-    _checkGreatestLowerBound(classC.type, classD.type, classD.type);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B');
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C');
+    var typeC = _interfaceType(C);
+
+    var D = _class(
+      name: 'D',
+      superType: _interfaceType(A),
+      mixins: [typeB, typeC],
+    );
+    var typeD = _interfaceType(D);
+
+    _checkGreatestLowerBound(typeA, typeD, typeD);
+    _checkGreatestLowerBound(typeB, typeD, typeD);
+    _checkGreatestLowerBound(typeC, typeD, typeD);
   }
 
   void test_self() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var T = _typeParameter('T');
+    var A = _class(name: 'A');
 
     List<DartType> types = [
       dynamicType,
       voidType,
       bottomType,
-      typeParam,
-      interfaceType,
-      simpleFunctionType
+      _typeParameterType(T),
+      _interfaceType(A),
+      _functionType(),
     ];
 
     for (DartType type in types) {
@@ -1495,39 +1726,50 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_typeParam_function_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(typeParam, simpleFunctionType, bottomType);
+    var T = _typeParameter('T');
+    _checkGreatestLowerBound(
+      _typeParameterType(T),
+      _functionType(),
+      bottomType,
+    );
   }
 
   void test_typeParam_interface_bounded() {
-    DartType typeA = ElementFactory.classElement2('A', []).type;
-    DartType typeB = ElementFactory.classElement('B', typeA).type;
-    DartType typeC = ElementFactory.classElement('C', typeB).type;
-    TypeParameterElementImpl typeParam =
-        ElementFactory.typeParameterElement('T');
-    typeParam.bound = typeB;
-    _checkGreatestLowerBound(typeParam.type, typeC, bottomType);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeB);
+    var typeC = _interfaceType(C);
+
+    var T = _typeParameter('T', bound: typeB);
+    _checkGreatestLowerBound(_typeParameterType(T), typeC, bottomType);
   }
 
   void test_typeParam_interface_noBound() {
     // GLB(T, A) = ⊥
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(typeParam, interfaceType, bottomType);
+    var T = _typeParameter('T');
+    var A = _class(name: 'A');
+    _checkGreatestLowerBound(
+      _typeParameterType(T),
+      _interfaceType(A),
+      bottomType,
+    );
   }
 
   void test_typeParameters_different() {
     // GLB(List<int>, List<double>) = ⊥
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
+    var listOfIntType = listType(intType);
+    var listOfDoubleType = listType(doubleType);
     // TODO(rnystrom): Can we do something better here?
     _checkGreatestLowerBound(listOfIntType, listOfDoubleType, bottomType);
   }
 
   void test_typeParameters_same() {
     // GLB(List<int>, List<int>) = List<int>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    var listOfIntType = listType(intType);
     _checkGreatestLowerBound(listOfIntType, listOfIntType, listOfIntType);
   }
 
@@ -1535,23 +1777,25 @@ class GreatestLowerBoundTest extends BoundTestBase {
     // class A
     // class B
     // class C
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    _checkGreatestLowerBound(classA.type, classB.type, bottomType);
+    var A = _class(name: 'A');
+    var B = _class(name: 'B');
+    _checkGreatestLowerBound(_interfaceType(A), _interfaceType(B), bottomType);
   }
 
   void test_void() {
+    var A = _class(name: 'A');
+    var T = _typeParameter('T');
     List<DartType> types = [
       bottomType,
-      simpleFunctionType,
-      ElementFactory.classElement2('A', []).type,
-      ElementFactory.typeParameterElement('T').type
+      _functionType(),
+      _interfaceType(A),
+      _typeParameterType(T),
     ];
     for (DartType type in types) {
       _checkGreatestLowerBound(
-        _functionType(required: [], returns: voidType),
-        _functionType(required: [], returns: type),
-        _functionType(required: [], returns: type),
+        _functionType(returns: voidType),
+        _functionType(returns: type),
+        _functionType(returns: type),
       );
     }
   }
@@ -1559,11 +1803,6 @@ class GreatestLowerBoundTest extends BoundTestBase {
 
 @reflectiveTest
 class LeastUpperBoundFunctionsTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_differentRequiredArity() {
     var type1 = _functionType(required: [intType, intType]);
     var type2 = _functionType(required: [intType, intType, intType]);
@@ -1694,18 +1933,27 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
   }
 
   void test_typeFormals_differentBounds() {
-    var T1 = _typeParameterElement('T1', bound: intType);
-    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+    var T1 = _typeParameter('T1', bound: intType);
+    var type1 = _functionType(
+      typeFormals: [T1],
+      returns: _typeParameterType(T1),
+    );
 
-    var T2 = _typeParameterElement('T2', bound: doubleType);
-    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+    var T2 = _typeParameter('T2', bound: doubleType);
+    var type2 = _functionType(
+      typeFormals: [T2],
+      returns: _typeParameterType(T2),
+    );
 
     _checkLeastUpperBound(type1, type2, functionType);
   }
 
   void test_typeFormals_differentNumber() {
-    var T1 = _typeParameterElement('T1', bound: numType);
-    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+    var T1 = _typeParameter('T1', bound: numType);
+    var type1 = _functionType(
+      typeFormals: [T1],
+      returns: _typeParameterType(T1),
+    );
 
     var type2 = _functionType(returns: intType);
 
@@ -1713,14 +1961,23 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
   }
 
   void test_typeFormals_sameBounds() {
-    var T1 = _typeParameterElement('T1', bound: numType);
-    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+    var T1 = _typeParameter('T1', bound: numType);
+    var type1 = _functionType(
+      typeFormals: [T1],
+      returns: _typeParameterType(T1),
+    );
 
-    var T2 = _typeParameterElement('T2', bound: numType);
-    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+    var T2 = _typeParameter('T2', bound: numType);
+    var type2 = _functionType(
+      typeFormals: [T2],
+      returns: _typeParameterType(T2),
+    );
 
-    var TE = _typeParameterElement('T', bound: numType);
-    var expected = _functionType(typeFormals: [TE], returns: TE.type);
+    var TE = _typeParameter('T', bound: numType);
+    var expected = _functionType(
+      typeFormals: [TE],
+      returns: _typeParameterType(TE),
+    );
 
     _checkLeastUpperBound(type1, type2, expected);
   }
@@ -1728,37 +1985,36 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
 
 @reflectiveTest
 class LeastUpperBoundTest extends BoundTestBase {
-  void setUp() {
-    super.setUp();
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
   void test_bottom_function() {
-    _checkLeastUpperBound(bottomType, simpleFunctionType, simpleFunctionType);
+    _checkLeastUpperBound(bottomType, _functionType(), _functionType());
   }
 
   void test_bottom_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(bottomType, interfaceType, interfaceType);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+    _checkLeastUpperBound(bottomType, typeA, typeA);
   }
 
   void test_bottom_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(bottomType, typeParam, typeParam);
+    var T = _typeParameter('T');
+    var typeT = _typeParameterType(T);
+    _checkLeastUpperBound(bottomType, typeT, typeT);
   }
 
   void test_directInterfaceCase() {
     // class A
     // class B implements A
     // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
+
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', interfaces: [typeA]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', interfaces: [typeB]);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeB);
   }
 
@@ -1766,44 +2022,49 @@ class LeastUpperBoundTest extends BoundTestBase {
     // class A
     // class B extends A
     // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
+
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeB);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeB);
   }
 
   void test_directSuperclass_nullability() {
-    ClassElement _classElement(String name, InterfaceType supertype) {
-      return ElementFactory.classElement3(name: name, supertype: supertype);
-    }
+    var aElement = _class(name: 'A');
+    var aQuestion = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    var aStar = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    var aNone = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
-    InterfaceTypeImpl _interfaceType(
-      ClassElement element,
-      NullabilitySuffix nullabilitySuffix,
-    ) {
-      return InterfaceTypeImpl.explicit(
-        element,
-        const [],
-        nullabilitySuffix: nullabilitySuffix,
+    var bElementStar = _class(name: 'B', superType: aStar);
+    var bElementNone = _class(name: 'B', superType: aNone);
+
+    InterfaceTypeImpl _bTypeStarElement(NullabilitySuffix nullability) {
+      return _interfaceType(
+        bElementStar,
+        nullabilitySuffix: nullability,
       );
     }
 
-    var aElement = ElementFactory.classElement3(name: 'A');
-    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
-    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
-    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
-
-    var bElementStar = _classElement('B', aStar);
-    var bElementNone = _classElement('B', aNone);
-
-    InterfaceTypeImpl _bTypeStarElement(NullabilitySuffix nullability) {
-      return _interfaceType(bElementStar, nullability);
-    }
-
     InterfaceTypeImpl _bTypeNoneElement(NullabilitySuffix nullability) {
-      return _interfaceType(bElementNone, nullability);
+      return _interfaceType(
+        bElementNone,
+        nullabilitySuffix: nullability,
+      );
     }
 
     var bStarQuestion = _bTypeStarElement(NullabilitySuffix.question);
@@ -1849,17 +2110,17 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_dynamic_function() {
-    _checkLeastUpperBound(dynamicType, simpleFunctionType, dynamicType);
+    _checkLeastUpperBound(dynamicType, _functionType(), dynamicType);
   }
 
   void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(dynamicType, interfaceType, dynamicType);
+    var A = _class(name: 'A');
+    _checkLeastUpperBound(dynamicType, _interfaceType(A), dynamicType);
   }
 
   void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(dynamicType, typeParam, dynamicType);
+    var T = _typeParameter('T');
+    _checkLeastUpperBound(dynamicType, _typeParameterType(T), dynamicType);
   }
 
   void test_dynamic_void() {
@@ -1868,27 +2129,25 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_interface_function() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(interfaceType, simpleFunctionType, objectType);
+    var A = _class(name: 'A');
+    _checkLeastUpperBound(_interfaceType(A), _functionType(), objectType);
   }
 
   void test_interface_sameElement_nullability() {
-    var aElement = ElementFactory.classElement3(name: 'A');
+    var aElement = _class(name: 'A');
 
-    InterfaceTypeImpl _interfaceType(
-      ClassElement element,
-      NullabilitySuffix nullabilitySuffix,
-    ) {
-      return InterfaceTypeImpl.explicit(
-        element,
-        const [],
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    }
-
-    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
-    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
-    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
+    var aQuestion = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    var aStar = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    var aNone = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
       expect(typeSystem.getLeastUpperBound(type1, type2), expected);
@@ -1909,10 +2168,10 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_mixinAndClass_constraintAndInterface() {
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = _class(name: 'A');
     var instA = InstantiatedClass(classA, []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = _class(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
@@ -1923,14 +2182,12 @@ class LeastUpperBoundTest extends BoundTestBase {
     );
 
     _checkLeastUpperBound(
-      InterfaceTypeImpl.explicit(
+      _interfaceType(
         classB,
-        [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
-      InterfaceTypeImpl.explicit(
+      _interfaceType(
         mixinM,
-        [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
       instA.withNullability(NullabilitySuffix.star),
@@ -1938,21 +2195,21 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_mixinAndClass_object() {
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = _class(name: 'A');
     var mixinM = ElementFactory.mixinElement(name: 'M');
 
     _checkLeastUpperBound(
-      InterfaceTypeImpl.explicit(classA, []),
-      InterfaceTypeImpl.explicit(mixinM, []),
-      typeProvider.objectType,
+      _interfaceType(classA),
+      _interfaceType(mixinM),
+      objectType,
     );
   }
 
   void test_mixinAndClass_sharedInterface() {
-    var classA = ElementFactory.classElement3(name: 'A');
+    var classA = _class(name: 'A');
     var instA = InstantiatedClass(classA, []);
 
-    var classB = ElementFactory.classElement3(
+    var classB = _class(
       name: 'B',
       interfaces: [instA.withNullabilitySuffixNone],
     );
@@ -1963,14 +2220,12 @@ class LeastUpperBoundTest extends BoundTestBase {
     );
 
     _checkLeastUpperBound(
-      InterfaceTypeImpl.explicit(
+      _interfaceType(
         classB,
-        [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
-      InterfaceTypeImpl.explicit(
+      _interfaceType(
         mixinM,
-        [],
         nullabilitySuffix: NullabilitySuffix.star,
       ),
       instA.withNullability(NullabilitySuffix.star),
@@ -1982,19 +2237,28 @@ class LeastUpperBoundTest extends BoundTestBase {
     // class B extends A
     // class C extends A
     // class D extends B with M, N, O, P
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classD.mixins = <InterfaceType>[
-      ElementFactory.classElement2("M").type,
-      ElementFactory.classElement2("N").type,
-      ElementFactory.classElement2("O").type,
-      ElementFactory.classElement2("P").type
-    ];
+
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA);
+    var typeC = _interfaceType(C);
+
+    var D = _class(
+      name: 'D',
+      superType: typeB,
+      mixins: [
+        _interfaceType(_class(name: 'M')),
+        _interfaceType(_class(name: 'N')),
+        _interfaceType(_class(name: 'O')),
+        _interfaceType(_class(name: 'P')),
+      ],
+    );
+    var typeD = _interfaceType(D);
+
     _checkLeastUpperBound(typeD, typeC, typeA);
   }
 
@@ -2018,17 +2282,17 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_nestedNestedFunctionsGlbInnermostParamTypes() {
-    FunctionType type1 = _functionType(required: [
+    var type1 = _functionType(required: [
       _functionType(required: [
         _functionType(required: [stringType, intType, intType])
       ])
     ]);
-    FunctionType type2 = _functionType(required: [
+    var type2 = _functionType(required: [
       _functionType(required: [
         _functionType(required: [intType, doubleType, numType])
       ])
     ]);
-    FunctionType expected = _functionType(required: [
+    var expected = _functionType(required: [
       _functionType(required: [
         _functionType(required: [bottomType, bottomType, intType])
       ])
@@ -2037,13 +2301,13 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_object() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    DartType typeObject = typeA.element.supertype;
+    var A = _class(name: 'A');
+    var B = _class(name: 'B');
+    var typeA = _interfaceType(A);
+    var typeB = _interfaceType(B);
+    var typeObject = typeA.element.supertype;
     // assert that object does not have a super type
-    expect((typeObject.element as ClassElement).supertype, isNull);
+    expect(typeObject.element.supertype, isNull);
     // assert that both A and B have the same super type of Object
     expect(typeB.element.supertype, typeObject);
     // finally, assert that the only least upper bound of A and B is Object
@@ -2051,16 +2315,16 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_self() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var T = _typeParameter('T');
+    var A = _class(name: 'A');
 
     List<DartType> types = [
       dynamicType,
       voidType,
       bottomType,
-      typeParam,
-      interfaceType,
-      simpleFunctionType
+      _typeParameterType(T),
+      _interfaceType(A),
+      _functionType()
     ];
 
     for (DartType type in types) {
@@ -2069,49 +2333,51 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_sharedSuperclass1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeA);
   }
 
   void test_sharedSuperclass1_nullability() {
-    ClassElementImpl _classElement(String name, InterfaceType supertype) {
-      return ElementFactory.classElement3(name: name, supertype: supertype);
-    }
+    var aElement = _class(name: 'A');
+    var aQuestion = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+    var aStar = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    var aNone = _interfaceType(
+      aElement,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
-    InterfaceTypeImpl _interfaceType(
-      ClassElement element,
-      NullabilitySuffix nullabilitySuffix,
-    ) {
-      return InterfaceTypeImpl.explicit(
-        element,
-        const [],
-        nullabilitySuffix: nullabilitySuffix,
+    var bElementNone = _class(name: 'B', superType: aNone);
+    var bElementStar = _class(name: 'B', superType: aStar);
+
+    var cElementNone = _class(name: 'C', superType: aNone);
+    var cElementStar = _class(name: 'C', superType: aStar);
+
+    InterfaceTypeImpl bTypeElementNone(NullabilitySuffix nullability) {
+      return _interfaceType(
+        bElementNone,
+        nullabilitySuffix: nullability,
       );
     }
 
-    var aElement = _classElement('A', null);
-
-    var aQuestion = _interfaceType(aElement, NullabilitySuffix.question);
-    var aStar = _interfaceType(aElement, NullabilitySuffix.star);
-    var aNone = _interfaceType(aElement, NullabilitySuffix.none);
-
-    var bElementNone = _classElement('B', aNone);
-    var bElementStar = _classElement('B', aStar);
-
-    var cElementNone = _classElement('C', aNone);
-    var cElementStar = _classElement('C', aStar);
-
-    InterfaceTypeImpl bTypeElementNone(NullabilitySuffix nullability) {
-      return _interfaceType(bElementNone, nullability);
-    }
-
     InterfaceTypeImpl bTypeElementStar(NullabilitySuffix nullability) {
-      return _interfaceType(bElementStar, nullability);
+      return _interfaceType(
+        bElementStar,
+        nullabilitySuffix: nullability,
+      );
     }
 
     var bNoneQuestion = bTypeElementNone(NullabilitySuffix.question);
@@ -2123,11 +2389,17 @@ class LeastUpperBoundTest extends BoundTestBase {
     var bStarNone = bTypeElementStar(NullabilitySuffix.none);
 
     InterfaceTypeImpl cTypeElementNone(NullabilitySuffix nullability) {
-      return _interfaceType(cElementNone, nullability);
+      return _interfaceType(
+        cElementNone,
+        nullabilitySuffix: nullability,
+      );
     }
 
     InterfaceTypeImpl cTypeElementStar(NullabilitySuffix nullability) {
-      return _interfaceType(cElementStar, nullability);
+      return _interfaceType(
+        cElementStar,
+        nullabilitySuffix: nullability,
+      );
     }
 
     var cNoneQuestion = cTypeElementNone(NullabilitySuffix.question);
@@ -2187,98 +2459,117 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_sharedSuperclass2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeD = classD.type;
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA);
+    var typeC = _interfaceType(C);
+
+    var D = _class(name: 'D', superType: typeC);
+    var typeD = _interfaceType(D);
+
     _checkLeastUpperBound(typeB, typeD, typeA);
   }
 
   void test_sharedSuperclass3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeB);
+    var typeC = _interfaceType(C);
+
+    var D = _class(name: 'D', superType: typeB);
+    var typeD = _interfaceType(D);
+
     _checkLeastUpperBound(typeC, typeD, typeB);
   }
 
   void test_sharedSuperclass4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA2];
-    classC.interfaces = <InterfaceType>[typeA3];
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var A2 = _class(name: 'A2');
+    var typeA2 = _interfaceType(A2);
+
+    var A3 = _class(name: 'A3');
+    var typeA3 = _interfaceType(A3);
+
+    var B = _class(name: 'B', superType: typeA, interfaces: [typeA2]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA, interfaces: [typeA3]);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeA);
   }
 
   void test_sharedSuperinterface1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', interfaces: [typeA]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', interfaces: [typeA]);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeA);
   }
 
   void test_sharedSuperinterface2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
-    classD.interfaces = <InterfaceType>[typeC];
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', interfaces: [typeA]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', interfaces: [typeA]);
+    var typeC = _interfaceType(C);
+
+    var D = _class(name: 'D', interfaces: [typeC]);
+    var typeD = _interfaceType(D);
+
     _checkLeastUpperBound(typeB, typeD, typeA);
   }
 
   void test_sharedSuperinterface3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
-    classD.interfaces = <InterfaceType>[typeB];
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', interfaces: [typeA]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', interfaces: [typeB]);
+    var typeC = _interfaceType(C);
+
+    var D = _class(name: 'D', interfaces: [typeB]);
+    var typeD = _interfaceType(D);
+
     _checkLeastUpperBound(typeC, typeD, typeB);
   }
 
   void test_sharedSuperinterface4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA, typeA2];
-    classC.interfaces = <InterfaceType>[typeA, typeA3];
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var A2 = _class(name: 'A2');
+    var typeA2 = _interfaceType(A2);
+
+    var A3 = _class(name: 'A3');
+    var typeA3 = _interfaceType(A3);
+
+    var B = _class(name: 'B', interfaces: [typeA, typeA2]);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', interfaces: [typeA, typeA3]);
+    var typeC = _interfaceType(C);
+
     _checkLeastUpperBound(typeB, typeC, typeA);
   }
 
@@ -2287,82 +2578,90 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_typeParam_boundedByParam() {
-    TypeParameterElementImpl typeParamElementT =
-        ElementFactory.typeParameterElement('T');
-    TypeParameterElementImpl typeParamElementS =
-        ElementFactory.typeParameterElement('S');
-    DartType typeParamT = typeParamElementT.type;
-    DartType typeParamS = typeParamElementS.type;
-    typeParamElementT.bound = typeParamS;
-    _checkLeastUpperBound(typeParamT, typeParamS, typeParamS);
+    var S = _typeParameter('S');
+    var typeS = _typeParameterType(S);
+
+    var T = _typeParameter('T', bound: typeS);
+    var typeT = _typeParameterType(T);
+
+    _checkLeastUpperBound(typeT, typeS, typeS);
   }
 
   void test_typeParam_class_implements_Function_ignored() {
-    DartType typeA = ElementFactory.classElement('A', functionType).type;
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeA;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
+    var A = _class(name: 'A', superType: functionType);
+    var T = _typeParameter('T', bound: _interfaceType(A));
+    _checkLeastUpperBound(_typeParameterType(T), _functionType(), objectType);
   }
 
   void test_typeParam_fBounded() {
-    ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
-    InterfaceType AType = AClass.type;
+    var T = _typeParameter('Q');
+    var A = _class(name: 'A', typeParameters: [T]);
 
-    DartType s = TypeBuilder.variable("S");
-    (s.element as TypeParameterElementImpl).bound = AType.instantiate([s]);
-    DartType u = TypeBuilder.variable("U");
-    (u.element as TypeParameterElementImpl).bound = AType.instantiate([u]);
+    var S = _typeParameter('S');
+    var typeS = _typeParameterType(S);
+    S.bound = _interfaceType(A, typeArguments: [typeS]);
 
-    _checkLeastUpperBound(s, u, AType.instantiate([objectType]));
+    var U = _typeParameter('U');
+    var typeU = _typeParameterType(U);
+    U.bound = _interfaceType(A, typeArguments: [typeU]);
+
+    _checkLeastUpperBound(
+      typeS,
+      _typeParameterType(U),
+      _interfaceType(A, typeArguments: [objectType]),
+    );
   }
 
   void test_typeParam_function_bounded() {
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = functionType;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
+    var T = _typeParameter('T', bound: functionType);
+    _checkLeastUpperBound(_typeParameterType(T), _functionType(), functionType);
   }
 
   void test_typeParam_function_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
+    var T = _typeParameter('T');
+    _checkLeastUpperBound(_typeParameterType(T), _functionType(), objectType);
   }
 
   void test_typeParam_interface_bounded() {
-    DartType typeA = ElementFactory.classElement2('A', []).type;
-    DartType typeB = ElementFactory.classElement('B', typeA).type;
-    DartType typeC = ElementFactory.classElement('C', typeA).type;
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeB;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, typeC, typeA);
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
+
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA);
+    var typeC = _interfaceType(C);
+
+    var T = _typeParameter('T', bound: typeB);
+    var typeT = _typeParameterType(T);
+
+    _checkLeastUpperBound(typeT, typeC, typeA);
   }
 
   void test_typeParam_interface_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(typeParam, interfaceType, objectType);
+    var T = _typeParameter('T');
+    var A = _class(name: 'A');
+    _checkLeastUpperBound(
+      _typeParameterType(T),
+      _interfaceType(A),
+      objectType,
+    );
   }
 
   /// Check least upper bound of the same class with different type parameters.
   void test_typeParameters_different() {
     // class List<int>
     // class List<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
-    InterfaceType listOfNum = listType.instantiate(<DartType>[numType]);
+    var listOfIntType = listType(intType);
+    var listOfDoubleType = listType(doubleType);
+    var listOfNum = listType(numType);
     _checkLeastUpperBound(listOfIntType, listOfDoubleType, listOfNum);
   }
 
   void test_typeParameters_same() {
     // List<int>
     // List<int>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    var listOfIntType = listType(intType);
     _checkLeastUpperBound(listOfIntType, listOfIntType, listOfIntType);
   }
 
@@ -2371,9 +2670,8 @@ class LeastUpperBoundTest extends BoundTestBase {
   void test_typeParametersAndClass_different() {
     // class List<int>
     // class Iterable<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType iterableOfDoubleType =
-        iterableType.instantiate(<DartType>[doubleType]);
+    var listOfIntType = listType(intType);
+    var iterableOfDoubleType = iterableType(doubleType);
     // TODO(leafp): this should be iterableOfNumType
     _checkLeastUpperBound(listOfIntType, iterableOfDoubleType, objectType);
   }
@@ -2381,9 +2679,9 @@ class LeastUpperBoundTest extends BoundTestBase {
   void test_void() {
     List<DartType> types = [
       bottomType,
-      simpleFunctionType,
-      ElementFactory.classElement2('A', []).type,
-      ElementFactory.typeParameterElement('T').type
+      _functionType(),
+      _interfaceType(_class(name: 'A')),
+      _typeParameterType(_typeParameter('T')),
     ];
     for (DartType type in types) {
       _checkLeastUpperBound(
@@ -2398,22 +2696,10 @@ class LeastUpperBoundTest extends BoundTestBase {
 @reflectiveTest
 class NonNullableSubtypingTest extends SubtypingTestBase {
   @override
-  void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCoreAndOptions(
-            new AnalysisOptionsImpl()
-              ..contextFeatures = FeatureSet.forTesting(
-                  additionalFeatures: [Feature.non_nullable]),
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-
-    // TypeSystem should use the context type provider.
-    typeSystem = new Dart2TypeSystem(typeProvider);
-
-    LibraryElement coreLibrary = typeProvider.objectType.element.library;
-    LibraryElement asyncLibrary = typeProvider.streamType.element.library;
-
-    // Get a non-nullable type provider for convience during the test.
-    typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+  FeatureSet get testFeatureSet {
+    return FeatureSet.forTesting(
+      additionalFeatures: [Feature.non_nullable],
+    );
   }
 
   void test_dynamicType() {
@@ -2432,9 +2718,9 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
         (objectType as TypeImpl).withNullability(NullabilitySuffix.star);
     var objectQuestion =
         (objectType as TypeImpl).withNullability(NullabilitySuffix.question);
-    var futureOrObject = futureOrType.instantiate([objectType]);
-    var futureOrObjectStar = futureOrType.instantiate([objectStar]);
-    var futureOrObjectQuestion = futureOrType.instantiate([objectQuestion]);
+    var futureOrObject = futureOrType(objectType);
+    var futureOrObjectStar = futureOrType(objectStar);
+    var futureOrObjectQuestion = futureOrType(objectQuestion);
     var futureOrStarObject =
         (futureOrObject as TypeImpl).withNullability(NullabilitySuffix.star);
     var futureOrQuestionObject = (futureOrObject as TypeImpl)
@@ -2462,7 +2748,7 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
       futureOrQuestionObject,
       futureOrQuestionObjectStar,
       futureOrStarObjectQuestion,
-      futureOrQuestionObjectQuestion
+      futureOrQuestionObjectQuestion,
     ]);
   }
 
@@ -2570,7 +2856,7 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
       doubleType,
       intType,
       numType,
-      objectType
+      objectType,
     ];
 
     for (final formOfNull in equivalents) {
@@ -2596,7 +2882,7 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
       _question(doubleType),
       _question(numType),
       _question(intType),
-      nullType
+      nullType,
     ];
     _checkGroups(objectType,
         equivalents: equivalents,
@@ -2615,7 +2901,7 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
 @reflectiveTest
 class SubtypingTest extends SubtypingTestBase {
   void test_bottom_isBottom() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> equivalents = <DartType>[bottomType];
     List<DartType> supertypes = <DartType>[
       dynamicType,
@@ -2625,36 +2911,42 @@ class SubtypingTest extends SubtypingTestBase {
       numType,
       stringType,
       functionType,
-      interfaceType
+      _interfaceType(A),
     ];
     _checkGroups(bottomType, equivalents: equivalents, supertypes: supertypes);
   }
 
   void test_call_method() {
-    ClassElementImpl classBottom = ElementFactory.classElement2("Bottom");
-    MethodElement methodBottom =
-        ElementFactory.methodElement("call", objectType, <DartType>[intType]);
-    classBottom.methods = <MethodElement>[methodBottom];
+    var A = _class(name: 'A', methods: [
+      _method('call', objectType, parameters: [
+        _requiredParameter('_', intType),
+      ]),
+    ]);
 
-    DartType top =
-        TypeBuilder.function(required: <DartType>[intType], result: objectType);
-    InterfaceType bottom = classBottom.type;
-
-    _checkIsNotSubtypeOf(bottom, top);
+    _checkIsNotSubtypeOf(
+      _interfaceType(A),
+      _functionType(required: [intType], returns: objectType),
+    );
   }
 
   void test_classes() {
-    ClassElement classTop = ElementFactory.classElement2("A");
-    ClassElement classLeft = ElementFactory.classElement("B", classTop.type);
-    ClassElement classRight = ElementFactory.classElement("C", classTop.type);
-    ClassElement classBottom = ElementFactory.classElement("D", classLeft.type)
-      ..interfaces = <InterfaceType>[classRight.type];
-    InterfaceType top = classTop.type;
-    InterfaceType left = classLeft.type;
-    InterfaceType right = classRight.type;
-    InterfaceType bottom = classBottom.type;
+    var A = _class(name: 'A');
+    var typeA = _interfaceType(A);
 
-    _checkLattice(top, left, right, bottom);
+    var B = _class(name: 'B', superType: typeA);
+    var typeB = _interfaceType(B);
+
+    var C = _class(name: 'C', superType: typeA);
+    var typeC = _interfaceType(C);
+
+    var D = _class(
+      name: 'D',
+      superType: _interfaceType(B),
+      interfaces: [typeC],
+    );
+    var typeD = _interfaceType(D);
+
+    _checkLattice(typeA, typeB, typeC, typeD);
   }
 
   void test_double() {
@@ -2666,7 +2958,7 @@ class SubtypingTest extends SubtypingTestBase {
   }
 
   void test_dynamic_isTop() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
     List<DartType> subtypes = <DartType>[
       intType,
@@ -2674,8 +2966,8 @@ class SubtypingTest extends SubtypingTestBase {
       numType,
       stringType,
       functionType,
-      interfaceType,
-      bottomType
+      _interfaceType(A),
+      bottomType,
     ];
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
   }
@@ -2683,10 +2975,9 @@ class SubtypingTest extends SubtypingTestBase {
   void test_function_subtypes_itself_top_types() {
     var tops = [dynamicType, objectType, voidType];
     // Add FutureOr<T> for T := dynamic, object, void
-    tops.addAll(tops.map((t) => futureOrType.instantiate([t])).toList());
+    tops.addAll(tops.map((t) => futureOrType(t)).toList());
     // Add FutureOr<FutureOr<T>> for T := dynamic, object, void
-    tops.addAll(
-        tops.skip(3).map((t) => futureOrType.instantiate([t])).toList());
+    tops.addAll(tops.skip(3).map((t) => futureOrType(t)).toList());
 
     // Function should subtype all of those top types.
     _checkGroups(functionType, supertypes: [
@@ -2696,106 +2987,187 @@ class SubtypingTest extends SubtypingTestBase {
     ]);
 
     // Create a non-identical but equal copy of Function, and verify subtyping
-    var copyOfFunction = new InterfaceTypeImpl(functionType.element);
+    var copyOfFunction = _interfaceType(functionType.element);
     _checkEquivalent(functionType, copyOfFunction);
   }
 
   void test_genericFunction_generic_monomorphic() {
-    DartType s = TypeBuilder.variable("S");
-    DartType t = TypeBuilder.variable("T", bound: s);
-    DartType u = TypeBuilder.variable("U", bound: intType);
-    DartType v = TypeBuilder.variable("V", bound: u);
+    var S = _typeParameter('S');
+    var T = _typeParameter('T', bound: _typeParameterType(S));
+    var U = _typeParameter('U', bound: intType);
+    var V = _typeParameter('V', bound: _typeParameterType(U));
 
-    DartType a = TypeBuilder.variable("A");
-    DartType b = TypeBuilder.variable("B", bound: a);
-    DartType c = TypeBuilder.variable("C", bound: intType);
-    DartType d = TypeBuilder.variable("D", bound: c);
+    var A = _typeParameter('A');
+    var B = _typeParameter('B', bound: _typeParameterType(A));
+    var C = _typeParameter('C', bound: intType);
+    var D = _typeParameter('D', bound: _typeParameterType(C));
 
     _checkIsStrictSubtypeOf(
-        TypeBuilder.function(types: [s, t], required: [s], result: t),
-        TypeBuilder.function(
-            types: [a, b], required: [bottomType], result: dynamicType));
+      _functionType(
+        typeFormals: [S, T],
+        required: [_typeParameterType(S)],
+        returns: _typeParameterType(T),
+      ),
+      _functionType(
+        typeFormals: [A, B],
+        required: [bottomType],
+        returns: dynamicType,
+      ),
+    );
 
     _checkIsNotSubtypeOf(
-        TypeBuilder.function(types: [u, v], required: [u], result: v),
-        TypeBuilder.function(
-            types: [c, d], required: [objectType], result: objectType));
+      _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(V),
+      ),
+      _functionType(
+        typeFormals: [C, D],
+        required: [objectType],
+        returns: objectType,
+      ),
+    );
 
     _checkIsNotSubtypeOf(
-        TypeBuilder.function(types: [u, v], required: [u], result: v),
-        TypeBuilder.function(
-            types: [c, d], required: [intType], result: intType));
+      _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(V),
+      ),
+      _functionType(
+        typeFormals: [C, D],
+        required: [intType],
+        returns: intType,
+      ),
+    );
   }
 
   void test_genericFunction_genericDoesNotSubtypeNonGeneric() {
-    DartType s = TypeBuilder.variable("S");
-    DartType t = TypeBuilder.variable("T", bound: s);
-    DartType u = TypeBuilder.variable("U", bound: intType);
-    DartType v = TypeBuilder.variable("V", bound: u);
+    var S = _typeParameter('S');
+    var T = _typeParameter('T', bound: _typeParameterType(S));
+    var U = _typeParameter('U', bound: intType);
+    var V = _typeParameter('V', bound: _typeParameterType(U));
 
     _checkIsNotSubtypeOf(
-        TypeBuilder.function(types: [s, t], required: [s], result: t),
-        TypeBuilder.function(required: [dynamicType], result: dynamicType));
+      _functionType(
+        typeFormals: [S, T],
+        required: [_typeParameterType(S)],
+        returns: _typeParameterType(T),
+      ),
+      _functionType(required: [dynamicType], returns: dynamicType),
+    );
 
     _checkIsNotSubtypeOf(
-        TypeBuilder.function(types: [u, v], required: [u], result: v),
-        TypeBuilder.function(required: [objectType], result: objectType));
+      _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(V),
+      ),
+      _functionType(required: [objectType], returns: objectType),
+    );
 
     _checkIsNotSubtypeOf(
-        TypeBuilder.function(types: [u, v], required: [u], result: v),
-        TypeBuilder.function(required: [intType], result: intType));
+      _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(V),
+      ),
+      _functionType(required: [intType], returns: intType),
+    );
   }
 
   void test_genericFunction_simple() {
-    DartType s = TypeBuilder.variable("S");
-    DartType t = TypeBuilder.variable("T");
+    var S = _typeParameter('S');
+    var T = _typeParameter('T');
 
     _checkEquivalent(
-        TypeBuilder.function(types: [t]), TypeBuilder.function(types: [s]));
+      _functionType(typeFormals: [T]),
+      _functionType(typeFormals: [S]),
+    );
 
-    _checkEquivalent(TypeBuilder.function(types: [t], required: [t], result: t),
-        TypeBuilder.function(types: [s], required: [s], result: s));
+    _checkEquivalent(
+      _functionType(
+        typeFormals: [T],
+        required: [_typeParameterType(T)],
+        returns: _typeParameterType(T),
+      ),
+      _functionType(
+        typeFormals: [S],
+        required: [_typeParameterType(S)],
+        returns: _typeParameterType(S),
+      ),
+    );
   }
 
   void test_genericFunction_simple_bounded() {
-    DartType s = TypeBuilder.variable("S");
-    DartType t = TypeBuilder.variable("T", bound: s);
-    DartType u = TypeBuilder.variable("U");
-    DartType v = TypeBuilder.variable("V", bound: u);
-
-    _checkEquivalent(TypeBuilder.function(types: [s, t]),
-        TypeBuilder.function(types: [u, v]));
+    var S = _typeParameter('S');
+    var T = _typeParameter('T', bound: _typeParameterType(S));
+    var U = _typeParameter('U');
+    var V = _typeParameter('V', bound: _typeParameterType(U));
 
     _checkEquivalent(
-        TypeBuilder.function(types: [s, t], required: [s], result: t),
-        TypeBuilder.function(types: [u, v], required: [u], result: v));
+      _functionType(typeFormals: [S, T]),
+      _functionType(typeFormals: [U, V]),
+    );
+
+    _checkEquivalent(
+      _functionType(
+        typeFormals: [S, T],
+        required: [_typeParameterType(S)],
+        returns: _typeParameterType(T),
+      ),
+      _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(V),
+      ),
+    );
 
     {
-      DartType top =
-          TypeBuilder.function(types: [s, t], required: [t], result: s);
-      DartType left =
-          TypeBuilder.function(types: [u, v], required: [u], result: u);
-      DartType right =
-          TypeBuilder.function(types: [u, v], required: [v], result: v);
-      DartType bottom =
-          TypeBuilder.function(types: [s, t], required: [s], result: t);
+      var top = _functionType(
+        typeFormals: [S, T],
+        required: [_typeParameterType(T)],
+        returns: _typeParameterType(S),
+      );
+      var left = _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(U)],
+        returns: _typeParameterType(U),
+      );
+      var right = _functionType(
+        typeFormals: [U, V],
+        required: [_typeParameterType(V)],
+        returns: _typeParameterType(V),
+      );
+      var bottom = _functionType(
+        typeFormals: [S, T],
+        required: [_typeParameterType(S)],
+        returns: _typeParameterType(T),
+      );
       _checkLattice(top, left, right, bottom);
     }
   }
 
   void test_generics() {
-    ClassElementImpl LClass = ElementFactory.classElement2('L', ["T"]);
-    InterfaceType LType = LClass.type;
-    ClassElementImpl MClass = ElementFactory.classElement2('M', ["T"]);
-    DartType typeParam = MClass.typeParameters[0].type;
-    InterfaceType superType = LType.instantiate(<DartType>[typeParam]);
-    MClass.interfaces = <InterfaceType>[superType];
-    InterfaceType MType = MClass.type;
+    var LT = _typeParameter('T');
+    var L = _class(name: 'L', typeParameters: [LT]);
 
-    InterfaceType top = LType.instantiate(<DartType>[dynamicType]);
-    InterfaceType left = MType.instantiate(<DartType>[dynamicType]);
-    InterfaceType right = LType.instantiate(<DartType>[intType]);
-    InterfaceType bottom = MType.instantiate(<DartType>[intType]);
+    var MT = _typeParameter('T');
+    var M = _class(
+      name: 'M',
+      typeParameters: [MT],
+      interfaces: [
+        _interfaceType(
+          L,
+          typeArguments: [_typeParameterType(MT)],
+        )
+      ],
+    );
+
+    var top = _interfaceType(L, typeArguments: [dynamicType]);
+    var left = _interfaceType(M, typeArguments: [dynamicType]);
+    var right = _interfaceType(L, typeArguments: [intType]);
+    var bottom = _interfaceType(M, typeArguments: [intType]);
 
     _checkLattice(top, left, right, bottom);
   }
@@ -2809,36 +3181,36 @@ class SubtypingTest extends SubtypingTestBase {
   }
 
   void test_named_optional() {
-    DartType r =
-        TypeBuilder.function(required: <DartType>[intType], result: intType);
-    DartType o = TypeBuilder.function(
-        required: <DartType>[], optional: <DartType>[intType], result: intType);
-    DartType n = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType},
-        result: intType);
-    DartType rr = TypeBuilder.function(
-        required: <DartType>[intType, intType], result: intType);
-    DartType ro = TypeBuilder.function(
-        required: <DartType>[intType],
-        optional: <DartType>[intType],
-        result: intType);
-    DartType rn = TypeBuilder.function(
-        required: <DartType>[intType],
-        named: <String, DartType>{'x': intType},
-        result: intType);
-    DartType oo = TypeBuilder.function(
-        required: <DartType>[],
-        optional: <DartType>[intType, intType],
-        result: intType);
-    DartType nn = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType, 'y': intType},
-        result: intType);
-    DartType nnn = TypeBuilder.function(
-        required: <DartType>[],
-        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType},
-        result: intType);
+    var r = _functionType(required: [intType], returns: intType);
+    var o = _functionType(optional: [intType], returns: intType);
+    var n = _functionType(named: {'x': intType}, returns: intType);
+
+    var rr = _functionType(
+      required: [intType, intType],
+      returns: intType,
+    );
+    var ro = _functionType(
+      required: [intType],
+      optional: [intType],
+      returns: intType,
+    );
+    var rn = _functionType(
+      required: [intType],
+      named: {'x': intType},
+      returns: intType,
+    );
+    var oo = _functionType(
+      optional: [intType, intType],
+      returns: intType,
+    );
+    var nn = _functionType(
+      named: {'x': intType, 'y': intType},
+      returns: intType,
+    );
+    var nnn = _functionType(
+      named: {'x': intType, 'y': intType, 'z': intType},
+      returns: intType,
+    );
 
     _checkGroups(r,
         equivalents: [r],
@@ -2881,36 +3253,29 @@ class SubtypingTest extends SubtypingTestBase {
   }
 
   void test_simple_function() {
-    FunctionType top =
-        TypeBuilder.function(required: <DartType>[intType], result: objectType);
-    FunctionType left =
-        TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
-    FunctionType bottom =
-        TypeBuilder.function(required: <DartType>[objectType], result: intType);
+    var top = _functionType(required: [intType], returns: objectType);
+    var left = _functionType(required: [intType], returns: intType);
+    var right = _functionType(required: [objectType], returns: objectType);
+    var bottom = _functionType(required: [objectType], returns: intType);
 
     _checkLattice(top, left, right, bottom);
   }
 
   /// Regression test for https://github.com/dart-lang/sdk/issues/25069
   void test_simple_function_void() {
-    FunctionType functionType =
-        TypeBuilder.function(required: <DartType>[intType], result: objectType);
+    var functionType = _functionType(required: [intType], returns: objectType);
     _checkIsNotSubtypeOf(voidType, functionType);
   }
 
   void test_void_functions() {
-    FunctionType top =
-        TypeBuilder.function(required: <DartType>[intType], result: voidType);
-    FunctionType bottom =
-        TypeBuilder.function(required: <DartType>[objectType], result: intType);
+    var top = _functionType(required: [intType], returns: voidType);
+    var bottom = _functionType(required: [objectType], returns: intType);
 
     _checkIsStrictSubtypeOf(bottom, top);
   }
 
   void test_void_isTop() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    var A = _class(name: 'A');
     List<DartType> equivalents = <DartType>[dynamicType, objectType, voidType];
     List<DartType> subtypes = <DartType>[
       intType,
@@ -2918,48 +3283,14 @@ class SubtypingTest extends SubtypingTestBase {
       numType,
       stringType,
       functionType,
-      interfaceType,
+      _interfaceType(A),
       bottomType
     ];
     _checkGroups(voidType, equivalents: equivalents, subtypes: subtypes);
   }
 }
 
-class SubtypingTestBase {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
-
-  DartType get bottomType => typeProvider.bottomType;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  DartType get dynamicType => typeProvider.dynamicType;
-
-  InterfaceType get functionType => typeProvider.functionType;
-
-  InterfaceType get futureOrType => typeProvider.futureOrType;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  InterfaceType get listType => typeProvider.listType;
-
-  DartType get nullType => typeProvider.nullType;
-
-  InterfaceType get numType => typeProvider.numType;
-
-  InterfaceType get objectType => typeProvider.objectType;
-
-  InterfaceType get stringType => typeProvider.stringType;
-
-  DartType get voidType => VoidTypeImpl.instance;
-
-  void setUp() {
-    typeProvider = AnalysisContextFactory.contextWithCore(
-            resourceProvider: new MemoryResourceProvider())
-        .typeProvider;
-    typeSystem = new Dart2TypeSystem(typeProvider);
-  }
-
+class SubtypingTestBase extends AbstractTypeSystemTest {
   void _checkEquivalent(DartType type1, DartType type2) {
     _checkIsSubtypeOf(type1, type2);
     _checkIsSubtypeOf(type2, type1);
@@ -3033,50 +3364,25 @@ class SubtypingTestBase {
   }
 }
 
-class TypeBuilder {
-  static FunctionTypeImpl function(
-      {List<DartType> types,
-      List<DartType> required,
-      List<DartType> optional,
-      Map<String, DartType> named,
-      DartType result}) {
-    result = result ?? VoidTypeImpl.instance;
-    required = required ?? [];
-    FunctionElementImpl f = ElementFactory.functionElement8(required, result,
-        optional: optional, named: named);
-    if (types != null) {
-      f.typeParameters =
-          new List<TypeParameterElement>.from(types.map((t) => t.element));
-    }
-    return f.type = new FunctionTypeImpl(f);
-  }
-
-  static TypeParameterType variable(String name, {DartType bound}) =>
-      ElementFactory.typeParameterWithType(name, bound).type;
-}
-
 @reflectiveTest
 class TypeSystemTest extends AbstractTypeSystemTest {
   InterfaceTypeImpl get functionClassTypeNone {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.functionType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl get functionClassTypeQuestion {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.functionType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl get functionClassTypeStar {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.functionType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -3085,28 +3391,22 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       .withNullability(NullabilitySuffix.none);
 
   FunctionTypeImpl get nothingToVoidFunctionTypeNone {
-    return FunctionTypeImpl.synthetic(
-      voidType,
-      const <TypeParameterElement>[],
-      const <ParameterElement>[],
+    return _functionType(
+      returns: voidType,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   FunctionTypeImpl get nothingToVoidFunctionTypeQuestion {
-    return FunctionTypeImpl.synthetic(
-      voidType,
-      const <TypeParameterElement>[],
-      const <ParameterElement>[],
+    return _functionType(
+      returns: voidType,
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   FunctionTypeImpl get nothingToVoidFunctionTypeStar {
-    return FunctionTypeImpl.synthetic(
-      voidType,
-      const <TypeParameterElement>[],
-      const <ParameterElement>[],
+    return _functionType(
+      returns: voidType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -3127,79 +3427,76 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       .withNullability(NullabilitySuffix.star);
 
   InterfaceTypeImpl get stringClassTypeNone {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.stringType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl get stringClassTypeQuestion {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.stringType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl get stringClassTypeStar {
-    return InterfaceTypeImpl.explicit(
+    return _interfaceType(
       typeProvider.stringType.element,
-      const <DartType>[],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
   InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.futureOrElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.futureOrElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
-    var element = typeProvider.futureOrType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.futureOrElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
   InterfaceTypeImpl listClassTypeNone(DartType argument) {
-    var element = typeProvider.listType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.listElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
-    var element = typeProvider.listType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.listElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   InterfaceTypeImpl listClassTypeStar(DartType argument) {
-    var element = typeProvider.listType.element;
-    return InterfaceTypeImpl.explicit(
+    var element = typeProvider.listElement;
+    return _interfaceType(
       element,
-      <DartType>[argument],
+      typeArguments: <DartType>[argument],
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -3808,27 +4105,24 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeNone({@required DartType bound}) {
-    var element = TypeParameterElementImpl.synthetic('T');
-    element.bound = bound;
-    return TypeParameterTypeImpl(
+    var element = _typeParameter('T', bound: bound);
+    return _typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
   DartType typeParameterTypeQuestion({@required DartType bound}) {
-    var element = TypeParameterElementImpl.synthetic('T');
-    element.bound = bound;
-    return TypeParameterTypeImpl(
+    var element = _typeParameter('T', bound: bound);
+    return _typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.question,
     );
   }
 
   DartType typeParameterTypeStar({@required DartType bound}) {
-    var element = TypeParameterElementImpl.synthetic('T');
-    element.bound = bound;
-    return TypeParameterTypeImpl(
+    var element = _typeParameter('T', bound: bound);
+    return _typeParameterType(
       element,
       nullabilitySuffix: NullabilitySuffix.star,
     );

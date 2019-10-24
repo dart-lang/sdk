@@ -12,9 +12,49 @@ import 'fix_processor.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryProject1Test);
+    defineReflectiveTests(ImportLibraryProject1WithExtensionMethodsTest);
     defineReflectiveTests(ImportLibraryProject2Test);
+    defineReflectiveTests(ImportLibraryProject2WithExtensionMethodsTest);
     defineReflectiveTests(ImportLibraryProject3Test);
+    defineReflectiveTests(ImportLibraryProject3WithExtensionMethodsTest);
   });
+}
+
+@reflectiveTest
+class ImportLibraryProject1WithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_lib() async {
+    addPackageFile('my_pkg', 'a.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+
+    await resolveTestUnit('''
+f() {
+  print(E.m());
+}
+''');
+
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+f() {
+  print(E.m());
+}
+''', expectedNumberOfFixesForKind: 1);
+  }
 }
 
 @reflectiveTest
@@ -386,11 +426,8 @@ main() {
 ''');
   }
 
-  test_withFunction_identifier() async {
-    addSource('/home/test/lib/lib.dart', '''
-library lib;
-myFunction() {}
-''');
+  test_withFunction_functionTopLevelVariableIdentifier() async {
+    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
     await resolveTestUnit('''
 main() {
   myFunction;
@@ -405,8 +442,11 @@ main() {
 ''');
   }
 
-  test_withFunction_functionTopLevelVariableIdentifier() async {
-    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+  test_withFunction_identifier() async {
+    addSource('/home/test/lib/lib.dart', '''
+library lib;
+myFunction() {}
+''');
     await resolveTestUnit('''
 main() {
   myFunction;
@@ -488,7 +528,7 @@ import 'package:test/lib.dart';
 
 class X = Object with Test;
 ''', errorFilter: (error) {
-      return error.errorCode == StaticWarningCode.UNDEFINED_CLASS;
+      return error.errorCode == CompileTimeErrorCode.UNDEFINED_CLASS;
     });
   }
 
@@ -507,6 +547,42 @@ import 'package:test/lib.dart';
 
 main() {
   print(MY_VAR);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject2WithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_lib_src() async {
+    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
+    addPackageFile('my_pkg', 'src/b.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+    await resolveTestUnit('''
+f() {
+  print(E.m());
+}
+''');
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+f() {
+  print(E.m());
 }
 ''');
   }
@@ -559,6 +635,37 @@ import 'package:my_pkg/a.dart';
 main() {
   Test test = null;
   print(test);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject3WithExtensionMethodsTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
+
+  void setUp() {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    super.setUp();
+  }
+
+  test_inLibSrc_thisContextRoot() async {
+    addSource('/home/test/lib/src/lib.dart', '''
+extension E on int {
+  static String m() => '';
+}
+''');
+    await resolveTestUnit('''
+f() {
+  print(E.m());
+}
+''');
+    await assertHasFix('''
+import 'package:test/src/lib.dart';
+
+f() {
+  print(E.m());
 }
 ''');
   }

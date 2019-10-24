@@ -12,21 +12,21 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiFieldNoAnnotation,
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
-        templateFfiStructGeneric,
-        templateFfiWrongStructInheritance;
+        templateFfiStructGeneric;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import 'ffi.dart';
 
 /// Checks and elaborates the dart:ffi structs and fields.
 ///
 /// Input:
-/// class Coord extends Struct<Coord> {
+/// class Coord extends Struct {
 ///   @Double()
 ///   double x;
 ///
@@ -37,7 +37,7 @@ import 'ffi.dart';
 /// }
 ///
 /// Output:
-/// class Coord extends Struct<Coord> {
+/// class Coord extends Struct {
 ///   Coord.#fromPointer(Pointer<Coord> coord) : super._(coord);
 ///
 ///   Pointer<Double> get _xPtr => addressOf.cast();
@@ -85,6 +85,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       : super(index, coreTypes, hierarchy, diagnosticReporter) {}
 
   @override
+  visitExtension(Extension node) {
+    // The extension and it's members are only metadata.
+    return node;
+  }
+
+  @override
   visitClass(Class node) {
     if (!hierarchy.isSubclassOf(node, structClass) || node == structClass) {
       return node;
@@ -120,28 +126,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       // _FfiUseSiteTransformer.
       return;
     }
-
-    // A struct classes "C" must extend "Struct<C>".
-    DartType structTypeArg = node.supertype.typeArguments[0];
-    if (structTypeArg != InterfaceType(node)) {
-      diagnosticReporter.report(
-          templateFfiWrongStructInheritance.withArguments(node.name),
-          node.fileOffset,
-          1,
-          node.location.file);
-    }
   }
 
   bool _isPointerType(Field field) {
     return env.isSubtypeOf(
         field.type,
         InterfaceType(pointerClass,
-            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]));
+            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]),
+        SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool _checkFieldAnnotations(Class node) {
     bool success = true;
-    for (Field f in node.fields) {
+    for (final Field f in node.fields) {
       if (f.initializer is! NullLiteral) {
         diagnosticReporter.report(
             templateFfiFieldInitializer.withArguments(f.name.name),
@@ -172,7 +169,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final DartType shouldBeDartType =
             convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
         if (shouldBeDartType == null ||
-            !env.isSubtypeOf(dartType, shouldBeDartType)) {
+            !env.isSubtypeOf(dartType, shouldBeDartType,
+                SubtypeCheckMode.ignoringNullabilities)) {
           diagnosticReporter.report(
               templateFfiTypeMismatch.withArguments(
                   dartType, shouldBeDartType, nativeType),
@@ -191,8 +189,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     // Constructors cannot have initializers because initializers refer to
     // fields, and the fields were replaced with getter/setter pairs.
-    for (Constructor c in node.constructors) {
-      for (Initializer i in c.initializers) {
+    for (final Constructor c in node.constructors) {
+      for (final Initializer i in c.initializers) {
         if (i is FieldInitializer) {
           toRemove.add(i);
           diagnosticReporter.report(
@@ -204,7 +202,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       }
     }
     // Remove initializers referring to fields to prevent cascading errors.
-    for (Initializer i in toRemove) {
+    for (final Initializer i in toRemove) {
       i.remove();
     }
 
@@ -229,14 +227,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final fields = <Field>[];
     final types = <NativeType>[];
 
-    for (Field f in node.fields) {
+    for (final Field f in node.fields) {
       if (_isPointerType(f)) {
         fields.add(f);
         types.add(NativeType.kPointer);
       } else {
         final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
         if (nativeTypeAnnos.length == 1) {
-          NativeType t = nativeTypeAnnos.first;
+          final NativeType t = nativeTypeAnnos.first;
           fields.add(f);
           types.add(t);
         }
@@ -244,7 +242,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
 
     final sizeAndOffsets = <Abi, SizeAndOffsets>{};
-    for (Abi abi in Abi.values) {
+    for (final Abi abi in Abi.values) {
       sizeAndOffsets[abi] = _calculateSizeAndOffsets(types, abi);
     }
 
@@ -256,7 +254,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       methods.forEach((p) => node.addMember(p));
     }
 
-    for (Field f in fields) {
+    for (final Field f in fields) {
       f.remove();
     }
 
@@ -300,29 +298,45 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       pointer = MethodInvocation(pointer, offsetByMethod.name,
           Arguments([_runtimeBranchOnLayout(offsets)]), offsetByMethod);
     }
+
+    final Class nativeClass = (nativeType as InterfaceType).classNode;
+    final NativeType nt = getType(nativeClass);
+    final typeArguments = [
+      if (nt == NativeType.kPointer && pointerType is InterfaceType)
+        pointerType.typeArguments[0]
+    ];
+
     final Procedure pointerGetter = Procedure(
         pointerName,
         ProcedureKind.Getter,
         FunctionNode(
             ReturnStatement(MethodInvocation(pointer, castMethod.name,
                 Arguments([], types: [nativeType]), castMethod)),
-            returnType: pointerType));
+            returnType: pointerType),
+        fileUri: field.fileUri)
+      ..fileOffset = field.fileOffset;
 
     // Sample output:
-    // double get x => _xPtr.load<double>();
+    // double get x => _xPtr.value;
+    final loadMethod =
+        optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod;
     final Procedure getter = Procedure(
         field.name,
         ProcedureKind.Getter,
         FunctionNode(
-            ReturnStatement(MethodInvocation(
-                PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                loadMethod.name,
-                Arguments([], types: [field.type]),
-                loadMethod)),
-            returnType: field.type));
+            ReturnStatement(StaticInvocation(
+                loadMethod,
+                Arguments([
+                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
+                  ConstantExpression(IntConstant(0))
+                ], types: typeArguments))),
+            returnType: field.type),
+        fileUri: field.fileUri)
+      ..fileOffset = field.fileOffset;
 
     // Sample output:
-    // set x(double v) => _xPtr.store(v);
+    // set x(double v) { _xPtr.value = v; };
+    final storeMethod = storeMethods[nt];
     Procedure setter = null;
     if (!field.isFinal) {
       final VariableDeclaration argument =
@@ -331,13 +345,17 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           field.name,
           ProcedureKind.Setter,
           FunctionNode(
-              ReturnStatement(MethodInvocation(
-                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                  storeMethod.name,
-                  Arguments([VariableGet(argument)]),
-                  storeMethod)),
+              ReturnStatement(StaticInvocation(
+                  storeMethod,
+                  Arguments([
+                    PropertyGet(ThisExpression(), pointerName, pointerGetter),
+                    ConstantExpression(IntConstant(0)),
+                    VariableGet(argument)
+                  ], types: typeArguments))),
               returnType: VoidType(),
-              positionalParameters: [argument]));
+              positionalParameters: [argument]),
+          fileUri: field.fileUri)
+        ..fileOffset = field.fileOffset;
     }
 
     replacedGetters[field] = getter;
@@ -385,7 +403,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   SizeAndOffsets _calculateSizeAndOffsets(List<NativeType> types, Abi abi) {
     int offset = 0;
     final offsets = <int>[];
-    for (NativeType t in types) {
+    for (final NativeType t in types) {
       final int size = _sizeInBytes(t, abi);
       final int alignment = _alignmentOf(t, abi);
       offset = _alignOffset(offset, alignment);
@@ -420,20 +438,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   Iterable<NativeType> _getNativeTypeAnnotations(Field node) {
-    final Iterable<NativeType> preConstant2018 = node.annotations
-        .whereType<ConstructorInvocation>()
-        .map((expr) => expr.target.parent)
-        .map((klass) => _getFieldType(klass))
-        .where((type) => type != null);
-    final Iterable<NativeType> postConstant2018 = node.annotations
+    return node.annotations
         .whereType<ConstantExpression>()
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
-    // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
-    return postConstant2018.followedBy(preConstant2018);
   }
 }
 

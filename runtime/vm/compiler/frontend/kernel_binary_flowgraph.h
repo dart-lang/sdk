@@ -21,9 +21,11 @@ namespace kernel {
 
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
-  StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const ExternalTypedData& data,
-                            intptr_t data_program_offset)
+  StreamingFlowGraphBuilder(
+      FlowGraphBuilder* flow_graph_builder,
+      const ExternalTypedData& data,
+      intptr_t data_program_offset,
+      GrowableObjectArray* record_yield_positions = nullptr)
       : KernelReaderHelper(
             flow_graph_builder->zone_,
             &flow_graph_builder->translation_helper_,
@@ -44,7 +46,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
         call_site_attributes_metadata_helper_(this, &type_translator_),
-        closure_owner_(Object::Handle(flow_graph_builder->zone_)) {}
+        closure_owner_(Object::Handle(flow_graph_builder->zone_)),
+        record_yield_positions_(record_yield_positions) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -64,7 +67,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReadDefaultFunctionTypeArguments(const Function& function);
 
   FlowGraph* BuildGraphOfFieldInitializer();
-  Fragment BuildFieldInitializer(NameIndex canonical_name);
+  Fragment BuildFieldInitializer(const Field& field,
+                                 bool only_for_side_effects);
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
@@ -298,6 +302,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildStaticInvocation(bool is_const, TokenPosition* position);
   Fragment BuildConstructorInvocation(bool is_const, TokenPosition* position);
   Fragment BuildNot(TokenPosition* position);
+  Fragment BuildNullCheck(TokenPosition* position);
   Fragment BuildLogicalExpression(TokenPosition* position);
   Fragment TranslateLogicalExpressionForValue(bool negated,
                                               TestFragment* side_exits);
@@ -353,6 +358,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Kernel buffer and pushes the resulting closure.
   Fragment BuildFfiAsFunctionInternal();
 
+  // Build build FG for '_nativeCallbackFunction'. Reads an Arguments from the
+  // Kernel buffer and pushes the resulting Function object.
+  Fragment BuildFfiNativeCallbackFunction();
+
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;
@@ -363,6 +372,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
   Object& closure_owner_;
+  GrowableObjectArray* record_yield_positions_;
 
   friend class KernelLoader;
 

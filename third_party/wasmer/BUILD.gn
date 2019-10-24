@@ -1,0 +1,10 @@
+import("//build/rust/rust.gni")
+
+component("wasmer") {
+  public = [ "wasmer.hh" ]
+  deps = [ ":wasmer_lib" ]
+}
+
+rust_library("wasmer_lib") {
+  lib_name = "wasmer"
+}

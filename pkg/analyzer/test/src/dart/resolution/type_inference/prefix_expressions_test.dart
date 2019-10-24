@@ -18,13 +18,12 @@ main() {
 @reflectiveTest
 class NotTest extends DriverResolutionTest {
   test_upward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(bool a) {
   var b = !a;
   print(b);
 }
 ''');
-    await resolveTestFile();
     assertType(findNode.simple('b)'), 'bool');
   }
 }
@@ -41,14 +40,13 @@ class NotWithNnbdTest extends NotTest {
 
   @failingTest
   test_downward() async {
-    addTestFile('''
+    await resolveTestCode('''
 void f(b) {
   var c = !a();
   print(c);
 }
 T a<T>() => throw '';
 ''');
-    await resolveTestFile();
     assertInvokeType(findNode.methodInvocation('a('), 'bool Function()');
   }
 }

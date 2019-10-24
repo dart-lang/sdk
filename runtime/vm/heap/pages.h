@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_HEAP_PAGES_H_
 #define RUNTIME_VM_HEAP_PAGES_H_
 
+#include "platform/atomic.h"
 #include "vm/globals.h"
 #include "vm/heap/freelist.h"
 #include "vm/heap/spaces.h"
@@ -50,8 +51,7 @@ class HeapPage {
   }
 
   ForwardingPage* forwarding_page() const { return forwarding_page_; }
-  ForwardingPage* AllocateForwardingPage();
-  void FreeForwardingPage();
+  void AllocateForwardingPage();
 
   PageType type() const { return type_; }
 
@@ -232,6 +232,8 @@ class PageSpaceController {
   bool is_enabled() { return is_enabled_; }
 
  private:
+  void RecordUpdate(SpaceUsage before, SpaceUsage after, const char* reason);
+
   Heap* heap_;
 
   bool is_enabled_;
@@ -256,9 +258,6 @@ class PageSpaceController {
 
   // Perform a synchronous GC when capacity exceeds this amount.
   intptr_t gc_threshold_in_words_;
-
-  // Perform a synchronous GC when external allocations exceed this amount.
-  intptr_t gc_external_threshold_in_words_;
 
   // Start considering idle GC when capacity exceeds this amount.
   intptr_t idle_gc_threshold_in_words_;
@@ -377,8 +376,7 @@ class PageSpace {
 #endif  // PRODUCT
 
   void AllocateBlack(intptr_t size) {
-    AtomicOperations::IncrementBy(&allocated_black_in_words_,
-                                  size >> kWordSizeLog2);
+    allocated_black_in_words_.fetch_add(size >> kWordSizeLog2);
   }
 
   void AllocateExternal(intptr_t cid, intptr_t size);
@@ -514,7 +512,7 @@ class PageSpace {
   // NOTE: The capacity component of usage_ is updated by the concurrent
   // sweeper. Use (Increase)CapacityInWords(Locked) for thread-safe access.
   SpaceUsage usage_;
-  intptr_t allocated_black_in_words_;
+  RelaxedAtomic<intptr_t> allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
   mutable Monitor tasks_lock_;

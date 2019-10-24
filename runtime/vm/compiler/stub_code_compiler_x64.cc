@@ -238,20 +238,6 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  // SP points to return address, which needs to be the second argument to
-  // VerifyCallbackIsolate.
-  __ movq(CallingConventions::kArg2Reg, Address(SPREG, 0));
-
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
-  __ movq(RAX,
-          Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
-  __ CallCFunction(RAX);
-  __ LeaveFrame();
-  __ ret();
-}
-
 // Calls native code within a safepoint.
 //
 // On entry:
@@ -263,17 +249,129 @@ void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
 //   RBX, R12 clobbered
 void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
-  __ TransitionGeneratedToNative(RBX, FPREG);
+  __ TransitionGeneratedToNative(RBX, FPREG, /*enter_safepoint=*/true);
 
   __ popq(R12);
   __ CallCFunction(RBX);
 
-  __ TransitionNativeToGenerated();
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
 
   // Faster than jmp because it doesn't confuse the branch predictor.
   __ pushq(R12);
   __ ret();
 }
+
+#if !defined(DART_PRECOMPILER)
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+  Label done;
+
+  // RAX is volatile and not used for passing any arguments.
+  COMPILE_ASSERT(!IsCalleeSavedRegister(RAX) && !IsArgumentRegister(RAX));
+
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    __ movq(RAX, compiler::Immediate(next_callback_id + i));
+    __ jmp(&done);
+  }
+
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // Save THR which is callee-saved.
+  __ pushq(THR);
+
+  // 2 = THR & return address
+  COMPILE_ASSERT(2 == StubCodeCompiler::kNativeCallbackTrampolineStackDelta);
+
+  // Save the callback ID.
+  __ pushq(RAX);
+
+  // Save all registers which might hold arguments.
+  __ PushRegisters(CallingConventions::kArgumentRegisters,
+                   CallingConventions::kFpuArgumentRegisters);
+
+  // Load the thread, verify the callback ID and exit the safepoint.
+  //
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to save code size on this shared stub.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+    __ movq(CallingConventions::kArg1Reg, RAX);
+    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
+                     DLRT_GetThreadForNativeCallbackTrampoline)));
+    __ CallCFunction(RAX);
+    __ movq(THR, RAX);
+
+    __ LeaveFrame();
+  }
+
+  // Restore the arguments.
+  __ PopRegisters(CallingConventions::kArgumentRegisters,
+                  CallingConventions::kFpuArgumentRegisters);
+
+  // Restore the callback ID.
+  __ popq(RAX);
+
+  // Current state:
+  //
+  // Stack:
+  //  <old stack (arguments)>
+  //  <return address>
+  //  <saved THR>
+  //
+  // Registers: Like entry, except RAX == callback_id and THR == thread
+  //            All argument registers are untouched.
+
+  COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
+
+  // Load the target from the thread.
+  __ movq(TMP, compiler::Address(
+                   THR, compiler::target::Thread::callback_code_offset()));
+  __ movq(TMP, compiler::FieldAddress(
+                   TMP, compiler::target::GrowableObjectArray::data_offset()));
+  __ movq(TMP, __ ElementAddressForRegIndex(
+                   /*external=*/false,
+                   /*array_cid=*/kArrayCid,
+                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                   /*array=*/TMP,
+                   /*index=*/RAX));
+  __ movq(TMP, compiler::FieldAddress(
+                   TMP, compiler::target::Code::entry_point_offset()));
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(TMP);
+
+  // EnterSafepoint takes care to not clobber *any* registers (besides TMP).
+  __ EnterSafepoint();
+
+  // Restore THR (callee-saved).
+  __ popq(THR);
+
+  __ ret();
+
+  // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
+  // instruction size can vary slightly based on OS calling conventions.
+  ASSERT((__ CodeSize() - shared_stub_start) <= kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+
+#if defined(DEBUG)
+  while (__ CodeSize() < VirtualMemory::PageSize()) {
+    __ Breakpoint();
+  }
+#endif
+}
+#endif  // !defined(DART_PRECOMPILER)
 
 // RBX: The extracted method.
 // RDX: The type_arguments_field_offset (or 0)
@@ -1146,6 +1244,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ movq(THR, kThreadReg);
   }
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save the current VMTag on the stack.
   __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
@@ -1230,6 +1332,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the current VMTag from the stack.
   __ popq(Assembler::VMTagAddress());
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
                   CallingConventions::kCalleeSaveXmmRegisters);
@@ -1288,6 +1394,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
   if (THR != kThreadReg) {
     __ movq(THR, kThreadReg);
   }
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the current VMTag on the stack.
   __ movq(RAX, Assembler::VMTagAddress());
@@ -1378,6 +1488,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Restore the current VMTag from the stack.
   __ popq(Assembler::VMTagAddress());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -2684,12 +2798,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n == 1) {
-      __ SmiTag(kInstanceCidOrFunction);
-    } else {
-      ASSERT(n >= 2);
+    if (n >= 2) {
       Label has_no_type_arguments;
-      // [LoadClassById] also tags [kInstanceCidOrFunction] as a side-effect.
       __ LoadClassById(RDI, kInstanceCidOrFunction);
       __ movq(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ movl(
@@ -2708,6 +2818,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
         __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
       }
     }
+    __ SmiTag(kInstanceCidOrFunction);
   }
 
   Label found, not_found, next_iteration;
@@ -3005,6 +3116,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   __ movq(THR, CallingConventions::kArg4Reg);
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   // Set the tag.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.
@@ -3057,6 +3171,9 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 
   // Push the deopt pc.
   __ pushq(Address(THR, target::Thread::resume_pc_offset()));
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 
   // After we have deoptimized, jump to the correct frame.

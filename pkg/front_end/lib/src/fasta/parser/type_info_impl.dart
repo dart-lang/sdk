@@ -459,7 +459,7 @@ class ComplexTypeInfo implements TypeInfo {
           token, IdentifierContext.prefixedTypeReference);
     }
 
-    final typeVariableEndGroups = <Token>[];
+    final List<Token> typeVariableEndGroups = <Token>[];
     for (Link<Token> t = typeVariableStarters; t.isNotEmpty; t = t.tail) {
       typeVariableEndGroups.add(
           computeTypeParamOrArg(t.head, true).parseVariables(t.head, parser));
@@ -763,7 +763,7 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
     listener.beginTypeVariable(token);
     listener.handleTypeVariablesDefined(token, 1);
     listener.handleNoType(token);
-    listener.endTypeVariable(endGroup, 0, null);
+    listener.endTypeVariable(endGroup, 0, null, null);
     listener.endTypeVariables(beginGroup, endGroup);
     return endGroup;
   }
@@ -844,6 +844,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// given unbalanced `<` `>` and invalid parameters or arguments.
   final bool inDeclaration;
 
+  // Only support variance parsing if it makes sense.
+  // Allows parsing of variance for certain structures.
+  // See https://github.com/dart-lang/language/issues/524
+  final bool allowsVariance;
+
   @override
   int typeArgumentCount;
 
@@ -853,9 +858,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   /// and may not be part of the token stream.
   Token skipEnd;
 
-  ComplexTypeParamOrArgInfo(Token token, this.inDeclaration)
+  ComplexTypeParamOrArgInfo(
+      Token token, this.inDeclaration, this.allowsVariance)
       : assert(optional('<', token.next)),
         assert(inDeclaration != null),
+        assert(allowsVariance != null),
         start = token.next;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
@@ -978,9 +985,35 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
     Link<Token> typeStarts = const Link<Token>();
     Link<TypeInfo> superTypeInfos = const Link<TypeInfo>();
+    Link<Token> variances = const Link<Token>();
 
     while (true) {
       token = parser.parseMetadataStar(next);
+
+      Token variance = next.next;
+      Token identifier = variance.next;
+      if (allowsVariance &&
+          isVariance(variance) &&
+          identifier != null &&
+          identifier.isKeywordOrIdentifier) {
+        variances = variances.prepend(variance);
+
+        // Recovery for multiple variance modifiers
+        while (isVariance(identifier) &&
+            identifier.next != null &&
+            identifier.next.isKeywordOrIdentifier) {
+          // Report an error and skip actual identifier
+          parser.reportRecoverableError(
+              identifier, fasta.messageMultipleVarianceModifiers);
+          variance = variance.next;
+          identifier = identifier.next;
+        }
+
+        token = variance;
+      } else {
+        variances = variances.prepend(null);
+      }
+
       next = parser.ensureIdentifier(
           token, IdentifierContext.typeVariableDeclaration);
       token = next;
@@ -1015,12 +1048,14 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     assert(count > 0);
     assert(typeStarts.slowLength() == count);
     assert(superTypeInfos.slowLength() == count);
+    assert(variances.slowLength() == count);
     listener.handleTypeVariablesDefined(token, count);
 
     token = null;
     while (typeStarts.isNotEmpty) {
       Token token2 = typeStarts.head;
       TypeInfo typeInfo = superTypeInfos.head;
+      Token variance = variances.head;
 
       Token extendsOrSuper = null;
       Token next2 = token2.next;
@@ -1036,10 +1071,11 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Type variables are "completed" in reverse order, so capture the last
       // consumed token from the first "completed" type variable.
       token ??= token2;
-      listener.endTypeVariable(next2, --count, extendsOrSuper);
+      listener.endTypeVariable(next2, --count, extendsOrSuper, variance);
 
       typeStarts = typeStarts.tail;
       superTypeInfos = superTypeInfos.tail;
+      variances = variances.tail;
     }
 
     if (!parseCloser(token)) {
@@ -1092,7 +1128,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
         // Parse the type so that the token stream is properly modified,
         // but ensure that parser events are ignored by replacing the listener.
-        final originalListener = parser.listener;
+        final Listener originalListener = parser.listener;
         parser.listener = new ForwardingListener();
         token = invalidType.parseType(token, parser);
         next = token.next;
@@ -1115,7 +1151,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
 
       // Parse the type so that the token stream is properly modified,
       // but ensure that parser events are ignored by replacing the listener.
-      final originalListener = parser.listener;
+      final Listener originalListener = parser.listener;
       parser.listener = new ForwardingListener();
       token = isArguments
           ? invalidTypeVar.parseArguments(token, parser)
@@ -1151,9 +1187,16 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     if (parseCloser(next)) {
       return next;
     }
-    Token endGroup = syntheticGt(next);
-    endGroup.setNext(next);
-    token.setNext(endGroup);
+    Token endGroup = start.endGroup;
+    if (endGroup != null) {
+      while (token.next != endGroup && !token.isEof) {
+        token = token.next;
+      }
+    } else {
+      endGroup = syntheticGt(next);
+      endGroup.setNext(next);
+      token.setNext(endGroup);
+    }
     return token;
   }
 
@@ -1164,9 +1207,16 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   }
 }
 
+// Return `true` if [token] is one of `in`, `inout`, or `out`
+bool isVariance(Token token) {
+  return optional('in', token) ||
+      optional('inout', token) ||
+      optional('out', token);
+}
+
 /// Return `true` if [token] is one of `>`, `>>`, `>>>`, `>=`, `>>=`, or `>>>=`.
 bool isCloser(Token token) {
-  final value = token.stringValue;
+  final String value = token.stringValue;
   return identical(value, '>') ||
       identical(value, '>>') ||
       identical(value, '>=') ||

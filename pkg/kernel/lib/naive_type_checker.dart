@@ -7,6 +7,7 @@ import 'core_types.dart';
 import 'kernel.dart';
 import 'type_checker.dart' as type_checker;
 import 'type_algebra.dart';
+import 'type_environment.dart';
 
 abstract class FailureListener {
   void reportFailure(TreeNode node, String message);
@@ -90,7 +91,8 @@ ${ownType} is not a subtype of ${superType}
       } else {
         final DartType ownType = getterType(host, ownMember);
         final DartType superType = getterType(host, superMember);
-        if (!environment.isSubtypeOf(ownType, superType)) {
+        if (!environment.isSubtypeOf(
+            ownType, superType, SubtypeCheckMode.ignoringNullabilities)) {
           return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is not a subtype of ${superType}
 ''');
@@ -106,8 +108,8 @@ ${ownType} is not a subtype of ${superType}
 
   /// Check if [subtype] is subtype of [supertype] after applying
   /// type parameter [substitution].
-  bool _isSubtypeOf(DartType subtype, DartType supertype) =>
-      environment.isSubtypeOf(subtype, supertype);
+  bool _isSubtypeOf(DartType subtype, DartType supertype) => environment
+      .isSubtypeOf(subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
     final hostType =
@@ -232,8 +234,10 @@ super method declares ${superParameter.type}
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     // Note: we permit implicit downcasts.
     if (from != to &&
-        !environment.isSubtypeOf(from, to) &&
-        !environment.isSubtypeOf(to, from)) {
+        !environment.isSubtypeOf(
+            from, to, SubtypeCheckMode.ignoringNullabilities) &&
+        !environment.isSubtypeOf(
+            to, from, SubtypeCheckMode.ignoringNullabilities)) {
       failures.reportNotAssignable(where, from, to);
     }
   }
@@ -245,7 +249,7 @@ super method declares ${superParameter.type}
     }
 
     // Permit any invocation on Function type.
-    if (receiver == environment.rawFunctionType &&
+    if (receiver == environment.coreTypes.functionLegacyRawType &&
         where is MethodInvocation &&
         where.name.name == 'call') {
       return;

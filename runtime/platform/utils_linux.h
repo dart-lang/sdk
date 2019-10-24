@@ -5,29 +5,13 @@
 #ifndef RUNTIME_PLATFORM_UTILS_LINUX_H_
 #define RUNTIME_PLATFORM_UTILS_LINUX_H_
 
+#if !defined(RUNTIME_PLATFORM_UTILS_H_)
+#error Do not include utils_linux.h directly; use utils.h instead.
+#endif
+
 #include <endian.h>  // NOLINT
 
 namespace dart {
-
-inline int Utils::CountLeadingZeros(uword x) {
-#if defined(ARCH_IS_32_BIT)
-  return __builtin_clzl(x);
-#elif defined(ARCH_IS_64_BIT)
-  return __builtin_clzll(x);
-#else
-#error Architecture is not 32-bit or 64-bit.
-#endif
-}
-
-inline int Utils::CountTrailingZeros(uword x) {
-#if defined(ARCH_IS_32_BIT)
-  return __builtin_ctzl(x);
-#elif defined(ARCH_IS_64_BIT)
-  return __builtin_ctzll(x);
-#else
-#error Architecture is not 32-bit or 64-bit.
-#endif
-}
 
 inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
   return htobe16(value);

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 @#C5
-typedef SomeType<T extends core::Object* = dynamic> = (core::List<T*>*) →* void;
+typedef SomeType<unrelated T extends core::Object* = dynamic> = (core::List<T*>*) →* void;
 abstract class ClassAnnotation2 extends core::Object {
 }
 abstract class MethodAnnotation extends core::Object {

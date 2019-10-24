@@ -1,0 +1,6 @@
+pkg/front_end/testcases/extensions/unnamed_extensions.dart:37:10: Context: Write to value@744
+    value++;
+         ^^
+pkg/front_end/testcases/extensions/unnamed_extensions.dart:57:10: Context: Write to value@1195
+    value++;
+         ^^

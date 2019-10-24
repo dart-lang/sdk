@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -18,20 +17,17 @@ main() {
 }
 
 @reflectiveTest
-class ConstantDriverTest extends DriverResolutionTest with ConstantMixin {}
-
-mixin ConstantMixin implements ResolutionTest {
+class ConstantDriverTest extends DriverResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
   const A({int p});
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 const a = const A();
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var aLib = findElement.import('package:test/a.dart').importedLibrary;
@@ -45,7 +41,7 @@ const a = const A();
   }
 
   test_constFactoryRedirection_super() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class I {
   const factory I(int f) = B;
 }
@@ -63,7 +59,6 @@ class B extends A {
 @I(42)
 main() {}
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var node = findNode.annotation('@I');
@@ -72,7 +67,7 @@ main() {}
   }
 
   test_constNotInitialized() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 class B {
   const B(_);
 }
@@ -82,7 +77,6 @@ class C extends B {
   const C() : super(a);
 }
 ''');
-    await resolveTestFile();
     assertTestErrorsWithCodes([
       CompileTimeErrorCode.CONST_NOT_INITIALIZED,
       CompileTimeErrorCode.CONST_NOT_INITIALIZED,
@@ -98,12 +92,11 @@ class C<T> {
   const C();
 }
 ''');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart';
 
 const v = a;
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var v = findElement.topVar('v') as ConstVariableElement;

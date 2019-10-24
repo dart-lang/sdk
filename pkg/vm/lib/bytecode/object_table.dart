@@ -308,6 +308,7 @@ enum ConstTag {
   kBool,
   kSymbol,
   kTearOffInstantiation,
+  kString,
 }
 
 enum TypeTag {
@@ -394,7 +395,9 @@ abstract class ObjectHandle extends BytecodeObject {
       case ObjectKind.kClosure:
         return new _ClosureHandle._empty();
       case ObjectKind.kName:
-        return new _NameHandle._empty();
+        return ((flags & _NameHandle.flagIsPublic) != 0)
+            ? new _PublicNameHandle._empty()
+            : _PrivateNameHandle._empty();
       case ObjectKind.kTypeArguments:
         return new _TypeArgumentsHandle._empty();
       case ObjectKind.kConstObject:
@@ -478,7 +481,7 @@ class _InvalidHandle extends ObjectHandle {
 }
 
 class _LibraryHandle extends ObjectHandle {
-  _NameHandle uri;
+  _ConstObjectHandle uri;
 
   _LibraryHandle._empty();
 
@@ -509,7 +512,7 @@ class _LibraryHandle extends ObjectHandle {
   bool operator ==(other) => other is _LibraryHandle && this.uri == other.uri;
 
   @override
-  String toString() => uri.name;
+  String toString() => uri.value;
 }
 
 class _ClassHandle extends ObjectHandle {
@@ -1102,16 +1105,63 @@ class _FunctionTypeHandle extends _TypeHandle {
   }
 }
 
-class _NameHandle extends ObjectHandle {
-  _LibraryHandle library;
-  String name;
+abstract class _NameHandle extends ObjectHandle {
+  static const int flagIsPublic = ObjectHandle.flagBit0;
 
-  _NameHandle._empty();
-
-  _NameHandle(this.library, this.name);
+  String get name;
 
   @override
   ObjectKind get kind => ObjectKind.kName;
+
+  @override
+  void indexStrings(StringWriter strings) {
+    strings.put(name);
+  }
+
+  @override
+  String toString() => "'$name'";
+}
+
+class _PublicNameHandle extends _NameHandle {
+  String name;
+
+  _PublicNameHandle._empty();
+
+  _PublicNameHandle(this.name);
+
+  @override
+  int get flags => _NameHandle.flagIsPublic;
+
+  @override
+  void writeContents(BufferedWriter writer) {
+    writer.writePackedStringReference(name);
+  }
+
+  @override
+  void readContents(BufferedReader reader) {
+    name = reader.readPackedStringReference();
+  }
+
+  @override
+  int get hashCode => name.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is _PublicNameHandle && this.name == other.name;
+
+  @override
+  String toString() => "'$name'";
+}
+
+class _PrivateNameHandle extends _NameHandle {
+  _LibraryHandle library;
+  String name;
+
+  _PrivateNameHandle._empty();
+
+  _PrivateNameHandle(this.library, this.name) {
+    assert(library != null);
+  }
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -1127,14 +1177,7 @@ class _NameHandle extends ObjectHandle {
 
   @override
   void accountUsesForObjectCopies(int numCopies) {
-    if (library != null) {
-      library._useCount += numCopies;
-    }
-  }
-
-  @override
-  void indexStrings(StringWriter strings) {
-    strings.put(name);
+    library._useCount += numCopies;
   }
 
   @override
@@ -1142,7 +1185,7 @@ class _NameHandle extends ObjectHandle {
 
   @override
   bool operator ==(other) =>
-      other is _NameHandle &&
+      other is _PrivateNameHandle &&
       this.name == other.name &&
       this.library == other.library;
 
@@ -1159,6 +1202,16 @@ class _TypeArgumentsHandle extends ObjectHandle {
 
   @override
   ObjectKind get kind => ObjectKind.kTypeArguments;
+
+  @override
+  bool get isCacheable {
+    for (var arg in args) {
+      if (!arg.isCacheable) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   void writeContents(BufferedWriter writer) {
@@ -1261,6 +1314,9 @@ class _ConstObjectHandle extends ObjectHandle {
           writer.writePackedObject(type as _TypeArgumentsHandle);
         }
         break;
+      case ConstTag.kString:
+        writer.writePackedStringReference(value as String);
+        break;
       default:
         throw 'Unexpected constant tag: $tag';
     }
@@ -1300,6 +1356,9 @@ class _ConstObjectHandle extends ObjectHandle {
         value = reader.readPackedObject();
         type = reader.readPackedObject();
         break;
+      case ConstTag.kString:
+        value = reader.readPackedStringReference();
+        break;
       default:
         throw 'Unexpected constant tag: $tag';
     }
@@ -1311,6 +1370,7 @@ class _ConstObjectHandle extends ObjectHandle {
       case ConstTag.kInt:
       case ConstTag.kDouble:
       case ConstTag.kBool:
+      case ConstTag.kString:
         break;
       case ConstTag.kInstance:
         {
@@ -1368,6 +1428,7 @@ class _ConstObjectHandle extends ObjectHandle {
       case ConstTag.kBool:
       case ConstTag.kTearOff:
       case ConstTag.kSymbol:
+      case ConstTag.kString:
         return _hashCode = value.hashCode;
       case ConstTag.kInstance:
         {
@@ -1400,6 +1461,7 @@ class _ConstObjectHandle extends ObjectHandle {
         case ConstTag.kBool:
         case ConstTag.kTearOff:
         case ConstTag.kSymbol:
+        case ConstTag.kString:
           return this.value == other.value;
         case ConstTag.kDouble:
           return this.value.compareTo(other.value) == 0;
@@ -1432,6 +1494,8 @@ class _ConstObjectHandle extends ObjectHandle {
         return 'const tear-off $value';
       case ConstTag.kTearOffInstantiation:
         return 'const $type $value';
+      case ConstTag.kString:
+        return "'$value'";
       default:
         throw 'Unexpected constant tag: $tag';
     }
@@ -1445,7 +1509,7 @@ class _ArgDescHandle extends ObjectHandle {
   int _flags = 0;
   int numArguments;
   int numTypeArguments;
-  List<_NameHandle> argNames;
+  List<_PublicNameHandle> argNames;
 
   _ArgDescHandle._empty();
 
@@ -1486,7 +1550,7 @@ class _ArgDescHandle extends ObjectHandle {
     numTypeArguments =
         ((_flags & flagHasTypeArgs) != 0) ? reader.readPackedUInt30() : 0;
     argNames = ((_flags & flagHasNamedArgs) != 0)
-        ? reader.readPackedList<_NameHandle>()
+        ? reader.readPackedList<_PublicNameHandle>()
         : null;
   }
 
@@ -1592,8 +1656,7 @@ class _ScriptHandle extends ObjectHandle {
   bool operator ==(other) => other is _ScriptHandle && this.uri == other.uri;
 
   @override
-  String toString() =>
-      "$uri${source != null ? '(source ${source.importUri})' : ''}";
+  String toString() => "$uri${source != null ? '($source)' : ''}";
 }
 
 class ObjectTable implements ObjectWriter, ObjectReader {
@@ -1605,6 +1668,8 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   final Map<ObjectHandle, ObjectHandle> _canonicalizationCache =
       <ObjectHandle, ObjectHandle>{};
   final Map<Node, ObjectHandle> _nodeCache = <Node, ObjectHandle>{};
+  final Map<String, _PublicNameHandle> _publicNames =
+      <String, _PublicNameHandle>{};
   List<ObjectHandle> _indexTable;
   _TypeHandle _dynamicType;
   _TypeHandle _voidType;
@@ -1666,19 +1731,46 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     return name;
   }
 
-  ObjectHandle getNameHandle(Library library, String name) {
+  ObjectHandle getPublicNameHandle(String name) {
     assert(name != null);
-    final libraryHandle = library != null ? getHandle(library) : null;
-    return getOrAddObject(new _NameHandle(libraryHandle, name));
+    _PublicNameHandle handle = _publicNames[name];
+    if (handle == null) {
+      handle = getOrAddObject(new _PublicNameHandle(name));
+      _publicNames[name] = handle;
+    }
+    return handle;
   }
 
-  List<_NameHandle> getPublicNameHandles(List<String> names) {
-    if (names.isEmpty) {
-      return const <_NameHandle>[];
+  ObjectHandle getNameHandle(Library library, String name) {
+    if (library == null) {
+      return getPublicNameHandle(name);
     }
-    final handles = new List<_NameHandle>(names.length);
+    assert(name != null);
+    final libraryHandle = library != null ? getHandle(library) : null;
+    return getOrAddObject(new _PrivateNameHandle(libraryHandle, name));
+  }
+
+  List<_PublicNameHandle> getPublicNameHandles(List<String> names) {
+    if (names.isEmpty) {
+      return const <_PublicNameHandle>[];
+    }
+    final handles = new List<_PublicNameHandle>(names.length);
     for (int i = 0; i < names.length; ++i) {
-      handles[i] = getNameHandle(null, names[i]);
+      handles[i] = getPublicNameHandle(names[i]);
+    }
+    return handles;
+  }
+
+  ObjectHandle getConstStringHandle(String value) =>
+      getOrAddObject(new _ConstObjectHandle(ConstTag.kString, value));
+
+  List<ObjectHandle> getConstStringHandles(List<String> values) {
+    if (values.isEmpty) {
+      return const <ObjectHandle>[];
+    }
+    final handles = new List<ObjectHandle>(values.length);
+    for (int i = 0; i < values.length; ++i) {
+      handles[i] = getConstStringHandle(values[i]);
     }
     return handles;
   }
@@ -1691,7 +1783,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
   ObjectHandle getTopLevelClassHandle(Library library) {
     final libraryHandle = getHandle(library);
-    final name = getNameHandle(null, topLevelClassName);
+    final name = getPublicNameHandle(topLevelClassName);
     return getOrAddObject(new _ClassHandle(libraryHandle, name));
   }
 
@@ -1706,7 +1798,6 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     } else {
       throw "Unexpected Member's parent ${parent.runtimeType} $parent";
     }
-    if (member is Constructor || member is Procedure && member.isFactory) {}
     final nameHandle = getNameHandle(
         member.name.library, mangleMemberName(member, isGetter, isSetter));
     bool isField = member is Field && !isGetter && !isSetter;
@@ -1735,12 +1826,12 @@ class ObjectTable implements ObjectWriter, ObjectReader {
 
   ObjectHandle getArgDescHandleByArguments(Arguments args,
       {bool hasReceiver: false, bool isFactory: false}) {
-    List<_NameHandle> argNames = const <_NameHandle>[];
+    List<_PublicNameHandle> argNames = const <_PublicNameHandle>[];
     final namedArguments = args.named;
     if (namedArguments.isNotEmpty) {
-      argNames = new List<_NameHandle>(namedArguments.length);
+      argNames = new List<_PublicNameHandle>(namedArguments.length);
       for (int i = 0; i < namedArguments.length; ++i) {
-        argNames[i] = getNameHandle(null, namedArguments[i].name);
+        argNames[i] = getPublicNameHandle(namedArguments[i].name);
       }
     }
     final int numArguments = args.positional.length +
@@ -1757,7 +1848,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
   }
 
   ObjectHandle getScriptHandle(Uri uri, SourceFile source) {
-    ObjectHandle uriHandle = getNameHandle(null, uri.toString());
+    ObjectHandle uriHandle = getPublicNameHandle(uri.toString());
     _ScriptHandle handle = getOrAddObject(new _ScriptHandle(uriHandle, source));
     if (handle.source == null && source != null) {
       handle.source = source;
@@ -1772,7 +1863,7 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     final namesAndBounds = new List<NameAndType>();
     for (TypeParameter tp in typeParams) {
       namesAndBounds.add(
-          new NameAndType(getNameHandle(null, tp.name), getHandle(tp.bound)));
+          new NameAndType(getPublicNameHandle(tp.name), getHandle(tp.bound)));
     }
     return namesAndBounds;
   }
@@ -1939,15 +2030,16 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitLibrary(Library node) {
-    final uri = objectTable.getNameHandle(null, node.importUri.toString());
+    final uri = objectTable.getConstStringHandle(node.importUri.toString());
     return objectTable.getOrAddObject(new _LibraryHandle(uri));
   }
 
   @override
   ObjectHandle visitClass(Class node) {
     final ObjectHandle library = objectTable.getHandle(node.enclosingLibrary);
-    final name = objectTable.getOrAddObject(
-        new _NameHandle(node.name.startsWith('_') ? library : null, node.name));
+    final name = node.name.startsWith('_')
+        ? objectTable.getOrAddObject(new _PrivateNameHandle(library, node.name))
+        : objectTable.getPublicNameHandle(node.name);
     return objectTable.getOrAddObject(new _ClassHandle(library, name));
   }
 
@@ -1962,7 +2054,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitBottomType(BottomType node) =>
-      objectTable.getHandle(objectTable.coreTypes.nullClass.rawType);
+      objectTable.getHandle(objectTable.coreTypes.nullType);
 
   @override
   ObjectHandle visitInterfaceType(InterfaceType node) {
@@ -2075,7 +2167,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
     final namedParams = new List<NameAndType>();
     for (var param in node.namedParameters) {
       namedParams.add(new NameAndType(
-          objectTable.getNameHandle(null, param.name),
+          objectTable.getPublicNameHandle(param.name),
           objectTable.getHandle(param.type)));
     }
     final returnType = objectTable.getHandle(node.returnType);
@@ -2115,7 +2207,7 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitStringConstant(StringConstant node) =>
-      objectTable.getNameHandle(null, node.value);
+      objectTable.getConstStringHandle(node.value);
 
   @override
   ObjectHandle visitSymbolConstant(SymbolConstant node) =>

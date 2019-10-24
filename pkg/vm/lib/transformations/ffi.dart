@@ -154,6 +154,22 @@ const nonSizeAlignment = <Abi, Map<NativeType, int>>{
   Abi.wordSize32Align64: {},
 };
 
+/// Load, store, and elementAt are rewired to their static type for these types.
+const List<NativeType> optimizedTypes = [
+  NativeType.kInt8,
+  NativeType.kInt16,
+  NativeType.kInt32,
+  NativeType.kInt64,
+  NativeType.kUint8,
+  NativeType.kUint16,
+  NativeType.kUint32,
+  NativeType.kUnit64,
+  NativeType.kIntptr,
+  NativeType.kFloat,
+  NativeType.kDouble,
+  NativeType.kPointer,
+];
+
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
@@ -175,9 +191,8 @@ class FfiTransformer extends Transformer {
   final Class pointerClass;
   final Class structClass;
   final Procedure castMethod;
-  final Procedure loadMethod;
-  final Procedure storeMethod;
   final Procedure offsetByMethod;
+  final Procedure elementAtMethod;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
@@ -186,6 +201,12 @@ class FfiTransformer extends Transformer {
   final Constructor structFromPointer;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
+  final Procedure pointerFromFunctionProcedure;
+  final Procedure nativeCallbackFunctionProcedure;
+  final Map<NativeType, Procedure> loadMethods;
+  final Map<NativeType, Procedure> storeMethods;
+  final Map<NativeType, Procedure> elementAtMethods;
+  final Procedure loadStructMethod;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -204,12 +225,11 @@ class FfiTransformer extends Transformer {
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         castMethod = index.getMember('dart:ffi', 'Pointer', 'cast'),
-        loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
-        storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
-        offsetByMethod = index.getMember('dart:ffi', 'Pointer', 'offsetBy'),
-        addressOfField = index.getMember('dart:ffi', 'Struct', 'addressOf'),
+        offsetByMethod = index.getMember('dart:ffi', 'Pointer', '_offsetBy'),
+        elementAtMethod = index.getMember('dart:ffi', 'Pointer', 'elementAt'),
+        addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
         structFromPointer =
-            index.getMember('dart:ffi', 'Struct', 'fromPointer'),
+            index.getMember('dart:ffi', 'Struct', '_fromPointer'),
         asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
@@ -220,9 +240,26 @@ class FfiTransformer extends Transformer {
         libraryLookupMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
         abiMethod = index.getTopLevelMember('dart:ffi', '_abi'),
+        pointerFromFunctionProcedure =
+            index.getTopLevelMember('dart:ffi', '_pointerFromFunction'),
+        nativeCallbackFunctionProcedure =
+            index.getTopLevelMember('dart:ffi', '_nativeCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
-            .toList();
+            .toList(),
+        loadMethods = Map.fromIterable(optimizedTypes, value: (t) {
+          final name = nativeTypeClassNames[t.index];
+          return index.getTopLevelMember('dart:ffi', "_load$name");
+        }),
+        storeMethods = Map.fromIterable(optimizedTypes, value: (t) {
+          final name = nativeTypeClassNames[t.index];
+          return index.getTopLevelMember('dart:ffi', "_store$name");
+        }),
+        elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
+          final name = nativeTypeClassNames[t.index];
+          return index.getTopLevelMember('dart:ffi', "_elementAt$name");
+        }),
+        loadStructMethod = index.getTopLevelMember('dart:ffi', '_loadStruct');
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.
@@ -247,9 +284,9 @@ class FfiTransformer extends Transformer {
     if (nativeType is! InterfaceType) {
       return null;
     }
-    InterfaceType native = nativeType;
-    Class nativeClass = native.classNode;
-    NativeType nativeType_ = getType(nativeClass);
+    final InterfaceType native = nativeType;
+    final Class nativeClass = native.classNode;
+    final NativeType nativeType_ = getType(nativeClass);
 
     if (hierarchy.isSubclassOf(nativeClass, structClass)) {
       return allowStructs ? nativeType : null;
@@ -275,17 +312,17 @@ class FfiTransformer extends Transformer {
       return null;
     }
 
-    FunctionType fun = native.typeArguments[0];
+    final FunctionType fun = native.typeArguments[0];
     if (fun.namedParameters.isNotEmpty) return null;
     if (fun.positionalParameters.length != fun.requiredParameterCount) {
       return null;
     }
     if (fun.typeParameters.length != 0) return null;
     // TODO(36730): Structs cannot appear in native function signatures.
-    DartType returnType =
+    final DartType returnType =
         convertNativeTypeToDartType(fun.returnType, /*allowStructs=*/ false);
     if (returnType == null) return null;
-    List<DartType> argumentTypes = fun.positionalParameters
+    final List<DartType> argumentTypes = fun.positionalParameters
         .map((t) => convertNativeTypeToDartType(t, /*allowStructs=*/ false))
         .toList();
     if (argumentTypes.contains(null)) return null;
@@ -293,7 +330,7 @@ class FfiTransformer extends Transformer {
   }
 
   NativeType getType(Class c) {
-    int index = nativeTypesClasses.indexOf(c);
+    final int index = nativeTypesClasses.indexOf(c);
     if (index == -1) {
       return null;
     }

@@ -86,6 +86,14 @@ class B extends A {
     ]);
   }
 
+  test_late() async {
+    await assertNoErrorsInCode('''
+class A {
+  late int x;
+}
+''');
+  }
+
   test_notAllConstructors() async {
     await assertErrorsInCode('''
 class A {

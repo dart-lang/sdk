@@ -11,7 +11,6 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -149,14 +148,21 @@ analyzer:
 @reflectiveTest
 class ErrorCodeValuesTest {
   test_errorCodes() {
+    // Now that we're using unique names for comparison, the only reason to
+    // split the codes by class is to find all of the classes that need to be
+    // checked against `errorCodeValues`.
     var errorTypeMap = <Type, List<ErrorCode>>{};
     for (ErrorCode code in errorCodeValues) {
-      errorTypeMap.putIfAbsent(code.runtimeType, () => <ErrorCode>[]).add(code);
+      Type type = code.runtimeType;
+      if (type == HintCodeWithUniqueName) {
+        type = HintCode;
+      }
+      errorTypeMap.putIfAbsent(type, () => <ErrorCode>[]).add(code);
     }
 
-    int missingErrorCodeCount = 0;
+    StringBuffer missingCodes = StringBuffer();
     errorTypeMap.forEach((Type errorType, List<ErrorCode> codes) {
-      var listedNames = codes.map((ErrorCode code) => code.name).toSet();
+      var listedNames = codes.map((ErrorCode code) => code.uniqueName).toSet();
 
       var declaredNames = reflectClass(errorType)
           .declarations
@@ -165,104 +171,23 @@ class ErrorCodeValuesTest {
         String name = declarationMirror.simpleName.toString();
         //TODO(danrubel): find a better way to extract the text from the symbol
         assert(name.startsWith('Symbol("') && name.endsWith('")'));
-        return name.substring(8, name.length - 2);
+        return errorType.toString() + '.' + name.substring(8, name.length - 2);
       }).where((String name) {
         return name == name.toUpperCase();
       }).toList();
 
-      // Remove declared names that are not supposed to be in errorCodeValues
-
-      if (errorType == AnalysisOptionsErrorCode) {
-        declaredNames
-            .remove(AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR.name);
-      } else if (errorType == AnalysisOptionsWarningCode) {
-        declaredNames
-            .remove(AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND.name);
-        declaredNames
-            .remove(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING.name);
-        declaredNames
-            .remove(AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.name);
-      } else if (errorType == StaticWarningCode) {
-        declaredNames.remove(
-            StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS.name +
-                '_PLUS');
-      } else if (errorType == StrongModeCode) {
-        void removeCode(StrongModeCode code) {
-          declaredNames.remove(code.name);
-        }
-
-        removeCode(StrongModeCode.DOWN_CAST_COMPOSITE);
-        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT);
-        removeCode(StrongModeCode.DOWN_CAST_IMPLICIT_ASSIGN);
-        removeCode(StrongModeCode.DYNAMIC_CAST);
-        removeCode(StrongModeCode.ASSIGNMENT_CAST);
-        removeCode(StrongModeCode.INVALID_PARAMETER_DECLARATION);
-        removeCode(StrongModeCode.COULD_NOT_INFER);
-        removeCode(StrongModeCode.INFERRED_TYPE);
-        removeCode(StrongModeCode.INFERRED_TYPE_LITERAL);
-        removeCode(StrongModeCode.INFERRED_TYPE_ALLOCATION);
-        removeCode(StrongModeCode.INFERRED_TYPE_CLOSURE);
-        removeCode(StrongModeCode.INVALID_CAST_LITERAL);
-        removeCode(StrongModeCode.INVALID_CAST_LITERAL_LIST);
-        removeCode(StrongModeCode.INVALID_CAST_LITERAL_MAP);
-        removeCode(StrongModeCode.INVALID_CAST_LITERAL_SET);
-        removeCode(StrongModeCode.INVALID_CAST_FUNCTION_EXPR);
-        removeCode(StrongModeCode.INVALID_CAST_NEW_EXPR);
-        removeCode(StrongModeCode.INVALID_CAST_METHOD);
-        removeCode(StrongModeCode.INVALID_CAST_FUNCTION);
-        removeCode(StrongModeCode.INVALID_SUPER_INVOCATION);
-        removeCode(StrongModeCode.NON_GROUND_TYPE_CHECK_INFO);
-        removeCode(StrongModeCode.DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FIELD);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_TYPE);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_LIST_LITERAL);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_MAP_LITERAL);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_FUNCTION);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_METHOD);
-        removeCode(StrongModeCode.IMPLICIT_DYNAMIC_INVOKE);
-        removeCode(StrongModeCode.NOT_INSTANTIATED_BOUND);
-        removeCode(StrongModeCode.TOP_LEVEL_CYCLE);
-        removeCode(StrongModeCode.TOP_LEVEL_FUNCTION_LITERAL_BLOCK);
-        removeCode(StrongModeCode.TOP_LEVEL_IDENTIFIER_NO_TYPE);
-        removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER);
-        removeCode(StrongModeCode.TOP_LEVEL_INSTANCE_METHOD);
-      } else if (errorType == TodoCode) {
-        declaredNames.remove('TODO_REGEX');
-      } else if (errorType == ParserErrorCode) {
-        declaredNames.remove('CONST_AFTER_FACTORY');
-        declaredNames.remove('CONST_AND_COVARIANT');
-        declaredNames.remove('CONST_AND_VAR');
-        declaredNames.remove('COVARIANT_AFTER_FINAL');
-        declaredNames.remove('COVARIANT_AFTER_VAR');
-        declaredNames.remove('EXTERNAL_AFTER_CONST');
-        declaredNames.remove('EXTERNAL_AFTER_FACTORY');
-        declaredNames.remove('EXTERNAL_AFTER_STATIC');
-        declaredNames.remove('MISSING_CLASS_BODY');
-        declaredNames.remove('STATIC_AFTER_CONST');
-        declaredNames.remove('STATIC_AFTER_FINAL');
-        declaredNames.remove('STATIC_AFTER_VAR');
-      }
-
-      // Assert that all remaining declared names are in errorCodeValues
+      // Assert that all declared names are in errorCodeValues
 
       for (String declaredName in declaredNames) {
         if (!listedNames.contains(declaredName)) {
-          ++missingErrorCodeCount;
-          print('   errorCodeValues is missing $errorType $declaredName');
+          missingCodes.writeln();
+          missingCodes.write('  $declaredName');
         }
       }
     });
-    expect(missingErrorCodeCount, 0, reason: 'missing error code names');
-
-    // Apparently, duplicate error codes are allowed
-    //    expect(
-    //      ErrorFilterOptionValidator.errorCodes.length,
-    //      errorCodeValues.length,
-    //      reason: 'some errorCodeValues have the same name',
-    //    );
+    if (missingCodes.isNotEmpty) {
+      fail('Missing error codes:$missingCodes');
+    }
   }
 }
 

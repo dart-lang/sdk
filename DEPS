@@ -36,7 +36,9 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "d2c051f7537e6fe47c8ccf0bd7a7e84b02010a2a",
+  # co19 is a cipd package. Use tests/co19_2/update.sh to update this hash.
+  # It requires access to the dart-build-access group, which EngProd has.
+  "co19_2_rev": "a8f7aa15ab860a309667168243bda01fda0794df",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -52,7 +54,7 @@ vars = {
   "gperftools_revision": "e9ab4c53041ac62feefbbb076d326e9a77dd1567",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "1.4.4",
+  "args_tag": "1.5.0",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "bazel_worker-v0.1.20",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
@@ -80,9 +82,11 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.8",  # Please see the note above before updating.
+  "dart_style_tag": "1.3.1",  # Please see the note above before updating.
 
-  "dartdoc_tag" : "0.28.4",
+  "args_tag" : "1.5.2",
+  "dartdoc_tag" : "v0.28.8",
+  "ffi_tag": "ea88d71b043ee14b268c3aedff14e9eb32e20959",
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
@@ -97,17 +101,17 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.96",
+  "linter_tag": "0.1.101",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_tag": "2.0.3",
+  "markdown_tag": "2.1.1",
   "matcher_tag": "0.12.3",
   "mime_tag": "0.9.6+2",
   "mockito_tag": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "mustache_tag" : "5e81b12215566dbe2473b2afd01a8a8aedd56ad9",
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
-  "package_config_tag": "1.0.5",
+  "package_config_tag": "2453cd2e78c2db56ee2669ced17ce70dd00bf576", # should be 1.1.0
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
@@ -119,6 +123,7 @@ vars = {
   "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
+  "rust_revision": "60960a260f7b5c695fd0717311d72ce62dd4eb43",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.4",
   "shelf_tag": "0.7.3+3",
@@ -133,9 +138,9 @@ vars = {
   "test_descriptor_tag": "1.1.1",
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
-  "test_reflective_loader_tag": "0.1.8",
+  "test_reflective_loader_tag": "0.1.9",
   "test_tag": "test-v1.6.4",
-  "tflite_native_rev": "06e533a9747306d1114c53427cc67eda080f51f9",
+  "tflite_native_rev": "3c777c40608a2a9f1427bfe0028ab48e7116b4c1",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -171,7 +176,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.5.0-dev.1.0",
+          "version": "version:2.6.0-dev.4.0",
       }],
       "dep_type": "cipd",
   },
@@ -272,8 +277,12 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       Var("dart_git") + "dart2js_info.git" + "@" + Var("dart2js_info_tag"),
+  Var("dart_root") + "/third_party/pkg/args":
+      Var("dart_git") + "args.git" + "@" + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_tag"),
+  Var("dart_root") + "/third_party/pkg/ffi":
+      Var("dart_git") + "ffi.git" + "@" + Var("ffi_tag"),
   Var("dart_root") + "/third_party/pkg/fixnum":
       Var("dart_git") + "fixnum.git" + "@" + Var("fixnum_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
@@ -418,7 +427,7 @@ deps = {
     "packages": [
       {
         "package": "dart/language_model",
-        "version": "EFtZ0Z5T822s4EUOOaWeiXUppRGKp5d9Z6jomJIeQYcC",
+        "version": "9fJQZ0TrnAGQKrEtuL3-AXbUfPzYxqpN_OBHr9P4hE4C",
       }
     ],
     "dep_type": "cipd",
@@ -432,6 +441,27 @@ deps = {
           },
       ],
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/buildtools/" + Var("host_os") + "-" + Var("host_cpu") + "/rust": {
+      "packages": [
+          {
+              "package": "fuchsia/rust/${{platform}}",
+              "version": "git_revision:" + Var("rust_revision"),
+          },
+      ],
+      "condition": "(host_os == 'linux' or host_os == 'mac') and host_cpu == 'x64'",
+      "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/pkg/front_end/test/fasta/types/benchmark_data": {
+    "packages": [
+      {
+        "package": "dart/cfe/benchmark_data",
+        "version": "sha1sum:4168b133ab7bce01c91311a8d4f25d4d6cb026f3",
+      }
+    ],
+    "dep_type": "cipd",
   },
 
   # TODO(37531): Remove these cipd packages and build with sdk instead when
@@ -500,21 +530,6 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/third_party/firefox_jsshell",
-    ],
-  },
-  {
-    "name": "front_end_benchmark_data",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--recursive",
-      "--extract",
-      "--directory",
-      Var('dart_root') + "/pkg/front_end/test/fasta/types",
     ],
   },
   {

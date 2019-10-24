@@ -608,7 +608,7 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
           instr->kind(),
           Integer::Handle(Z, Integer::Cast(left).BitOp(Token::kBIT_AND,
                                                        Integer::Cast(right))),
-          Smi::Handle(Z, Smi::New(0)));
+          Object::smi_zero());
       SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
@@ -780,7 +780,7 @@ void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
     Instance& obj = Instance::Handle(Z, field.StaticValue());
     if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw())) {
-      if (obj.IsSmi() || obj.IsOld()) {
+      if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
         SetValue(instr, obj);
         return;
       }

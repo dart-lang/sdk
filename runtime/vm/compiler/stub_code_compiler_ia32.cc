@@ -192,34 +192,99 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
     Assembler* assembler) {
   __ popl(EBX);
 
-  __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/);
+  __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/,
+                                 /*enter_safepoint=*/true);
   __ call(EAX);
-  __ TransitionNativeToGenerated(ECX /*volatile*/);
+  __ TransitionNativeToGenerated(ECX /*volatile*/, /*leave_safepoint=*/true);
 
   __ jmp(EBX);
 }
 
-void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  __ ReserveAlignedFrameSpace(0);
+void StubCodeCompiler::GenerateJITCallbackTrampolines(
+    Assembler* assembler,
+    intptr_t next_callback_id) {
+  Label done;
 
-  // The return address needs to be the second argument to
-  // VerifyCallbackIsolate.
-  __ movl(EAX, Address(FPREG, 4));
-  __ pushl(EAX);
+  // EAX is volatile and doesn't hold any arguments.
+  COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
 
-  // Argument to the stub is callback ID, which is also the first argument to
-  // VerifyCallbackIsolate.
-  __ movl(EAX, Address(FPREG, 8));
-  __ pushl(EAX);
+  for (intptr_t i = 0;
+       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
+    __ movl(EAX, compiler::Immediate(next_callback_id + i));
+    __ jmp(&done);
+  }
 
-  // Call the VerifyCallbackIsolate runtime entry.
-  __ movl(EAX,
-          Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
-  __ call(EAX);
+  ASSERT(__ CodeSize() ==
+         kNativeCallbackTrampolineSize *
+             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
 
-  __ LeaveFrame();
+  __ Bind(&done);
+
+  const intptr_t shared_stub_start = __ CodeSize();
+
+  // Save THR which is callee-saved.
+  __ pushl(THR);
+
+  // THR & return address
+  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
+
+  // Load the thread, verify the callback ID and exit the safepoint.
+  //
+  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
+  // in order to safe code size on this shared stub.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
+
+    __ movl(compiler::Address(SPREG, 0), EAX);
+    __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
+                     DLRT_GetThreadForNativeCallbackTrampoline)));
+    __ call(EAX);
+    __ movl(THR, EAX);
+    __ movl(EAX, compiler::Address(SPREG, 0));
+
+    __ LeaveFrame();
+  }
+
+  COMPILE_ASSERT(!IsCalleeSavedRegister(ECX) && !IsArgumentRegister(ECX));
+  COMPILE_ASSERT(ECX != THR);
+
+  // Load the target from the thread.
+  __ movl(ECX, compiler::Address(
+                   THR, compiler::target::Thread::callback_code_offset()));
+  __ movl(ECX, compiler::FieldAddress(
+                   ECX, compiler::target::GrowableObjectArray::data_offset()));
+  __ movl(ECX, __ ElementAddressForRegIndex(
+                   /*external=*/false,
+                   /*array_cid=*/kArrayCid,
+                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
+                   /*array=*/ECX,
+                   /*index=*/EAX));
+  __ movl(ECX, compiler::FieldAddress(
+                   ECX, compiler::target::Code::entry_point_offset()));
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(ECX);
+
+  // EnterSafepoint takes care to not clobber *any* registers (besides scratch).
+  __ EnterSafepoint(/*scratch=*/ECX);
+
+  // Restore THR (callee-saved).
+  __ popl(THR);
+
   __ ret();
+
+  // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
+  // instruction size can vary slightly based on OS calling conventions.
+  ASSERT((__ CodeSize() - shared_stub_start) <= kNativeCallbackSharedStubSize);
+  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+
+#if defined(DEBUG)
+  while (__ CodeSize() < VirtualMemory::PageSize()) {
+    __ Breakpoint();
+  }
+#endif
 }
 
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
@@ -923,6 +988,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Set up THR, which caches the current thread in Dart code.
   __ movl(THR, EAX);
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Save the current VMTag on the stack.
   __ movl(ECX, Assembler::VMTagAddress());
   __ pushl(ECX);
@@ -1003,6 +1072,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the current VMTag from the stack.
   __ popl(Assembler::VMTagAddress());
 
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
   __ popl(ESI);
@@ -1043,6 +1116,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Set up THR, which caches the current thread in Dart code.
   __ movl(THR, EAX);
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Save the current VMTag on the stack.
   __ movl(ECX, Assembler::VMTagAddress());
@@ -1115,6 +1192,10 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 
   // Restore the current VMTag from the stack.
   __ popl(Assembler::VMTagAddress());
+
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -2455,6 +2536,9 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
           Address(ESP, 1 * target::kWordSize));  // Load target PC into EBX.
   __ movl(ESP,
           Address(ESP, 2 * target::kWordSize));  // Load target stack_pointer.
+#if defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
   // Set tag.
   __ movl(Assembler::VMTagAddress(), Immediate(VMTag::kDartCompiledTagId));
   // Clear top exit frame.

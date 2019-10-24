@@ -3,12 +3,10 @@ library test;
 // Problems in library:
 //
 // pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// Try changing the type of the left hand side, or casting the right hand side to 'int'.
 //   get w => /*error:RETURN_OF_INVALID_TYPE*/ "hello";
 //                                             ^
 //
 // pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-// Try changing the type of the left hand side, or casting the right hand side to 'String'.
 //   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
 //                                                                     ^
 //
@@ -30,13 +28,11 @@ class B extends core::Object implements self::A<core::int*> {
     return 3;
   get w() → core::int*
     return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-Try changing the type of the left hand side, or casting the right hand side to 'int'.
   get w => /*error:RETURN_OF_INVALID_TYPE*/ \"hello\";
                                             ^" in "hello" as{TypeError} core::int*;
 }
 static method foo() → dynamic {
   core::String* y = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-Try changing the type of the left hand side, or casting the right hand side to 'String'.
   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;
                                                                     ^" in new self::B::•().{self::B::x} as{TypeError} core::String*;
   core::int* z = new self::B::•().{self::B::x};

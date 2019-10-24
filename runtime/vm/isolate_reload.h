@@ -145,6 +145,8 @@ class IsolateReloadContext {
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
 
+  bool UseSavedClassTableForGC() const { return saved_class_table_ != nullptr; }
+
   bool reload_skipped() const { return reload_skipped_; }
   bool reload_aborted() const { return reload_aborted_; }
   RawError* error() const;
@@ -173,7 +175,7 @@ class IsolateReloadContext {
   // Prefers old classes when we are in the middle of a reload.
   RawClass* GetClassForHeapWalkAt(intptr_t cid);
   intptr_t GetClassSizeForHeapWalkAt(intptr_t cid);
-  void DiscardSavedClassTable();
+  void DiscardSavedClassTable(bool is_rollback);
 
   void RegisterClass(const Class& new_cls);
 
@@ -236,7 +238,6 @@ class IsolateReloadContext {
   void CheckpointClasses();
 
   bool ScriptModifiedSince(const Script& script, int64_t since);
-  BitVector* FindModifiedLibraries(bool force_reload, bool root_lib_modified);
   void FindModifiedSources(Thread* thread,
                            bool force_reload,
                            Dart_SourceFile** modified_sources,
@@ -370,6 +371,38 @@ class IsolateReloadContext {
   friend class ReasonForCancelling;
 
   static Dart_FileModifiedCallback file_modified_callback_;
+};
+
+class CallSiteResetter : public ValueObject {
+ public:
+  explicit CallSiteResetter(Zone* zone);
+
+  void ZeroEdgeCounters(const Function& function);
+  void ResetCaches(const Code& code);
+  void ResetCaches(const ObjectPool& pool);
+  void RebindStaticTargets(const Bytecode& code);
+  void Reset(const ICData& ic);
+  void ResetSwitchableCalls(const Code& code);
+
+ private:
+  Zone* zone_;
+  Instructions& instrs_;
+  ObjectPool& pool_;
+  Object& object_;
+  String& name_;
+  Class& new_cls_;
+  Library& new_lib_;
+  Function& new_function_;
+  Field& new_field_;
+  Array& entries_;
+  Function& old_target_;
+  Function& new_target_;
+  Function& caller_;
+  Array& args_desc_array_;
+  Array& ic_data_array_;
+  Array& edge_counters_;
+  PcDescriptors& descriptors_;
+  ICData& ic_data_;
 };
 
 }  // namespace dart

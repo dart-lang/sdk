@@ -207,8 +207,9 @@ class StatementCompletionProcessor {
     } else if (node is Declaration) {
       if (errors.isNotEmpty) {
         if (_complete_classDeclaration() ||
-            _complete_functionDeclaration() ||
-            _complete_variableDeclaration()) {
+            _complete_variableDeclaration() ||
+            _complete_simpleSemicolon() ||
+            _complete_functionDeclaration()) {
           return completion;
         }
       }

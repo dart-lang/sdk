@@ -30,18 +30,19 @@ A get target => null;
 void set target(B value) {}
 
 void test1() {
-  target *= /*@ typeArgs=dynamic */ f();
-  var /*@ type=C* */ x = target *= /*@ typeArgs=dynamic */ f();
+  target /*@ target=A::* */ *= /*@ typeArgs=D* */ f();
+  var /*@ type=C* */ x = target /*@ target=A::* */ *= /*@ typeArgs=D* */ f();
 }
 
 void test2() {
-  ++target;
-  var /*@ type=C* */ x = ++target;
+  /*@ target=A::+ */ ++target;
+  var /*@ type=C* */ x = /*@ target=A::+ */ ++target;
 }
 
 void test3() {
-  target++;
-  var /*@ type=A* */ x = target++;
+  target /*@ target=A::+ */ ++;
+  var /*@ type=A* */ x = /*@ type=A* */ target
+      /*@ type=C* */ /*@ target=A::+ */ ++;
 }
 
 main() {}

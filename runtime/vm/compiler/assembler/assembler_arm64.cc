@@ -56,6 +56,11 @@ void Assembler::Emit(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
+void Assembler::Emit64(int64_t value) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  buffer_.Emit<int64_t>(value);
+}
+
 int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
   if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
     // Far branches are enabled, and we can't encode the branch offset in
@@ -276,8 +281,8 @@ bool Operand::IsImmLogical(uint64_t value, uint8_t width, Operand* imm_op) {
 
   int lead_zero = CountLeadingZeros(value, width);
   int lead_one = CountLeadingZeros(~value, width);
-  int trail_zero = Utils::CountTrailingZeros(value);
-  int trail_one = Utils::CountTrailingZeros(~value);
+  int trail_zero = Utils::CountTrailingZerosWord(value);
+  int trail_one = Utils::CountTrailingZerosWord(~value);
   int set_bits = CountOneBits(value, width);
 
   // The fixed bits in the immediate s field.
@@ -1111,12 +1116,12 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
+
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
+
   LoadIsolate(result);
-  const intptr_t offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::table_offset();
-  LoadFromOffset(result, result, offset);
-  ASSERT(target::ClassTable::kSizeOfClassPairLog2 == 4);
-  add(class_id, class_id, Operand(class_id));
+  LoadFromOffset(result, result, table_offset);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 
@@ -1301,33 +1306,30 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   LeaveFrame();
 }
 
-void Assembler::TransitionGeneratedToNative(Register destination,
-                                            Register new_exit_frame,
-                                            Register state) {
+void Assembler::EnterSafepoint(Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+
   Register addr = TMP2;
   ASSERT(addr != state);
 
-  // Save exit frame information to enable stack walking.
-  StoreToOffset(new_exit_frame, THR,
-                target::Thread::top_exit_frame_info_offset());
-
-  // Mark that the thread is executing native code.
-  StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
-  LoadImmediate(state, target::Thread::native_execution_state());
-  StoreToOffset(state, THR, target::Thread::execution_state_offset());
-
   Label slow_path, done, retry;
-  if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldxr(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
-    b(&slow_path, NE);
+  if (FLAG_use_slow_path) {
+    b(&slow_path);
+  }
 
-    movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
-    stxr(TMP, state, addr);
-    cbz(&done, TMP);  // 0 means stxr was successful.
+  movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 
@@ -1339,22 +1341,47 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(Register state) {
+void Assembler::TransitionGeneratedToNative(Register destination,
+                                            Register new_exit_frame,
+                                            Register state,
+                                            bool enter_safepoint) {
+  // Save exit frame information to enable stack walking.
+  StoreToOffset(new_exit_frame, THR,
+                target::Thread::top_exit_frame_info_offset());
+
+  // Mark that the thread is executing native code.
+  StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::native_execution_state());
+  StoreToOffset(state, THR, target::Thread::execution_state_offset());
+
+  if (enter_safepoint) {
+    EnterSafepoint(state);
+  }
+}
+
+void Assembler::ExitSafepoint(Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
   Register addr = TMP2;
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldxr(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_acquired()));
-    b(&slow_path, NE);
+  if (FLAG_use_slow_path) {
+    b(&slow_path);
+  }
 
-    movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
-    stxr(TMP, state, addr);
-    cbz(&done, TMP);  // 0 means stxr was successful.
+  movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldxr(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  b(&slow_path, NE);
+
+  movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
+  stxr(TMP, state, addr);
+  cbz(&done, TMP);  // 0 means stxr was successful.
+
+  if (!FLAG_use_slow_path) {
     b(&retry);
   }
 
@@ -1364,6 +1391,22 @@ void Assembler::TransitionNativeToGenerated(Register state) {
   blr(addr);
 
   Bind(&done);
+}
+
+void Assembler::TransitionNativeToGenerated(Register state,
+                                            bool exit_safepoint) {
+  if (exit_safepoint) {
+    ExitSafepoint(state);
+  } else {
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    Label ok;
+    tbz(&ok, TMP, target::Thread::safepoint_state_inside_bit());
+    Breakpoint();
+    Bind(&ok);
+#endif
+  }
 
   // Mark that the thread is executing Dart code.
   LoadImmediate(state, target::Thread::vm_tag_compiled_id());
@@ -1525,10 +1568,16 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace) {
   ASSERT(cid > 0);
-  intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+  const intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
+
   LoadIsolate(temp_reg);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  ldr(temp_reg, Address(temp_reg, shared_table_offset));
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, state_offset);
   ldr(temp_reg, Address(temp_reg, 0));
@@ -1538,10 +1587,17 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid) {
   ASSERT(cid > 0);
-  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+  const intptr_t counter_offset =
+      target::ClassTable::NewSpaceCounterOffsetFor(cid);
+
   LoadIsolate(TMP2);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  ldr(TMP2, Address(TMP2, shared_table_offset));
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, counter_offset);
   ldr(TMP, Address(TMP2, 0));
@@ -1551,14 +1607,21 @@ void Assembler::UpdateAllocationStats(intptr_t cid) {
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
   ASSERT(cid > 0);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
+
   const uword class_offset = target::ClassTable::ClassOffsetFor(cid);
   const uword count_field_offset =
       target::ClassHeapStats::allocated_since_gc_new_space_offset();
   const uword size_field_offset =
       target::ClassHeapStats::allocated_size_since_gc_new_space_offset();
+
   LoadIsolate(TMP2);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  ldr(TMP2, Address(TMP2, shared_table_offset));
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, class_offset);
   ldr(TMP, Address(TMP2, count_field_offset));
@@ -1707,6 +1770,22 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              intptr_t index_scale,
                                              Register array,
                                              Register index) {
+  return ElementAddressForRegIndexWithSize(is_load,
+                                           is_external,
+                                           cid,
+                                           Address::OperandSizeFor(cid),
+                                           index_scale,
+                                           array,
+                                           index);
+}
+
+Address Assembler::ElementAddressForRegIndexWithSize(bool is_load,
+                                                     bool is_external,
+                                                     intptr_t cid,
+                                                     OperandSize size,
+                                                     intptr_t index_scale,
+                                                     Register array,
+                                                     Register index) {
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
   const int32_t offset =
@@ -1722,7 +1801,6 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   } else {
     add(base, array, Operand(index, LSL, shift));
   }
-  const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(base, offset, Address::Offset, size);
 }
@@ -1749,79 +1827,6 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   if (offset != 0) {
     AddImmediate(address, offset);
   }
-}
-
-void Assembler::LoadUnaligned(Register dst,
-                              Register addr,
-                              Register tmp,
-                              OperandSize sz) {
-  ASSERT(dst != addr);
-  ldr(dst, Address(addr, 0), kUnsignedByte);
-  if (sz == kHalfword) {
-    ldr(tmp, Address(addr, 1), kByte);
-    orr(dst, dst, Operand(tmp, LSL, 8));
-    return;
-  }
-  ldr(tmp, Address(addr, 1), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 8));
-  if (sz == kUnsignedHalfword) {
-    return;
-  }
-  ldr(tmp, Address(addr, 2), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 16));
-  if (sz == kWord) {
-    ldr(tmp, Address(addr, 3), kByte);
-    orr(dst, dst, Operand(tmp, LSL, 24));
-    return;
-  }
-  ldr(tmp, Address(addr, 3), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 24));
-  if (sz == kUnsignedWord) {
-    return;
-  }
-  ldr(tmp, Address(addr, 4), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 32));
-  ldr(tmp, Address(addr, 5), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 40));
-  ldr(tmp, Address(addr, 6), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 48));
-  ldr(tmp, Address(addr, 7), kUnsignedByte);
-  orr(dst, dst, Operand(tmp, LSL, 56));
-  if (sz == kDoubleWord) {
-    return;
-  }
-  UNIMPLEMENTED();
-}
-
-void Assembler::StoreUnaligned(Register src,
-                               Register addr,
-                               Register tmp,
-                               OperandSize sz) {
-  str(src, Address(addr, 0), kUnsignedByte);
-  LsrImmediate(tmp, src, 8);
-  str(tmp, Address(addr, 1), kUnsignedByte);
-  if ((sz == kHalfword) || (sz == kUnsignedHalfword)) {
-    return;
-  }
-  LsrImmediate(tmp, src, 16);
-  str(tmp, Address(addr, 2), kUnsignedByte);
-  LsrImmediate(tmp, src, 24);
-  str(tmp, Address(addr, 3), kUnsignedByte);
-  if ((sz == kWord) || (sz == kUnsignedWord)) {
-    return;
-  }
-  LsrImmediate(tmp, src, 32);
-  str(tmp, Address(addr, 4), kUnsignedByte);
-  LsrImmediate(tmp, src, 40);
-  str(tmp, Address(addr, 5), kUnsignedByte);
-  LsrImmediate(tmp, src, 48);
-  str(tmp, Address(addr, 6), kUnsignedByte);
-  LsrImmediate(tmp, src, 56);
-  str(tmp, Address(addr, 7), kUnsignedByte);
-  if (sz == kDoubleWord) {
-    return;
-  }
-  UNIMPLEMENTED();
 }
 
 void Assembler::PushRegisters(const RegisterSet& regs) {

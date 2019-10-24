@@ -190,6 +190,10 @@ void Assembler::and_(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), AND, 0, rn, rd, o);
 }
 
+void Assembler::ands(Register rd, Register rn, Operand o, Condition cond) {
+  EmitType01(cond, o.type(), AND, 1, rn, rd, o);
+}
+
 void Assembler::eor(Register rd, Register rn, Operand o, Condition cond) {
   EmitType01(cond, o.type(), EOR, 0, rn, rd, o);
 }
@@ -295,6 +299,19 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
                      B22 | B21 | (0xf << 16) | ArmEncode::Rd(rd) | (0xf << 8) |
                      B4 | static_cast<int32_t>(rm);
+  Emit(encoding);
+}
+
+void Assembler::rbit(Register rd, Register rm, Condition cond) {
+  ASSERT(rd != kNoRegister);
+  ASSERT(rm != kNoRegister);
+  ASSERT(cond != kNoCondition);
+  ASSERT(rd != PC);
+  ASSERT(rm != PC);
+  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B26 |
+                     B25 | B23 | B22 | B21 | B20 | (0xf << 16) |
+                     ArmEncode::Rd(rd) | (0xf << 8) | B5 | B4 |
+                     static_cast<int32_t>(rm);
   Emit(encoding);
 }
 
@@ -541,10 +558,43 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
   Emit(encoding);
 }
 
+void Assembler::EnterSafepoint(Register addr, Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced. This simplifies GenerateJitCallbackTrampolines.
+  Label slow_path, done, retry;
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+    b(&slow_path);
+  }
+
+  LoadImmediate(addr, target::Thread::safepoint_state_offset());
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldrex(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
+  b(&slow_path, NE);
+
+  mov(state, Operand(target::Thread::safepoint_state_acquired()));
+  strex(TMP, state, addr);
+  cmp(TMP, Operand(0));  // 0 means strex was successful.
+  b(&done, EQ);
+
+  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+    b(&retry);
+  }
+
+  Bind(&slow_path);
+  ldr(TMP, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
+  blx(TMP);
+
+  Bind(&done);
+}
+
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register exit_frame_fp,
                                             Register addr,
-                                            Register state) {
+                                            Register state,
+                                            bool enter_safepoint) {
   // Save exit frame information to enable stack walking.
   StoreToOffset(kWord, exit_frame_fp, THR,
                 target::Thread::top_exit_frame_info_offset());
@@ -555,58 +605,59 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   LoadImmediate(state, target::Thread::native_execution_state());
   StoreToOffset(kWord, state, THR, target::Thread::execution_state_offset());
 
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
-    EnterSafepointSlowly();
-  } else {
-    Label slow_path, done, retry;
-    LoadImmediate(addr, target::Thread::safepoint_state_offset());
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldrex(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
-    b(&slow_path, NE);
-
-    mov(state, Operand(target::Thread::safepoint_state_acquired()));
-    strex(TMP, state, addr);
-    cmp(TMP, Operand(0));  // 0 means strex was successful.
-    b(&done, EQ);
-    b(&retry);
-
-    Bind(&slow_path);
-    EnterSafepointSlowly();
-
-    Bind(&done);
+  if (enter_safepoint) {
+    EnterSafepoint(addr, state);
   }
 }
 
-void Assembler::EnterSafepointSlowly() {
-  ldr(TMP, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+void Assembler::ExitSafepoint(Register addr, Register state) {
+  // We generate the same number of instructions whether or not the slow-path is
+  // forced, for consistency with EnterSafepoint.
+  Label slow_path, done, retry;
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
+    b(&slow_path);
+  }
+
+  LoadImmediate(addr, target::Thread::safepoint_state_offset());
+  add(addr, THR, Operand(addr));
+  Bind(&retry);
+  ldrex(state, addr);
+  cmp(state, Operand(target::Thread::safepoint_state_acquired()));
+  b(&slow_path, NE);
+
+  mov(state, Operand(target::Thread::safepoint_state_unacquired()));
+  strex(TMP, state, addr);
+  cmp(TMP, Operand(0));  // 0 means strex was successful.
+  b(&done, EQ);
+
+  if (!FLAG_use_slow_path && TargetCPUFeatures::arm_version() != ARMv5TE) {
+    b(&retry);
+  }
+
+  Bind(&slow_path);
+  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
   blx(TMP);
+
+  Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
-  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
-    ExitSafepointSlowly();
+void Assembler::TransitionNativeToGenerated(Register addr,
+                                            Register state,
+                                            bool exit_safepoint) {
+  if (exit_safepoint) {
+    ExitSafepoint(addr, state);
   } else {
-    Label slow_path, done, retry;
-    LoadImmediate(addr, target::Thread::safepoint_state_offset());
-    add(addr, THR, Operand(addr));
-    Bind(&retry);
-    ldrex(state, addr);
-    cmp(state, Operand(target::Thread::safepoint_state_acquired()));
-    b(&slow_path, NE);
-
-    mov(state, Operand(target::Thread::safepoint_state_unacquired()));
-    strex(TMP, state, addr);
-    cmp(TMP, Operand(0));  // 0 means strex was successful.
-    b(&done, EQ);
-    b(&retry);
-
-    Bind(&slow_path);
-    ExitSafepointSlowly();
-
-    Bind(&done);
+#if defined(DEBUG)
+    // Ensure we've already left the safepoint.
+    LoadImmediate(state, 1 << target::Thread::safepoint_state_inside_bit());
+    ldr(TMP, Address(THR, target::Thread::safepoint_state_offset()));
+    ands(TMP, TMP, Operand(state));  // Is-at-safepoint is the LSB.
+    Label ok;
+    b(&ok, ZERO);
+    Breakpoint();
+    Bind(&ok);
+#endif
   }
 
   // Mark that the thread is executing Dart code.
@@ -619,12 +670,6 @@ void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
   LoadImmediate(state, 0);
   StoreToOffset(kWord, state, THR,
                 target::Thread::top_exit_frame_info_offset());
-}
-
-void Assembler::ExitSafepointSlowly() {
-  ldr(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  ldr(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
-  blx(TMP);
 }
 
 void Assembler::clrex() {
@@ -1687,7 +1732,7 @@ Register AllocateRegister(RegList* used) {
   return (free == 0)
              ? kNoRegister
              : UseRegister(
-                   static_cast<Register>(Utils::CountTrailingZeros(free)),
+                   static_cast<Register>(Utils::CountTrailingZerosWord(free)),
                    used);
 }
 
@@ -1954,12 +1999,13 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
+
+  const intptr_t table_offset = target::Isolate::class_table_offset() +
+                                target::ClassTable::table_offset();
+
   LoadIsolate(result);
-  const intptr_t offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::table_offset();
-  LoadFromOffset(kWord, result, result, offset);
-  ldr(result,
-      Address(result, class_id, LSL, target::ClassTable::kSizeOfClassPairLog2));
+  LoadFromOffset(kWord, result, result, table_offset);
+  ldr(result, Address(result, class_id, LSL, target::kWordSizeLog2));
 }
 
 void Assembler::CompareClassId(Register object,
@@ -3481,10 +3527,16 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
+
+  const intptr_t shared_table_offset =
+      target::Isolate::class_table_offset() +
+      target::ClassTable::shared_class_table_offset();
+  const intptr_t table_offset =
+      target::SharedClassTable::class_heap_stats_table_offset();
   const intptr_t class_offset = target::ClassTable::ClassOffsetFor(cid);
+
   LoadIsolate(dest);
-  intptr_t table_offset = target::Isolate::class_table_offset() +
-                          target::ClassTable::class_heap_stats_table_offset();
+  ldr(dest, Address(dest, shared_table_offset));
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
 }

@@ -5,11 +5,11 @@
 const String mockSdk = """
 class Object;
 class Comparable<T>;
-class num implements Comparable<num>;
+class num implements Comparable<num*>;
 class int extends num;
 class double extends num;
 class Iterable<T>;
-class List<T> extends Iterable<T>;
+class List<T> extends Iterable<T*>;
 class Future<T>;
 class FutureOr<T>;
 class Null;

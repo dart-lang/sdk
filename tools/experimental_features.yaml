@@ -72,12 +72,16 @@
 
 extension-methods:
   help: "Extension Methods"
+  enabledIn: '2.6.0'
 
 non-nullable:
   help: "Non Nullable by default"
 
 triple-shift:
   help: "Triple-shift operator"
+
+variance:
+  help: "Sound variance."
 
 #
 # Flags below this line are shipped, retired, or rejected, cannot be specified
@@ -92,6 +96,7 @@ constant-update-2018:
 control-flow-collections:
   help: "Control Flow Collections"
   enabledIn: '2.2.2'
+  expired: true
 
 set-literals:
   help: "Set Literals"
@@ -101,3 +106,4 @@ set-literals:
 spread-collections:
   help: "Spread Collections"
   enabledIn: '2.2.2'
+  expired: true

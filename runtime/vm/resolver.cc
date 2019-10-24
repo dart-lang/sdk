@@ -116,20 +116,18 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(Zone* zone,
       return function.raw();
     }
     // Getter invocation might actually be a method extraction.
-    if (FLAG_lazy_dispatchers) {
-      if (is_getter && function.IsNull()) {
-        function = cls.LookupDynamicFunction(demangled);
-        if (!function.IsNull()) {
-          if (allow_add) {
-            // We were looking for the getter but found a method with the same
-            // name. Create a method extractor and return it.
-            // The extractor does not exist yet, so using GetMethodExtractor is
-            // not necessary here.
-            function = function.CreateMethodExtractor(function_name);
-            return function.raw();
-          } else {
-            return Function::null();
-          }
+    if (is_getter && function.IsNull()) {
+      function = cls.LookupDynamicFunction(demangled);
+      if (!function.IsNull()) {
+        if (allow_add && FLAG_lazy_dispatchers) {
+          // We were looking for the getter but found a method with the same
+          // name. Create a method extractor and return it.
+          // The extractor does not exist yet, so using GetMethodExtractor is
+          // not necessary here.
+          function = function.CreateMethodExtractor(function_name);
+          return function.raw();
+        } else {
+          return Function::null();
         }
       }
     }

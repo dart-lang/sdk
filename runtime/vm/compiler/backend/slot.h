@@ -71,7 +71,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, type_args_len, Smi, FINAL)                            \
   V(ArgumentsDescriptor, positional_count, Smi, FINAL)                         \
   V(ArgumentsDescriptor, count, Smi, FINAL)                                    \
-  V(Pointer, c_memory_address, Integer, FINAL)
+  V(Pointer, c_memory_address, Dynamic, FINAL)                                 \
+  V(Type, arguments, TypeArguments, FINAL)
 
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
@@ -93,6 +94,9 @@ class Slot : public ZoneAllocated {
     // A slot used to store type arguments.
     kTypeArguments,
 
+    // A slot at a specific [index] in a [RawTypeArgument] vector.
+    kTypeArgumentsIndex,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -101,6 +105,9 @@ class Slot : public ZoneAllocated {
     kDartField,
   };
   // clang-format on
+
+  static const char* KindToCString(Kind k);
+  static bool ParseKind(const char* str, Kind* k);
 
   // Returns a slot that represents length field for the given [array_cid].
   static const Slot& GetLengthFieldForArrayCid(intptr_t array_cid);
@@ -114,6 +121,9 @@ class Slot : public ZoneAllocated {
   // so disambiguating type arguments fields does not improve alias analysis.
   static const Slot& GetTypeArgumentsSlotAt(Thread* thread, intptr_t offset);
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
+
+  // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
+  static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
@@ -136,6 +146,7 @@ class Slot : public ZoneAllocated {
   bool IsDartField() const { return kind() == Kind::kDartField; }
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
+  bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
 
   const char* Name() const;
 
@@ -144,7 +155,7 @@ class Slot : public ZoneAllocated {
   bool is_immutable() const { return IsImmutableBit::decode(flags_); }
 
   intptr_t nullable_cid() const { return cid_; }
-  intptr_t is_nullable() const { return IsNullableBit::decode(flags_); }
+  bool is_nullable() const { return IsNullableBit::decode(flags_); }
 
   // Returns true if properties of this slot were based on the guarded state
   // of the corresponding Dart field.
@@ -171,6 +182,8 @@ class Slot : public ZoneAllocated {
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
  private:
+  friend class FlowGraphDeserializer;  // For GetNativeSlot.
+
   Slot(Kind kind,
        int8_t bits,
        int16_t cid,

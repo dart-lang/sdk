@@ -4,7 +4,7 @@
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
+import 'dart:io' show Directory, File, FileSystemEntity;
 
 import 'dart:typed_data' show Uint8List;
 
@@ -24,20 +24,55 @@ import 'package:front_end/src/scanner/token.dart';
 
 import 'package:kernel/kernel.dart';
 
+import 'package:package_config/packages.dart' show Packages;
+
+import 'package:package_config/discovery.dart' show loadPackagesFile;
+
 import 'package:testing/testing.dart'
-    show ChainContext, Result, Step, TestDescription, Chain, runMe;
+    show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   return new Context();
 }
 
+class LintTestDescription extends TestDescription {
+  final String shortName;
+  final Uri uri;
+  final LintTestCache cache;
+  final LintListener listener;
+
+  LintTestDescription(this.shortName, this.uri, this.cache, this.listener) {
+    this.listener.description = this;
+    this.listener.uri = uri;
+  }
+
+  String getErrorMessage(int offset, int squigglyLength, String message) {
+    cache.source ??= new Source(cache.lineStarts, cache.rawBytes, uri, uri);
+    Location location = cache.source.getLocation(uri, offset);
+    return command_line_reporting.formatErrorMessage(
+        cache.source.getTextLine(location.line),
+        location,
+        squigglyLength,
+        uri.toString(),
+        message);
+  }
+}
+
+class LintTestCache {
+  List<int> rawBytes;
+  List<int> lineStarts;
+  Source source;
+  Token firstToken;
+  Packages packages;
+}
+
 class Context extends ChainContext {
   final List<Step> steps = const <Step>[
-    const LintTest(),
+    const LintStep(),
   ];
 
   // Override special handling of negative tests.
@@ -47,73 +82,116 @@ class Context extends ChainContext {
     return result;
   }
 
-  List<int> rawBytes;
-  String cachedText;
-  List<int> lineStarts;
-  Uri uri;
+  Stream<LintTestDescription> list(Chain suite) async* {
+    Directory testRoot = new Directory.fromUri(suite.uri);
+    if (await testRoot.exists()) {
+      Stream<FileSystemEntity> files =
+          testRoot.list(recursive: true, followLinks: false);
+      await for (FileSystemEntity entity in files) {
+        if (entity is! File) continue;
+        String path = entity.uri.path;
+        if (suite.exclude.any((RegExp r) => path.contains(r))) continue;
+        if (suite.pattern.any((RegExp r) => path.contains(r))) {
+          Uri root = suite.uri;
+          String baseName = "${entity.uri}".substring("$root".length);
+          baseName = baseName.substring(0, baseName.length - ".dart".length);
+          LintTestCache cache = new LintTestCache();
 
-  void clear() {
-    rawBytes = null;
-    cachedText = null;
-    lineStarts = null;
-    uri = null;
-  }
+          yield new LintTestDescription(
+            "$baseName/ExplicitType",
+            entity.uri,
+            cache,
+            new ExplicitTypeLintListener(),
+          );
 
-  String getErrorMessage(int offset, int squigglyLength, String message) {
-    Source source = new Source(lineStarts, rawBytes, uri, uri);
-    Location location = source.getLocation(uri, offset);
-    return command_line_reporting.formatErrorMessage(
-        source.getTextLine(location.line),
-        location,
-        squigglyLength,
-        uri.toString(),
-        message);
+          yield new LintTestDescription(
+            "$baseName/ImportsTwice",
+            entity.uri,
+            cache,
+            new ImportsTwiceLintListener(),
+          );
+
+          Uri apiUnstableUri =
+              Uri.base.resolve("pkg/front_end/lib/src/api_unstable/");
+          if (!entity.uri.toString().startsWith(apiUnstableUri.toString())) {
+            yield new LintTestDescription(
+              "$baseName/Exports",
+              entity.uri,
+              cache,
+              new ExportsLintListener(),
+            );
+          }
+        }
+      }
+    } else {
+      throw "${suite.uri} isn't a directory";
+    }
   }
 }
 
-class LintTest extends Step<TestDescription, TestDescription, Context> {
-  const LintTest();
+class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
+  const LintStep();
 
-  String get name => "lint test";
+  String get name => "lint";
 
-  Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
-    context.clear();
-    context.uri = description.uri;
+  Future<Result<LintTestDescription>> run(
+      LintTestDescription description, Context context) async {
+    if (description.cache.rawBytes == null) {
+      File f = new File.fromUri(description.uri);
+      description.cache.rawBytes = f.readAsBytesSync();
 
-    File f = new File.fromUri(context.uri);
-    context.rawBytes = f.readAsBytesSync();
+      Uint8List bytes = new Uint8List(description.cache.rawBytes.length + 1);
+      bytes.setRange(
+          0, description.cache.rawBytes.length, description.cache.rawBytes);
 
-    Uint8List bytes = new Uint8List(context.rawBytes.length + 1);
-    bytes.setRange(0, context.rawBytes.length, context.rawBytes);
+      Utf8BytesScanner scanner =
+          new Utf8BytesScanner(bytes, includeComments: true);
+      description.cache.firstToken = scanner.tokenize();
+      description.cache.lineStarts = scanner.lineStarts;
 
-    Utf8BytesScanner scanner =
-        new Utf8BytesScanner(bytes, includeComments: true);
-    Token firstToken = scanner.tokenize();
-    context.lineStarts = scanner.lineStarts;
+      Uri dotPackages = description.uri.resolve(".packages");
+      while (true) {
+        if (new File.fromUri(dotPackages).existsSync()) {
+          break;
+        }
+        // Stupid bailout.
+        if (dotPackages.pathSegments.length < Uri.base.pathSegments.length) {
+          break;
+        }
+        dotPackages = dotPackages.resolve("../.packages");
+      }
 
-    if (firstToken == null) return null;
-    List<String> problems;
-    LintListener lintListener =
-        new LintListener((int offset, int squigglyLength, String message) {
-      problems ??= new List<String>();
-      problems.add(context.getErrorMessage(offset, squigglyLength, message));
-    });
-    Parser parser = new Parser(lintListener);
-    parser.parseUnit(firstToken);
+      File dotPackagesFile = new File.fromUri(dotPackages);
+      if (dotPackagesFile.existsSync()) {
+        description.cache.packages = await loadPackagesFile(dotPackages);
+      }
+    }
 
-    if (problems == null) {
+    if (description.cache.firstToken == null) {
+      return crash(description, StackTrace.current);
+    }
+
+    Parser parser = new Parser(description.listener);
+    parser.parseUnit(description.cache.firstToken);
+
+    if (description.listener.problems.isEmpty) {
       return pass(description);
     }
-    return fail(description, problems.join("\n\n"));
+    return fail(description, description.listener.problems.join("\n\n"));
   }
 }
 
 class LintListener extends Listener {
-  final Function(int offset, int squigglyLength, String message) onProblem;
+  List<String> problems = new List<String>();
+  LintTestDescription description;
+  Uri uri;
 
-  LintListener(this.onProblem);
+  onProblem(int offset, int squigglyLength, String message) {
+    problems.add(description.getErrorMessage(offset, squigglyLength, message));
+  }
+}
 
+class ExplicitTypeLintListener extends LintListener {
   LatestType _latestType;
 
   @override
@@ -134,6 +212,28 @@ class LintListener extends Listener {
   void handleNoType(Token lastConsumed) {
     _latestType = new LatestType(lastConsumed, false);
   }
+
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    if (!_latestType.type) {
+      onProblem(
+          varFinalOrConst.offset, varFinalOrConst.length, "No explicit type.");
+    }
+  }
+
+  void endClassFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+    if (!_latestType.type) {
+      onProblem(
+          varFinalOrConst.offset, varFinalOrConst.length, "No explicit type.");
+    }
+  }
 }
 
 class LatestType {
@@ -141,4 +241,48 @@ class LatestType {
   bool type;
 
   LatestType(this.token, this.type);
+}
+
+class ImportsTwiceLintListener extends LintListener {
+  Set<Uri> seenImports = new Set<Uri>();
+
+  void endImport(Token importKeyword, Token semicolon) {
+    Token importUriToken = importKeyword.next;
+    String importUri = importUriToken.lexeme;
+    if (importUri.startsWith("r")) {
+      importUri = importUri.substring(2, importUri.length - 1);
+    } else {
+      importUri = importUri.substring(1, importUri.length - 1);
+    }
+    Uri resolved = uri.resolve(importUri);
+    if (resolved.scheme == "package") {
+      if (description.cache.packages != null) {
+        resolved = description.cache.packages.resolve(resolved);
+      }
+    }
+    if (!seenImports.add(resolved)) {
+      onProblem(importUriToken.offset, importUriToken.lexeme.length,
+          "Uri '$resolved' already imported once.");
+    }
+  }
+}
+
+class ExportsLintListener extends LintListener {
+  void endExport(Token exportKeyword, Token semicolon) {
+    Token exportUriToken = exportKeyword.next;
+    String exportUri = exportUriToken.lexeme;
+    if (exportUri.startsWith("r")) {
+      exportUri = exportUri.substring(2, exportUri.length - 1);
+    } else {
+      exportUri = exportUri.substring(1, exportUri.length - 1);
+    }
+    Uri resolved = uri.resolve(exportUri);
+    if (resolved.scheme == "package") {
+      if (description.cache.packages != null) {
+        resolved = description.cache.packages.resolve(resolved);
+      }
+    }
+    onProblem(exportUriToken.offset, exportUriToken.lexeme.length,
+        "Exports disallowed internally.");
+  }
 }

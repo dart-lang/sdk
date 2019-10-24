@@ -8,7 +8,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
@@ -67,11 +66,9 @@ class InheritedReferenceContributor extends DartCompletionContributor
     }
     containingLibrary = request.libraryElement;
     if (classDecl is ClassDeclaration) {
-      return _computeSuggestionsForClass2(
-          resolutionMap.elementDeclaredByClassDeclaration(classDecl), request);
+      return _computeSuggestionsForClass2(classDecl.declaredElement, request);
     } else if (classDecl is MixinDeclaration) {
-      return _computeSuggestionsForClass2(
-          resolutionMap.elementDeclaredByMixinDeclaration(classDecl), request);
+      return _computeSuggestionsForClass2(classDecl.declaredElement, request);
     }
     return const <CompletionSuggestion>[];
   }
@@ -109,17 +106,11 @@ class InheritedReferenceContributor extends DartCompletionContributor
   }
 
   List<CompletionSuggestion> _computeSuggestionsForClass2(
-      ClassElement classElement, DartCompletionRequest request,
-      {bool skipChildClass = true}) {
+      ClassElement classElement, DartCompletionRequest request) {
     bool isFunctionalArgument = request.target.isFunctionalArgument();
     kind = isFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
         : CompletionSuggestionKind.INVOCATION;
-    if (!skipChildClass) {
-      _addSuggestionsForType(classElement.type, request,
-          isFunctionalArgument: isFunctionalArgument);
-    }
-
     for (InterfaceType type in classElement.allSupertypes) {
       _addSuggestionsForType(type, request,
           isFunctionalArgument: isFunctionalArgument);

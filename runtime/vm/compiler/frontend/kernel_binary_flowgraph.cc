@@ -44,8 +44,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
     UNREACHABLE();
   }
 
-  B->graph_entry_ =
-      new (Z) GraphEntryInstr(*parsed_function(), Compiler::kNoOSRDeoptId);
+  B->graph_entry_ = new (Z) GraphEntryInstr(*parsed_function(), B->osr_id_);
 
   auto normal_entry = B->BuildFunctionEntry(B->graph_entry_);
   B->graph_entry_->set_normal_entry(normal_entry);
@@ -63,6 +62,9 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldInitializer() {
   body += Return(TokenPosition::kNoSource);
 
   PrologueInfo prologue_info(-1, -1);
+  if (B->IsCompiledForOsr()) {
+    B->graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
+  }
   return new (Z) FlowGraph(*parsed_function(), B->graph_entry_,
                            B->last_used_block_id_, prologue_info);
 }
@@ -160,10 +162,9 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
-    NameIndex canonical_name) {
+    const Field& field,
+    bool only_for_side_effects) {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
-  Field& field =
-      Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
     SkipExpression();  // read past the null literal.
     if (H.thread()->IsMutatorThread()) {
@@ -175,13 +176,19 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
   }
 
   Fragment instructions;
-  instructions += LoadLocal(parsed_function()->receiver_var());
+  if (!only_for_side_effects) {
+    instructions += LoadLocal(parsed_function()->receiver_var());
+  }
   // All closures created inside BuildExpression will have
   // field.RawOwner() as its owner.
   closure_owner_ = field.RawOwner();
   instructions += BuildExpression();
   closure_owner_ = Object::null();
-  instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
+  if (only_for_side_effects) {
+    instructions += Drop();
+  } else {
+    instructions += flow_graph_builder_->StoreInstanceFieldGuarded(field, true);
+  }
   return instructions;
 }
 
@@ -198,46 +205,105 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     initializers_offset = ReaderOffset();
   }
 
-  // These come from:
-  //   class A {
-  //     var x = (expr);
-  //   }
-  // We don't want to do that when this is a Redirecting Constructors though
-  // (i.e. has a single initializer being of type kRedirectingInitializer).
   bool is_redirecting_constructor = false;
+
+  // Field which will be initialized by the initializer with the given index.
+  GrowableArray<const Field*> initializer_fields(5);
+
+  // Check if this is a redirecting constructor and collect all fields which
+  // will be initialized by the constructor initializer list.
   {
     AlternativeReadingScope alt(&reader_, initializers_offset);
-    intptr_t list_length = ReadListLength();  // read initializers list length.
-    bool no_field_initializers = true;
+
+    const intptr_t list_length =
+        ReadListLength();  // read initializers list length.
+    initializer_fields.EnsureLength(list_length, nullptr);
+
+    bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
       if (PeekTag() == kRedirectingInitializer) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
-        no_field_initializers = false;
+        has_field_initializers = true;
+        ReadTag();
+        ReadBool();
+        const NameIndex field_name = ReadCanonicalNameReference();
+        const Field& field =
+            Field::Handle(Z, H.LookupFieldByKernelField(field_name));
+        initializer_fields[i] = &field;
+        SkipExpression();
+        continue;
       }
       SkipInitializer();
     }
-    ASSERT(is_redirecting_constructor ? no_field_initializers : true);
+    ASSERT(!is_redirecting_constructor || !has_field_initializers);
   }
 
+  // These come from:
+  //
+  //   class A {
+  //     var x = (expr);
+  //   }
+  //
+  // We don't want to do that when this is a Redirecting Constructors though
+  // (i.e. has a single initializer being of type kRedirectingInitializer).
   if (!is_redirecting_constructor) {
+    // Sort list of fields (represented as their kernel offsets) which will
+    // be initialized by the constructor initializer list. We will not emit
+    // StoreInstanceField instructions for those initializers though we will
+    // still evaluate initialization expression for its side effects.
+    GrowableArray<intptr_t> constructor_initialized_field_offsets(
+        initializer_fields.length());
+    for (auto field : initializer_fields) {
+      if (field != nullptr) {
+        constructor_initialized_field_offsets.Add(field->kernel_offset());
+      }
+    }
+
+    constructor_initialized_field_offsets.Sort(
+        [](const intptr_t* a, const intptr_t* b) {
+          return static_cast<int>(*a) - static_cast<int>(*b);
+        });
+    constructor_initialized_field_offsets.Add(-1);
+
+    ExternalTypedData& kernel_data = ExternalTypedData::Handle(Z);
     Array& class_fields = Array::Handle(Z, parent_class.fields());
     Field& class_field = Field::Handle(Z);
+    intptr_t next_constructor_initialized_field_index = 0;
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        const intptr_t field_offset = class_field.kernel_offset();
+
+        // Check if this field will be initialized by the constructor
+        // initializer list.
+        // Note that both class_fields and the list of initialized fields
+        // are sorted by their kernel offset (by construction) -
+        // so we don't need to perform the search.
+        bool is_constructor_initialized = false;
+        const intptr_t constructor_initialized_field_offset =
+            constructor_initialized_field_offsets
+                [next_constructor_initialized_field_index];
+        if (constructor_initialized_field_offset == field_offset) {
+          next_constructor_initialized_field_index++;
+          is_constructor_initialized = true;
+        }
+
+        kernel_data = class_field.KernelData();
         ASSERT(!kernel_data.IsNull());
-        intptr_t field_offset = class_field.kernel_offset();
-        AlternativeReadingScope alt(&reader_, &kernel_data, field_offset);
+        AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
+                                               field_offset);
         FieldHelper field_helper(this);
         field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
-        Tag initializer_tag = ReadTag();  // read first part of initializer.
+        const Tag initializer_tag = ReadTag();
         if (initializer_tag == kSomething) {
           EnterScope(field_offset);
+          // If this field is initialized in constructor then we can ignore the
+          // value produced by the field initializer. However we still need to
+          // execute it for its side effects.
           instructions += BuildFieldInitializer(
-              field_helper.canonical_name_);  // read initializer.
+              Field::ZoneHandle(Z, class_field.raw()),
+              /*only_for_side_effects=*/is_constructor_initialized);
           ExitScope(field_offset);
         }
       }
@@ -261,9 +327,10 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           UNIMPLEMENTED();
           return Fragment();
         case kFieldInitializer: {
-          NameIndex canonical_name =
-              ReadCanonicalNameReference();  // read field_reference.
-          instructions += BuildFieldInitializer(canonical_name);  // read value.
+          ReadCanonicalNameReference();
+          instructions += BuildFieldInitializer(
+              Field::ZoneHandle(Z, initializer_fields[i]->raw()),
+              /*only_for_size_effects=*/false);
           break;
         }
         case kAssertInitializer: {
@@ -1154,6 +1221,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildConstructorInvocation(true, position);
     case kNot:
       return BuildNot(position);
+    case kNullCheck:
+      return BuildNullCheck(position);
     case kLogicalExpression:
       return BuildLogicalExpression(position);
     case kConditionalExpression:
@@ -1164,8 +1233,9 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-      // Collection concatenation and instance creation operations are removed
-      // by the constant evaluator.
+    case kFileUriExpression:
+      // Collection concatenation, instance creation operations and
+      // in-expression URI changes are removed by the constant evaluator.
       UNREACHABLE();
       break;
     case kIsExpression:
@@ -1315,6 +1385,13 @@ Nullability KernelReaderHelper::ReadNullability() {
     return reader_.ReadNullability();
   }
   return kLegacy;
+}
+
+Variance KernelReaderHelper::ReadVariance() {
+  if (translation_helper_.info().kernel_binary_version() >= 34) {
+    return reader_.ReadVariance();
+  }
+  return kCovariant;
 }
 
 void StreamingFlowGraphBuilder::loop_depth_inc() {
@@ -3056,8 +3133,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, H.isolate(), target)) {
+  const auto recognized_kind = MethodRecognizer::RecognizeKind(target);
+  if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
     return BuildFfiAsFunctionInternal();
+  } else if (FLAG_precompiled_mode &&
+             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
+    return BuildFfiNativeCallbackFunction();
   }
 
   Fragment instructions;
@@ -3065,7 +3146,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
 
   const bool special_case_nop_async_stack_trace_helper =
       !FLAG_causal_async_stacks &&
-      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper;
+      recognized_kind == MethodRecognizer::kAsyncStackTraceHelper;
 
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
@@ -3234,6 +3315,17 @@ Fragment StreamingFlowGraphBuilder::BuildNot(TokenPosition* position) {
       BuildExpression(&operand_position);  // read expression.
   instructions += CheckBoolean(operand_position);
   instructions += BooleanNegate();
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildNullCheck(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != nullptr) *p = position;
+
+  TokenPosition operand_position = TokenPosition::kNoSource;
+  Fragment instructions =
+      BuildExpression(&operand_position);  // read expression.
+  // TODO(37479): Implement null-check semantics.
   return instructions;
 }
 
@@ -3483,7 +3575,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // or explicitly written by the user, in both cases we use an assert
     // assignable.
     instructions += LoadLocal(MakeTemporary());
-    instructions += B->AssertAssignable(
+    instructions += B->AssertAssignableLoadTypeArguments(
         position, type,
         is_type_error ? Symbols::Empty() : Symbols::InTypeCast(),
         AssertAssignableInstr::kInsertedByFrontend);
@@ -3713,8 +3805,7 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
 
   const String& value =
       H.DartString(ReadStringReference());  // read index into string table.
-  const Integer& integer =
-      Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld));
+  const Integer& integer = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   if (integer.IsNull()) {
     H.ReportError(script_, TokenPosition::kNoSource,
                   "Integer literal %s is out of range", value.ToCString());
@@ -4761,6 +4852,10 @@ Fragment StreamingFlowGraphBuilder::BuildYieldStatement() {
 
   ASSERT(flags == kNativeYieldFlags);  // Must have been desugared.
 
+  // Collect yield position
+  if (record_yield_positions_ != nullptr) {
+    record_yield_positions_->Add(Smi::Handle(Z, Smi::New(position.value())));
+  }
   // Setup yield/continue point:
   //
   //   ...
@@ -5038,6 +5133,65 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   ASSERT(named_args_len == 0);
   code += B->BuildFfiAsFunctionInternalCall(type_arguments);
   return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
+#if defined(TARGET_ARCH_DBC)
+  UNREACHABLE();
+#else
+  // The call-site must look like this (guaranteed by the FE which inserts it):
+  //
+  //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
+  //
+  // The FE also guarantees that all three arguments are constants.
+
+  const intptr_t argc = ReadUInt();  // read argument count
+  ASSERT(argc == 2);                 // target, exceptionalReturn
+
+  const intptr_t list_length = ReadListLength();  // read types list length
+  ASSERT(list_length == 1);                       // native signature
+  const TypeArguments& type_arguments =
+      T.BuildTypeArguments(list_length);  // read types.
+  ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
+  const Function& native_sig = Function::Handle(
+      Z, Type::Cast(AbstractType::Handle(Z, type_arguments.TypeAt(0)))
+             .signature());
+
+  Fragment code;
+  const intptr_t positional_count =
+      ReadListLength();  // read positional argument count
+  ASSERT(positional_count == 2);
+
+  // Read target expression and extract the target function.
+  code += BuildExpression();  // build first positional argument (target)
+  Definition* target_def = B->Peek();
+  ASSERT(target_def->IsConstant());
+  const Closure& target_closure =
+      Closure::Cast(target_def->AsConstant()->value());
+  ASSERT(!target_closure.IsNull());
+  Function& target = Function::Handle(Z, target_closure.function());
+  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
+  target = target.parent_function();
+  code += Drop();
+
+  // Build second positional argument (exceptionalReturn).
+  code += BuildExpression();
+  Definition* exceptional_return_def = B->Peek();
+  ASSERT(exceptional_return_def->IsConstant());
+  const Instance& exceptional_return =
+      Instance::Cast(exceptional_return_def->AsConstant()->value());
+  code += Drop();
+
+  const intptr_t named_args_len =
+      ReadListLength();  // skip (empty) named arguments list
+  ASSERT(named_args_len == 0);
+
+  const Function& result =
+      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
+                                  native_sig, target, exceptional_return));
+  code += Constant(result);
+  return code;
+#endif
 }
 
 }  // namespace kernel

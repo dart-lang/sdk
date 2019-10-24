@@ -12,7 +12,7 @@ scanAll(Map<Uri, List<int>> files, {bool verbose: false, bool verify: false}) {
   Stopwatch sw = new Stopwatch()..start();
   int byteCount = 0;
   files.forEach((Uri uri, List<int> bytes) {
-    var token = scan(bytes).tokens;
+    Token token = scan(bytes).tokens;
     if (verbose) printTokens(token);
     if (verify) verifyErrorTokens(token, uri);
     byteCount += bytes.length - 1;

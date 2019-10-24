@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -19,6 +18,7 @@ class DefaultValueResolver {
   final LibraryElementImpl _libraryElement;
 
   ClassElement _classElement;
+  CompilationUnitElement _unitElement;
   ExecutableElement _executableElement;
   Scope _scope;
 
@@ -28,6 +28,8 @@ class DefaultValueResolver {
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      _unitElement = unit;
+
       for (var extensionElement in unit.extensions) {
         _extension(extensionElement);
       }
@@ -95,22 +97,20 @@ class DefaultValueResolver {
   }
 
   void _parameter(ParameterElementImpl parameter) {
-    Expression defaultValue;
-    var node = parameter.linkedNode;
-    if (node is DefaultFormalParameter) {
-      defaultValue = node.defaultValue;
-    }
-    if (defaultValue == null) return;
-
-    defaultValue.accept(LocalElementBuilder(ElementHolder(), null));
+    var node = _defaultParameter(parameter);
+    if (node == null) return;
 
     var contextType = TypeVariableEliminator(_linker.typeProvider)
         .substituteType(parameter.type);
-    InferenceContext.setType(defaultValue, contextType);
 
-    _astResolver ??= AstResolver(_linker, _libraryElement, _scope);
+    _astResolver ??= AstResolver(_linker, _unitElement, _scope);
     _astResolver.resolve(
-      defaultValue,
+      node.defaultValue,
+      () {
+        var defaultValue = node.defaultValue;
+        InferenceContext.setType(defaultValue, contextType);
+        return defaultValue;
+      },
       enclosingClassElement: _classElement,
       enclosingExecutableElement: _executableElement,
     );
@@ -124,6 +124,16 @@ class DefaultValueResolver {
 
   void _setScopeFromElement(Element element) {
     _scope = LinkingNodeContext.get((element as ElementImpl).linkedNode).scope;
+  }
+
+  static DefaultFormalParameter _defaultParameter(
+      ParameterElementImpl element) {
+    var node = element.linkedNode;
+    if (node is DefaultFormalParameter && node.defaultValue != null) {
+      return node;
+    } else {
+      return null;
+    }
   }
 }
 

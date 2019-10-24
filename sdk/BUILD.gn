@@ -35,7 +35,7 @@ declare_args() {
 # ......dartaotruntime or dartaotruntime.exe (executable)
 # ......dartdoc
 # ......dartfmt
-# ......dart2aot
+# ......dart2native
 # ......dart2js
 # ......dartanalyzer
 # ......dartdevc
@@ -51,11 +51,16 @@ declare_args() {
 # ........gen_kernel.dart.snapshot
 # ........kernel_worker.dart.snapshot
 # ........pub.dart.snapshot
-#.........resources/
-#...........dartdoc/
-#..............packages
-#.............resources/
-#.............templates/
+# ......resources/
+# ........dartdoc/
+# ...........packages
+# ..........resources/
+# ..........templates/
+# ......model/
+# ........lexeme/
+# ..........idx2word.json
+# ..........model.tflite
+# ..........word2idx.json
 # ....include/
 # ......dart_api.h
 # ......dart_native_api.h
@@ -63,13 +68,13 @@ declare_args() {
 # ....lib/
 # ......libraries.json
 # ......_internal/
-#.........strong.sum
-#.........dart2js_platform.dill
-#.........dart2js_server_platform.dill
-#.........dart2js_platform_strong.dill
-#.........dart2js_server_platform_strong.dill
-#.........vm_platform_strong.dill
-#.........dev_compiler/
+# ........strong.sum
+# ........dart2js_platform.dill
+# ........dart2js_server_platform.dill
+# ........dart2js_platform_strong.dill
+# ........dart2js_server_platform_strong.dill
+# ........vm_platform_strong.dill
+# ........dev_compiler/
 # ......async/
 # ......collection/
 # ......convert/
@@ -84,12 +89,8 @@ declare_args() {
 # ......math/
 # ......mirrors/
 # ......typed_data/
+# ......wasm/
 # ......api_readme.md
-# ....model/
-# ......lexeme/
-# ........idx2word.json
-# ........model.tflite
-# ........word2idx.json
 
 # Scripts that go under bin/
 _platform_sdk_scripts = [
@@ -116,6 +117,10 @@ _platform_sdk_snapshots = [
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
   ],
   [
+    "dart2native",
+    "../utils/dart2native:generate_dart2native_snapshot",
+  ],
+  [
     "dartdoc",
     "../utils/dartdoc",
   ],
@@ -129,20 +134,16 @@ _platform_sdk_snapshots = [
   ],
 ]
 if (create_kernel_service_snapshot) {
-  _platform_sdk_snapshots += [
-    [
-      "kernel-service",
-      "../utils/kernel-service:kernel-service_snapshot",
-    ],
-  ]
+  _platform_sdk_snapshots += [ [
+        "kernel-service",
+        "../utils/kernel-service:kernel-service_snapshot",
+      ] ]
 }
 if (dart_target_arch != "arm") {
-  _platform_sdk_snapshots += [
-    [
-      "analysis_server",
-      "../utils/analysis_server",
-    ],
-  ]
+  _platform_sdk_snapshots += [ [
+        "analysis_server",
+        "../utils/analysis_server",
+      ] ]
 }
 
 _full_sdk_snapshots = [
@@ -153,6 +154,10 @@ _full_sdk_snapshots = [
   [
     "dartanalyzer",
     "../utils/dartanalyzer:generate_dartanalyzer_snapshot",
+  ],
+  [
+    "dart2native",
+    "../utils/dart2native:generate_dart2native_snapshot",
   ],
   [
     "dartdevc",
@@ -176,25 +181,20 @@ _full_sdk_snapshots = [
   ],
 ]
 if (create_kernel_service_snapshot) {
-  _full_sdk_snapshots += [
-    [
-      "kernel-service",
-      "../utils/kernel-service:kernel-service_snapshot",
-    ],
-  ]
+  _full_sdk_snapshots += [ [
+        "kernel-service",
+        "../utils/kernel-service:kernel-service_snapshot",
+      ] ]
 }
 if (dart_target_arch != "arm") {
-  _full_sdk_snapshots += [
-    [
-      "analysis_server",
-      "../utils/analysis_server",
-    ],
-  ]
+  _full_sdk_snapshots += [ [
+        "analysis_server",
+        "../utils/analysis_server",
+      ] ]
 }
 
 # Libraries that go under lib/
 _full_sdk_libraries = [
-  "_chrome",
   "_internal",
   "async",
   "cli",
@@ -213,9 +213,9 @@ _full_sdk_libraries = [
   "js_util",
   "math",
   "mirrors",
-  "profiler",
   "svg",
   "typed_data",
+  "wasm",
   "web_audio",
   "web_gl",
   "web_sql",
@@ -239,7 +239,6 @@ _full_sdk_libraries = [
 #   "isolate",
 #   "math",
 #   "mirrors",
-#   "profiler",
 #   "typed_data",
 # ]
 _platform_sdk_libraries = _full_sdk_libraries
@@ -249,75 +248,83 @@ _platform_sdk_libraries = _full_sdk_libraries
 copy_tree_specs = []
 
 # This rule copies dartdoc templates to
-# bin/snapshots/resources/dartdoc/templates
-copy_tree_specs += [ {
-      target = "copy_dartdoc_templates"
-      visibility = [ ":copy_dartdoc_files" ]
-      source = "../third_party/pkg/dartdoc/lib/templates"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/templates"
-      ignore_patterns = "{}"
-    } ]
+# bin/resources/dartdoc/templates
+copy_tree_specs += [
+  {
+    target = "copy_dartdoc_templates"
+    visibility = [ ":copy_dartdoc_files" ]
+    source = "../third_party/pkg/dartdoc/lib/templates"
+    dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/templates"
+    ignore_patterns = "{}"
+  },
+]
 
 # This rule copies dartdoc resources to
-# bin/snapshots/resources/dartdoc/resources
-copy_tree_specs += [ {
-      target = "copy_dartdoc_resources"
-      visibility = [ ":copy_dartdoc_files" ]
-      source = "../third_party/pkg/dartdoc/lib/resources"
-      dest = "$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/resources"
-      ignore_patterns = "{}"
-    } ]
+# bin/resources/dartdoc/resources
+copy_tree_specs += [
+  {
+    target = "copy_dartdoc_resources"
+    visibility = [ ":copy_dartdoc_files" ]
+    source = "../third_party/pkg/dartdoc/lib/resources"
+    dest = "$root_out_dir/dart-sdk/bin/resources/dartdoc/resources"
+    ignore_patterns = "{}"
+  },
+]
 
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
-  copy_tree_specs += [ {
-        target = "copy_${library}_library"
-        visibility = [
-          ":copy_platform_sdk_libraries",
-          ":copy_full_sdk_libraries",
-        ]
-        source = "lib/$library"
-        dest = "$root_out_dir/dart-sdk/lib/$library"
-        ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
-      } ]
+  copy_tree_specs += [
+    {
+      target = "copy_${library}_library"
+      visibility = [
+        ":copy_platform_sdk_libraries",
+        ":copy_full_sdk_libraries",
+      ]
+      source = "lib/$library"
+      dest = "$root_out_dir/dart-sdk/lib/$library"
+      ignore_patterns = "*.svn,doc,*.py,*.gypi,*.sh,.gitignore"
+    },
+  ]
 }
 
 if (is_win) {
-  copy_tree_specs += [ {
-        target = "copy_7zip"
-        visibility = [ ":create_common_sdk" ]
-        deps = [
-          ":copy_libraries",
-        ]
-        source = "../third_party/7zip"
-        dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
-        ignore_patterns = ".svn"
-      } ]
+  copy_tree_specs += [
+    {
+      target = "copy_7zip"
+      visibility = [ ":create_common_sdk" ]
+      deps = [
+        ":copy_libraries",
+      ]
+      source = "../third_party/7zip"
+      dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
+      ignore_patterns = ".svn"
+    },
+  ]
 }
 
 if (target_cpu == "x64") {
   copy_tree_specs += [
-      {
-        target = "copy_language_model"
-        visibility = [ ":create_common_sdk" ]
-        deps = [
-          ":copy_libraries",
-        ]
-        source = "../pkg/analysis_server/language_model"
-        dest = "$root_out_dir/dart-sdk/model"
-        ignore_patterns = "{}"
-      },
-      {
-        target = "copy_libtensorflowlite_c"
-        visibility = [ ":create_common_sdk" ]
-        deps = [
-          ":copy_libraries",
-        ]
-        source = "../third_party/pkg/tflite_native/lib/src/blobs"
-        dest = "$root_out_dir/dart-sdk/bin/snapshots"
-        ignore_patterns = "{}"
-      }
-   ]
+    {
+      target = "copy_language_model"
+      visibility = [ ":create_common_sdk" ]
+      deps = [
+        ":copy_libraries",
+      ]
+      source = "../pkg/analysis_server/language_model"
+      dest = "$root_out_dir/dart-sdk/bin/model"
+      ignore_patterns = "{}"
+    },
+    {
+      target = "copy_libtensorflowlite_c"
+      visibility = [ ":create_common_sdk" ]
+      deps = [
+        ":copy_libraries",
+      ]
+      source = "../third_party/pkg/tflite_native/lib/src/blobs"
+      dest = "$root_out_dir/dart-sdk/bin/snapshots"
+      ignore_patterns = "{}"
+    },
+  ]
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
@@ -389,7 +396,8 @@ copy("copy_dartaotruntime") {
   deps = [
     "../runtime/bin:dartaotruntime",
   ]
-  dartaotruntime_out = get_label_info("../runtime/bin:dartaotruntime", "root_out_dir")
+  dartaotruntime_out =
+      get_label_info("../runtime/bin:dartaotruntime", "root_out_dir")
   if (is_win) {
     sources = [
       "$dartaotruntime_out/dartaotruntime.exe",
@@ -411,7 +419,8 @@ copy("copy_gen_snapshot") {
   deps = [
     "../runtime/bin:gen_snapshot",
   ]
-  gen_snapshot_out = get_label_info("../runtime/bin:gen_snapshot", "root_out_dir")
+  gen_snapshot_out =
+      get_label_info("../runtime/bin:gen_snapshot", "root_out_dir")
   if (is_win) {
     sources = [
       "$gen_snapshot_out/gen_snapshot.exe",
@@ -421,21 +430,22 @@ copy("copy_gen_snapshot") {
       "$gen_snapshot_out/$gen_snapshot_stripped_binary",
     ]
   }
-  if (is_win) {
-    sources += [ "$gen_snapshot_out/gen_snapshot.lib" ]
-  }
   outputs = [
     "$root_out_dir/dart-sdk/bin/utils/{{source_file_part}}",
   ]
 }
 
-copy("copy_dart2aot") {
+copy("copy_dart2native") {
+  deps = [
+    ":copy_gen_kernel_snapshot",
+    ":copy_gen_snapshot",
+  ]
   ext = ""
   if (is_win) {
     ext = ".bat"
   }
   sources = [
-    "bin/dart2aot$ext",
+    "bin/dart2native$ext",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/bin/{{source_file_part}}",
@@ -566,7 +576,7 @@ group("copy_full_sdk_snapshots") {
 }
 
 # This rule writes the .packages file for dartdoc resources.
-write_file("$root_out_dir/dart-sdk/bin/snapshots/resources/dartdoc/.packages",
+write_file("$root_out_dir/dart-sdk/bin/resources/dartdoc/.packages",
            "dartdoc:.")
 
 # This is the main rule for copying the files that dartdoc needs.
@@ -639,8 +649,8 @@ copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_sdk",
     "../utils/dartdevc:dartdevc_kernel_sdk_outline",
+    "../utils/dartdevc:dartdevc_sdk",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
@@ -712,8 +722,8 @@ copy("copy_dev_compiler_js_amd_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_kernel_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_kernel_sdk",
-                           "target_gen_dir")
+  gen_dir =
+      get_label_info("../utils/dartdevc:dartdevc_kernel_sdk", "target_gen_dir")
   sources = [
     "$gen_dir/kernel/amd/dart_sdk.js",
     "$gen_dir/kernel/amd/dart_sdk.js.map",
@@ -730,8 +740,8 @@ copy("copy_dev_compiler_js_common_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_kernel_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_kernel_sdk",
-                           "target_gen_dir")
+  gen_dir =
+      get_label_info("../utils/dartdevc:dartdevc_kernel_sdk", "target_gen_dir")
   sources = [
     "$gen_dir/kernel/common/dart_sdk.js",
     "$gen_dir/kernel/common/dart_sdk.js.map",
@@ -748,8 +758,8 @@ copy("copy_dev_compiler_js_es6_kernel") {
   deps = [
     "../utils/dartdevc:dartdevc_kernel_sdk",
   ]
-  gen_dir = get_label_info("../utils/dartdevc:dartdevc_kernel_sdk",
-                           "target_gen_dir")
+  gen_dir =
+      get_label_info("../utils/dartdevc:dartdevc_kernel_sdk", "target_gen_dir")
   sources = [
     "$gen_dir/kernel/es6/dart_sdk.js",
     "$gen_dir/kernel/es6/dart_sdk.js.map",
@@ -780,13 +790,12 @@ copy("copy_dev_compiler_tools") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_dev_compiler_js",
-    "../utils/dartdevc:dartdevc_web",
     "../utils/dartdevc:stack_trace_mapper",
   ]
-  dart_out = get_label_info("../utils/dartdevc:dartdevc_web", "root_out_dir")
+  dart_out =
+      get_label_info("../utils/dartdevc:stack_trace_mapper", "root_out_dir")
   sources = [
     "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
-    "$dart_out/dev_compiler/build/web/ddc_web_compiler.js",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/dev_compiler/web/{{source_file_part}}",
@@ -978,11 +987,12 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dart2native",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
-    ":copy_license",
     ":copy_libraries_specification",
+    ":copy_license",
     ":copy_readme",
     ":copy_vm_dill_files",
     ":write_dartdoc_options",

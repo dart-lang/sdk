@@ -14,6 +14,7 @@ import "package:kernel/ast.dart"
         Library,
         NamedType,
         Node,
+        Nullability,
         Supertype,
         TreeNode,
         TypeParameter,
@@ -40,6 +41,7 @@ import "type_parser.dart"
         ParsedTypedef,
         ParsedVoidType,
         Visitor;
+import 'type_parser.dart';
 
 Component parseComponent(String source, Uri uri) {
   Uri coreUri = Uri.parse("dart:core");
@@ -89,6 +91,18 @@ class KernelEnvironment {
   final Map<String, TreeNode> declarations = <String, TreeNode>{};
 
   final KernelEnvironment parent;
+
+  /// Collects types to set their nullabilities after type parameters are ready.
+  ///
+  /// [TypeParameterType]s may receive their nullability at the declaration or
+  /// from the bound of the [TypeParameter]s they refer to.  If a
+  /// [TypeParameterType] is allocated at the time when the bound of the
+  /// [TypeParameter] is not set yet, that is, if it's encountered in that
+  /// bound or the bound of other [TypeParameter] from the same scope, and the
+  /// nullability of that [TypeParameterType] is not set at declaration, the
+  /// [TypeParameterType] is added to [pendingNullabilities], so that it can be
+  /// updated when the bound of the [TypeParameter] is ready.
+  final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
 
   KernelEnvironment(this.uri, this.fileUri, [this.parent]);
 
@@ -161,14 +175,31 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       } else if (kernelArguments.length != typeVariables.length) {
         throw "Expected ${typeVariables.length} type arguments: $node";
       }
-      return new InterfaceType(declaration, kernelArguments, node.nullability);
+      return new InterfaceType(declaration, kernelArguments,
+          interpretParsedNullability(node.parsedNullability));
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
       }
-      return new TypeParameterType(declaration, null, node.nullability);
+      Nullability nullability = declaration.bound == null
+          ? null
+          : TypeParameterType.computeNullabilityFromBound(declaration);
+      TypeParameterType type = new TypeParameterType(
+          declaration,
+          null,
+          interpretParsedNullability(node.parsedNullability,
+              ifOmitted: nullability));
+      // If the nullability was omitted on the type and can't be computed from
+      // the bound because it's not yet available, it will be set to null.  In
+      // that case, put it to the list to be updated later, when the bound is
+      // available.
+      if (type.typeParameterTypeNullability == null) {
+        environment.pendingNullabilities.add(type);
+      }
+      return type;
     } else if (declaration is Typedef) {
-      return new TypedefType(declaration, kernelArguments, node.nullability);
+      return new TypedefType(declaration, kernelArguments,
+          interpretParsedNullability(node.parsedNullability));
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }
@@ -264,7 +295,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         namedParameters: namedParameters,
         requiredParameterCount: node.arguments.required.length,
         typeParameters: parameterEnvironment.parameters,
-        nullability: node.nullability);
+        nullability: interpretParsedNullability(node.parsedNullability));
   }
 
   VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {
@@ -305,7 +336,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       TypeParameter typeParameter = typeParameters[i];
       if (bound == null) {
         typeParameter
-          ..bound = objectClass.rawType
+          ..bound = new InterfaceType(objectClass)
           ..defaultType = const DynamicType();
       } else {
         DartType type =
@@ -322,6 +353,12 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].defaultType = defaultTypes[i];
     }
+
+    for (TypeParameterType type in nestedEnvironment.pendingNullabilities) {
+      type.typeParameterTypeNullability =
+          TypeParameterType.computeNullabilityFromBound(type.parameter);
+    }
+    nestedEnvironment.pendingNullabilities.clear();
     return new ParameterEnvironment(typeParameters, nestedEnvironment);
   }
 }

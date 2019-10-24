@@ -22,15 +22,15 @@ class SdkVersionAsExpressionInConstContextTest
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.constant_update_2018];
 
-  test_equals() {
-    verifyVersion('2.5.0', '''
+  test_equals() async {
+    await verifyVersion('2.5.0', '''
 const dynamic a = 2;
 const c = (a as int) + 2;
 ''');
   }
 
-  test_lessThan() {
-    verifyVersion('2.2.0', '''
+  test_lessThan() async {
+    await verifyVersion('2.2.0', '''
 const dynamic a = 2;
 const c = (a as int) + 2;
 ''', expectedErrors: [

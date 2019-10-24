@@ -5,7 +5,10 @@
 #ifndef RUNTIME_VM_SCOPE_TIMER_H_
 #define RUNTIME_VM_SCOPE_TIMER_H_
 
+#include "platform/allocation.h"
 #include "platform/globals.h"
+
+#include "vm/os.h"
 
 namespace dart {
 

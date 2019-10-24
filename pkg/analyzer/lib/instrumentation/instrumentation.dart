@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analyzer/src/task/api/model.dart';
-
 /**
  * A container with analysis performance constants.
  */
@@ -121,17 +119,6 @@ class InstrumentationService {
    * The current time, expressed as a decimal encoded number of milliseconds.
    */
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
-
-  /**
-   * Log that the given analysis [task] is being performed in the given
-   * [context].
-   */
-  void logAnalysisTask(String context, AnalysisTask task) {
-    if (_instrumentationServer != null) {
-      _instrumentationServer
-          .log(_join([TAG_ANALYSIS_TASK, context, task.description]));
-    }
-  }
 
   /**
    * Log the fact that an error, described by the given [message], has occurred.

@@ -1,9 +1,10 @@
 library test;
 import self as self;
+import "dart:core" as core;
 
-static field dynamic a;
-static field dynamic b;
-static field dynamic c;
-static field dynamic d;
+static field core::List<core::int*>* a;
+static field core::List<core::double*>* b;
+static field core::List<core::List<core::int*>*>* c;
+static field core::List<dynamic>* d;
 static method main() → dynamic
   ;

@@ -9,6 +9,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -189,12 +190,18 @@ DEFINE_NATIVE_ENTRY(TypedData_setRange, 0, 7) {
 // Argument 0 is type arguments and is ignored.
 #define TYPED_DATA_NEW(name)                                                   \
   DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 0, 2) {                          \
-    GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));      \
+    GET_NON_NULL_NATIVE_ARGUMENT(Integer, length, arguments->NativeArgAt(1));  \
     const intptr_t cid = kTypedData##name##Cid;                                \
-    const intptr_t len = length.Value();                                       \
     const intptr_t max = TypedData::MaxElements(cid);                          \
-    LengthCheck(len, max);                                                     \
-    return TypedData::New(cid, len);                                           \
+    const int64_t len = length.AsInt64Value();                                 \
+    if (len < 0) {                                                             \
+      Exceptions::ThrowRangeError("length", length, 0, max);                   \
+    } else if (len > max) {                                                    \
+      const Instance& exception = Instance::Handle(                            \
+          zone, thread->isolate()->object_store()->out_of_memory());           \
+      Exceptions::Throw(thread, exception);                                    \
+    }                                                                          \
+    return TypedData::New(cid, static_cast<intptr_t>(len));                    \
   }
 
 #define TYPED_DATA_NEW_NATIVE(name) TYPED_DATA_NEW(name)

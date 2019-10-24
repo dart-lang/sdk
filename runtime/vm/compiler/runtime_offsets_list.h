@@ -34,7 +34,6 @@
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
-  CONSTANT(ClassTable, kSizeOfClassPairLog2)                                   \
   CONSTANT(Instructions, kMonomorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kPolymorphicEntryOffsetJIT)                           \
   CONSTANT(Instructions, kMonomorphicEntryOffsetAOT)                           \
@@ -71,7 +70,9 @@
   NOT_IN_PRODUCT(                                                              \
       FIELD(ClassHeapStats, allocated_size_since_gc_new_space_offset))         \
   NOT_IN_PRODUCT(FIELD(ClassHeapStats, state_offset))                          \
+  FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
+  NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
   FIELD(Closure, context_offset)                                               \
   FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
@@ -197,6 +198,7 @@
   FIELD(Thread, object_null_offset)                                            \
   FIELD(Thread, predefined_symbols_address_offset)                             \
   FIELD(Thread, resume_pc_offset)                                              \
+  FIELD(Thread, saved_shadow_call_stack_offset)                                \
   FIELD(Thread, safepoint_state_offset)                                        \
   NOT_IN_DBC(FIELD(Thread, slow_type_test_stub_offset))                        \
   FIELD(Thread, stack_limit_offset)                                            \
@@ -217,7 +219,6 @@
   NOT_IN_DBC(FIELD(Thread, write_barrier_code_offset))                         \
   NOT_IN_DBC(FIELD(Thread, write_barrier_entry_point_offset))                  \
   FIELD(Thread, write_barrier_mask_offset)                                     \
-  NOT_IN_DBC(FIELD(Thread, verify_callback_entry_offset))                      \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
@@ -245,7 +246,6 @@
   NOT_IN_PRODUCT(ARRAY_STRUCTFIELD(                                            \
       ClassTable, NewSpaceSizeOffsetFor, ClassOffsetFor,                       \
       ClassHeapStats::allocated_size_since_gc_new_space_offset()))             \
-  NOT_IN_PRODUCT(FIELD(ClassTable, class_heap_stats_table_offset))             \
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \

@@ -97,13 +97,10 @@ abstract class RuntimeConfiguration {
   bool get shouldSkipNegativeTests => false;
 
   /// Returns the path to the Dart VM executable.
-  String get dartVmBinaryFileName {
-    // Controlled by user with the option "--dart".
-    var dartExecutable = _configuration.dartPath ?? dartVmExecutableFileName;
-
-    TestUtils.ensureExists(dartExecutable, _configuration);
-    return dartExecutable;
-  }
+  ///
+  /// Controlled by user with the option "--dart".
+  String get dartVmBinaryFileName =>
+      _configuration.dartPath ?? dartVmExecutableFileName;
 
   String get dartVmExecutableFileName {
     return _configuration.useSdk
@@ -187,8 +184,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact);
     return [
-      Command.jsCommandLine(
-          moniker, d8FileName, arguments, environmentOverrides)
+      JSCommandLineCommand(moniker, d8FileName, arguments, environmentOverrides)
     ];
   }
 
@@ -209,7 +205,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       bool isCrashExpected) {
     checkArtifact(artifact);
     return [
-      Command.jsCommandLine(
+      JSCommandLineCommand(
           moniker, jsShellFileName, arguments, environmentOverrides)
     ];
   }
@@ -233,6 +229,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     switch (arch) {
       case Architecture.simarm:
       case Architecture.arm:
+      case Architecture.arm_x64:
       case Architecture.arm64:
       case Architecture.simarmv6:
       case Architecture.armv6:
@@ -282,7 +279,7 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (type == 'application/kernel-ir-fully-linked') {
       executable = dartVmExecutableFileName;
     }
-    return [Command.vm(executable, arguments, environmentOverrides)];
+    return [VMCommand(executable, arguments, environmentOverrides)];
   }
 }
 
@@ -306,7 +303,7 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     }
 
     return [
-      Command.vm(dartPrecompiledBinaryFileName, arguments, environmentOverrides)
+      VMCommand(dartPrecompiledBinaryFileName, arguments, environmentOverrides)
     ];
   }
 }
@@ -330,7 +327,7 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
     final String buildPath = buildDir;
     final String processTest = processTestBinaryFileName;
     return [
-      Command.adbDartk(buildPath, processTest, script, arguments, extraLibs)
+      AdbDartkCommand(buildPath, processTest, script, arguments, extraLibs)
     ];
   }
 }
@@ -361,7 +358,7 @@ class DartPrecompiledAdbRuntimeConfiguration
 
     String processTest = processTestBinaryFileName;
     return [
-      Command.adbPrecompiled(
+      AdbPrecompilationCommand(
           buildDir, processTest, script, arguments, useBlobs, useElf, extraLibs)
     ];
   }
@@ -391,7 +388,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
       bool isCrashExpected) {
     String executable = dartVmBinaryFileName;
     return selfCheckers
-        .map((String tester) => Command.vmBatch(
+        .map((String tester) => VMBatchCommand(
             executable, tester, arguments, environmentOverrides,
             checked: _configuration.isChecked))
         .toList();

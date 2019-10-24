@@ -546,6 +546,16 @@ class BackendImpacts {
         ], fixed: true));
   }
 
+  BackendImpact _allowInterop;
+
+  BackendImpact get allowInterop => _allowInterop ??= BackendImpact(
+          staticUses: [
+            _commonElements.jsAllowInterop,
+          ],
+          features: EnumSet<BackendFeature>.fromValues([
+            BackendFeature.needToInitializeIsolateAffinityTag,
+          ], fixed: true));
+
   BackendImpact _numClasses;
 
   BackendImpact get numClasses {

@@ -1113,7 +1113,8 @@ DART_EXPORT void Dart_ExitIsolate();
  * the vm isolate on startup and fast initialization of an isolate.
  * A Snapshot of the heap is created before any dart code has executed.
  *
- * Requires there to be a current isolate.
+ * Requires there to be a current isolate. Not available in the precompiled
+ * runtime (check Dart_IsPrecompiledRuntime).
  *
  * \param buffer Returns a pointer to a buffer containing the
  *   snapshot. This buffer is scope allocated and is only valid
@@ -3283,8 +3284,7 @@ DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
  * \return Returns true if the profile is successfully written and false
  *         otherwise.
  */
-DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port,
-                                             char** error);
+DART_EXPORT bool Dart_WriteProfileToTimeline(Dart_Port main_port, char** error);
 
 /*
  * ====================
@@ -3360,27 +3360,45 @@ typedef void (*Dart_StreamingWriteCallback)(void* callback_data,
                                             const uint8_t* buffer,
                                             intptr_t size);
 
+// On Darwin systems, 'dlsym' adds an '_' to the beginning of the symbol name.
+// Use the '...CSymbol' definitions for resolving through 'dlsym'. The actual
+// symbol names in the objects are given by the '...AsmSymbol' definitions.
+#if defined(__APPLE__)
+#define kVmSnapshotDataCSymbol "kDartVmSnapshotData"
+#define kVmSnapshotInstructionsCSymbol "kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataCSymbol "kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsCSymbol "kDartIsolateSnapshotInstructions"
+#else
+#define kVmSnapshotDataCSymbol "_kDartVmSnapshotData"
+#define kVmSnapshotInstructionsCSymbol "_kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataCSymbol "_kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsCSymbol "_kDartIsolateSnapshotInstructions"
+#endif
+
+#define kVmSnapshotDataAsmSymbol "_kDartVmSnapshotData"
+#define kVmSnapshotInstructionsAsmSymbol "_kDartVmSnapshotInstructions"
+#define kIsolateSnapshotDataAsmSymbol "_kDartIsolateSnapshotData"
+#define kIsolateSnapshotInstructionsAsmSymbol                                  \
+  "_kDartIsolateSnapshotInstructions"
+
 /**
  *  Creates a precompiled snapshot.
  *   - A root library must have been loaded.
  *   - Dart_Precompile must have been called.
  *
- *  Outputs an assembly file defining the symbols
- *   - kDartVmSnapshotData
- *   - kDartVmSnapshotInstructions
- *   - kDartIsolateSnapshotData
- *   - kDartIsolateSnapshotInstructions
+ *  Outputs an assembly file defining the symbols listed in the definitions
+ *  above.
  *
  *  The assembly should be compiled as a static or shared library and linked or
- *  loaded by the embedder.
- *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
- *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
- *  Dart_Initialize. The kDartIsolateSnapshotData and
- *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolateGroup.
+ *  loaded by the embedder. Running this snapshot requires a VM compiled with
+ *  DART_PRECOMPILED_SNAPSHOT. The kDartVmSnapshotData and
+ *  kDartVmSnapshotInstructions should be passed to Dart_Initialize. The
+ *  kDartIsolateSnapshotData and kDartIsolateSnapshotInstructions should be
+ *  passed to Dart_CreateIsolateGroup.
  *
  *  The callback will be invoked one or more times to provide the assembly code.
  *
- * \return A valid handle if no error occurs during the operation.
+ *  \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
@@ -3392,10 +3410,10 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
  *   - Dart_Precompile must have been called.
  *
  *  Outputs an ELF shared library defining the symbols
- *   - kDartVmSnapshotData
- *   - kDartVmSnapshotInstructions
- *   - kDartIsolateSnapshotData
- *   - kDartIsolateSnapshotInstructions
+ *   - _kDartVmSnapshotData
+ *   - _kDartVmSnapshotInstructions
+ *   - _kDartIsolateSnapshotData
+ *   - _kDartIsolateSnapshotInstructions
  *
  *  The shared library should be dynamically loaded by the embedder.
  *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_SNAPSHOT.
@@ -3456,7 +3474,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_SortClasses();
  *  current VM. The instructions piece must be loaded with read and execute
  *  permissions; the data piece may be loaded as read-only.
  *
- *   - Requires the VM to have been started with --load-deferred-eagerly.
  *   - Requires the VM to have not been started with --precompilation.
  *   - Not supported when targeting IA32 or DBC.
  *   - The VM writing the snapshot and the VM reading the snapshot must be the

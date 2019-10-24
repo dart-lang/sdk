@@ -29,7 +29,7 @@ import 'package:testing/testing.dart'
 import 'incremental_utils.dart' as util;
 
 main([List<String> arguments = const []]) =>
-    runMe(arguments, createContext, "../testing.json");
+    runMe(arguments, createContext, configurationPath: "../testing.json");
 
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {

@@ -10,20 +10,20 @@ class C<X extends core::Object* = dynamic, Y extends core::Object* = dynamic> ex
   synthetic constructor •() → self::C<self::C::X*, self::C::Y*>*
     ;
 }
-class D<X extends self::B<self::D::X, self::D::Y>* = dynamic, Y extends self::C<self::D::X*, self::D::Y>* = dynamic> extends core::Object {
+class D<X extends self::B<self::D::X*, self::D::Y*>* = self::B<dynamic, dynamic>*, Y extends self::C<self::D::X*, self::D::Y*>* = self::C<dynamic, dynamic>*> extends core::Object {
   synthetic constructor •() → self::D<self::D::X*, self::D::Y*>*
     ;
 }
-class E<X extends self::B<self::E::X, self::E::Y>* = dynamic, Y extends () →* self::E::X* = dynamic> extends core::Object {
+class E<X extends self::B<self::E::X*, self::E::Y*>* = self::B<dynamic, dynamic>*, Y extends () →* self::E::X* = () →* dynamic> extends core::Object {
   synthetic constructor •() → self::E<self::E::X*, self::E::Y*>*
     ;
 }
-class F<X extends () →* self::F::X = dynamic> extends core::Object {
+class F<X extends () →* self::F::X* = () →* dynamic> extends core::Object {
   synthetic constructor •() → self::F<self::F::X*>*
     ;
 }
-static field self::D<dynamic, dynamic>* d;
-static field self::E<dynamic, dynamic>* e;
-static field self::F<dynamic>* f;
+static field self::D<self::B<dynamic, dynamic>*, self::C<dynamic, dynamic>*>* d;
+static field self::E<self::B<dynamic, dynamic>*, () →* dynamic>* e;
+static field self::F<() →* dynamic>* f;
 static method main() → dynamic
   ;

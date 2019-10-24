@@ -7,7 +7,6 @@
 # dill libraries.
 
 type: newworld
-strong: true
 modules:
   module:
     module/lib1.dart: |

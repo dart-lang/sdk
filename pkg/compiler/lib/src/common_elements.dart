@@ -105,6 +105,12 @@ abstract class CommonElements {
   /// The dart:_internal library.
   LibraryEntity get internalLibrary;
 
+  /// The dart:js library.
+  LibraryEntity get dartJsLibrary;
+
+  /// The package:js library.
+  LibraryEntity get packageJsLibrary;
+
   /// The `NativeTypedData` class from dart:typed_data.
   ClassEntity get typedDataClass;
 
@@ -211,6 +217,8 @@ abstract class CommonElements {
 
   /// Returns `true` if [element] is a superclass of `List`.
   bool isListSupertype(ClassEntity element);
+
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType);
 
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
       {bool hasProtoKey: false, bool onlyStringKeys: false});
@@ -491,6 +499,7 @@ abstract class CommonElements {
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
   FieldEntity get rtiRestField;
+  FieldEntity get rtiPrecomputed1Field;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
@@ -541,12 +550,14 @@ abstract class CommonElements {
 
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData);
+
+  // From package:js
+  FunctionEntity get jsAllowInterop;
 }
 
 abstract class KCommonElements implements CommonElements {
   // From package:js
   ClassEntity get jsAnnotationClass;
-
   ClassEntity get jsAnonymousClass;
 
   ClassEntity get pragmaClass;
@@ -783,6 +794,16 @@ class CommonElementsImpl
   LibraryEntity get internalLibrary => _internalLibrary ??=
       _env.lookupLibrary(Uris.dart__internal, required: true);
 
+  LibraryEntity _dartJsLibrary;
+  @override
+  LibraryEntity get dartJsLibrary =>
+      _dartJsLibrary ??= _env.lookupLibrary(Uris.dart_js);
+
+  LibraryEntity _packageJsLibrary;
+  @override
+  LibraryEntity get packageJsLibrary =>
+      _packageJsLibrary ??= _env.lookupLibrary(Uris.package_js);
+
   ClassEntity _typedDataClass;
   @override
   ClassEntity get typedDataClass =>
@@ -996,6 +1017,12 @@ class CommonElementsImpl
       ClassEntity cls, List<DartType> typeArguments) {
     return _env.createInterfaceType(cls, typeArguments);
   }
+
+  @override
+  InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
+      sourceType.treatAsRaw
+          ? _env.getRawType(jsArrayClass)
+          : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
   @override
   InterfaceType getConstantMapTypeFor(InterfaceType sourceType,
@@ -1429,28 +1456,22 @@ class CommonElementsImpl
   ClassEntity get jsConstClass =>
       _jsConstClass ??= _findClass(foreignLibrary, 'JS_CONST');
 
+  // From dart:js
+  FunctionEntity _jsAllowInterop;
+  @override
+  FunctionEntity get jsAllowInterop => _jsAllowInterop ??=
+      _findLibraryMember(dartJsLibrary, 'allowInterop', required: false);
+
   // From package:js
   ClassEntity _jsAnnotationClass;
   @override
-  ClassEntity get jsAnnotationClass {
-    if (_jsAnnotationClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnnotationClass = _findClass(library, 'JS');
-    }
-    return _jsAnnotationClass;
-  }
+  ClassEntity get jsAnnotationClass => _jsAnnotationClass ??=
+      _findClass(packageJsLibrary, 'JS', required: false);
 
   ClassEntity _jsAnonymousClass;
   @override
-  ClassEntity get jsAnonymousClass {
-    if (_jsAnonymousClass == null) {
-      LibraryEntity library = _env.lookupLibrary(Uris.package_js);
-      if (library == null) return null;
-      _jsAnonymousClass = _findClass(library, '_Anonymous');
-    }
-    return _jsAnonymousClass;
-  }
+  ClassEntity get jsAnonymousClass => _jsAnonymousClass ??=
+      _findClass(packageJsLibrary, '_Anonymous', required: false);
 
   @override
   FunctionEntity findHelperFunction(String name) => _findHelperFunction(name);
@@ -1894,6 +1915,11 @@ class CommonElementsImpl
   @override
   FieldEntity get rtiRestField => _rtiRestField ??= _findRtiClassField('_rest');
 
+  FieldEntity _rtiPrecomputed1Field;
+  @override
+  FieldEntity get rtiPrecomputed1Field =>
+      _rtiPrecomputed1Field ??= _findRtiClassField('_precomputed1');
+
   FunctionEntity _rtiEvalMethod;
   @override
   FunctionEntity get rtiEvalMethod =>
@@ -2240,6 +2266,10 @@ abstract class ElementEnvironment {
   /// Returns the 'raw type' of [cls]. That is, the instantiation of [cls]
   /// where all types arguments are `dynamic`.
   InterfaceType getRawType(ClassEntity cls);
+
+  /// Returns the 'JS-interop type' of [cls]; that is, the instantiation of
+  /// [cls] where all type arguments are 'any'.
+  InterfaceType getJsInteropType(ClassEntity cls);
 
   /// Returns the 'this type' of [cls]. That is, the instantiation of [cls]
   /// where the type arguments are the type variables of [cls].

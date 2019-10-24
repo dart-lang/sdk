@@ -1,0 +1,43 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue38750_lib1.dart";
+import "org-dartlang-testcase:///issue38750_lib2.dart";
+
+static method main() → dynamic
+  ;
+static method errors() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self2::C*
+    ;
+  method foo() → dynamic
+    ;
+  method _foo() → dynamic
+    ;
+  static method _staticFoo() → dynamic
+    ;
+  static method staticFoo() → dynamic
+    ;
+}
+extension ext on self2::C* {
+  method _bar = self2::ext|_bar;
+  tearoff _bar = self2::ext|get#_bar;
+}
+static method ext|_bar(final self2::C* #this) → dynamic
+  ;
+static method ext|get#_bar(final self2::C* #this) → () →* dynamic
+  return () → dynamic => self2::ext|_bar(#this);
+
+library;
+import self as self3;
+
+import "org-dartlang-testcase:///issue38750_lib1.dart";
+
+static method errors() → dynamic
+  ;

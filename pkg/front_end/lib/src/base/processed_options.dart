@@ -49,6 +49,7 @@ import '../fasta/fasta_codes.dart'
         noLength,
         templateCannotReadSdkSpecification,
         templateCantReadFile,
+        templateDebugTrace,
         templateInputFileNotFound,
         templateInternalProblemUnsupported,
         templatePackagesFileFormat,
@@ -184,6 +185,9 @@ class ProcessedOptions {
 
   bool get errorOnUnevaluatedConstant => _raw.errorOnUnevaluatedConstant;
 
+  /// The number of fatal diagnostics encountered so far.
+  int fatalDiagnosticCount = 0;
+
   /// Initializes a [ProcessedOptions] object wrapping the given [rawOptions].
   ProcessedOptions({CompilerOptions options, List<Uri> inputs, this.output})
       : this._raw = options ?? new CompilerOptions(),
@@ -223,8 +227,18 @@ class ProcessedOptions {
     }
     reportDiagnosticMessage(format(message, severity, context));
     if (command_line_reporting.shouldThrowOn(severity)) {
-      throw new DebugAbort(
-          message.uri, message.charOffset, severity, StackTrace.current);
+      if (fatalDiagnosticCount++ < _raw.skipForDebugging) {
+        // Skip this one. The interesting one comes later.
+        return;
+      }
+      if (_raw.skipForDebugging < 0) {
+        print(templateDebugTrace
+            .withArguments("$severity", "${StackTrace.current}")
+            .message);
+      } else {
+        throw new DebugAbort(
+            message.uri, message.charOffset, severity, StackTrace.current);
+      }
     }
   }
 
@@ -298,17 +312,20 @@ class ProcessedOptions {
   /// effect.
   void clearFileSystemCache() => _fileSystem = null;
 
-  bool get legacyMode => _raw.legacyMode;
-
   /// Whether to generate bytecode.
   bool get bytecode => _raw.bytecode;
 
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool get writeFileOnCrashReport => _raw.writeFileOnCrashReport;
 
+  /// The current sdk version string, e.g. "2.6.0-edge.sha1hash".
+  /// For instance used for language versioning (specifying the maximum
+  /// version).
+  String get currentSdkVersion => _raw.currentSdkVersion;
+
   Target _target;
-  Target get target => _target ??=
-      _raw.target ?? new NoneTarget(new TargetFlags(legacyMode: legacyMode));
+  Target get target =>
+      _target ??= _raw.target ?? new NoneTarget(new TargetFlags());
 
   bool isExperimentEnabled(ExperimentalFlag flag) {
     assert(defaultExperimentalFlags.containsKey(flag),
@@ -494,7 +511,8 @@ class ProcessedOptions {
     if (contents != null) {
       _packagesUri = file;
       try {
-        Map<String, Uri> map = package_config.parse(contents, file);
+        Map<String, Uri> map =
+            package_config.parse(contents, file, allowDefaultPackage: true);
         return new MapPackages(map);
       } on FormatException catch (e) {
         report(
@@ -640,7 +658,6 @@ class ProcessedOptions {
         '(provided: ${_raw.librariesSpecificationUri})');
     sb.writeln('SDK summary: ${_sdkSummary} (provided: ${_raw.sdkSummary})');
 
-    sb.writeln('Legacy mode: ${legacyMode}');
     sb.writeln('Target: ${_target?.name} (provided: ${_raw.target?.name})');
 
     sb.writeln('throwOnErrorsForDebugging: ${throwOnErrorsForDebugging}');

@@ -118,6 +118,7 @@ Location LocationWritableRegisterOrSmiConstant(Value* value) {
 }
 
 Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
+  ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
@@ -125,6 +126,7 @@ Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
 }
 
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg) {
+  ASSERT(((1 << reg) & kDartAvailableCpuRegs) != 0);
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) &&
           compiler::Assembler::IsSafeSmi(constant->value()))
@@ -304,7 +306,8 @@ Location LocationRemapForSlowPath(Location loc,
     intptr_t index = fpu_reg_slots[loc.fpu_reg()];
     ASSERT(index >= 0);
     switch (def->representation()) {
-      case kUnboxedDouble:
+      case kUnboxedDouble:  // SlowPathEnvironmentFor sees _one_ register
+      case kUnboxedFloat:   // both for doubles and floats.
         return Location::DoubleStackSlot(
             compiler::target::frame_layout.FrameSlotForVariableIndex(-index),
             FPREG);

@@ -1,0 +1,38 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Asserter<contravariant T extends core::Object* = dynamic> = (T*) →* void;
+typedef AsserterBuilder<contravariant S extends core::Object* = dynamic, unrelated T extends core::Object* = dynamic> = (S*) →* (T*) →* void;
+class DartType extends core::Object {
+  synthetic constructor •() → self::DartType*
+    ;
+}
+abstract class C extends core::Object {
+  static field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertBOf;
+  field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf;
+  synthetic constructor •() → self::C*
+    ;
+  static get assertCOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void
+    ;
+  abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
+  method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic
+    ;
+}
+abstract class G<T extends core::Object* = dynamic> extends core::Object {
+  field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertAOf;
+  synthetic constructor •() → self::G<self::G::T*>*
+    ;
+  abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
+  method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic
+    ;
+}
+static field (self::DartType*) →* void _isInt;
+static field (self::DartType*) →* void _isString;
+static field (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertBOf;
+static get assertCOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

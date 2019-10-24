@@ -30,7 +30,7 @@ class B implements A {
   @override
   int c;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 126, 5),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 1),
     ]);
   }
 
@@ -49,7 +49,7 @@ class B extends A {
   @override
   int c;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 123, 5),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 127, 1),
     ]);
   }
 

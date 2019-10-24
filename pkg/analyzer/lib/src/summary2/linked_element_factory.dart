@@ -76,6 +76,14 @@ class LinkedElementFactory {
     var library = libraryMap[uriStr];
     if (library == null) return const [];
 
+    // Ask for source to trigger dependency tracking.
+    //
+    // Usually we record a dependency because we request an element from a
+    // library, so we build its library element, so request its source.
+    // However if a library is just exported, and the exporting library is not
+    // imported itself, we just copy references, without computing elements.
+    analysisContext.sourceFactory.forUri(uriStr);
+
     var exportIndexList = library.node.exports;
     var exportReferences = List<Reference>(exportIndexList.length);
     for (var i = 0; i < exportIndexList.length; ++i) {
@@ -281,7 +289,10 @@ class _ElementRequest {
 
     var libraryContext = elementFactory.libraryMap[uriStr];
     if (libraryContext == null) {
-      throw ArgumentError('Missing library: $uriStr');
+      throw ArgumentError(
+        'Missing library: $uriStr\n'
+        'Available libraries: ${elementFactory.libraryMap.keys.toList()}',
+      );
     }
     var libraryNode = libraryContext.node;
     var hasName = libraryNode.name.isNotEmpty;
@@ -370,8 +381,14 @@ class _ElementRequest {
     _indexUnitDeclarations(unitContext, unitRef, unitNode);
   }
 
-  MethodElementImpl _method(ClassElementImpl enclosing, Reference reference) {
-    enclosing.methods;
+  MethodElementImpl _method(ElementImpl enclosing, Reference reference) {
+    if (enclosing is ClassElementImpl) {
+      enclosing.methods;
+    } else if (enclosing is ExtensionElementImpl) {
+      enclosing.methods;
+    } else {
+      throw StateError('${enclosing.runtimeType}');
+    }
     // Requesting methods sets elements for all of them.
     assert(reference.element != null);
     return reference.element;

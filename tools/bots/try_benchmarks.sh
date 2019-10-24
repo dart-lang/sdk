@@ -89,6 +89,7 @@ for command; do
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
+      out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
@@ -174,6 +175,7 @@ for command; do
       -- \
       third_party/d8/linux/ia32/natives_blob.bin \
       third_party/d8/linux/ia32/snapshot_blob.bin \
+      out/ReleaseIA32/dart2js_platform.dill \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
       out/ReleaseIA32/gen/kernel_service.dill \
@@ -208,17 +210,18 @@ EOF
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages hello.dart
     out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --checked --packages=.packages --out=out.js -m hello.dart
-    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseIA32/dart-sdk/bin/dart2js --benchmarking-x --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseIA32/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 hello.dart
+    out/ReleaseIA32/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --kernel hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
-    out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
@@ -243,13 +246,8 @@ EOF
     ./tools/build.py --mode=release --arch=x64 runtime
     ./tools/build.py --mode=release --arch=x64 gen_snapshot
     ./tools/build.py --mode=release --arch=x64 dart_precompiled_runtime
-    ./tools/build.py --mode=release --arch=simdbc64 runtime
   elif [ "$command" = linux-x64-archive ] ||
        [ "$command" = linux-x64-bytecode-archive ]; then
-    simdbc_dart=out/ReleaseSIMDBC64/dart
-    if [ "$command" = linux-x64-bytecode-archive ]; then
-      simdbc_dart=
-    fi
     tar -czf linux-x64_profile.tar.gz \
       --exclude .git \
       --exclude .gitignore \
@@ -258,11 +256,11 @@ EOF
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
+      out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
-      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -363,11 +361,11 @@ EOF
       -- \
       third_party/d8/linux/x64/natives_blob.bin \
       third_party/d8/linux/x64/snapshot_blob.bin \
+      out/ReleaseX64/dart2js_platform.dill \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
-      $simdbc_dart \
       out/ReleaseX64/dart \
       out/ReleaseX64/gen_snapshot \
       out/ReleaseX64/gen_kernel_bytecode.dill \
@@ -403,12 +401,10 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --enable-interpreter --compilation-counter-threshold=-1 hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler hello.dart
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --use-bytecode-compiler --optimization-counter-threshold=-1 hello.dart
-    if [ "$command" = linux-x64-benchmark ]; then
-      out/ReleaseSIMDBC64/dart --profile-period=10000 --packages=.packages hello.dart
-    fi
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js hello.dart
+    out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/ia32/d8 --mode=compile --compile-vm-options=--print-metrics --packages=.packages --out out.js --kernel hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseX64/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold

@@ -538,16 +538,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(int x) => x;
+  int /*error:INVALID_OVERRIDE*/f(int x) => x;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(covariant double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(covariant double x) => 0;
 }
     ''');
   }
@@ -615,16 +615,16 @@ class F extends E {
 class G extends E implements D {}
 
 class D_error extends C {
-  /*error:INVALID_OVERRIDE*/int f(String x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(String x) => 0;
 }
 class E_error extends D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class F_error extends E {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
 class G_error extends E implements D {
-  /*error:INVALID_OVERRIDE*/int f(double x) => 0;
+  int /*error:INVALID_OVERRIDE*/f(double x) => 0;
 }
     ''');
   }
@@ -717,17 +717,17 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 
 class Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A f1; // invalid for getter
-  /*error:INVALID_OVERRIDE*/C f2; // invalid for setter
+  A /*error:INVALID_OVERRIDE*/f1; // invalid for getter
+  C /*error:INVALID_OVERRIDE*/f2; // invalid for setter
   var f3;
-  /*error:INVALID_OVERRIDE*/dynamic f4;
+  dynamic /*error:INVALID_OVERRIDE*/f4;
 }
 ''');
   }
@@ -746,17 +746,17 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR*/Child2 implements Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -770,12 +770,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/final ToVoid<int> f = null;
+  final ToVoid<int> /*error:INVALID_OVERRIDE*/f = null;
   final ToVoid<dynamic> g = null;
 }
  ''');
@@ -833,7 +833,7 @@ class Child extends Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -847,7 +847,7 @@ class Child2 implements Base {
   B get f5 => null;
 
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -1953,7 +1953,7 @@ class Base<T extends B> {
 }
 
 class Derived<S extends A> extends Base<B> {
-  /*error:INVALID_OVERRIDE*/S foo() => null;
+  S /*error:INVALID_OVERRIDE*/foo() => null;
 }
 
 class Derived2<S extends B> extends Base<B> {
@@ -1972,10 +1972,10 @@ main() {
   // resolving these shouldn't crash.
   foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
-  foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
+  foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/('1');
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
-  x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
+  x = foo/*error:NOT_ENOUGH_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
@@ -2037,12 +2037,12 @@ class F extends A<num> {
 
   test_genericMethodSuperSubstitute() async {
     await checkFile(r'''
-class Clonable<T> {}
+class Cloneable<T> {}
 class G<T> {
-  create<A extends Clonable<T>, B extends Iterable<A>>() => null;
+  create<A extends Cloneable<T>, B extends Iterable<A>>() => null;
 }
 class H extends G<num> {
-  create2() => super.create<Clonable<int>, List<Clonable<int>>>();
+  create2() => super.create<Cloneable<int>, List<Cloneable<int>>>();
 }
     ''');
   }
@@ -2061,10 +2061,10 @@ abstract class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A get f1 => null;
+  A get /*error:INVALID_OVERRIDE*/f1 => null;
   C get f2 => null;
   get f3 => null;
-  /*error:INVALID_OVERRIDE*/dynamic get f4 => null;
+  dynamic get /*error:INVALID_OVERRIDE*/f4 => null;
 }
 ''');
   }
@@ -2079,12 +2079,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/ToVoid<int> get f => null;
+  ToVoid<int> get /*error:INVALID_OVERRIDE*/f => null;
   ToVoid<dynamic> get g => null;
 }
 ''');
@@ -2495,7 +2495,7 @@ class C {
   set x(Object y) {}
 }
 class D implements B, C {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2509,13 +2509,13 @@ abstract class I {
 abstract class M implements I {}
 
 class C extends Object with M {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class M2 = Object with M;
 
 class C2 extends Object with M2 {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
     ''');
   }
@@ -2545,13 +2545,13 @@ abstract class I<E> {
 abstract class M<E> implements I<E> {}
 
 class C extends Object with M<int> {
-  /*error:INVALID_OVERRIDE*/String x;
+  String /*error:INVALID_OVERRIDE*/x;
 }
 
 abstract class D extends Object with M<num> {}
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class E extends D with M<int> {
-  /*error:INVALID_OVERRIDE*/int x;
+  int /*error:INVALID_OVERRIDE*/x;
 }
 /*error:CONFLICTING_GENERIC_INTERFACES*/
 /*error:CONFLICTING_GENERIC_INTERFACES*/class F extends D with M<int> {
@@ -2588,37 +2588,37 @@ class Base {
 }
 
 class T1 extends Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class T2 extends Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
+  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
       B b) => null;
 }
 
 class T3 extends Base {
-  /*error:INVALID_OVERRIDE*/final B
-      /*error:FINAL_NOT_INITIALIZED, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
+  final B
+      /*error:FINAL_NOT_INITIALIZED, error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*error:INVALID_OVERRIDE*/B get /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  /**/B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*error:INVALID_OVERRIDE*/set /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
+  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_OVERRIDE*/final B /*error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
+  final B /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/B f;
+  B /*error:INVALID_OVERRIDE, error:INVALID_OVERRIDE*/f;
 }
 ''');
   }
@@ -3339,12 +3339,12 @@ class Base {
 }
 
 class Child extends Base {
-  /*error:INVALID_OVERRIDE*/A m1(A value) => null;
-  /*error:INVALID_OVERRIDE*/C m2(C value) => null;
-  /*error:INVALID_OVERRIDE*/A m3(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m1(A value) => null;
+  C /*error:INVALID_OVERRIDE*/m2(C value) => null;
+  A /*error:INVALID_OVERRIDE*/m3(C value) => null;
   C m4(A value) => null;
   m5(value) => null;
-  /*error:INVALID_OVERRIDE*/dynamic m6(dynamic value) => null;
+  dynamic /*error:INVALID_OVERRIDE*/m6(dynamic value) => null;
 }
 ''');
   }
@@ -3363,12 +3363,12 @@ class F {
 }
 
 class G extends F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 
 class H implements F {
-  /*error:INVALID_OVERRIDE*/void f(int x) {}
+  void /*error:INVALID_OVERRIDE*/f(int x) {}
   void g(dynamic x) {}
 }
 ''');
@@ -3749,7 +3749,7 @@ class D extends B implements A { }
     return checkFile(r'''
 abstract class A { void test(A arg) { } }
 abstract class B extends A {
-  /*error:INVALID_OVERRIDE*/void test(B arg) { }
+  void /*error:INVALID_OVERRIDE*/test(B arg) { }
 }
 abstract class X implements A { }
 
@@ -3779,7 +3779,7 @@ class GrandChild extends main.Child {
   var _f3;
   var _f4;
 
-  /*error:INVALID_OVERRIDE*/String _m1() => null;
+  String /*error:INVALID_OVERRIDE*/_m1() => null;
 }
 ''', name: '/helper.dart');
     await checkFile('''
@@ -3825,10 +3825,10 @@ m() {
   /*info:DYNAMIC_INVOKE,error:UNDEFINED_OPERATOR*/-c;
   /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/+ 7;
   /*info:DYNAMIC_INVOKE*/c /*error:UNDEFINED_OPERATOR*/[7];
-  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/c();
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION,info:DYNAMIC_INVOKE*/c();
 
   F f = new F();
-  /*error:INVOCATION_OF_NON_FUNCTION,info:DYNAMIC_INVOKE*/f();
+  /*error:INVOCATION_OF_NON_FUNCTION_EXPRESSION,info:DYNAMIC_INVOKE*/f();
 }
     ''');
   }
@@ -4063,15 +4063,15 @@ class F {
 
 class G extends F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
 
 class H implements F {
   void set f(ToVoid<int> x) {}
-  /*error:INVALID_OVERRIDE*/void set g(ToVoid<dynamic> x) {}
-  /*error:INVALID_OVERRIDE*/void set h(int x) {}
+  void set /*error:INVALID_OVERRIDE*/g(ToVoid<dynamic> x) {}
+  void set /*error:INVALID_OVERRIDE*/h(int x) {}
   void set i(dynamic x) {}
 }
  ''');
@@ -4111,7 +4111,7 @@ abstract class Base {
 
 class Child extends Base {
   void set f1(A value) {}
-  /*error:INVALID_OVERRIDE*/void set f2(C value) {}
+  void set /*error:INVALID_OVERRIDE*/f2(C value) {}
   void set f3(value) {}
   void set f4(dynamic value) {}
   set f5(B value) {}
@@ -4265,68 +4265,6 @@ void main() {
     await check();
   }
 
-  test_strictInference_collectionLiterals() async {
-    addFile(r'''
-main() {
-  var emptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  var emptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  final finalEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  final finalEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-  const constEmptyList = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  const constEmptyMap = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{};
-
-  void listFunction(
-      [list = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const []]) => print(list);
-  void mapFunction(
-      [map = /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/const {}]) => print(map);
-
-  var conditionalEmptyList =
-      "a" == "b" ? [1, 2, 3] : /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-
-  dynamic returnsList1() => /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[];
-  Object returnsList2() => [];
-  void returnsList3() => [];
-
-  var onlyInnermostEmptyCollections = {
-    /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/[]:
-        /*info:INFERENCE_FAILURE_ON_COLLECTION_LITERAL*/{}
-  };
-
-  // Inference has enough info in all of the cases below.
-  var upwardsInfersDynamicList = [42 as dynamic];
-  var upwardsInfersDynamicList2 = [42 as dynamic, 43 as dynamic];
-  var upwardsInfersDynamicList3 = [42 , 43.0];
-  var upwardsInfersDynamicSet = {42 as dynamic};
-
-  // Upwards inference provides correct types.
-  dynamic d;
-  var upwardsInfersDynamicMap1 = {d: 2};
-  var upwardsInfersDynamicMap2 = {4: d};
-  var upwardsInfersDynamicMap3 = {d: d};
-  var listWithElements = [1, 2, 3];
-
-  // The type of the right side of `??` is inferred from the left.
-  var nullAwareEmptyList = [1, 2, 3] ?? [];
-
-  // Type arguments provide types.
-  var typeArgList = <dynamic>[];
-  var typeArgSet = <dynamic>{};
-  var typeArgMap = <dynamic, dynamic>{};
-
-  // Downwards inference provides correct types.
-  Set<dynamic> downwardsInfersDynamicSet = {};
-  Map<dynamic, dynamic> downwardsInfersDynamicDynamicMap = {};
-  List<int> downwardsInfersIntList = [];
-  Set<int> downwardsInfersIntSet = {};
-
-  // The type of `set` is `Set<dynamic>`.
-  int setLength(Set set) => set.length;
-  setLength({});
-}
-    ''');
-    await check(strictInference: true);
-  }
-
   test_strictInference_instanceCreation() async {
     addFile(r'''
 class C<T> {
@@ -4343,236 +4281,12 @@ main() {
   var explicitDynamicIsOK = C<dynamic>(42);
 
   var rawConstructorCall = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C();
-  var upwardsInfersDynamic = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C(42 as dynamic);
-  var namedConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.of(42 as dynamic);
   var factoryConstructor = /*info:INFERENCE_FAILURE_ON_INSTANCE_CREATION*/C.from(42);
-}
-    ''');
-    await check(strictInference: true);
-  }
-
-  test_strictInference_instanceCreation_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {
-  C([T t]);
-  C.of(T t);
-  factory C.from(Object e) => C();
-}
-
-main() {
-  var rawConstructorCall = C();
   var upwardsInfersDynamic = C(42 as dynamic);
   var namedConstructor = C.of(42 as dynamic);
-  var factoryConstructor = C.from(42);
 }
     ''');
     await check(strictInference: true);
-  }
-
-  test_strictRawTypes_classes() async {
-    addFile(r'''
-class C<T> {
-  C([T t]);
-}
-
-class M<T> {}
-
-class ExtendRawType extends /*info:STRICT_RAW_TYPE*/C {}
-class MixinRawType extends Object with /*info:STRICT_RAW_TYPE*/M {}
-class ImplementRawType implements /*info:STRICT_RAW_TYPE*/C {}
-class MixinApplicationRawType = Object with /*info:STRICT_RAW_TYPE*/M;
-
-class ClassWithNumBound<T extends num> {}
-class ClassWithObjectBound<T extends Object> {}
-class ClassWithDynamicBound<T extends dynamic> {}
-
-class ClassWithRawTypeBound<T extends /*info:STRICT_RAW_TYPE*/List> {}
-
-/*info:STRICT_RAW_TYPE*/C topLevelField;
-/*info:STRICT_RAW_TYPE*/C get topLevelGetter => null;
-set topLevelSetter(/*info:STRICT_RAW_TYPE*/C c) {}
-
-/*info:STRICT_RAW_TYPE*/C returnType() => null;
-parameterType(/*info:STRICT_RAW_TYPE*/C c) {}
-
-C<int> explicitTypeArgsAreOK;
-
-main() {
-  {
-    ClassWithNumBound classWithNumBoundOK;
-    ClassWithObjectBound classWithObjectBoundOK;
-    /*info:STRICT_RAW_TYPE*/ClassWithDynamicBound classWithDynamicBound;
-    /*info:STRICT_RAW_TYPE*/C rawConstructorCallFromType = C();
-  }
-
-  {
-    // These should be allowed:
-    List<int> downwardsInferenceIsOK = [];
-    List<dynamic> downwardsInferenceDynamicIsOK = [];
-    var upwardsInferNonDynamicIsOK = [42];
-    var explicitDynamicIsOK = <dynamic>[42];
-
-    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
-    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-  }
-
-  {
-    // These should be allowed:
-    List<int> downwardsInferenceIsOK = [];
-    List<dynamic> downwardsInferenceDynamicIsOK = [];
-    var upwardsInferNonDynamicIsOK = [42];
-    var explicitDynamicIsOK = <dynamic>[42];
-
-    var rawListOfLists = </*info:STRICT_RAW_TYPE*/List>[];
-    /*info:STRICT_RAW_TYPE*/List rawListFromType = [];
-  }
-
-  {
-    // These should be allowed:
-    Set<int> downwardsInferenceIsOK = {};
-    Set<dynamic> downwardsInferenceDynamicIsOK = {};
-    var upwardsInferNonDynamicIsOK = {42};
-    var explicitDynamicIsOK = <dynamic>{42};
-
-    var rawSetOfSets = </*info:STRICT_RAW_TYPE*/Set>{};
-    /*info:STRICT_RAW_TYPE*/Set rawSetFromType = {};
-  }
-
-  {
-    // These should be allowed:
-    Map<int, int> downwardsInferenceIsOK = {};
-    Map<dynamic, int> downwardsInferenceDynamicIsOK1 = {};
-    Map<int, dynamic> downwardsInferenceDynamicIsOK2 = {};
-    Map<dynamic, dynamic> downwardsInferenceDynamicIsOK3 = {};
-
-    var upwardsInferNonDynamicIsOK = {4: 2};
-    var explicitDynamicIsOK = <dynamic, dynamic>{4: 2};
-
-    var rawMapOfMaps = </*info:STRICT_RAW_TYPE*/Map>{};
-    /*info:STRICT_RAW_TYPE*/Map rawMapFromType = {};
-  }
-
-  {
-    Object isCheck;
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/List) {}
-    if (isCheck is List</*info:STRICT_RAW_TYPE_IN_IS*/List>) {}
-    if (isCheck is /*info:STRICT_RAW_TYPE_IN_IS*/C) {}
-
-    if (isCheck is List<dynamic>) {}
-    if (isCheck is List<int>) {}
-    if (isCheck is C<dynamic>) {}
-    if (isCheck is C<int>) {}
-  }
-
-  {
-    Object asCheck;
-    var asList = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/List;
-    var asMap = asCheck as Map<dynamic, /*info:STRICT_RAW_TYPE_IN_AS*/List>;
-    var asC = asCheck as /*info:STRICT_RAW_TYPE_IN_AS*/C;
-  }
-}
-    ''');
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_classes_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-@optionalTypeArgs
-class C<T> {
-  C([T t]);
-}
-
-@optionalTypeArgs
-class M<T> {}
-
-class ExtendRawType extends C {}
-class MixinRawType extends Object with M {}
-class ImplementRawType implements C {}
-class MixinApplicationRawType = Object with M;
-
-C topLevelField;
-C get topLevelGetter => null;
-set topLevelSetter(C c) {}
-
-C returnType() => null;
-parameterType(C c) {}
-
-C<int> explicitTypeArgsAreOK;
-
-main() {
-  // These should be allowed:
-  C<int> downwardsInferenceIsOK = C();
-  C<dynamic> downwardsInferenceDynamicIsOK = C();
-  var inferredFromConstructorParameterIsOK = C(42);
-  var explicitDynamicIsOK = C<dynamic>(42);
-
-  var rawConstructorCall = C();
-  C rawConstructorCallFromType = C();
-  var upwardsInfersDynamic = C(42 as dynamic);
-
-  Object isChecksAreAllowed;
-  if (isChecksAreAllowed is C) {}
-}
-    ''');
-
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_typedefs() async {
-    addFile(r'''
-typedef T F1<T>(T _);
-typedef F2<T> = T Function(T);
-typedef G1<T> = S Function<S>(T);
-typedef G2<T> = S Function<S>(S); // right side does not use `T`
-
-typedef G3 = T Function<T>(T); // typedef has no type params.
-
-testTypedefs() {
-  /*info:STRICT_RAW_TYPE*/F1 rawTypedefDart1Syntax;
-  /*info:STRICT_RAW_TYPE*/F2 rawTypedefDart2Syntax;
-  /*info:STRICT_RAW_TYPE*/G1 rawTypedefGenericFunction;
-  /*info:STRICT_RAW_TYPE*/G2 rawTypedefGenericFunction2;
-  {
-    F1<dynamic> explicitTypedefDart1SyntaxIsOK;
-    F2<dynamic> explicitTypedefDart2SyntaxIsOK;
-    G1<dynamic> explicitTypedefGenericFunctionIsOK;
-    G2<dynamic> explicitTypedefGenericFunction2IsOK;
-    G3 typedefWithoutTypeParamsIsOK;
-  }
-  {
-    F1<int> explicitTypedefDart1SyntaxIsOK;
-    F2<int> explicitTypedefDart2SyntaxIsOK;
-    G1<int> explicitTypedefGenericFunctionIsOK;
-    G2<int> explicitTypedefGenericFunction2IsOK;
-  }
-}
-    ''');
-    await check(strictRawTypes: true);
-  }
-
-  test_strictRawTypes_typedefs_optionalTypeArgs() async {
-    addMetaPackage();
-    addFile(r'''
-import 'package:meta/meta.dart';
-
-@optionalTypeArgs typedef T F1<T>(T _);
-@optionalTypeArgs typedef F2<T> = T Function(T);
-@optionalTypeArgs typedef G1<T> = S Function<S>(T);
-@optionalTypeArgs typedef G2<T> = S Function<S>(S);
-
-testTypedefs() {
-  F1 rawTypedefDart1Syntax;
-  F2 rawTypedefDart2Syntax;
-  G1 rawTypedefGenericFunction;
-  G2 rawTypedefGenericFunction2;
-}
-    ''');
-    await check(strictRawTypes: true);
   }
 
   test_superCallPlacement() async {
@@ -4899,18 +4613,18 @@ void g<T extends num>(T object) {
   if (object is int) print(object.isEven);
   if (object is String) print(/*info:DYNAMIC_INVOKE*/object./*error:UNDEFINED_METHOD*/substring(1));
 }
-class Clonable<T> {}
-class SubClonable<T> extends Clonable<T> {
+class Cloneable<T> {}
+class SubCloneable<T> extends Cloneable<T> {
   T m(T t) => t;
 }
-void takesSubClonable<A>(SubClonable<A> t) {}
+void takesSubCloneable<A>(SubCloneable<A> t) {}
 
-void h<T extends Clonable<T>>(T object) {
-  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable<T>) {
+void h<T extends Cloneable<T>>(T object) {
+  if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubCloneable<T>) {
     print(object.m(object));
 
-    SubClonable<T> s = object;
-    takesSubClonable<T>(object);
+    SubCloneable<T> s = object;
+    takesSubCloneable<T>(object);
     // Issue #35799: According to the language team, this should work, but both
     // analyzer and CFE currently reject it, likely due to a strange
     // representation of promoted type variables.
@@ -5174,7 +4888,7 @@ class A {
 }
 
 class B extends A {
-  /*error:INVALID_OVERRIDE*/T method<T>(T x) => x;
+  T /*error:INVALID_OVERRIDE*/method<T>(T x) => x;
 }
     ''');
   }

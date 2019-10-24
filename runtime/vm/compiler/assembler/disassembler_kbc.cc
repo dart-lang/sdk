@@ -259,6 +259,8 @@ static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
     case KernelBytecode::kInstantiateType_Wide:
     case KernelBytecode::kDirectCall:
     case KernelBytecode::kDirectCall_Wide:
+    case KernelBytecode::kUncheckedDirectCall:
+    case KernelBytecode::kUncheckedDirectCall_Wide:
     case KernelBytecode::kInterfaceCall:
     case KernelBytecode::kInterfaceCall_Wide:
     case KernelBytecode::kInstantiatedInterfaceCall:
@@ -315,7 +317,7 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
                      hex_size - (i * kCharactersPerByte), " %02x", instr[i]);
     }
   }
-  if (out_instr_size) {
+  if (out_instr_size != nullptr) {
     *out_instr_size = instr_size;
   }
 

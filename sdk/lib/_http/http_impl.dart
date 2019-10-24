@@ -261,7 +261,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
       if (hostList != null) {
         host = hostList.first;
       } else {
-        hostList = headers['host'];
+        hostList = headers[HttpHeaders.hostHeader];
         if (hostList != null) {
           host = hostList.first;
         } else {
@@ -840,7 +840,9 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   _HttpResponse(Uri uri, String protocolVersion, _HttpOutgoing outgoing,
       HttpHeaders defaultHeaders, String serverHeader)
       : super(uri, protocolVersion, outgoing, initialHeaders: defaultHeaders) {
-    if (serverHeader != null) headers.set('server', serverHeader);
+    if (serverHeader != null) {
+      headers.set(HttpHeaders.serverHeader, serverHeader);
+    }
   }
 
   bool get _isConnectionClosed => _httpRequest._httpConnection._isClosing;
@@ -865,7 +867,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   Future redirect(Uri location, {int status: HttpStatus.movedTemporarily}) {
     if (_outgoing.headersWritten) throw new StateError("Header already sent");
     statusCode = status;
-    headers.set("location", location.toString());
+    headers.set(HttpHeaders.locationHeader, location.toString());
     return close();
   }
 
@@ -1704,7 +1706,7 @@ class _HttpClientConnection {
       ..port = port
       .._add(HttpHeaders.acceptEncodingHeader, "gzip");
     if (_httpClient.userAgent != null) {
-      request.headers._add('user-agent', _httpClient.userAgent);
+      request.headers._add(HttpHeaders.userAgentHeader, _httpClient.userAgent);
     }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
@@ -1836,8 +1838,10 @@ class _HttpClientConnection {
     }
     return request.close().then((response) {
       if (response.statusCode != HttpStatus.ok) {
-        throw "Proxy failed to establish tunnel "
-            "(${response.statusCode} ${response.reasonPhrase})";
+        throw new HttpException(
+            "Proxy failed to establish tunnel "
+            "(${response.statusCode} ${response.reasonPhrase})",
+            uri: request.uri);
       }
       var socket = (response as _HttpClientResponse)
           ._httpRequest

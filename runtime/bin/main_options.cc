@@ -147,6 +147,10 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
+"--write-service-info=<file_name>\n"
+"  Outputs information necessary to connect to the VM service to the\n"
+"  specified file in JSON format. Useful for clients which are unable to\n"
+"  listen to stdout for the Observatory listening message.\n"
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"
 "  These snapshot options are used to generate a snapshot of the loaded\n"
@@ -178,6 +182,10 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--write-service-info=<file_name>\n"
+"  Outputs information necessary to connect to the VM service to the\n"
+"  specified file in JSON format. Useful for clients which are unable to\n"
+"  listen to stdout for the Observatory listening message.\n"
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"
 "  These snapshot options are used to generate a snapshot of the loaded\n"
@@ -340,7 +348,7 @@ bool Options::ProcessAbiVersionOption(const char* arg,
     return false;
   }
   int ver = 0;
-  for (int i = 0; value[i]; ++i) {
+  for (int i = 0; value[i] != '\0'; ++i) {
     if (value[i] >= '0' && value[i] <= '9') {
       ver = (ver * 10) + value[i] - '0';
     } else {

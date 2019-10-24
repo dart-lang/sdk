@@ -120,7 +120,8 @@ class NativeArguments {
     if ((function_bits & (kClosureFunctionBit | kInstanceFunctionBit)) ==
         (kClosureFunctionBit | kInstanceFunctionBit)) {
       // Retrieve the receiver from the context.
-      const int closure_index = (function_bits & kGenericFunctionBit) ? 1 : 0;
+      const int closure_index =
+          (function_bits & kGenericFunctionBit) != 0 ? 1 : 0;
       const Object& closure = Object::Handle(ArgAt(closure_index));
       const Context& context =
           Context::Handle(Closure::Cast(closure).context());
@@ -268,17 +269,17 @@ class NativeArguments {
 
   // Returns true if the arguments are those of an instance function call.
   bool ToInstanceFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kInstanceFunctionBit) != 0;
   }
 
   // Returns true if the arguments are those of a closure function call.
   bool ToClosureFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kClosureFunctionBit) != 0;
   }
 
   // Returns true if the arguments are those of a generic function call.
   bool ToGenericFunction() const {
-    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit);
+    return (FunctionBits::decode(argc_tag_) & kGenericFunctionBit) != 0;
   }
 
   int NumHiddenArgs(int function_bits) const {

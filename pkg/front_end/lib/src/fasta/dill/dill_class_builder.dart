@@ -7,24 +7,23 @@ library fasta.dill_class_builder;
 import 'package:kernel/ast.dart'
     show Class, DartType, Member, Supertype, TypeParameter;
 
+import '../builder/class_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
+
+import '../scope.dart';
+
 import '../problems.dart' show unimplemented;
 
-import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        TypeBuilder,
-        LibraryBuilder,
-        MemberBuilder,
-        Scope,
-        TypeVariableBuilder;
-
-import '../modifier.dart' show abstractMask;
+import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
-class DillClassBuilder extends ClassBuilder {
+class DillClassBuilder extends ClassBuilderImpl {
   final Class cls;
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)
@@ -37,10 +36,13 @@ class DillClassBuilder extends ClassBuilder {
             null,
             null,
             null,
-            new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
-                parent.scope, "class ${cls.name}", isModifiable: false),
-            new Scope(<String, MemberBuilder>{}, null, null, cls.name,
+            new Scope(
+                local: <String, MemberBuilder>{},
+                setters: <String, MemberBuilder>{},
+                parent: parent.scope,
+                debugName: "class ${cls.name}",
                 isModifiable: false),
+            new ConstructorScope(cls.name, <String, MemberBuilder>{}),
             parent,
             cls.fileOffset);
 
@@ -136,7 +138,14 @@ class DillClassBuilder extends ClassBuilder {
 }
 
 int computeModifiers(Class cls) {
-  return cls.isAbstract ? abstractMask : 0;
+  int modifiers = 0;
+  if (cls.isAbstract) {
+    modifiers |= abstractMask;
+  }
+  if (cls.isMixinApplication && cls.name != null) {
+    modifiers |= namedMixinApplicationMask;
+  }
+  return modifiers;
 }
 
 TypeBuilder computeTypeBuilder(

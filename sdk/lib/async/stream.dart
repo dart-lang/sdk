@@ -1096,9 +1096,9 @@ abstract class Stream<T> {
    * When subscribing using [drain], cancelOnError will be true. This means
    * that the future will complete with the first error on this stream and then
    * cancel the subscription.
-   * If this stream emits an error, or the call to [combine] throws,
-   * the returned future is completed with that error,
-   * and processing is stopped.
+   *
+   * If this stream emits an error, the returned future is completed with
+   * that error, and processing is stopped.
    *
    * In case of a `done` event the future completes with the given
    * [futureValue].

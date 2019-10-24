@@ -6,6 +6,12 @@ library fasta.expression_generator_helper;
 
 import '../../scanner/token.dart' show Token;
 
+import '../builder/builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/prefix_builder.dart';
+import '../builder/type_declaration_builder.dart';
+import '../builder/unresolved_type.dart';
+
 import '../constant_context.dart' show ConstantContext;
 
 import '../fasta_codes.dart' show LocatedMessage;
@@ -22,7 +28,7 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart' show Builder, PrefixBuilder, UnresolvedType;
+import '../scope.dart';
 
 import 'kernel_ast_api.dart'
     show
@@ -36,13 +42,11 @@ import 'kernel_ast_api.dart'
         Name,
         Procedure,
         StaticGet,
-        TypeParameter;
-
-import 'kernel_builder.dart'
-    show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
+        TypeParameter,
+        VariableDeclaration;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
-  LibraryBuilder get library;
+  LibraryBuilder get libraryBuilder;
 
   TypePromoter get typePromoter;
 
@@ -51,8 +55,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   ConstantContext get constantContext;
 
   Forest get forest;
-
-  bool get legacyMode;
 
   Constructor lookupConstructor(Name name, {bool isSuper});
 
@@ -81,6 +83,10 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
       {Constness constness, int charOffset});
+
+  Expression buildExtensionMethodInvocation(
+      int fileOffset, Procedure target, Arguments arguments,
+      {bool isTearOff});
 
   Expression throwNoSuchMethodError(
       Expression receiver, String name, Arguments arguments, int offset,
@@ -124,6 +130,9 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
+  Expression buildProblemErrorIfConst(
+      Message message, int charOffset, int length);
+
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
   Message warnUnresolvedSet(Name name, int charOffset, {bool isSuper});
@@ -146,17 +155,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   void reportDuplicatedDeclaration(
       Builder existing, String name, int charOffset);
 
-  Expression wrapSyntheticExpression(Expression node, int charOffset);
-
-  Expression wrapInvalidConstructorInvocation(Expression desugared,
-      Member constructor, Arguments arguments, int charOffset);
-
-  Expression wrapInvalidWrite(
-      Expression desugared, Expression expression, int charOffset);
-
-  Expression wrapUnresolvedTargetInvocation(
-      Expression desugared, Arguments arguments, int charOffset);
-
-  Expression wrapUnresolvedVariableAssignment(
-      Expression desugared, bool isCompound, Expression rhs, int charOffset);
+  /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
+  /// offset of the created node.
+  Expression createVariableGet(VariableDeclaration variable, int charOffset);
 }

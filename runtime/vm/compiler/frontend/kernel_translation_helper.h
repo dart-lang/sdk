@@ -205,6 +205,15 @@ class TranslationHelper {
     }
     return *expression_evaluation_function_;
   }
+  void SetExpressionEvaluationRealClass(const Class& real_class) {
+    ASSERT(expression_evaluation_real_class_ == nullptr);
+    ASSERT(!real_class.IsNull());
+    expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.raw());
+  }
+  RawClass* GetExpressionEvaluationRealClass() {
+    ASSERT(expression_evaluation_real_class_ != nullptr);
+    return expression_evaluation_real_class_->raw();
+  }
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -236,6 +245,7 @@ class TranslationHelper {
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
   Function* expression_evaluation_function_ = nullptr;
+  Class* expression_evaluation_real_class_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };
@@ -307,6 +317,7 @@ class TypeParameterHelper {
     kStart,  // tag.
     kFlags,
     kAnnotations,
+    kVariance,
     kName,
     kBound,
     kDefaultType,
@@ -442,6 +453,8 @@ class FieldHelper {
     kStatic = 1 << 2,
     kIsCovariant = 1 << 5,
     kIsGenericCovariantImpl = 1 << 6,
+    kIsLate = 1 << 7,
+    kExtensionMember = 1 << 8,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -465,6 +478,8 @@ class FieldHelper {
   bool IsGenericCovariantImpl() {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
+  bool IsLate() const { return (flags_ & kIsLate) != 0; }
+  bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition position_;
@@ -524,6 +539,7 @@ class ProcedureHelper {
     // TODO(29841): Remove this line after the issue is resolved.
     kRedirectingFactoryConstructor = 1 << 6,
     kNoSuchMethodForwarder = 1 << 7,
+    kExtensionMember = 1 << 8,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -549,6 +565,7 @@ class ProcedureHelper {
   bool IsNoSuchMethodForwarder() const {
     return (flags_ & kNoSuchMethodForwarder) != 0;
   }
+  bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition start_position_;
@@ -679,12 +696,12 @@ class ClassHelper {
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
 
-  bool is_abstract() const { return flags_ & Flag::kIsAbstract; }
+  bool is_abstract() const { return (flags_ & Flag::kIsAbstract) != 0; }
 
-  bool is_enum_class() const { return flags_ & Flag::kIsEnumClass; }
+  bool is_enum_class() const { return (flags_ & Flag::kIsEnumClass) != 0; }
 
   bool is_transformed_mixin_application() const {
-    return flags_ & Flag::kIsEliminatedMixin;
+    return (flags_ & Flag::kIsEliminatedMixin) != 0;
   }
 
   NameIndex canonical_name_;
@@ -738,6 +755,7 @@ class LibraryHelper {
   enum Flag {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
+    kIsNonNullableByDefault = 1 << 2,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -754,6 +772,9 @@ class LibraryHelper {
 
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
+  bool IsNonNullableByDefault() const {
+    return (flags_ & kIsNonNullableByDefault) != 0;
+  }
 
   uint8_t flags_ = 0;
   NameIndex canonical_name_;
@@ -928,6 +949,8 @@ struct ProcedureAttributesMetadata {
   bool has_this_uses = true;
   bool has_non_this_uses = true;
   bool has_tearoff_uses = true;
+
+  void InitializeFromFlags(uint8_t flags);
 };
 
 // Helper class which provides access to direct call metadata.
@@ -1026,12 +1049,6 @@ class KernelReaderHelper {
     USE(id);
   }
 
-  virtual void RecordYieldPosition(TokenPosition position) {
-    // Do nothing by default.
-    // This is overridden in KernelTokenPositionCollector.
-    USE(position);
-  }
-
   virtual void RecordTokenPosition(TokenPosition position) {
     // Do nothing by default.
     // This is overridden in KernelTokenPositionCollector.
@@ -1083,6 +1100,7 @@ class KernelReaderHelper {
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
   Nullability ReadNullability();
+  Variance ReadVariance();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);

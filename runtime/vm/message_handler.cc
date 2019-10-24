@@ -130,7 +130,7 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
       Isolate* source_isolate = Isolate::Current();
-      if (source_isolate) {
+      if (source_isolate != nullptr) {
         OS::PrintErr(
             "[>] Posting message:\n"
             "\tlen:        %" Pd "\n\tsource:     (%" Pd64
@@ -416,7 +416,7 @@ void MessageHandler::TaskCallback() {
 #endif  // !defined(PRODUCT)
 
     if (status == kOK) {
-      if (start_callback_) {
+      if (start_callback_ != nullptr) {
         // Initialize the message handler by running its start function,
         // if we have one.  For an isolate, this will run the isolate's
         // main() function.

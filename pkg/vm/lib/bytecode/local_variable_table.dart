@@ -159,6 +159,12 @@ class LocalVariableTable {
     }
   }
 
+  void leaveAllScopes(int pc, int endPosition) {
+    while (activeScopes.isNotEmpty) {
+      leaveScope(pc, endPosition);
+    }
+  }
+
   void recordContextVariable(int pc, int index) {
     assert(contextVariable == null);
     contextVariable = new ContextVariable(pc, index);

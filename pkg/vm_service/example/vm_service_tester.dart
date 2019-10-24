@@ -51,6 +51,7 @@ void main() {
 
     await new Future.delayed(new Duration(milliseconds: 500));
 
+    // ignore: deprecated_member_use_from_same_package
     serviceClient = await vmServiceConnect(host, port, log: new StdoutLog());
 
     print('socket connected');
@@ -126,7 +127,11 @@ void main() {
     IsolateRef isolateRef = isolates.first;
     print(await serviceClient.resume(isolateRef.id));
 
+    print('waiting for client to shut down...');
     serviceClient.dispose();
+
+    await serviceClient.onDone;
+    print('service client shut down');
   });
 }
 
@@ -158,9 +163,10 @@ Future testServiceRegistration() async {
   });
   await serviceClient.registerService(serviceName, serviceAlias);
   VmService otherClient =
+      // ignore: deprecated_member_use_from_same_package
       await vmServiceConnect(host, port, log: new StdoutLog());
   Completer completer = new Completer();
-  otherClient.onEvent('_Service').listen((e) async {
+  otherClient.onEvent('Service').listen((e) async {
     if (e.service == serviceName && e.kind == EventKind.kServiceRegistered) {
       assert(e.alias == serviceAlias);
       Response response = await serviceClient.callMethod(
@@ -171,8 +177,9 @@ Future testServiceRegistration() async {
       completer.complete();
     }
   });
-  await otherClient.streamListen('_Service');
+  await otherClient.streamListen('Service');
   await completer.future;
+  otherClient.dispose();
 }
 
 Future testScriptParse(IsolateRef isolateRef) async {

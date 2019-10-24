@@ -287,12 +287,12 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   if (!code.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
-    Array maps;
-    maps = Array::null();
-    StackMap map;
+    CompressedStackMaps maps;
+    maps = code.compressed_stackmaps();
+    CompressedStackMapsIterator it(maps);
     const uword start = Instructions::PayloadStart(code.instructions());
-    map = code.GetStackMap(pc() - start, &maps, &map);
-    if (!map.IsNull()) {
+    const uint32_t pc_offset = pc() - start;
+    if (it.Find(pc_offset)) {
 #if !defined(TARGET_ARCH_DBC)
       if (is_interpreted()) {
         UNIMPLEMENTED();
@@ -311,11 +311,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // The spill slots and any saved registers are described in the stack
       // map.  The outgoing arguments are assumed to be tagged; the number
       // of outgoing arguments is not explicitly tracked.
-      intptr_t length = map.Length();
+
       // Spill slots are at the 'bottom' of the frame.
-      intptr_t spill_slot_count = length - map.SlowPathBitCount();
+      intptr_t spill_slot_count = it.spill_slot_bit_count();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
-        if (map.IsObject(bit)) {
+        if (it.IsObject(bit)) {
           visitor->VisitPointer(last);
         }
         --last;
@@ -323,8 +323,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
       // The live registers at the 'top' of the frame comprise the rest of the
       // stack map.
-      for (intptr_t bit = length - 1; bit >= spill_slot_count; --bit) {
-        if (map.IsObject(bit)) {
+      for (intptr_t bit = it.length() - 1; bit >= spill_slot_count; --bit) {
+        if (it.IsObject(bit)) {
           visitor->VisitPointer(first);
         }
         ++first;
@@ -363,12 +363,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // The DBC registers are described in the stack map.
       // The outgoing arguments are assumed to be tagged; the number
       // of outgoing arguments is not explicitly tracked.
-      ASSERT(map.SlowPathBitCount() == 0);
 
       // Visit DBC registers that contain tagged values.
-      intptr_t length = map.Length();
+      intptr_t length = it.length();
       for (intptr_t bit = 0; bit < length; ++bit) {
-        if (map.IsObject(bit)) {
+        if (it.IsObject(bit)) {
           visitor->VisitPointer(first + bit);
         }
       }
@@ -381,7 +380,12 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       return;
     }
 
-    // No stack map, fall through.
+    // If we are missing a stack map for a given PC offset, this must either be
+    // unoptimized code, code with no stack map information at all, or the entry
+    // to an osr function. In each of these cases, all stack slots contain
+    // tagged pointers, so fall through.
+    ASSERT(!code.is_optimized() || maps.IsNull() ||
+           (pc_offset == code.EntryPoint() - code.PayloadStart()));
   }
 
 #if !defined(TARGET_ARCH_DBC)
@@ -515,8 +519,8 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   ExceptionHandlerInfo* info = cache->Lookup(pc());
   if (info != NULL) {
     *handler_pc = start + info->handler_pc_offset;
-    *needs_stacktrace = info->needs_stacktrace;
-    *has_catch_all = info->has_catch_all;
+    *needs_stacktrace = (info->needs_stacktrace != 0);
+    *has_catch_all = (info->has_catch_all != 0);
     return true;
   }
 
@@ -544,8 +548,8 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
   ExceptionHandlerInfo handler_info;
   handlers.GetHandlerInfo(try_index, &handler_info);
   *handler_pc = start + handler_info.handler_pc_offset;
-  *needs_stacktrace = handler_info.needs_stacktrace;
-  *has_catch_all = handler_info.has_catch_all;
+  *needs_stacktrace = (handler_info.needs_stacktrace != 0);
+  *has_catch_all = (handler_info.has_catch_all != 0);
   cache->Insert(pc(), handler_info);
   return true;
 }

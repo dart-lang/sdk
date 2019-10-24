@@ -6,7 +6,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,18 +14,14 @@ main() {
 }
 
 @reflectiveTest
-class EnumDriverResolutionTest extends DriverResolutionTest
-    with EnumResolutionMixin {}
-
-mixin EnumResolutionMixin implements ResolutionTest {
+class EnumDriverResolutionTest extends DriverResolutionTest {
   test_inference_listLiteral() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum E1 {a, b}
 enum E2 {a, b}
 
 var v = [E1.a, E2.b];
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     var v = findElement.topVar('v');
@@ -34,12 +29,11 @@ var v = [E1.a, E2.b];
   }
 
   test_isConstantEvaluated() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 enum E {
   aaa, bbb
 }
 ''');
-    await resolveTestFile();
     assertNoTestErrors();
 
     expect(findElement.field('aaa').isConstantEvaluated, isTrue);

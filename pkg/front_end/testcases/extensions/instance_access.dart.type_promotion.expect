@@ -1,0 +1,6 @@
+pkg/front_end/testcases/extensions/instance_access.dart:37:10: Context: Write to value@755
+    value++;
+         ^^
+pkg/front_end/testcases/extensions/instance_access.dart:57:10: Context: Write to value@1217
+    value++;
+         ^^

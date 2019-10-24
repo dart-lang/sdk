@@ -121,13 +121,11 @@ class Double extends _NativeDouble {
 /// [Void] is not constructible in the Dart code and serves purely as marker in
 /// type signatures.
 @unsized
-class Void extends NativeType {
-  const Void();
-}
+abstract class Void extends NativeType {}
 
 /// Represents a function type in C.
 ///
 /// [NativeFunction] is not constructible in the Dart code and serves purely as
 /// marker in type signatures.
 @unsized
-class NativeFunction<T extends Function> extends NativeType {}
+abstract class NativeFunction<T extends Function> extends NativeType {}

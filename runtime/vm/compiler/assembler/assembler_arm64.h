@@ -485,7 +485,7 @@ class Assembler : public AssemblerBase {
   void set_use_far_branches(bool b) { use_far_branches_ = b; }
 
   // Debugging and bringup support.
-  void Breakpoint() { brk(0); }
+  void Breakpoint() override { brk(0); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
@@ -513,6 +513,7 @@ class Assembler : public AssemblerBase {
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
+  void Emit64(int64_t value);
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
@@ -774,6 +775,11 @@ class Assembler : public AssemblerBase {
   // Count leading zero bits.
   void clz(Register rd, Register rn) {
     EmitMiscDP1Source(CLZ, rd, rn, kDoubleWord);
+  }
+
+  // Reverse bits.
+  void rbit(Register rd, Register rn) {
+    EmitMiscDP1Source(RBIT, rd, rn, kDoubleWord);
   }
 
   // Misc. arithmetic.
@@ -1525,7 +1531,6 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
 
   void LoadClassId(Register result, Register object);
-  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
   void CompareClassId(Register object,
                       intptr_t class_id,
@@ -1542,13 +1547,16 @@ class Assembler : public AssemblerBase {
 
   // Emit code to transition between generated mode and native mode.
   //
-  // These require that CSP and SP are equal and aligned and require a scratch
-  // register (in addition to TMP/TMP2).
+  // These require and ensure that CSP and SP are equal and aligned and require
+  // a scratch register (in addition to TMP/TMP2).
 
   void TransitionGeneratedToNative(Register destination_address,
                                    Register new_exit_frame,
-                                   Register scratch);
-  void TransitionNativeToGenerated(Register scratch);
+                                   Register scratch,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
+  void EnterSafepoint(Register scratch);
+  void ExitSafepoint(Register scratch);
 
   void CheckCodePointer();
   void RestoreCodePointer();
@@ -1633,6 +1641,18 @@ class Assembler : public AssemblerBase {
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  // Special version of ElementAddressForRegIndex for the case when cid and
+  // operand size for the target load don't match (e.g. when loading a few
+  // elements of the array with one load).
+  Address ElementAddressForRegIndexWithSize(bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            OperandSize size,
+                                            intptr_t index_scale,
+                                            Register array,
+                                            Register index);
+
   void LoadElementAddressForRegIndex(Register address,
                                      bool is_load,
                                      bool is_external,
@@ -1640,12 +1660,6 @@ class Assembler : public AssemblerBase {
                                      intptr_t index_scale,
                                      Register array,
                                      Register index);
-
-  void LoadUnaligned(Register dst, Register addr, Register tmp, OperandSize sz);
-  void StoreUnaligned(Register src,
-                      Register addr,
-                      Register tmp,
-                      OperandSize sz);
 
   static int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
     const int32_t imm32 = static_cast<int32_t>(imm);

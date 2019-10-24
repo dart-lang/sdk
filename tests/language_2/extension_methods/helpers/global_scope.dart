@@ -18,4 +18,5 @@ int get getterInGlobalScope => globalValue;
 set setterInGlobalScope(int x) {
   checkGlobalValue(x);
 }
+
 int methodInGlobalScope() => globalValue;

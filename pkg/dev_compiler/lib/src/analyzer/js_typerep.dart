@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+
 import '../compiler/js_typerep.dart';
 import 'driver.dart';
+import 'type_utilities.dart';
 
 class JSTypeRep extends SharedJSTypeRep<DartType> {
   final Dart2TypeSystem rules;
@@ -54,9 +56,9 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
   InterfaceType getImplementationType(DartType t) {
     var rep = typeFor(t);
     // Number, String, and Bool are final
-    if (rep == JSType.jsNumber) return _jsNumber.type;
-    if (rep == JSType.jsBoolean) return _jsBool.type;
-    if (rep == JSType.jsString) return _jsString.type;
+    if (rep == JSType.jsNumber) return getLegacyRawClassType(_jsNumber);
+    if (rep == JSType.jsBoolean) return getLegacyRawClassType(_jsBool);
+    if (rep == JSType.jsString) return getLegacyRawClassType(_jsString);
     return null;
   }
 }

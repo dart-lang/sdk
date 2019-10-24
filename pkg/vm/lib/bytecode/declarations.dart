@@ -19,6 +19,7 @@ class LibraryDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
   static const hasExtensionsFlag = 1 << 2;
+  static const isNonNullableByDefaultFlag = 1 << 3;
 
   ObjectHandle importUri;
   final int flags;
@@ -76,6 +77,9 @@ class LibraryDeclaration {
     }
     if ((flags & hasExtensionsFlag) != 0) {
       sb.writeln('    extensions: $extensionUris');
+    }
+    if ((flags & isNonNullableByDefaultFlag) != 0) {
+      sb.writeln('    is nnbd');
     }
     sb.writeln();
     for (var cls in classes) {
@@ -220,22 +224,20 @@ class SourceFile {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
 
-  int flags;
   final ObjectHandle importUri;
-  final LineStarts lineStarts;
-  final String source;
+  LineStarts lineStarts;
+  String source;
 
-  SourceFile(this.importUri, this.lineStarts, this.source) {
-    flags = 0;
+  SourceFile(this.importUri, [this.lineStarts, this.source]);
+
+  void write(BufferedWriter writer) {
+    int flags = 0;
     if (lineStarts != null) {
       flags |= hasLineStartsFlag;
     }
     if (source != null && source != '') {
       flags |= hasSourceFlag;
     }
-  }
-
-  void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
     writer.writePackedObject(importUri);
     if ((flags & hasLineStartsFlag) != 0) {
@@ -261,11 +263,13 @@ class SourceFile {
   @override
   String toString() {
     final StringBuffer sb = new StringBuffer();
-    sb.writeln('SourceFile $importUri');
-    sb.writeln('------------------------------------------------');
-    sb.write(source);
-    sb.writeln('------------------------------------------------');
-    sb.writeln(lineStarts);
+    sb.write('source: import-uri $importUri');
+    if (source != null && source != '') {
+      sb.write(', ${source.length} text chars');
+    }
+    if (lineStarts != null) {
+      sb.write(', ${lineStarts.lineStarts.length} line starts');
+    }
     return sb.toString();
   }
 }
@@ -332,6 +336,9 @@ class FieldDeclaration {
   static const hasPragmaFlag = 1 << 11;
   static const hasCustomScriptFlag = 1 << 12;
   static const hasInitializerCodeFlag = 1 << 13;
+  static const hasAttributesFlag = 1 << 14;
+  static const isLateFlag = 1 << 15;
+  static const isExtensionMemberFlag = 1 << 16;
 
   final int flags;
   final ObjectHandle name;
@@ -344,6 +351,7 @@ class FieldDeclaration {
   final ObjectHandle setterName;
   final Code initializerCode;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FieldDeclaration(
       this.flags,
@@ -356,7 +364,8 @@ class FieldDeclaration {
       this.getterName,
       this.setterName,
       this.initializerCode,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -385,6 +394,9 @@ class FieldDeclaration {
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
     }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
+    }
   }
 
   factory FieldDeclaration.read(BufferedReader reader) {
@@ -411,8 +423,21 @@ class FieldDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
-    return new FieldDeclaration(flags, name, type, value, script, position,
-        endPosition, getterName, setterName, initializerCode, annotations);
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
+    return new FieldDeclaration(
+        flags,
+        name,
+        type,
+        value,
+        script,
+        position,
+        endPosition,
+        getterName,
+        setterName,
+        initializerCode,
+        annotations,
+        attributes);
   }
 
   @override
@@ -437,6 +462,12 @@ class FieldDeclaration {
     if ((flags & isFinalFlag) != 0) {
       sb.write(', final');
     }
+    if ((flags & isLateFlag) != 0) {
+      sb.write(', is-late');
+    }
+    if ((flags & isExtensionMemberFlag) != 0) {
+      sb.write(', extension-member');
+    }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');
     }
@@ -455,6 +486,9 @@ class FieldDeclaration {
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
     }
     return sb.toString();
   }
@@ -484,6 +518,8 @@ class FunctionDeclaration {
   static const hasAnnotationsFlag = 1 << 20;
   static const hasPragmaFlag = 1 << 21;
   static const hasCustomScriptFlag = 1 << 22;
+  static const hasAttributesFlag = 1 << 23;
+  static const isExtensionMemberFlag = 1 << 24;
 
   final int flags;
   final ObjectHandle name;
@@ -497,6 +533,7 @@ class FunctionDeclaration {
   final ObjectHandle nativeName;
   final Code code;
   final AnnotationsDeclaration annotations;
+  final ObjectHandle attributes;
 
   FunctionDeclaration(
       this.flags,
@@ -510,7 +547,8 @@ class FunctionDeclaration {
       this.returnType,
       this.nativeName,
       this.code,
-      this.annotations);
+      this.annotations,
+      this.attributes);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -542,6 +580,9 @@ class FunctionDeclaration {
     }
     if ((flags & hasAnnotationsFlag) != 0) {
       writer.writeLinkOffset(annotations);
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      writer.writePackedObject(attributes);
     }
   }
 
@@ -578,6 +619,8 @@ class FunctionDeclaration {
     final annotations = ((flags & hasAnnotationsFlag) != 0)
         ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
+    final attributes =
+        ((flags & hasAttributesFlag) != 0) ? reader.readPackedObject() : null;
     return new FunctionDeclaration(
         flags,
         name,
@@ -590,7 +633,8 @@ class FunctionDeclaration {
         returnType,
         nativeName,
         code,
-        annotations);
+        annotations,
+        attributes);
   }
 
   @override
@@ -617,6 +661,9 @@ class FunctionDeclaration {
     }
     if ((flags & isConstFlag) != 0) {
       sb.write(', const');
+    }
+    if ((flags & isExtensionMemberFlag) != 0) {
+      sb.write(', extension-member');
     }
     if ((flags & hasOptionalPositionalParamsFlag) != 0) {
       sb.write(', has-optional-positional-params');
@@ -668,6 +715,9 @@ class FunctionDeclaration {
     sb.write('    return-type $returnType\n');
     if ((flags & hasAnnotationsFlag) != 0) {
       sb.write('    annotations $annotations\n');
+    }
+    if ((flags & hasAttributesFlag) != 0) {
+      sb.write('    attributes $attributes\n');
     }
     if ((flags & isAbstractFlag) == 0 && (flags & isExternalFlag) == 0) {
       sb.write('\n$code\n');
@@ -906,6 +956,7 @@ class ClosureDeclaration {
   static const int isAsyncFlag = 1 << 4;
   static const int isAsyncStarFlag = 1 << 5;
   static const int isSyncStarFlag = 1 << 6;
+  static const int isDebuggableFlag = 1 << 7;
 
   final int flags;
   final ObjectHandle parent;
@@ -1130,6 +1181,9 @@ class AnnotationsDeclaration {
   factory AnnotationsDeclaration.read(BufferedReader reader) {
     return new AnnotationsDeclaration(reader.readPackedObject());
   }
+
+  @override
+  String toString() => object.toString();
 }
 
 class _Section {
@@ -1144,7 +1198,7 @@ class _Section {
 
 class Component {
   static const int magicValue = 0x44424332; // 'DBC2'
-  static const int numSections = 13;
+  static const int numSections = 14;
   static const int sectionAlignment = 4;
 
   //  UInt32 magic, version, numSections x (numItems, offset)
@@ -1163,6 +1217,7 @@ class Component {
   final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
   final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
   final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
+  Set<String> protectedNames;
   ObjectHandle mainLibrary;
 
   Component(this.version)
@@ -1174,6 +1229,13 @@ class Component {
 
     // Write sections to their own buffers in reverse order as section may
     // reference data structures from successor sections by offsets.
+
+    final protectedNamesWriter = new BufferedWriter.fromWriter(writer);
+    if (protectedNames != null && protectedNames.isNotEmpty) {
+      for (var name in protectedNames) {
+        protectedNamesWriter.writePackedStringReference(name);
+      }
+    }
 
     final annotationsWriter = new BufferedWriter.fromWriter(writer);
     for (var annot in annotations) {
@@ -1267,6 +1329,8 @@ class Component {
       new _Section(lineStarts.length, lineStartsWriter),
       new _Section(localVariables.length, localVariablesWriter),
       new _Section(annotations.length, annotationsWriter),
+      new _Section(protectedNames != null ? protectedNames.length : 0,
+          protectedNamesWriter),
     ];
     assert(sections.length == numSections);
 
@@ -1355,6 +1419,9 @@ class Component {
     final annotationsNum = reader.readUInt32();
     final annotationsOffset = reader.readUInt32();
 
+    final protectedNamesNum = reader.readUInt32();
+    final protectedNamesOffset = reader.readUInt32();
+
     reader.offset = start + stringTableOffset;
     stringTable = new StringTable.read(reader);
     reader.stringReader = stringTable;
@@ -1365,6 +1432,14 @@ class Component {
 
     // Read sections in the reverse order as section may reference
     // successor sections by offsets.
+
+    if (protectedNamesNum != 0) {
+      protectedNames = new Set<String>();
+      reader.offset = start + protectedNamesOffset;
+      for (int i = 0; i < protectedNamesNum; ++i) {
+        protectedNames.add(reader.readPackedStringReference());
+      }
+    }
 
     final annotationsStart = start + annotationsOffset;
     reader.offset = annotationsStart;

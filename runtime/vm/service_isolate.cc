@@ -81,6 +81,7 @@ Dart_Port ServiceIsolate::port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::load_port_ = ILLEGAL_PORT;
 Dart_Port ServiceIsolate::origin_ = ILLEGAL_PORT;
 char* ServiceIsolate::server_address_ = NULL;
+char* ServiceIsolate::startup_failure_reason_ = nullptr;
 
 void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
   const Array& message = Array::Handle(MakeServerControlMessage(
@@ -128,7 +129,7 @@ bool ServiceIsolate::IsRunning() {
 
 bool ServiceIsolate::IsServiceIsolate(const Isolate* isolate) {
   MonitorLocker ml(monitor_);
-  return isolate == isolate_;
+  return isolate != nullptr && isolate == isolate_;
 }
 
 bool ServiceIsolate::IsServiceIsolateDescendant(const Isolate* isolate) {
@@ -161,7 +162,8 @@ Dart_Port ServiceIsolate::LoadPort() {
 
 bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
                                     intptr_t request_json_length,
-                                    Dart_Port reply_port) {
+                                    Dart_Port reply_port,
+                                    char** error) {
   // Keep in sync with "sdk/lib/vmservice/vmservice.dart:_handleNativeRpcCall".
   Dart_CObject opcode;
   opcode.type = Dart_CObject_kInt32;
@@ -190,7 +192,25 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.length = ARRAY_SIZE(request_array);
 
   ServiceIsolate::WaitForLoadPortInternal();
-  return Dart_PostCObject(ServiceIsolate::Port(), &request);
+  Dart_Port service_port = ServiceIsolate::Port();
+
+  const bool success = Dart_PostCObject(service_port, &request);
+
+  if (!success && error != nullptr) {
+    if (service_port == ILLEGAL_PORT) {
+      if (startup_failure_reason_ != nullptr) {
+        *error = OS::SCreate(/*zone=*/nullptr,
+                             "Service isolate failed to start up: %s.",
+                             startup_failure_reason_);
+      } else {
+        *error = strdup("No service isolate port was found.");
+      }
+    } else {
+      *error = strdup("Was unable to post message to service isolate.");
+    }
+  }
+
+  return success;
 }
 
 bool ServiceIsolate::SendIsolateStartupMessage() {
@@ -199,7 +219,7 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -225,7 +245,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
   }
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  if (Isolate::IsVMInternalIsolate(isolate)) {
+  if (!FLAG_show_invisible_isolates && Isolate::IsVMInternalIsolate(isolate)) {
     return false;
   }
   ASSERT(isolate != NULL);
@@ -318,10 +338,11 @@ void ServiceIsolate::FinishedInitializing() {
   ml.NotifyAll();
 }
 
-void ServiceIsolate::InitializingFailed() {
+void ServiceIsolate::InitializingFailed(char* error) {
   MonitorLocker ml(monitor_);
   ASSERT(state_ == kStarting);
   state_ = kStopped;
+  startup_failure_reason_ = error;
   ml.NotifyAll();
 }
 
@@ -350,10 +371,15 @@ class RunServiceTask : public ThreadPool::Task {
                      ": Isolate creation error: %s\n",
                      error);
       }
+
+      char* formatted_error = OS::SCreate(
+          /*zone=*/nullptr, "Invoking the 'create_group' failed with: '%s'",
+          error);
+
       free(error);
       error = nullptr;
       ServiceIsolate::SetServiceIsolate(NULL);
-      ServiceIsolate::InitializingFailed();
+      ServiceIsolate::InitializingFailed(formatted_error);
       return;
     }
 
@@ -484,7 +510,8 @@ void ServiceIsolate::Run() {
   // that change this after Dart_Initialize returns.
   create_group_callback_ = Isolate::CreateGroupCallback();
   if (create_group_callback_ == NULL) {
-    ServiceIsolate::InitializingFailed();
+    ServiceIsolate::InitializingFailed(
+        strdup("The 'create_group' callback was not provided"));
     return;
   }
   bool task_started = Dart::thread_pool()->Run<RunServiceTask>();
@@ -546,6 +573,11 @@ void ServiceIsolate::Shutdown() {
   if (server_address_ != NULL) {
     free(server_address_);
     server_address_ = NULL;
+  }
+
+  if (startup_failure_reason_ != nullptr) {
+    free(startup_failure_reason_);
+    startup_failure_reason_ = nullptr;
   }
 }
 

@@ -114,10 +114,6 @@ class MemoryFileSourceExistingTest extends BaseTest {
     expect(contents.data, defaultFileContent);
   }
 
-  test_encoding() {
-    expect(source.encoding, new Uri.file(defaultFilePath).toString());
-  }
-
   test_equals_false_differentFile() {
     File fileA = getFile(exists: false, filePath: join(tempPath, 'a.dart'));
     File fileB = getFile(exists: false, filePath: join(tempPath, 'b.dart'));
@@ -194,10 +190,6 @@ class MemoryFileSourceNotExistingTest extends BaseTest {
 
   test_contents() {
     expect(() => source.contents, throwsA(isFileSystemException));
-  }
-
-  test_encoding() {
-    expect(source.encoding, new Uri.file(defaultFilePath).toString());
   }
 
   test_exists() {

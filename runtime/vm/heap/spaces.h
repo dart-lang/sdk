@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_HEAP_SPACES_H_
 #define RUNTIME_VM_HEAP_SPACES_H_
 
+#include "platform/globals.h"
+
 // This file contains utilities shared by old and new space.
 // TODO(koda): Create Space base class with Space::CurrentUsage().
 

@@ -28,18 +28,20 @@ class BitField {
   }
 
   // Returns a S mask of the bit field.
-  static S mask() { return (kUwordOne << size) - 1; }
+  static constexpr S mask() { return (kUwordOne << size) - 1; }
 
   // Returns a S mask of the bit field which can be applied directly to
   // to the raw unshifted bits.
-  static S mask_in_place() { return ((kUwordOne << size) - 1) << position; }
+  static constexpr S mask_in_place() {
+    return ((kUwordOne << size) - 1) << position;
+  }
 
   // Returns the shift count needed to right-shift the bit field to
   // the least-significant bits.
-  static int shift() { return position; }
+  static constexpr int shift() { return position; }
 
   // Returns the size of the bit field.
-  static int bitsize() { return size; }
+  static constexpr int bitsize() { return size; }
 
   // Returns an S with the bit field value encoded.
   static S encode(T value) {

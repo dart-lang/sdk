@@ -34,6 +34,10 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// field.
   bool _checkConstantUpdate2018;
 
+  /// A cached flag indicating whether uses of extension method features need to
+  /// be checked. Use [checkExtensionMethods] to access this field.
+  bool _checkExtensionMethods;
+
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [checkFutureAndStream] to access this field.
   bool _checkFutureAndStream;
@@ -76,10 +80,19 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_5_0 =>
       new VersionRange(max: Version.parse('2.5.0'), includeMax: false);
 
+  /// Return a range covering every version up to, but not including, 2.6.0.
+  VersionRange get before_2_6_0 =>
+      new VersionRange(max: Version.parse('2.6.0'), includeMax: false);
+
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
       !before_2_5_0.intersect(_versionConstraint).isEmpty;
+
+  /// Return `true` if references to the extension method features need to
+  /// be checked.
+  bool get checkExtensionMethods => _checkExtensionMethods ??=
+      !before_2_6_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
@@ -149,6 +162,24 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForToken(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
+    }
+    super.visitExtensionDeclaration(node);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    if (checkExtensionMethods) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_EXTENSION_METHODS, node.extensionName);
+    }
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     _validateUiAsCode(node);
     _validateUiAsCodeInConstContext(node);
@@ -215,8 +246,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     }
     Element element = node.staticElement;
     if (checkFutureAndStream &&
-        (element == _typeProvider.futureType.element ||
-            element == _typeProvider.streamType.element)) {
+        (element == _typeProvider.futureElement ||
+            element == _typeProvider.streamElement)) {
       for (LibraryElement importedLibrary
           in _containingLibrary.importedLibraries) {
         if (!importedLibrary.isDartCore) {

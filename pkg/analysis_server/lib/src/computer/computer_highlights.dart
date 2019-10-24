@@ -141,18 +141,15 @@ class DartUnitHighlightsComputer {
   }
 
   bool _addIdentifierRegion_dynamicType(SimpleIdentifier node) {
-    // should be variable
     Element element = node.staticElement;
-    if (element is! VariableElement) {
-      return false;
+    if (element is VariableElement) {
+      DartType staticType = element.type;
+      if (staticType == null || !staticType.isDynamic) {
+        return false;
+      }
+      return _addRegion_node(node, HighlightRegionType.DYNAMIC_TYPE);
     }
-    // has dynamic static type
-    DartType staticType = node.staticType;
-    if (staticType == null || !staticType.isDynamic) {
-      return false;
-    }
-    // OK
-    return _addRegion_node(node, HighlightRegionType.DYNAMIC_TYPE);
+    return false;
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {

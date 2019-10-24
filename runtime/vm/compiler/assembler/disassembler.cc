@@ -156,9 +156,11 @@ void DisassembleToMemory::Print(const char* format, ...) {
 void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
-                               const Code& code) {
-  const Code::Comments& comments =
-      code.IsNull() ? Code::Comments::New(0) : code.comments();
+                               const Code& code,
+                               const Code::Comments* comments) {
+  if (comments == nullptr) {
+    comments = code.IsNull() ? &Code::Comments::New(0) : &code.comments();
+  }
   ASSERT(formatter != NULL);
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
@@ -169,14 +171,14 @@ void Disassembler::Disassemble(uword start,
   while (pc < end) {
     const intptr_t offset = pc - start;
     const intptr_t old_comment_finger = comment_finger;
-    while (comment_finger < comments.Length() &&
-           comments.PCOffsetAt(comment_finger) <= offset) {
+    while (comment_finger < comments->Length() &&
+           comments->PCOffsetAt(comment_finger) <= offset) {
       formatter->Print(
           "        ;; %s\n",
-          String::Handle(comments.CommentAt(comment_finger)).ToCString());
+          String::Handle(comments->CommentAt(comment_finger)).ToCString());
       comment_finger++;
     }
-    if (old_comment_finger != comment_finger) {
+    if (old_comment_finger != comment_finger && !code.IsNull()) {
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
@@ -277,13 +279,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   THR_Print("StackMaps for function '%s' {\n", function_fullname);
-  if (code.stackmaps() != Array::null()) {
-    const Array& stackmap_table = Array::Handle(zone, code.stackmaps());
-    StackMap& map = StackMap::Handle(zone);
-    for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
-      map ^= stackmap_table.At(i);
-      THR_Print("%s\n", map.ToCString());
-    }
+  if (code.compressed_stackmaps() != CompressedStackMaps::null()) {
+    const auto& stackmaps =
+        CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
+    THR_Print("%s\n", stackmaps.ToCString());
   }
   THR_Print("}\n");
 

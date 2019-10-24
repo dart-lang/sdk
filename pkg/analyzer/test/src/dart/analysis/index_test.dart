@@ -67,6 +67,19 @@ class IndexTest extends BaseAnalysisDriverTest {
     return imports[index].importedLibrary.definingCompilationUnit;
   }
 
+  test_fieldFormalParameter_noSuchField() async {
+    await _indexTestUnit('''
+class B<T> {
+  B({this.x}) {}
+
+  foo() {
+    B<int>(x: 1);
+  }
+}
+''');
+    // No exceptions.
+  }
+
   test_hasAncestor_ClassDeclaration() async {
     await _indexTestUnit('''
 class A {}
@@ -243,21 +256,6 @@ mixin M on A {} // 2
       ..isReferencedAt('A {} // 2', false);
   }
 
-  test_isInvokedBy_FieldElement() async {
-    await _indexTestUnit('''
-class A {
-  var field;
-  main() {
-    this.field(); // q
-    field(); // nq
-  }
-}''');
-    FieldElement field = findElement('field');
-    assertThat(field.getter)
-      ..isInvokedAt('field(); // q', true)
-      ..isInvokedAt('field(); // nq', false);
-  }
-
   test_isInvokedBy_FunctionElement() async {
     newFile('$testProject/lib.dart', content: '''
 library lib;
@@ -369,21 +367,6 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
-  test_isInvokedBy_PropertyAccessorElement_getter() async {
-    await _indexTestUnit('''
-class A {
-  get ggg => null;
-  main() {
-    this.ggg(); // q
-    ggg(); // nq
-  }
-}''');
-    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
-    assertThat(element)
-      ..isInvokedAt('ggg(); // q', true)
-      ..isInvokedAt('ggg(); // nq', false);
-  }
-
   test_isMixedInBy_ClassDeclaration_class() async {
     await _indexTestUnit('''
 class A {} // 1
@@ -434,6 +417,36 @@ class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA).isMixedInAt('A; // 2', false);
+  }
+
+  test_isReferencedAt_PropertyAccessorElement_field_call() async {
+    await _indexTestUnit('''
+class A {
+  var field;
+  main() {
+    this.field(); // q
+    field(); // nq
+  }
+}''');
+    FieldElement field = findElement('field');
+    assertThat(field.getter)
+      ..isReferencedAt('field(); // q', true)
+      ..isReferencedAt('field(); // nq', false);
+  }
+
+  test_isReferencedAt_PropertyAccessorElement_getter_call() async {
+    await _indexTestUnit('''
+class A {
+  get ggg => null;
+  main() {
+    this.ggg(); // q
+    ggg(); // nq
+  }
+}''');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    assertThat(element)
+      ..isReferencedAt('ggg(); // q', true)
+      ..isReferencedAt('ggg(); // nq', false);
   }
 
   test_isReferencedBy_ClassElement() async {

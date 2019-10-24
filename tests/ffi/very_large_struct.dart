@@ -5,7 +5,7 @@
 import 'dart:ffi';
 
 /// Large sample struct for dart:ffi library.
-class VeryLargeStruct extends Struct<VeryLargeStruct> {
+class VeryLargeStruct extends Struct {
   @Int8()
   int a;
 

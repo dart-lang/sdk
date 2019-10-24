@@ -18,9 +18,15 @@ class C {
   void test() {
     A aLocal;
     for (aLocal in /*@ typeArgs=Iterable<A*>* */ f()) {}
-    for (/*@target=C::aField*/ aField in /*@ typeArgs=Iterable<A*>* */ f()) {}
-    for (/*@target=C::aSetter*/ aSetter in /*@ typeArgs=Iterable<A*>* */ f()) {}
+
+    for (/*@target=C::aField*/ /*@target=C::aField*/ aField
+        in /*@ typeArgs=Iterable<A*>* */ f()) {}
+
+    for (/*@target=C::aSetter*/ /*@target=C::aSetter*/ aSetter
+        in /*@ typeArgs=Iterable<A*>* */ f()) {}
+
     for (aTopLevel in /*@ typeArgs=Iterable<A*>* */ f()) {}
+
     for (aTopLevelSetter in /*@ typeArgs=Iterable<A*>* */ f()) {}
   }
 }

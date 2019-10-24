@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -314,6 +315,15 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 56, 3),
+    ]);
+  }
+
+  test_topLevel_syntheticParameters() async {
+    await assertErrorsInCode(r'''
+f(,[]) {}
+''', [
+      error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
     ]);
   }
 }

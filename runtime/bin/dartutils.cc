@@ -798,7 +798,7 @@ Dart_Handle DartUtils::EnvironmentCallback(Dart_Handle name) {
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
 // Dart_CObject structure is not marking simple value objects.
-Dart_CObject CObject::api_null_ = {Dart_CObject_kNull, {0}};
+Dart_CObject CObject::api_null_ = {Dart_CObject_kNull, {false}};
 Dart_CObject CObject::api_true_ = {Dart_CObject_kBool, {true}};
 Dart_CObject CObject::api_false_ = {Dart_CObject_kBool, {false}};
 CObject CObject::null_(&api_null_);

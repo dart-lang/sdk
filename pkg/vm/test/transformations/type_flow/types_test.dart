@@ -5,12 +5,14 @@
 import 'dart:core' hide Type;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
 import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 class TestTypeHierarchy implements TypeHierarchy {
   final Map<DartType, List<DartType>> subtypes;
   final Map<DartType, Type> specializations;
+  final CoreTypes coreTypes = new CoreTypes(new Component());
 
   TestTypeHierarchy(this.subtypes, this.specializations);
 

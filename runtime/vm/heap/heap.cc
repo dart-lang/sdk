@@ -44,7 +44,7 @@ Heap::Heap(Isolate* isolate,
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false),
-      gc_on_next_allocation_(false) {
+      gc_on_nth_allocation_(kNoForcedGarbageCollection) {
   UpdateGlobalMaxUsed();
   for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
@@ -432,6 +432,16 @@ void Heap::NotifyIdle(int64_t deadline) {
   } else if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);
+  } else if (old_space_.NeedsGarbageCollection()) {
+    // Even though the following GC may exceed our idle deadline, we need to
+    // ensure than that promotions during idle scavenges do not lead to
+    // unbounded growth of old space. If a program is allocating only in new
+    // space and all scavenges happen during idle time, then NotifyIdle will be
+    // the only place that checks the old space allocation limit.
+    // Compare the tail end of Heap::CollectNewSpaceGarbage.
+    CollectOldSpaceGarbage(thread, kMarkSweep, kIdle);  // Blocks for O(heap)
+  } else {
+    CheckStartConcurrentMarking(thread, kIdle);  // Blocks for up to O(roots)
   }
 }
 
@@ -575,7 +585,7 @@ void Heap::CheckStartConcurrentMarking(Thread* thread, GCReason reason) {
   if (old_space_.AlmostNeedsGarbageCollection()) {
     if (BeginOldSpaceGC(thread)) {
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "StartConcurrentMarking");
-      old_space_.CollectGarbage(kMarkSweep, false /* finish */);
+      old_space_.CollectGarbage(/*compact=*/false, /*finalize=*/false);
       EndOldSpaceGC();
     }
   }
@@ -678,15 +688,22 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
   old_space_.AddRegionsToObjectSet(set);
 }
 
-void Heap::CollectOnNextAllocation() {
+void Heap::CollectOnNthAllocation(intptr_t num_allocations) {
+  // Prevent generated code from using the TLAB fast path on next allocation.
   AbandonRemainingTLAB(Thread::Current());
-  gc_on_next_allocation_ = true;
+  gc_on_nth_allocation_ = num_allocations;
 }
 
 void Heap::CollectForDebugging() {
-  if (!gc_on_next_allocation_) return;
-  CollectAllGarbage(kDebugging);
-  gc_on_next_allocation_ = false;
+  if (gc_on_nth_allocation_ == kNoForcedGarbageCollection) return;
+  gc_on_nth_allocation_--;
+  if (gc_on_nth_allocation_ == 0) {
+    CollectAllGarbage(kDebugging);
+    gc_on_nth_allocation_ = kNoForcedGarbageCollection;
+  } else {
+    // Prevent generated code from using the TLAB fast path on next allocation.
+    AbandonRemainingTLAB(Thread::Current());
+  }
 }
 
 ObjectSet* Heap::CreateAllocatedObjectSet(
@@ -860,26 +877,39 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
 
 void Heap::ForwardWeakEntries(RawObject* before_object,
                               RawObject* after_object) {
+  const auto before_space =
+      before_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+  const auto after_space =
+      after_object->IsNewObject() ? Heap::kNew : Heap::kOld;
+
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
-    WeakTable* before_table =
-        GetWeakTable(before_object->IsNewObject() ? Heap::kNew : Heap::kOld,
-                     static_cast<Heap::WeakSelector>(sel));
-    intptr_t entry = before_table->RemoveValue(before_object);
+    const auto selector = static_cast<Heap::WeakSelector>(sel);
+    auto before_table = GetWeakTable(before_space, selector);
+    intptr_t entry = before_table->RemoveValueExclusive(before_object);
     if (entry != 0) {
-      WeakTable* after_table =
-          GetWeakTable(after_object->IsNewObject() ? Heap::kNew : Heap::kOld,
-                       static_cast<Heap::WeakSelector>(sel));
-      after_table->SetValue(after_object, entry);
+      auto after_table = GetWeakTable(after_space, selector);
+      after_table->SetValueExclusive(after_object, entry);
     }
   }
+
+  // We only come here during hot reload, in which case we assume that none of
+  // the isolates is in the middle of sending messages.
+  RELEASE_ASSERT(isolate()->forward_table_new() == nullptr);
+  RELEASE_ASSERT(isolate()->forward_table_old() == nullptr);
 }
 
 void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
+  // NOTE: This method is only used by the compactor, so there is no need to
+  // process the `Heap::kNew` tables.
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     WeakSelector selector = static_cast<Heap::WeakSelector>(sel);
-    GetWeakTable(Heap::kNew, selector)->Forward(visitor);
     GetWeakTable(Heap::kOld, selector)->Forward(visitor);
   }
+
+  // Isolates might have forwarding tables (used for during snapshoting in
+  // isolate communication).
+  auto table_old = isolate()->forward_table_old();
+  if (table_old != nullptr) table_old->Forward(visitor);
 }
 
 #ifndef PRODUCT

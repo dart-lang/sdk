@@ -17,13 +17,11 @@ main() {
 @reflectiveTest
 class FunctionTypeAliasResolutionTest extends DriverResolutionTest {
   test_type_element() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 G<int> g;
 
 typedef T G<T>();
 ''');
-    await resolveTestFile();
-
     FunctionType type = findElement.topVar('g').type;
     assertElementTypeString(type, 'int Function()');
 

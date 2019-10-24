@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_STACK_FRAME_KBC_H_
 #define RUNTIME_VM_STACK_FRAME_KBC_H_
 
+#include "platform/globals.h"
+
 namespace dart {
 
 /* Kernel Bytecode Frame Layout

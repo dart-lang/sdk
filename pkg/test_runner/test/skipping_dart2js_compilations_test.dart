@@ -151,7 +151,7 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
     ..add(createFileScript)
     ..add(fileUtils.scriptOutputPath.toNativePath());
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
-  return Command.compilation('dart2js', fileUtils.testJsFilePath.toNativePath(),
+  return CompilationCommand('dart2js', fileUtils.testJsFilePath.toNativePath(),
       bootstrapDeps, executable, arguments, {},
       alwaysCompile: false);
 }

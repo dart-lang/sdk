@@ -20,7 +20,7 @@ void f<T extends B>(T a) {
   }
   if (a is C) {
     // Promoted; we can now call bar.
-    /*@ promotedType=f::T* extends C* */ a. /*@target=C::bar*/ bar();
+    /*@ promotedType=f::T* & C* */ a. /*@target=C::bar*/ bar();
   }
 }
 

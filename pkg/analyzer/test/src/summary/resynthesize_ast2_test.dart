@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
@@ -32,9 +32,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     with ResynthesizeTestCases {
   /// The shared SDK bundle, computed once and shared among test invocations.
   static LinkedNodeBundle _sdkBundle;
-
-  @override
-  bool get isAstBasedSummary => true;
 
   LinkedNodeBundle get sdkBundle {
     if (_sdkBundle != null) return _sdkBundle;
@@ -124,9 +121,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     if (analysisContext.typeProvider == null) {
       var dartCore = elementFactory.libraryOfUri('dart:core');
       var dartAsync = elementFactory.libraryOfUri('dart:async');
-      var typeProvider = SummaryTypeProvider()
-        ..initializeCore(dartCore)
-        ..initializeAsync(dartAsync);
+      var typeProvider = TypeProviderImpl(dartCore, dartAsync);
       analysisContext.typeProvider = typeProvider;
 
       dartCore.createLoadLibraryFunction(typeProvider);

@@ -11,6 +11,8 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
@@ -43,6 +45,7 @@ main() async {
         .where((s) => s.endsWith('.dart'))
         .toList();
     print('  ${files.length} files found');
+    var previousExceptionCount = listener.numExceptions;
     var migration = NullabilityMigration(listener, permissive: true);
     for (var file in files) {
       var resolvedUnit = await context.currentSession.getResolvedUnit(file);
@@ -53,6 +56,8 @@ main() async {
       migration.processInput(resolvedUnit);
     }
     migration.finish();
+    var exceptionCount = listener.numExceptions - previousExceptionCount;
+    print('  $exceptionCount exceptions in this package');
   }
   print('${listener.numTypesMadeNullable} types made nullable');
   print('${listener.numNullChecksAdded} null checks added');
@@ -68,6 +73,15 @@ main() async {
     print('  ${entry.key} (x${entry.value.length})');
   }
 }
+
+/// Set this to a non-null value to cause any exception to be printed in full
+/// if its category contains the string.
+const String categoryOfInterest = null;
+
+/// Set this to `true` to cause just the exception nodes to be printed when
+/// `categoryOfInterest` is non-null.  Set this to `false` to cause the full
+/// stack trace to be printed.
+const bool printExceptionNodeOnly = false;
 
 class _Listener implements NullabilityMigrationListener {
   final groupedExceptions = <String, List<String>>{};
@@ -85,17 +99,6 @@ class _Listener implements NullabilityMigrationListener {
   int numDeadCodeSegmentsFound = 0;
 
   @override
-  void addDetail(String detail) {
-    var breakLocation = detail.indexOf('\n\n');
-    if (breakLocation == -1)
-      throw StateError('Could not decode exception $detail');
-    var stackTrace = detail.substring(breakLocation + 2).split('\n');
-    var category = _classifyStackTrace(stackTrace);
-    (groupedExceptions[category] ??= []).add(detail);
-    ++numExceptions;
-  }
-
-  @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
     if (edit.replacement == '?' && edit.length == 0) {
       ++numTypesMadeNullable;
@@ -104,7 +107,7 @@ class _Listener implements NullabilityMigrationListener {
     } else if (edit.replacement == "import 'package:meta/meta.dart';\n" &&
         edit.length == 0) {
       ++numMetaImportsAdded;
-    } else if (edit.replacement == '@required ' && edit.length == 0) {
+    } else if (edit.replacement == 'required ' && edit.length == 0) {
       ++numRequiredAnnotationsAdded;
     } else if ((edit.replacement == '/* ' ||
             edit.replacement == ' /*' ||
@@ -121,6 +124,27 @@ class _Listener implements NullabilityMigrationListener {
 
   @override
   void addFix(SingleNullabilityFix fix) {}
+
+  @override
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+    var category = _classifyStackTrace(stackTrace.toString().split('\n'));
+    String detail = '''
+In file $source
+While processing $node
+Exception $exception
+$stackTrace
+''';
+    if (categoryOfInterest != null && category.contains(categoryOfInterest)) {
+      if (printExceptionNodeOnly) {
+        print('$node');
+      } else {
+        print(detail);
+      }
+    }
+    (groupedExceptions[category] ??= []).add(detail);
+    ++numExceptions;
+  }
 
   String _classifyStackTrace(List<String> stackTrace) {
     for (var entry in stackTrace) {

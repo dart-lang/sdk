@@ -32,7 +32,7 @@ void main(Stream<String> names) {
 ''');
     await assertHasFix('''
 import 'dart:async';
-Future main(Stream<String> names) async {
+Future<void> main(Stream<String> names) async {
   await for (String name in names) {
     print(name);
   }

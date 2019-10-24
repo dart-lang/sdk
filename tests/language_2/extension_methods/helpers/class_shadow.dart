@@ -11,11 +11,11 @@ import "class_no_shadow.dart";
 // A class which has its own instance methods, which also
 // shadows the global scope
 class AGlobal extends A {
-
   String fieldInGlobalScope = instanceValue;
   String get getterInGlobalScope => instanceValue;
   set setterInGlobalScope(String x) {
     checkInstanceValue(x);
   }
+
   String methodInGlobalScope() => instanceValue;
 }

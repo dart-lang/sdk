@@ -198,39 +198,35 @@ void main() {
       test("other options from map", () {
         expect(
             Configuration.parse("dart2js", {
+              "nnbd": "weak",
               "builder-tag": "the tag",
               "vm-options": ["vm stuff", "more vm stuff"],
               "dart2js-options": ["dart2js stuff", "more dart2js stuff"],
+              "enable-experiment": ["semicolons", "interrobangs"],
               "enable-asserts": true,
               "checked": true,
               "csp": true,
               "host-checked": true,
               "minified": true,
-              "preview-dart-2": true,
               "hot-reload": true,
               "hot-reload-rollback": true,
-              "use-sdk": true,
+              "use-sdk": true
             }),
-            equals(Configuration(
-              "dart2js",
-              Architecture.x64,
-              Compiler.dart2js,
-              Mode.release,
-              Runtime.d8,
-              System.host,
-              builderTag: "the tag",
-              vmOptions: ["vm stuff", "more vm stuff"],
-              dart2jsOptions: ["dart2js stuff", "more dart2js stuff"],
-              enableAsserts: true,
-              isChecked: true,
-              isCsp: true,
-              isHostChecked: true,
-              isMinified: true,
-              previewDart2: true,
-              useHotReload: true,
-              useHotReloadRollback: true,
-              useSdk: true,
-            )));
+            equals(Configuration("dart2js", Architecture.x64, Compiler.dart2js,
+                Mode.release, Runtime.d8, System.host,
+                nnbdMode: NnbdMode.weak,
+                builderTag: "the tag",
+                vmOptions: ["vm stuff", "more vm stuff"],
+                dart2jsOptions: ["dart2js stuff", "more dart2js stuff"],
+                experiments: ["semicolons", "interrobangs"],
+                enableAsserts: true,
+                isChecked: true,
+                isCsp: true,
+                isHostChecked: true,
+                isMinified: true,
+                useHotReload: true,
+                useHotReloadRollback: true,
+                useSdk: true)));
       });
 
       test("neither compiler nor runtime specified", () {
@@ -238,7 +234,7 @@ void main() {
             "debug",
             {},
             'Must specify at least one of compiler or runtime in options or '
-            'configuration name.');
+                'configuration name.');
       });
 
       test("empty string", () {
@@ -255,7 +251,7 @@ void main() {
             "dart2js-debug",
             {"mode": "release"},
             'Found mode "release" in options and "debug" in configuration '
-            'name.');
+                'name.');
       });
 
       test("multiple values for same option in name", () {
@@ -263,7 +259,7 @@ void main() {
             "dart2js-debug-release",
             {},
             'Found multiple values for mode ("debug" and "release"), in '
-            'configuration name.');
+                'configuration name.');
       });
 
       test("null bool option", () {
@@ -340,6 +336,103 @@ void main() {
 
       test("same options are equal", () {
         expect(debugWithAsserts.optionsEqual(debugWithAsserts2), isTrue);
+      });
+
+      test("list elements are considered unordered", () {
+        var aThenB = Configuration("name", Architecture.x64, Compiler.dart2js,
+            Mode.release, Runtime.vm, System.linux,
+            vmOptions: ["a", "b"]);
+
+        var bThenA = Configuration("name", Architecture.x64, Compiler.dart2js,
+            Mode.release, Runtime.vm, System.linux,
+            vmOptions: ["b", "a"]);
+
+        expect(aThenB.optionsEqual(bThenA), isTrue);
+      });
+    });
+
+    group("visualCompare()", () {
+      var a = Configuration("dartdevc", Architecture.ia32, Compiler.dartdevc,
+          Mode.debug, Runtime.chrome, System.android,
+          builderTag: "a tag",
+          vmOptions: ["vm a1", "vm a2"],
+          dart2jsOptions: ["dart2js a1", "dart2js a2"],
+          experiments: ["experiment a1", "experiment a2"],
+          timeout: 1);
+
+      var b = Configuration(
+        "dart2js",
+        Architecture.x64,
+        Compiler.dart2js,
+        Mode.release,
+        Runtime.d8,
+        System.fuchsia,
+        nnbdMode: NnbdMode.strong,
+        builderTag: "b tag",
+        vmOptions: ["vm b1", "vm b2"],
+        dart2jsOptions: ["dart2js b1", "dart2js b2"],
+        experiments: ["experiment b1", "experiment b2"],
+        timeout: 2,
+        enableAsserts: true,
+        isChecked: true,
+        isCsp: true,
+        isHostChecked: true,
+        isMinified: true,
+        useAnalyzerCfe: true,
+        useAnalyzerFastaParser: true,
+        useBlobs: true,
+        useElf: true,
+        useHotReload: true,
+        useHotReloadRollback: true,
+        useSdk: true,
+      );
+
+      test("everything different", () {
+        expect(a.visualCompare(b), equals("""
+dartdevc
+dart2js
+architecture: ia32 x64
+   compiler: dartdevc dart2js
+   mode: debug release
+   runtime: chrome d8
+   system: android fuchsia
+   nnbd: legacy strong
+   builder-tag: a tag b tag
+   vm-options: [vm a1, vm a2] [vm b1, vm b2]
+   dart2js-options: [dart2js a1, dart2js a2] [dart2js b1, dart2js b2]
+   experiments: [experiment a1, experiment a2] [experiment b1, experiment b2]
+   timeout: 1 2
+   enable-asserts: false true
+   checked: false true
+   csp: false true
+   host-checked: false true
+   minified: false true
+   use-cfe: false true
+   analyzer-use-fasta-parser: false true
+   use-blobs: false true
+   host-checked: false true
+   hot-reload: false true
+   hot-reload-rollback: false true
+   use-sdk: false true
+"""));
+      });
+
+      test("everything the same", () {
+        expect(a.visualCompare(a), equals("""
+dartdevc
+dartdevc
+architecture: ia32 ia32
+   compiler: dartdevc dartdevc
+   mode: debug debug
+   runtime: chrome chrome
+   system: android android
+   nnbd: legacy legacy
+   builder-tag: a tag a tag
+   vm-options: [vm a1, vm a2] [vm a1, vm a2]
+   dart2js-options: [dart2js a1, dart2js a2] [dart2js a1, dart2js a2]
+   experiments: [experiment a1, experiment a2] [experiment a1, experiment a2]
+   timeout: 1 1
+"""));
       });
     });
   });

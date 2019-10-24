@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_context.dart';
+import 'api_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -40,7 +40,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     for (var path in input.keys) {
       newFile(path, content: input[path]);
     }
-    var listener = new _TestMigrationListener();
+    var listener = new TestMigrationListener();
     var migration =
         NullabilityMigration(listener, permissive: _usePermissiveMode);
     for (var path in input.keys) {
@@ -52,7 +52,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     migration.finish();
     var sourceEdits = <String, List<SourceEdit>>{};
-    for (var entry in listener._edits.entries) {
+    for (var entry in listener.edits.entries) {
       var path = entry.key.fullName;
       expect(expectedOutput.keys, contains(path));
       sourceEdits[path] = entry.value;
@@ -76,6 +76,16 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  test_add_required() async {
+    var content = '''
+int f({String s}) => s.length;
+''';
+    var expected = '''
+int f({required String s}) => s.length;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_assign_null_to_generic_type() async {
     var content = '''
 main() {
@@ -85,6 +95,117 @@ main() {
     var expected = '''
 main() {
   List<int>? x = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38341')
+  test_back_propagation_stops_at_implicitly_typed_variables() async {
+    var content = '''
+class C {
+  int v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v;
+  print(x + 1);
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? v;
+  C(this.v);
+}
+f(C c) {
+  var x = c.v!;
+  print(x + 1);
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_simple() async {
+    var content = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_simple_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on() async {
+    var content = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    var expected = '''
+void f() {
+  try {} on String catch (ex, st) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_catch_with_on_with_modifications() async {
+    var content = '''
+void f(String x, StackTrace y) {
+  try {} on String catch (ex, st) {
+    ex = x;
+    st = y;
+  }
+}
+main() {
+  f(null, null);
+}
+''';
+    var expected = '''
+void f(String? x, StackTrace? y) {
+  try {} on String? catch (ex, st) {
+    ex = x;
+    st = y!;
+  }
+}
+main() {
+  f(null, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -354,6 +475,20 @@ class C {
   C({Key? key});
 }
 class Key {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
+  test_convert_required() async {
+    addMetaPackage();
+    var content = '''
+import 'package:meta/meta.dart';
+void f({@required String s}) {}
+''';
+    var expected = '''
+import 'package:meta/meta.dart';
+void f({required String s}) {}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -797,6 +932,32 @@ int? g(int i) => f(i);
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  } else {
+    s = 'false';
+  }
+  return s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_discard_simple_condition() async {
     var content = '''
 int f(int i) {
@@ -816,6 +977,158 @@ int f(int i) {
     */ return i + 1; /*
   } */
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_downcast_not_widest_type_type_parameters() async {
+    // Fails because a hard assignment from List<int/*1*/> to List<int/*2*/>
+    // doesn't create a hard edge from 1 to 2. Perhaps this is correct. In this
+    // example it seems incorrect.
+    var content = '''
+void f(dynamic a) {
+  List<int> hardToNonNullNonNull = a;
+  List<int> hardToNullNonNull = a;
+  List<int> hardToNonNullNull = a;
+  List<int/*!*/>/*!*/ nonNullNonNull;
+  List<int/*?*/>/*!*/ nullNonNull;
+  List<int/*!*/>/*?*/ nonNullNull;
+  nonNullNonNull = hardToNonNullNonNull
+  nonNullNull = hardToNonNullNull
+  nullNonNull = hardToNullNonNull
+}
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+void f(dynamic a) {
+  List<int> hardToNonNullNonNull = a;
+  List<int?> hardToNullNonNull = a;
+  List<int>? hardToNonNullNull = a;
+  List<int/*!*/>/*!*/ nonNullNonNull;
+  List<int/*?*/>/*!*/ nullNonNull;
+  List<int/*!*/>/*?*/ nonNullNull;
+  nonNullNonNull = hardToNonNullNonNull
+  nonNullNull = hardToNonNullNull
+  nullNonNull = hardToNullNonNull
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_downcast_widest_type_from_related_type_parameters() async {
+    var content = '''
+List<int> f(Iterable<int/*?*/> a) => a;
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+List<int?> f(Iterable<int/*?*/> a) => a;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_downcast_widest_type_from_top_type_parameters() async {
+    var content = '''
+List<int> f1(dynamic a) => a;
+List<int> f2(Object b) => b;
+''';
+    var expected = '''
+List<int?>? f1(dynamic a) => a;
+List<int?> f2(Object b) => b;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_downcast_widest_type_from_unrelated_type_parameters() async {
+    var content = '''
+abstract class C<A, B> implements List<A> {}
+C<int, num> f(List<int> a) => a;
+''';
+
+    // TODO(paulberry): remove the /*!*/, /*?*/ comments on migration.
+    var expected = '''
+abstract class C<A, B> implements List<A> {}
+C<int, num?> f(List<int> a) => a;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_dynamic_method_call() async {
+    var content = '''
+class C {
+  int g(int i) => i;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    // `d.g(null)` is a dynamic call, so we can't tell that it will target `C.g`
+    // at runtime.  So we can't figure out that we need to make g's argument and
+    // return types nullable.
+    //
+    // We do, however, make f's return type nullable, since there is no way of
+    // knowing whether a dynamic call will return `null`.
+    var expected = '''
+class C {
+  int g(int i) => i;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g(null);
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_dynamic_property_access() async {
+    var content = '''
+class C {
+  int get g => 0;
+}
+int f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    var expected = '''
+class C {
+  int get g => 0;
+}
+int? f(bool b, dynamic d) {
+  if (b) return 0;
+  return d.g;
+}
+main() {
+  f(true, null);
+  f(false, C());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_explicit_nullable_overrides_hard_edge() async {
+    var content = '''
+int f(int/*?*/ i) => i + 1;
+''';
+    var expected = '''
+int f(int?/*?*/ i) => i! + 1;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -934,6 +1247,54 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initializer_untyped_list_literal() async {
+    var content = '''
+class C {
+  List<int> f;
+  C() : f = [null];
+}
+''';
+    var expected = '''
+class C {
+  List<int?> f;
+  C() : f = [null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initializer_untyped_map_literal() async {
+    var content = '''
+class C {
+  Map<String, int> f;
+  C() : f = {"foo": null};
+}
+''';
+    var expected = '''
+class C {
+  Map<String, int?> f;
+  C() : f = {"foo": null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_initializer_untyped_set_literal() async {
+    var content = '''
+class C {
+  Set<int> f;
+  C() : f = {null};
+}
+''';
+    var expected = '''
+class C {
+  Set<int?> f;
+  C() : f = {null};
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -954,6 +1315,36 @@ class C {
   void g() {
     x = f()!;
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_flow_analysis_complex() async {
+    var content = '''
+int f(int x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int g(int x) => x == null ? 1 : null;
+main() {
+  f(null);
+}
+''';
+    // Flow analysis can tell that the loop only exits if x is non-null, so the
+    // return type of `f` can remain `int`, and no null check is needed.
+    var expected = '''
+int f(int? x) {
+  while (x == null) {
+    x = g(x);
+  }
+  return x;
+}
+int? g(int? x) => x == null ? 1 : null;
+main() {
+  f(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -982,6 +1373,32 @@ int f(int? x) {
 }
 main() {
   f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_for_each_basic() async {
+    var content = '''
+void f(List<int> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int x) {}
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+void f(List<int?> l) {
+  for (var x in l) {
+    g(x);
+  }
+}
+void g(int? x) {}
+main() {
+  f([null]);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1131,6 +1548,28 @@ void f() {
   g(x);
 }
 void g(C<int?> y) {
+  y.add(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_generic_exact_propagation_premigratedListClass() async {
+    var content = '''
+void f() {
+  List<int> x = new List<int>();
+  g(x);
+}
+void g(List<int> y) {
+  y.add(null);
+}
+''';
+    var expected = '''
+void f() {
+  List<int?> x = new List<int?>();
+  g(x);
+}
+void g(List<int?> y) {
   y.add(null);
 }
 ''';
@@ -1382,6 +1821,32 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_is_promotion_implies_non_nullable() async {
+    var content = '''
+bool f(Object o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+bool f(Object? o) => o is int && o.isEven;
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_isExpression_typeName_typeArguments() async {
+    var content = '''
+bool f(a) => a is List<int>;
+''';
+    var expected = '''
+bool f(a) => a is List<int?>;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_local_function() async {
     var content = '''
 int f(int i) {
@@ -1420,6 +1885,77 @@ int? f() => null;
 void main() {
   var x = 1;
   x = f()!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @failingTest
+  test_map_nullable_input() async {
+    // TODO(paulberry): we're currently migrating this example incorrectly.
+    // See discussion at https://dart-review.googlesource.com/c/sdk/+/115766
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+Iterable<int> f(List<int?> x) => x.map((y) => g(y!));
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_map_nullable_output() async {
+    var content = '''
+Iterable<int> f(List<int> x) => x.map((y) => g(y));
+int g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    var expected = '''
+Iterable<int?> f(List<int> x) => x.map((y) => g(y));
+int? g(int x) => null;
+main() {
+  f([1]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_methodInvocation_typeArguments_explicit() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f<int>(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_methodInvocation_typeArguments_inferred() async {
+    var content = '''
+T f<T>(T t) => t;
+void g() {
+  int x = f(null);
+}
+''';
+    var expected = '''
+T f<T>(T t) => t;
+void g() {
+  int? x = f(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1483,6 +2019,20 @@ void main() {
   nullable(null, null);
   nonNull(0, 1);
   both(0, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_named_parameter_add_required() async {
+    var content = '''
+void f({String s}) {
+  assert(s != null);
+}
+''';
+    var expected = '''
+void f({required String s}) {
+  assert(s != null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1703,6 +2253,29 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38344')
+  test_not_definitely_assigned_value() async {
+    var content = '''
+String f(bool b) {
+  String s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
+}
+''';
+    var expected = '''
+String? f(bool b) {
+  String? s;
+  if (b) {
+    s = 'true';
+  }
+  return s;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_null_aware_getter_invocation() async {
     var content = '''
 bool f(int i) => i?.isEven;
@@ -1774,6 +2347,25 @@ class C {
 int? f(C? c) => c?.x = 1;
 main() {
   f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38339')
+  test_operator_eq_with_inferred_parameter_type() async {
+    var content = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
+}
+''';
+    var expected = '''
+class C {
+  operator==(Object other) {
+    return other is C;
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2011,6 +2603,36 @@ class D<U> {}
 D<int?> test(C<int?/*?*/> c) => -c;
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefixes() async {
+    var root = '/home/test/lib';
+    var path1 = convertPath('$root/file1.dart');
+    var file1 = '''
+import 'file2.dart';
+int x;
+int f() => null;
+''';
+    var expected1 = '''
+import 'file2.dart';
+int? x;
+int? f() => null;
+''';
+    var path2 = convertPath('$root/file2.dart');
+    var file2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    var expected2 = '''
+import 'file1.dart' as f1;
+void main() {
+  f1.x = f1.f();
+}
+''';
+    await _checkMultipleFileChanges(
+        {path1: file1, path2: file2}, {path1: expected1, path2: expected2});
   }
 
   test_prefixExpression_bang() async {
@@ -2570,6 +3192,27 @@ main() {
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38453')
+  test_unconditional_use_of_field_formal_param_does_not_create_hard_edge() async {
+    var content = '''
+class C {
+  int i;
+  int j;
+  C.one(this.i) : j = i + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  int j;
+  C.one(this.i) : j = i! + 1;
+  C.two() : i = null, j = 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
@@ -2598,23 +3241,4 @@ class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
   void _afterPrepare() {
     driver.resetUriResolution();
   }
-}
-
-class _TestMigrationListener implements NullabilityMigrationListener {
-  final _edits = <Source, List<SourceEdit>>{};
-
-  List<String> details = [];
-
-  @override
-  void addDetail(String detail) {
-    details.add(detail);
-  }
-
-  @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
-    (_edits[fix.source] ??= []).add(edit);
-  }
-
-  @override
-  void addFix(SingleNullabilityFix fix) {}
 }

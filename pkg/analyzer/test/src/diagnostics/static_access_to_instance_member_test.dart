@@ -11,13 +11,73 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(StaticAccessToInstanceMemberTest);
+    defineReflectiveTests(StaticAccessToInstanceMemberTest);
     defineReflectiveTests(StaticAccessToInstanceMemberWithExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
-class StaticAccessToInstanceMemberTest extends DriverResolutionTest {}
+class StaticAccessToInstanceMemberTest extends DriverResolutionTest {
+  test_method_invocation() async {
+    await assertErrorsInCode('''
+class A {
+  m() {}
+}
+main() {
+  A.m();
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_method_reference() async {
+    await assertErrorsInCode('''
+class A {
+  m() {}
+}
+main() {
+  A.m;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_propertyAccess_field() async {
+    await assertErrorsInCode('''
+class A {
+  var f;
+}
+main() {
+  A.f;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1),
+    ]);
+  }
+
+  test_propertyAccess_getter() async {
+    await assertErrorsInCode('''
+class A {
+  get f => 42;
+}
+main() {
+  A.f;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 40, 1),
+    ]);
+  }
+
+  test_propertyAccess_setter() async {
+    await assertErrorsInCode('''
+class A {
+  set f(x) {}
+}
+main() {
+  A.f = 42;
+}''', [
+      error(StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1),
+    ]);
+  }
+}
 
 @reflectiveTest
 class StaticAccessToInstanceMemberWithExtensionMethodsTest
@@ -28,7 +88,7 @@ class StaticAccessToInstanceMemberWithExtensionMethodsTest
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_getter() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   int get g => 0;
 }
@@ -41,7 +101,7 @@ f() {
   }
 
   test_method() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   void m() {}
 }
@@ -54,7 +114,7 @@ f() {
   }
 
   test_setter() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 extension E on int {
   void set s(int i) {}
 }

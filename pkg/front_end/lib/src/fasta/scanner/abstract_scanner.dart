@@ -877,16 +877,22 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int tokenizeQuestion(int next) {
-    // ? ?. ?? ??=
+    // ? ?. ?.. ?? ??=
     next = advance();
     if (identical(next, $QUESTION)) {
       return select(
           $EQ, TokenType.QUESTION_QUESTION_EQ, TokenType.QUESTION_QUESTION);
     } else if (identical(next, $PERIOD)) {
       next = advance();
-      if (_enableNonNullable && identical($OPEN_SQUARE_BRACKET, next)) {
-        appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
-        return advance();
+      if (_enableNonNullable) {
+        if (identical($PERIOD, next)) {
+          appendPrecedenceToken(TokenType.QUESTION_PERIOD_PERIOD);
+          return advance();
+        }
+        if (identical($OPEN_SQUARE_BRACKET, next)) {
+          appendBeginGroup(TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET);
+          return advance();
+        }
       }
       appendPrecedenceToken(TokenType.QUESTION_PERIOD);
       return next;
@@ -1299,7 +1305,8 @@ abstract class AbstractScanner implements Scanner {
       return tokenizeSingleLineCommentRest(next, start, false);
     }
 
-    var languageVersion = createLanguageVersionToken(start, major, minor);
+    LanguageVersionToken languageVersion =
+        createLanguageVersionToken(start, major, minor);
     if (languageVersionChanged != null) {
       // TODO(danrubel): make this required and remove the languageVersion field
       languageVersionChanged(this, languageVersion);
@@ -1349,7 +1356,7 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        prependErrorToken(UnterminatedToken(
+        prependErrorToken(new UnterminatedToken(
             messageUnterminatedComment, tokenStart, stringOffset));
         advanceAfterError(true);
         break;
@@ -1617,7 +1624,7 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
-      prependErrorToken(UnterminatedToken(
+      prependErrorToken(new UnterminatedToken(
           messageUnexpectedDollarInString, tokenStart, stringOffset));
     }
     beginToken(); // The string interpolation suffix starts here.
@@ -1743,7 +1750,8 @@ abstract class AbstractScanner implements Scanner {
   }
 
   int unexpected(int character) {
-    var errorToken = buildUnexpectedCharacterToken(character, tokenStart);
+    ErrorToken errorToken =
+        buildUnexpectedCharacterToken(character, tokenStart);
     if (errorToken is NonAsciiIdentifierToken) {
       int charOffset;
       List<int> codeUnits = <int>[];
@@ -1761,7 +1769,7 @@ abstract class AbstractScanner implements Scanner {
         codeUnits.add(next);
         next = advance();
       }
-      appendToken(StringToken.fromString(TokenType.IDENTIFIER,
+      appendToken(new StringToken.fromString(TokenType.IDENTIFIER,
           new String.fromCharCodes(codeUnits), charOffset));
       return next;
     } else {
@@ -1865,7 +1873,7 @@ class LineStarts extends Object with ListMixin<int> {
     if (newLength < newLengthMinimum) newLength = newLengthMinimum;
 
     if (array is Uint16List) {
-      final newArray = new Uint16List(newLength);
+      final Uint16List newArray = new Uint16List(newLength);
       newArray.setRange(0, arrayLength, array);
       array = newArray;
     } else {
@@ -1874,7 +1882,7 @@ class LineStarts extends Object with ListMixin<int> {
   }
 
   void switchToUint32(int newLength) {
-    final newArray = new Uint32List(newLength);
+    final Uint32List newArray = new Uint32List(newLength);
     newArray.setRange(0, arrayLength, array);
     array = newArray;
   }
@@ -1883,8 +1891,9 @@ class LineStarts extends Object with ListMixin<int> {
 /// [ScannerConfiguration] contains information for configuring which tokens
 /// the scanner produces based upon the Dart language level.
 class ScannerConfiguration {
-  static const classic = ScannerConfiguration();
-  static const nonNullable = ScannerConfiguration(enableNonNullable: true);
+  static const ScannerConfiguration classic = const ScannerConfiguration();
+  static const ScannerConfiguration nonNullable =
+      const ScannerConfiguration(enableNonNullable: true);
 
   /// Experimental flag for enabling scanning of the `extension` keyword.
   final bool enableExtensionMethods;

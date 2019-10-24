@@ -745,28 +745,41 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     isolate_flags.entry_points = no_entry_points;
   }
 
-  auto isolate_group_data =
-      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false);
+  auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = NULL;
+
+  bool loading_kernel_failed = false;
   if (isolate_snapshot_data == NULL) {
     // We need to capture the vmservice library in the core snapshot, so load it
     // in the main isolate as well.
     isolate_flags.load_vmservice_library = true;
     isolate = Dart_CreateIsolateGroupFromKernel(
         NULL, NULL, kernel_buffer, kernel_buffer_size, &isolate_flags,
-        isolate_group_data, /*isolate_data=*/nullptr, &error);
+        isolate_group_data.get(), /*isolate_data=*/nullptr, &error);
+    loading_kernel_failed = (isolate == nullptr);
   } else {
     isolate = Dart_CreateIsolateGroup(NULL, NULL, isolate_snapshot_data,
                                       isolate_snapshot_instructions, NULL, NULL,
-                                      &isolate_flags, isolate_group_data,
+                                      &isolate_flags, isolate_group_data.get(),
                                       /*isolate_data=*/nullptr, &error);
   }
   if (isolate == NULL) {
-    delete isolate_group_data;
     Syslog::PrintErr("%s\n", error);
     free(error);
-    return kErrorExitCode;
+    free(kernel_buffer);
+    // The only real reason when `gen_snapshot` fails to create an isolate from
+    // a valid kernel file is if loading the kernel results in a "compile-time"
+    // error.
+    //
+    // There are other possible reasons, like memory allocation failures, but
+    // those are very uncommon.
+    //
+    // The Dart API doesn't allow us to distinguish the different error cases,
+    // so we'll use [kCompilationErrorExitCode] for failed kernel loading, since
+    // a compile-time error is the most probable cause.
+    return loading_kernel_failed ? kCompilationErrorExitCode : kErrorExitCode;
   }
 
   Dart_EnterScope();
@@ -827,6 +840,8 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+
+  free(kernel_buffer);
   return 0;
 }
 
@@ -863,11 +878,6 @@ int main(int argc, char** argv) {
   // Start event handler.
   TimerUtils::InitOnce();
   EventHandler::Start();
-
-#if !defined(PRODUCT)
-  // Constant true in PRODUCT mode.
-  vm_options.AddArgument("--load_deferred_eagerly");
-#endif
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
@@ -909,7 +919,7 @@ int main(int argc, char** argv) {
         MapFile(load_vm_snapshot_instructions_filename, File::kReadExecute,
                 &init_params.vm_snapshot_instructions);
   }
-  if (load_isolate_snapshot_data_filename) {
+  if (load_isolate_snapshot_data_filename != nullptr) {
     mapped_isolate_snapshot_data =
         MapFile(load_isolate_snapshot_data_filename, File::kReadOnly,
                 &isolate_snapshot_data);

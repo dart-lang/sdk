@@ -65,6 +65,7 @@ enum TypedDataElementType {
 enum class MemoryOrder {
   kRelaxed,
   kRelease,
+  kAcquire,
 };
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
@@ -106,7 +107,8 @@ enum class MemoryOrder {
   friend class object##SerializationCluster;                                   \
   friend class object##DeserializationCluster;                                 \
   friend class Serializer;                                                     \
-  friend class Deserializer;
+  friend class Deserializer;                                                   \
+  friend class Pass2Visitor;
 
 // RawObject is the base class of all raw objects; even though it carries the
 // tags_ field not all raw objects are allocated in the heap and thus cannot
@@ -265,8 +267,7 @@ class RawObject {
   void SetMarkBitUnsynchronized() {
     ASSERT(IsOldObject());
     ASSERT(!IsMarked());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = OldAndNotMarkedBit::update(false, tags);
+    ptr()->tags_ = OldAndNotMarkedBit::update(false, ptr()->tags_);
   }
   void ClearMarkBit() {
     ASSERT(IsOldObject());
@@ -316,8 +317,7 @@ class RawObject {
   void SetCardRememberedBitUnsynchronized() {
     ASSERT(!IsRemembered());
     ASSERT(!IsCardRemembered());
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = CardRememberedBit::update(true, tags);
+    ptr()->tags_ = CardRememberedBit::update(true, ptr()->tags_);
   }
 
 #define DEFINE_IS_CID(clazz)                                                   \
@@ -358,10 +358,7 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
+  intptr_t GetClassId() const { return ClassIdTag::decode(ptr()->tags_); }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -379,7 +376,7 @@ class RawObject {
       // recomputing size from tags.
       const intptr_t size_from_class = HeapSizeFromClass();
       if ((result > size_from_class) && (GetClassId() == kArrayCid) &&
-          (ptr()->tags_ != tags)) {
+          (ptr()->tags_) != tags) {
         result = SizeTag::decode(ptr()->tags_);
       }
       ASSERT(result == size_from_class);
@@ -444,6 +441,10 @@ class RawObject {
     return instance_size;
   }
 
+  // This variant ensures that we do not visit the extra slot created from
+  // rounding up instance sizes up to the allocation unit.
+  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
+
   static RawObject* FromAddr(uword addr) {
     // We expect the untagged address here.
     ASSERT((addr & kSmiTagMask) != kHeapObjectTag);
@@ -486,7 +487,7 @@ class RawObject {
   static intptr_t NumberOfTypedDataClasses();
 
  private:
-  uint32_t tags_;  // Various object tags (bits).
+  RelaxedAtomic<uint32_t> tags_;  // Various object tags (bits).
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
@@ -509,31 +510,28 @@ class RawObject {
   intptr_t HeapSizeFromClass() const;
 
   void SetClassId(intptr_t new_cid) {
-    uint32_t tags = ptr()->tags_;
-    ptr()->tags_ = ClassIdTag::update(new_cid, tags);
+    ptr()->tags_ = ClassIdTag::update(new_cid, ptr()->tags_);
   }
 
   template <class TagBitField>
   void UpdateTagBit(bool value) {
     if (value) {
-      AtomicOperations::FetchOrRelaxedUint32(&ptr()->tags_,
-                                             TagBitField::encode(true));
+      ptr()->tags_.fetch_or(TagBitField::encode(true));
     } else {
-      AtomicOperations::FetchAndRelaxedUint32(&ptr()->tags_,
-                                              ~TagBitField::encode(true));
+      ptr()->tags_.fetch_and(~TagBitField::encode(true));
     }
   }
 
   template <class TagBitField>
   bool TryAcquireTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchOrRelaxedUint32(
-        &ptr()->tags_, TagBitField::encode(true));
+    uint32_t mask = TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_or(mask);
     return !TagBitField::decode(old_tags);
   }
   template <class TagBitField>
   bool TryClearTagBit() {
-    uint32_t old_tags = AtomicOperations::FetchAndRelaxedUint32(
-        &ptr()->tags_, ~TagBitField::encode(true));
+    uint32_t mask = ~TagBitField::encode(true);
+    uint32_t old_tags = ptr()->tags_.fetch_and(mask);
     return TagBitField::decode(old_tags);
   }
 
@@ -684,7 +682,7 @@ class RawObject {
   friend class RawInstance;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class ImageReader;                // tags_ check
+  friend class ImageReader;  // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
@@ -711,9 +709,9 @@ class RawObject {
 class RawClass : public RawObject {
  public:
   enum ClassFinalizedState {
-    kAllocated = 0,         // Initial state.
-    kPreFinalized,          // VM classes: size precomputed, but no checks done.
-    kFinalized,             // Class parsed, finalized and ready for use.
+    kAllocated = 0,  // Initial state.
+    kPreFinalized,   // VM classes: size precomputed, but no checks done.
+    kFinalized,      // Class parsed, finalized and ready for use.
   };
   enum ClassLoadingState {
     // Class object is created, but it is not filled up.
@@ -745,13 +743,13 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawFunction* signature_function_;  // Associated function for typedef class.
-  RawArray* constants_;      // Canonicalized const instances of this class.
-  RawType* declaration_type_;              // Declaration type for this class.
+  RawArray* constants_;        // Canonicalized const instances of this class.
+  RawType* declaration_type_;  // Declaration type for this class.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawGrowableObjectArray* direct_implementors_;  // Array of Class.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
-  RawArray* dependent_code_;                   // CHA optimized codes.
+  RawGrowableObjectArray* direct_subclasses_;    // Array of Class.
+  RawArray* dependent_code_;                     // CHA optimized codes.
   VISIT_TO(RawObject*, dependent_code_);
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -832,32 +830,77 @@ class RawPatchClass : public RawObject {
 
 class RawFunction : public RawObject {
  public:
+  // When you add a new kind, please also update the observatory to account
+  // for the new string returned by KindToCString().
+  // - runtime/observatory/lib/src/models/objects/function.dart (FunctionKind)
+  // - runtime/observatory/lib/src/elements/function_view.dart
+  //   (_functionKindToString)
+  // - runtime/observatory/lib/src/service/object.dart (stringToFunctionKind)
+#define FOR_EACH_RAW_FUNCTION_KIND(V)                                          \
+  /* an ordinary or operator method */                                         \
+  V(RegularFunction)                                                           \
+  /* a user-declared closure function */                                       \
+  V(ClosureFunction)                                                           \
+  /* an implicit closure (i.e., tear-off) */                                   \
+  V(ImplicitClosureFunction)                                                   \
+  /* a signature only without actual code */                                   \
+  V(SignatureFunction)                                                         \
+  /* getter functions e.g: get foo() { .. } */                                 \
+  V(GetterFunction)                                                            \
+  /* setter functions e.g: set foo(..) { .. } */                               \
+  V(SetterFunction)                                                            \
+  /* a generative (is_static=false) or factory (is_static=true) constructor */ \
+  V(Constructor)                                                               \
+  /* an implicit getter for instance fields */                                 \
+  V(ImplicitGetter)                                                            \
+  /* an implicit setter for instance fields */                                 \
+  V(ImplicitSetter)                                                            \
+  /* represents an implicit getter for static fields with initializers */      \
+  V(ImplicitStaticGetter)                                                      \
+  /* the initialization expression for a static or instance field */           \
+  V(FieldInitializer)                                                          \
+  /* return a closure on the receiver for tear-offs */                         \
+  V(MethodExtractor)                                                           \
+  /* builds an Invocation and invokes noSuchMethod */                          \
+  V(NoSuchMethodDispatcher)                                                    \
+  /* invokes a field as a closure (i.e., call-through-getter) */               \
+  V(InvokeFieldDispatcher)                                                     \
+  /* a generated irregexp matcher function. */                                 \
+  V(IrregexpFunction)                                                          \
+  /* a forwarder which performs type checks for arguments of a dynamic call */ \
+  /* (i.e., those checks omitted by the caller for interface calls). */        \
+  V(DynamicInvocationForwarder)                                                \
+  V(FfiTrampoline)
+
   enum Kind {
-    kRegularFunction,          // an ordinary or operator method
-    kClosureFunction,          // a user-declared closure function
-    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
-    kSignatureFunction,        // a signature only without actual code
-    kGetterFunction,           // getter functions e.g: get foo() { .. }
-    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
-    kConstructor,              // a generative (is_static=false) or
-                               // factory (is_static=true) constructor
-    kImplicitGetter,           // an implicit getter for instance fields
-    kImplicitSetter,           // an implicit setter for instance fields
-    kImplicitStaticGetter,     // represents an implicit getter for static
-                               // fields with initializers
-    kFieldInitializer,         // the initialization expression for a static
-                               // or instance field
-    kMethodExtractor,          // return a closure on the receiver for tear-offs
-    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
-    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
-                               // call-through-getter)
-    kIrregexpFunction,         // a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
-                                  // arguments of a dynamic call (i.e., those
-                                  // checks omitted by the caller for interface
-                                  // calls).
-    kFfiTrampoline,
+#define KIND_DEFN(Name) k##Name,
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_DEFN)
+#undef KIND_DEFN
   };
+
+  static const char* KindToCString(Kind k) {
+    switch (k) {
+#define KIND_CASE(Name)                                                        \
+  case Kind::k##Name:                                                          \
+    return #Name;
+      FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }
+
+  static bool ParseKind(const char* str, Kind* out) {
+#define KIND_CASE(Name)                                                        \
+  if (strcmp(str, #Name) == 0) {                                               \
+    *out = Kind::k##Name;                                                      \
+    return true;                                                               \
+  }
+    FOR_EACH_RAW_FUNCTION_KIND(KIND_CASE)
+#undef KIND_CASE
+    return false;
+  }
 
   enum AsyncModifier {
     kNoModifier = 0x0,
@@ -876,7 +919,7 @@ class RawFunction : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
-  uword entry_point_;  // Accessed from generated code.
+  uword entry_point_;            // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, name_);
@@ -919,11 +962,10 @@ class RawFunction : public RawObject {
 
   NOT_IN_PRECOMPILED(TokenPosition token_pos_);
   NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
-  uint32_t kind_tag_;                          // See Function::KindTagBits.
+  uint32_t kind_tag_;  // See Function::KindTagBits.
   uint32_t packed_fields_;
 
-  typedef BitField<uint32_t, bool, 0, 1>
-      PackedHasNamedOptionalParameters;
+  typedef BitField<uint32_t, bool, 0, 1> PackedHasNamedOptionalParameters;
   typedef BitField<uint32_t,
                    bool,
                    PackedHasNamedOptionalParameters::kNextBit,
@@ -1112,6 +1154,12 @@ class RawScript : public RawObject {
     kEvaluateTag,
     kKernelTag,
   };
+  enum {
+    kKindPos = 0,
+    kKindSize = 3,
+    kLazyLookupSourceAndLineStartsPos = kKindPos + kKindSize,
+    kLazyLookupSourceAndLineStartsSize = 1,
+  };
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Script);
@@ -1144,7 +1192,15 @@ class RawScript : public RawObject {
 
   int32_t line_offset_;
   int32_t col_offset_;
-  int8_t kind_;  // Of type Kind.
+
+  using KindBits = BitField<uint8_t, Kind, kKindPos, kKindSize>;
+  using LazyLookupSourceAndLineStartsBit =
+      BitField<uint8_t,
+               bool,
+               kLazyLookupSourceAndLineStartsPos,
+               kLazyLookupSourceAndLineStartsSize>;
+  uint8_t kind_and_tags_;
+
   intptr_t kernel_script_index_;
   int64_t load_timestamp_;
 };
@@ -1155,8 +1211,21 @@ class RawLibrary : public RawObject {
     kLoadRequested,   // Compiler or script requested load of library.
     kLoadInProgress,  // Library is in the process of being loaded.
     kLoaded,          // Library is loaded.
-    kLoadError,       // Error occurred during load of the Library.
   };
+
+  enum LibraryFlags {
+    kDartSchemeBit = 0,
+    kDebuggableBit,      // True if debugger can stop in library.
+    kInFullSnapshotBit,  // True if library is in a full snapshot.
+    kNnbdBit,            // True if library is non nullable by default.
+    kNumFlagBits,
+  };
+  COMPILE_ASSERT(kNumFlagBits <= (sizeof(uint8_t) * kBitsPerByte));
+  class DartSchemeBit : public BitField<uint8_t, bool, kDartSchemeBit, 1> {};
+  class DebuggableBit : public BitField<uint8_t, bool, kDebuggableBit, 1> {};
+  class InFullSnapshotBit
+      : public BitField<uint8_t, bool, kInFullSnapshotBit, 1> {};
+  class NnbdBit : public BitField<uint8_t, bool, kNnbdBit, 1> {};
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Library);
 
@@ -1170,12 +1239,11 @@ class RawLibrary : public RawObject {
   RawGrowableObjectArray* owned_scripts_;
   RawArray* imports_;        // List of Namespaces imported without prefix.
   RawArray* exports_;        // List of re-exported Namespaces.
-  RawInstance* load_error_;  // Error iff load_state_ == kLoadError.
   RawExternalTypedData* kernel_data_;
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
-        return reinterpret_cast<RawObject**>(&ptr()->load_error_);
+        return reinterpret_cast<RawObject**>(&ptr()->exports_);
       case Snapshot::kFull:
       case Snapshot::kFullJIT:
         return reinterpret_cast<RawObject**>(&ptr()->kernel_data_);
@@ -1197,9 +1265,7 @@ class RawLibrary : public RawObject {
   classid_t index_;       // Library id number.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
-  bool is_dart_scheme_;
-  bool debuggable_;          // True if debugger can stop in library.
-  bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
+  uint8_t flags_;         // BitField for LibraryFlags.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1253,7 +1319,7 @@ class RawKernelProgramInfo : public RawObject {
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
-  uword entry_point_;          // Accessed from generated code.
+  uword entry_point_;  // Accessed from generated code.
 
   // In AOT this entry-point supports switchable calls. It checks the type of
   // the receiver on entry to the function and calls a stub to patch up the
@@ -1289,7 +1355,7 @@ class RawCode : public RawObject {
   // type checks are necessary or this Code belongs to a stub). In this case
   // 'unchecked_entry_point_' will refer to the same position as 'entry_point_'.
   //
-  uword unchecked_entry_point_;  // Accessed from generated code.
+  uword unchecked_entry_point_;              // Accessed from generated code.
   uword monomorphic_unchecked_entry_point_;  // Accessed from generated code.
 
   VISIT_FROM(RawObject*, object_pool_);
@@ -1305,7 +1371,7 @@ class RawCode : public RawObject {
     RawTypedData* catch_entry_moves_maps_;
     RawSmi* variables_;
   } catch_entry_;
-  RawArray* stackmaps_;
+  RawCompressedStackMaps* compressed_stackmaps_;
   RawArray* inlined_id_to_function_;
   RawCodeSourceMap* code_source_map_;
   NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
@@ -1347,6 +1413,7 @@ class RawCode : public RawObject {
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
+  friend class CallSiteResetter;
 };
 
 class RawBytecode : public RawObject {
@@ -1368,11 +1435,13 @@ class RawBytecode : public RawObject {
   VISIT_TO(RawObject*, var_descriptors_);
 #endif
 
-  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
+  RawObject** to_snapshot(Snapshot::Kind kind) {
+    return reinterpret_cast<RawObject**>(&ptr()->pc_descriptors_);
+  }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
-  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
+  int32_t local_variables_binary_offset_;
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1445,17 +1514,38 @@ class RawInstructions : public RawObject {
 
 class RawPcDescriptors : public RawObject {
  public:
+// The macro argument V is passed two arguments, the raw name of the enum value
+// and the initialization expression used within the enum definition.  The uses
+// of enum values inside the initialization expression are hardcoded currently,
+// so the second argument is useless outside the enum definition and should be
+// dropped by other users of this macro.
+#define FOR_EACH_RAW_PC_DESCRIPTOR(V)                                          \
+  /* Deoptimization continuation point. */                                     \
+  V(Deopt, 1)                                                                  \
+  /* IC call. */                                                               \
+  V(IcCall, kDeopt << 1)                                                       \
+  /* Call to a known target via stub. */                                       \
+  V(UnoptStaticCall, kIcCall << 1)                                             \
+  /* Runtime call. */                                                          \
+  V(RuntimeCall, kUnoptStaticCall << 1)                                        \
+  /* OSR entry point in unopt. code. */                                        \
+  V(OsrEntry, kRuntimeCall << 1)                                               \
+  /* Call rewind target address. */                                            \
+  V(Rewind, kOsrEntry << 1)                                                    \
+  /* Target-word-size relocation. */                                           \
+  V(BSSRelocation, kRewind << 1)                                               \
+  V(Other, kBSSRelocation << 1)                                                \
+  V(AnyKind, -1)
+
   enum Kind {
-    kDeopt = 1,                            // Deoptimization continuation point.
-    kIcCall = kDeopt << 1,                 // IC call.
-    kUnoptStaticCall = kIcCall << 1,       // Call to a known target via stub.
-    kRuntimeCall = kUnoptStaticCall << 1,  // Runtime call.
-    kOsrEntry = kRuntimeCall << 1,         // OSR entry point in unopt. code.
-    kRewind = kOsrEntry << 1,              // Call rewind target address.
-    kOther = kRewind << 1,
-    kLastKind = kOther,
-    kAnyKind = -1
+#define ENUM_DEF(name, init) k##name = init,
+    FOR_EACH_RAW_PC_DESCRIPTOR(ENUM_DEF)
+#undef ENUM_DEF
+        kLastKind = kOther,
   };
+
+  static const char* KindToCString(Kind k);
+  static bool ParseKind(const char* cstr, Kind* out);
 
   class MergedKindTry {
    public:
@@ -1524,25 +1614,35 @@ class RawCodeSourceMap : public RawObject {
   friend class ImageWriter;
 };
 
-// StackMap is an immutable representation of the layout of the stack at a
-// PC. The stack map representation consists of a bit map which marks each
-// live object index starting from the base of the frame.
-//
-// The bit map representation is optimized for dense and small bit maps, without
-// any upper bound.
-class RawStackMap : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
+// RawCompressedStackMaps is a compressed representation of the stack maps
+// for certain PC offsets into a set of instructions, where a stack map is a bit
+// map that marks each live object index starting from the base of the frame.
+class RawCompressedStackMaps : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
-  // Offset from code entry point corresponding to this stack map
-  // representation.
-  uint32_t pc_offset_;
+  uint32_t payload_size_;  // Length of the encoded payload, in bytes.
 
-  uint16_t length_;               // Length of payload, in bits.
-  uint16_t slow_path_bit_count_;  // Slow path live values, included in length_.
-  // ARM64 requires register_bit_count_ to be as large as 96.
-
-  // Variable length data follows here (bitmap of the stack layout).
+  // Variable length data follows here. The payload consists of entries with
+  // the following information:
+  //
+  // * A header containing the following three pieces of information:
+  //   * An unsigned integer representing the PC offset as a delta from the
+  //     PC offset of the previous entry (from 0 for the first entry).
+  //   * An unsigned integer representing the number of bits used for
+  //     register entries.
+  //   * An unsigned integer representing the number of bits used for spill
+  //     slot entries.
+  // * The body containing the bits for the stack map. The length of the body
+  //   in bits is the sum of the register and spill slot bit counts.
+  //
+  // Each unsigned integer is LEB128 encoded, as generally they tend to fit in
+  // a single byte or two. Thus, entry headers are not a fixed length, and
+  // currently there is no random access of entries.  In addition, PC offsets
+  // are currently encoded as deltas, which also inhibits random access without
+  // accessing previous entries. That means to find an entry for a given PC
+  // offset, a linear search must be done where the payload is decoded
+  // up to the entry whose PC offset is >= the given PC.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
@@ -1844,9 +1944,7 @@ class RawLibraryPrefix : public RawInstance {
   RawString* name_;           // Library prefix name.
   RawLibrary* importer_;      // Library which declares this prefix.
   RawArray* imports_;         // Libraries imported with this prefix.
-  RawArray* dependent_code_;  // Code that refers to deferred, unloaded
-                              // library prefix.
-  VISIT_TO(RawObject*, dependent_code_)
+  VISIT_TO(RawObject*, imports_)
   RawObject** to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1864,7 +1962,6 @@ class RawLibraryPrefix : public RawInstance {
   }
   uint16_t num_imports_;  // Number of library entries in libraries_.
   bool is_deferred_load_;
-  bool is_loaded_;
 };
 
 class RawTypeArguments : public RawInstance {
@@ -2707,7 +2804,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
          (index == kObjectPoolCid) || (index == kPcDescriptorsCid) ||
-         (index == kCodeSourceMapCid) || (index == kStackMapCid) ||
+         (index == kCodeSourceMapCid) || (index == kCompressedStackMapsCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) || (index == kCodeCid) ||
          (index == kContextScopeCid) || (index == kInstanceCid) ||

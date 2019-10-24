@@ -7,10 +7,9 @@ import "org-dartlang-testcase:///issue_36647_lib1.dart";
 library;
 import self as self2;
 import "issue_36647_lib2.dart" as iss;
-additionalExports = (iss::xxx)
-, iss::XXX)
-, iss::extends)
-
+additionalExports = (iss::xxx,
+  iss::XXX,
+  iss::extends)
 
 export "org-dartlang-testcase:///issue_36647_lib2.dart";
 

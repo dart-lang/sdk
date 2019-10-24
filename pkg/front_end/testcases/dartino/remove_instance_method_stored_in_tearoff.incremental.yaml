@@ -10,7 +10,7 @@ main.dart.patch: |
     m() {
       print('v1');
     }
-  ==== {"messages":["threw", "threw"]}
+  ==== {"messages":[],"hasCompileTimeError":1}
   >>>>
   }
   var closure;
@@ -19,15 +19,5 @@ main.dart.patch: |
       print('instance is null');
       closure = new C().m;
     }
-    try {
-      closure();
-    } catch (e) {
-      print('threw');
-    }
-
-    try {
-      new C().m;
-    } catch (e) {
-      print("threw");
-    }
+    closure();
   }

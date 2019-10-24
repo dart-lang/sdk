@@ -29,9 +29,11 @@ static Instr* FastSmiInstructionFromReturnAddress(uword pc) {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!is_enabled_);
-  const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  const Code& code = Code::Handle(zone, code_);
+  const Instructions& instrs = Instructions::Handle(zone, code.instructions());
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     saved_value_ = *CallInstructionFromReturnAddress(pc_);
     switch (breakpoint_kind_) {
@@ -67,15 +69,17 @@ void CodeBreakpoint::PatchCode() {
     } else {
       saved_value_fastsmi_ = SimulatorBytecode::kTrap;
     }
-  }
+  });
   is_enabled_ = true;
 }
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(is_enabled_);
-  const Code& code = Code::Handle(code_);
-  const Instructions& instrs = Instructions::Handle(code.instructions());
-  {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  const Code& code = Code::Handle(zone, code_);
+  const Instructions& instrs = Instructions::Handle(zone, code.instructions());
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
@@ -94,7 +98,7 @@ void CodeBreakpoint::RestoreCode() {
              SimulatorBytecode::kNop);
       *FastSmiInstructionFromReturnAddress(pc_) = saved_value_fastsmi_;
     }
-  }
+  });
   is_enabled_ = false;
 }
 

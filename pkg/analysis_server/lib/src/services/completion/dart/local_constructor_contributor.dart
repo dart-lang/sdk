@@ -11,9 +11,11 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
@@ -75,6 +77,9 @@ class _Visitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {}
 
   @override
+  void declaredExtension(ExtensionDeclaration declaration) {}
+
+  @override
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
   @override
@@ -112,10 +117,9 @@ class _Visitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;
 
-    ClassElement classElement =
-        resolutionMap.elementDeclaredByClassDeclaration(classDecl);
+    ClassElement classElement = classDecl.declaredElement;
     int relevance = optype.returnValueSuggestionsFilter(
-        classElement?.type, DART_RELEVANCE_DEFAULT);
+        _instantiateClassElement(classElement), DART_RELEVANCE_DEFAULT);
     if (constructorDecl != null) {
       // Build a suggestion for explicitly declared constructor
       ConstructorElement element = constructorDecl.declaredElement;
@@ -158,5 +162,25 @@ class _Visitor extends LocalDeclarationVisitor {
           hasNamedParameters: false);
       suggestions.add(suggestion);
     }
+  }
+
+  InterfaceType _instantiateClassElement(ClassElement element) {
+    var typeParameters = element.typeParameters;
+    var typeArguments = const <DartType>[];
+    if (typeParameters.isNotEmpty) {
+      var typeProvider = request.libraryElement.context.typeProvider;
+      typeArguments = typeParameters.map((t) {
+        return typeProvider.dynamicType;
+      }).toList();
+    }
+
+    var nullabilitySuffix = request.featureSet.isEnabled(Feature.non_nullable)
+        ? NullabilitySuffix.none
+        : NullabilitySuffix.star;
+
+    return element.instantiate(
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }

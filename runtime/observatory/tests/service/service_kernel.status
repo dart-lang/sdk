@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == app_jitk ]
-add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: RuntimeError
 break_on_activation_test: SkipByDesign # No incremental compiler available.
@@ -35,23 +34,6 @@ regress_34841_test: RuntimeError # http://dartbug.com/34841
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
 simple_reload_test: RuntimeError, Timeout # Issue 35506
-unused_changes_in_last_reload_test: RuntimeError
-
-# Kernel works slightly different. There are kernel specific versions.
-# These are the non-kernel specific versions so skip tests and allow errors.
-[ $compiler == dartk ]
-add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
-bad_reload_test: RuntimeError # Issue 34025
-coverage_optimized_function_test: Pass, Slow
-evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
-evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
-evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
-get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
-pause_on_unhandled_async_exceptions2_test: Pass, Slow
-unused_changes_in_last_reload_test: RuntimeError
-
-[ $compiler == dartkb ]
-*: Skip # Debugging capabilities are not yet supported in bytecode modes.
 
 [ $compiler == dartkp ]
 *: SkipByDesign # Non-kernel also skips precompiled mode.
@@ -81,12 +63,15 @@ evaluate_in_frame_rpc_test: RuntimeError, Timeout # Issue #34736
 [ $arch == simdbc64 && $compiler == dartk && $mode == debug ]
 eval_test: Pass, Slow
 
-[ $compiler == dartk && $mode == debug ]
+[ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
+*: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
+
+[ $mode == debug && ($compiler == dartk || $compiler == dartkb) ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
 rewind_optimized_out_test: Pass, Slow
 
-[ $compiler == dartk && $system == windows ]
+[ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
 add_breakpoint_rpc_kernel_test: Skip # Timeout
 break_on_default_constructor_test: Skip # Issues 32137 and 32138.
 breakpoint_in_parts_class_test: Skip # Timeout
@@ -137,7 +122,7 @@ step_through_setter_test: Skip # Issues 32137 and 32138.
 step_through_switch_test: Skip # Times out. Issue 32137.
 step_through_switch_with_continue_test: Skip # Times out. Issue 32137.
 
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 add_breakpoint_rpc_kernel_test: RuntimeError # Issue #34736
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 bad_reload_test: Skip # Times out on sim architectures, also RuntimeError.
@@ -170,5 +155,13 @@ rewind_optimized_out_test: RuntimeError # Issue #34736
 rewind_test: Pass, RuntimeError
 set_name_rpc_test: RuntimeError # Please triage.
 simple_reload_test: RuntimeError, Timeout
-unused_changes_in_last_reload_test: Skip # Times out on sim architectures.
 valid_source_locations_test: Pass, Slow, Timeout # Issue 34736
+
+[ $compiler == dartk || $compiler == dartkb ]
+bad_reload_test: RuntimeError # Issue 34025
+coverage_optimized_function_test: Pass, Slow
+evaluate_activation_in_method_class_test: RuntimeError # Issue 35505
+evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
+evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+get_source_report_test: RuntimeError # Should pass again when constant evaluation is relanded, see http://dartbug.com/36600
+pause_on_unhandled_async_exceptions2_test: Pass, Slow

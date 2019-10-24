@@ -116,8 +116,6 @@ constexpr bool kDartUseBytecode = false;
   P(interpret_irregexp, bool, USING_DBC, "Use irregexp bytecode interpreter")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
-  C(load_deferred_eagerly, true, true, bool, false,                            \
-    "Load deferred libraries eagerly.")                                        \
   R(log_marker_tasks, false, bool, false,                                      \
     "Log debugging information for old gen GC marking tasks.")                 \
   P(marker_tasks, int, USING_MULTICORE ? 2 : 0,                                \
@@ -167,6 +165,10 @@ constexpr bool kDartUseBytecode = false;
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
+  P(show_invisible_frames, bool, false,                                        \
+    "Show invisible frames in stack traces.")                                  \
+  R(show_invisible_isolates, false, bool, false,                               \
+    "Show invisible isolates in the vm-service.")                              \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
   C(support_reload, false, false, bool, true, "Support isolate reload.")       \

@@ -71,5 +71,3 @@ abstract class InstanceSet {
   int get count;
   Iterable<ObjectRef> get instances;
 }
-
-abstract class TopRetainedInstances {}

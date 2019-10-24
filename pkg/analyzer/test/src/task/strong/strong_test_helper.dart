@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -172,14 +171,13 @@ void _reportFailure(
     Map<List<_ErrorExpectation>, List<AnalysisError>> different) {
   // Get the source code. This reads the data again, but it's safe because
   // all tests use memory file system.
-  var sourceCode =
-      resolutionMap.elementDeclaredByCompilationUnit(unit).source.contents.data;
+  var sourceCode = unit.declaredElement.source.contents.data;
 
   String formatActualError(AnalysisError error) {
     int offset = error.offset;
     int length = error.length;
-    var span = _createSpanHelper(unit.lineInfo, offset,
-        resolutionMap.elementDeclaredByCompilationUnit(unit).source, sourceCode,
+    var span = _createSpanHelper(
+        unit.lineInfo, offset, unit.declaredElement.source, sourceCode,
         end: offset + length);
     var levelName = _errorSeverity(analysisOptions, error).displayName;
     return '@$offset $levelName:${error.errorCode.name}\n' +
@@ -192,10 +190,7 @@ void _reportFailure(
     var result = '@$offset $severity:${error.typeName}';
     if (!showSource) return result;
     var span = _createSpanHelper(
-        unit.lineInfo,
-        offset,
-        resolutionMap.elementDeclaredByCompilationUnit(unit).source,
-        sourceCode);
+        unit.lineInfo, offset, unit.declaredElement.source, sourceCode);
     return '$result\n${span.message('')}';
   }
 
@@ -229,8 +224,7 @@ void _reportFailure(
 class AbstractStrongTest with ResourceProviderMixin {
   bool _checkCalled = true;
 
-  AnalysisContext _context = null;
-  AnalysisDriver _driver = null;
+  AnalysisDriver _driver;
 
   Map<String, List<Folder>> packageMap;
 
@@ -328,8 +322,6 @@ class AbstractStrongTest with ResourceProviderMixin {
         return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
             code == HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL ||
             code == HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION ||
-            code == HintCode.STRICT_RAW_TYPE_IN_AS ||
-            code == HintCode.STRICT_RAW_TYPE_IN_IS ||
             code == HintCode.STRICT_RAW_TYPE;
       }
       return true;
@@ -337,8 +329,7 @@ class AbstractStrongTest with ResourceProviderMixin {
 
     // Extract expectations from the comments in the test files, and
     // check that all errors we emit are included in the expected map.
-    LibraryElement mainLibrary =
-        resolutionMap.elementDeclaredByCompilationUnit(mainUnit).library;
+    LibraryElement mainLibrary = mainUnit.declaredElement.library;
     Set<LibraryElement> allLibraries = _reachableLibraries(mainLibrary);
 
     for (LibraryElement library in allLibraries) {
@@ -380,7 +371,6 @@ class AbstractStrongTest with ResourceProviderMixin {
   void tearDown() {
     // This is a sanity check, in case only addFile is called.
     expect(_checkCalled, true, reason: 'must call check() method in test case');
-    _context?.dispose();
     _driver?.dispose();
     AnalysisEngine.instance.clearCaches();
   }

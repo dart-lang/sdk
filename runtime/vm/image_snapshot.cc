@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
 #include "vm/hash.h"
@@ -80,6 +81,7 @@ bool ObjectOffsetTrait::IsKeyEqual(Pair pair, Key key) {
                      reinterpret_cast<const void*>(body_b), body_size);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 ImageWriter::ImageWriter(Heap* heap,
                          const void* shared_objects,
                          const void* shared_instructions,
@@ -183,11 +185,11 @@ int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
 }
 
 #if defined(IS_SIMARM_X64)
-static intptr_t StackMapSizeInSnapshot(intptr_t len_in_bits) {
-  const intptr_t len_in_bytes =
-      Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
+static intptr_t CompressedStackMapsSizeInSnapshot(intptr_t payload_size) {
+  // We do not need to round the non-payload size up to a word boundary because
+  // currently sizeof(RawCompressedStackMaps) is 12, even on 64-bit.
   const intptr_t unrounded_size_in_bytes =
-      3 * compiler::target::kWordSize + len_in_bytes;
+      compiler::target::kWordSize + sizeof(uint32_t) + payload_size;
   return Utils::RoundUp(unrounded_size_in_bytes,
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
@@ -230,9 +232,10 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
   const classid_t cid = raw_object->GetClassId();
 
   switch (cid) {
-    case kStackMapCid: {
-      RawStackMap* raw_map = static_cast<RawStackMap*>(raw_object);
-      return StackMapSizeInSnapshot(raw_map->ptr()->length_);
+    case kCompressedStackMapsCid: {
+      RawCompressedStackMaps* raw_maps =
+          static_cast<RawCompressedStackMaps*>(raw_object);
+      return CompressedStackMapsSizeInSnapshot(raw_maps->ptr()->payload_size_);
     }
     case kOneByteStringCid:
     case kTwoByteStringCid: {
@@ -429,24 +432,22 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 #endif
 
 #if defined(IS_SIMARM_X64)
-    if (obj.IsStackMap()) {
-      const StackMap& map = StackMap::Cast(obj);
+    if (obj.IsCompressedStackMaps()) {
+      const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
 
       // Header layout is the same between 32-bit and 64-bit architecture, but
       // we need to recalcuate the size in words.
-      const intptr_t len_in_bits = map.Length();
-      const intptr_t len_in_bytes =
-          Utils::RoundUp(len_in_bits, kBitsPerByte) / kBitsPerByte;
-      const intptr_t size_in_bytes = StackMapSizeInSnapshot(len_in_bits);
+      const intptr_t payload_size = map.payload_size();
+      const intptr_t size_in_bytes =
+          CompressedStackMapsSizeInSnapshot(payload_size);
       marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      stream->WriteFixed<uint32_t>(map.PcOffset());
-      stream->WriteFixed<uint16_t>(map.Length());
-      stream->WriteFixed<uint16_t>(map.SlowPathBitCount());
-      stream->WriteBytes(map.raw()->ptr()->data(), len_in_bytes);
+      stream->WriteFixed<uint32_t>(payload_size);
+      // We do not need to align the stream to a word boundary on 64-bit because
+      // sizeof(RawCompressedStackMaps) is 12, even there.
+      stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
       stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
-
     } else if (obj.IsString()) {
       const String& str = String::Cast(obj);
       RELEASE_ASSERT(String::GetCachedHash(str.raw()) != 0);
@@ -556,6 +557,11 @@ const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   Zone* zone = Thread::Current()->zone();
 
+#if defined(DART_PRECOMPILER)
+  const char* bss_symbol =
+      vm ? "_kDartVmSnapshotBss" : "_kDartIsolateSnapshotBss";
+#endif
+
   const char* instructions_symbol =
       vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
   assembly_stream_.Print(".text\n");
@@ -570,8 +576,16 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // look like a HeapPage.
   intptr_t instructions_length = next_text_offset_;
   WriteWordLiteralText(instructions_length);
+
+#if defined(DART_PRECOMPILER)
+  assembly_stream_.Print("%s %s - %s\n", kLiteralPrefix, bss_symbol,
+                         instructions_symbol);
+#else
+  WriteWordLiteralText(0);  // No relocations.
+#endif
+
   intptr_t header_words = Image::kHeaderSize / sizeof(compiler::target::uword);
-  for (intptr_t i = 1; i < header_words; i++) {
+  for (intptr_t i = Image::kHeaderFields; i < header_words; i++) {
     WriteWordLiteralText(0);
   }
 
@@ -579,6 +593,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   Object& owner = Object::Handle(zone);
   String& str = String::Handle(zone);
+  PcDescriptors& descriptors = PcDescriptors::Handle(zone);
 
   ObjectStore* object_store = Isolate::Current()->object_store();
 
@@ -613,6 +628,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     const Instructions& insns = *data.insns_;
     const Code& code = *data.code_;
+    descriptors = data.code_->pc_descriptors();
 
     if (profile_writer_ != nullptr) {
       const intptr_t offset = Image::kHeaderSize + text_offset;
@@ -662,7 +678,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       text_offset += WriteByteSequence(beginning, entry);
 #endif  // defined(IS_SIMARM_X64)
 
-      ASSERT((text_offset - instr_start) == insns.HeaderSize());
+      ASSERT((text_offset - instr_start) ==
+             compiler::target::Instructions::HeaderSize());
     }
 
     // 2. Write a label at the entry point.
@@ -717,13 +734,43 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       ASSERT(Utils::IsAligned(entry, sizeof(uword)));
       ASSERT(Utils::IsAligned(end, sizeof(uword)));
 
-      text_offset += WriteByteSequence(entry, end);
-    }
+#if defined(DART_PRECOMPILER)
+      PcDescriptors::Iterator iterator(descriptors,
+                                       RawPcDescriptors::kBSSRelocation);
+      uword next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
 
-    ASSERT((text_offset - instr_start) == insns.raw()->HeapSize());
+      for (uword cursor = entry; cursor < end;
+           cursor += sizeof(compiler::target::uword)) {
+        compiler::target::uword data =
+            *reinterpret_cast<compiler::target::uword*>(cursor);
+        if ((cursor - entry) == next_reloc_offset) {
+          assembly_stream_.Print("%s %s - (.) + %" Pd "\n", kLiteralPrefix,
+                                 bss_symbol, /*addend=*/data);
+          next_reloc_offset = iterator.MoveNext() ? iterator.PcOffset() : -1;
+        } else {
+          WriteWordLiteralText(data);
+        }
+      }
+      text_offset += end - entry;
+#else
+      text_offset += WriteByteSequence(entry, end);
+#endif
+      ASSERT(kWordSize != compiler::target::kWordSize ||
+             (text_offset - instr_start) == insns.raw()->HeapSize());
+    }
   }
 
   FrameUnwindEpilogue();
+
+#if defined(DART_PRECOMPILER)
+  assembly_stream_.Print(".bss\n");
+  assembly_stream_.Print("%s:\n", bss_symbol);
+
+  // Currently we only put one symbol in the data section, the address of
+  // DLRT_GetThreadForNativeCallback, which is populated when the snapshot is
+  // loaded.
+  WriteWordLiteralText(0);
+#endif
 
 #if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID) ||                  \
     defined(TARGET_OS_FUCHSIA)
@@ -860,23 +907,42 @@ intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
 }
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
+  const intptr_t instructions_length = next_text_offset_;
 #ifdef DART_PRECOMPILER
   intptr_t segment_base = 0;
   if (elf_ != nullptr) {
     segment_base = elf_->NextMemoryOffset();
   }
+
+  // Calculate the start of the BSS section based on the known size of the
+  // text section and page alignment.
+  intptr_t bss_base = 0;
+  if (elf_ != nullptr) {
+    bss_base =
+        Utils::RoundUp(segment_base + instructions_length, Elf::kPageSize);
+  }
 #endif
 
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
-  intptr_t instructions_length = next_text_offset_;
-  instructions_blob_stream_.WriteWord(instructions_length);
-  intptr_t header_words = Image::kHeaderSize / sizeof(uword);
-  for (intptr_t i = 1; i < header_words; i++) {
-    instructions_blob_stream_.WriteWord(0);
+  instructions_blob_stream_.WriteTargetWord(instructions_length);
+#if defined(DART_PRECOMPILER)
+  instructions_blob_stream_.WriteTargetWord(
+      elf_ != nullptr ? bss_base - segment_base : 0);
+#else
+  instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
+#endif
+  const intptr_t header_words =
+      Image::kHeaderSize / sizeof(compiler::target::uword);
+  for (intptr_t i = Image::kHeaderFields; i < header_words; i++) {
+    instructions_blob_stream_.WriteTargetWord(0);
   }
 
   intptr_t text_offset = 0;
+
+#if defined(DART_PRECOMPILER)
+  PcDescriptors& descriptors = PcDescriptors::Handle();
+#endif
 
   NoSafepointScope no_safepoint;
   for (intptr_t i = 0; i < instructions_.length(); i++) {
@@ -928,6 +994,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     marked_tags |= static_cast<uword>(insns.raw_ptr()->hash_) << 32;
 #endif
 
+    intptr_t payload_stream_start = 0;
+
 #if defined(IS_SIMARM_X64)
     const intptr_t start_offset = instructions_blob_stream_.bytes_written();
     const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.Size());
@@ -938,6 +1006,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     instructions_blob_stream_.WriteFixed<uint32_t>(
         insns.raw_ptr()->unchecked_entrypoint_pc_offset_);
     instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
+    payload_stream_start = instructions_blob_stream_.Position();
     instructions_blob_stream_.WriteBytes(
         reinterpret_cast<const void*>(insns.PayloadStart()), insns.Size());
     instructions_blob_stream_.Align(kSimarmX64InstructionsAlignment);
@@ -945,15 +1014,60 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
     text_offset += (end_offset - start_offset);
     USE(end);
 #else   // defined(IS_SIMARM_X64)
+    payload_stream_start = instructions_blob_stream_.Position() +
+                           (insns.PayloadStart() - beginning);
+
     instructions_blob_stream_.WriteWord(marked_tags);
     text_offset += sizeof(uword);
     beginning += sizeof(uword);
     text_offset += WriteByteSequence(beginning, end);
 #endif  // defined(IS_SIMARM_X64)
 
+#if defined(DART_PRECOMPILER)
+    // Don't patch the relocation if we're not generating ELF. The regular blobs
+    // format does not yet support these relocations. Use
+    // Code::VerifyBSSRelocations to check whether the relocations are patched
+    // or not after loading.
+    if (elf_ != nullptr) {
+      const intptr_t current_stream_position =
+          instructions_blob_stream_.Position();
+
+      descriptors = data.code_->pc_descriptors();
+
+      PcDescriptors::Iterator iterator(
+          descriptors, /*kind_mask=*/RawPcDescriptors::kBSSRelocation);
+
+      while (iterator.MoveNext()) {
+        const intptr_t reloc_offset = iterator.PcOffset();
+
+        // The instruction stream at the relocation position holds an offset
+        // into BSS corresponding to the symbol being resolved. This addend is
+        // factored into the relocation.
+        const auto addend = *reinterpret_cast<compiler::target::word*>(
+            insns.PayloadStart() + reloc_offset);
+
+        // Overwrite the relocation position in the instruction stream with the
+        // (positive) offset of the start of the payload from the start of the
+        // BSS segment plus the addend in the relocation.
+        instructions_blob_stream_.SetPosition(payload_stream_start +
+                                              reloc_offset);
+
+        const uword offset =
+            bss_base - (segment_base + payload_stream_start + reloc_offset) +
+            addend;
+        instructions_blob_stream_.WriteTargetWord(offset);
+      }
+
+      // Restore stream position after the relocation was patched.
+      instructions_blob_stream_.SetPosition(current_stream_position);
+    }
+#endif
+
     ASSERT((text_offset - instr_start) ==
            ImageWriter::SizeInSnapshot(insns.raw()));
   }
+
+  ASSERT(instructions_blob_stream_.bytes_written() == instructions_length);
 
 #ifdef DART_PRECOMPILER
   if (elf_ != nullptr) {
@@ -963,9 +1077,14 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
         elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
                       instructions_blob_stream_.bytes_written());
     ASSERT(segment_base == segment_base2);
+
+    const intptr_t real_bss_base =
+        elf_->AddBSSData("_kDartVMBSSData", sizeof(compiler::target::uword));
+    ASSERT(bss_base == real_bss_base);
   }
 #endif
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ImageReader::ImageReader(const uint8_t* data_image,
                          const uint8_t* instructions_image,
@@ -1029,6 +1148,7 @@ RawObject* ImageReader::GetSharedObjectAt(uint32_t offset) const {
   return result;
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   class DropCodeVisitor : public FunctionVisitor, public ClassVisitor {
    public:
@@ -1128,5 +1248,6 @@ void DropCodeWithoutReusableInstructions(const void* reused_instructions) {
   ProgramVisitor::VisitClasses(&visitor);
   ProgramVisitor::VisitFunctions(&visitor);
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Reducer<S extends core::Object* = dynamic> = (S*, dynamic) →* S*;
+typedef Reducer<invariant S extends core::Object* = dynamic> = (S*, dynamic) →* S*;
 class A extends core::Object {
   synthetic constructor •() → self::A*
     ;

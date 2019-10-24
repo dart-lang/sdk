@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:source_span/source_span.dart';
@@ -27,9 +28,7 @@ class ErrorReporterTest extends DriverResolutionTest {
   }
 
   test_reportErrorForElement_named() async {
-    addTestFile('class A {}');
-    await resolveTestFile();
-
+    await resolveTestCode('class A {}');
     var element = findElement.class_('A');
     var reporter = ErrorReporter(listener, element.source);
     reporter.reportErrorForElement(
@@ -43,12 +42,10 @@ class ErrorReporterTest extends DriverResolutionTest {
   }
 
   test_reportErrorForElement_unnamed() async {
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'dart:async';
 import 'dart:math';
 ''');
-    await resolveTestFile();
-
     var element = findElement.import('dart:math');
 
     var reporter = ErrorReporter(listener, element.source);
@@ -93,7 +90,7 @@ zap: baz
   test_reportTypeErrorForNode_differentNames() async {
     newFile('/test/lib/a.dart', content: 'class A {}');
     newFile('/test/lib/b.dart', content: 'class B {}');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
@@ -101,13 +98,17 @@ main() {
   x;
 }
 ''');
-    await resolveTestFile();
-
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('B').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('B').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
 
@@ -124,7 +125,7 @@ main() {
   test_reportTypeErrorForNode_sameName() async {
     newFile('/test/lib/a.dart', content: 'class A {}');
     newFile('/test/lib/b.dart', content: 'class A {}');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'package:test/a.dart';
 import 'package:test/b.dart';
 
@@ -132,13 +133,17 @@ main() {
   x;
 }
 ''');
-    await resolveTestFile();
-
     var aImport = findElement.importFind('package:test/a.dart');
     var bImport = findElement.importFind('package:test/b.dart');
 
-    var firstType = aImport.class_('A').type;
-    var secondType = bImport.class_('A').type;
+    var firstType = aImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+    var secondType = bImport.class_('A').instantiate(
+      typeArguments: [],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
 
     var reporter = ErrorReporter(listener, firstType.element.source);
     reporter.reportTypeErrorForNode(
@@ -154,7 +159,7 @@ main() {
   test_reportTypeErrorForNode_sameName_functionType() async {
     newFile('/test/lib/a.dart', content: 'class A{}');
     newFile('/test/lib/b.dart', content: 'class A{}');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
 
@@ -165,8 +170,6 @@ main() {
   x;
 }
 ''');
-    await resolveTestFile();
-
     var fa = findNode.topLevelVariableDeclaration('fa');
     var fb = findNode.topLevelVariableDeclaration('fb');
 
@@ -186,7 +189,7 @@ main() {
   test_reportTypeErrorForNode_sameName_nested() async {
     newFile('/test/lib/a.dart', content: 'class A{}');
     newFile('/test/lib/b.dart', content: 'class A{}');
-    addTestFile(r'''
+    await resolveTestCode(r'''
 import 'a.dart' as a;
 import 'b.dart' as b;
 
@@ -198,8 +201,6 @@ main() {
   x;
 }
 ''');
-    await resolveTestFile();
-
     var ba = findNode.topLevelVariableDeclaration('ba');
     var bb = findNode.topLevelVariableDeclaration('bb');
 

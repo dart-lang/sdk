@@ -737,10 +737,11 @@ TimelineStream::TimelineStream(const char* name,
     : name_(name),
       fuchsia_name_(fuchsia_name),
 #if defined(HOST_OS_FUCHSIA)
-      enabled_(true) {  // For generated code.
+      enabled_(static_cast<uintptr_t>(true))  // For generated code.
 #else
-      enabled_(enabled) {
+      enabled_(static_cast<uintptr_t>(enabled))
 #endif
+{
 }
 
 TimelineEvent* TimelineStream::StartEvent() {
@@ -1112,8 +1113,7 @@ int64_t TimelineEventRecorder::GetNextAsyncId() {
 #if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
   return trace_generate_nonce();
 #else
-  uint32_t next =
-      static_cast<uint32_t>(AtomicOperations::FetchAndIncrement(&async_id_));
+  uint32_t next = static_cast<uint32_t>(async_id_.fetch_add(1u));
   return static_cast<int64_t>(next);
 #endif
 }

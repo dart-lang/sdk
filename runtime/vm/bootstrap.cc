@@ -60,6 +60,12 @@ static void Finish(Thread* thread) {
     field ^= fields.At(i);
     field.set_is_unboxing_candidate(false);
   }
+  // _Closure._hash field should be explicitly marked as nullable because
+  // VM creates instances of _Closure without compiling its constructors,
+  // so it won't get nullability info from a constructor.
+  field ^= fields.At(fields.Length() - 1);
+  ASSERT(String::Handle(zone, field.UserVisibleName()).Equals("_hash"));
+  field.RecordStore(Object::null_object());
 
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.

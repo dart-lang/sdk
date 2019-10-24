@@ -306,9 +306,12 @@ class Assembler : public AssemblerBase {
 
   void setcc(Condition condition, ByteRegister dst);
 
+  void EnterSafepoint();
+  void LeaveSafepoint();
   void TransitionGeneratedToNative(Register destination_address,
-                                   Register new_exit_frame);
-  void TransitionNativeToGenerated();
+                                   Register new_exit_frame,
+                                   bool enter_safepoint);
+  void TransitionNativeToGenerated(bool leave_safepoint);
 
 // Register-register, register-address and address-register instructions.
 #define RR(width, name, ...)                                                   \
@@ -331,7 +334,10 @@ class Assembler : public AssemblerBase {
   REGULAR_INSTRUCTION(test, 0x85)
   REGULAR_INSTRUCTION(xchg, 0x87)
   REGULAR_INSTRUCTION(imul, 0xAF, 0x0F)
+  REGULAR_INSTRUCTION(bsf, 0xBC, 0x0F)
   REGULAR_INSTRUCTION(bsr, 0xBD, 0x0F)
+  REGULAR_INSTRUCTION(popcnt, 0xB8, 0x0F, 0xF3)
+  REGULAR_INSTRUCTION(lzcnt, 0xBD, 0x0F, 0xF3)
 #undef REGULAR_INSTRUCTION
   RA(Q, movsxd, 0x63)
   RR(Q, movsxd, 0x63)
@@ -587,6 +593,7 @@ class Assembler : public AssemblerBase {
   REGULAR_UNARY(not, 0xF7, 2)
   REGULAR_UNARY(neg, 0xF7, 3)
   REGULAR_UNARY(mul, 0xF7, 4)
+  REGULAR_UNARY(imul, 0xF7, 5)
   REGULAR_UNARY(div, 0xF7, 6)
   REGULAR_UNARY(idiv, 0xF7, 7)
   REGULAR_UNARY(inc, 0xFF, 0)
@@ -799,8 +806,6 @@ class Assembler : public AssemblerBase {
 
   // Loading and comparing classes of objects.
   void LoadClassId(Register result, Register object);
-
-  // Overwrites class_id register (it will be tagged afterwards).
   void LoadClassById(Register result, Register class_id);
 
   void CompareClassId(Register object,
@@ -934,7 +939,7 @@ class Assembler : public AssemblerBase {
   void GenerateUnRelocatedPcRelativeCall(intptr_t offset_into_target = 0);
 
   // Debugging and bringup support.
-  void Breakpoint() { int3(); }
+  void Breakpoint() override { int3(); }
   void Stop(const char* message) override;
 
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);

@@ -8,15 +8,14 @@ import 'dart:math' show min, max;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
@@ -199,8 +198,8 @@ class CodeGenerator extends Object
       this.options, this._extensionTypes, this.errors)
       : rules = Dart2TypeSystem(types),
         declaredVariables = driver.declaredVariables,
-        _asyncStreamIterator =
-            driver.getClass('dart:async', 'StreamIterator').type,
+        _asyncStreamIterator = getLegacyRawClassType(
+            driver.getClass('dart:async', 'StreamIterator')),
         _coreIdentical = driver
             .getLibrary('dart:core')
             .publicNamespace
@@ -219,18 +218,18 @@ class CodeGenerator extends Object
         internalSymbolClass = driver.getClass('dart:_internal', 'Symbol'),
         privateSymbolClass =
             driver.getClass('dart:_js_helper', 'PrivateSymbol'),
-        linkedHashMapImplType =
-            driver.getClass('dart:_js_helper', 'LinkedMap').type,
-        identityHashMapImplType =
-            driver.getClass('dart:_js_helper', 'IdentityMap').type,
-        linkedHashSetImplType =
-            driver.getClass('dart:collection', '_HashSet').type,
-        identityHashSetImplType =
-            driver.getClass('dart:collection', '_IdentityHashSet').type,
-        syncIterableType =
-            driver.getClass('dart:_js_helper', 'SyncIterable').type,
-        asyncStarImplType =
-            driver.getClass('dart:async', '_AsyncStarImpl').type,
+        linkedHashMapImplType = getLegacyRawClassType(
+            driver.getClass('dart:_js_helper', 'LinkedMap')),
+        identityHashMapImplType = getLegacyRawClassType(
+            driver.getClass('dart:_js_helper', 'IdentityMap')),
+        linkedHashSetImplType = getLegacyRawClassType(
+            driver.getClass('dart:collection', '_HashSet')),
+        identityHashSetImplType = getLegacyRawClassType(
+            driver.getClass('dart:collection', '_IdentityHashSet')),
+        syncIterableType = getLegacyRawClassType(
+            driver.getClass('dart:_js_helper', 'SyncIterable')),
+        asyncStarImplType = getLegacyRawClassType(
+            driver.getClass('dart:async', '_AsyncStarImpl')),
         dartJSLibrary = driver.getLibrary('dart:js') {
     jsTypeRep = JSTypeRep(rules, driver);
   }
@@ -245,10 +244,12 @@ class CodeGenerator extends Object
   FunctionBody get currentFunction => _currentFunction;
 
   @override
-  InterfaceType get privateSymbolType => privateSymbolClass.type;
+  InterfaceType get privateSymbolType =>
+      getLegacyRawClassType(privateSymbolClass);
 
   @override
-  InterfaceType get internalSymbolType => internalSymbolClass.type;
+  InterfaceType get internalSymbolType =>
+      getLegacyRawClassType(internalSymbolClass);
 
   CompilationUnitElement get _currentCompilationUnit {
     for (var e = _currentElement;; e = e.enclosingElement) {
@@ -300,9 +301,7 @@ class CodeGenerator extends Object
     }
     if (compilationUnits.isNotEmpty) {
       _constants = ConstFieldVisitor(types, declaredVariables,
-          dummySource: resolutionMap
-              .elementDeclaredByCompilationUnit(compilationUnits.first)
-              .source);
+          dummySource: compilationUnits.first.declaredElement.source);
     }
 
     // Add implicit dart:core dependency so it is first.
@@ -1006,10 +1005,11 @@ class CodeGenerator extends Object
       }
     }
     if (classElem.library.isDartAsync) {
-      if (classElem == types.futureOrType.element) {
-        var typeParamT = classElem.typeParameters[0].type;
+      if (classElem == types.futureOrElement) {
+        var typeParamT =
+            getLegacyTypeParameterType(classElem.typeParameters[0]);
         var typeT = _emitType(typeParamT);
-        var futureOfT = _emitType(types.futureType.instantiate([typeParamT]));
+        var futureOfT = _emitType(types.futureType2(typeParamT));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
               return #.is(o) || #.is(o);
@@ -1210,7 +1210,7 @@ class CodeGenerator extends Object
       List<js_ast.Method> methods,
       List<js_ast.Statement> body,
       List<js_ast.Statement> deferredSupertypes) {
-    if (classElem.type.isObject) {
+    if (classElem.isDartCoreObject) {
       body.add(_emitClassStatement(classElem, className, null, methods));
       return;
     }
@@ -1252,7 +1252,7 @@ class CodeGenerator extends Object
     }
 
     getBaseClass(int count) {
-      var base = emitDeferredType(classElem.type);
+      var base = emitDeferredType(getLegacyRawClassType(classElem));
       while (--count >= 0) {
         base = js.call('#.__proto__', [base]);
       }
@@ -1419,14 +1419,14 @@ class CodeGenerator extends Object
 
   List<js_ast.Method> _emitClassMethods(
       ClassElement classElem, List<ClassMember> memberNodes) {
-    var type = classElem.type;
+    var type = getLegacyRawClassType(classElem);
     var virtualFields = _classProperties.virtualFields;
 
     var jsMethods = <js_ast.Method>[];
     bool hasJsPeer = _extensionTypes.isNativeClass(classElem);
     bool hasIterator = false;
 
-    if (type.isObject) {
+    if (classElem.isDartCoreObject) {
       // Dart does not use ES6 constructors.
       // Add an error to catch any invalid usage.
       jsMethods.add(
@@ -1791,7 +1791,7 @@ class CodeGenerator extends Object
   }
 
   bool _implementsIterable(InterfaceType t) =>
-      t.interfaces.any((i) => i.element.type == types.iterableType);
+      t.interfaces.any((i) => i.element == types.iterableElement);
 
   /// Support for adapting dart:core Iterable to ES6 versions.
   ///
@@ -1841,7 +1841,7 @@ class CodeGenerator extends Object
   void _registerExtensionType(
       ClassElement classElem, String jsPeerName, List<js_ast.Statement> body) {
     var className = _emitTopLevelName(classElem);
-    if (jsTypeRep.isPrimitive(classElem.type)) {
+    if (jsTypeRep.isPrimitive(getLegacyRawClassType(classElem))) {
       body.add(runtimeStatement(
           'definePrimitiveHashCode(#.prototype)', [className]));
     }
@@ -1957,7 +1957,7 @@ class CodeGenerator extends Object
       Map<Element, Declaration> members, List<js_ast.Statement> body) {
     if (classElem.isEnum) {
       // Emit enum static fields
-      var type = classElem.type;
+      var type = getLegacyRawClassType(classElem);
       void addField(FieldElement e, js_ast.Expression value) {
         body.add(defineValueOnClass(classElem, _emitStaticClassName(e),
                 _declareMemberName(e.getter), value)
@@ -2007,8 +2007,8 @@ class CodeGenerator extends Object
 
   /// Ensure `dartx.` symbols we will use are present.
   void _initExtensionSymbols(ClassElement classElem) {
-    if (_extensionTypes.hasNativeSubtype(classElem.type) ||
-        classElem.type.isObject) {
+    if (_extensionTypes.hasNativeSubtype(getLegacyRawClassType(classElem)) ||
+        classElem.isDartCoreObject) {
       for (var members in [classElem.methods, classElem.accessors]) {
         for (var m in members) {
           if (!m.isAbstract && !m.isStatic && m.isPublic) {
@@ -2058,7 +2058,7 @@ class CodeGenerator extends Object
       if (elements.isEmpty) return;
 
       if (!name.startsWith('Static')) {
-        var proto = classElem.type.isObject
+        var proto = classElem.isDartCoreObject
             ? js.call('Object.create(null)')
             : runtimeCall('get${name}s(#.__proto__)', [className]);
         elements.insert(0, js_ast.Property(propertyName('__proto__'), proto));
@@ -2086,8 +2086,8 @@ class CodeGenerator extends Object
 
         var name = method.name;
         var reifiedType = _getMemberRuntimeType(method);
-        var memberOverride =
-            classElem.type.lookUpMethodInSuperclass(name, currentLibrary);
+        var memberOverride = getLegacyRawClassType(classElem)
+            .lookUpMethodInSuperclass(name, currentLibrary);
         // Don't add redundant signatures for inherited methods whose signature
         // did not change.  If we are not overriding, or if the thing we are
         // overriding has a different reified type from ourselves, we must
@@ -2143,8 +2143,10 @@ class CodeGenerator extends Object
         var name = accessor.name;
         var isGetter = accessor.isGetter;
         var memberOverride = isGetter
-            ? classElem.type.lookUpGetterInSuperclass(name, currentLibrary)
-            : classElem.type.lookUpSetterInSuperclass(name, currentLibrary);
+            ? getLegacyRawClassType(classElem)
+                .lookUpGetterInSuperclass(name, currentLibrary)
+            : getLegacyRawClassType(classElem)
+                .lookUpSetterInSuperclass(name, currentLibrary);
 
         var reifiedType = accessor.type;
         // Don't add redundant signatures for inherited methods whose signature
@@ -2261,19 +2263,16 @@ class CodeGenerator extends Object
     var parameters = element.parameters
         .map((p) => ParameterElementImpl.synthetic(
             p.name,
-            _isCovariant(p) ? objectClass.type : p.type,
+            _isCovariant(p) ? getLegacyRawClassType(objectClass) : p.type,
             // ignore: deprecated_member_use
             p.parameterKind))
         .toList();
 
-    var function = FunctionElementImpl("", -1)
-      ..isSynthetic = true
-      ..returnType = element.returnType
-      // TODO(jmesserly): do covariant type parameter bounds also need to be
-      // reified as `Object`?
-      ..shareTypeParameters(element.typeParameters)
-      ..parameters = parameters;
-    return function.type = FunctionTypeImpl(function);
+    return FunctionTypeImpl.synthetic(
+      element.returnType,
+      element.typeParameters,
+      parameters,
+    );
   }
 
   js_ast.Expression _constructorName(String name) {
@@ -2350,7 +2349,7 @@ class CodeGenerator extends Object
     // Get the supertype's unnamed constructor.
     superCtor ??= element.supertype?.element?.unnamedConstructor;
     if (superCtor == null) {
-      assert(element.type.isObject ||
+      assert(element.isDartCoreObject ||
           element.isMixin ||
           options.unsafeForceCompile);
       return null;
@@ -2384,7 +2383,7 @@ class CodeGenerator extends Object
   }
 
   bool _hasUnnamedConstructor(ClassElement e) {
-    if (e.type.isObject) return false;
+    if (e.isDartCoreObject) return false;
     var ctor = e.unnamedConstructor;
     if (ctor != null && !ctor.isSynthetic) return true;
     return e.fields.any((f) => !f.isStatic && !f.isSynthetic);
@@ -2618,7 +2617,7 @@ class CodeGenerator extends Object
     }
     fn.sourceInformation = _functionEnd(node);
 
-    var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
+    var element = node.declaredElement;
     var nameExpr = _emitTopLevelName(element);
     body.add(js.statement('# = #', [
       nameExpr,
@@ -2864,8 +2863,11 @@ class CodeGenerator extends Object
     for (var t in typeFormals) {
       t = covariantParams.lookup(t) as TypeParameterElement;
       if (t != null) {
-        body.add(runtimeStatement('checkTypeBound(#, #, #)',
-            [_emitType(t.type), _emitType(t.bound), propertyName(t.name)]));
+        body.add(runtimeStatement('checkTypeBound(#, #, #)', [
+          _emitType(getLegacyTypeParameterType(t)),
+          _emitType(t.bound),
+          propertyName(t.name)
+        ]));
       }
     }
   }
@@ -2969,7 +2971,7 @@ class CodeGenerator extends Object
     //
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn([]);
-    var dartAsync = types.futureType.element.library;
+    var dartAsync = types.futureElement.library;
     return js.call('#.async(#, #)',
         [emitLibraryName(dartAsync), _emitType(returnType), gen]);
   }
@@ -3018,7 +3020,7 @@ class CodeGenerator extends Object
   /// inferred generic function instantiation.
   js_ast.Expression _emitSimpleIdentifier(SimpleIdentifier node,
       [PrefixedIdentifier prefix]) {
-    var accessor = resolutionMap.staticElementForIdentifier(node);
+    var accessor = node.staticElement;
     if (accessor == null) {
       return _throwUnsafe('unresolved identifier: ' + (node.name ?? '<null>'));
     }
@@ -3099,7 +3101,7 @@ class CodeGenerator extends Object
       ClassMemberElement element, Element accessor, Expression node) {
     bool isStatic = element.isStatic;
     var classElem = element.enclosingElement as ClassElement;
-    var type = classElem.type;
+    var type = getLegacyRawClassType(classElem);
     var member = _emitMemberName(element.name,
         isStatic: isStatic, type: type, element: accessor);
 
@@ -3262,7 +3264,8 @@ class CodeGenerator extends Object
       // If any explicit bounds were passed, emit them.
       if (typeFormals.any((t) => t.bound != null)) {
         var bounds = typeFormals
-            .map((t) => _emitType(t.type.bound, cacheType: cacheType))
+            .map((t) => _emitType(getLegacyTypeParameterType(t).bound,
+                cacheType: cacheType))
             .toList();
         typeParts.add(addTypeFormalsAsParameters(bounds));
       }
@@ -3529,7 +3532,7 @@ class CodeGenerator extends Object
       return _badAssignment("Unimplemented: unknown name '$node'", node, right);
     }
 
-    var accessor = resolutionMap.staticElementForIdentifier(node);
+    var accessor = node.staticElement;
     if (accessor == null) return unimplemented();
 
     // Get the original declaring element. If we had a property accessor, this
@@ -3589,7 +3592,9 @@ class CodeGenerator extends Object
     var classElem = field.enclosingElement as ClassElement;
     var isStatic = field.isStatic;
     var member = _emitMemberName(field.name,
-        isStatic: isStatic, type: classElem.type, element: field.setter);
+        isStatic: isStatic,
+        type: getLegacyRawClassType(classElem),
+        element: field.setter);
     jsTarget = isStatic
         ? (js_ast.PropertyAccess(_emitStaticClassName(field), member)
           ..sourceInformation = _nodeSpan(id))
@@ -3656,7 +3661,7 @@ class CodeGenerator extends Object
       if (e.name == 'getGenericClass' && firstArg is SimpleIdentifier) {
         var typeElem = firstArg.staticElement;
         if (typeElem is TypeDefiningElement &&
-            typeElem.type is ParameterizedType) {
+            getLegacyElementType(typeElem) is ParameterizedType) {
           return _emitTopLevelNameNoInterop(typeElem, suffix: '\$');
         }
       }
@@ -3689,7 +3694,8 @@ class CodeGenerator extends Object
       Expression target, Element member, bool isStatic) {
     if (isStatic) {
       if (member is ConstructorElement) {
-        return emitConstructorAccess(member.enclosingElement.type)
+        return emitConstructorAccess(
+            getLegacyRawClassType(member.enclosingElement))
           ..sourceInformation = _nodeSpan(target);
       }
       if (member is PropertyAccessorElement) {
@@ -4461,15 +4467,15 @@ class CodeGenerator extends Object
       return _emitType(value.toTypeValue());
     }
     if (type is InterfaceType) {
-      if (type.element == types.listType.element) {
+      if (type.element == types.listElement) {
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.setType.element) {
+      if (type.element == types.setElement) {
         return _emitConstSet(type.typeArguments[0],
             value.toSetValue().map(_emitDartObject).toList());
       }
-      if (type.element == types.mapType.element) {
+      if (type.element == types.mapElement) {
         var entries = <js_ast.Expression>[];
         value.toMapValue().forEach((key, value) {
           entries.add(_emitDartObject(key));
@@ -4516,7 +4522,7 @@ class CodeGenerator extends Object
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    var element = resolutionMap.staticElementForConstructorReference(node);
+    var element = node.staticElement;
     var constructor = node.constructorName;
     if (node.isConst &&
         element?.name == 'fromEnvironment' &&
@@ -4536,8 +4542,11 @@ class CodeGenerator extends Object
       if (typeNode is NamedType && typeNode.typeArguments != null) {
         var e = typeNode.name.staticElement;
         if (e is ClassElement) {
-          return e.type.instantiate(
-              typeNode.typeArguments.arguments.map(getType).toList());
+          return e.instantiate(
+            typeArguments:
+                typeNode.typeArguments.arguments.map(getType).toList(),
+            nullabilitySuffix: NullabilitySuffix.star,
+          );
         } else if (e is FunctionTypedElement) {
           return e.type.instantiate(
               typeNode.typeArguments.arguments.map(getType).toList());
@@ -5655,7 +5664,9 @@ class CodeGenerator extends Object
     // This applies regardless in an int or double context.
     var valueInJS = BigInt.from(value.toDouble());
     if (value != valueInJS) {
-      assert(node.staticType == intClass.type || options.unsafeForceCompile,
+      assert(
+          node.staticType == getLegacyRawClassType(intClass) ||
+              options.unsafeForceCompile,
           'int literals in double contexts should be checked by Analyzer.');
 
       var lexeme = node.literal.lexeme;
@@ -5724,7 +5735,7 @@ class CodeGenerator extends Object
     if (itemType.isDynamic) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var arrayType = _jsArray.type.instantiate([itemType]);
+    var arrayType = getLegacyRawClassType(_jsArray).instantiate([itemType]);
     return js.call('#.of(#)', [_emitType(arrayType), list]);
   }
 
@@ -5840,7 +5851,7 @@ class CodeGenerator extends Object
   /// Returns a [js_ast.Expression] for each [CollectionElement] in [nodes].
   ///
   /// Visits all [nodes] in order and nested [CollectionElement]s depth first
-  /// to produce [JS.Expresison]s intended to be used when outputing a
+  /// to produce [JS.Expression]s intended to be used when outputing a
   /// collection literal.
   ///
   /// [IfElement]s and [ForElement]s will be transformed into a spread of a
@@ -5869,7 +5880,7 @@ class CodeGenerator extends Object
       body.accept(finder);
       if (finder.hasYield) {
         var genFn = js_ast.Fun([], body, isGenerator: true);
-        var asyncLibrary = emitLibraryName(types.futureType.element.library);
+        var asyncLibrary = emitLibraryName(types.futureElement.library);
         return js_ast.Yield(js.call(
             '#.async(#, #)', [asyncLibrary, _emitType(yieldType), genFn]));
       }
@@ -5881,7 +5892,8 @@ class CodeGenerator extends Object
       if (_isUiAsCodeElement(node)) {
         // Create a temporary variable to build a new collection from.
         var previousCollectionVariable = _currentCollectionVariable;
-        var arrayType = _jsArray.type.instantiate([elementType]);
+        var arrayType =
+            getLegacyRawClassType(_jsArray).instantiate([elementType]);
         var temporaryIdentifier = _createTemporary('items', arrayType);
         _currentCollectionVariable = _emitSimpleIdentifier(temporaryIdentifier);
         var items = js.statement('let # = #',
@@ -6281,19 +6293,19 @@ class CodeGenerator extends Object
     }
     var type = functionType.returnType;
 
-    InterfaceType expectedType;
+    ClassElement expectedElement;
     if (element.isAsynchronous) {
       if (element.isGenerator) {
         // Stream<T> -> T
-        expectedType = types.streamType;
+        expectedElement = types.streamElement;
       } else {
         // Future<T> -> T
-        expectedType = types.futureType;
+        expectedElement = types.futureElement;
       }
     } else {
       if (element.isGenerator) {
         // Iterable<T> -> T
-        expectedType = types.iterableType;
+        expectedElement = types.iterableElement;
       } else {
         // T -> T
         return type;
@@ -6301,9 +6313,9 @@ class CodeGenerator extends Object
     }
     if (type.isDynamic) return type;
     if (type is InterfaceType &&
-        (type.element == expectedType.element ||
-            expectedType == types.futureType &&
-                type.element == types.futureOrType.element)) {
+        (type.element == expectedElement ||
+            expectedElement == types.futureElement &&
+                type.element == types.futureOrElement)) {
       return type.typeArguments[0];
     }
     // TODO(leafp): The above only handles the case where the return type
@@ -6314,8 +6326,12 @@ class CodeGenerator extends Object
   js_ast.Expression _throwUnsafe(String message) => runtimeCall(
       'throw(Error(#))', [js.escapedString("compile error: $message")]);
 
-  Null _unreachable(Object node) {
-    throw UnsupportedError('tried to generate an unreachable node: `$node`');
+  js_ast.Expression _unreachable(Object node) {
+    var message = 'tried to generate an unreachable node: `$node`';
+    if (options.unsafeForceCompile) {
+      return _throwUnsafe(message);
+    }
+    throw UnsupportedError(message);
   }
 
   /// Unused, see methods for emitting declarations.
@@ -6587,7 +6603,7 @@ class CodeGenerator extends Object
         return _emitAwaitFor(forParts, jsBody);
       }
     }
-    return _unreachable(forParts);
+    return _unreachable(forParts).toStatement();
   }
 
   @override
@@ -6720,9 +6736,7 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
   TemporaryVariableElement.forNode(
       Identifier name, this.jsVariable, Element enclosingElement)
       : super.forNode(name) {
-    this.enclosingElement = enclosingElement is ElementHandle
-        ? enclosingElement.actualElement
-        : enclosingElement;
+    this.enclosingElement = enclosingElement;
   }
 
   @override
@@ -6747,9 +6761,8 @@ bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
   var prefix = targetIdentifier.staticElement as PrefixElement;
 
   // The library the prefix is referring to must come from a deferred import.
-  var containingLibrary = resolutionMap
-      .elementDeclaredByCompilationUnit(target.root as CompilationUnit)
-      .library;
+  var containingLibrary =
+      (target.root as CompilationUnit).declaredElement.library;
   var imports = containingLibrary.getImportsWithPrefix(prefix);
   return imports.length == 1 && imports[0].isDeferred;
 }

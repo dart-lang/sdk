@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary2/function_type_builder.dart';
 import 'package:analyzer/src/summary2/named_type_builder.dart';
 
@@ -39,6 +40,43 @@ FreshTypeParameters getFreshTypeParameters(
   }
 
   return new FreshTypeParameters(freshParameters, substitution);
+}
+
+/// Given a generic function [type] of a class member (so that it does not
+/// carry its element and type arguments), substitute its type parameters with
+/// the [newTypeParameters] in the formal parameters and return type.
+FunctionType replaceTypeParameters(
+  FunctionTypeImpl type,
+  List<TypeParameterElement> newTypeParameters,
+) {
+  assert(newTypeParameters.length == type.typeFormals.length);
+  if (newTypeParameters.isEmpty) {
+    return type;
+  }
+
+  var typeArguments = newTypeParameters
+      .map((e) => e.instantiate(nullabilitySuffix: type.nullabilitySuffix))
+      .toList();
+  var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
+
+  ParameterElement transformParameter(ParameterElement p) {
+    var type = p.type;
+    var newType = substitution.substituteType(type);
+    if (identical(newType, type)) return p;
+    return ParameterElementImpl.synthetic(
+      p.name,
+      newType,
+      // ignore: deprecated_member_use_from_same_package
+      p.parameterKind,
+    )..isExplicitlyCovariant = p.isCovariant;
+  }
+
+  return FunctionTypeImpl.synthetic(
+    substitution.substituteType(type.returnType),
+    newTypeParameters,
+    type.parameters.map(transformParameter).toList(),
+    nullabilitySuffix: type.nullabilitySuffix,
+  );
 }
 
 /// Returns a type where all occurrences of the given type parameters have been
@@ -126,7 +164,7 @@ abstract class Substitution {
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
-  static Substitution fromMap(Map<TypeParameterElement, DartType> map) {
+  static MapSubstitution fromMap(Map<TypeParameterElement, DartType> map) {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
@@ -189,17 +227,6 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameterElement, DartType> substitution = {};
 
   _FreshTypeParametersSubstitutor(_TypeSubstitutor outer) : super(outer);
-
-  TypeParameterElement freshTypeParameter(TypeParameterElement element) {
-    var freshElement = new TypeParameterElementImpl(element.name, -1);
-    var freshType = new TypeParameterTypeImpl(freshElement);
-    freshElement.type = freshType;
-    substitution[element] = freshType;
-    if (element.bound != null) {
-      freshElement.bound = visit(element.bound);
-    }
-    return freshElement;
-  }
 
   @override
   List<TypeParameterElement> freshTypeParameters(
@@ -444,11 +471,12 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       return type;
     }
 
-    return new InterfaceTypeImpl.explicit(type.element, typeArguments);
+    return new InterfaceTypeImpl.explicit(type.element, typeArguments,
+        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
   }
 
   @override
-  DartType visitNamedType(NamedTypeBuilder type) {
+  DartType visitNamedTypeBuilder(NamedTypeBuilder type) {
     if (type.arguments.isEmpty) {
       return type;
     }
@@ -470,6 +498,9 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitTypeParameterType(TypeParameterType type) {
     return getSubstitute(type.element) ?? type;
   }
+
+  @override
+  DartType visitUnknownInferredType(UnknownInferredType type) => type;
 
   @override
   DartType visitVoidType(VoidType type) => type;

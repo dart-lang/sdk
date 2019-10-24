@@ -3,6 +3,7 @@
 src/org/dartlang/vm/service/VmService.java
 src/org/dartlang/vm/service/consumer/AllocationProfileConsumer.java
 src/org/dartlang/vm/service/consumer/BreakpointConsumer.java
+src/org/dartlang/vm/service/consumer/CpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
 src/org/dartlang/vm/service/consumer/FlagListConsumer.java
@@ -15,6 +16,7 @@ src/org/dartlang/vm/service/consumer/InvokeConsumer.java
 src/org/dartlang/vm/service/consumer/ReloadReportConsumer.java
 src/org/dartlang/vm/service/consumer/RetainingPathConsumer.java
 src/org/dartlang/vm/service/consumer/ScriptListConsumer.java
+src/org/dartlang/vm/service/consumer/SetFlagConsumer.java
 src/org/dartlang/vm/service/consumer/SourceReportConsumer.java
 src/org/dartlang/vm/service/consumer/StackConsumer.java
 src/org/dartlang/vm/service/consumer/SuccessConsumer.java
@@ -37,6 +39,8 @@ src/org/dartlang/vm/service/element/CodeRef.java
 src/org/dartlang/vm/service/element/Context.java
 src/org/dartlang/vm/service/element/ContextElement.java
 src/org/dartlang/vm/service/element/ContextRef.java
+src/org/dartlang/vm/service/element/CpuSample.java
+src/org/dartlang/vm/service/element/CpuSamples.java
 src/org/dartlang/vm/service/element/ErrorKind.java
 src/org/dartlang/vm/service/element/ErrorObj.java
 src/org/dartlang/vm/service/element/ErrorRef.java
@@ -67,10 +71,12 @@ src/org/dartlang/vm/service/element/LogRecord.java
 src/org/dartlang/vm/service/element/MapAssociation.java
 src/org/dartlang/vm/service/element/MemoryUsage.java
 src/org/dartlang/vm/service/element/Message.java
+src/org/dartlang/vm/service/element/NativeFunction.java
 src/org/dartlang/vm/service/element/Null.java
 src/org/dartlang/vm/service/element/NullRef.java
 src/org/dartlang/vm/service/element/Obj.java
 src/org/dartlang/vm/service/element/ObjRef.java
+src/org/dartlang/vm/service/element/ProfileFunction.java
 src/org/dartlang/vm/service/element/ReloadReport.java
 src/org/dartlang/vm/service/element/Response.java
 src/org/dartlang/vm/service/element/RetainingObject.java

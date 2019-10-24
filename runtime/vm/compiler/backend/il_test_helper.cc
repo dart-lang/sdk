@@ -46,8 +46,10 @@ RawFunction* GetFunction(const Library& lib, const char* name) {
 
 void Invoke(const Library& lib, const char* name) {
   // These tests rely on running unoptimized code to collect type feedback. The
-  // interpreter does not collect type feedback for interface calls.
-  SetFlagScope<bool> sfs(&FLAG_enable_interpreter, false);
+  // interpreter does not collect type feedback for interface calls, so set
+  // compilation threshold to 0 in order to compile invoked function
+  // immediately and execute compiled code.
+  SetFlagScope<int> sfs(&FLAG_compilation_counter_threshold, 0);
 
   Thread* thread = Thread::Current();
   Dart_Handle api_lib = Api::NewHandle(thread, lib.raw());
@@ -114,9 +116,9 @@ FlowGraph* TestPipeline::RunPasses(
     }
 
     if (passes.size() > 0) {
-      CompilerPass::RunPipelineWithPasses(pass_state_, passes);
+      flow_graph_ = CompilerPass::RunPipelineWithPasses(pass_state_, passes);
     } else {
-      CompilerPass::RunPipeline(mode_, pass_state_);
+      flow_graph_ = CompilerPass::RunPipeline(mode_, pass_state_);
     }
   }
 

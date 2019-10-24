@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart'
     show DartType, InterfaceType, FunctionType;
 import 'package:analyzer/dart/element/type.dart';
@@ -14,6 +15,8 @@ import 'package:analyzer/src/generated/constant.dart'
     show DartObject, DartObjectImpl;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
+
+import 'type_utilities.dart';
 
 class Tuple2<T0, T1> {
   final T0 e0;
@@ -29,9 +32,12 @@ class Tuple2<T0, T1> {
 /// [instantiateElementTypeToBounds] should be used instead.
 InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
   if (t.typeArguments.isNotEmpty) {
-    var rawT = t.element.type;
-    var dyn = List.filled(rawT.typeArguments.length, DynamicTypeImpl.instance);
-    return rawT.substitute2(dyn, rawT.typeArguments);
+    var dyn =
+        List.filled(t.element.typeParameters.length, DynamicTypeImpl.instance);
+    return t.element.instantiate(
+      typeArguments: dyn,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
   return t;
 }
@@ -43,34 +49,24 @@ InterfaceType fillDynamicTypeArgsForClass(InterfaceType t) {
 /// meaningful type, so we need to work around that.
 DartType instantiateElementTypeToBounds(
     Dart2TypeSystem rules, TypeDefiningElement element) {
-  Element e = element;
-  if (e is TypeParameterizedElement) {
-    // TODO(jmesserly): we can't use `instantiateToBounds` because typedefs do
-    // not include their type parameters, for example:
-    //
-    //     typedef void void Func<T>(T x);               // Dart 1 syntax.
-    //     typedef void GenericFunc<T> = S Func<S>(T x); // Dart 2 syntax.
-    //
-    // There is no way to get a type that has `<T>` as a type formal from the
-    // element (without constructing it ourselves).
-    //
-    // Futhermore, the second line is represented by a GenericTypeAliasElement,
-    // and its type getter does not even include its own type formals `<S>`.
-    // That has to be worked around using `.function.type`.
-    DartType type;
-    if (e is GenericTypeAliasElement) {
-      type = e.function.type;
-    } else if (e is FunctionTypedElement) {
-      type = e.type;
-    } else if (e is ClassElement) {
-      type = e.type;
+  if (element is TypeParameterizedElement) {
+    if (element is ClassElement) {
+      var typeArguments = rules.instantiateTypeFormalsToBounds2(element);
+      return element.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+    } else if (element is GenericTypeAliasElement) {
+      var typeArguments = rules.instantiateTypeFormalsToBounds2(element);
+      return element.instantiate2(
+        typeArguments: typeArguments,
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
+    } else {
+      throw StateError('${element.runtimeType}');
     }
-    var bounds = rules.instantiateTypeFormalsToBounds(e.typeParameters);
-    if (bounds == null) return type;
-    return type.substitute2(
-        bounds, TypeParameterTypeImpl.getTypes(e.typeParameters));
   }
-  return element.type;
+  return getLegacyElementType(element);
 }
 
 /// Given an [element] and a [test] function, returns the first matching
@@ -227,7 +223,7 @@ bool hasNoSuchMethod(ClassElement classElement) {
   var method = classElement.lookUpMethod(
       FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
   var definingClass = method?.enclosingElement;
-  return definingClass is ClassElement && !definingClass.type.isObject;
+  return definingClass is ClassElement && !definingClass.isDartCoreObject;
 }
 
 /// Returns true if this class is of the form:
@@ -253,7 +249,8 @@ bool isCallableClass(ClassElement c) {
   // * `dynamic d; d();` without a declared `call` method is handled by dcall.
   // * for `class C implements Callable { noSuchMethod(i) { ... } }` we find
   //   the `call` method on the `Callable` interface.
-  var callMethod = c.type.lookUpInheritedGetterOrMethod('call');
+  var callMethod =
+      getLegacyRawClassType(c).lookUpInheritedGetterOrMethod('call');
   return callMethod is PropertyAccessorElement
       ? callMethod.returnType is FunctionType
       : callMethod != null;

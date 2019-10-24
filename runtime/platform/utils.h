@@ -105,31 +105,8 @@ class Utils {
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
 
-  static int CountOneBits32(uint32_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcount(x);
-#else
-    // Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
-    // figure 5-2, page 66, where the function is called pop.
-    x = x - ((x >> 1) & 0x55555555);
-    x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
-    x = (x + (x >> 4)) & 0x0F0F0F0F;
-    x = x + (x >> 8);
-    x = x + (x >> 16);
-    return static_cast<int>(x & 0x0000003F);
-#endif
-  }
-
-  static int CountOneBits64(uint64_t x) {
-    // Apparently there are x64 chips without popcount.
-#if __GNUC__ && !defined(HOST_ARCH_IA32) && !defined(HOST_ARCH_X64)
-    return __builtin_popcountll(x);
-#else
-    return CountOneBits32(static_cast<uint32_t>(x)) +
-           CountOneBits32(static_cast<uint32_t>(x >> 32));
-#endif
-  }
+  static int CountOneBits64(uint64_t x);
+  static int CountOneBits32(uint32_t x);
 
   static int CountOneBitsWord(uword x) {
 #ifdef ARCH_IS_64_BIT
@@ -147,8 +124,43 @@ class Utils {
     return (value == 0) ? 0 : (Utils::HighestBit(value) + 1);
   }
 
-  static int CountLeadingZeros(uword x);
-  static int CountTrailingZeros(uword x);
+  static int CountLeadingZeros64(uint64_t x);
+  static int CountLeadingZeros32(uint32_t x);
+
+  static int CountLeadingZerosWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountLeadingZeros64(x);
+#else
+    return CountLeadingZeros32(x);
+#endif
+  }
+
+  static int CountTrailingZeros64(uint64_t x);
+  static int CountTrailingZeros32(uint32_t x);
+
+  static int CountTrailingZerosWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountTrailingZeros64(x);
+#else
+    return CountTrailingZeros32(x);
+#endif
+  }
+
+  static uint64_t ReverseBits64(uint64_t x);
+  static uint32_t ReverseBits32(uint32_t x);
+
+  static uword ReverseBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return ReverseBits64(x);
+#else
+    return ReverseBits32(x);
+#endif
+  }
+
+  // Computes magic numbers to implement DIV or MOD operator.
+  static void CalculateMagicAndShiftForDivRem(int64_t divisor,
+                                              int64_t* magic,
+                                              int64_t* shift);
 
   // Computes a hash value for the given string.
   static uint32_t StringHash(const char* data, int length);
@@ -294,10 +306,13 @@ class Utils {
   static uint32_t HostToLittleEndian32(uint32_t host_value);
   static uint64_t HostToLittleEndian64(uint64_t host_value);
 
-  static uint32_t BigEndianToHost32(uint32_t be_value) {
-    // Going between Host <-> BE is the same operation for all practical
-    // purposes.
+  // Going between Host <-> LE/BE is the same operation for all practical
+  // purposes.
+  static inline uint32_t BigEndianToHost32(uint32_t be_value) {
     return HostToBigEndian32(be_value);
+  }
+  static inline uint64_t LittleEndianToHost64(uint64_t le_value) {
+    return HostToLittleEndian64(le_value);
   }
 
   static bool DoublesBitEqual(const double a, const double b) {

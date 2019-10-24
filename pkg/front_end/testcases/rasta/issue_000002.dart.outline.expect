@@ -12,6 +12,6 @@ class Foo extends core::Object {
   static factory fac(dynamic value) → self::Foo*
     ;
 }
-static field dynamic list;
+static field core::List<core::int*>* list;
 static method main() → dynamic
   ;

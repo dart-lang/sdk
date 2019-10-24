@@ -114,6 +114,7 @@ bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
                       bool dev_mode_server,
                       bool auth_codes_disabled,
+                      const char* write_service_info_filename,
                       bool trace_loading,
                       bool deterministic) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
@@ -176,6 +177,11 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(auth_codes_disabled));
   SHUTDOWN_ON_ERROR(result);
 
+  if (write_service_info_filename != nullptr) {
+    result = DartUtils::SetStringField(library, "_serviceInfoFilename",
+                                       write_service_info_filename);
+    SHUTDOWN_ON_ERROR(result);
+  }
 // Are we running on Windows?
 #if defined(HOST_OS_WINDOWS)
   Dart_Handle is_windows = Dart_True();

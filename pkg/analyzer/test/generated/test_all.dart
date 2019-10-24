@@ -8,6 +8,7 @@ import 'all_the_rest_test.dart' as all_the_rest;
 import 'checked_mode_compile_time_error_code_test.dart'
     as checked_mode_compile_time_error_code;
 import 'compile_time_error_code_test.dart' as compile_time_error_code;
+// ignore: deprecated_member_use_from_same_package
 import 'constant_test.dart' as constant_test;
 import 'declaration_resolver_test.dart' as declaration_resolver_test;
 import 'element_resolver_test.dart' as element_resolver_test;
@@ -15,6 +16,7 @@ import 'engine_test.dart' as engine_test;
 import 'error_suppression_test.dart' as error_suppression;
 import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'invalid_code_test.dart' as invalid_code;
+import 'issues_test.dart' as issues;
 import 'java_core_test.dart' as java_core_test;
 import 'java_io_test.dart' as java_io_test;
 import 'non_error_resolver_test.dart' as non_error_resolver;
@@ -46,6 +48,7 @@ main() {
     error_suppression.main();
     inheritance_manager_test.main();
     invalid_code.main();
+    issues.main();
     java_core_test.main();
     java_io_test.main();
     non_error_resolver.main();

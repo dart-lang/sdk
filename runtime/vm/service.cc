@@ -120,7 +120,7 @@ StreamInfo Service::isolate_stream("Isolate");
 StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
-StreamInfo Service::graph_stream("_Graph");
+StreamInfo Service::heapsnapshot_stream("HeapSnapshot");
 StreamInfo Service::logging_stream("Logging");
 StreamInfo Service::extension_stream("Extension");
 StreamInfo Service::timeline_stream("Timeline");
@@ -131,7 +131,7 @@ intptr_t Service::dart_library_kernel_len_ = 0;
 static StreamInfo* streams_[] = {
     &Service::vm_stream,      &Service::isolate_stream,
     &Service::debug_stream,   &Service::gc_stream,
-    &Service::echo_stream,    &Service::graph_stream,
+    &Service::echo_stream,    &Service::heapsnapshot_stream,
     &Service::logging_stream, &Service::extension_stream,
     &Service::timeline_stream};
 
@@ -146,7 +146,7 @@ bool Service::ListenStream(const char* stream_id) {
       return true;
     }
   }
-  if (stream_listen_callback_) {
+  if (stream_listen_callback_ != nullptr) {
     Thread* T = Thread::Current();
     TransitionVMToNative transition(T);
     return (*stream_listen_callback_)(stream_id);
@@ -165,7 +165,7 @@ void Service::CancelStream(const char* stream_id) {
       return;
     }
   }
-  if (stream_cancel_callback_) {
+  if (stream_cancel_callback_ != nullptr) {
     Thread* T = Thread::Current();
     TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
@@ -211,14 +211,6 @@ RawObject* Service::RequestAssets() {
     return Object::null();
   }
   return object.raw();
-}
-
-static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
-  if (new_ptr == NULL) {
-    OUT_OF_MEMORY();
-  }
-  return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
 static void PrintMissingParamError(JSONStream* js, const char* param) {
@@ -958,7 +950,8 @@ void Service::SendEvent(const char* stream_id,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  ASSERT(!Isolate::IsVMInternalIsolate(isolate));
+  ASSERT(FLAG_show_invisible_isolates ||
+         !Isolate::IsVMInternalIsolate(isolate));
 
   if (FLAG_trace_service) {
     OS::PrintErr(
@@ -972,8 +965,6 @@ void Service::SendEvent(const char* stream_id,
 
   bool result;
   {
-    TransitionVMToNative transition(thread);
-
     Dart_CObject cbytes;
     cbytes.type = Dart_CObject_kExternalTypedData;
     cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
@@ -994,7 +985,14 @@ void Service::SendEvent(const char* stream_id,
     message.value.as_array.length = 2;
     message.value.as_array.values = elements;
 
-    result = Dart_PostCObject(ServiceIsolate::Port(), &message);
+    ApiMessageWriter writer;
+    std::unique_ptr<Message> msg = writer.WriteCMessage(
+        &message, ServiceIsolate::Port(), Message::kNormalPriority);
+    if (msg == nullptr) {
+      result = false;
+    } else {
+      result = PortMap::PostMessage(std::move(msg));
+    }
   }
 
   if (!result) {
@@ -1004,34 +1002,20 @@ void Service::SendEvent(const char* stream_id,
 
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
+                                intptr_t reservation,
                                 const char* metadata,
                                 intptr_t metadata_size,
-                                const uint8_t* data,
+                                uint8_t* data,
                                 intptr_t data_size) {
-  // Bitstream: [metadata size (big-endian 64 bit)] [metadata (UTF-8)] [data]
-  const intptr_t total_bytes = sizeof(uint64_t) + metadata_size + data_size;
-
-  uint8_t* message = static_cast<uint8_t*>(malloc(total_bytes));
-  if (message == NULL) {
-    OUT_OF_MEMORY();
-  }
-  intptr_t offset = 0;
-
-  // Metadata size.
-  reinterpret_cast<uint64_t*>(message)[0] =
-      Utils::HostToBigEndian64(metadata_size);
-  offset += sizeof(uint64_t);
-
-  // Metadata.
-  memmove(&message[offset], metadata, metadata_size);
-  offset += metadata_size;
-
-  // Data.
-  memmove(&message[offset], data, data_size);
-  offset += data_size;
-
-  ASSERT(offset == total_bytes);
-  SendEvent(stream_id, event_type, message, total_bytes);
+  ASSERT(kInt32Size + metadata_size <= reservation);
+  // Using a SPACE creates valid JSON. Our goal here is to prevent the memory
+  // overhead of copying to concatenate metadata and payload together by
+  // over-allocating to underlying buffer before we know how long the metadata
+  // will be.
+  memset(data, ' ', reservation);
+  reinterpret_cast<uint32_t*>(data)[0] = reservation;
+  memmove(&(reinterpret_cast<uint32_t*>(data)[1]), metadata, metadata_size);
+  Service::SendEvent(stream_id, event_type, data, data_size);
 }
 
 static void ReportPauseOnConsole(ServiceEvent* event) {
@@ -1432,70 +1416,6 @@ static bool GetScripts(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_unused_changes_in_last_reload_params[] = {
-    ISOLATE_PARAMETER, NULL,
-};
-
-static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
-  if (CheckCompilerDisabled(thread, js)) {
-    return true;
-  }
-
-  const GrowableObjectArray& changed_in_last_reload =
-      GrowableObjectArray::Handle(
-          thread->isolate()->object_store()->changed_in_last_reload());
-  if (changed_in_last_reload.IsNull()) {
-    js->PrintError(kIsolateMustHaveReloaded, "No change to compare with.");
-    return true;
-  }
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "UnusedChangesInLastReload");
-  JSONArray jsarr(&jsobj, "unused");
-  Object& changed = Object::Handle();
-  Function& function = Function::Handle();
-  Field& field = Field::Handle();
-  Class& cls = Class::Handle();
-  Array& functions = Array::Handle();
-  Array& fields = Array::Handle();
-  for (intptr_t i = 0; i < changed_in_last_reload.Length(); i++) {
-    changed = changed_in_last_reload.At(i);
-    if (changed.IsFunction()) {
-      function ^= changed.raw();
-      if (!function.WasExecuted()) {
-        jsarr.AddValue(function);
-      }
-    } else if (changed.IsField()) {
-      field ^= changed.raw();
-      if (field.IsUninitialized() ||
-          field.initializer_changed_after_initialization()) {
-        jsarr.AddValue(field);
-      }
-    } else if (changed.IsClass()) {
-      cls ^= changed.raw();
-      if (!cls.is_finalized()) {
-        // Not used at all.
-        jsarr.AddValue(cls);
-      } else {
-        functions = cls.functions();
-        for (intptr_t j = 0; j < functions.Length(); j++) {
-          function ^= functions.At(j);
-          if (!function.WasExecuted()) {
-            jsarr.AddValue(function);
-          }
-        }
-        fields = cls.fields();
-        for (intptr_t j = 0; j < fields.Length(); j++) {
-          field ^= fields.At(j);
-          if (field.IsUninitialized()) {
-            jsarr.AddValue(field);
-          }
-        }
-      }
-    }
-  }
-  return true;
-}
-
 static const MethodParameter* get_stack_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     NULL,
@@ -1586,9 +1506,15 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
       }
     }
   }
-  uint8_t data[] = {0, 128, 255};
-  SendEventWithData(echo_stream.id(), "_Echo", js.buffer()->buf(),
-                    js.buffer()->length(), data, sizeof(data));
+
+  intptr_t reservation = js.buffer()->length() + sizeof(int32_t);
+  intptr_t data_size = reservation + 3;
+  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(data_size));
+  data[reservation + 0] = 0;
+  data[reservation + 1] = 128;
+  data[reservation + 2] = 255;
+  SendEventWithData(echo_stream.id(), "_Echo", reservation, js.buffer()->buf(),
+                    js.buffer()->length(), data, data_size);
 }
 
 static bool TriggerEchoEvent(Thread* thread, JSONStream* js) {
@@ -2052,7 +1978,7 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
     Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
-      if (bpt) {
+      if (bpt != nullptr) {
         *result = ObjectIdRing::kValid;
         return bpt;
       }
@@ -3839,100 +3765,30 @@ static bool GetTagProfile(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const char* const tags_enum_names[] = {
-    "None", "UserVM", "UserOnly", "VMUser", "VMOnly", NULL,
-};
-
-static const Profile::TagOrder tags_enum_values[] = {
-    Profile::kNoTags, Profile::kUserVM, Profile::kUser,
-    Profile::kVMUser, Profile::kVM,
-    Profile::kNoTags,  // Default value.
-};
-
-static const MethodParameter* get_cpu_profile_params[] = {
+static const MethodParameter* get_cpu_samples_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("tags", true, tags_enum_names),
-    new BoolParameter("_codeTransitionTags", false),
     new Int64Parameter("timeOriginMicros", false),
     new Int64Parameter("timeExtentMicros", false),
     NULL,
 };
 
-// TODO(johnmccutchan): Rename this to GetCpuSamples.
-static bool GetCpuProfile(Thread* thread, JSONStream* js) {
-  if (CheckProfilerDisabled(thread, js)) {
-    return true;
-  }
-
-  Profile::TagOrder tag_order =
-      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  intptr_t extra_tags = 0;
-  if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
-    extra_tags |= ProfilerService::kCodeTransitionTagsBit;
-  }
+static bool GetCpuSamples(Thread* thread, JSONStream* js) {
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  ProfilerService::PrintJSON(js, tag_order, extra_tags, time_origin_micros,
-                             time_extent_micros);
-  return true;
-}
-
-static const MethodParameter* get_cpu_profile_timeline_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("tags", true, tags_enum_names),
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
-    NULL,
-};
-
-static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  const bool include_code_samples =
+      BoolParameter::Parse(js->LookupParam("_code"), false);
   if (CheckProfilerDisabled(thread, js)) {
     return true;
   }
-
-  Profile::TagOrder tag_order =
-      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), false);
-  ProfilerService::PrintTimelineJSON(js, tag_order, time_origin_micros,
-                                     time_extent_micros, code_trie);
-  return true;
-}
-
-static const MethodParameter* write_cpu_profile_timeline_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("tags", true, tags_enum_names),
-    new Int64Parameter("timeOriginMicros", false),
-    new Int64Parameter("timeExtentMicros", false),
-    NULL,
-};
-
-static bool WriteCpuProfileTimeline(Thread* thread, JSONStream* js) {
-  if (CheckProfilerDisabled(thread, js)) {
-    return true;
-  }
-
-  Profile::TagOrder tag_order =
-      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  int64_t time_origin_micros =
-      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
-  int64_t time_extent_micros =
-      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
-  bool code_trie = BoolParameter::Parse(js->LookupParam("code"), true);
-  ProfilerService::AddToTimeline(tag_order, time_origin_micros,
-                                 time_extent_micros, code_trie);
-  PrintSuccess(js);  // The "result" is a side-effect in the timeline.
+  ProfilerService::PrintJSON(js, time_origin_micros, time_extent_micros,
+                             include_code_samples);
   return true;
 }
 
 static const MethodParameter* get_allocation_samples_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("tags", true, tags_enum_names),
     new IdParameter("classId", false),
     new Int64Parameter("timeOriginMicros", false),
     new Int64Parameter("timeExtentMicros", false),
@@ -3940,8 +3796,6 @@ static const MethodParameter* get_allocation_samples_params[] = {
 };
 
 static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
-  Profile::TagOrder tag_order =
-      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -3951,8 +3805,11 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
   GetPrefixedIntegerId(class_id, "classes/", &cid);
   Isolate* isolate = thread->isolate();
   if (IsValidClassId(isolate, cid)) {
+    if (CheckProfilerDisabled(thread, js)) {
+      return true;
+    }
     const Class& cls = Class::Handle(GetClassForId(isolate, cid));
-    ProfilerService::PrintAllocationJSON(js, tag_order, cls, time_origin_micros,
+    ProfilerService::PrintAllocationJSON(js, cls, time_origin_micros,
                                          time_extent_micros);
   } else {
     PrintInvalidParamError(js, "classId");
@@ -3962,32 +3819,38 @@ static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_native_allocation_samples_params[] = {
     NO_ISOLATE_PARAMETER,
-    new EnumParameter("tags", true, tags_enum_names),
     new Int64Parameter("timeOriginMicros", false),
     new Int64Parameter("timeExtentMicros", false),
     NULL,
 };
 
 static bool GetNativeAllocationSamples(Thread* thread, JSONStream* js) {
-  Profile::TagOrder tag_order =
-      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
       Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  bool include_code_samples =
+      BoolParameter::Parse(js->LookupParam("_code"), false);
 #if defined(DEBUG)
   Isolate::Current()->heap()->CollectAllGarbage();
 #endif
-  ProfilerService::PrintNativeAllocationJSON(js, tag_order, time_origin_micros,
-                                             time_extent_micros);
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
+  ProfilerService::PrintNativeAllocationJSON(
+      js, time_origin_micros, time_extent_micros, include_code_samples);
   return true;
 }
 
-static const MethodParameter* clear_cpu_profile_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+static const MethodParameter* clear_cpu_samples_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
-static bool ClearCpuProfile(Thread* thread, JSONStream* js) {
+static bool ClearCpuSamples(Thread* thread, JSONStream* js) {
+  if (CheckProfilerDisabled(thread, js)) {
+    return true;
+  }
   ProfilerService::ClearSamples();
   PrintSuccess(js);
   return true;
@@ -4017,7 +3880,7 @@ static bool GetAllocationProfileImpl(Thread* thread,
   Isolate* isolate = thread->isolate();
   if (should_reset_accumulator) {
     isolate->UpdateLastAllocationProfileAccumulatorResetTimestamp();
-    isolate->class_table()->ResetAllocationAccumulators();
+    isolate->shared_class_table()->ResetAllocationAccumulators();
   }
   if (should_collect) {
     isolate->UpdateLastAllocationProfileGCTimestamp();
@@ -4041,7 +3904,8 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
 }
 
 static const MethodParameter* collect_all_garbage_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
 };
 
 static bool CollectAllGarbage(Thread* thread, JSONStream* js) {
@@ -4073,80 +3937,19 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const char* snapshot_roots_names[] = {
-    "User", "VM", NULL,
-};
-
-static ObjectGraph::SnapshotRoots snapshot_roots_values[] = {
-    ObjectGraph::kUser, ObjectGraph::kVM,
-};
-
 static const MethodParameter* request_heap_snapshot_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
-    new EnumParameter("roots", false /* not required */, snapshot_roots_names),
-    new BoolParameter("collectGarbage", false /* not required */), NULL,
+    NULL,
 };
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
-  ObjectGraph::SnapshotRoots roots = ObjectGraph::kVM;
-  const char* roots_arg = js->LookupParam("roots");
-  if (roots_arg != NULL) {
-    roots = EnumMapper(roots_arg, snapshot_roots_names, snapshot_roots_values);
-  }
-  const bool collect_garbage =
-      BoolParameter::Parse(js->LookupParam("collectGarbage"), true);
-  if (Service::graph_stream.enabled()) {
-    Service::SendGraphEvent(thread, roots, collect_garbage);
+  if (Service::heapsnapshot_stream.enabled()) {
+    HeapSnapshotWriter writer(thread);
+    writer.Write();
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   PrintSuccess(js);
   return true;
-}
-
-void Service::SendGraphEvent(Thread* thread,
-                             ObjectGraph::SnapshotRoots roots,
-                             bool collect_garbage) {
-  uint8_t* buffer = NULL;
-  WriteStream stream(&buffer, &allocator, 1 * MB);
-  ObjectGraph graph(thread);
-  intptr_t node_count = graph.Serialize(&stream, roots, collect_garbage);
-
-  // Chrome crashes receiving a single tens-of-megabytes blob, so send the
-  // snapshot in megabyte-sized chunks instead.
-  const intptr_t kChunkSize = 1 * MB;
-  intptr_t num_chunks =
-      (stream.bytes_written() + (kChunkSize - 1)) / kChunkSize;
-  for (intptr_t i = 0; i < num_chunks; i++) {
-    JSONStream js;
-    {
-      JSONObject jsobj(&js);
-      jsobj.AddProperty("jsonrpc", "2.0");
-      jsobj.AddProperty("method", "streamNotify");
-      {
-        JSONObject params(&jsobj, "params");
-        params.AddProperty("streamId", graph_stream.id());
-        {
-          JSONObject event(&params, "event");
-          event.AddProperty("type", "Event");
-          event.AddProperty("kind", "_Graph");
-          event.AddProperty("isolate", thread->isolate());
-          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
-
-          event.AddProperty("chunkIndex", i);
-          event.AddProperty("chunkCount", num_chunks);
-          event.AddProperty("nodeCount", node_count);
-        }
-      }
-    }
-
-    uint8_t* chunk_start = buffer + (i * kChunkSize);
-    intptr_t chunk_size = (i + 1 == num_chunks)
-                              ? stream.bytes_written() - (i * kChunkSize)
-                              : kChunkSize;
-
-    SendEventWithData(graph_stream.id(), "_Graph", js.buffer()->buf(),
-                      js.buffer()->length(), chunk_start, chunk_size);
-  }
 }
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
@@ -4211,78 +4014,6 @@ void Service::SendExtensionEvent(Isolate* isolate,
   ServiceEvent event(isolate, ServiceEvent::kExtension);
   event.set_extension_event(extension_event);
   Service::HandleEvent(&event);
-}
-
-class ContainsAddressVisitor : public FindObjectVisitor {
- public:
-  explicit ContainsAddressVisitor(uword addr) : addr_(addr) {}
-  virtual ~ContainsAddressVisitor() {}
-
-  virtual uword filter_addr() const { return addr_; }
-
-  virtual bool FindObject(RawObject* obj) const {
-    if (obj->IsPseudoObject()) {
-      return false;
-    }
-    uword obj_begin = RawObject::ToAddr(obj);
-    uword obj_end = obj_begin + obj->HeapSize();
-    return obj_begin <= addr_ && addr_ < obj_end;
-  }
-
- private:
-  uword addr_;
-};
-
-static const MethodParameter* get_object_by_address_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
-};
-
-static RawObject* GetObjectHelper(Thread* thread, uword addr) {
-  HeapIterationScope iteration(thread);
-  Object& object = Object::Handle(thread->zone());
-
-  {
-    NoSafepointScope no_safepoint;
-    Isolate* isolate = thread->isolate();
-    ContainsAddressVisitor visitor(addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-
-  if (!object.IsNull()) {
-    return object.raw();
-  }
-
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(addr);
-    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
-  }
-
-  return object.raw();
-}
-
-static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
-  const char* addr_str = js->LookupParam("address");
-  if (addr_str == NULL) {
-    PrintMissingParamError(js, "address");
-    return true;
-  }
-
-  // Handle heap objects.
-  uword addr = 0;
-  if (!GetUnsignedIntegerId(addr_str, &addr, 16)) {
-    PrintInvalidParamError(js, "address");
-    return true;
-  }
-  bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  const Object& obj =
-      Object::Handle(thread->zone(), GetObjectHelper(thread, addr));
-  if (obj.IsNull()) {
-    PrintSentinel(js, kFreeSentinel);
-  } else {
-    obj.PrintJSON(js, ref);
-  }
-  return true;
 }
 
 static const MethodParameter* get_persistent_handles_params[] = {
@@ -4436,6 +4167,7 @@ static bool GetObject(Thread* thread, JSONStream* js) {
     // load the source before sending the response.
     if (obj.IsScript()) {
       const Script& script = Script::Cast(obj);
+      script.LookupSourceAndLineStarts(thread->zone());
       if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
           Service::HasDartLibraryKernelForSources()) {
         const uint8_t* kernel_buffer = Service::dart_library_kernel();
@@ -4549,7 +4281,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsVMInternalIsolate(isolate)) {
+    if (FLAG_show_invisible_isolates || !IsVMInternalIsolate(isolate)) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -4922,8 +4654,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_at_activation_params },
   { "_buildExpressionEvaluationScope", BuildExpressionEvaluationScope,
     build_expression_evaluation_scope_params },
-  { "_clearCpuProfile", ClearCpuProfile,
-    clear_cpu_profile_params },
+  { "clearCpuSamples", ClearCpuSamples,
+    clear_cpu_samples_params },
   { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
@@ -4943,12 +4675,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
       get_native_allocation_samples_params },
   { "getClassList", GetClassList,
     get_class_list_params },
-  { "_getCpuProfile", GetCpuProfile,
-    get_cpu_profile_params },
-  { "_getCpuProfileTimeline", GetCpuProfileTimeline,
-    get_cpu_profile_timeline_params },
-  { "_writeCpuProfileTimeline", WriteCpuProfileTimeline,
-    write_cpu_profile_timeline_params },
+  { "getCpuSamples", GetCpuSamples,
+    get_cpu_samples_params },
   { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
@@ -4969,8 +4697,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectStore", GetObjectStore,
     get_object_store_params },
-  { "_getObjectByAddress", GetObjectByAddress,
-    get_object_by_address_params },
   { "_getPersistentHandles", GetPersistentHandles,
       get_persistent_handles_params, },
   { "_getPorts", GetPorts,
@@ -4987,8 +4713,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },
-  { "_getUnusedChangesInLastReload", GetUnusedChangesInLastReload,
-    get_unused_changes_in_last_reload_params },
   { "_getTagProfile", GetTagProfile,
     get_tag_profile_params },
   { "_getTypeArgumentsList", GetTypeArgumentsList,
@@ -5019,7 +4743,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     reload_sources_params },
   { "resume", Resume,
     resume_params },
-  { "_requestHeapSnapshot", RequestHeapSnapshot,
+  { "requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
   { "_evaluateCompiledExpression", EvaluateCompiledExpression,
     evaluate_compiled_expression_params },

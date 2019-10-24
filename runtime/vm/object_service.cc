@@ -532,7 +532,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
     DictionaryIterator entries(*this);
     Object& entry = Object::Handle();
     LibraryPrefix& prefix = LibraryPrefix::Handle();
-    String& prefixName = String::Handle();
+    String& prefix_name = String::Handle();
     while (entries.HasNext()) {
       entry = entries.GetNext();
       if (entry.IsLibraryPrefix()) {
@@ -547,10 +547,57 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
             jsdep.AddProperty("isDeferred", prefix.is_deferred_load());
             jsdep.AddProperty("isExport", false);
             jsdep.AddProperty("isImport", true);
-            prefixName = prefix.name();
-            ASSERT(!prefixName.IsNull());
-            jsdep.AddProperty("prefix", prefixName.ToCString());
+            prefix_name = prefix.name();
+            ASSERT(!prefix_name.IsNull());
+            jsdep.AddProperty("prefix", prefix_name.ToCString());
             target = ns.library();
+            jsdep.AddProperty("target", target);
+          }
+        }
+      }
+    }
+
+    if (is_declared_in_bytecode()) {
+      // Make sure top level class (containing annotations) is fully loaded.
+      EnsureTopLevelClassIsFinalized();
+      Array& metadata = Array::Handle(GetExtendedMetadata(*this, 1));
+      if (metadata.Length() != 0) {
+        // Library has the only element in the extended metadata.
+        metadata ^= metadata.At(0);
+        if (!metadata.IsNull()) {
+          Thread* thread = Thread::Current();
+          auto& desc = Array::Handle();
+          auto& target_uri = String::Handle();
+          auto& is_export = Bool::Handle();
+          auto& is_deferred = Bool::Handle();
+          for (intptr_t i = 0, n = metadata.Length(); i < n; ++i) {
+            desc ^= metadata.At(i);
+            // Each dependency is represented as an array with the following
+            // layout:
+            //  [0] = target library URI (String)
+            //  [1] = is_export (bool)
+            //  [2] = is_deferred (bool)
+            //  [3] = prefix (String or null)
+            //  ...
+            // The library dependencies are encoded by getLibraryAnnotations(),
+            // pkg/vm/lib/bytecode/gen_bytecode.dart.
+            target_uri ^= desc.At(0);
+            is_export ^= desc.At(1);
+            is_deferred ^= desc.At(2);
+            prefix_name ^= desc.At(3);
+
+            target = Library::LookupLibrary(thread, target_uri);
+            if (target.IsNull()) {
+              continue;
+            }
+
+            JSONObject jsdep(&jsarr);
+            jsdep.AddProperty("isDeferred", is_deferred.value());
+            jsdep.AddProperty("isExport", is_export.value());
+            jsdep.AddProperty("isImport", !is_export.value());
+            if (!prefix_name.IsNull()) {
+              jsdep.AddProperty("prefix", prefix_name.ToCString());
+            }
             jsdep.AddProperty("target", target);
           }
         }
@@ -695,7 +742,7 @@ void CodeSourceMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
-void StackMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void CompressedStackMaps::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 

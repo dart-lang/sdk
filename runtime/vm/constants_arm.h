@@ -349,6 +349,8 @@ class CallingConventions {
 
   static constexpr bool kArgumentIntRegXorFpuReg = false;
 
+  static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
+
   // Whether floating-point values should be passed as integers ("softfp" vs
   // "hardfp"). Android and iOS always use the "softfp" calling convention, even
   // when hardfp support is present.
@@ -751,6 +753,13 @@ class Instr {
             (Bits(22, 3) == 4));
   }
 
+  inline bool IsRbit() const {
+    ASSERT(ConditionField() != kSpecialCondition);
+    ASSERT(TypeField() == 3);
+    return ((Bits(4, 4) == 3) && (Bits(8, 4) == 15) && (Bits(16, 4) == 15) &&
+            (Bits(20, 8) == 111));
+  }
+
   // Test for VFP data processing or single transfer instructions of type 7.
   inline bool IsVFPDataProcessingOrSingleTransfer() const {
     ASSERT(ConditionField() != kSpecialCondition);
@@ -812,6 +821,16 @@ class Instr {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
+
+// Floating-point reciprocal estimate and step (see pages A2-85 and A2-86 of
+// ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalEstimate(float op);
+float ReciprocalStep(float op1, float op2);
+
+// Floating-point reciprocal square root estimate and step (see pages A2-87 to
+// A2-90 of ARM Architecture Reference Manual ARMv7-A edition).
+float ReciprocalSqrtEstimate(float op);
+float ReciprocalSqrtStep(float op1, float op2);
 
 }  // namespace arch_arm
 

@@ -4,6 +4,7 @@
 library kernel.ast_to_text;
 
 import 'dart:core' hide MapEntry;
+import 'dart:core' as core show MapEntry;
 
 import 'dart:convert' show json;
 
@@ -30,14 +31,41 @@ class ConstantNamer extends RecursiveVisitor<Null> with Namer<Constant> {
 
   String getName(Constant constant) {
     if (!map.containsKey(constant)) {
-      // Name everything in post-order visit of DAG.
-      constant.visitChildren(this);
+      // When printing a non-fully linked kernel AST (i.e. some [Reference]s
+      // are not bound) to text, we need to avoid dereferencing any
+      // references.
+      //
+      // The normal visitor API causes references to be dereferenced in order
+      // to call the `visit<name>(<name>)` / `visit<name>Reference(<name>)`.
+      //
+      // We therefore handle any subclass of [Constant] which has [Reference]s
+      // specially here.
+      //
+      if (constant is InstanceConstant) {
+        // Avoid visiting `InstanceConstant.classReference`.
+        for (final value in constant.fieldValues.values) {
+          // Name everything in post-order visit of DAG.
+          getName(value);
+        }
+      } else if (constant is TearOffConstant) {
+        // We only care about naming the constants themselves. [TearOffConstant]
+        // has no Constant children.
+        // Avoid visiting `TearOffConstant.procedureReference`.
+      } else {
+        // Name everything in post-order visit of DAG.
+        constant.visitChildren(this);
+      }
     }
     return super.getName(constant);
   }
 
   defaultConstantReference(Constant constant) {
     getName(constant);
+  }
+
+  defaultDartType(DartType type) {
+    // No need to recurse into dart types, we only care about naming the
+    // constants themselves.
   }
 }
 
@@ -431,13 +459,8 @@ class Printer extends Visitor<Null> {
   void writeAdditionalExports(List<Reference> additionalExports) {
     if (additionalExports.isEmpty) return;
     write('additionalExports = (');
-    bool isFirst = true;
-    for (Reference reference in additionalExports) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        write(', ');
-      }
+    for (int i = 0; i < additionalExports.length; i++) {
+      Reference reference = additionalExports[i];
       var node = reference.node;
       if (node is Class) {
         Library nodeLibrary = node.enclosingLibrary;
@@ -460,10 +483,14 @@ class Printer extends Visitor<Null> {
       } else {
         throw new UnimplementedError('${node.runtimeType}');
       }
-      endLine(')');
-    }
 
-    endLine();
+      if (i + 1 == additionalExports.length) {
+        endLine(")");
+      } else {
+        endLine(",");
+        write("  ");
+      }
+    }
   }
 
   void writeComponentFile(Component component) {
@@ -671,7 +698,7 @@ class Printer extends Visitor<Null> {
     if (name?.name == '') {
       writeWord(emptyNameString);
     } else {
-      writeWord(name?.name ?? '<anon>'); // TODO: write library name
+      writeWord(name?.name ?? '<anonymous>'); // TODO: write library name
     }
   }
 
@@ -1161,15 +1188,37 @@ class Printer extends Visitor<Null> {
     ++indentation;
     node.members.forEach((ExtensionMemberDescriptor descriptor) {
       writeIndentation();
-      writeModifier(descriptor.isExternal, 'external');
       writeModifier(descriptor.isStatic, 'static');
-      if (descriptor.member.asMember is Procedure) {
-        writeWord(procedureKindToString(descriptor.kind));
-      } else {
-        writeWord('field');
+      switch (descriptor.kind) {
+        case ExtensionMemberKind.Method:
+          writeWord('method');
+          break;
+        case ExtensionMemberKind.Getter:
+          writeWord('get');
+          break;
+        case ExtensionMemberKind.Setter:
+          writeWord('set');
+          break;
+        case ExtensionMemberKind.Operator:
+          writeWord('operator');
+          break;
+        case ExtensionMemberKind.Field:
+          writeWord('field');
+          break;
+        case ExtensionMemberKind.TearOff:
+          writeWord('tearoff');
+          break;
       }
       writeName(descriptor.name);
       writeSpaced('=');
+      Member member = descriptor.member.asMember;
+      if (member is Procedure) {
+        if (member.isGetter) {
+          writeWord('get');
+        } else if (member.isSetter) {
+          writeWord('set');
+        }
+      }
       writeMemberReferenceFromReference(descriptor.member);
       endLine(';');
     });
@@ -1239,6 +1288,11 @@ class Printer extends Visitor<Null> {
   visitNot(Not node) {
     writeSymbol('!');
     writeExpression(node.operand, Precedence.PREFIX);
+  }
+
+  visitNullCheck(NullCheck node) {
+    writeExpression(node.operand, Precedence.POSTFIX);
+    writeSymbol('!');
   }
 
   visitLogicalExpression(LogicalExpression node) {
@@ -1384,6 +1438,10 @@ class Printer extends Visitor<Null> {
       first = false;
     }
     writeSymbol('}');
+  }
+
+  visitFileUriExpression(FileUriExpression node) {
+    writeExpression(node.expression);
   }
 
   visitIsExpression(IsExpression node) {
@@ -1991,19 +2049,39 @@ class Printer extends Visitor<Null> {
     endLine(': ${node.runtimeType}');
   }
 
-  writeNullability(Nullability nullability) {
+  void writeNullability(Nullability nullability, {bool inComment = false}) {
     switch (nullability) {
       case Nullability.legacy:
         writeSymbol('*');
-        state = WORD; // Disallow a word immediately after the '*'.
+        if (!inComment) {
+          state = WORD; // Disallow a word immediately after the '*'.
+        }
         break;
       case Nullability.nullable:
-        writeSymbol('?'); // Disallow a word immediately after the '?'.
+        writeSymbol('?');
+        if (!inComment) {
+          state = WORD; // Disallow a word immediately after the '?'.
+        }
         break;
       case Nullability.neither:
-      case Nullability.nonNullable:
-        // Do nothing.
+        writeSymbol('%');
+        if (!inComment) {
+          state = WORD; // Disallow a word immediately after the '%'.
+        }
         break;
+      case Nullability.nonNullable:
+        if (inComment) {
+          writeSymbol("!");
+        }
+        break;
+    }
+  }
+
+  void writeDartTypeNullability(DartType type, {bool inComment = false}) {
+    if (type is InvalidType) {
+      writeNullability(Nullability.neither);
+    } else {
+      writeNullability(type.nullability, inComment: inComment);
     }
   }
 
@@ -2044,18 +2122,32 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
-    writeNullability(node.nullability);
+    writeNullability(node.typeParameterTypeNullability);
     if (node.promotedBound != null) {
-      writeSpace();
-      writeWord('extends');
-      writeSpace();
+      writeSpaced('&');
       writeType(node.promotedBound);
+
+      writeWord("/* '");
+      writeNullability(node.typeParameterTypeNullability, inComment: true);
+      writeWord("' & '");
+      writeDartTypeNullability(node.promotedBound, inComment: true);
+      writeWord("' = '");
+      writeNullability(node.nullability, inComment: true);
+      writeWord("' */");
     }
   }
 
   visitTypeParameter(TypeParameter node) {
     writeModifier(node.isGenericCovariantImpl, 'generic-covariant-impl');
     writeAnnotationList(node.annotations, separateLines: false);
+    if (node.variance != Variance.covariant) {
+      writeWord(const <String>[
+        "unrelated",
+        "covariant",
+        "contravariant",
+        "invariant"
+      ][node.variance]);
+    }
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
@@ -2122,14 +2214,20 @@ class Printer extends Visitor<Null> {
     writeConstantReference(node);
     writeSpaced('=');
     writeClassReferenceFromReference(node.classReference);
-    if (!node.classNode.typeParameters.isEmpty) {
+    if (!node.typeArguments.isEmpty) {
       writeSymbol('<');
       writeList(node.typeArguments, writeType);
       writeSymbol('>');
     }
+
     writeSymbol(' {');
-    writeList(node.fieldValues.entries, (entry) {
-      writeWord('${entry.key.asField.name.name}');
+    writeList(node.fieldValues.entries,
+        (core.MapEntry<Reference, Constant> entry) {
+      if (entry.key.node != null) {
+        writeWord('${entry.key.asField.name.name}');
+      } else {
+        writeWord('${entry.key.canonicalName.name}');
+      }
       writeSymbol(':');
       writeConstantReference(entry.value);
     });
@@ -2242,6 +2340,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitStaticInvocation(StaticInvocation node) => CALLEE;
   int visitConstructorInvocation(ConstructorInvocation node) => CALLEE;
   int visitNot(Not node) => PREFIX;
+  int visitNullCheck(NullCheck node) => PRIMARY;
   int visitLogicalExpression(LogicalExpression node) =>
       binaryPrecedence[node.operator];
   int visitConditionalExpression(ConditionalExpression node) => CONDITIONAL;
@@ -2290,11 +2389,4 @@ String procedureKindToString(ProcedureKind kind) {
       return 'factory';
   }
   throw 'illegal ProcedureKind: $kind';
-}
-
-class ExpressionPrinter {
-  final Printer writeer;
-  final int minimumPrecedence;
-
-  ExpressionPrinter(this.writeer, this.minimumPrecedence);
 }

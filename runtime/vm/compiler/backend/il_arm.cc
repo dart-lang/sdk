@@ -997,6 +997,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
@@ -1013,21 +1014,22 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
-                              kWordSize);
+                              compiler::target::kWordSize);
 
   FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
                      /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    NoTemporaryAllocator no_temp;
-    compiler->EmitMove(target, origin, &no_temp);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, origin, &temp_alloc);
   }
 
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
   __ mov(TMP, compiler::Operand(PC));
-  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize));
+  __ str(TMP, compiler::Address(FPREG, kSavedCallerPcSlotFromFp *
+                                           compiler::target::kWordSize));
 
   // For historical reasons, the PC on ARM points 8 bytes past the current
   // instruction. Therefore we emit the metadata here, 8 bytes (2 instructions)
@@ -1036,14 +1038,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  RawPcDescriptors::Kind::kOther, locs());
 
   // Update information in the thread object and enter a safepoint.
-  const Register tmp = locs()->temp(1).reg();
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, tmp);
+    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, temp,
+                                   /*enter_safepoint=*/true);
 
     __ blx(branch);
 
     // Update information in the thread object and leave the safepoint.
-    __ TransitionNativeToGenerated(saved_fp, tmp);
+    __ TransitionNativeToGenerated(saved_fp, temp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
@@ -1055,14 +1057,15 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                         call_native_through_safepoint_entry_point_offset()));
 
     // Calls R8 in a safepoint and clobbers NOTFP and R4.
-    ASSERT(branch == R8 && tmp == NOTFP && locs()->temp(2).reg() == R4);
+    ASSERT(branch == R8 && temp == NOTFP && locs()->temp(2).reg() == R4);
     __ blx(TMP);
   }
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
+    __ ldr(PP, compiler::Address(
+                   THR, compiler::target::Thread::global_object_pool_offset()));
   }
 
   // Leave dummy exit frame.
@@ -1091,11 +1094,19 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Pop(vm_tag_reg);
 
-  // Reset the exit frame info to
-  // old_exit_frame_reg *before* entering the safepoint.
-  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg, tmp, tmp1);
+  // If we were called by a trampoline, it will enter the safepoint on our
+  // behalf.
+  __ TransitionGeneratedToNative(
+      vm_tag_reg, old_exit_frame_reg, tmp, tmp1,
+      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
 
   __ PopNativeCalleeSavedRegisters();
+
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
 
   // Leave the entry frame.
   __ LeaveFrame(1 << LR | 1 << FP);
@@ -1134,10 +1145,6 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (FLAG_precompiled_mode) {
-    UNREACHABLE();
-  }
-
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
 
@@ -1158,20 +1165,59 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Save a space for the code object.
   __ PushImmediate(0);
 
+#if defined(TARGET_OS_FUCHSIA)
+  UNREACHABLE();  // Fuchsia does not allow dart:ffi.
+#elif defined(USING_SHADOW_CALL_STACK)
+#error Unimplemented
+#endif
+
   __ PushNativeCalleeSavedRegisters();
 
-  // Load the thread object.
-  // TODO(35765): Fix linking issue on AOT.
-  // TOOD(35934): Exclude native callbacks from snapshots.
-  //
-  // Create another frame to align the frame before continuing in "native" code.
-  {
+  // Load the thread object. If we were called by a trampoline, the thread is
+  // already loaded.
+  if (FLAG_precompiled_mode) {
+    compiler::Label skip_reloc;
+    __ b(&skip_reloc);
+    compiler->InsertBSSRelocation(
+        BSS::Relocation::DRT_GetThreadForNativeCallback);
+    __ Bind(&skip_reloc);
+
+    // For historical reasons, the PC on ARM points 8 bytes (two instructions)
+    // past the current instruction.
+    __ sub(
+        R0, PC,
+        compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
+
+    // R0 holds the address of the relocation.
+    __ ldr(R1, compiler::Address(R0));
+
+    // R1 holds the relocation itself: R0 - bss_start.
+    // R0 = R0 + (bss_start - R0) = bss_start
+    __ add(R0, R0, compiler::Operand(R1));
+
+    // R0 holds the start of the BSS section.
+    // Load the "get-thread" routine: *bss_start.
+    __ ldr(R1, compiler::Address(R0));
+  } else if (!NativeCallbackTrampolines::Enabled()) {
+    // In JIT mode, we can just paste the address of the runtime entry into the
+    // generated code directly. This is not a problem since we don't save
+    // callbacks into JIT snapshots.
+    ASSERT(kWordSize == compiler::target::kWordSize);
+    __ LoadImmediate(
+        R1, static_cast<compiler::target::uword>(
+                reinterpret_cast<uword>(DLRT_GetThreadForNativeCallback)));
+  }
+
+  // Load the thread object. If we were called by a trampoline, the thread is
+  // already loaded.
+  if (!NativeCallbackTrampolines::Enabled()) {
+    // Create another frame to align the frame before continuing in "native"
+    // code.
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ LoadImmediate(
-        R0, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-    __ blx(R0);
+    __ LoadImmediate(R0, callback_id_);
+    __ blx(R1);
     __ mov(THR, compiler::Operand(R0));
 
     __ LeaveFrame(1 << FP);
@@ -1189,27 +1235,21 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(R0, 0);
   __ StoreToOffset(kWord, R0, THR, top_resource_offset);
 
-  // Save top exit frame info. Don't set it to 0 yet --
-  // TransitionNativeToGenerated will handle that *after* leaving the safepoint.
+  // Save top exit frame info. Don't set it to 0 yet,
+  // TransitionNativeToGenerated will handle that.
   __ LoadFromOffset(kWord, R0, THR,
                     compiler::target::Thread::top_exit_frame_info_offset());
   __ Push(R0);
 
   __ EmitEntryFrameVerification(R0);
 
-  __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1);
+  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
+  // will leave the safepoint for us.
+  __ TransitionNativeToGenerated(/*scratch0=*/R0, /*scratch1=*/R1,
+                                 /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can touch Dart objects without
   // handles.
-
-  // Otherwise we'll clobber the argument sent from the caller.
-  ASSERT(CallingConventions::ArgumentRegisters[0] != TMP &&
-         CallingConventions::ArgumentRegisters[0] != TMP2 &&
-         CallingConventions::ArgumentRegisters[0] != R1);
-  __ LoadImmediate(CallingConventions::ArgumentRegisters[0], callback_id_);
-  __ LoadFromOffset(kWord, R1, THR,
-                    compiler::target::Thread::verify_callback_entry_offset());
-  __ blx(R1);
 
   // Load the code object.
   __ LoadFromOffset(kWord, R0, THR,
@@ -3211,10 +3251,9 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(catch_try_index(), try_index(),
-                                compiler->assembler()->CodeSize(),
-                                handler_token_pos(), is_generated(),
-                                catch_handler_types_, needs_stacktrace());
+  compiler->AddExceptionHandler(
+      catch_try_index(), try_index(), compiler->assembler()->CodeSize(),
+      is_generated(), catch_handler_types_, needs_stacktrace());
   // On lazy deoptimization we patch the optimized code here to enter the
   // deoptimization stub.
   const intptr_t deopt_id = DeoptId::ToDeoptAfter(GetDeoptId());
@@ -3632,13 +3671,20 @@ class CheckedSmiComparisonSlowPath
   static constexpr intptr_t kNumSlowPathArgs = 2;
 
   CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               Environment* env,
                                intptr_t try_index,
                                BranchLabels labels,
                                bool merged)
       : TemplateSlowPathCode(instruction),
         try_index_(try_index),
         labels_(labels),
-        merged_(merged) {}
+        merged_(merged),
+        env_(env) {
+    // The environment must either come from the comparison or the environment
+    // was cleared from the comparison (and moved to a branch).
+    ASSERT(env == instruction->env() ||
+           (merged && instruction->env() == nullptr));
+  }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (compiler::Assembler::EmittingComments()) {
@@ -3650,10 +3696,9 @@ class CheckedSmiComparisonSlowPath
     locs->live_registers()->Remove(Location::RegisterLocation(result));
 
     compiler->SaveLiveRegisters(locs);
-    if (instruction()->env() != NULL) {
-      Environment* env =
-          compiler->SlowPathEnvironmentFor(instruction(), kNumSlowPathArgs);
-      compiler->pending_deoptimization_env_ = env;
+    if (env_ != nullptr) {
+      compiler->pending_deoptimization_env_ =
+          compiler->SlowPathEnvironmentFor(env_, locs, kNumSlowPathArgs);
     }
     __ Push(locs->in(0).reg());
     __ Push(locs->in(1).reg());
@@ -3665,7 +3710,7 @@ class CheckedSmiComparisonSlowPath
         instruction()->token_pos(), locs, try_index_, kNumSlowPathArgs);
     __ mov(result, compiler::Operand(R0));
     compiler->RestoreLiveRegisters(locs);
-    compiler->pending_deoptimization_env_ = NULL;
+    compiler->pending_deoptimization_env_ = nullptr;
     if (merged_) {
       __ CompareObject(result, Bool::True());
       __ b(instruction()->is_negated() ? labels_.false_label
@@ -3688,6 +3733,7 @@ class CheckedSmiComparisonSlowPath
   intptr_t try_index_;
   BranchLabels labels_;
   bool merged_;
+  Environment* env_;
 };
 
 LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
@@ -3732,7 +3778,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
   BranchLabels labels = compiler->CreateBranchLabels(branch);
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, branch->env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ true);
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -3745,7 +3791,7 @@ void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BranchLabels labels = {NULL, NULL, NULL};
   CheckedSmiComparisonSlowPath* slow_path = new CheckedSmiComparisonSlowPath(
-      this, compiler->CurrentTryIndex(), labels,
+      this, env(), compiler->CurrentTryIndex(), labels,
       /* merged = */ false);
   compiler->AddSlowPathCode(slow_path);
   EMIT_SMI_CHECK;
@@ -6825,8 +6871,10 @@ LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (from() == kUntagged || to() == kUntagged) {
-    ASSERT((from() == kUntagged && to() == kUnboxedIntPtr) ||
-           (from() == kUnboxedIntPtr && to() == kUntagged));
+    ASSERT((from() == kUntagged && to() == kUnboxedInt32) ||
+           (from() == kUntagged && to() == kUnboxedUint32) ||
+           (from() == kUnboxedInt32 && to() == kUntagged) ||
+           (from() == kUnboxedUint32 && to() == kUntagged));
     ASSERT(!CanDeoptimize());
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::SameAsFirstInput());
@@ -6955,7 +7003,8 @@ LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       break;
     case kUnboxedFloat:
     case kUnboxedDouble:
-      summary->set_in(0, Location::RequiresFpuRegister());
+      // Choose an FPU register with corresponding D and S registers.
+      summary->set_in(0, Location::FpuRegisterLocation(Q0));
       break;
     default:
       UNREACHABLE();
@@ -6971,7 +7020,8 @@ LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
       break;
     case kUnboxedFloat:
     case kUnboxedDouble:
-      summary->set_out(0, Location::RequiresFpuRegister());
+      // Choose an FPU register with corresponding D and S registers.
+      summary->set_out(0, Location::FpuRegisterLocation(Q0));
       break;
     default:
       UNREACHABLE();

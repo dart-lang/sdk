@@ -4,20 +4,28 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_migration_impl.dart';
 
 /// Description of fixes that might be performed by nullability migration.
 class NullabilityFixDescription {
-  /// An if-test or conditional expression needs to have its "then" branch
-  /// discarded.
+  /// An if-test or conditional expression needs to have its condition and
+  /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional then branch',
   );
 
-  /// An if-test or conditional expression needs to have its "else" branch
+  /// An if-test or conditional expression needs to have its condition
   /// discarded.
+  static const discardCondition = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded a condition which is always true',
+  );
+
+  /// An if-test or conditional expression needs to have its condition and
+  /// "else" branch discarded.
   static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
   );
@@ -30,25 +38,21 @@ class NullabilityFixDescription {
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
-  /// An import needs to be added.
-  factory NullabilityFixDescription.addImport(String uri) =>
-      NullabilityFixDescription._(appliedMessage: 'Add import $uri');
-
-  /// A formal parameter needs to have a required modifier added.
+  /// A formal parameter needs to have a required keyword added.
   factory NullabilityFixDescription.addRequired(
           String className, String functionName, String paramName) =>
       NullabilityFixDescription._(
           appliedMessage:
-              "Add 'required' modifier to parameter $paramName in " +
+              "Add 'required' keyword to parameter '$paramName' in " +
                   (className == null
                       ? functionName
-                      : '$className.$functionName'));
+                      : "'$className.$functionName'"));
 
   /// An explicit type mentioned in the source program needs to be made
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
       NullabilityFixDescription._(
-        appliedMessage: 'Changed type $type to be nullable',
+        appliedMessage: "Changed type '$type' to be nullable",
       );
 
   const NullabilityFixDescription._({@required this.appliedMessage});
@@ -67,7 +71,9 @@ abstract class NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   factory NullabilityMigration(NullabilityMigrationListener listener,
-      {bool permissive}) = NullabilityMigrationImpl;
+          {bool permissive,
+          NullabilityMigrationInstrumentation instrumentation}) =
+      NullabilityMigrationImpl;
 
   void finish();
 
@@ -79,16 +85,18 @@ abstract class NullabilityMigration {
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]
 /// to communicate source changes or "fixes" to the client.
 abstract class NullabilityMigrationListener {
-  /// Add the given [detail] to the list of details to be returned to the
-  /// client.
-  void addDetail(String detail);
-
   /// [addEdit] is called once for each source edit, in the order in which they
   /// appear in the source file.
   void addEdit(SingleNullabilityFix fix, SourceEdit edit);
 
   /// [addFix] is called once for each source change.
   void addFix(SingleNullabilityFix fix);
+
+  /// [reportException] is called once for each exception that occurs in
+  /// "permissive mode", reporting the location of the exception and the
+  /// exception details.
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace);
 }
 
 /// Representation of a single conceptual change made by the nullability

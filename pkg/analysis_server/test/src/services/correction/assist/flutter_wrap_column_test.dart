@@ -19,6 +19,40 @@ class FlutterWrapColumnTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_COLUMN;
 
+  test_controlFlowCollections_if() async {
+    addFlutterPackage();
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+Widget build(bool b) {
+  return Row(
+    children: [
+      Text('aaa'),
+      if (b) /*caret*/Text('bbb'),
+      Text('ccc'),
+    ],
+  );
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+Widget build(bool b) {
+  return Row(
+    children: [
+      Text('aaa'),
+      if (b) Column(
+        children: <Widget>[
+          Text('bbb'),
+        ],
+      ),
+      Text('ccc'),
+    ],
+  );
+}
+''');
+  }
+
   test_coveredByWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''

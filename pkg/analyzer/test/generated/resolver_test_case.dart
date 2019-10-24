@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -21,7 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -33,7 +32,8 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
-import 'analysis_context_factory.dart';
+import '../src/dart/resolution/driver_resolution.dart';
+import 'test_analysis_context.dart';
 import 'test_support.dart';
 
 const String _defaultSourceName = "/test.dart";
@@ -245,8 +245,8 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
     if (node.name == "void") {
       return;
     }
-    if (resolutionMap.staticTypeForExpression(node) != null &&
-        resolutionMap.staticTypeForExpression(node).isDynamic &&
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
         node.staticElement == null) {
       return;
     }
@@ -285,10 +285,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       if (root is CompilationUnit) {
         CompilationUnit rootCU = root;
         if (rootCU.declaredElement != null) {
-          return resolutionMap
-              .elementDeclaredByCompilationUnit(rootCU)
-              .source
-              .fullName;
+          return rootCU.declaredElement.source.fullName;
         } else {
           return "<unknown file- CompilationUnit.getElement() returned null>";
         }
@@ -312,7 +309,7 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 }
 
-class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
+class ResolverTestCase with ResourceProviderMixin {
   /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
    * [HintCode.UNUSED_FIELD].
@@ -386,16 +383,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    */
   Source addSource(String contents) =>
       addNamedSource(_defaultSourceName, contents);
-
-  /**
-   * The [code] that assigns the value to the variable "v", no matter how. We
-   * check that "v" has expected static type.
-   */
-  void assertAssignedType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v = ");
-    expect(identifier.staticType, expectedStaticType);
-  }
 
   /**
    * Assert that the number of errors reported against the given
@@ -478,26 +465,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  /**
-   * The [code] that iterates using variable "v". We check that "v" has expected
-   * static type.
-   */
-  void assertPropagatedIterationType(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier = findMarkedIdentifier(code, unit, "v in ");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
-  /**
-   * Check the static type of the expression marked with "; // marker" comment.
-   */
-  void assertTypeOfMarkedExpression(
-      String code, CompilationUnit unit, DartType expectedStaticType) {
-    SimpleIdentifier identifier =
-        findMarkedIdentifier(code, unit, "; // marker");
-    expect(identifier.staticType, expectedStaticType);
-  }
-
   Future<TestAnalysisResult> computeAnalysisResult(Source source) async {
     TestAnalysisResult analysisResult;
     ResolvedUnitResult result = await driver.getResult(source.fullName);
@@ -521,10 +488,8 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
    *
    * @return the library element that was created
    */
-  LibraryElementImpl createDefaultTestLibrary() => createTestLibrary(
-      AnalysisContextFactory.contextWithCore(
-          resourceProvider: resourceProvider),
-      "test");
+  LibraryElementImpl createDefaultTestLibrary() =>
+      createTestLibrary(TestAnalysisContext(), "test");
 
   /**
    * Return a source object representing a file with the given [fileName].
@@ -577,16 +542,6 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
-  }
-
-  /**
-   * Return the [SimpleIdentifier] from [unit] marked by [marker] in [code].
-   * The source code must have no errors and be verifiable.
-   */
-  SimpleIdentifier findMarkedIdentifier(
-      String code, CompilationUnit unit, String marker) {
-    return EngineTestCase.findNode(
-        unit, code, marker, (node) => node is SimpleIdentifier);
   }
 
   Expression findTopLevelConstantExpression(
@@ -712,17 +667,13 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
     verify([source]);
   }
 
-  @override
   void setUp() {
     ElementFactory.flushStaticState();
-    super.setUp();
     reset();
   }
 
-  @override
   void tearDown() {
     AnalysisEngine.instance.clearCaches();
-    super.tearDown();
   }
 
   /**
@@ -744,11 +695,7 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
  * Shared infrastructure for [StaticTypeAnalyzer2Test] and
  * [StrongModeStaticTypeAnalyzer2Test].
  */
-class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
-  String testCode;
-  Source testSource;
-  CompilationUnit testUnit;
-
+class StaticTypeAnalyzer2TestShared extends DriverResolutionTest {
   /**
    * Find the expression that starts at the offset of [search] and validate its
    * that its static type matches the given [type].
@@ -758,7 +705,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectExpressionType(String search, type) {
-    Expression expression = findExpression(search);
+    Expression expression = findNode.expression(search);
     _expectType(expression.staticType, type);
   }
 
@@ -784,7 +731,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
       fail('Wrong element type: ${element.runtimeType}');
     }
 
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     // Element is either ExecutableElement or ParameterElement.
     var element = identifier.staticElement;
     FunctionTypeImpl functionType = (element as dynamic).type;
@@ -803,7 +750,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * output.
    */
   FunctionTypeImpl expectFunctionType2(String name, String type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     FunctionTypeImpl functionType = identifier.staticType;
     expect('$functionType', type);
     return functionType;
@@ -817,7 +764,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectIdentifierType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     _expectType(identifier.staticType, type);
   }
 
@@ -830,32 +777,11 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
    * to match the type.
    */
   void expectInitializerType(String name, type) {
-    SimpleIdentifier identifier = findIdentifier(name);
+    SimpleIdentifier identifier = findNode.simple(name);
     VariableDeclaration declaration =
         identifier.thisOrAncestorOfType<VariableDeclaration>();
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
-  }
-
-  Expression findExpression(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is Expression);
-  }
-
-  SimpleIdentifier findIdentifier(String search) {
-    return EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-  }
-
-  Future<void> resolveTestUnit(String code, {bool noErrors: true}) async {
-    testCode = code;
-    testSource = addSource(testCode);
-    TestAnalysisResult analysisResult = await computeAnalysisResult(testSource);
-    if (noErrors) {
-      assertNoErrors(testSource);
-    }
-    verify([testSource]);
-    testUnit = analysisResult.unit;
   }
 
   /**

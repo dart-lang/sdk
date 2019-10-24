@@ -73,7 +73,7 @@ void BytecodeScopeBuilder::BuildScopes() {
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }
@@ -97,9 +97,14 @@ void BytecodeScopeBuilder::BuildScopes() {
           const Field& field = Field::Handle(Z, function.accessor_field());
           if (field.is_covariant()) {
             setter_value->set_is_explicit_covariant_parameter();
-          } else if (!field.is_generic_covariant_impl()) {
-            setter_value->set_type_check_mode(
-                LocalVariable::kTypeCheckedByCaller);
+          } else {
+            const bool needs_type_check =
+                field.is_generic_covariant_impl() &&
+                kernel::ProcedureAttributesOf(field, Z).has_non_this_uses;
+            if (!needs_type_check) {
+              setter_value->set_type_check_mode(
+                  LocalVariable::kTypeCheckedByCaller);
+            }
           }
         }
       }
@@ -114,7 +119,7 @@ void BytecodeScopeBuilder::BuildScopes() {
 
       // Type check all parameters by default.
       // This may be overridden with parameter flags in
-      // BytecodeReaderHelper::ParseImplicitClosureFunction.
+      // BytecodeReaderHelper::ParseForwarderFunction.
       AddParameters(function, LocalVariable::kDoTypeCheck);
       break;
     }

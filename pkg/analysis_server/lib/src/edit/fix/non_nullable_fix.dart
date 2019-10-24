@@ -2,15 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_renderer.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -24,17 +36,38 @@ class NonNullableFix extends FixCodeTask {
 
   final DartFixListener listener;
 
-  final NullabilityMigration migration;
+  /// The root of the included paths.
+  ///
+  /// The included paths may contain absolute and relative paths, non-canonical
+  /// paths, and directory and file paths. The "root" is the deepest directory
+  /// which all included paths share.
+  ///
+  /// If instrumentation files are written to [outputDir], they will be written
+  /// as if in a directory structure rooted at [includedRoot].
+  final String includedRoot;
+
+  final String outputDir;
+
+  InstrumentationListener instrumentationListener;
+
+  NullabilityMigration migration;
 
   /// If this flag has a value of `false`, then something happened to prevent
   /// at least one package from being marked as non-nullable.
   /// If this occurs, then don't update any code.
   bool _packageIsNNBD = true;
 
-  NonNullableFix(this.listener)
-      : migration = new NullabilityMigration(
-            new NullabilityMigrationAdapter(listener),
-            permissive: _usePermissiveMode);
+  NonNullableFix(this.listener, this.outputDir,
+      {List<String> included = const []})
+      : this.includedRoot =
+            _getIncludedRoot(included, listener.server.resourceProvider) {
+    instrumentationListener =
+        outputDir == null ? null : InstrumentationListener();
+    migration = new NullabilityMigration(
+        new NullabilityMigrationAdapter(listener),
+        permissive: _usePermissiveMode,
+        instrumentation: instrumentationListener);
+  }
 
   @override
   int get numPhases => 2;
@@ -42,6 +75,14 @@ class NonNullableFix extends FixCodeTask {
   @override
   Future<void> finish() async {
     migration.finish();
+    if (outputDir != null) {
+      OverlayResourceProvider provider = listener.server.resourceProvider;
+      Folder outputFolder = provider.getFolder(outputDir);
+      if (!outputFolder.exists) {
+        outputFolder.create();
+      }
+      await _generateOutput(provider, outputFolder);
+    }
   }
 
   /// If the package contains an analysis_options.yaml file, then update the
@@ -174,8 +215,89 @@ analyzer:
     _packageIsNNBD = false;
   }
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
-    registrar.registerCodeTask(new NonNullableFix(listener));
+  /// Generate output into the given [folder].
+  void _generateOutput(OverlayResourceProvider provider, Folder folder) async {
+    // Remove any previously generated output.
+    folder.getChildren().forEach((resource) => resource.delete());
+    // Gather the data needed in order to produce the output.
+    InfoBuilder infoBuilder =
+        InfoBuilder(instrumentationListener.data, listener);
+    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
+    var pathContext = provider.pathContext;
+    MigrationInfo migrationInfo =
+        MigrationInfo(unitInfos, pathContext, includedRoot);
+    PathMapper pathMapper = PathMapper(provider, folder.path, includedRoot);
+
+    /// Produce output for the compilation unit represented by the [unitInfo].
+    void render(UnitInfo unitInfo) {
+      File output = provider.getFile(pathMapper.map(unitInfo.path));
+      output.parent.create();
+      String rendered =
+          InstrumentationRenderer(unitInfo, migrationInfo, pathMapper).render();
+      output.writeAsStringSync(rendered);
+    }
+
+    // Generate the files in the package being migrated.
+    for (UnitInfo unitInfo in unitInfos) {
+      render(unitInfo);
+    }
+    // Generate other dart files.
+    for (UnitInfo unitInfo in infoBuilder.unitMap.values) {
+      if (!unitInfos.contains(unitInfo)) {
+        if (unitInfo.content == null) {
+          try {
+            unitInfo.content =
+                provider.getFile(unitInfo.path).readAsStringSync();
+          } catch (_) {
+            // If we can't read the content of the file, then skip it.
+            continue;
+          }
+        }
+        render(unitInfo);
+      }
+    }
+    // Generate resource files.
+    File highlightJsOutput =
+        provider.getFile(pathContext.join(folder.path, 'highlight.pack.js'));
+    highlightJsOutput.writeAsStringSync(decodeHighlightJs());
+    File highlightCssOutput =
+        provider.getFile(pathContext.join(folder.path, 'androidstudio.css'));
+    highlightCssOutput.writeAsStringSync(decodeHighlightCss());
+  }
+
+  static void task(DartFixRegistrar registrar, DartFixListener listener,
+      EditDartfixParams params) {
+    registrar.registerCodeTask(new NonNullableFix(listener, params.outputDir,
+        included: params.included));
+  }
+
+  /// Get the "root" of all [included] paths. See [includedRoot] for its
+  /// definition.
+  static String _getIncludedRoot(
+      List<String> included, OverlayResourceProvider provider) {
+    path.Context context = provider.pathContext;
+    // This step looks like it may be expensive (`getResource`, splitting up
+    // all of the paths, comparing parts, joining one path back together). In
+    // practice, this should be cheap because typically only one path is given
+    // to dartfix.
+    List<String> rootParts = included
+        .map((p) => context.absolute(context.canonicalize(p)))
+        .map((p) => provider.getResource(p) is File ? context.dirname(p) : p)
+        .map((p) => context.split(p))
+        .reduce((value, parts) {
+      List<String> shorterPath = value.length < parts.length ? value : parts;
+      int length = shorterPath.length;
+      for (int i = 0; i < length; i++) {
+        if (value[i] != parts[i]) {
+          // [value] and [parts] are the same, only up to part [i].
+          return value.sublist(0, i);
+        }
+      }
+      // [value] and [parts] are the same up to the full length of the shorter
+      // of the two, so just return that.
+      return shorterPath;
+    });
+    return context.joinAll(rootParts);
   }
 }
 
@@ -185,11 +307,6 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   NullabilityMigrationAdapter(this.listener);
 
   @override
-  void addDetail(String detail) {
-    listener.addDetail(detail);
-  }
-
-  @override
   void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
     listener.addEditWithoutSuggestion(fix.source, edit);
   }
@@ -197,5 +314,14 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
   @override
   void addFix(SingleNullabilityFix fix) {
     listener.addSuggestion(fix.description.appliedMessage, fix.location);
+  }
+
+  @override
+  void reportException(
+      Source source, AstNode node, Object exception, StackTrace stackTrace) {
+    listener.addDetail('''
+$exception
+
+$stackTrace''');
   }
 }

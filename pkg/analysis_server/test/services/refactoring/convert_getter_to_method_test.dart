@@ -124,7 +124,7 @@ main() {
 ''');
     _createRefactoring('test');
     // check conditions
-    _assertInitialConditions_fatal(
+    await _assertInitialConditions_fatal(
         'Only explicit getters can be converted to methods.');
   }
 

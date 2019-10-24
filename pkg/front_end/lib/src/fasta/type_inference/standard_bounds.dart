@@ -14,10 +14,13 @@ import 'package:kernel/ast.dart'
         InterfaceType,
         InvalidType,
         NamedType,
+        Nullability,
         TypeParameterType,
         VoidType;
 
 import 'package:kernel/type_algebra.dart' show Substitution;
+
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import 'type_schema.dart' show UnknownType;
 
@@ -26,10 +29,10 @@ abstract class StandardBounds {
   Class get futureClass;
   Class get futureOrClass;
   InterfaceType get nullType;
-  InterfaceType get objectType;
-  InterfaceType get rawFunctionType;
+  InterfaceType get objectLegacyRawType;
+  InterfaceType get functionLegacyRawType;
 
-  bool isSubtypeOf(DartType subtype, DartType supertype);
+  bool isSubtypeOf(DartType subtype, DartType supertype, SubtypeCheckMode mode);
 
   InterfaceType getLegacyLeastUpperBound(
       InterfaceType type1, InterfaceType type2);
@@ -73,10 +76,10 @@ abstract class StandardBounds {
     }
 
     // SLB(Object, T) = SLB(T, Object) = T if T is not void or dynamic.
-    if (type1 == objectType) {
+    if (type1 == objectLegacyRawType) {
       return type2;
     }
-    if (type2 == objectType) {
+    if (type2 == objectLegacyRawType) {
       return type1;
     }
 
@@ -93,11 +96,11 @@ abstract class StandardBounds {
 
     // Otherwise, the lower bounds  of two types is one of them it if it is a
     // subtype of the other.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
 
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
 
@@ -181,10 +184,10 @@ abstract class StandardBounds {
     }
 
     // SUB(Object, T) = SUB(T, Object) = Object if T is not void or dynamic.
-    if (type1 == objectType) {
+    if (type1 == objectLegacyRawType) {
       return type1;
     }
-    if (type2 == objectType) {
+    if (type2 == objectLegacyRawType) {
       return type2;
     }
 
@@ -201,10 +204,10 @@ abstract class StandardBounds {
     // The standard upper bound of a function type and an interface type T is
     // the standard upper bound of Function and T.
     if (type1 is FunctionType && type2 is InterfaceType) {
-      type1 = rawFunctionType;
+      type1 = functionLegacyRawType;
     }
     if (type2 is FunctionType && type1 is InterfaceType) {
-      type2 = rawFunctionType;
+      type2 = functionLegacyRawType;
     }
 
     // At this point type1 and type2 should both either be interface types or
@@ -250,12 +253,12 @@ abstract class StandardBounds {
     // Calculate the SUB of each corresponding pair of parameters.
     int totalPositional =
         math.max(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       if (i < f.positionalParameters.length) {
-        var fType = f.positionalParameters[i];
+        DartType fType = f.positionalParameters[i];
         if (i < g.positionalParameters.length) {
-          var gType = g.positionalParameters[i];
+          DartType gType = g.positionalParameters[i];
           positionalParameters[i] = getStandardUpperBound(fType, gType);
         } else {
           positionalParameters[i] = fType;
@@ -280,8 +283,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               namedParameters.add(f.namedParameters[i++]);
@@ -337,7 +340,8 @@ abstract class StandardBounds {
     // TODO(paulberry): We could do better here, e.g.:
     //   SUB(([int]) -> void, (int) -> void) = (int) -> void
     if (f.requiredParameterCount != g.requiredParameterCount) {
-      return functionClass.rawType;
+      return new InterfaceType(
+          functionClass, const <DynamicType>[], Nullability.legacy);
     }
     int requiredParameterCount = f.requiredParameterCount;
 
@@ -346,7 +350,7 @@ abstract class StandardBounds {
     // other.
     int totalPositional =
         math.min(f.positionalParameters.length, g.positionalParameters.length);
-    var positionalParameters = new List<DartType>(totalPositional);
+    List<DartType> positionalParameters = new List<DartType>(totalPositional);
     for (int i = 0; i < totalPositional; i++) {
       positionalParameters[i] = getStandardLowerBound(
           f.positionalParameters[i], g.positionalParameters[i]);
@@ -360,8 +364,8 @@ abstract class StandardBounds {
       while (true) {
         if (i < f.namedParameters.length) {
           if (j < g.namedParameters.length) {
-            var fName = f.namedParameters[i].name;
-            var gName = g.namedParameters[j].name;
+            String fName = f.namedParameters[i].name;
+            String gName = g.namedParameters[j].name;
             int order = fName.compareTo(gName);
             if (order < 0) {
               i++;
@@ -406,10 +410,10 @@ abstract class StandardBounds {
     // 3. Otherwise return the spec-defined standard upper bound.  This will
     //    be an upper bound, might (or might not) be least, and might
     //    (or might not) be a well-formed type.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
     if (type1 is InterfaceType &&
@@ -461,10 +465,10 @@ abstract class StandardBounds {
     // type variable first.  Alternatively, you could probably choose to treat
     // it as just an instance of the interface type upper bound problem, with
     // the "inheritance" chain extended by the bounds placed on the variables.
-    if (isSubtypeOf(type1, type2)) {
+    if (isSubtypeOf(type1, type2, SubtypeCheckMode.ignoringNullabilities)) {
       return type2;
     }
-    if (isSubtypeOf(type2, type1)) {
+    if (isSubtypeOf(type2, type1, SubtypeCheckMode.ignoringNullabilities)) {
       return type1;
     }
     if (type1 is TypeParameterType) {
@@ -472,13 +476,13 @@ abstract class StandardBounds {
       // C<T extends U, U extends List>, T gets resolved directly to List.  Do
       // we need to replicate that behavior?
       return getStandardUpperBound(
-          Substitution.fromMap({type1.parameter: objectType})
+          Substitution.fromMap({type1.parameter: objectLegacyRawType})
               .substituteType(type1.parameter.bound),
           type2);
     } else if (type2 is TypeParameterType) {
       return getStandardUpperBound(
           type1,
-          Substitution.fromMap({type2.parameter: objectType})
+          Substitution.fromMap({type2.parameter: objectLegacyRawType})
               .substituteType(type2.parameter.bound));
     } else {
       // We should only be called when at least one of the types is a

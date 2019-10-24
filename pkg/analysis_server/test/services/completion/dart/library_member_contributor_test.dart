@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,7 +12,8 @@ import 'completion_contributor_util.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryMemberContributorTest);
+//    defineReflectiveTests(LibraryMemberContributorTest);
+    defineReflectiveTests(LibraryMemberContributorWithExtensionMethodsTest);
   });
 }
 
@@ -278,5 +280,32 @@ main() {
         class X {foo(){A^.bar}}''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+}
+
+@reflectiveTest
+class LibraryMemberContributorWithExtensionMethodsTest
+    extends DartCompletionContributorTest {
+  @override
+  DartCompletionContributor createContributor() {
+    return new LibraryMemberContributor();
+  }
+
+  @override
+  void setupResourceProvider() {
+    super.setupResourceProvider();
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+  }
+
+  test_extension() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addSource('/home/test/lib/b.dart', '''
+extension MyExt on int {}
+''');
+    addTestSource('''
+        import "b.dart" as b;
+        main() {b.^}''');
+    await computeSuggestions();
+    assertSuggest('MyExt');
   }
 }

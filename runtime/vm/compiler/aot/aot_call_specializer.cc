@@ -109,10 +109,9 @@ bool AotCallSpecializer::TryCreateICDataForUniqueTarget(
     return false;
   }
 
-  const ICData& ic_data =
-      ICData::ZoneHandle(Z, ICData::NewFrom(*call->ic_data(), 1));
-  ic_data.AddReceiverCheck(cls.id(), target_function);
-  call->set_ic_data(&ic_data);
+  call->SetTargets(
+      CallTargets::CreateMonomorphic(Z, cls.id(), target_function));
+  ASSERT(call->Targets().IsMonomorphic());
 
   // If we know that the only noSuchMethod is Object.noSuchMethod then
   // this call is guaranteed to either succeed or throw.
@@ -198,13 +197,14 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
 
     ZoneGrowableArray<PushArgumentInstr*>* args =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
-    PushArgumentInstr* arg =
+    PushArgumentInstr* arg1 =
         new (Z) PushArgumentInstr(new (Z) Value(left->ArgumentAt(0)));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
-    arg = new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
-    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
-    args->Add(arg);
+    InsertBefore(call, arg1, nullptr, FlowGraph::kEffect);
+    args->Add(arg1);
+    PushArgumentInstr* arg2 =
+        new (Z) PushArgumentInstr(new (Z) Value(right->ArgumentAt(0)));
+    InsertBefore(call, arg2, nullptr, FlowGraph::kEffect);
+    args->Add(arg2);
     const intptr_t kTypeArgsLen = 0;
     StaticCallInstr* static_call = new (Z) StaticCallInstr(
         call->token_pos(), have_same_runtime_type, kTypeArgsLen,
@@ -212,6 +212,7 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
         args, call->deopt_id(), call->CallCount(), ICData::kOptimized);
     static_call->SetResultType(Z, CompileType::FromCid(kBoolCid));
     ReplaceCall(call, static_call);
+    static_call->RepairPushArgsInEnvironment();
     return true;
   }
 
@@ -242,14 +243,9 @@ bool AotCallSpecializer::TryInlineFieldAccess(InstanceCallInstr* call) {
   if ((op_kind == Token::kGET) && TryInlineInstanceGetter(call)) {
     return true;
   }
-
-  const ICData& unary_checks =
-      ICData::Handle(Z, call->ic_data()->AsUnaryClassChecks());
-  if (!unary_checks.NumberOfChecksIs(0) && (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(call, unary_checks)) {
+  if ((op_kind == Token::kSET) && TryInlineInstanceSetter(call)) {
     return true;
   }
-
   return false;
 }
 
@@ -445,12 +441,12 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
   right_definition = new (Z)
       IntConverterInstr(kUnboxedInt32, kUnboxedInt64,
                         new (Z) Value(right_definition), DeoptId::kNone);
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
 #else
   Definition* right_definition = new (Z) UnboxedConstantInstr(
       Smi::ZoneHandle(Z, Smi::New(modulus - 1)), kUnboxedInt64);
-  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
 #endif
+  if (modulus == 1) return right_definition;
+  InsertBefore(instr, right_definition, /*env=*/NULL, FlowGraph::kValue);
   right_value = new (Z) Value(right_definition);
   return new (Z)
       BinaryInt64OpInstr(Token::kBIT_AND, left_value, right_value,
@@ -787,22 +783,18 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
+  const CallTargets& targets = instr->Targets();
   const intptr_t receiver_idx = instr->FirstArgIndex();
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  const intptr_t number_of_checks = unary_checks.NumberOfChecks();
   if (I->can_use_strong_mode_types()) {
     // In AOT strong mode, we avoid deopting speculation.
     // TODO(ajcbik): replace this with actual analysis phase
     //               that determines if checks are removed later.
   } else if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
-             number_of_checks > 0) {
-    if ((op_kind == Token::kINDEX) &&
-        TryReplaceWithIndexedOp(instr, &unary_checks)) {
+             !targets.is_empty()) {
+    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
       return;
     }
-    if ((op_kind == Token::kASSIGN_INDEX) &&
-        TryReplaceWithIndexedOp(instr, &unary_checks)) {
+    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
       return;
     }
     if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
@@ -833,25 +825,22 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
-  bool has_one_target = number_of_checks > 0 && unary_checks.HasOneTarget();
+  bool has_one_target = targets.HasSingleTarget();
   if (has_one_target) {
     // Check if the single target is a polymorphic target, if it is,
     // we don't have one target.
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const Function& target = targets.FirstTarget();
     const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
     has_one_target = !polymorphic_target;
   }
 
   if (has_one_target) {
-    RawFunction::Kind function_kind =
-        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
+    const Function& target = targets.FirstTarget();
+    RawFunction::Kind function_kind = target.kind();
     if (flow_graph()->CheckForInstanceCall(instr, function_kind) ==
         FlowGraph::ToCheck::kNoCheck) {
-      CallTargets* targets = CallTargets::Create(Z, unary_checks);
-      ASSERT(targets->HasSingleTarget());
-      const Function& target = targets->FirstTarget();
       StaticCallInstr* call = StaticCallInstr::FromCall(
-          Z, instr, target, targets->AggregateCallCount());
+          Z, instr, target, targets.AggregateCallCount());
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -864,7 +853,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kLTE:
     case Token::kGT:
     case Token::kGTE: {
-      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
           HasLikelySmiOperand(instr)) {
         ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
@@ -885,7 +874,7 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL: {
-      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+      if (instr->BinaryFeedback().OperandsAre(kSmiCid) ||
           HasLikelySmiOperand(instr)) {
         ASSERT(receiver_idx == 0);
         Definition* left = instr->ArgumentAt(0);
@@ -957,18 +946,9 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
       for (intptr_t i = 0; i < class_ids.length(); i++) {
         const intptr_t cid = class_ids[i];
         cls = isolate()->class_table()->At(cid);
-        // Even if we are resolving get:M on a class that has method M
-        // ResolveForReceiverClass would not inject a method extractor into
-        // a class becuase FLAG_lazy_dispatchers is set to false during AOT
-        // compilation. Precompiler however does inject method extractors
-        // (see Precompiler::CheckForNewDynamicFunctions). This means that that
-        // lookup for get:m might overlook a method M in subclass and return
-        // get:m (method extractor for M) from a superclass.
-        // For this reason we abort optimization if lookup returns any
-        // artificial functions that can be inserted lazily.
         target = instr->ResolveForReceiverClass(cls);
-        if (target.IsNull() || target.IsMethodExtractor() ||
-            target.IsInvokeFieldDispatcher()) {
+        ASSERT(target.IsNull() || !target.IsInvokeFieldDispatcher());
+        if (target.IsNull()) {
           single_target = Function::null();
           ic_data = ICData::null();
           break;
@@ -1033,7 +1013,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
         return;
       } else if ((ic_data.raw() != ICData::null()) &&
                  !ic_data.NumberOfChecksIs(0)) {
-        CallTargets* targets = CallTargets::Create(Z, ic_data);
+        const CallTargets* targets = CallTargets::Create(Z, ic_data);
+        ASSERT(!targets->is_empty());
         PolymorphicInstanceCallInstr* call =
             new (Z) PolymorphicInstanceCallInstr(instr, *targets,
                                                  /* complete = */ true);
@@ -1051,13 +1032,12 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   // More than one target. Generate generic polymorphic call without
   // deoptimization.
-  if (instr->ic_data()->NumberOfUsedChecks() > 0) {
+  if (targets.length() > 0) {
     ASSERT(!FLAG_polymorphic_with_deopt);
     // OK to use checks with PolymorphicInstanceCallInstr since no
     // deoptimization is allowed.
-    CallTargets* targets = CallTargets::Create(Z, *instr->ic_data());
     PolymorphicInstanceCallInstr* call =
-        new (Z) PolymorphicInstanceCallInstr(instr, *targets,
+        new (Z) PolymorphicInstanceCallInstr(instr, targets,
                                              /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
@@ -1141,17 +1121,21 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   // Insert all new instructions, except .call() invocation into the
   // graph.
-  for (intptr_t i = 0; i < invoke_get->ArgumentCount(); i++) {
-    InsertBefore(call, invoke_get->PushArgumentAt(i), NULL, FlowGraph::kEffect);
+  Environment* get_env =
+      call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
+  for (intptr_t i = 0, n = invoke_get->ArgumentCount(); i < n; i++) {
+    PushArgumentInstr* push = invoke_get->PushArgumentAt(i);
+    InsertBefore(call, push, nullptr, FlowGraph::kEffect);
+    get_env->PushValue(new (Z) Value(push));  // add PushArg to getter's env
   }
-  InsertBefore(call, invoke_get, call->env(), FlowGraph::kValue);
-  for (intptr_t i = 0; i < invoke_call->ArgumentCount(); i++) {
-    InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
+  InsertBefore(call, invoke_get, get_env, FlowGraph::kValue);
+  for (intptr_t i = 0, n = invoke_call->ArgumentCount(); i < n; i++) {
+    InsertBefore(call, invoke_call->PushArgumentAt(i), nullptr,
                  FlowGraph::kEffect);
   }
   // Replace original PushArguments in the graph (mainly env uses).
   ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
-  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+  for (intptr_t i = 0, n = call->ArgumentCount(); i < n; i++) {
     call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
     call->PushArgumentAt(i)->RemoveFromGraph();
   }
@@ -1259,7 +1243,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   Environment* copy =
       call->env()->DeepCopy(Z, call->env()->Length() - call->ArgumentCount());
   for (intptr_t i = 0; i < args->length(); ++i) {
-    copy->PushValue(new (Z) Value((*args)[i]->value()->definition()));
+    copy->PushValue(new (Z) Value((*args)[i]));  // add PushArg to env
   }
   call->RemoveEnvironment();
   ReplaceCall(call, new_call);
