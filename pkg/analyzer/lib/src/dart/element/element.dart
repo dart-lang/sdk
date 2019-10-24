@@ -5826,33 +5826,6 @@ enum LibraryResolutionCapability {
   constantExpressions,
 }
 
-/// The context in which the library is resynthesized.
-abstract class LibraryResynthesizerContext {
-  /// Return the [LinkedLibrary] that corresponds to the library being
-  /// resynthesized.
-  LinkedLibrary get linkedLibrary;
-
-  /// Return the exported [LibraryElement] for with the given [relativeUri].
-  LibraryElement buildExportedLibrary(String relativeUri);
-
-  /// Return the export namespace of the library.
-  Namespace buildExportNamespace();
-
-  /// Return the imported [LibraryElement] for the given dependency in the
-  /// linked library.
-  LibraryElement buildImportedLibrary(int dependency);
-
-  /// Return the public namespace of the library.
-  Namespace buildPublicNamespace();
-
-  /// Find the entry point of the library.
-  FunctionElement findEntryPoint();
-
-  /// Ensure that getters and setters in different units use the same
-  /// top-level variables.
-  void patchTopLevelAccessors();
-}
-
 /// A concrete implementation of a [LocalVariableElement].
 class LocalVariableElementImpl extends NonParameterVariableElementImpl
     implements LocalVariableElement {
