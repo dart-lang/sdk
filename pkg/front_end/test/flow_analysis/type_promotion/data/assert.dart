@@ -4,7 +4,25 @@
 
 void assertStatement(Object x) {
   assert((x is int ? /*int*/ x : throw 'foo') == 0);
-  // TODO(paulberry): should not be promoted because the assertion won't execute
-  // in release mode.  See https://github.com/dart-lang/sdk/issues/38761.
-  /*int*/ x;
+  // x is not promoted because the assertion won't execute in release
+  // mode.
+  x;
+}
+
+void promotionInConditionCarriesToMessage(Object x) {
+  // Code in the message part of an assertion can assume that the
+  // condition evaluated to false.
+  assert(x is! int, /*int*/ x.toString());
+}
+
+class C {
+  C.assertInitializer(Object x)
+      : assert((x is int ? /*int*/ x : throw 'foo') == 0) {
+    // x is not promoted because the assertion won't execute in release
+    // mode.
+    x;
+  }
+
+  C.promotionInConditionCarriesToMessage(Object x)
+      : assert(x is! int, /*int*/ x.toString());
 }

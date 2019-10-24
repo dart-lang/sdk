@@ -2881,13 +2881,21 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitAssertInitializer(AssertInitializer node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    super.visitAssertInitializer(node);
+    _flowAnalysis?.flow?.assert_begin();
+    node.condition?.accept(this);
+    _flowAnalysis?.flow?.assert_afterCondition(node.condition);
+    node.message?.accept(this);
+    _flowAnalysis?.flow?.assert_end();
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    super.visitAssertStatement(node);
+    _flowAnalysis?.flow?.assert_begin();
+    node.condition?.accept(this);
+    _flowAnalysis?.flow?.assert_afterCondition(node.condition);
+    node.message?.accept(this);
+    _flowAnalysis?.flow?.assert_end();
   }
 
   @override

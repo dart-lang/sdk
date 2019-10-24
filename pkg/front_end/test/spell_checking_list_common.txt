@@ -177,6 +177,7 @@ asked
 asks
 aspects
 assert
+asserted
 assertion
 assertions
 asserts
@@ -362,6 +363,7 @@ capturing
 care
 careful
 cares
+carries
 carry
 cascade
 cascaded
@@ -713,6 +715,7 @@ delimited
 delimiter
 delimiters
 delta
+demoted
 demotions
 denote
 denoted
@@ -1974,6 +1977,7 @@ particular
 parts
 pass
 passed
+passes
 passing
 past
 pasted

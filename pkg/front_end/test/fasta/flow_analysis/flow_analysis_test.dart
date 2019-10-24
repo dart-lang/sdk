@@ -28,6 +28,48 @@ main() {
       });
     });
 
+    test('assert_afterCondition promotes', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      h.run((flow) {
+        flow.assert_begin();
+        var expr = h.eqNull(x)();
+        flow.assert_afterCondition(expr);
+        expect(flow.promotedType(x).type, 'int');
+        flow.assert_end();
+      });
+    });
+
+    test('assert_end joins previous and ifTrue states', () {
+      var h = _Harness();
+      var x = h.addVar('x', 'int?');
+      var y = h.addVar('x', 'int?');
+      var z = h.addVar('x', 'int?');
+      h.assignedVariables((vars) {
+        vars.write(x);
+        vars.write(z);
+      });
+      h.run((flow) {
+        h.promote(x, 'int');
+        h.promote(z, 'int');
+        flow.assert_begin();
+        flow.write(x);
+        flow.write(z);
+        var expr = h.and(h.notNull(x), h.notNull(y))();
+        flow.assert_afterCondition(expr);
+        flow.assert_end();
+        // x should be promoted because it was promoted before the assert, and
+        // it is re-promoted within the assert (if it passes)
+        expect(flow.promotedType(x).type, 'int');
+        // y should not be promoted because it was not promoted before the
+        // assert.
+        expect(flow.promotedType(y), null);
+        // z should not be promoted because it is demoted in the assert
+        // condition.
+        expect(flow.promotedType(z), null);
+      });
+    });
+
     test('conditional_thenBegin promotes true branch', () {
       var h = _Harness();
       var x = h.addVar('x', 'int?');

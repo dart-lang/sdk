@@ -192,6 +192,38 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// applied.  [type] should be the type being checked.
   void asExpression_end(Expression subExpression, Type type);
 
+  /// Call this method after visiting the condition part of an assert statement
+  /// (or assert initializer).
+  ///
+  /// [condition] should be the assert statement's condition.
+  ///
+  /// See [assert_begin] for more information.
+  void assert_afterCondition(Expression condition);
+
+  /// Call this method before visiting the condition part of an assert statement
+  /// (or assert initializer).
+  ///
+  /// The order of visiting an assert statement with no "message" part should
+  /// be:
+  /// - Call [assert_begin]
+  /// - Visit the condition
+  /// - Call [assert_afterCondition]
+  /// - Call [assert_end]
+  ///
+  /// The order of visiting an assert statement with a "message" part should be:
+  /// - Call [assert_begin]
+  /// - Visit the condition
+  /// - Call [assert_afterCondition]
+  /// - Visit the message
+  /// - Call [assert_end]
+  void assert_begin();
+
+  /// Call this method after visiting an assert statement (or assert
+  /// initializer).
+  ///
+  /// See [assert_begin] for more information.
+  void assert_end();
+
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
@@ -587,6 +619,22 @@ class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
   void asExpression_end(Expression subExpression, Type type) {
     _wrap('asExpression_end($subExpression, $type)',
         () => _wrapped.asExpression_end(subExpression, type));
+  }
+
+  @override
+  void assert_afterCondition(Expression condition) {
+    _wrap('assert_afterCondition($condition)',
+        () => _wrapped.assert_afterCondition(condition));
+  }
+
+  @override
+  void assert_begin() {
+    _wrap('assert_begin()', () => _wrapped.assert_begin());
+  }
+
+  @override
+  void assert_end() {
+    _wrap('assert_end()', () => _wrapped.assert_end());
   }
 
   @override
@@ -1450,6 +1498,18 @@ class VariableModel<Type> {
   }
 }
 
+/// [_FlowContext] representing an assert statement or assert initializer.
+class _AssertContext<Variable, Type> extends _SimpleContext<Variable, Type> {
+  /// Flow models associated with the condition being asserted.
+  _ExpressionInfo<Variable, Type> _conditionInfo;
+
+  _AssertContext(FlowModel<Variable, Type> previous) : super(previous);
+
+  @override
+  String toString() =>
+      '_AssertContext(previous: $_previous, conditionInfo: $_conditionInfo)';
+}
+
 /// [_FlowContext] representing a language construct that branches on a boolean
 /// condition, such as an `if` statement, conditional expression, or a logical
 /// binary operator.
@@ -1562,6 +1622,27 @@ class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
       return;
     }
     _current = _current.promote(typeOperations, variable, type);
+  }
+
+  @override
+  void assert_afterCondition(Expression condition) {
+    _AssertContext<Variable, Type> context =
+        _stack.last as _AssertContext<Variable, Type>;
+    _ExpressionInfo<Variable, Type> conditionInfo = _expressionEnd(condition);
+    context._conditionInfo = conditionInfo;
+    _current = conditionInfo._ifFalse;
+  }
+
+  @override
+  void assert_begin() {
+    _stack.add(new _AssertContext<Variable, Type>(_current));
+  }
+
+  @override
+  void assert_end() {
+    _AssertContext<Variable, Type> context =
+        _stack.removeLast() as _AssertContext<Variable, Type>;
+    _current = _join(context._previous, context._conditionInfo._ifTrue);
   }
 
   @override

@@ -265,6 +265,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAssertInitializer(AssertInitializer node) {
+    _flowAnalysis.assert_begin();
     _checkExpressionNotNull(node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
@@ -274,12 +275,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             hard: true);
       }
     }
+    _flowAnalysis.assert_afterCondition(node.condition);
     node.message?.accept(this);
+    _flowAnalysis.assert_end();
     return null;
   }
 
   @override
   DecoratedType visitAssertStatement(AssertStatement node) {
+    _flowAnalysis.assert_begin();
     _checkExpressionNotNull(node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       var intentNode = _conditionInfo.trueDemonstratesNonNullIntent;
@@ -289,7 +293,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             hard: true);
       }
     }
+    _flowAnalysis.assert_afterCondition(node.condition);
     node.message?.accept(this);
+    _flowAnalysis.assert_end();
     return null;
   }
 

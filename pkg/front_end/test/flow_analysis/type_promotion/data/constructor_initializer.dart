@@ -7,12 +7,4 @@ class C {
   C.normalInitializer(Object x) : y = x is int ? /*int*/ x : throw 'foo' {
     /*int*/ x;
   }
-  C.assertInitializer(Object x)
-      : y = 0,
-        assert((x is int ? /*int*/ x : throw 'foo') == 0) {
-    // TODO(paulberry): should not be promoted because the assertion won't
-    // execute in release mode.  See
-    // https://github.com/dart-lang/sdk/issues/38761
-    /*int*/ x;
-  }
 }

@@ -34,6 +34,88 @@ void h(num m) {}
     assertEdge(nNode, mNode, hard: true);
   }
 
+  test_assert_initializer_condition_promotes_to_message() async {
+    await analyze('''
+class C {
+  C(int i)
+      : assert(i == null, g(i)) {
+    h(i);
+  }
+}
+String g(int j) => 'foo';
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k.
+    assertEdge(iNode, kNode, hard: true);
+  }
+
+  test_assert_initializer_does_not_promote_beyond_assert() async {
+    await analyze('''
+class C {
+  C(int i)
+      : assert(i != null) {
+    g(i);
+    if (i == null) return;
+    h(i);
+  }
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // There is an edge from i to j because i not promoted by the assert.
+    assertEdge(iNode, jNode, hard: true);
+    // But there is no edge from i to k.
+    assertNoEdge(iNode, kNode);
+  }
+
+  test_assert_statement_condition_promotes_to_message() async {
+    await analyze('''
+void f(int i) {
+  assert(i == null, g(i));
+  h(i);
+}
+String g(int j) => 'foo';
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // No edge from i to j because i is known to be non-nullable at the site of
+    // the call to g
+    assertNoEdge(iNode, jNode);
+    // But there is an edge from i to k.
+    assertEdge(iNode, kNode, hard: true);
+  }
+
+  test_assert_statement_does_not_promote_beyond_assert() async {
+    await analyze('''
+void f(int i) {
+  assert(i != null);
+  g(i);
+  if (i == null) return;
+  h(i);
+}
+void g(int j) {}
+void h(int k) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var jNode = decoratedTypeAnnotation('int j').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    // There is an edge from i to j because i not promoted by the assert.
+    assertEdge(iNode, jNode, hard: true);
+    // But there is no edge from i to k.
+    assertNoEdge(iNode, kNode);
+  }
+
   test_assignmentExpression() async {
     await analyze('''
 void f(int i, int j) {
