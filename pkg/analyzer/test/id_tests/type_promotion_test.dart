@@ -72,10 +72,10 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
     if (actualData is TypeParameterType) {
       var element = actualData.element;
       if (element is TypeParameterMember) {
-        return '${element.name} & ${element.bound}';
+        return '${element.name} & ${_typeToString(element.bound)}';
       }
     }
-    return actualData.toString();
+    return _typeToString(actualData);
   }
 
   @override
@@ -90,4 +90,8 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   bool isEmpty(DartType actualData) => actualData == null;
+
+  String _typeToString(TypeImpl type) {
+    return type.toString(withNullability: true);
+  }
 }
