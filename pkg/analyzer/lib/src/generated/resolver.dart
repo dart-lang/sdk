@@ -560,8 +560,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   bool _checkAllTypeChecks(IsExpression node) {
     Expression expression = node.expression;
     TypeAnnotation typeName = node.type;
-    DartType lhsType = expression.staticType;
-    DartType rhsType = typeName.type;
+    TypeImpl lhsType = expression.staticType;
+    TypeImpl rhsType = typeName.type;
     if (lhsType == null || rhsType == null) {
       return false;
     }
@@ -582,29 +582,53 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     Element rhsElement = rhsType.element;
     LibraryElement libraryElement = rhsElement?.library;
     if (libraryElement != null && libraryElement.isDartCore) {
-      // if x is Object or null is Null
-      if (rhsType.isObject ||
-          (expression is NullLiteral && rhsNameStr == _NULL_TYPE_NAME)) {
-        if (node.notOperator == null) {
-          // the is case
-          _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_TRUE, node);
+      // `is Null` or `is! Null`
+      if (rhsNameStr == _NULL_TYPE_NAME) {
+        if (expression is NullLiteral) {
+          if (node.notOperator == null) {
+            _errorReporter.reportErrorForNode(
+              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+              node,
+            );
+          } else {
+            _errorReporter.reportErrorForNode(
+              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+              node,
+            );
+          }
         } else {
-          // the is not case
-          _errorReporter.reportErrorForNode(
-              HintCode.UNNECESSARY_TYPE_CHECK_FALSE, node);
+          if (node.notOperator == null) {
+            _errorReporter.reportErrorForNode(
+              HintCode.TYPE_CHECK_IS_NULL,
+              node,
+            );
+          } else {
+            _errorReporter.reportErrorForNode(
+              HintCode.TYPE_CHECK_IS_NOT_NULL,
+              node,
+            );
+          }
         }
         return true;
-      } else if (rhsNameStr == _NULL_TYPE_NAME) {
-        if (node.notOperator == null) {
-          // the is case
-          _errorReporter.reportErrorForNode(HintCode.TYPE_CHECK_IS_NULL, node);
-        } else {
-          // the is not case
-          _errorReporter.reportErrorForNode(
-              HintCode.TYPE_CHECK_IS_NOT_NULL, node);
+      }
+      // `is Object` or `is! Object`
+      if (rhsType.isObject) {
+        var nullability = rhsType.nullabilitySuffix;
+        if (nullability == NullabilitySuffix.star ||
+            nullability == NullabilitySuffix.question) {
+          if (node.notOperator == null) {
+            _errorReporter.reportErrorForNode(
+              HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+              node,
+            );
+          } else {
+            _errorReporter.reportErrorForNode(
+              HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+              node,
+            );
+          }
+          return true;
         }
-        return true;
       }
     }
     return false;
