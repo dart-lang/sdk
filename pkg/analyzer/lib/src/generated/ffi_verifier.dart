@@ -14,6 +14,23 @@ import 'package:analyzer/src/dart/error/ffi_code.dart';
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
 /// of the desired hints.
 class FfiVerifier extends RecursiveAstVisitor<void> {
+  static const List<String> _primitiveIntegerNativeTypes = [
+    'Int8',
+    'Int16',
+    'Int32',
+    'Int64',
+    'Uint8',
+    'Uint16',
+    'Uint32',
+    'Uint64',
+    'IntPtr'
+  ];
+
+  static const List<String> _primitiveDoubleNativeTypes = [
+    'Float',
+    'Double',
+  ];
+
   /// The type system used to check types.
   final TypeSystem typeSystem;
 
@@ -140,9 +157,56 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isDynamicLibrary(ClassElement element) =>
       element.name == 'DynamicLibrary' && element.library.name == 'dart.ffi';
 
+  /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
+  bool _isNativeFunctionInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'NativeFunction' &&
+            nativeType.typeArguments?.length == 1;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` iff [nativeType] is a `ffi.NativeType` type.
+  bool _isNativeTypeInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'NativeType';
+      }
+    }
+    return false;
+  }
+
   /// Return `true` if the given [element] represents the class `Pointer`.
   bool _isPointer(Element element) =>
       element.name == 'Pointer' && element.library.name == 'dart.ffi';
+
+  /// Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
+  bool _isPointerInterfaceType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        return element.name == 'Pointer' &&
+            nativeType.typeArguments?.length == 1;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` iff [nativeType] is a struct type.
+  _isStructClass(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final superClassElement = nativeType.element.supertype.element;
+      if (superClassElement.library.name == 'dart.ffi') {
+        return superClassElement.name == 'Struct' &&
+            nativeType.typeArguments?.isEmpty == true;
+      }
+    }
+    return false;
+  }
 
   /// Return `true` if the [typeName] represents a subtype of `Struct`.
   bool _isSubtypeOfStruct(TypeName typeName) {
@@ -159,6 +223,71 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           superType.mixins.any(isStruct);
     }
     return false;
+  }
+
+  /// Validates that the given type is a valid dart:ffi native function
+  /// signature.
+  bool _isValidFfiNativeFunctionType(DartType nativeType) {
+    if (nativeType is FunctionType && !nativeType.isDartCoreFunction) {
+      if (nativeType.namedParameterTypes.isNotEmpty ||
+          nativeType.optionalParameterTypes.isNotEmpty) {
+        return false;
+      }
+      if (!_isValidFfiNativeType(nativeType.returnType, true)) {
+        return false;
+      }
+
+      for (final DartType typeArg in nativeType.typeArguments) {
+        if (!_isValidFfiNativeType(typeArg, false)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /// Validates that the given [nativeType] is a valid dart:ffi native type.
+  bool _isValidFfiNativeType(DartType nativeType, bool allowVoid) {
+    if (nativeType is InterfaceType) {
+      // Is it a primitive integer/double type (or ffi.Void if we allow it).
+      final primitiveType = _primitiveNativeType(nativeType);
+      if (primitiveType != _PrimitiveDartType.none &&
+          (primitiveType != _PrimitiveDartType.void_ || allowVoid)) {
+        return true;
+      }
+      if (_isNativeFunctionInterfaceType(nativeType)) {
+        return _isValidFfiNativeFunctionType(nativeType.typeArguments.single);
+      }
+      if (_isPointerInterfaceType(nativeType)) {
+        final nativeArgumentType = nativeType.typeArguments.single;
+        return _isValidFfiNativeType(nativeArgumentType, true) ||
+            _isStructClass(nativeArgumentType) ||
+            _isNativeTypeInterfaceType(nativeArgumentType);
+      }
+    } else if (nativeType is FunctionType) {
+      return _isValidFfiNativeFunctionType(nativeType);
+    }
+    return false;
+  }
+
+  _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
+    if (nativeType is InterfaceType) {
+      final element = nativeType.element;
+      if (element.library.name == 'dart.ffi') {
+        final String name = element.name;
+        if (_primitiveIntegerNativeTypes.contains(name)) {
+          return _PrimitiveDartType.int;
+        }
+        if (_primitiveDoubleNativeTypes.contains(name)) {
+          return _PrimitiveDartType.double;
+        }
+        if (name == 'Void') {
+          return _PrimitiveDartType.void_;
+        }
+      }
+    }
+    return _PrimitiveDartType.none;
   }
 
   /// Return an indication of the Dart type associated with the [annotation].
@@ -245,6 +374,79 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportTypeErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, node,
             [TPrime.displayName, F.displayName, 'asFunction']);
       }
+    }
+  }
+
+  /// Validates that the given [nativeType] is, when native types are converted
+  /// to their Dart equivalent, a subtype of [dartType].
+  bool _validateCompatibleFunctionTypes(
+      DartType dartType, DartType nativeType) {
+    // We require both to be valid function types.
+    if (dartType is! FunctionType ||
+        dartType.isDartCoreFunction ||
+        nativeType is! FunctionType ||
+        nativeType.isDartCoreFunction) {
+      return false;
+    }
+
+    final dartFType = dartType as FunctionType;
+    final nativeFType = nativeType as FunctionType;
+
+    // We disallow any optional parameters.
+    final int parameterCount = dartFType.normalParameterTypes.length;
+    if (parameterCount != nativeFType.normalParameterTypes.length) {
+      return false;
+    }
+    // We disallow generic function types.
+    if (dartFType.typeFormals.isNotEmpty ||
+        nativeFType.typeFormals.isNotEmpty) {
+      return false;
+    }
+    if (dartFType.namedParameterTypes.isNotEmpty ||
+        dartFType.optionalParameterTypes.isNotEmpty ||
+        nativeFType.namedParameterTypes.isNotEmpty ||
+        nativeFType.optionalParameterTypes.isNotEmpty) {
+      return false;
+    }
+
+    // Validate that the return types are compatible.
+    if (!_validateCompatibleNativeType(
+        dartFType.returnType, nativeFType.returnType, false)) {
+      return false;
+    }
+
+    // Validate that the parameter types are compatible.
+    for (int i = 0; i < parameterCount; ++i) {
+      if (!_validateCompatibleNativeType(dartFType.normalParameterTypes[i],
+          nativeFType.normalParameterTypes[i], true)) {
+        return false;
+      }
+    }
+
+    // Signatures have same number of parameters and the types match.
+    return true;
+  }
+
+  /// Validates that, if we convert [nativeType] to it's corresponding
+  /// [dartType] the latter is a subtype of the former if
+  /// [checkCovariance].
+  bool _validateCompatibleNativeType(
+      DartType dartType, DartType nativeType, bool checkCovariance) {
+    final nativeReturnType = _primitiveNativeType(nativeType);
+    if (nativeReturnType == _PrimitiveDartType.int) {
+      return dartType.isDartCoreInt;
+    } else if (nativeReturnType == _PrimitiveDartType.double) {
+      return dartType.isDartCoreDouble;
+    } else if (nativeReturnType == _PrimitiveDartType.void_) {
+      return dartType.isVoid;
+    } else if (dartType is InterfaceType && nativeType is InterfaceType) {
+      return checkCovariance
+          ? typeSystem.isSubtypeOf(dartType, nativeType)
+          : typeSystem.isSubtypeOf(nativeType, dartType);
+    } else {
+      // If the [nativeType] is not a primitive int/double type then it has to
+      // be a Pointer type atm.
+      return false;
     }
   }
 
@@ -377,208 +579,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
     return false;
   }
-
-  /// Validates that the given [nativeType] is, when native types are converted
-  /// to their Dart equivalent, a subtype of [dartType].
-  bool _validateCompatibleFunctionTypes(
-      DartType dartType, DartType nativeType) {
-    // We require both to be valid function types.
-    if (dartType is! FunctionType ||
-        dartType.isDartCoreFunction ||
-        nativeType is! FunctionType ||
-        nativeType.isDartCoreFunction) {
-      return false;
-    }
-
-    final dartFType = dartType as FunctionType;
-    final nativeFType = nativeType as FunctionType;
-
-    // We disallow any optional parameters.
-    final int parameterCount = dartFType.normalParameterTypes.length;
-    if (parameterCount != nativeFType.normalParameterTypes.length) {
-      return false;
-    }
-    // We disallow generic function types.
-    if (dartFType.typeFormals.isNotEmpty ||
-        nativeFType.typeFormals.isNotEmpty) {
-      return false;
-    }
-    if (dartFType.namedParameterTypes.isNotEmpty ||
-        dartFType.optionalParameterTypes.isNotEmpty ||
-        nativeFType.namedParameterTypes.isNotEmpty ||
-        nativeFType.optionalParameterTypes.isNotEmpty) {
-      return false;
-    }
-
-    // Validate that the return types are compatible.
-    if (!_validateCompatibleNativeType(
-        dartFType.returnType, nativeFType.returnType, false)) {
-      return false;
-    }
-
-    // Validate that the parameter types are compatible.
-    for (int i = 0; i < parameterCount; ++i) {
-      if (!_validateCompatibleNativeType(dartFType.normalParameterTypes[i],
-          nativeFType.normalParameterTypes[i], true)) {
-        return false;
-      }
-    }
-
-    // Signatures have same number of parameters and the types match.
-    return true;
-  }
-
-  // Validates that, if we convert [nativeType] to it's corresponding
-  // [dartType] the latter is a subtype of the former if
-  // [checkCovariance].
-  bool _validateCompatibleNativeType(
-      DartType dartType, DartType nativeType, bool checkCovariance) {
-    final nativeReturnType = _primitiveNativeType(nativeType);
-    if (nativeReturnType == _PrimitiveDartType.int) {
-      return dartType.isDartCoreInt;
-    } else if (nativeReturnType == _PrimitiveDartType.double) {
-      return dartType.isDartCoreDouble;
-    } else if (nativeReturnType == _PrimitiveDartType.void_) {
-      return dartType.isVoid;
-    } else if (dartType is InterfaceType && nativeType is InterfaceType) {
-      return checkCovariance
-          ? typeSystem.isSubtypeOf(dartType, nativeType)
-          : typeSystem.isSubtypeOf(nativeType, dartType);
-    } else {
-      // If the [nativeType] is not a primitive int/double type then it has to
-      // be a Pointer type atm.
-      return false;
-    }
-  }
-
-  // Validates that the given type is a valid dart:ffi native function
-  // signature.
-  bool _isValidFfiNativeFunctionType(DartType nativeType) {
-    if (nativeType is FunctionType && !nativeType.isDartCoreFunction) {
-      if (nativeType.namedParameterTypes.isNotEmpty ||
-          nativeType.optionalParameterTypes.isNotEmpty) {
-        return false;
-      }
-      if (!_isValidFfiNativeType(nativeType.returnType, true)) {
-        return false;
-      }
-
-      for (final DartType typeArg in nativeType.typeArguments) {
-        if (!_isValidFfiNativeType(typeArg, false)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  // Validates that the given [nativeType] is a valid dart:ffi native type.
-  bool _isValidFfiNativeType(DartType nativeType, bool allowVoid) {
-    if (nativeType is InterfaceType) {
-      // Is it a primitive integer/double type (or ffi.Void if we allow it).
-      final primitiveType = _primitiveNativeType(nativeType);
-      if (primitiveType != _PrimitiveDartType.none &&
-          (primitiveType != _PrimitiveDartType.void_ || allowVoid)) {
-        return true;
-      }
-      if (_isNativeFunctionInterfaceType(nativeType)) {
-        return _isValidFfiNativeFunctionType(nativeType.typeArguments.single);
-      }
-      if (_isPointerInterfaceType(nativeType)) {
-        final nativeArgumentType = nativeType.typeArguments.single;
-        return _isValidFfiNativeType(nativeArgumentType, true) ||
-            _isStructClass(nativeArgumentType) ||
-            _isNativeTypeInterfaceType(nativeArgumentType);
-      }
-    } else if (nativeType is FunctionType) {
-      return _isValidFfiNativeFunctionType(nativeType);
-    }
-    return false;
-  }
-
-  _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
-    if (nativeType is InterfaceType) {
-      final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
-        final String name = element.name;
-        if (_primitiveIntegerNativeTypes.contains(name)) {
-          return _PrimitiveDartType.int;
-        }
-        if (_primitiveDoubleNativeTypes.contains(name)) {
-          return _PrimitiveDartType.double;
-        }
-        if (name == 'Void') {
-          return _PrimitiveDartType.void_;
-        }
-      }
-    }
-    return _PrimitiveDartType.none;
-  }
-
-  // Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
-  bool _isNativeFunctionInterfaceType(DartType nativeType) {
-    if (nativeType is InterfaceType) {
-      final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
-        return element.name == 'NativeFunction' &&
-            nativeType.typeArguments?.length == 1;
-      }
-    }
-    return false;
-  }
-
-  // Returns `true` iff [nativeType] is a `ffi.Pointer<???>` type.
-  bool _isPointerInterfaceType(DartType nativeType) {
-    if (nativeType is InterfaceType) {
-      final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
-        return element.name == 'Pointer' &&
-            nativeType.typeArguments?.length == 1;
-      }
-    }
-    return false;
-  }
-
-  // Returns `true` iff [nativeType] is a `ffi.NativeType` type.
-  bool _isNativeTypeInterfaceType(DartType nativeType) {
-    if (nativeType is InterfaceType) {
-      final element = nativeType.element;
-      if (element.library.name == 'dart.ffi') {
-        return element.name == 'NativeType';
-      }
-    }
-    return false;
-  }
-
-  // Returns `true` iff [nativeType] is a struct type.
-  _isStructClass(DartType nativeType) {
-    if (nativeType is InterfaceType) {
-      final superClassElement = nativeType.element.supertype.element;
-      if (superClassElement.library.name == 'dart.ffi') {
-        return superClassElement.name == 'Struct' &&
-            nativeType.typeArguments?.isEmpty == true;
-      }
-    }
-    return false;
-  }
-
-  static const List<String> _primitiveIntegerNativeTypes = [
-    'Int8',
-    'Int16',
-    'Int32',
-    'Int64',
-    'Uint8',
-    'Uint16',
-    'Uint32',
-    'Uint64',
-    'IntPtr'
-  ];
-
-  static const List<String> _primitiveDoubleNativeTypes = [
-    'Float',
-    'Double',
-  ];
 }
 
 enum _PrimitiveDartType {

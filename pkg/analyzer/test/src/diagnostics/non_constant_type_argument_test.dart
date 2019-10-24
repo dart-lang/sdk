@@ -28,46 +28,4 @@ class C<R extends int Function(int)> {
       error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 147, 1),
     ]);
   }
-
-  test_fromFunction() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-int f(int i) => i * 2;
-class C<T extends Function> {
-  void g() {
-    Pointer.fromFunction<T>(f);
-  }
-}
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 89, 26),
-    ]);
-  }
-
-  test_lookupFunction_F() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-typedef T = Int8 Function(Int8);
-class C<F extends int Function(int)> {
-  void f(DynamicLibrary lib, NativeFunction x) {
-    lib.lookupFunction<T, F>('g');
-  }
-}
-''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 166, 1),
-    ]);
-  }
-
-  test_lookupFunction_T() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-typedef F = int Function(int);
-class C<T extends Function> {
-  void f(DynamicLibrary lib, NativeFunction x) {
-    lib.lookupFunction<T, F>('g');
-  }
-}
-''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1),
-    ]);
-  }
 }
