@@ -37,7 +37,6 @@ void main() {
     final tokens =
         tokenize('if (list == null) { return; } for (final i = 0; i < list.');
     final suggestions = model.predict(tokens);
-    expect(suggestions, hasLength(model.completions));
     expect(suggestions.first, 'length');
   });
 
@@ -48,7 +47,6 @@ void main() {
     final best = suggestions.entries.first;
     expect(best.key, 'length');
     expect(best.value, greaterThan(0.85));
-    expect(suggestions, hasLength(model.completions));
   });
 
   test('predict when no previous tokens', () {

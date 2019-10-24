@@ -22,7 +22,7 @@ const double _MODEL_RELEVANCE_CUTOFF = 0.5;
 // TODO(devoncarew): We need to explore the memory costs of running multiple ML
 // isolates.
 /// Number of code completion isolates.
-const int _ISOLATE_COUNT = 4;
+const int _ISOLATE_COUNT = 2;
 
 /// Prediction service run by the model isolate.
 void entrypoint(SendPort sendPort) {
