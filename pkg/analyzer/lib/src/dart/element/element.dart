@@ -4524,21 +4524,6 @@ class FunctionElementImpl extends ExecutableElementImpl
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-
-  /// Set the parameters defined by this type alias to the given [parameters]
-  /// without becoming the parent of the parameters. This should only be used by
-  /// the [TypeResolverVisitor] when creating a synthetic type alias.
-  void shareParameters(List<ParameterElement> parameters) {
-    this._parameters = parameters;
-  }
-
-  /// Set the type parameters defined by this type alias to the given
-  /// [parameters] without becoming the parent of the parameters. This should
-  /// only be used by the [TypeResolverVisitor] when creating a synthetic type
-  /// alias.
-  void shareTypeParameters(List<TypeParameterElement> typeParameters) {
-    this._typeParameterElements = typeParameters;
-  }
 }
 
 /// Implementation of [FunctionElementImpl] for a function typed parameter.
