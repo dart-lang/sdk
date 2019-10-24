@@ -222,6 +222,7 @@ general/metadata_named_mixin_application: TextSerializationFailure # Was: Pass
 general/micro: TextSerializationFailure # Was: RuntimeError
 general/minimum_int: TextSerializationFailure # Was: Pass
 general/missing_constructor: TextSerializationFailure # Was: Pass
+general/missing_toplevel: TextSerializationFailure
 general/mixin: TextSerializationFailure # Was: Pass
 general/mixin_application_override: ExpectationFileMismatch
 general/mixin_application_override: TypeCheckError

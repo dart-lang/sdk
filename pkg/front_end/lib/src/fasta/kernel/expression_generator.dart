@@ -483,7 +483,8 @@ class PropertyAccessGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return new PropertyGet(receiver, name, getter)..fileOffset = fileOffset;
+    return _forest.createPropertyGet(fileOffset, receiver, name,
+        interfaceTarget: getter);
   }
 
   @override
@@ -497,9 +498,8 @@ class PropertyAccessGenerator extends Generator {
       {bool voidContext = false}) {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
-    PropertyGet read = new PropertyGet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name)
-      ..fileOffset = fileOffset;
+    PropertyGet read = _forest.createPropertyGet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name);
     PropertySet write = _helper.forest.createPropertySet(fileOffset,
         _helper.createVariableGet(variable, receiver.fileOffset), name, value,
         forEffect: voidContext);
@@ -546,9 +546,8 @@ class PropertyAccessGenerator extends Generator {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        new PropertyGet(
-            _helper.createVariableGet(variable, receiver.fileOffset), name)
-          ..fileOffset = fileOffset);
+        _forest.createPropertyGet(fileOffset,
+            _helper.createVariableGet(variable, receiver.fileOffset), name));
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -659,9 +658,9 @@ class ThisPropertyAccessGenerator extends Generator {
   }
 
   Expression _createRead() {
-    return new PropertyGet(
-        _forest.createThisExpression(fileOffset), name, getter)
-      ..fileOffset = fileOffset;
+    return _forest.createPropertyGet(
+        fileOffset, _forest.createThisExpression(fileOffset), name,
+        interfaceTarget: getter);
   }
 
   @override
@@ -693,8 +692,8 @@ class ThisPropertyAccessGenerator extends Generator {
       bool isPostIncDec: false}) {
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
-        new PropertyGet(_forest.createThisExpression(fileOffset), name)
-          ..fileOffset = fileOffset,
+        _forest.createPropertyGet(
+            fileOffset, _forest.createThisExpression(fileOffset), name),
         binaryOperator,
         _helper.forest.createArguments(offset, <Expression>[value]),
         interfaceTarget: interfaceTarget);
@@ -715,8 +714,8 @@ class ThisPropertyAccessGenerator extends Generator {
           isPostIncDec: true);
     }
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        new PropertyGet(_forest.createThisExpression(fileOffset), name)
-          ..fileOffset = fileOffset);
+        _forest.createPropertyGet(
+            fileOffset, _forest.createThisExpression(fileOffset), name));
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),
@@ -796,10 +795,10 @@ class NullAwarePropertyAccessGenerator extends Generator {
   Expression buildSimpleRead() {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiverExpression);
-    PropertyGet read = new PropertyGet(
+    PropertyGet read = _forest.createPropertyGet(
+        fileOffset,
         _helper.createVariableGet(variable, receiverExpression.fileOffset),
-        name)
-      ..fileOffset = fileOffset;
+        name);
     return new NullAwarePropertyGet(variable, read)
       ..fileOffset = receiverExpression.fileOffset;
   }
@@ -3483,7 +3482,7 @@ class UnlinkedGenerator extends Generator {
 
   @override
   Expression buildSimpleRead() {
-    return new PropertyGet(receiver, name)..fileOffset = fileOffset;
+    return _forest.createPropertyGet(fileOffset, receiver, name);
   }
 
   @override
@@ -3491,9 +3490,8 @@ class UnlinkedGenerator extends Generator {
       {bool voidContext: false}) {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
-    PropertyGet read = new PropertyGet(
-        _helper.createVariableGet(variable, receiver.fileOffset), name)
-      ..fileOffset = fileOffset;
+    PropertyGet read = _forest.createPropertyGet(fileOffset,
+        _helper.createVariableGet(variable, receiver.fileOffset), name);
     PropertySet write = _helper.forest.createPropertySet(fileOffset,
         _helper.createVariableGet(variable, receiver.fileOffset), name, value,
         forEffect: voidContext);
@@ -3540,9 +3538,8 @@ class UnlinkedGenerator extends Generator {
     VariableDeclaration variable =
         _helper.forest.createVariableDeclarationForValue(receiver);
     VariableDeclaration read = _helper.forest.createVariableDeclarationForValue(
-        new PropertyGet(
-            _helper.createVariableGet(variable, receiver.fileOffset), name)
-          ..fileOffset = fileOffset);
+        _forest.createPropertyGet(fileOffset,
+            _helper.createVariableGet(variable, receiver.fileOffset), name));
     MethodInvocation binary = _helper.forest.createMethodInvocation(
         offset,
         _helper.createVariableGet(read, fileOffset),

@@ -665,6 +665,13 @@ class Forest {
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
+  PropertyGet createPropertyGet(int fileOffset, Expression receiver, Name name,
+      {Member interfaceTarget}) {
+    assert(fileOffset != null);
+    return new PropertyGet(receiver, name, interfaceTarget)
+      ..fileOffset = fileOffset;
+  }
+
   PropertySet createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
       {Member interfaceTarget, bool forEffect, bool readOnlyReceiver: false}) {

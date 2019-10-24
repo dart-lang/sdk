@@ -2915,11 +2915,20 @@ class InferenceVisitor
 
     Expression binary;
     if (binaryTarget.isMissing) {
-      binary = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              binaryName.name, inferrer.resolveTypeParameter(leftType)),
-          fileOffset,
-          binaryName.name.length);
+      if (inferrer.isTopLevel) {
+        binary = inferrer.engine.forest.createMethodInvocation(
+            fileOffset,
+            left,
+            binaryName,
+            inferrer.engine.forest
+                .createArguments(fileOffset, <Expression>[right]));
+      } else {
+        binary = inferrer.helper.buildProblem(
+            templateUndefinedMethod.withArguments(
+                binaryName.name, inferrer.resolveTypeParameter(leftType)),
+            fileOffset,
+            binaryName.name.length);
+      }
     } else if (binaryTarget.isExtensionMember) {
       assert(binaryTarget.extensionMethodKind != ProcedureKind.Setter);
       binary = new StaticInvocation(
@@ -2973,11 +2982,20 @@ class InferenceVisitor
     Expression read;
     DartType readType = inferrer.getReturnType(readTarget, receiverType);
     if (readTarget.isMissing) {
-      read = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              indexGetName.name, inferrer.resolveTypeParameter(receiverType)),
-          fileOffset,
-          noLength);
+      if (inferrer.isTopLevel) {
+        read = inferrer.engine.forest.createMethodInvocation(
+            fileOffset,
+            readReceiver,
+            indexGetName,
+            inferrer.engine.forest
+                .createArguments(fileOffset, <Expression>[readIndex]));
+      } else {
+        read = inferrer.helper.buildProblem(
+            templateUndefinedMethod.withArguments(
+                indexGetName.name, inferrer.resolveTypeParameter(receiverType)),
+            fileOffset,
+            noLength);
+      }
     } else if (readTarget.isExtensionMember) {
       read = new StaticInvocation(
           readTarget.member,
@@ -3028,11 +3046,20 @@ class InferenceVisitor
       Expression value) {
     Expression write;
     if (writeTarget.isMissing) {
-      write = inferrer.helper.buildProblem(
-          templateUndefinedMethod.withArguments(
-              indexSetName.name, inferrer.resolveTypeParameter(receiverType)),
-          fileOffset,
-          noLength);
+      if (inferrer.isTopLevel) {
+        write = inferrer.engine.forest.createMethodInvocation(
+            fileOffset,
+            receiver,
+            indexSetName,
+            inferrer.engine.forest
+                .createArguments(fileOffset, <Expression>[index, value]));
+      } else {
+        write = inferrer.helper.buildProblem(
+            templateUndefinedMethod.withArguments(
+                indexSetName.name, inferrer.resolveTypeParameter(receiverType)),
+            fileOffset,
+            noLength);
+      }
     } else if (writeTarget.isExtensionMember) {
       assert(writeTarget.extensionMethodKind != ProcedureKind.Setter);
       write = new StaticInvocation(
@@ -3077,11 +3104,16 @@ class InferenceVisitor
 
     Expression read;
     if (readTarget.isMissing) {
-      read = inferrer.helper.buildProblem(
-          templateUndefinedGetter.withArguments(
-              propertyName.name, inferrer.resolveTypeParameter(receiverType)),
-          fileOffset,
-          propertyName.name.length);
+      if (inferrer.isTopLevel) {
+        read = inferrer.engine.forest
+            .createPropertyGet(fileOffset, receiver, propertyName);
+      } else {
+        read = inferrer.helper.buildProblem(
+            templateUndefinedGetter.withArguments(
+                propertyName.name, inferrer.resolveTypeParameter(receiverType)),
+            fileOffset,
+            propertyName.name.length);
+      }
     } else if (readTarget.isExtensionMember) {
       switch (readTarget.extensionMethodKind) {
         case ProcedureKind.Getter:
@@ -3179,11 +3211,17 @@ class InferenceVisitor
         "No value type provided for property set needed for value.");
     Expression write;
     if (writeTarget.isMissing) {
-      write = inferrer.helper.buildProblem(
-          templateUndefinedSetter.withArguments(
-              propertyName.name, inferrer.resolveTypeParameter(receiverType)),
-          fileOffset,
-          propertyName.name.length);
+      if (inferrer.isTopLevel) {
+        write = inferrer.engine.forest.createPropertySet(
+            fileOffset, receiver, propertyName, value,
+            forEffect: forEffect);
+      } else {
+        write = inferrer.helper.buildProblem(
+            templateUndefinedSetter.withArguments(
+                propertyName.name, inferrer.resolveTypeParameter(receiverType)),
+            fileOffset,
+            propertyName.name.length);
+      }
     } else if (writeTarget.isExtensionMember) {
       if (forEffect) {
         write = new StaticInvocation(
