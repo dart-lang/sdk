@@ -138,7 +138,14 @@ class OSThread : public BaseThread {
     return GetCurrentStackPointer() > (stack_limit_ + headroom);
   }
 
-  // May fail for the main thread on Linux if resources are low.
+  void RefineStackBoundsFromSP(uword sp) {
+    if (sp > stack_base_) {
+      stack_base_ = sp;
+      stack_limit_ = sp - GetSpecifiedStackSize();
+    }
+  }
+
+  // May fail for the main thread on Linux and Android.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a

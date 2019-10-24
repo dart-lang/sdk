@@ -269,9 +269,8 @@ class Thread : public ThreadState {
   void SetStackLimit(uword value);
   void ClearStackLimit();
 
-  // Access to the current stack limit for generated code. Either the true OS
-  // thread's stack limit minus some headroom, or a special value to trigger
-  // interrupts.
+  // Access to the current stack limit for generated code.  This may be
+  // overwritten with a special value to trigger interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -279,10 +278,7 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this OS thread.
-  static intptr_t saved_stack_limit_offset() {
-    return OFFSET_OF(Thread, saved_stack_limit_);
-  }
+  // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
 #if defined(USING_SAFE_STACK)
@@ -852,7 +848,6 @@ class Thread : public ThreadState {
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
-  uword saved_stack_limit_;
   uword stack_overflow_flags_;
   uword write_barrier_mask_;
   Isolate* isolate_;
@@ -918,6 +913,7 @@ class Thread : public ThreadState {
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
+  uword saved_stack_limit_;
   intptr_t defer_oob_messages_count_;
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;

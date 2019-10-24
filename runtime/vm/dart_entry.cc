@@ -41,6 +41,14 @@ class ScopedIsolateStackLimits : public ValueObject {
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
       : thread_(thread) {
     ASSERT(thread != NULL);
+    // Set the thread's stack_base based on the current
+    // stack pointer, we keep refining this value as we
+    // see higher stack pointers (Note: we assume the stack
+    // grows from high to low addresses).
+    OSThread* os_thread = thread->os_thread();
+    ASSERT(os_thread != NULL);
+    os_thread->RefineStackBoundsFromSP(current_sp);
+
     // Save the Thread's current stack limit and adjust the stack limit.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();

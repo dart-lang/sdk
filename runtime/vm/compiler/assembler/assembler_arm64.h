@@ -1532,9 +1532,7 @@ class Assembler : public AssemblerBase {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  static constexpr intptr_t kSpaceForSignalHandlers = 4096;
   void SetupDartSP();
-  void SetupDartSPFromThread(Register thr);
   void RestoreCSP();
 
   void EnterFrame(intptr_t frame_size);

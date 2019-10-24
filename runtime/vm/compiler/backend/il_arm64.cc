@@ -921,14 +921,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
-    __ mov(R25, CSP);
     __ mov(CSP, SP);
 
     __ blr(branch);
 
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
-    __ mov(CSP, R25);
 
     // Update information in the thread object and leave the safepoint.
     __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
@@ -1036,9 +1034,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
 
   // We don't use the regular stack pointer in ARM64, so we have to copy the
-  // native stack pointer into the Dart stack pointer. This will also kick CSP
-  // forward a bit, enough for the spills and leaf call below, until we can set
-  // it properly after setting up THR.
+  // native stack pointer into the Dart stack pointer.
   __ SetupDartSP();
 
   // Create a dummy frame holding the pushed arguments. This simplifies
@@ -1105,11 +1101,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LeaveFrame();
   }
-
-  // Now we have THR and can set CSP. See SetupDartSPFromThread.
-  __ ldr(TMP, compiler::Address(
-                  THR, compiler::target::Thread::saved_stack_limit_offset()));
-  __ AddImmediate(CSP, TMP, compiler::Assembler::kSpaceForSignalHandlers);
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
@@ -2959,8 +2950,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ ldr(TMP, compiler::Address(
-                  THR, compiler::target::Thread::stack_limit_offset()));
+  __ ldr(TMP, compiler::Address(THR, Thread::stack_limit_offset()));
   __ CompareRegisters(SP, TMP);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {

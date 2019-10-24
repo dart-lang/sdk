@@ -202,7 +202,6 @@
   FIELD(Thread, safepoint_state_offset)                                        \
   NOT_IN_DBC(FIELD(Thread, slow_type_test_stub_offset))                        \
   FIELD(Thread, stack_limit_offset)                                            \
-  FIELD(Thread, saved_stack_limit_offset)                                      \
   FIELD(Thread, stack_overflow_flags_offset)                                   \
   NOT_IN_DBC(                                                                  \
       FIELD(Thread, stack_overflow_shared_with_fpu_regs_entry_point_offset))   \

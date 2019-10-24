@@ -60,7 +60,6 @@ Thread::~Thread() {
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
-      saved_stack_limit_(0),
       stack_overflow_flags_(0),
       write_barrier_mask_(RawObject::kGenerationalBarrierMask),
       isolate_(NULL),
@@ -90,6 +89,7 @@ Thread::Thread(bool is_vm_isolate)
       no_safepoint_scope_depth_(0),
 #endif
       reusable_handles_(),
+      saved_stack_limit_(0),
       defer_oob_messages_count_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),

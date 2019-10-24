@@ -212,20 +212,18 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ PushRegisters(all_registers);
 
-  __ mov(CALLEE_SAVED_TEMP, CSP);
-  __ mov(CALLEE_SAVED_TEMP2, SP);
+  __ mov(CALLEE_SAVED_TEMP, SP);
   __ ReserveAlignedFrameSpace(0);
-  __ mov(CSP, SP);
 
+  __ mov(CSP, SP);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-
-  __ mov(SP, CALLEE_SAVED_TEMP2);
-  __ mov(CSP, CALLEE_SAVED_TEMP);
+  __ mov(SP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
 
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -236,9 +234,9 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ EnterFrame(0);
   __ PushRegisters(all_registers);
 
-  __ mov(CALLEE_SAVED_TEMP, CSP);
-  __ mov(CALLEE_SAVED_TEMP2, SP);
+  __ mov(CALLEE_SAVED_TEMP, SP);
   __ ReserveAlignedFrameSpace(0);
+
   __ mov(CSP, SP);
 
   // Set the execution state to VM while waiting for the safepoint to end.
@@ -249,13 +247,12 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
-
-  __ mov(SP, CALLEE_SAVED_TEMP2);
-  __ mov(CSP, CALLEE_SAVED_TEMP);
+  __ mov(SP, CALLEE_SAVED_TEMP);
 
   __ PopRegisters(all_registers);
   __ LeaveFrame();
 
+  __ mov(CSP, SP);
   __ Ret();
 }
 
@@ -275,7 +272,6 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
   __ mov(R19, LR);
   __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/,
                                  /*enter_safepoint=*/true);
-  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
 #if defined(DEBUG)
@@ -290,10 +286,7 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
 #endif
 
   __ blr(R8);
-
   __ mov(SP, CSP);
-  __ mov(CSP, R25);
-
   __ TransitionNativeToGenerated(R9, /*leave_safepoint=*/true);
   __ ret(R19);
 }
@@ -1320,11 +1313,9 @@ void StubCodeCompiler::GenerateAllocateArrayStub(Assembler* assembler) {
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
-  // use to access the stack (SP/R15) and set the C stack pointer to near the
-  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
-  // from over-writing Dart frames.
-  __ SetupDartSPFromThread(R3);
+  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
+  // to access the stack.
+  __ SetupDartSP();
   __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 
@@ -1469,11 +1460,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub(
 #if defined(DART_PRECOMPILED_RUNTIME)
   __ Stop("Not using interpreter");
 #else
-  // Copy the C stack pointer (CSP/R31) into the stack pointer we'll actually
-  // use to access the stack (SP/R15) and set the C stack pointer to near the
-  // stack limit, loaded from the Thread held in R3, to prevent signal handlers
-  // from over-writing Dart frames.
-  __ SetupDartSPFromThread(R3);
+  // Copy the C stack pointer (R31) into the stack pointer we'll actually use
+  // to access the stack.
+  __ SetupDartSP();
   __ Push(LR);  // Marker for the profiler.
   __ EnterFrame(0);
 

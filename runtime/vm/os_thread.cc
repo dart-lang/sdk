@@ -44,7 +44,8 @@ OSThread::OSThread()
       thread_(NULL) {
   // Try to get accurate stack bounds from pthreads, etc.
   if (!GetCurrentStackBounds(&stack_limit_, &stack_base_)) {
-    FATAL("Failed to retrieve stack bounds");
+    // Fall back to a guess based on the stack pointer.
+    RefineStackBoundsFromSP(GetCurrentStackPointer());
   }
 
   stack_headroom_ = CalculateHeadroom(stack_base_ - stack_limit_);
