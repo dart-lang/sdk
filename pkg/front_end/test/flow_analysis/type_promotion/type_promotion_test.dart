@@ -27,7 +27,9 @@ main(List<String> args) async {
       ]),
       skipList: [
         // TODO(dmitryas): Run all type promotion tests.
+        'as.dart',
         'assert.dart',
+        'assignment.dart',
         'assigned_anywhere.dart',
         'binary.dart',
         'conditional.dart',
@@ -36,12 +38,16 @@ main(List<String> args) async {
         'for.dart',
         'function_expression.dart',
         'if.dart',
+        'initialization.dart',
+        'inside_closure.dart',
+        'not_promoted.dart',
         'null_check.dart',
         'potentially_mutated.dart',
         'switch.dart',
         'try_catch.dart',
         'try_catch_finally.dart',
         'try_finally.dart',
+        'type_parameter.dart',
         'while.dart',
         'write_capture.dart',
       ]);
