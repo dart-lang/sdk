@@ -2466,7 +2466,6 @@ main() {
     }
   }
 
-  @failingTest
   test_instanceCreation_unprefixed() async {
     addTestFile(r'''
 main() {
@@ -2489,11 +2488,13 @@ class C<T> {
     ClassElement cElement = unitElement.getType('C');
     ConstructorElement defaultConstructor = cElement.constructors[0];
     ConstructorElement namedConstructor = cElement.constructors[1];
-    InterfaceType cType = interfaceType(cElement);
 
     var statements = _getMainStatements(result);
     {
-      var cTypeInt = cType.instantiate([typeProvider.intType]);
+      var cTypeInt = cElement.instantiate(
+        typeArguments: [typeProvider.intType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
 
       ExpressionStatement statement = statements[0];
       InstanceCreationExpression creation = statement.expression;
@@ -2511,7 +2512,10 @@ class C<T> {
     }
 
     {
-      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+      var cTypeBool = cElement.instantiate(
+        typeArguments: [typeProvider.boolType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
 
       ExpressionStatement statement = statements[1];
       InstanceCreationExpression creation = statement.expression;
@@ -2531,7 +2535,10 @@ class C<T> {
     }
 
     {
-      var cTypeDouble = cType.instantiate([typeProvider.doubleType]);
+      var cTypeDouble = cElement.instantiate(
+        typeArguments: [typeProvider.doubleType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
 
       ExpressionStatement statement = statements[2];
       InstanceCreationExpression creation = statement.expression;
@@ -2553,7 +2560,10 @@ class C<T> {
     }
 
     {
-      var cTypeBool = cType.instantiate([typeProvider.boolType]);
+      var cTypeBool = cElement.instantiate(
+        typeArguments: [typeProvider.boolType],
+        nullabilitySuffix: NullabilitySuffix.star,
+      );
 
       ExpressionStatement statement = statements[3];
       InstanceCreationExpression creation = statement.expression;

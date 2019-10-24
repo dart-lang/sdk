@@ -2413,8 +2413,14 @@ abstract class TypeSystem implements public.TypeSystem {
    * no instantiation is done.
    */
   DartType instantiateType(DartType type, List<DartType> typeArguments) {
-    if (type is ParameterizedType) {
+    if (type is FunctionType) {
       return type.instantiate(typeArguments);
+    } else if (type is InterfaceTypeImpl) {
+      // TODO(scheglov) Use `ClassElement.instantiate()`, don't use raw types.
+      return type.element.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: type.nullabilitySuffix,
+      );
     } else {
       return type;
     }

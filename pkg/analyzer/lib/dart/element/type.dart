@@ -274,6 +274,7 @@ abstract class InterfaceType implements ParameterizedType {
   /// with the given name.
   PropertyAccessorElement getSetter(String name);
 
+  @Deprecated("Use ClassElement.instantiate()")
   @override
   InterfaceType instantiate(List<DartType> argumentTypes);
 
@@ -487,6 +488,7 @@ abstract class ParameterizedType implements DartType {
 
   /// Return the type resulting from instantiating (replacing) the given
   /// [argumentTypes] for this type's bound type parameters.
+  @Deprecated("Use ClassElement.instantiate()")
   ParameterizedType instantiate(List<DartType> argumentTypes);
 }
 

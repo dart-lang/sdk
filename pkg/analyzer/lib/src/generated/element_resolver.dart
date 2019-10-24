@@ -1127,7 +1127,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       parameters = (parameterizableType as FunctionType)?.typeFormals;
     }
 
-    if (parameterizableType is ParameterizedType) {
+    if (parameterizableType is FunctionType) {
       NodeList<TypeAnnotation> arguments = typeArguments?.arguments;
       if (arguments != null && arguments.length != parameters.length) {
         _resolver.errorReporter.reportErrorForNode(
