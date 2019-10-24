@@ -406,7 +406,7 @@ class C {
 int f() async {}
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.MISSING_RETURN, 4, 1),
     ]);
   }
 
@@ -428,7 +428,7 @@ class C {
   int m() async {}
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 12, 3),
+      error(HintCode.MISSING_RETURN, 16, 1),
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),
     ]);
   }

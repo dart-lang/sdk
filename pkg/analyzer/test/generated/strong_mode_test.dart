@@ -5120,7 +5120,7 @@ void g() {
   return;
 }
 ''', [
-      error(HintCode.MISSING_RETURN, 0, 2),
+      error(HintCode.MISSING_RETURN, 3, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 69, 1),
       error(StrongModeCode.COULD_NOT_INFER, 73, 1),
     ]);

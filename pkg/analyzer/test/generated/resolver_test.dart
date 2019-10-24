@@ -697,7 +697,7 @@ int f(List<int> list) {
     sum += list[i];
   }
 }''', [
-      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.MISSING_RETURN, 4, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
     ]);
   }
@@ -710,7 +710,7 @@ int f(List<int> list) {
     sum += n & 0x0F;
   }
 }''', [
-      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.MISSING_RETURN, 4, 1),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 76, 1),
     ]);

@@ -574,7 +574,7 @@ class HintCode extends AnalyzerErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // [!int!] f(int x) {
+  // int [!f!](int x) {
   //   if (x < 0) {
   //     return 0;
   //   }

@@ -1416,7 +1416,7 @@ analyzer produces this diagnostic when it finds an implicit return.
 The following code produces this diagnostic:
 
 {% prettify dart %}
-[!int!] f(int x) {
+int [!f!](int x) {
   if (x < 0) {
     return 0;
   }

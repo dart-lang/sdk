@@ -982,22 +982,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   /// Generate a hint for functions or methods that have a return type, but do
   /// not have a return statement on all branches. At the end of blocks with no
-  /// return, Dart implicitly returns `null`, avoiding these implicit returns is
-  /// considered a best practice.
+  /// return, Dart implicitly returns `null`. Avoiding these implicit returns
+  /// is considered a best practice.
   ///
   /// Note: for async functions/methods, this hint only applies when the
   /// function has a return type that Future<Null> is not assignable to.
   ///
-  /// @param node the binary expression to check
-  /// @param body the function body
-  /// @return `true` if and only if a hint code is generated on the passed node
   /// See [HintCode.MISSING_RETURN].
   void _checkForMissingReturn(TypeAnnotation returnNode, FunctionBody body,
       ExecutableElement element, AstNode functionNode) {
     if (body is BlockFunctionBody) {
       // Prefer the type from the element model, in case we've inferred one.
       DartType returnType = element?.returnType ?? returnNode?.type;
-      AstNode errorNode = returnNode ?? functionNode;
 
       // Skip the check if we're missing a return type (e.g. erroneous code).
       // Generators are never required to have a return statement.
@@ -1036,6 +1032,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       // Otherwise issue a warning if the block doesn't have a return.
       if (!ExitDetector.exits(body)) {
+        AstNode errorNode = functionNode is MethodDeclaration
+            ? functionNode.name
+            : functionNode is FunctionDeclaration
+                ? functionNode.name
+                : functionNode;
         _errorReporter.reportErrorForNode(
             HintCode.MISSING_RETURN, errorNode, [returnType.displayName]);
       }
