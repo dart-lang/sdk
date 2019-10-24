@@ -57,8 +57,6 @@ import '../kernel/expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
     show
-        ShadowTypeInferenceEngine,
-        ShadowTypeInferrer,
         VariableDeclarationImpl,
         getExplicitTypeArguments,
         getExtensionTypeParameterCount;
@@ -408,18 +406,6 @@ enum MethodContravarianceCheckKind {
 /// This class describes the interface for use by clients of type inference
 /// (e.g. BodyBuilder).  Derived classes should derive from [TypeInferrerImpl].
 abstract class TypeInferrer {
-  final CoreTypes coreTypes;
-
-  TypeInferrer.private(this.coreTypes);
-
-  factory TypeInferrer(
-      ShadowTypeInferenceEngine engine,
-      Uri uri,
-      bool topLevel,
-      InterfaceType thisType,
-      SourceLibraryBuilder library,
-      InferenceDataForTesting dataForTesting) = ShadowTypeInferrer.private;
-
   SourceLibraryBuilder get library;
 
   /// Gets the [TypePromoter] that can be used to perform type promotion within
@@ -459,18 +445,20 @@ abstract class TypeInferrer {
       InferenceHelper helper, Expression initializer, DartType declaredType);
 }
 
-/// Derived class containing generic implementations of [TypeInferrer].
-///
-/// This class contains as much of the implementation of type inference as
-/// possible without knowing the identity of the type parameters.  It defers to
-/// abstract methods for everything else.
-abstract class TypeInferrerImpl extends TypeInferrer {
+/// Concrete implementation of [TypeInferrer] specialized to work with kernel
+/// objects.
+class TypeInferrerImpl implements TypeInferrer {
   /// Marker object to indicate that a function takes an unknown number
   /// of arguments.
   static final FunctionType unknownFunction =
       new FunctionType(const [], const DynamicType());
 
   final TypeInferenceEngine engine;
+
+  @override
+  final TypePromoter typePromoter;
+
+  final InferenceDataForTesting dataForTesting;
 
   @override
   final Uri uriForInstrumentation;
@@ -505,20 +493,34 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// if the last invocation didn't require any inference.
   FunctionType lastCalleeType;
 
-  TypeInferrerImpl.private(this.engine, this.uriForInstrumentation,
-      bool topLevel, this.thisType, this.library)
+  TypeInferrerImpl(this.engine, this.uriForInstrumentation, bool topLevel,
+      this.thisType, this.library, this.dataForTesting)
       : assert(library != null),
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        super.private(engine.coreTypes);
+        typePromoter = new TypePromoter(engine.typeSchemaEnvironment);
+
+  CoreTypes get coreTypes => engine.coreTypes;
 
   bool get isNonNullableByDefault => library.isNonNullableByDefault;
 
-  /// Gets the type promoter that should be used to promote types during
-  /// inference.
-  TypePromoter get typePromoter;
+  @override
+  void inferInitializer(InferenceHelper helper, Initializer initializer) {
+    this.helper = helper;
+    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
+    // kind of type inference is correct for this kind of initializer.
+    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
+    // so that the type hierarchy will be simpler (which may speed up "is"
+    // checks).
+    if (initializer is InitializerJudgment) {
+      initializer.acceptInference(new InferenceVisitor(this));
+    } else {
+      initializer.accept(new InferenceVisitor(this));
+    }
+    this.helper = null;
+  }
 
   bool isDoubleContext(DartType typeContext) {
     // A context is a double context if double is assignable to it but int is
@@ -1266,10 +1268,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return null;
   }
 
-  /// Gets the initializer for the given [field], or `null` if there is no
-  /// initializer.
-  Expression getFieldInitializer(Field field);
-
   /// If the [member] is a forwarding stub, return the target it forwards to.
   /// Otherwise return the given [member].
   Member getRealTarget(Member member) {
@@ -1424,7 +1422,37 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// the expression type and calls the appropriate specialized "infer" method.
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed});
+      {bool isVoidAllowed: false}) {
+    // `null` should never be used as the type context.  An instance of
+    // `UnknownType` should be used instead.
+    assert(typeContext != null);
+
+    // For full (non-top level) inference, we need access to the
+    // ExpressionGeneratorHelper so that we can perform error recovery.
+    assert(isTopLevel || helper != null);
+
+    // When doing top level inference, we skip subexpressions whose type isn't
+    // needed so that we don't induce bogus dependencies on fields mentioned in
+    // those subexpressions.
+    if (!typeNeeded) return new ExpressionInferenceResult(null, expression);
+
+    InferenceVisitor visitor = new InferenceVisitor(this);
+    ExpressionInferenceResult result;
+    if (expression is ExpressionJudgment) {
+      result = expression.acceptInference(visitor, typeContext);
+    } else {
+      result = expression.accept1(visitor, typeContext);
+    }
+    DartType inferredType = result.inferredType;
+    assert(inferredType != null, "No type inferred for $expression.");
+    if (inferredType is VoidType && !isVoidAllowed) {
+      if (expression.parent is! ArgumentsImpl) {
+        helper?.addProblem(
+            messageVoidExpression, expression.fileOffset, noLength);
+      }
+    }
+    return result;
+  }
 
   @override
   Expression inferFieldInitializer(
@@ -2215,7 +2243,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   ///
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
-  void inferStatement(Statement statement);
+  void inferStatement(Statement statement) {
+    // For full (non-top level) inference, we need access to the
+    // ExpressionGeneratorHelper so that we can perform error recovery.
+    if (!isTopLevel) assert(helper != null);
+    if (statement != null) {
+      statement.accept(new InferenceVisitor(this));
+    }
+  }
 
   /// Performs the type inference steps necessary to instantiate a tear-off
   /// (if necessary).

@@ -30,7 +30,6 @@ import 'package:kernel/clone.dart';
 
 import '../../base/instrumentation.dart'
     show
-        Instrumentation,
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
@@ -43,7 +42,6 @@ import '../fasta_codes.dart'
         messageCantDisambiguateNotEnoughInformation,
         messageNonNullAwareSpreadIsNull,
         messageSwitchExpressionNotAssignableCause,
-        messageVoidExpression,
         noLength,
         templateCantInferTypeDueToCircularity,
         templateForInLoopElementTypeNotAssignable,
@@ -68,8 +66,6 @@ import '../problems.dart' show unhandled, unsupported;
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
-import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
@@ -550,7 +546,7 @@ abstract class InitializerJudgment implements Initializer {
 }
 
 Expression checkWebIntLiteralsErrorIfUnexact(
-    ShadowTypeInferrer inferrer, int value, String literal, int charOffset) {
+    TypeInferrerImpl inferrer, int value, String literal, int charOffset) {
   if (value >= 0 && value <= (1 << 53)) return null;
   if (inferrer.isTopLevel) return null;
   if (!inferrer.library.loader.target.backendTarget
@@ -808,111 +804,6 @@ class ReturnStatementImpl extends ReturnStatement {
 
   ReturnStatementImpl(this.isArrow, [Expression expression])
       : super(expression);
-}
-
-/// Concrete implementation of [TypeInferenceEngine] specialized to work with
-/// kernel objects.
-class ShadowTypeInferenceEngine extends TypeInferenceEngine {
-  ShadowTypeInferenceEngine(Instrumentation instrumentation)
-      : super(instrumentation);
-
-  @override
-  ShadowTypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
-    return new TypeInferrer(
-        this, uri, false, thisType, library, dataForTesting);
-  }
-
-  @override
-  ShadowTypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
-      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
-    return new TypeInferrer(this, uri, true, thisType, library, dataForTesting);
-  }
-}
-
-/// Concrete implementation of [TypeInferrer] specialized to work with kernel
-/// objects.
-class ShadowTypeInferrer extends TypeInferrerImpl {
-  @override
-  final TypePromoter typePromoter;
-
-  final InferenceDataForTesting dataForTesting;
-
-  ShadowTypeInferrer.private(
-      ShadowTypeInferenceEngine engine,
-      Uri uri,
-      bool topLevel,
-      InterfaceType thisType,
-      SourceLibraryBuilder library,
-      this.dataForTesting)
-      : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
-        super.private(engine, uri, topLevel, thisType, library);
-
-  @override
-  Expression getFieldInitializer(Field field) {
-    return field.initializer;
-  }
-
-  @override
-  ExpressionInferenceResult inferExpression(
-      Expression expression, DartType typeContext, bool typeNeeded,
-      {bool isVoidAllowed: false}) {
-    // `null` should never be used as the type context.  An instance of
-    // `UnknownType` should be used instead.
-    assert(typeContext != null);
-
-    // For full (non-top level) inference, we need access to the
-    // ExpressionGeneratorHelper so that we can perform error recovery.
-    assert(isTopLevel || helper != null);
-
-    // When doing top level inference, we skip subexpressions whose type isn't
-    // needed so that we don't induce bogus dependencies on fields mentioned in
-    // those subexpressions.
-    if (!typeNeeded) return new ExpressionInferenceResult(null, expression);
-
-    InferenceVisitor visitor = new InferenceVisitor(this);
-    ExpressionInferenceResult result;
-    if (expression is ExpressionJudgment) {
-      result = expression.acceptInference(visitor, typeContext);
-    } else {
-      result = expression.accept1(visitor, typeContext);
-    }
-    DartType inferredType = result.inferredType;
-    assert(inferredType != null, "No type inferred for $expression.");
-    if (inferredType is VoidType && !isVoidAllowed) {
-      if (expression.parent is! ArgumentsImpl) {
-        helper?.addProblem(
-            messageVoidExpression, expression.fileOffset, noLength);
-      }
-    }
-    return result;
-  }
-
-  @override
-  void inferInitializer(InferenceHelper helper, Initializer initializer) {
-    this.helper = helper;
-    // Use polymorphic dispatch on [KernelInitializer] to perform whatever
-    // kind of type inference is correct for this kind of initializer.
-    // TODO(paulberry): experiment to see if dynamic dispatch would be better,
-    // so that the type hierarchy will be simpler (which may speed up "is"
-    // checks).
-    if (initializer is InitializerJudgment) {
-      initializer.acceptInference(new InferenceVisitor(this));
-    } else {
-      initializer.accept(new InferenceVisitor(this));
-    }
-    this.helper = null;
-  }
-
-  @override
-  void inferStatement(Statement statement) {
-    // For full (non-top level) inference, we need access to the
-    // ExpressionGeneratorHelper so that we can perform error recovery.
-    if (!isTopLevel) assert(helper != null);
-    if (statement != null) {
-      statement.accept(new InferenceVisitor(this));
-    }
-  }
 }
 
 /// Concrete implementation of [TypePromoter] specialized to work with kernel

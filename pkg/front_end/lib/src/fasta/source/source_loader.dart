@@ -80,8 +80,6 @@ import '../fasta_codes.dart'
         templateSourceOutlineSummary,
         templateUntranslatableUri;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
-
 import '../kernel/kernel_builder.dart'
     show ClassHierarchyBuilder, DelayedMember, DelayedOverrideCheck;
 
@@ -111,6 +109,8 @@ import '../scanner.dart'
         ScannerResult,
         Token,
         scan;
+
+import '../type_inference/type_inference_engine.dart';
 
 import '../type_inference/type_inferrer.dart';
 
@@ -143,7 +143,7 @@ class SourceLoader extends Loader {
   DartType iterableOfBottom;
   DartType streamOfBottom;
 
-  ShadowTypeInferenceEngine typeInferenceEngine;
+  TypeInferenceEngineImpl typeInferenceEngine;
 
   Instrumentation instrumentation;
 
@@ -986,7 +986,7 @@ class SourceLoader extends Loader {
   }
 
   void createTypeInferenceEngine() {
-    typeInferenceEngine = new ShadowTypeInferenceEngine(instrumentation);
+    typeInferenceEngine = new TypeInferenceEngineImpl(instrumentation);
   }
 
   void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {

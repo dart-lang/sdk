@@ -34,7 +34,7 @@ import '../kernel/kernel_builder.dart'
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'type_inferrer.dart' show TypeInferrer;
+import 'type_inferrer.dart';
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
@@ -214,6 +214,27 @@ abstract class TypeInferenceEngine {
       }
     }
     return member;
+  }
+}
+
+/// Concrete implementation of [TypeInferenceEngine] specialized to work with
+/// kernel objects.
+class TypeInferenceEngineImpl extends TypeInferenceEngine {
+  TypeInferenceEngineImpl(Instrumentation instrumentation)
+      : super(instrumentation);
+
+  @override
+  TypeInferrer createLocalTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    return new TypeInferrerImpl(
+        this, uri, false, thisType, library, dataForTesting);
+  }
+
+  @override
+  TypeInferrer createTopLevelTypeInferrer(Uri uri, InterfaceType thisType,
+      SourceLibraryBuilder library, InferenceDataForTesting dataForTesting) {
+    return new TypeInferrerImpl(
+        this, uri, true, thisType, library, dataForTesting);
   }
 }
 

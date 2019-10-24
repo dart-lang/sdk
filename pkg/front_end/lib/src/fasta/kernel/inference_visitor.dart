@@ -9,7 +9,7 @@ class InferenceVisitor
         ExpressionVisitor1<ExpressionInferenceResult, DartType>,
         StatementVisitor<void>,
         InitializerVisitor<void> {
-  final ShadowTypeInferrer inferrer;
+  final TypeInferrerImpl inferrer;
 
   Class mapEntryClass;
 
