@@ -154,7 +154,8 @@ class Value : public ZoneAllocated {
   const Object& BoundConstant() const;
 
   // Return true if storing the value into a heap object requires applying the
-  // write barrier.
+  // write barrier. Can change the reaching type of the Value or other Values
+  // in the same chain of redefinitions.
   bool NeedsWriteBarrier();
 
   bool Equals(Value* other) const;
@@ -509,7 +510,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
-  virtual type##Instr* As##type() { return this; }                             \
+  virtual const type##Instr* As##type() const { return this; }                 \
   virtual const char* DebugName() const { return #type; }
 
 // Functions required in all concrete instruction classes.
@@ -902,8 +903,12 @@ class Instruction : public ZoneAllocated {
                                          FlowGraphSerializer* s) const;
 
 #define DECLARE_INSTRUCTION_TYPE_CHECK(Name, Type)                             \
-  bool Is##Name() { return (As##Name() != NULL); }                             \
-  virtual Type* As##Name() { return NULL; }
+  bool Is##Name() const { return (As##Name() != nullptr); }                    \
+  Type* As##Name() {                                                           \
+    auto const_this = static_cast<const Instruction*>(this);                   \
+    return const_cast<Type*>(const_this->As##Name());                          \
+  }                                                                            \
+  virtual const Type* As##Name() const { return nullptr; }
 #define INSTRUCTION_TYPE_CHECK(Name, Attrs)                                    \
   DECLARE_INSTRUCTION_TYPE_CHECK(Name, Name##Instr)
 
@@ -1549,9 +1554,14 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
+  const GrowableArray<Definition*>* initial_definitions() const {
+    return &initial_definitions_;
+  }
 
-  virtual bool IsBlockEntryWithInitialDefs() { return true; }
   virtual BlockEntryWithInitialDefs* AsBlockEntryWithInitialDefs() {
+    return this;
+  }
+  virtual const BlockEntryWithInitialDefs* AsBlockEntryWithInitialDefs() const {
     return this;
   }
 
@@ -2006,6 +2016,36 @@ class AliasIdentity : public ValueObject {
     return AliasIdentity(kAllocationSinkingCandidate);
   }
 
+#define FOR_EACH_ALIAS_IDENTITY_VALUE(V)                                       \
+  V(Unknown, 0)                                                                \
+  V(NotAliased, 1)                                                             \
+  V(Aliased, 2)                                                                \
+  V(AllocationSinkingCandidate, 3)
+
+  const char* ToCString() {
+    switch (value_) {
+#define VALUE_CASE(name, val)                                                  \
+  case k##name:                                                                \
+    return #name;
+      FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_CASE)
+#undef VALUE_CASE
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  }
+
+  static bool Parse(const char* str, AliasIdentity* out) {
+#define VALUE_CASE(name, val)                                                  \
+  if (strcmp(str, #name) == 0) {                                               \
+    out->value_ = k##name;                                                     \
+    return true;                                                               \
+  }
+    FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_CASE)
+#undef VALUE_CASE
+    return false;
+  }
+
   bool IsUnknown() const { return value_ == kUnknown; }
   bool IsAliased() const { return value_ == kAliased; }
   bool IsNotAliased() const { return (value_ & kNotAliased) != 0; }
@@ -2024,12 +2064,12 @@ class AliasIdentity : public ValueObject {
  private:
   explicit AliasIdentity(intptr_t value) : value_(value) {}
 
-  enum {
-    kUnknown = 0,
-    kNotAliased = 1,
-    kAliased = 2,
-    kAllocationSinkingCandidate = 3,
-  };
+#define VALUE_DEFN(name, val) k##name = val,
+  enum { FOR_EACH_ALIAS_IDENTITY_VALUE(VALUE_DEFN) };
+#undef VALUE_DEFN
+
+// Undef the FOR_EACH helper macro, since the enum is private.
+#undef FOR_EACH_ALIAS_IDENTITY_VALUE
 
   COMPILE_ASSERT((kUnknown & kNotAliased) == 0);
   COMPILE_ASSERT((kAliased & kNotAliased) == 0);
@@ -2202,10 +2242,12 @@ class Definition : public Instruction {
   Definition* OriginalDefinitionIgnoreBoxingAndConstraints();
 
   virtual Definition* AsDefinition() { return this; }
+  virtual const Definition* AsDefinition() const { return this; }
 
  protected:
   friend class RangeAnalysis;
   friend class Value;
+  friend class FlowGraphSerializer;  // To access type_ directly.
 
   Range* range_ = nullptr;
 
@@ -7869,8 +7911,8 @@ class CheckBoundBase : public TemplateDefinition<2, NoThrow, Pure> {
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
 
-  virtual bool IsCheckBoundBase() { return true; }
   virtual CheckBoundBase* AsCheckBoundBase() { return this; }
+  virtual const CheckBoundBase* AsCheckBoundBase() const { return this; }
   virtual Value* RedefinedValue() const;
 
   // Returns true if the bounds check can be eliminated without

@@ -291,6 +291,30 @@ const Range* RangeAnalysis::GetIntRange(Value* value) const {
   return range;
 }
 
+const char* RangeBoundary::KindToCString(Kind kind) {
+  switch (kind) {
+#define KIND_CASE(name)                                                        \
+  case Kind::k##name:                                                          \
+    return #name;
+    FOR_EACH_RANGE_BOUNDARY_KIND(KIND_CASE)
+#undef KIND_CASE
+    default:
+      UNREACHABLE();
+      return nullptr;
+  }
+}
+
+bool RangeBoundary::ParseKind(const char* str, Kind* out) {
+#define KIND_CASE(name)                                                        \
+  if (strcmp(str, #name) == 0) {                                               \
+    *out = Kind::k##name;                                                      \
+    return true;                                                               \
+  }
+  FOR_EACH_RANGE_BOUNDARY_KIND(KIND_CASE)
+#undef KIND_CASE
+  return false;
+}
+
 static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);

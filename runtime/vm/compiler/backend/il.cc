@@ -5238,7 +5238,7 @@ Environment* Environment::DeepCopy(Zone* zone, intptr_t length) const {
     copy->set_locations(new_locations);
   }
   for (intptr_t i = 0; i < length; ++i) {
-    copy->values_.Add(values_[i]->Copy(zone));
+    copy->values_.Add(values_[i]->CopyWithType(zone));
     if (locations_ != NULL) {
       copy->locations_[i] = locations_[i].Copy();
     }
