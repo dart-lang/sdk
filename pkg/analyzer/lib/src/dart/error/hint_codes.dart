@@ -365,9 +365,9 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_NON_VIRTUAL_ANNOTATION = const HintCode(
       'INVALID_NON_VIRTUAL_ANNOTATION',
-      "The member '{0}' is annotated with '@nonVirtual' but only concrete "
-          "instance members of classes or mixins can be annotated with it.",
-      correction: "Remove @nonVirtual.");
+      "The member '{0}' can't be '@nonVirtual' because it isn't a concrete "
+          "instance member.",
+      correction: "Try removing @nonVirtual.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a named
