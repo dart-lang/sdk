@@ -6330,48 +6330,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 }
 
-/// A [MethodElementImpl], with the additional information of a list of
-/// [ExecutableElement]s from which this element was composed.
-class MultiplyInheritedMethodElementImpl extends MethodElementImpl
-    implements MultiplyInheritedExecutableElement {
-  /// A list the array of executable elements that were used to compose this
-  /// element.
-  List<ExecutableElement> _elements = const <MethodElement>[];
-
-  MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
-    isSynthetic = true;
-  }
-
-  @override
-  List<ExecutableElement> get inheritedElements => _elements;
-
-  void set inheritedElements(List<ExecutableElement> elements) {
-    this._elements = elements;
-  }
-}
-
-/// A [PropertyAccessorElementImpl], with the additional information of a list
-///  of[ExecutableElement]s from which this element was composed.
-class MultiplyInheritedPropertyAccessorElementImpl
-    extends PropertyAccessorElementImpl
-    implements MultiplyInheritedExecutableElement {
-  /// A list the array of executable elements that were used to compose this
-  /// element.
-  List<ExecutableElement> _elements = const <PropertyAccessorElement>[];
-
-  MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
-      : super.forNode(name) {
-    isSynthetic = true;
-  }
-
-  @override
-  List<ExecutableElement> get inheritedElements => _elements;
-
-  void set inheritedElements(List<ExecutableElement> elements) {
-    this._elements = elements;
-  }
-}
-
 /// The synthetic element representing the declaration of the type `Never`.
 class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   /// Return the unique instance of this class.
