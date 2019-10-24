@@ -1207,13 +1207,27 @@ void Assembler::CheckCodePointer() {
 #endif
 }
 
+// The ARM64 ABI requires at all times
+//   - stack limit < CSP <= stack base
+//   - CSP mod 16 = 0
+//   - we do not access stack memory below CSP
+// Practically, this means we need to keep the C stack pointer ahead of the
+// Dart stack pointer and 16-byte aligned for signal handlers. We set
+// CSP to a value near the stack limit during SetupDartSP*, and use a different
+// register within our generated code to avoid the alignment requirement.
+// Note that Fuchsia does not have signal handlers.
+
 void Assembler::SetupDartSP() {
   mov(SP, CSP);
-#if defined(TARGET_OS_FUCHSIA)
-  // Make any future signal handlers fail fast. Verifies our assumption in
-  // EnterFrame.
-  orri(CSP, ZR, Immediate(16));
-#endif
+  // The caller doesn't have a Thread available. Just kick CSP forward a bit.
+  AddImmediate(CSP, CSP, -kSpaceForSignalHandlers);
+}
+
+void Assembler::SetupDartSPFromThread(Register thr) {
+  ldr(TMP, Address(thr, target::Thread::saved_stack_limit_offset()));
+  mov(SP, CSP);
+  // This is a Dart entry stub. Set CSP close to the stack limit.
+  AddImmediate(CSP, TMP, kSpaceForSignalHandlers);
 }
 
 void Assembler::RestoreCSP() {
@@ -1221,25 +1235,6 @@ void Assembler::RestoreCSP() {
 }
 
 void Assembler::EnterFrame(intptr_t frame_size) {
-  // The ARM64 ABI requires at all times
-  //   - stack limit < CSP <= stack base
-  //   - CSP mod 16 = 0
-  //   - we do not access stack memory below CSP
-  // Pratically, this means we need to keep the C stack pointer ahead of the
-  // Dart stack pointer and 16-byte aligned for signal handlers. If we knew the
-  // real stack limit, we could just set CSP to a value near it during
-  // SetupDartSP, but we do not know the real stack limit for the initial
-  // thread or threads created by the embedder.
-  // TODO(26472): It would be safer to use CSP as the Dart stack pointer, but
-  // this requires adjustments to stack handling to maintain the 16-byte
-  // alignment.
-  // Note Fuchsia does not have signal handlers; see also SetupDartSP.
-#if !defined(TARGET_OS_FUCHSIA)
-  const intptr_t kMaxDartFrameSize = 4096;
-  sub(TMP, SP, Operand(kMaxDartFrameSize));
-  andi(CSP, TMP, Immediate(~15));
-#endif
-
   PushPair(FP, LR);  // low: FP, high: LR.
   mov(FP, SP);
 
