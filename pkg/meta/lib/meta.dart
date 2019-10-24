@@ -151,7 +151,7 @@ const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
 /// Used to annotate an instance member (method, getter, setter, operator, or
 /// field) `m` in a class `C` or mixin `M`. Indicates that `m` should not be
-/// overridden in any classes that extend, implement or mixin `C` or `M`.
+/// overridden in any classes that extend or mixin `C` or `M`.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 ///
@@ -160,8 +160,8 @@ const _MustCallSuper mustCallSuper = const _MustCallSuper();
 ///   are required to override the member),
 /// * the annotation is associated with an extension method,
 /// * the annotation is associated with a member `m` in class `C`, and there is
-///   a class `D` or mixin `M`, which extends, implements, or mixes in `C`, that
-///   declares an overriding member `m`.
+///   a class `D` or mixin `M`, that extends or mixes in `C`, that declares an
+///   overriding member `m`.
 const _NonVirtual nonVirtual = const _NonVirtual();
 
 /// Used to annotate a class, mixin, or extension declaration `C`. Indicates
