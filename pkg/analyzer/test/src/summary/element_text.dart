@@ -1042,8 +1042,6 @@ class _ElementWriter {
       if (type.element.typeParameters.isNotEmpty) {
         writeList('<', '>', type.typeArguments, ', ', writeType);
       }
-    } else if (type is CircularFunctionTypeImpl) {
-      buffer.write('...');
     } else if (type is FunctionType) {
       writeType2(type.returnType);
       buffer.write('Function');

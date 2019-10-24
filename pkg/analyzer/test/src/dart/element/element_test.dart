@@ -1129,13 +1129,6 @@ enum B {B1, B2, B3}
 
 @reflectiveTest
 class FunctionTypeImplTest extends AbstractTypeTest {
-  void test_creation() {
-    expect(
-        new FunctionTypeImpl(
-            new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"))),
-        isNotNull);
-  }
-
   void test_equality_recursive() {
     var s = ElementFactory.genericTypeAliasElement('s');
     var t = ElementFactory.genericTypeAliasElement('t');
@@ -1151,13 +1144,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       functionTypeAliasType(s) == functionTypeAliasType(u),
       new TypeMatcher<bool>(),
     );
-  }
-
-  void test_getElement() {
-    FunctionElementImpl typeElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
-    FunctionTypeImpl type = new FunctionTypeImpl(typeElement);
-    expect(type.element, typeElement);
   }
 
   void test_getNamedParameterTypes_namedParameters() {
@@ -1264,44 +1250,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(types[1], DynamicTypeImpl.instance);
   }
 
-  void test_getReturnType() {
-    DartType expectedReturnType = VoidTypeImpl.instance;
-    FunctionElementImpl functionElement =
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f"));
-    functionElement.returnType = expectedReturnType;
-    FunctionTypeImpl type = new FunctionTypeImpl(functionElement);
-    DartType returnType = type.returnType;
-    expect(returnType, expectedReturnType);
-  }
-
-  void test_getTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f")));
-    List<DartType> types = type.typeArguments;
-    expect(types, hasLength(0));
-  }
-
-  void test_hashCode_element() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstTestFactory.identifier3("f")));
-    type.hashCode;
-  }
-
-  void test_hashCode_noElement() {
-    FunctionTypeImpl type = new FunctionTypeImpl(null);
-    type.hashCode;
-  }
-
-  void test_hashCode_recursive() {
-    var s = ElementFactory.genericTypeAliasElement('s');
-    var t = ElementFactory.genericTypeAliasElement('t');
-    s.function.returnType = functionTypeAliasType(t);
-    t.function.returnType = functionTypeAliasType(s);
-    // We don't care what the hash code is.  We just need its computation to
-    // terminate.
-    expect(functionTypeAliasType(t).hashCode, new TypeMatcher<int>());
-  }
-
   void test_newPrune_non_typedef() {
     // No pruning needs to be done for function types that aren't associated
     // with typedefs because those types can't be directly referred to by the
@@ -1333,7 +1281,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     ];
     functionElement.returnType = parameterType;
     definingClass.methods = <MethodElement>[functionElement];
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
     FunctionType result = functionType
@@ -1368,7 +1316,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       ElementFactory.namedParameter2(namedParameterName, namedParameterType)
     ];
     functionElement.returnType = returnType;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    FunctionTypeImpl functionType = functionElement.type;
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("D")));
     TypeParameterTypeImpl parameterType = new TypeParameterTypeImpl(
@@ -1409,149 +1357,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
       functionTypeAliasType(f).toString(),
       'dynamic Function()',
     );
-  }
-
-  void test_typeParameters_genericLocalFunction_genericMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() {
-    //     U f<U>() => null;
-    //   }
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-    FunctionElementImpl function = ElementFactory.functionElement('f');
-    function.enclosingElement = method;
-    function.typeParameters = ElementFactory.typeParameters(['U']);
-    function.returnType = typeParameterType(function.typeParameters[0]);
-    function.type = new FunctionTypeImpl(function);
-
-    List<TypeParameterElement> inheritedParameters = <TypeParameterElement>[];
-    inheritedParameters.addAll(method.typeParameters);
-    inheritedParameters.addAll(classElement.typeParameters);
-    expect(function.type.typeArguments,
-        unorderedEquals(_toTypes(inheritedParameters)));
-    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
-    expect(function.type.typeParameters, unorderedEquals(inheritedParameters));
-  }
-
-  void test_typeParameters_genericMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_genericMethod_simpleClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement = class_(name: 'C');
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.returnType = ElementFactory.objectType;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_genericTopLevelFunction() {
-    //
-    // Object f<T>() => null;
-    //
-    FunctionElementImpl function = ElementFactory.functionElement('f');
-    function.returnType = ElementFactory.objectType;
-    function.typeParameters = ElementFactory.typeParameters(['T']);
-    function.type = new FunctionTypeImpl(function);
-
-    expect(function.type.typeArguments, isEmpty);
-    expect(function.type.typeFormals, unorderedEquals(function.typeParameters));
-    expect(function.type.typeParameters, isEmpty);
-  }
-
-  void test_typeParameters_simpleMethod_genericClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement =
-        ElementFactory.classElement('C', null, ['S']);
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.returnType = ElementFactory.objectType;
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_typeParameters_simpleMethod_simpleClass() {
-    //
-    // class C<S> {
-    //   Object m<T>() => null;
-    // }
-    //
-    ClassElementImpl classElement = class_(name: 'C');
-    MethodElementImpl method = new MethodElementImpl('m', 0);
-    method.enclosingElement = classElement;
-    method.typeParameters = ElementFactory.typeParameters(['T']);
-    method.returnType = ElementFactory.objectType;
-    method.type = new FunctionTypeImpl(method);
-
-    expect(method.type.typeArguments,
-        unorderedEquals(_toTypes(classElement.typeParameters)));
-    expect(method.type.typeFormals, unorderedEquals(method.typeParameters));
-    expect(method.type.typeParameters,
-        unorderedEquals(classElement.typeParameters));
-  }
-
-  void test_withTypeArguments() {
-    ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
-    MethodElementImpl methodElement =
-        new MethodElementImpl.forNode(AstTestFactory.identifier3("m"));
-    enclosingClass.methods = <MethodElement>[methodElement];
-    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
-    DartType expectedType = typeParameterType(enclosingClass.typeParameters[0]);
-    List<DartType> arguments = type.typeArguments;
-    expect(arguments, hasLength(1));
-    expect(arguments[0], expectedType);
-  }
-
-  Iterable<DartType> _toTypes(List<TypeParameterElement> typeParameters) {
-    return typeParameters
-        .map((TypeParameterElement element) => typeParameterType(element));
   }
 }
 
@@ -1689,7 +1494,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeAE);
     A.accessors = <PropertyAccessorElement>[getterG];
-    getterG.type = new FunctionTypeImpl(getterG);
     //
     // A<I>
     //
@@ -1788,7 +1592,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeB, []);
     classA.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
@@ -1799,7 +1602,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(method, isNotNull);
     FunctionType methodType = method.type;
     expect(methodType.typeParameters, isEmpty);
-    expect(methodType.typeArguments, [same(typeI)]);
+    expect(methodType.typeArguments, isEmpty);
   }
 
   void test_getMethod_parameterized_flushCached_whenVersionChanges() {
@@ -1813,7 +1616,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
@@ -1839,7 +1641,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
@@ -1850,7 +1651,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(method, isNotNull);
     FunctionType methodType = method.type;
     expect(methodType.typeParameters, isEmpty);
-    expect(methodType.typeArguments, [same(typeI)]);
+    expect(methodType.typeArguments, isEmpty);
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;
     expect(parameterTypes, hasLength(1));
@@ -1956,7 +1757,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
     A.accessors = <PropertyAccessorElement>[setterS];
-    setterS.type = new FunctionTypeImpl(setterS);
     //
     // A<I>
     //
@@ -2205,7 +2005,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     A.methods = <MethodElement>[methodM];
-    methodM.type = new FunctionTypeImpl(methodM);
 
     var F = typeParameter('F');
     var B = class_(
