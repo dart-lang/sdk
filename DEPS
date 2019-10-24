@@ -56,7 +56,7 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_tag": "1.5.0",
   "async_tag": "2.0.8",
-  "bazel_worker_tag": "bazel_worker-v0.1.20",
+  "bazel_worker_tag": "v0.1.22",
   "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "b9e27cff1ff0803e97ab1f88764a83be4aa94a6d",
@@ -117,7 +117,7 @@ vars = {
   "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
+  "protobuf_rev": "3746c8fd3f2b0147623a8e3db89c3ff4330de760",
   "pub_rev": "df0f72daaa724e29ed6075e0fb5549a6d6dc5daf",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
@@ -342,7 +342,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/pool":
       Var("dart_git") + "pool.git" + "@" + Var("pool_tag"),
   Var("dart_root") + "/third_party/pkg/protobuf":
-      Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
+       Var("dart_git") + "protobuf.git" + "@" + Var("protobuf_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       Var("dart_git") + "pub_semver.git" + "@" + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":

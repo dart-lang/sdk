@@ -34,8 +34,3 @@ message ZopDrop {
 message MobDrop {
   int32 aDrop = 1;
 }
-
-message A {
-  B unused = 1;
-  C used = 2;
-}
