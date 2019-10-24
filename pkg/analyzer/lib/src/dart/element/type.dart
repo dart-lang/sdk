@@ -97,9 +97,6 @@ class BottomTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
@@ -120,8 +117,7 @@ class BottomTypeImpl extends TypeImpl {
   @override
   @deprecated
   BottomTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes,
-          [List<FunctionTypeAliasElement> prune]) =>
+          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
       this;
 
   @override
@@ -154,9 +150,6 @@ class CircularTypeImpl extends DynamicTypeImpl {
       {bool withNullability = false}) {
     buffer.write('...');
   }
-
-  @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 }
 
 /**
@@ -191,9 +184,6 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
@@ -206,8 +196,7 @@ class DynamicTypeImpl extends TypeImpl {
   @override
   @deprecated
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
@@ -341,12 +330,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return types;
   }
 
-  /**
-   * Determine the new set of typedefs which should be pruned when expanding
-   * this function type.
-   */
-  List<FunctionTypeAliasElement> get newPrune;
-
   @override
   List<DartType> get normalParameterTypes {
     List<DartType> types = <DartType>[];
@@ -364,12 +347,6 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     });
     return types;
   }
-
-  /**
-   * The set of typedefs which should not be expanded when exploring this type,
-   * to avoid creating infinite types in response to self-referential typedefs.
-   */
-  List<FunctionTypeAliasElement> get prunedTypedefs;
 
   @override
   bool operator ==(Object object) {
@@ -503,8 +480,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   @deprecated
   FunctionType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]);
+      List<DartType> argumentTypes, List<DartType> parameterTypes);
 
   @override
   @deprecated
@@ -894,12 +870,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<DartType> _typeArguments = const <DartType>[];
 
   /**
-   * The set of typedefs which should not be expanded when exploring this type,
-   * to avoid creating infinite types in response to self-referential typedefs.
-   */
-  final List<FunctionTypeAliasElement> prunedTypedefs;
-
-  /**
    * The version of [element] for which members are cached.
    */
   int _versionOfCachedMembers;
@@ -923,26 +893,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Initialize a newly created type to be declared by the given [element].
    */
   InterfaceTypeImpl(ClassElement element,
-      {this.prunedTypedefs, this.nullabilitySuffix = NullabilitySuffix.star})
+      {this.nullabilitySuffix = NullabilitySuffix.star})
       : super(element, element.displayName);
 
   InterfaceTypeImpl.explicit(ClassElement element, List<DartType> typeArguments,
       {this.nullabilitySuffix = NullabilitySuffix.star})
-      : prunedTypedefs = null,
-        _typeArguments = typeArguments,
+      : _typeArguments = typeArguments,
         super(element, element.displayName);
 
   /**
    * Private constructor.
    */
-  InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs,
+  InterfaceTypeImpl._(Element element, String name,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : super(element, name);
 
   InterfaceTypeImpl._withNullability(InterfaceTypeImpl original,
       {this.nullabilitySuffix = NullabilitySuffix.star})
       : _typeArguments = original._typeArguments,
-        prunedTypedefs = original.prunedTypedefs,
         super(original.element, original.name);
 
   @override
@@ -1590,25 +1558,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  InterfaceTypeImpl pruned(List<FunctionTypeAliasElement> prune) {
-    if (prune == null) {
-      return this;
-    } else {
-      // There should never be a reason to prune a type that has already been
-      // pruned, since pruning is only done when expanding a function type
-      // alias, and function type aliases are always expanded by starting with
-      // base types.
-      assert(this.prunedTypedefs == null);
-      InterfaceTypeImpl result = new InterfaceTypeImpl._(element, name, prune,
-          nullabilitySuffix: nullabilitySuffix);
-      result.typeArguments = typeArguments
-          .map((DartType t) => (t as TypeImpl).pruned(prune))
-          .toList();
-      return result;
-    }
-  }
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant: true}) {
     // First check if this is actually an instance of Bottom
@@ -1628,7 +1577,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(typeArguments, this.typeArguments)) {
       return this;
     } else {
-      return new InterfaceTypeImpl._(element, name, prunedTypedefs,
+      return new InterfaceTypeImpl._(element, name,
           nullabilitySuffix: nullabilitySuffix)
         ..typeArguments = typeArguments;
     }
@@ -1637,21 +1586,20 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   @deprecated
   InterfaceTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
       throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     if (argumentTypes.isEmpty || typeArguments.isEmpty) {
-      return this.pruned(prune);
+      return this;
     }
 
-    List<DartType> newTypeArguments = TypeImpl.substitute(
-        typeArguments, argumentTypes, parameterTypes, prune);
+    List<DartType> newTypeArguments =
+        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
 
-    InterfaceTypeImpl newType = new InterfaceTypeImpl(element,
-        prunedTypedefs: prune, nullabilitySuffix: nullabilitySuffix);
+    InterfaceTypeImpl newType =
+        new InterfaceTypeImpl(element, nullabilitySuffix: nullabilitySuffix);
     newType.typeArguments = newTypeArguments;
     return newType;
   }
@@ -2042,19 +1990,6 @@ abstract class TypeImpl implements DartType {
     }
   }
 
-  /**
-   * Create a new [TypeImpl] that is identical to [this] except that when
-   * visiting type parameters, function parameter types, and function return
-   * types, function types listed in [prune] will not be expanded.  This is
-   * used to avoid creating infinite types in the presence of circular
-   * typedefs.
-   *
-   * If [prune] is null, then [this] is returned unchanged.
-   *
-   * Only legal to call on a [TypeImpl] that is not already subject to pruning.
-   */
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune);
-
   /// Replaces all covariant occurrences of `dynamic`, `Object`, and `void` with
   /// `Null` and all contravariant occurrences of `Null` with `Object`.
   ///
@@ -2069,17 +2004,11 @@ abstract class TypeImpl implements DartType {
   /**
    * Return the type resulting from substituting the given [argumentTypes] for
    * the given [parameterTypes] in this type.
-   *
-   * In all classes derived from [TypeImpl], a new optional argument
-   * [prune] is added.  If specified, it is a list of function typdefs
-   * which should not be expanded.  This is used to avoid creating infinite
-   * types in response to self-referential typedefs.
    */
   @override
   @deprecated
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]);
+      List<DartType> argumentTypes, List<DartType> parameterTypes);
 
   @override
   String toString({bool withNullability = false}) {
@@ -2148,23 +2077,18 @@ abstract class TypeImpl implements DartType {
   /**
    * Return a list containing the results of using the given [argumentTypes] and
    * [parameterTypes] to perform a substitution on all of the given [types].
-   *
-   * If [prune] is specified, it is a list of function typdefs which should not
-   * be expanded.  This is used to avoid creating infinite types in response to
-   * self-referential typedefs.
    */
   @deprecated
   static List<DartType> substitute(List<DartType> types,
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = types.length;
     if (length == 0) {
       return types;
     }
     List<DartType> newTypes = new List<DartType>(length);
     for (int i = 0; i < length; i++) {
-      newTypes[i] = (types[i] as TypeImpl)
-          .substitute2(argumentTypes, parameterTypes, prune);
+      newTypes[i] =
+          (types[i] as TypeImpl).substitute2(argumentTypes, parameterTypes);
     }
     return newTypes;
   }
@@ -2208,9 +2132,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     return this;
@@ -2242,8 +2163,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   @deprecated
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       var parameterType = parameterTypes[i];
@@ -2350,9 +2270,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     if (isCovariant) {
@@ -2365,8 +2282,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   @override
   @deprecated
   VoidTypeImpl substitute2(
-          List<DartType> argumentTypes, List<DartType> parameterTypes,
-          [List<FunctionTypeAliasElement> prune]) =>
+          List<DartType> argumentTypes, List<DartType> parameterTypes) =>
       this;
 
   @override
@@ -2413,9 +2329,6 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   bool get isInstantiated => throw new UnimplementedError('TODO(paulberry)');
 
   @override
-  List<FunctionTypeAliasElement> get newPrune => const [];
-
-  @override
   List<String> get normalParameterNames => parameters
       .where((p) => p.isRequiredPositional)
       .map((p) => p.name)
@@ -2426,9 +2339,6 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
       .where((p) => p.isOptionalPositional)
       .map((p) => p.name)
       .toList();
-
-  @override
-  List<FunctionTypeAliasElement> get prunedTypedefs => const [];
 
   @override
   List<TypeParameterElement> get typeParameters => const [] /*TODO(paulberry)*/;
@@ -2466,13 +2376,9 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   }
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   @deprecated
   FunctionType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
       throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != "

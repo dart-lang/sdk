@@ -1250,15 +1250,6 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(types[1], DynamicTypeImpl.instance);
   }
 
-  void test_newPrune_non_typedef() {
-    // No pruning needs to be done for function types that aren't associated
-    // with typedefs because those types can't be directly referred to by the
-    // user (and hence can't participate in circularities).
-    FunctionElementImpl f = ElementFactory.functionElement('f');
-    FunctionTypeImpl type = f.type;
-    expect(type.newPrune, []);
-  }
-
   void test_resolveToBound() {
     FunctionElementImpl f = ElementFactory.functionElement('f');
     FunctionTypeImpl type = f.type;

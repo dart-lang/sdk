@@ -1073,7 +1073,6 @@ class Dart2TypeSystem extends TypeSystem {
           type.typeArguments, (t) => _substituteType(t, lowerBound, visitType));
       if (identical(type.typeArguments, newTypeArgs)) return type;
       return new InterfaceTypeImpl(type.element,
-          prunedTypedefs: type.prunedTypedefs,
           nullabilitySuffix: type.nullabilitySuffix)
         ..typeArguments = newTypeArgs;
     }
@@ -2893,9 +2892,6 @@ class UnknownInferredType extends TypeImpl {
   }
 
   @override
-  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
-
-  @override
   DartType replaceTopAndBottom(TypeProvider typeProvider,
       {bool isCovariant = true}) {
     // In theory this should never happen, since we only need to do this
@@ -2914,8 +2910,7 @@ class UnknownInferredType extends TypeImpl {
 
   @override
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes,
-      [List<FunctionTypeAliasElement> prune]) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
