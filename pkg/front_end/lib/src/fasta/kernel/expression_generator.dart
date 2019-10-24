@@ -4126,11 +4126,23 @@ class ThisAccessGenerator extends Generator {
   ///
   final bool inFieldInitializer;
 
+  /// `true` if this access is directly in a field initializer of a late field.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    late var foo = <init>;
+  ///    class Class {
+  ///      late var bar = <init>;
+  ///      Class() : bar = 42;
+  ///    }
+  ///
+  final bool inLateFieldInitializer;
+
   /// `true` if this subexpression represents a `super` prefix.
   final bool isSuper;
 
   ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.isInitializer, this.inFieldInitializer,
+      this.isInitializer, this.inFieldInitializer, this.inLateFieldInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -4143,7 +4155,7 @@ class ThisAccessGenerator extends Generator {
 
   Expression buildSimpleRead() {
     if (!isSuper) {
-      if (inFieldInitializer) {
+      if (inFieldInitializer && !inLateFieldInitializer) {
         return buildFieldInitializerError(null);
       } else {
         return _forest.createThisExpression(fileOffset);
@@ -4180,7 +4192,7 @@ class ThisAccessGenerator extends Generator {
       }
       return buildConstructorInitializer(offset, name, arguments);
     }
-    if (inFieldInitializer && !isInitializer) {
+    if (inFieldInitializer && !inLateFieldInitializer && !isInitializer) {
       return buildFieldInitializerError(null);
     }
     Member getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
@@ -4328,6 +4340,8 @@ class ThisAccessGenerator extends Generator {
     sink.write(isInitializer);
     sink.write(", inFieldInitializer: ");
     sink.write(inFieldInitializer);
+    sink.write(", inLateFieldInitializer: ");
+    sink.write(inLateFieldInitializer);
     sink.write(", isSuper: ");
     sink.write(isSuper);
   }

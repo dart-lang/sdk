@@ -99,7 +99,8 @@ main() {
         isDeclarationInstanceMember: false,
         uri: uri);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false, false);
+    Generator generator =
+        new ThisAccessGenerator(helper, token, false, false, false);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -170,8 +171,9 @@ main() {
         new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, "
-        "inFieldInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false, false));
+        "inFieldInitializer: false, inLateFieldInitializer: false, "
+        "isSuper: false)",
+        new ThisAccessGenerator(helper, token, false, false, false));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -183,7 +185,8 @@ main() {
         " prefixGenerator: PrefixUseGenerator("
         "offset: 4, prefix: myPrefix, deferred: false),"
         " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false))",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false))",
         new DeferredAccessGenerator(
             helper, token, prefixUseGenerator, generator));
     check(
@@ -207,7 +210,8 @@ main() {
     check(
         "UnexpectedQualifiedUseGenerator("
         "offset: 4, prefixGenerator: , isInitializer: false,"
-        " inFieldInitializer: false, isSuper: false)",
+        " inFieldInitializer: false, inLateFieldInitializer: false,"
+        " isSuper: false)",
         new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
     return Future<void>.value();
   });

@@ -237,6 +237,18 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// This is used to determine whether instance properties are available.
   bool inFieldInitializer = false;
 
+  /// `true` if this access is directly in a field initializer of a late field.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    late var foo = <init>;
+  ///    class Class {
+  ///      late var bar = <init>;
+  ///      Class() : bar = 42;
+  ///    }
+  ///
+  bool inLateFieldInitializer = false;
+
   bool inCatchClause = false;
 
   bool inCatchBlock = false;
@@ -1837,7 +1849,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (declaration != null &&
         declaration.isDeclarationInstanceMember &&
-        inFieldInitializer &&
+        (inFieldInitializer && !inLateFieldInitializer) &&
         !inInitializer) {
       // We cannot access a class instance member in an initializer of a
       // field.
@@ -2241,12 +2253,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginFieldInitializer(Token token) {
     inFieldInitializer = true;
+    if (member is FieldBuilder) {
+      FieldBuilder fieldBuilder = member;
+      inLateFieldInitializer = fieldBuilder.isLate;
+    } else {
+      inLateFieldInitializer = false;
+    }
   }
 
   @override
   void endFieldInitializer(Token assignmentOperator, Token token) {
     debugEvent("FieldInitializer");
     inFieldInitializer = false;
+    inLateFieldInitializer = false;
     assert(assignmentOperator.stringValue == "=");
     push(popForValue());
   }
@@ -4050,8 +4069,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(_createReadOnlyVariableAccess(
             extensionThis, token, offsetForToken(token), 'this'));
       } else {
-        push(new ThisAccessGenerator(
-            this, token, inInitializer, inFieldInitializer));
+        push(new ThisAccessGenerator(this, token, inInitializer,
+            inFieldInitializer, inLateFieldInitializer));
       }
     } else {
       push(new IncompleteErrorGenerator(
@@ -4067,8 +4086,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         extensionThis == null) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
-      push(new ThisAccessGenerator(
-          this, token, inInitializer, inFieldInitializer,
+      push(new ThisAccessGenerator(this, token, inInitializer,
+          inFieldInitializer, inLateFieldInitializer,
           isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(

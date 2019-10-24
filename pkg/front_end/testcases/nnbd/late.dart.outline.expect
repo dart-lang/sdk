@@ -7,6 +7,8 @@ class Class extends core::Object {
   late final field core::int lateFinalInstanceField1;
   late final field core::int lateFinalInstanceField2;
   late final field core::int lateFinalInstanceFieldWithInit;
+  late field self::Class lateInstanceFieldThis;
+  late final field self::Class lateFinalInstanceFieldThis;
   late static field core::int lateStaticField;
   late static final field core::int lateFinalStaticField1;
   late static final field core::int lateFinalStaticField2;

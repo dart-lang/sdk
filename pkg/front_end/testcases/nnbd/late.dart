@@ -12,6 +12,9 @@ class Class {
   late final int lateFinalInstanceField2;
   late final int lateFinalInstanceFieldWithInit = 0;
 
+  late Class lateInstanceFieldThis = this;
+  late final Class lateFinalInstanceFieldThis = this;
+
   static late int lateStaticField;
   static late final int lateFinalStaticField1;
   static late final int lateFinalStaticField2;
