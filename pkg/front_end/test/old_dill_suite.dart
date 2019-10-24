@@ -17,6 +17,8 @@ Future<Null> main([List<String> arguments = const []]) async {
     await generateDill();
     return null;
   } else if (arguments.length == 1 && arguments[0] == "--checkDill") {
+    // Temporarily we don't require a dill to exist.
+    if (dartVm != null) return null;
     await checkDill();
     return null;
   }
