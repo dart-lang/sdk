@@ -933,8 +933,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register saved_fp = locs()->temp(0).reg();
-  Register target_address = locs()->in(TargetAddressIndex()).reg();
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+  const Register target_address = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -960,8 +961,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    NoTemporaryAllocator temp;
-    compiler->EmitMove(target, rebase.Rebase(origin), &temp);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, rebase.Rebase(origin), &temp_alloc);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the

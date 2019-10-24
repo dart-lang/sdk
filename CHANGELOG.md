@@ -1,12 +1,12 @@
-## Next release
-(Add new changes here, and they will be copied to the change section for the
- next release)
+## 2.6.0 - 2019-11-05
 
 ### Language
 
-*   [Static extension members][]: A new language feature allowing
+*   **[IN PREVIEW]** [Static extension members][]: A new language feature allowing
     specially declared static functions to be invoked
-    like instance members on expressions of appropriate static types.
+    like instance members on expressions of appropriate static types
+    is available in preview.
+
     Static extension members are declared using a new `extension`
     declaration. Example:
     ```dart
@@ -85,6 +85,26 @@ main() { foo(() {}); }
 * Added a new tool for AOT compiling Dart programs to native, self-contained
 executables. See https://dart.dev/tools/dart2native for additional details.
 
+### Foreign Function Interface (`dart:ffi`)
+
+*   **Breaking change**: The API now makes use of static extension members.
+    Static extension members enable the `dart:ffi` API to be more precise with
+    types, and provide convenient access to memory through extension getters and
+    setters. The extension members on `Pointer` provide `.value` and `.value =`
+    for accessing the value in native memory and `[]` and `[]=` for indexed access.
+    The method `asExternalTypedData` has been replaced with `asTypedList` extension
+    methods. And finally, `Structs` do no longer have a type argument and are
+    accessed the extension member `.ref` on `Pointer`.
+    These changes makes the code using `dart:ffi` much more concise.
+*   **Breaking change**: The memory management has been removed (`Pointer.allocate`
+    and `Pointer.free`). Instead, memory management is available in
+    [package:ffi](https://pub.dev/packages/ffi).
+*   **Breaking change**: `Pointer.offsetBy` was removed, use `cast` and `elementAt`
+    instead.
+*   Faster memory load and stores.
+*   The dartanalyzer (commandline and IDEs) now reports `dart:ffi` static errors.
+*   Callbacks are now supported in AOT (ahead-of-time) compiled code.
+
 ### Dart for the Web
 
 #### Dart Dev Compiler (DDC)
@@ -93,8 +113,6 @@ executables. See https://dart.dev/tools/dart2native for additional details.
 * Removed support for the deprecated web extension.
 
 ### Tools
-
-#### Pub
 
 #### Linter
 

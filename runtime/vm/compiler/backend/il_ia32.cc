@@ -924,9 +924,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register saved_fp = locs()->temp(0).reg();  // volatile
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
   const Register branch = locs()->in(TargetAddressIndex()).reg();
-  const Register tmp = locs()->temp(1).reg();  // callee-saved
 
   // Save frame pointer because we're going to update it when we enter the exit
   // frame.
@@ -949,8 +949,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator tmp_alloc(tmp);
-    compiler->EmitMove(target, origin, &tmp_alloc);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    compiler->EmitMove(target, origin, &temp_alloc);
   }
 
   // We need to copy a dummy return address up into the dummy stack frame so the
@@ -961,27 +961,27 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->EmitCallsiteMetadata(TokenPosition::kNoSource, DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
   __ Bind(&get_pc);
-  __ popl(tmp);
-  __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
+  __ popl(temp);
+  __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), temp);
 
   if (CanExecuteGeneratedCodeInSafepoint()) {
-    __ TransitionGeneratedToNative(branch, FPREG, tmp,
+    __ TransitionGeneratedToNative(branch, FPREG, temp,
                                    /*enter_safepoint=*/true);
     __ call(branch);
-    __ TransitionNativeToGenerated(tmp, /*leave_safepoint=*/true);
+    __ TransitionNativeToGenerated(temp, /*leave_safepoint=*/true);
   } else {
     // We cannot trust that this code will be executable within a safepoint.
     // Therefore we delegate the responsibility of entering/exiting the
     // safepoint to a stub which in the VM isolate's heap, which will never lose
     // execute permission.
-    __ movl(tmp,
+    __ movl(temp,
             compiler::Address(
                 THR, compiler::target::Thread::
                          call_native_through_safepoint_entry_point_offset()));
 
     // Calls EAX within a safepoint and clobbers EBX.
-    ASSERT(tmp == EBX && branch == EAX);
-    __ call(tmp);
+    ASSERT(temp == EBX && branch == EAX);
+    __ call(temp);
   }
 
   // The x86 calling convention requires floating point values to be returned on
@@ -1000,7 +1000,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveFrame();
 
   // Instead of returning to the "fake" return address, we just pop it.
-  __ popl(tmp);
+  __ popl(temp);
 }
 
 void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
