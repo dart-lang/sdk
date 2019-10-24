@@ -1267,6 +1267,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(type.resolveToBound(null), same(type));
   }
 
+  @deprecated
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType =
@@ -1298,6 +1299,7 @@ class FunctionTypeImplTest extends AbstractTypeTest {
     expect(namedParameters[namedParameterName], argumentType);
   }
 
+  @deprecated
   void test_substitute2_notEqual() {
     DartType returnType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstTestFactory.identifier3("R")));
@@ -2176,6 +2178,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(type.typeArguments, typeArguments);
   }
 
+  @deprecated
   void test_substitute_exception() {
     try {
       var classA = class_(name: 'A');
@@ -2189,6 +2192,7 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     }
   }
 
+  @deprecated
   void test_substitute_notEqual() {
     // The [test_substitute_equals] above has a slightly higher level
     // implementation.
@@ -2451,6 +2455,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
         same(VoidTypeImpl.instance));
   }
 
+  @deprecated
   void test_substitute_equal() {
     TypeParameterElementImpl element =
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E"));
@@ -2462,6 +2467,7 @@ class TypeParameterTypeImplTest extends AbstractTypeTest {
         same(argument));
   }
 
+  @deprecated
   void test_substitute_notEqual() {
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(
         new TypeParameterElementImpl.forNode(AstTestFactory.identifier3("E")));

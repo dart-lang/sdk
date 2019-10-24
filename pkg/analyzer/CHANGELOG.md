@@ -1,3 +1,7 @@
+## 0.39.1-dev
+* Deprecated `DartType.substitute2()`. Use `ClassElement.instantiate()`
+  or `FunctionTypeAliasElement.instantiate()` instead.
+
 ## 0.39.0
 * Removed deprecated `DartType.isEquivalentTo`.
 * Removed `useDart2jsPaths` argument in `FolderBasedDartSdk` constructor.

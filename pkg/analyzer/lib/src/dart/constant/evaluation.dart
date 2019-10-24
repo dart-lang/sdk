@@ -989,7 +989,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         }
       }
       if (typeArguments == null) return type;
-      return type.substitute2(typeArguments, type.typeArguments);
+      return type.instantiate(typeArguments);
     }
     return type;
   }

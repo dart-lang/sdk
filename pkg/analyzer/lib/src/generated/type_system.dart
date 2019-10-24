@@ -1163,17 +1163,21 @@ class Dart2TypeSystem extends TypeSystem {
       return type1;
     }
     if (type1 is TypeParameterType) {
-      type1 = type1
-          .resolveToBound(typeProvider.objectType)
-          .substitute2([typeProvider.objectType], [type1]);
+      type1 = _typeParameterResolveToObjectBounds(type1);
       return getLeastUpperBound(type1, type2);
     }
     // We should only be called when at least one of the types is a
     // TypeParameterType
-    type2 = type2
-        .resolveToBound(typeProvider.objectType)
-        .substitute2([typeProvider.objectType], [type2]);
+    type2 = _typeParameterResolveToObjectBounds(type2);
+
     return getLeastUpperBound(type1, type2);
+  }
+
+  DartType _typeParameterResolveToObjectBounds(DartType type) {
+    var element = type.element;
+    type = type.resolveToBound(typeProvider.objectType);
+    return Substitution.fromMap({element: typeProvider.objectType})
+        .substituteType(type);
   }
 
   static List<T> _transformList<T>(List<T> list, T f(T t)) {

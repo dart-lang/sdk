@@ -118,6 +118,7 @@ class BottomTypeImpl extends TypeImpl {
   }
 
   @override
+  @deprecated
   BottomTypeImpl substitute2(
           List<DartType> argumentTypes, List<DartType> parameterTypes,
           [List<FunctionTypeAliasElement> prune]) =>
@@ -203,6 +204,7 @@ class DynamicTypeImpl extends TypeImpl {
   }
 
   @override
+  @deprecated
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -499,11 +501,13 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  @deprecated
   FunctionType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]);
 
   @override
+  @deprecated
   FunctionTypeImpl substitute3(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
 
@@ -1273,6 +1277,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       PropertyAccessorMember.from(element.getSetter(setterName), this);
 
   @override
+  @deprecated
   InterfaceTypeImpl instantiate(List<DartType> argumentTypes) =>
       substitute2(argumentTypes, typeArguments);
 
@@ -1630,6 +1635,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  @deprecated
   InterfaceTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -2070,6 +2076,7 @@ abstract class TypeImpl implements DartType {
    * types in response to self-referential typedefs.
    */
   @override
+  @deprecated
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]);
@@ -2146,6 +2153,7 @@ abstract class TypeImpl implements DartType {
    * be expanded.  This is used to avoid creating infinite types in response to
    * self-referential typedefs.
    */
+  @deprecated
   static List<DartType> substitute(List<DartType> types,
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -2232,6 +2240,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   }
 
   @override
+  @deprecated
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -2309,6 +2318,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
  */
 abstract class VoidType implements DartType {
   @override
+  @deprecated
   VoidType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
 }
@@ -2353,6 +2363,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @override
+  @deprecated
   VoidTypeImpl substitute2(
           List<DartType> argumentTypes, List<DartType> parameterTypes,
           [List<FunctionTypeAliasElement> prune]) =>
@@ -2458,6 +2469,7 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  @deprecated
   FunctionType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {

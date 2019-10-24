@@ -210,6 +210,7 @@ class FunctionTypeTest with ElementsTypesMixin {
         returnType: same(objectType));
   }
 
+  @deprecated
   test_synthetic_substitute() {
     // Map<T, U> Function<U extends T>(T x, U y)
     var t = typeParameter('T');
@@ -234,6 +235,7 @@ class FunctionTypeTest with ElementsTypesMixin {
         parameters: hasLength(2));
   }
 
+  @deprecated
   test_synthetic_substitute_argument_length_mismatch() {
     // dynamic Function()
     var t = typeParameter('T');
@@ -242,6 +244,7 @@ class FunctionTypeTest with ElementsTypesMixin {
         throwsA(new TypeMatcher<ArgumentError>()));
   }
 
+  @deprecated
   test_synthetic_substitute_unchanged() {
     // dynamic Function<U>(U x)
     var t = typeParameter('T');
