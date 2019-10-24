@@ -7759,10 +7759,7 @@ abstract class UriReferencedElementImpl extends ElementImpl
 /// A concrete implementation of a [VariableElement].
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElement {
-  /// The declared type of this variable.
-  DartType _declaredType;
-
-  /// The inferred type of this variable.
+  /// The type of this variable.
   DartType _type;
 
   /// A synthetic function representing this variable's initializer, or `null
@@ -7795,10 +7792,6 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
-
-  void set declaredType(DartType type) {
-    _declaredType = _checkElementOfType(type);
-  }
 
   @override
   String get displayName => name;
@@ -7871,7 +7864,7 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
-  DartType get type => _type ?? _declaredType;
+  DartType get type => _type;
 
   void set type(DartType type) {
     if (linkedNode != null) {
