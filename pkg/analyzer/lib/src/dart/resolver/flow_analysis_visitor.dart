@@ -28,7 +28,8 @@ class FlowAnalysisHelper {
   final FlowAnalysisResult result;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
-  FlowAnalysis<Statement, Expression, PromotableElement, DartType> flow;
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+      flow;
 
   factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
     return FlowAnalysisHelper._(TypeSystemTypeOperations(typeSystem),
@@ -96,7 +97,7 @@ class FlowAnalysisHelper {
   void executableDeclaration_enter(
       Declaration node, FormalParameterList parameters, bool isClosure) {
     if (isClosure) {
-      flow.functionExpression_begin(assignedVariables.writtenInNode(node));
+      flow.functionExpression_begin(node);
     }
 
     if (parameters != null) {
@@ -120,8 +121,7 @@ class FlowAnalysisHelper {
   }
 
   void for_conditionBegin(AstNode node, Expression condition) {
-    flow.for_conditionBegin(assignedVariables.writtenInNode(node),
-        assignedVariables.capturedInNode(node));
+    flow.for_conditionBegin(node);
   }
 
   void isExpression(IsExpression node) {
@@ -170,10 +170,8 @@ class FlowAnalysisHelper {
     assert(node != null);
     assert(flow == null);
     assignedVariables = computeAssignedVariables(node, parameters);
-    flow = FlowAnalysis<Statement, Expression, PromotableElement, DartType>(
-        _typeOperations,
-        assignedVariables.writtenAnywhere,
-        assignedVariables.capturedAnywhere);
+    flow = FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
+        DartType>(_typeOperations, assignedVariables);
   }
 
   void topLevelDeclaration_exit() {

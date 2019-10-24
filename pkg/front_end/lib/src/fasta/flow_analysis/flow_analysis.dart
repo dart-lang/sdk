@@ -62,14 +62,6 @@ class AssignedVariables<Node, Variable> {
 
   AssignedVariables();
 
-  /// Queries the set of variables for which a potential write is captured by a
-  /// local function or closure anywhere in the code being analyzed.
-  Set<Variable> get capturedAnywhere => _capturedAnywhere;
-
-  /// Queries the set of variables that are potentially written to anywhere in
-  /// the code being analyzed.
-  Set<Variable> get writtenAnywhere => _writtenAnywhere;
-
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
   /// local function, or closure which might need to be queried later.
@@ -86,13 +78,6 @@ class AssignedVariables<Node, Variable> {
     _writtenStack.add(new Set<Variable>.identity());
     _declaredStack.add(new Set<Variable>.identity());
     _capturedStack.add(new Set<Variable>.identity());
-  }
-
-  /// Queries the set of variables for which a potential write is captured by a
-  /// local function or closure inside the [node].
-  Set<Variable> capturedInNode(Node node) {
-    return _capturedInNode[node] ??
-        (throw new StateError('No information for $node'));
   }
 
   /// This method should be called during pre-traversal, to indicate that the
@@ -155,12 +140,34 @@ class AssignedVariables<Node, Variable> {
     _writtenAnywhere.add(variable);
   }
 
+  /// Queries the set of variables for which a potential write is captured by a
+  /// local function or closure inside the [node].
+  Set<Variable> _getCapturedInNode(Node node) {
+    return _capturedInNode[node] ??
+        (throw new StateError('No information for $node'));
+  }
+
   /// Queries the set of variables that are potentially written to inside the
   /// [node].
-  Set<Variable> writtenInNode(Node node) {
+  Set<Variable> _getWrittenInNode(Node node) {
     return _writtenInNode[node] ??
         (throw new StateError('No information for $node'));
   }
+}
+
+/// Extension of [AssignedVariables] intended for use in unit tests.  This class
+/// exposes the results of the analysis so that they can be tested directly.
+/// Not intended to be used by clients of flow analysis.
+@visibleForTesting
+class AssignedVariablesForTesting<Node, Variable>
+    extends AssignedVariables<Node, Variable> {
+  Set<Variable> get capturedAnywhere => _capturedAnywhere;
+
+  Set<Variable> get writtenAnywhere => _writtenAnywhere;
+
+  Set<Variable> capturedInNode(Node node) => _getCapturedInNode(node);
+
+  Set<Variable> writtenInNode(Node node) => _getWrittenInNode(node);
 }
 
 /// Implementation of flow analysis to be shared between the analyzer and the
@@ -169,13 +176,11 @@ class AssignedVariables<Node, Variable> {
 /// The client should create one instance of this class for every method, field,
 /// or top level variable to be analyzed, and call the appropriate methods
 /// while visiting the code for type inference.
-abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
-  factory FlowAnalysis(
-      TypeOperations<Variable, Type> typeOperations,
-      Iterable<Variable> variablesWrittenAnywhere,
-      Iterable<Variable> variablesCapturedAnywhere) {
-    return new _FlowAnalysisImpl(typeOperations,
-        variablesWrittenAnywhere.toList(), variablesCapturedAnywhere.toList());
+abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
+    Type> {
+  factory FlowAnalysis(TypeOperations<Variable, Type> typeOperations,
+      AssignedVariables<Node, Variable> assignedVariables) {
+    return new _FlowAnalysisImpl(typeOperations, assignedVariables);
   }
 
   /// Return `true` if the current state is reachable.
@@ -205,12 +210,9 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   void conditional_thenBegin(Expression condition);
 
   /// Call this method before visiting the body of a "do-while" statement.
-  /// [loopAssigned] should be the set of variables that are assigned in the
-  /// body of the loop (or the condition), and [loopCaptured] should be the set
-  /// of variables that are captured by closures within the body of the loop (or
-  /// the condition).
-  void doStatement_bodyBegin(Statement doStatement,
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured);
+  /// [doStatement] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the do-while statement.
+  void doStatement_bodyBegin(Statement doStatement);
 
   /// Call this method after visiting the body of a "do-while" statement, and
   /// before visiting its condition.
@@ -265,10 +267,9 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// - Visit the updaters.
   /// - Call [for_end].
   ///
-  /// [loopAssigned] should be the set of variables that are assigned anywhere
-  /// in the loop's condition, updaters, or body.
-  void for_conditionBegin(
-      Set<Variable> loopAssigned, Set<Variable> loopCaptured);
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the for statement.
+  void for_conditionBegin(Node node);
 
   /// Call this method just after visiting the updaters of a conventional "for"
   /// statement or collection element.  See [for_conditionBegin] for details.
@@ -288,11 +289,9 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// - Visit the body.
   /// - Call [forEach_end].
   ///
-  /// [loopAssigned] should be the set of variables that are assigned anywhere
-  /// in the loop's body.  [loopVariable] should be the loop variable, if it's a
-  /// local variable, or `null` otherwise.
-  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
-      Iterable<Variable> loopCaptured, Variable loopVariable);
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the for statement.
+  void forEach_bodyBegin(Node node, Variable loopVariable);
 
   /// Call this method just before visiting the body of a "for-in" statement or
   /// collection element.  See [forEach_bodyBegin] for details.
@@ -300,7 +299,10 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Call this method just before visiting the body of a function expression or
   /// local function.
-  void functionExpression_begin(Iterable<Variable> writeCaptured);
+  ///
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the function expression.
+  void functionExpression_begin(Node node);
 
   /// Call this method just after visiting the body of a function expression or
   /// local function.
@@ -429,10 +431,9 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   ///
   /// [hasLabel] indicates whether the case has any labels.
   ///
-  /// The [notPromoted] set contains all variables that are potentially assigned
-  /// within the body of the switch statement.
-  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
-      Iterable<Variable> captured);
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the switch statement.
+  void switchStatement_beginCase(bool hasLabel, Node node);
 
   /// Call this method just after visiting the body of a switch statement.  See
   /// [switchStatement_expressionEnd] for details.
@@ -484,11 +485,9 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// Call this method just after visiting the body of a "try/catch" statement.
   /// See [tryCatchStatement_bodyBegin] for details.
   ///
-  /// [assignedInBody] should be the set of variables assigned in the "try" part
-  /// of the statement.  [capturedInBody] should be the set of variables
-  /// captured by closures in the "try" part of the statement.
-  void tryCatchStatement_bodyEnd(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody);
+  /// [body] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the "try" part of the try/catch statement.
+  void tryCatchStatement_bodyEnd(Node body);
 
   /// Call this method just before visiting a catch clause of a "try/catch"
   /// statement.  See [tryCatchStatement_bodyBegin] for details.
@@ -524,14 +523,18 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// Call this method just after visiting a "try/finally" statement.
   /// See [tryFinallyStatement_bodyBegin] for details.
   ///
-  /// [assignedInFinally] should be the set of variables assigned in the
-  /// "finally" part of the statement.
-  void tryFinallyStatement_end(Set<Variable> assignedInFinally);
+  /// [finallyBlock] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the "finally" part of the try/finally
+  /// statement.
+  void tryFinallyStatement_end(Node finallyBlock);
 
   /// Call this method just before visiting the finally block of a "try/finally"
   /// statement.  See [tryFinallyStatement_bodyBegin] for details.
-  void tryFinallyStatement_finallyBegin(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody);
+  ///
+  /// [body] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the "try" part of the try/finally
+  /// statement.
+  void tryFinallyStatement_finallyBegin(Node body);
 
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
@@ -547,11 +550,10 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Call this method before visiting the condition part of a "while"
   /// statement.
-  /// [loopAssigned] should be the set of variables assigned in the body of the
-  /// loop (or in the condition).  [loopCaptured] should be the set of variables
-  /// captured by closures in the body of the loop (or in the condition).
-  void whileStatement_conditionBegin(
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured);
+  ///
+  /// [node] should be the same node that was passed to
+  /// [AssignedVariables.endNode] for the while statement.
+  void whileStatement_conditionBegin(Node node);
 
   /// Call this method after visiting a "while" statement.
   void whileStatement_end();
@@ -562,22 +564,17 @@ abstract class FlowAnalysis<Statement, Expression, Variable, Type> {
 
 /// Alternate implementation of [FlowAnalysis] that prints out inputs and output
 /// at the API boundary, for assistance in debugging.
-class FlowAnalysisDebug<Statement, Expression, Variable, Type>
-    implements FlowAnalysis<Statement, Expression, Variable, Type> {
-  _FlowAnalysisImpl<Statement, Expression, Variable, Type> _wrapped;
+class FlowAnalysisDebug<Node, Statement extends Node, Expression, Variable,
+    Type> implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
+  _FlowAnalysisImpl<Node, Statement, Expression, Variable, Type> _wrapped;
 
   bool _exceptionOccurred = false;
 
-  factory FlowAnalysisDebug(
-      TypeOperations<Variable, Type> typeOperations,
-      Iterable<Variable> variablesWrittenAnywhere,
-      Iterable<Variable> variablesCapturedAnywhere) {
-    variablesWrittenAnywhere = variablesWrittenAnywhere.toList();
-    variablesCapturedAnywhere = variablesCapturedAnywhere.toList();
-    print('FlowAnalysisDebug($variablesWrittenAnywhere, '
-        '$variablesCapturedAnywhere)');
-    return new FlowAnalysisDebug._(new _FlowAnalysisImpl(
-        typeOperations, variablesWrittenAnywhere, variablesCapturedAnywhere));
+  factory FlowAnalysisDebug(TypeOperations<Variable, Type> typeOperations,
+      AssignedVariables<Node, Variable> assignedVariables) {
+    print('FlowAnalysisDebug()');
+    return new FlowAnalysisDebug._(
+        new _FlowAnalysisImpl(typeOperations, assignedVariables));
   }
 
   FlowAnalysisDebug._(this._wrapped);
@@ -618,14 +615,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void doStatement_bodyBegin(Statement doStatement,
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
-    loopAssigned = loopAssigned.toList();
-    loopCaptured = loopCaptured.toList();
-    return _wrap(
-        'doStatement_bodyBegin($doStatement, $loopAssigned, $loopCaptured)',
-        () => _wrapped.doStatement_bodyBegin(
-            doStatement, loopAssigned, loopCaptured));
+  void doStatement_bodyBegin(Statement doStatement) {
+    return _wrap('doStatement_bodyBegin($doStatement)',
+        () => _wrapped.doStatement_bodyBegin(doStatement));
   }
 
   @override
@@ -672,10 +664,8 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void for_conditionBegin(
-      Set<Variable> loopAssigned, Set<Variable> loopCaptured) {
-    _wrap('for_conditionBegin($loopAssigned, $loopCaptured)',
-        () => _wrapped.for_conditionBegin(loopAssigned, loopCaptured));
+  void for_conditionBegin(Node node) {
+    _wrap('for_conditionBegin($node)', () => _wrapped.for_conditionBegin(node));
   }
 
   @override
@@ -689,14 +679,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
-      Iterable<Variable> loopCaptured, Variable loopVariable) {
-    loopAssigned = loopAssigned.toList();
-    loopCaptured = loopCaptured.toList();
-    return _wrap(
-        'forEach_bodyBegin($loopAssigned, $loopCaptured, $loopVariable)',
-        () => _wrapped.forEach_bodyBegin(
-            loopAssigned, loopCaptured, loopVariable));
+  void forEach_bodyBegin(Node node, Variable loopVariable) {
+    return _wrap('forEach_bodyBegin($node, $loopVariable)',
+        () => _wrapped.forEach_bodyBegin(node, loopVariable));
   }
 
   @override
@@ -705,10 +690,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void functionExpression_begin(Iterable<Variable> writeCaptured) {
-    writeCaptured = writeCaptured.toList();
-    _wrap('functionExpression_begin($writeCaptured)',
-        () => _wrapped.functionExpression_begin(writeCaptured));
+  void functionExpression_begin(Node node) {
+    _wrap('functionExpression_begin($node)',
+        () => _wrapped.functionExpression_begin(node));
   }
 
   @override
@@ -841,13 +825,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
-      Iterable<Variable> captured) {
-    notPromoted = notPromoted.toList();
-    _wrap(
-        'switchStatement_beginCase($hasLabel, $notPromoted, $captured)',
-        () => _wrapped.switchStatement_beginCase(
-            hasLabel, notPromoted, captured));
+  void switchStatement_beginCase(bool hasLabel, Node node) {
+    _wrap('switchStatement_beginCase($hasLabel, $node)',
+        () => _wrapped.switchStatement_beginCase(hasLabel, node));
   }
 
   @override
@@ -869,14 +849,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryCatchStatement_bodyEnd(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
-    assignedInBody = assignedInBody.toList();
-    capturedInBody = capturedInBody.toList();
-    return _wrap(
-        'tryCatchStatement_bodyEnd($assignedInBody, $capturedInBody)',
-        () =>
-            _wrapped.tryCatchStatement_bodyEnd(assignedInBody, capturedInBody));
+  void tryCatchStatement_bodyEnd(Node body) {
+    return _wrap('tryCatchStatement_bodyEnd($body)',
+        () => _wrapped.tryCatchStatement_bodyEnd(body));
   }
 
   @override
@@ -907,20 +882,15 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
-    return _wrap('tryFinallyStatement_end($assignedInFinally)',
-        () => _wrapped.tryFinallyStatement_end(assignedInFinally));
+  void tryFinallyStatement_end(Node finallyBlock) {
+    return _wrap('tryFinallyStatement_end($finallyBlock)',
+        () => _wrapped.tryFinallyStatement_end(finallyBlock));
   }
 
   @override
-  void tryFinallyStatement_finallyBegin(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
-    assignedInBody = assignedInBody.toList();
-    capturedInBody = capturedInBody.toList();
-    return _wrap(
-        'tryFinallyStatement_finallyBegin($assignedInBody, $capturedInBody)',
-        () => _wrapped.tryFinallyStatement_finallyBegin(
-            assignedInBody, capturedInBody));
+  void tryFinallyStatement_finallyBegin(Node body) {
+    return _wrap('tryFinallyStatement_finallyBegin($body)',
+        () => _wrapped.tryFinallyStatement_finallyBegin(body));
   }
 
   @override
@@ -938,14 +908,9 @@ class FlowAnalysisDebug<Statement, Expression, Variable, Type>
   }
 
   @override
-  void whileStatement_conditionBegin(
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
-    loopAssigned = loopAssigned.toList();
-    loopCaptured = loopCaptured.toList();
-    return _wrap(
-        'whileStatement_conditionBegin($loopAssigned, $loopCaptured)',
-        () =>
-            _wrapped.whileStatement_conditionBegin(loopAssigned, loopCaptured));
+  void whileStatement_conditionBegin(Node node) {
+    return _wrap('whileStatement_conditionBegin($node)',
+        () => _wrapped.whileStatement_conditionBegin(node));
   }
 
   @override
@@ -1549,12 +1514,8 @@ class _ExpressionInfo<Variable, Type> {
       '_ExpressionInfo(after: $_after, _ifTrue: $_ifTrue, ifFalse: $_ifFalse)';
 }
 
-class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
-    implements FlowAnalysis<Statement, Expression, Variable, Type> {
-  final List<Variable> _variablesWrittenAnywhere;
-
-  final List<Variable> _variablesCapturedAnywhere;
-
+class _FlowAnalysisImpl<Node, Statement extends Node, Expression, Variable,
+    Type> implements FlowAnalysis<Node, Statement, Expression, Variable, Type> {
   /// The [TypeOperations], used to access types, and check subtyping.
   final TypeOperations<Variable, Type> typeOperations;
 
@@ -1581,8 +1542,9 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
 
   int _functionNestingLevel = 0;
 
-  _FlowAnalysisImpl(this.typeOperations, this._variablesWrittenAnywhere,
-      this._variablesCapturedAnywhere) {
+  final AssignedVariables<Node, Variable> _assignedVariables;
+
+  _FlowAnalysisImpl(this.typeOperations, this._assignedVariables) {
     _current = new FlowModel<Variable, Type>(true);
   }
 
@@ -1643,8 +1605,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void doStatement_bodyBegin(Statement doStatement,
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+  void doStatement_bodyBegin(Statement doStatement) {
+    Iterable<Variable> loopAssigned =
+        _assignedVariables._getWrittenInNode(doStatement);
+    Iterable<Variable> loopCaptured =
+        _assignedVariables._getCapturedInNode(doStatement);
     _BranchTargetContext<Variable, Type> context =
         new _BranchTargetContext<Variable, Type>();
     _stack.add(context);
@@ -1718,8 +1683,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void for_conditionBegin(
-      Set<Variable> loopAssigned, Set<Variable> loopCaptured) {
+  void for_conditionBegin(Node node) {
+    Iterable<Variable> loopAssigned =
+        _assignedVariables._getWrittenInNode(node);
+    Iterable<Variable> loopCaptured =
+        _assignedVariables._getCapturedInNode(node);
     _current = _current.removePromotedAll(loopAssigned, loopCaptured);
   }
 
@@ -1742,8 +1710,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void forEach_bodyBegin(Iterable<Variable> loopAssigned,
-      Iterable<Variable> loopCaptured, Variable loopVariable) {
+  void forEach_bodyBegin(Node node, Variable loopVariable) {
+    Iterable<Variable> loopAssigned =
+        _assignedVariables._getWrittenInNode(node);
+    Iterable<Variable> loopCaptured =
+        _assignedVariables._getCapturedInNode(node);
     _SimpleStatementContext<Variable, Type> context =
         new _SimpleStatementContext<Variable, Type>(_current);
     _stack.add(context);
@@ -1761,12 +1732,14 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void functionExpression_begin(Iterable<Variable> writeCaptured) {
+  void functionExpression_begin(Node node) {
+    Iterable<Variable> writeCaptured =
+        _assignedVariables._getWrittenInNode(node);
     ++_functionNestingLevel;
     _current = _current.removePromotedAll(const [], writeCaptured);
     _stack.add(new _SimpleContext(_current));
-    _current = _current.removePromotedAll(
-        _variablesWrittenAnywhere, _variablesCapturedAnywhere);
+    _current = _current.removePromotedAll(_assignedVariables._writtenAnywhere,
+        _assignedVariables._capturedAnywhere);
   }
 
   @override
@@ -1960,8 +1933,9 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void switchStatement_beginCase(bool hasLabel, Iterable<Variable> notPromoted,
-      Iterable<Variable> captured) {
+  void switchStatement_beginCase(bool hasLabel, Node node) {
+    Iterable<Variable> notPromoted = _assignedVariables._getWrittenInNode(node);
+    Iterable<Variable> captured = _assignedVariables._getCapturedInNode(node);
     _SimpleStatementContext<Variable, Type> context =
         _stack.last as _SimpleStatementContext<Variable, Type>;
     if (hasLabel) {
@@ -2001,8 +1975,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryCatchStatement_bodyEnd(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+  void tryCatchStatement_bodyEnd(Node body) {
+    Iterable<Variable> assignedInBody =
+        _assignedVariables._getWrittenInNode(body);
+    Iterable<Variable> capturedInBody =
+        _assignedVariables._getCapturedInNode(body);
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     FlowModel<Variable, Type> beforeBody = context._previous;
@@ -2047,7 +2024,9 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
+  void tryFinallyStatement_end(Node finallyBlock) {
+    Iterable<Variable> assignedInFinally =
+        _assignedVariables._getWrittenInNode(finallyBlock);
     _TryContext<Variable, Type> context =
         _stack.removeLast() as _TryContext<Variable, Type>;
     _current = _current.restrict(
@@ -2055,8 +2034,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void tryFinallyStatement_finallyBegin(
-      Iterable<Variable> assignedInBody, Iterable<Variable> capturedInBody) {
+  void tryFinallyStatement_finallyBegin(Node body) {
+    Iterable<Variable> assignedInBody =
+        _assignedVariables._getWrittenInNode(body);
+    Iterable<Variable> capturedInBody =
+        _assignedVariables._getCapturedInNode(body);
     _TryContext<Variable, Type> context =
         _stack.last as _TryContext<Variable, Type>;
     context._afterBodyAndCatches = _current;
@@ -2082,8 +2064,11 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   }
 
   @override
-  void whileStatement_conditionBegin(
-      Iterable<Variable> loopAssigned, Iterable<Variable> loopCaptured) {
+  void whileStatement_conditionBegin(Node node) {
+    Iterable<Variable> loopAssigned =
+        _assignedVariables._getWrittenInNode(node);
+    Iterable<Variable> loopCaptured =
+        _assignedVariables._getCapturedInNode(node);
     _current = _current.removePromotedAll(loopAssigned, loopCaptured);
   }
 
@@ -2097,7 +2082,7 @@ class _FlowAnalysisImpl<Statement, Expression, Variable, Type>
   @override
   void write(Variable variable) {
     assert(
-        _variablesWrittenAnywhere.contains(variable),
+        _assignedVariables._writtenAnywhere.contains(variable),
         "Variable is written to, but was not included in "
         "_variablesWrittenAnywhere: $variable");
     _current = _current.write(variable);

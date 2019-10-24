@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 main() {
   test('capturedAnywhere records assignments in closures', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     var v2 = _Variable('v2');
     var v3 = _Variable('v3');
@@ -24,7 +24,7 @@ main() {
   });
 
   test('capturedAnywhere does not record variables local to a closure', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     var v2 = _Variable('v2');
     assignedVariables.declare(v1);
@@ -38,7 +38,7 @@ main() {
   });
 
   test('writtenAnywhere records all assignments', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     var v2 = _Variable('v2');
     var v3 = _Variable('v3');
@@ -55,7 +55,7 @@ main() {
   });
 
   test('writtenInNode ignores assignments outside the node', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     var v2 = _Variable('v2');
     assignedVariables.declare(v1);
@@ -70,7 +70,7 @@ main() {
   });
 
   test('writtenInNode records assignments inside the node', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     assignedVariables.declare(v1);
     assignedVariables.beginNode();
@@ -82,7 +82,7 @@ main() {
   });
 
   test('writtenInNode records assignments in a nested node', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     assignedVariables.declare(v1);
     assignedVariables.beginNode();
@@ -96,7 +96,7 @@ main() {
   });
 
   test('writtenInNode records assignments in a closure', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     assignedVariables.declare(v1);
     assignedVariables.beginNode();
@@ -108,7 +108,7 @@ main() {
   });
 
   test('capturedInNode ignores assignments in non-nested closures', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     var v2 = _Variable('v2');
     assignedVariables.declare(v1);
@@ -127,7 +127,7 @@ main() {
   });
 
   test('capturedInNode records assignments in nested closures', () {
-    var assignedVariables = AssignedVariables<_Node, _Variable>();
+    var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
     var v1 = _Variable('v1');
     assignedVariables.declare(v1);
     assignedVariables.beginNode();
@@ -143,7 +143,7 @@ main() {
   group('Variables do not percolate beyond the scope they were declared in',
       () {
     test('Non-closure scope', () {
-      var assignedVariables = AssignedVariables<_Node, _Variable>();
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
       var v1 = _Variable('v1');
       var v2 = _Variable('v2');
       assignedVariables.beginNode();
@@ -166,7 +166,7 @@ main() {
     });
 
     test('Closure scope', () {
-      var assignedVariables = AssignedVariables<_Node, _Variable>();
+      var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();
       var v1 = _Variable('v1');
       var v2 = _Variable('v2');
       assignedVariables.beginNode();

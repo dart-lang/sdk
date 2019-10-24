@@ -112,7 +112,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   /// If we are visiting a function body or initializer, instance of flow
   /// analysis.  Otherwise `null`.
-  FlowAnalysis<Statement, Expression, PromotableElement, DecoratedType>
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DecoratedType>
       _flowAnalysis;
 
   /// If we are visiting a function body or initializer, assigned variable
@@ -566,10 +566,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitDoStatement(DoStatement node) {
-    _flowAnalysis.doStatement_bodyBegin(
-        node,
-        _assignedVariables.writtenInNode(node),
-        _assignedVariables.capturedInNode(node));
+    _flowAnalysis.doStatement_bodyBegin(node);
     node.body.accept(this);
     _flowAnalysis.doStatement_conditionBegin();
     _checkExpressionNotNull(node.condition);
@@ -1210,12 +1207,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
     _flowAnalysis.switchStatement_expressionEnd(node);
-    var notPromoted = _assignedVariables.writtenInNode(node);
-    var captured = _assignedVariables.capturedInNode(node);
     var hasDefault = false;
     for (var member in node.members) {
       var hasLabel = member.labels.isNotEmpty;
-      _flowAnalysis.switchStatement_beginCase(hasLabel, notPromoted, captured);
+      _flowAnalysis.switchStatement_beginCase(hasLabel, node);
       if (member is SwitchCase) {
         member.expression.accept(this);
       } else {
@@ -1257,19 +1252,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
     var body = node.body;
     body.accept(this);
-    var assignedInBody = _assignedVariables.writtenInNode(body);
-    var capturedInBody = _assignedVariables.capturedInNode(body);
     if (catchClauses.isNotEmpty) {
-      _flowAnalysis.tryCatchStatement_bodyEnd(assignedInBody, capturedInBody);
+      _flowAnalysis.tryCatchStatement_bodyEnd(body);
       catchClauses.accept(this);
       _flowAnalysis.tryCatchStatement_end();
     }
     if (finallyBlock != null) {
-      _flowAnalysis.tryFinallyStatement_finallyBegin(
-          assignedInBody, capturedInBody);
+      _flowAnalysis.tryFinallyStatement_finallyBegin(body);
       finallyBlock.accept(this);
-      _flowAnalysis.tryFinallyStatement_end(
-          _assignedVariables.writtenInNode(finallyBlock));
+      _flowAnalysis.tryFinallyStatement_end(finallyBlock);
     }
     return null;
   }
@@ -1376,9 +1367,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitWhileStatement(WhileStatement node) {
     // Note: we do not create guards. A null check here is *very* unlikely to be
     // unnecessary after analysis.
-    _flowAnalysis.whileStatement_conditionBegin(
-        _assignedVariables.writtenInNode(node),
-        _assignedVariables.capturedInNode(node));
+    _flowAnalysis.whileStatement_conditionBegin(node);
     _checkExpressionNotNull(node.condition);
     _flowAnalysis.whileStatement_bodyBegin(node, node.condition);
     _postDominatedLocals.doScoped(action: () => node.body.accept(this));
@@ -1425,11 +1414,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     assert(_assignedVariables == null);
     _assignedVariables =
         FlowAnalysisHelper.computeAssignedVariables(node, parameters);
-    _flowAnalysis =
-        FlowAnalysis<Statement, Expression, PromotableElement, DecoratedType>(
-            DecoratedTypeOperations(_typeSystem, _variables, _graph),
-            _assignedVariables.writtenAnywhere,
-            _assignedVariables.capturedAnywhere);
+    _flowAnalysis = FlowAnalysis<AstNode, Statement, Expression,
+            PromotableElement, DecoratedType>(
+        DecoratedTypeOperations(_typeSystem, _variables, _graph),
+        _assignedVariables);
   }
 
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
@@ -1804,8 +1792,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       } else if (parts is ForPartsWithExpression) {
         parts.initialization?.accept(this);
       }
-      _flowAnalysis.for_conditionBegin(_assignedVariables.writtenInNode(node),
-          _assignedVariables.capturedInNode(node));
+      _flowAnalysis.for_conditionBegin(node);
       if (parts.condition != null) {
         _checkExpressionNotNull(parts.condition);
       }
@@ -1837,9 +1824,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
       _flowAnalysis.forEach_bodyBegin(
-          _assignedVariables.writtenInNode(node),
-          _assignedVariables.capturedInNode(node),
-          lhsElement is PromotableElement ? lhsElement : null);
+          node, lhsElement is PromotableElement ? lhsElement : null);
     }
 
     // The condition may fail/iterable may be empty, so the body gets a new

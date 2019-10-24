@@ -1020,6 +1020,7 @@ exporters
 exporting
 exports
 exposed
+exposes
 expression
 expressions
 extend
