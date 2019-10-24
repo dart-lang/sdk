@@ -969,6 +969,18 @@ mixin M on A {}
     );
   }
 
+  test_getMember_super_forObject() async {
+    await resolveTestCode('''
+class A {}
+''');
+    var member = manager.getMember(
+      typeProvider.objectType,
+      Name(null, 'hashCode'),
+      forSuper: true,
+    );
+    expect(member, isNull);
+  }
+
   test_getMember_super_fromMixin() async {
     await resolveTestCode('''
 mixin M {

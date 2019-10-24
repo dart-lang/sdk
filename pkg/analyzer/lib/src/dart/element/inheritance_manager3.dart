@@ -233,7 +233,12 @@ class InheritanceManager3 {
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
-      return superImplemented.last[name];
+      if (superImplemented.isNotEmpty) {
+        return superImplemented.last[name];
+      } else {
+        assert(type.element.name == 'Object');
+        return null;
+      }
     }
     if (concrete) {
       return interface.implemented[name];
