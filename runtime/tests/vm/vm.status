@@ -25,6 +25,9 @@ dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate to
 [ $builder_tag == crossword ]
 dart/emit_aot_size_info_flag_test: SkipByDesign # The test itself cannot determine the location of gen_snapshot (only tools/test.py knows where it is).
 
+[ $builder_tag == obfuscated ]
+dart/causal_stacks/*: SkipByDesign # Asserts exact stacktrace output.
+
 [ $builder_tag == optimization_counter_threshold ]
 cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
