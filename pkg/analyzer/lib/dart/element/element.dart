@@ -706,6 +706,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// overriding methods to call super.
   bool get isMustCallSuper;
 
+  /// Return `true` if this annotation marks the associated member as being
+  /// non-virtual.
+  bool get isNonVirtual;
+
   /// Return `true` if this annotation marks the associated type as
   /// having "optional" type arguments.
   bool get isOptionalTypeArgs;

@@ -155,6 +155,27 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _errorReporter
             .reportErrorForNode(HintCode.INVALID_LITERAL_ANNOTATION, node, []);
       }
+    } else if (element?.isNonVirtual == true) {
+      if (parent is FieldDeclaration) {
+        if (parent.isStatic) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
+              node,
+              [node.element.name]);
+        }
+      } else if (parent is MethodDeclaration) {
+        if (parent.parent is ExtensionDeclaration ||
+            parent.isStatic ||
+            parent.isAbstract) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
+              node,
+              [node.element.name]);
+        }
+      } else {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_NON_VIRTUAL_ANNOTATION, node, [node.element.name]);
+      }
     } else if (element?.isSealed == true) {
       if (!(parent is ClassDeclaration || parent is ClassTypeAlias)) {
         _errorReporter.reportErrorForNode(

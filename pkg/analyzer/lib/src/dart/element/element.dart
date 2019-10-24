@@ -2431,6 +2431,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// annotations.
   static String _NG_META_LIB_NAME = "angular.meta";
 
+  /// The name of the top-level variable used to mark a member as being nonVirtual.
+  static String _NON_VIRTUAL_VARIABLE_NAME = "nonVirtual";
+
   /// The name of the top-level variable used to mark a method as being expected
   /// to override an inherited method.
   static String _OVERRIDE_VARIABLE_NAME = "override";
@@ -2552,6 +2555,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isMustCallSuper =>
       element is PropertyAccessorElement &&
       element.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isNonVirtual =>
+      element is PropertyAccessorElement &&
+      element.name == _NON_VIRTUAL_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
