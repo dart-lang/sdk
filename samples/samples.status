@@ -27,9 +27,9 @@ ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so n
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
 sample_extension/test/sample_extension_test: SkipByDesign
 
-# Skip tests that use dart:io
 [ $runtime == d8 || $browser ]
-sample_extension/*: Skip
+ffi/*: SkipByDesign # Skip tests that use dart:ffi.
+sample_extension/*: SkipByDesign # Skip tests that use dart:io.
 
 [ $hot_reload || $hot_reload_rollback ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # Cannot reload with URI pointing to app snapshot.
