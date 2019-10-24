@@ -64,6 +64,15 @@ void main() {
           e.toString(), equals('Invalid argument(s): Unable to create model.'));
     }
   });
+
+  test('isNumber', () {
+    expect(model.isNumber('0xCAb005E'), true);
+    expect(model.isNumber('foo'), false);
+    expect(model.isNumber('3.1415'), true);
+    expect(model.isNumber('1337'), true);
+    expect(model.isNumber('"four score and seven years ago"'), false);
+    expect(model.isNumber('0.0'), true);
+  });
 }
 
 /// Tokenizes the input string.

@@ -84,7 +84,7 @@ class LanguageModel {
       if (_word2idx.containsKey(token)) {
         return token;
       }
-      if (_numeric.hasMatch(token)) {
+      if (isNumber(token)) {
         return '<num>';
       }
       if (_isString(token)) {
@@ -147,5 +147,9 @@ class LanguageModel {
 
   bool _isString(String token) {
     return token.indexOf('"') != -1 || token.indexOf("'") != -1;
+  }
+
+  bool isNumber(String token) {
+    return _numeric.hasMatch(token) || token.startsWith('0x');
   }
 }
