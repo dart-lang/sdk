@@ -1186,6 +1186,106 @@ void h(int k) {}
     assertEdge(iNode, jNode, hard: false);
   }
 
+  test_postfixDecrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    c1--;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator-(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the decrement un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_postfixIncrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    c1++;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator+(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the increment un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_prefixDecrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    --c1;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator-(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the decrement un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
+  test_prefixIncrement() async {
+    await analyze('''
+void f(C c1) {
+  if (c1 != null) {
+    g(c1);
+    ++c1;
+    h(c1);
+  }
+}
+void g(C c2) {}
+void h(C c3) {}
+class C {
+  C operator+(int i) => this;
+}
+''');
+    var c1Node = decoratedTypeAnnotation('C c1').node;
+    var c2Node = decoratedTypeAnnotation('C c2').node;
+    var c3Node = decoratedTypeAnnotation('C c3').node;
+    // No edge from c1 to c2 because c1's type is promoted to non-nullable
+    assertNoEdge(c1Node, c2Node);
+    // But there is an edge from c1 to c3, because the increment un-does the
+    // promotion.
+    assertEdge(c1Node, c3Node, hard: false);
+  }
+
   test_rethrow() async {
     await analyze('''
 void f(int i, int j) {

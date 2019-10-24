@@ -1310,11 +1310,45 @@ abstract class _E {
     });
   }
 
+  test_postfixExpression_decrement_undoes_promotion() async {
+    await analyze('''
+abstract class _C {
+  _C/*?*/ operator-(int value);
+}
+_f(_C/*?*/ c) { // method
+  if (c != null) {
+    c--;
+    _g(c);
+  }
+}
+_g(_C/*!*/ c) {}
+''');
+    visitStatement(findNode.block('{ // method'),
+        changes: {findNode.simple('c);'): NullCheck()});
+  }
+
   test_postfixExpression_dynamic() async {
     await analyze('''
 _f(dynamic x) => x++;
 ''');
     visitSubexpression(findNode.postfix('++'), 'dynamic');
+  }
+
+  test_postfixExpression_increment_undoes_promotion() async {
+    await analyze('''
+abstract class _C {
+  _C/*?*/ operator+(int value);
+}
+_f(_C/*?*/ c) { // method
+  if (c != null) {
+    c++;
+    _g(c);
+  }
+}
+_g(_C/*!*/ c) {}
+''');
+    visitStatement(findNode.block('{ // method'),
+        changes: {findNode.simple('c);'): NullCheck()});
   }
 
   test_postfixExpression_lhs_nullable_problem() async {
@@ -1502,6 +1536,40 @@ abstract class _E {
     visitSubexpression(prefix, '_D', problems: {
       prefix: {const CompoundAssignmentCombinedNullable()}
     });
+  }
+
+  test_prefixExpression_decrement_undoes_promotion() async {
+    await analyze('''
+abstract class _C {
+  _C/*?*/ operator-(int value);
+}
+_f(_C/*?*/ c) { // method
+  if (c != null) {
+    --c;
+    _g(c);
+  }
+}
+_g(_C/*!*/ c) {}
+''');
+    visitStatement(findNode.block('{ // method'),
+        changes: {findNode.simple('c);'): NullCheck()});
+  }
+
+  test_prefixExpression_increment_undoes_promotion() async {
+    await analyze('''
+abstract class _C {
+  _C/*?*/ operator+(int value);
+}
+_f(_C/*?*/ c) { // method
+  if (c != null) {
+    ++c;
+    _g(c);
+  }
+}
+_g(_C/*!*/ c) {}
+''');
+    visitStatement(findNode.block('{ // method'),
+        changes: {findNode.simple('c);'): NullCheck()});
   }
 
   test_prefixExpression_intRules() async {

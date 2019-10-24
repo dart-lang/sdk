@@ -186,10 +186,17 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   AssignmentTargetInfo visitAssignmentTarget(Expression node, bool isCompound) {
     if (node is SimpleIdentifier) {
       var writeType = _computeMigratedType(node.staticElement);
-      var auxiliaryElements = node.auxiliaryElements;
-      var readType = auxiliaryElements == null
-          ? writeType
-          : _computeMigratedType(auxiliaryElements.staticElement);
+      DartType readType;
+      var element = node.staticElement;
+      if (element is PromotableElement) {
+        readType = _flowAnalysis.variableRead(node, element) ??
+            _computeMigratedType(element);
+      } else {
+        var auxiliaryElements = node.auxiliaryElements;
+        readType = auxiliaryElements == null
+            ? writeType
+            : _computeMigratedType(auxiliaryElements.staticElement);
+      }
       return AssignmentTargetInfo(isCompound ? readType : null, writeType);
     } else if (node is IndexExpression) {
       var targetType = visitSubexpression(node.target, typeProvider.objectType);
@@ -474,7 +481,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
           'supported yet');
     } else {
       var targetInfo = visitAssignmentTarget(node.operand, true);
-      _handleIncrementOrDecrement(node.staticElement, targetInfo, node);
+      _handleIncrementOrDecrement(
+          node.staticElement, targetInfo, node, node.operand);
       return targetInfo.readType;
     }
   }
@@ -513,8 +521,8 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
         break;
       case TokenType.PLUS_PLUS:
       case TokenType.MINUS_MINUS:
-        return _handleIncrementOrDecrement(
-            node.staticElement, visitAssignmentTarget(operand, true), node);
+        return _handleIncrementOrDecrement(node.staticElement,
+            visitAssignmentTarget(operand, true), node, node.operand);
       default:
         throw StateError('Unexpected prefix operator: ${node.operator}');
     }
@@ -715,7 +723,7 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
   }
 
   DartType _handleIncrementOrDecrement(MethodElement combiner,
-      AssignmentTargetInfo targetInfo, Expression node) {
+      AssignmentTargetInfo targetInfo, Expression node, Expression operand) {
     DartType combinedType;
     if (combiner == null) {
       combinedType = typeProvider.dynamicType;
@@ -730,6 +738,12 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
         from: combinedType, to: targetInfo.writeType)) {
       addProblem(node, const CompoundAssignmentCombinedNullable());
       combinedType = _typeSystem.promoteToNonNull(combinedType as TypeImpl);
+    }
+    if (operand is SimpleIdentifier) {
+      var element = operand.staticElement;
+      if (element is PromotableElement) {
+        _flowAnalysis.write(element);
+      }
     }
     return combinedType;
   }
