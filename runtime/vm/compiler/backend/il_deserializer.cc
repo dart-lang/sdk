@@ -10,6 +10,7 @@
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
+#include "vm/json_writer.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -69,10 +70,6 @@ static const char* GetSExpressionPosition(Zone* zone,
 }
 
 static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
-  THR_Print("Results of round trip serialization: {\"function\":\"%s\"",
-            results.function.ToFullyQualifiedCString());
-  THR_Print(",\"success\":%s", results.success ? "true" : "false");
-
   // A few checks to make sure we'll print out enough info. First, if there are
   // no unhandled instructions, then we should have serialized the flow graph.
   ASSERT(!results.unhandled.is_empty() || results.serialized != nullptr);
@@ -81,6 +78,12 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
   ASSERT(results.success || !results.unhandled.is_empty() ||
          (results.error_message != nullptr && results.error_sexp != nullptr));
 
+  JSONWriter js;
+
+  js.OpenObject();
+  js.PrintProperty("function", results.function.ToFullyQualifiedCString());
+  js.PrintPropertyBool("success", results.success);
+
   if (!results.unhandled.is_empty()) {
     CStringMap<intptr_t> count_map(zone);
     for (auto inst : results.unhandled) {
@@ -88,57 +91,38 @@ static void PrintRoundTripResults(Zone* zone, const RoundTripResults& results) {
       auto const old_count = count_map.LookupValue(name);
       count_map.Update({name, old_count + 1});
     }
-    THR_Print(",\"unhandled\":{");
+
     auto count_it = count_map.GetIterator();
-    auto first_kv = count_it.Next();
-    THR_Print("\"%s\":%" Pd "", first_kv->key, first_kv->value);
+    js.OpenObject("unhandled");
     while (auto kv = count_it.Next()) {
-      THR_Print(",\"%s\":%" Pd "", kv->key, kv->value);
+      js.PrintProperty64(kv->key, kv->value);
     }
-    THR_Print("}");
+    js.CloseObject();
   }
+
   if (results.serialized != nullptr) {
     TextBuffer buf(1000);
     results.serialized->SerializeTo(zone, &buf, "");
-    // Now that the S-expression has been serialized to the TextBuffer, we now
-    // want to take that version and escape it since we will use it as the
-    // contents of a JSON string. Thankfully, escaping can be done via
-    // TextBuffer::AddEscapedString, so we steal the current buffer and then
-    // re-print it in escaped form into the now-cleared buffer.
-    char* const unescaped_sexp = buf.Steal();
-    buf.AddEscapedString(unescaped_sexp);
-    free(unescaped_sexp);
-    THR_Print(",\"serialized\":\"%s\"", buf.buf());
+    js.PrintProperty("serialized", buf.buf());
   }
+
   if (results.error_message != nullptr) {
-    TextBuffer buf(1000);
+    js.OpenObject("error");
+    js.PrintProperty("message", results.error_message);
+
     ASSERT(results.error_sexp != nullptr);
-    // Same serialized S-expression juggling as in the results.serialized case.
-    // We also escape the error message, in case it included quotes.
-    buf.AddEscapedString(results.error_message);
-    char* const escaped_message = buf.Steal();
+    TextBuffer buf(1000);
     results.error_sexp->SerializeTo(zone, &buf, "");
-    char* const unescaped_sexp = buf.Steal();
-    buf.AddEscapedString(unescaped_sexp);
-    free(unescaped_sexp);
-    char* const escaped_sexp = buf.Steal();
-    auto const unescaped_position =
+    js.PrintProperty("expression", buf.buf());
+
+    auto const sexp_position =
         GetSExpressionPosition(zone, results.serialized, results.error_sexp);
-    if (unescaped_position != nullptr) {
-      buf.AddEscapedString(unescaped_position);
-      THR_Print(
-          ",\"error\":{\"message\":\"%s\","
-          "\"expression\":\"%s\","
-          "\"path\":\"%s\"}",
-          escaped_message, escaped_sexp, buf.buf());
-    } else {
-      THR_Print(",\"error\":{\"message\":\"%s\",\"expression\":\"%s\"}",
-                escaped_message, escaped_sexp);
-    }
-    free(escaped_message);
-    free(escaped_sexp);
+    js.PrintProperty("path", sexp_position);
+    js.CloseObject();
   }
-  THR_Print("}\n");
+
+  js.CloseObject();
+  THR_Print("Results of round trip serialization: %s\n", js.buffer()->buf());
 }
 
 void FlowGraphDeserializer::RoundTripSerialization(CompilerPassState* state) {
