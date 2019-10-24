@@ -6633,8 +6633,6 @@ class UnaryIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   PRINT_OPERANDS_TO_SUPPORT
 
-  RawInteger* Evaluate(const Integer& value) const;
-
   DEFINE_INSTRUCTION_TYPE_CHECK(UnaryIntegerOp)
 
  private:
@@ -6860,8 +6858,6 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
   bool RightIsPowerOfTwoConstant() const;
-
-  RawInteger* Evaluate(const Integer& left, const Integer& right) const;
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 

@@ -10,6 +10,7 @@
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
+#include "vm/compiler/backend/evaluator.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
@@ -2077,73 +2078,11 @@ static int64_t RepresentationMask(Representation r) {
                               (64 - RepresentationBits(r)));
 }
 
-static int64_t TruncateTo(int64_t v, Representation r) {
-  switch (r) {
-    case kTagged: {
-      // Smi occupies word minus kSmiTagShift bits.
-      const intptr_t kTruncateBits =
-          (kBitsPerInt64 - kBitsPerWord) + kSmiTagShift;
-      return Utils::ShiftLeftWithTruncation(v, kTruncateBits) >> kTruncateBits;
-    }
-    case kUnboxedInt32:
-      return Utils::ShiftLeftWithTruncation(v, kBitsPerInt32) >> kBitsPerInt32;
-    case kUnboxedUint32:
-      return v & kMaxUint32;
-    case kUnboxedInt64:
-      return v;
-    default:
-      UNREACHABLE();
-      return 0;
-  }
-}
-
-static bool ToIntegerConstant(Value* value, int64_t* result) {
-  if (!value->BindsToConstant()) {
-    UnboxInstr* unbox = value->definition()->AsUnbox();
-    if (unbox != NULL) {
-      switch (unbox->representation()) {
-        case kUnboxedDouble:
-        case kUnboxedInt64:
-          return ToIntegerConstant(unbox->value(), result);
-
-        case kUnboxedUint32:
-          if (ToIntegerConstant(unbox->value(), result)) {
-            *result = TruncateTo(*result, kUnboxedUint32);
-            return true;
-          }
-          break;
-
-        // No need to handle Unbox<Int32>(Constant(C)) because it gets
-        // canonicalized to UnboxedConstant<Int32>(C).
-        case kUnboxedInt32:
-        default:
-          break;
-      }
-    }
-    return false;
-  }
-
-  const Object& constant = value->BoundConstant();
-  if (constant.IsDouble()) {
-    const Double& double_constant = Double::Cast(constant);
-    *result = Utils::SafeDoubleToInt<int64_t>(double_constant.value());
-    return (static_cast<double>(*result) == double_constant.value());
-  } else if (constant.IsSmi()) {
-    *result = Smi::Cast(constant).Value();
-    return true;
-  } else if (constant.IsMint()) {
-    *result = Mint::Cast(constant).value();
-    return true;
-  }
-
-  return false;
-}
-
 static Definition* CanonicalizeCommutativeDoubleArithmetic(Token::Kind op,
                                                            Value* left,
                                                            Value* right) {
   int64_t left_value;
-  if (!ToIntegerConstant(left, &left_value)) {
+  if (!Evaluator::ToIntegerConstant(left, &left_value)) {
     return NULL;
   }
 
@@ -2341,142 +2280,6 @@ BinaryIntegerOpInstr* BinaryIntegerOpInstr::Make(
   return op;
 }
 
-static bool IsRepresentable(const Integer& value, Representation rep) {
-  switch (rep) {
-    case kTagged:  // Smi case.
-      return value.IsSmi();
-
-    case kUnboxedInt32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsInt(32, value.AsInt64Value());
-      }
-      return false;
-
-    case kUnboxedInt64:
-      return value.IsSmi() || value.IsMint();
-
-    case kUnboxedUint32:
-      if (value.IsSmi() || value.IsMint()) {
-        return Utils::IsUint(32, value.AsInt64Value());
-      }
-      return false;
-
-    default:
-      UNREACHABLE();
-  }
-
-  return false;
-}
-
-RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Integer& result = Integer::Handle(zone);
-
-  switch (op_kind()) {
-    case Token::kNEGATE:
-      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(zone, Smi::New(-1)),
-                                  Heap::kOld);
-      break;
-
-    case Token::kBIT_NOT:
-      if (value.IsSmi()) {
-        result = Integer::New(~Smi::Cast(value).Value(), Heap::kOld);
-      } else if (value.IsMint()) {
-        result = Integer::New(~Mint::Cast(value).value(), Heap::kOld);
-      }
-      break;
-
-    default:
-      UNREACHABLE();
-  }
-
-  if (!result.IsNull()) {
-    if (!IsRepresentable(result, representation())) {
-      // If this operation is not truncating it would deoptimize on overflow.
-      // Check that we match this behavior and don't produce a value that is
-      // larger than something this operation can produce. We could have
-      // specialized instructions that use this value under this assumption.
-      return Integer::null();
-    }
-
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
-  }
-
-  return result.raw();
-}
-
-RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
-                                           const Integer& right) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  Integer& result = Integer::Handle(zone);
-
-  switch (op_kind()) {
-    case Token::kTRUNCDIV:
-      FALL_THROUGH;
-    case Token::kMOD:
-      // Check right value for zero.
-      if (right.AsInt64Value() == 0) {
-        break;  // Will throw.
-      }
-      FALL_THROUGH;
-    case Token::kADD:
-      FALL_THROUGH;
-    case Token::kSUB:
-      FALL_THROUGH;
-    case Token::kMUL: {
-      result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
-      break;
-    }
-    case Token::kSHL:
-      FALL_THROUGH;
-    case Token::kSHR:
-      if (right.AsInt64Value() >= 0) {
-        result = left.ShiftOp(op_kind(), right, Heap::kOld);
-      }
-      break;
-    case Token::kBIT_AND:
-      FALL_THROUGH;
-    case Token::kBIT_OR:
-      FALL_THROUGH;
-    case Token::kBIT_XOR: {
-      result = left.BitOp(op_kind(), right, Heap::kOld);
-      break;
-    }
-    case Token::kDIV:
-      break;
-    default:
-      UNREACHABLE();
-  }
-
-  if (!result.IsNull()) {
-    if (is_truncating()) {
-      const int64_t truncated =
-          TruncateTo(result.AsTruncatedInt64Value(), representation());
-      result = Integer::New(truncated, Heap::kOld);
-      ASSERT(IsRepresentable(result, representation()));
-    } else if (!IsRepresentable(result, representation())) {
-      // If this operation is not truncating it would deoptimize on overflow.
-      // Check that we match this behavior and don't produce a value that is
-      // larger than something this operation can produce. We could have
-      // specialized instructions that use this value under this assumption.
-      return Integer::null();
-    }
-    const char* error_str = NULL;
-    result ^= result.CheckAndCanonicalize(thread, &error_str);
-    if (error_str != NULL) {
-      FATAL1("Failed to canonicalize: %s", error_str);
-    }
-  }
-
-  return result.raw();
-}
-
 Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
                                                        const Integer& result) {
   Definition* result_defn = flow_graph->GetConstant(result);
@@ -2567,11 +2370,12 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
   // have already been run.
-  if (left()->BindsToConstant() && left()->BoundConstant().IsInteger() &&
-      right()->BindsToConstant() && right()->BoundConstant().IsInteger()) {
-    const Integer& result =
-        Integer::Handle(Evaluate(Integer::Cast(left()->BoundConstant()),
-                                 Integer::Cast(right()->BoundConstant())));
+
+  if (left()->BindsToConstant() && right()->BindsToConstant()) {
+    const Integer& result = Integer::Handle(Evaluator::BinaryIntegerEvaluate(
+        left()->BoundConstant(), right()->BoundConstant(), op_kind(),
+        is_truncating(), representation(), Thread::Current()));
+
     if (!result.IsNull()) {
       return CreateConstantResult(flow_graph, result);
     }
@@ -2586,7 +2390,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   int64_t rhs;
-  if (!ToIntegerConstant(right(), &rhs)) {
+  if (!Evaluator::ToIntegerConstant(right(), &rhs)) {
     return this;
   }
 
@@ -2598,7 +2402,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
       case Token::kBIT_AND:
       case Token::kBIT_OR:
       case Token::kBIT_XOR:
-        rhs = TruncateTo(rhs, representation());
+        rhs = Evaluator::TruncateTo(rhs, representation());
         break;
       default:
         break;

@@ -47,6 +47,8 @@ compiler_sources = [
   "backend/compile_type.h",
   "backend/constant_propagator.cc",
   "backend/constant_propagator.h",
+  "backend/evaluator.cc",
+  "backend/evaluator.h",
   "backend/flow_graph.cc",
   "backend/flow_graph.h",
   "backend/flow_graph_checker.cc",
