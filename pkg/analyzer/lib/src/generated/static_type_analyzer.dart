@@ -363,7 +363,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _analyzeLeastUpperBound(node, node.leftHandSide, node.rightHandSide,
             read: true);
       }
-      return;
     } else if (operator == TokenType.AMPERSAND_AMPERSAND_EQ ||
         operator == TokenType.BAR_BAR_EQ) {
       _recordStaticType(node, _nonNullable(_typeProvider.boolType));

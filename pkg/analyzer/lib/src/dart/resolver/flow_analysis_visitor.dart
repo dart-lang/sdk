@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -54,6 +55,10 @@ class FlowAnalysisHelper {
   VariableElement assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
 
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      flow.ifNullExpression_rightBegin();
+    }
+
     var left = node.leftHandSide;
 
     if (left is SimpleIdentifier) {
@@ -67,10 +72,14 @@ class FlowAnalysisHelper {
   }
 
   void assignmentExpression_afterRight(
-      VariableElement localElement, Expression right) {
-    if (localElement == null) return;
+      AssignmentExpression node, VariableElement localElement) {
+    if (localElement != null) {
+      flow.write(localElement);
+    }
 
-    flow.write(localElement);
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      flow.ifNullExpression_end();
+    }
   }
 
   void breakStatement(BreakStatement node) {

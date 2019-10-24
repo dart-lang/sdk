@@ -37,3 +37,10 @@ leftLocal_pure_questionEq_self() {
   late int v;
   /*unassigned*/ v ??= /*unassigned*/ v;
 }
+
+questionEq_rhs_not_guaranteed_to_execute() {
+  late int v;
+  int? i;
+  i ??= (v = 0);
+  /*unassigned*/ v;
+}

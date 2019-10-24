@@ -164,6 +164,29 @@ int h(int k) => 1;
     assertEdge(gReturnNode, iNode, hard: false);
   }
 
+  test_assignmentExpression_null_aware() async {
+    await analyze('''
+void f(bool b, int i, int j) {
+  if (b) {
+    j ??= i is int ? i : throw 'foo';
+    g(i);
+    j = i is int ? i : throw 'foo';
+    h(i);
+  }
+}
+void g(int k) {}
+void h(int l) {}
+''');
+    var iNode = decoratedTypeAnnotation('int i').node;
+    var kNode = decoratedTypeAnnotation('int k').node;
+    var lNode = decoratedTypeAnnotation('int l').node;
+    // No edge from i to l because i's type is promoted to non-nullable
+    assertNoEdge(iNode, lNode);
+    // But there is an edge from i to k, because the RHS of the `??=` is not
+    // guaranteed to execute
+    assertEdge(iNode, kNode, hard: false);
+  }
+
   test_assignmentExpression_write_after_rhs() async {
     await analyze('''
 void f(int i) {

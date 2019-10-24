@@ -167,6 +167,23 @@ _f(_C/*!*/ x, int/*?*/ y) => x += y;
     visitSubexpression(findNode.assignment('+='), '_D');
   }
 
+  test_assignmentExpression_null_aware_rhs_does_not_promote() async {
+    await analyze('''
+_f(bool/*?*/ b, int/*?*/ i) {
+  b ??= i.isEven; // 1
+  b = i.isEven; // 2
+  b = i.isEven; // 3
+}
+''');
+    // The null check inserted at 1 fails to promote i because it's inside the
+    // `??=`, so a null check is inserted at 2.  This does promote i, so no null
+    // check is inserted at 3.
+    visitStatement(findNode.block('{'), changes: {
+      findNode.simple('i.isEven; // 1'): NullCheck(),
+      findNode.simple('i.isEven; // 2'): NullCheck()
+    });
+  }
+
   test_assignmentExpression_null_aware_rhs_nonNullable() async {
     await analyze('''
 abstract class _B {}

@@ -147,10 +147,10 @@ abstract class FixBuilder extends GeneralizingAstVisitor<DartType>
       // TODO(paulberry): if targetInfo.readType is non-nullable, then the
       // assignment is dead code.
       // See https://github.com/dart-lang/sdk/issues/38678
-      // TODO(paulberry): once flow analysis supports `??=`, integrate it here.
-      // See https://github.com/dart-lang/sdk/issues/38680
+      _flowAnalysis.ifNullExpression_rightBegin();
       var rhsType =
           visitSubexpression(node.rightHandSide, targetInfo.writeType);
+      _flowAnalysis.ifNullExpression_end();
       return _typeSystem.leastUpperBound(
           _typeSystem.promoteToNonNull(targetInfo.readType as TypeImpl),
           rhsType);

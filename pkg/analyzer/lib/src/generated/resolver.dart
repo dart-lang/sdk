@@ -2914,7 +2914,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     right?.accept(this);
-    _flowAnalysis?.assignmentExpression_afterRight(leftLocalVariable, right);
+    _flowAnalysis?.assignmentExpression_afterRight(node, leftLocalVariable);
 
     node.accept(elementResolver);
     node.accept(typeAnalyzer);

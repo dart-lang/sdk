@@ -354,10 +354,16 @@ abstract class FlowAnalysis<Node, Statement extends Node, Expression, Variable,
   /// Should also be called if a subexpression's type is Never.
   void handleExit();
 
-  /// Call this method after visiting the RHS of an if-null ("??") expression.
+  /// Call this method after visiting the RHS of an if-null expression ("??")
+  /// or if-null assignment ("??=").
+  ///
+  /// Note: for an if-null assignment, the call to [write] should occur before
+  /// the call to [ifNullExpression_end] (since the write only occurs if the
+  /// read resulted in a null value).
   void ifNullExpression_end();
 
-  /// Call this method after visiting the LHS of an if-null ("??") expression.
+  /// Call this method after visiting the LHS of an if-null expression ("??")
+  /// or if-null assignment ("??=").
   void ifNullExpression_rightBegin();
 
   /// Call this method after visiting the "then" part of an if statement, and

@@ -15,3 +15,10 @@ compoundAssignmentDepromotes(Object x) {
     x;
   }
 }
+
+nullAwareAssignmentDepromotes(Object x) {
+  if (x is int?) {
+    x ??= 'foo';
+    x;
+  }
+}

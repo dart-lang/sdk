@@ -1573,6 +1573,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (questionAssignNode != null) {
       _guards.add(destinationType.node);
+      _flowAnalysis.ifNullExpression_rightBegin();
     }
     DecoratedType sourceType;
     try {
@@ -1632,6 +1633,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 _postDominatedLocals.isReferenceInScope(expression));
       }
       if (questionAssignNode != null) {
+        _flowAnalysis.ifNullExpression_end();
         // a ??= b is only nullable if both a and b are nullable.
         sourceType = destinationType.withNode(_nullabilityNodeForGLB(
             questionAssignNode, sourceType.node, destinationType.node));
