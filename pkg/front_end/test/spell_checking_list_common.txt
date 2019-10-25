@@ -716,6 +716,8 @@ delimiter
 delimiters
 delta
 demoted
+demoting
+demotion
 demotions
 denote
 denoted

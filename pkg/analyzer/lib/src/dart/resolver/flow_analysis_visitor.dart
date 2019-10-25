@@ -26,6 +26,12 @@ class FlowAnalysisDataForTesting {
   /// The list of [Expression]s representing variable accesses that occur before
   /// the corresponding variable has been definitely assigned.
   final List<AstNode> unassignedNodes = [];
+
+  /// For each top level or class level declaration, the assigned variables
+  /// information that was computed for it.
+  final Map<Declaration,
+          AssignedVariablesForTesting<AstNode, PromotableElement>>
+      assignedVariables = {};
 }
 
 /// The helper for performing flow analysis during resolution.
@@ -193,7 +199,11 @@ class FlowAnalysisHelper {
       Declaration node, FormalParameterList parameters, FunctionBody body) {
     assert(node != null);
     assert(flow == null);
-    assignedVariables = computeAssignedVariables(node, parameters);
+    assignedVariables = computeAssignedVariables(node, parameters,
+        retainDataForTesting: dataForTesting != null);
+    if (dataForTesting != null) {
+      dataForTesting.assignedVariables[node] = assignedVariables;
+    }
     flow = FlowAnalysis<AstNode, Statement, Expression, PromotableElement,
         DartType>(_typeOperations, assignedVariables);
   }
@@ -223,8 +233,12 @@ class FlowAnalysisHelper {
 
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNode, PromotableElement> computeAssignedVariables(
-      Declaration node, FormalParameterList parameters) {
-    var assignedVariables = AssignedVariables<AstNode, PromotableElement>();
+      Declaration node, FormalParameterList parameters,
+      {bool retainDataForTesting = false}) {
+    AssignedVariables<AstNode, PromotableElement> assignedVariables =
+        retainDataForTesting
+            ? AssignedVariablesForTesting()
+            : AssignedVariables();
     var assignedVariablesVisitor = _AssignedVariablesVisitor(assignedVariables);
     assignedVariablesVisitor._declareParameters(parameters);
     node.visitChildren(assignedVariablesVisitor);
@@ -363,14 +377,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     }
     assignedVariables.beginNode();
     _declareParameters(node.functionExpression.parameters);
-    // Note: we bypass this.visitFunctionExpression so that the function
-    // expression isn't mistaken for a closure.
-    super.visitFunctionExpression(node.functionExpression);
+    super.visitFunctionDeclaration(node);
     assignedVariables.endNode(node, isClosure: true);
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      // A FunctionExpression just inside a FunctionDeclaration is an analyzer
+      // artifact--it doesn't correspond to a separate closure.  So skip our
+      // usual processing.
+      return super.visitFunctionExpression(node);
+    }
     assignedVariables.beginNode();
     _declareParameters(node.parameters);
     super.visitFunctionExpression(node);

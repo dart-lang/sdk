@@ -6,6 +6,7 @@ analyzer:
   exclude:
     - test/analyser_ignored/**
     - test/extensions/data/**
+    - test/flow_analysis/assigned_variables/data/**
     - test/flow_analysis/definite_assignment/data/**
     - test/flow_analysis/nullability/data/**
     - test/flow_analysis/reachability/data/**

@@ -181,17 +181,42 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
     if (id is NodeId) {
       return id.value;
     } else if (id is MemberId) {
-      if (id.className != null) {
-        throw UnimplementedError('TODO(paulberry): handle class members');
-      }
+      var className = id.className;
       var name = id.memberName;
       var unit =
           parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
               .unit;
+      if (className != null) {
+        for (var declaration in unit.declarations) {
+          if (declaration is ClassDeclaration &&
+              declaration.name.name == className) {
+            for (var member in declaration.members) {
+              if (member is ConstructorDeclaration) {
+                if (member.name.name == name) {
+                  return member.offset;
+                }
+              } else if (member is FieldDeclaration) {
+                for (var variable in member.fields.variables) {
+                  if (variable.name.name == name) {
+                    return variable.offset;
+                  }
+                }
+              }
+            }
+          }
+        }
+        throw StateError('Member not found: $className.$name');
+      }
       for (var declaration in unit.declarations) {
         if (declaration is FunctionDeclaration) {
           if (declaration.name.name == name) {
             return declaration.offset;
+          }
+        } else if (declaration is TopLevelVariableDeclaration) {
+          for (var variable in declaration.variables.variables) {
+            if (variable.name.name == name) {
+              return variable.offset;
+            }
           }
         }
       }

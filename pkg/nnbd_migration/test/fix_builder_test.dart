@@ -2138,7 +2138,11 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         typeProvider, typeSystem, variables);
     var body = node.thisOrAncestorOfType<FunctionBody>();
     var declaration = body.thisOrAncestorOfType<Declaration>();
-    fixBuilder.createFlowAnalysis(declaration, null);
+    FormalParameterList parameters;
+    if (declaration is FunctionDeclaration) {
+      parameters = declaration.functionExpression.parameters;
+    }
+    fixBuilder.createFlowAnalysis(declaration, parameters);
     return fixBuilder;
   }
 }
