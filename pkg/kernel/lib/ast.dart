@@ -318,7 +318,7 @@ class Library extends NamedNode
 
   // TODO(jensj): Do we have a better option than this?
   static int defaultLanguageVersionMajor = 2;
-  static int defaultLanguageVersionMinor = 6;
+  static int defaultLanguageVersionMinor = 7;
 
   int _languageVersionMajor;
   int _languageVersionMinor;
