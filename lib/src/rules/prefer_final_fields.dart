@@ -36,9 +36,7 @@ class MultipleMutable {
   var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT
   var _someOther; // LINT
 
-
   MultipleMutable() : _someOther = 5;
-
 
   MultipleMutable(this._someOther);
 
