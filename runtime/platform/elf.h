@@ -135,10 +135,11 @@ static const intptr_t PF_W = 2;
 static const intptr_t PF_R = 4;
 
 static const intptr_t SHT_PROGBITS = 1;
+static const intptr_t SHT_SYMTAB = 2;
 static const intptr_t SHT_STRTAB = 3;
 static const intptr_t SHT_HASH = 5;
-static const intptr_t SHT_DYNSYM = 11;
 static const intptr_t SHT_DYNAMIC = 6;
+static const intptr_t SHT_DYNSYM = 11;
 
 static const intptr_t SHF_WRITE = 0x1;
 static const intptr_t SHF_ALLOC = 0x2;

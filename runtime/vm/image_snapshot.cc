@@ -492,6 +492,40 @@ static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+const char* AssemblyCodeNamer::AssemblyNameFor(intptr_t code_index,
+                                               const Code& code) {
+  ASSERT(!code.IsNull());
+  owner_ = code.owner();
+  if (owner_.IsNull()) {
+    insns_ = code.instructions();
+    const char* name = StubCode::NameOfStub(insns_.EntryPoint());
+    if (name != nullptr) {
+      return OS::SCreate(zone_, "Precompiled_Stub_%s", name);
+    } else {
+      if (name == nullptr) {
+        name = NameOfStubIsolateSpecificStub(store_, code);
+      }
+      ASSERT(name != nullptr);
+      return OS::SCreate(zone_, "Precompiled__%s", name);
+    }
+  } else if (owner_.IsClass()) {
+    string_ = Class::Cast(owner_).Name();
+    const char* name = string_.ToCString();
+    EnsureAssemblerIdentifier(const_cast<char*>(name));
+    return OS::SCreate(zone_, "Precompiled_AllocationStub_%s_%" Pd, name,
+                       code_index);
+  } else if (owner_.IsAbstractType()) {
+    const char* name = namer_.StubNameForType(AbstractType::Cast(owner_));
+    return OS::SCreate(zone_, "Precompiled_%s", name);
+  } else if (owner_.IsFunction()) {
+    const char* name = Function::Cast(owner_).ToQualifiedCString();
+    EnsureAssemblerIdentifier(const_cast<char*>(name));
+    return OS::SCreate(zone_, "Precompiled_%s_%" Pd, name, code_index);
+  } else {
+    UNREACHABLE();
+  }
+}
+
 void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -532,13 +566,8 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   FrameUnwindPrologue();
 
-  Object& owner = Object::Handle(zone);
-  String& str = String::Handle(zone);
   PcDescriptors& descriptors = PcDescriptors::Handle(zone);
-
-  ObjectStore* object_store = Isolate::Current()->object_store();
-
-  TypeTestingStubNamer tts;
+  AssemblyCodeNamer namer(zone);
   intptr_t text_offset = 0;
 
   ASSERT(offset_space_ != V8SnapshotProfileWriter::kSnapshot);
@@ -620,45 +649,16 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
              compiler::target::Instructions::HeaderSize());
     }
 
-    // 2. Write a label at the entry point.
-    // Linux's perf uses these labels.
-    ASSERT(!code.IsNull());
-    owner = code.owner();
-    if (owner.IsNull()) {
-      const char* name = StubCode::NameOfStub(insns.EntryPoint());
-      if (name != nullptr) {
-        assembly_stream_.Print("Precompiled_Stub_%s:\n", name);
-      } else {
-        if (name == nullptr) {
-          name = NameOfStubIsolateSpecificStub(object_store, code);
-        }
-        ASSERT(name != nullptr);
-        assembly_stream_.Print("Precompiled__%s:\n", name);
-      }
-    } else if (owner.IsClass()) {
-      str = Class::Cast(owner).Name();
-      const char* name = str.ToCString();
-      EnsureAssemblerIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_AllocationStub_%s_%" Pd ":\n", name,
-                             i);
-    } else if (owner.IsAbstractType()) {
-      const char* name = tts.StubNameForType(AbstractType::Cast(owner));
-      assembly_stream_.Print("Precompiled_%s:\n", name);
-    } else if (owner.IsFunction()) {
-      const char* name = Function::Cast(owner).ToQualifiedCString();
-      EnsureAssemblerIdentifier(const_cast<char*>(name));
-      assembly_stream_.Print("Precompiled_%s_%" Pd ":\n", name, i);
-    } else {
-      UNREACHABLE();
-    }
-
+    intptr_t dwarf_index = i;
 #ifdef DART_PRECOMPILER
     // Create a label for use by DWARF.
     if ((dwarf_ != nullptr) && !code.IsNull()) {
-      const intptr_t dwarf_index = dwarf_->AddCode(code);
-      assembly_stream_.Print(".Lcode%" Pd ":\n", dwarf_index);
+      dwarf_index = dwarf_->AddCode(code);
     }
 #endif
+    // 2. Write a label at the entry point.
+    // Linux's perf uses these labels.
+    assembly_stream_.Print("%s:\n", namer.AssemblyNameFor(dwarf_index, code));
 
     {
       // 3. Write from the payload start to payload end.
@@ -888,6 +888,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(DART_PRECOMPILER)
   PcDescriptors& descriptors = PcDescriptors::Handle();
+  AssemblyCodeNamer namer(Thread::Current()->zone());
 #endif
 
   NoSafepointScope no_safepoint;
@@ -973,6 +974,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif  // defined(IS_SIMARM_X64)
 
 #if defined(DART_PRECOMPILER)
+    if (elf_ != nullptr && dwarf_ != nullptr) {
+      elf_->AddStaticSymbol(elf_->NextSectionIndex(),
+                            namer.AssemblyNameFor(i, code),
+                            segment_base + payload_stream_start);
+    }
+
     // Don't patch the relocation if we're not generating ELF. The regular blobs
     // format does not yet support these relocations. Use
     // Code::VerifyBSSRelocations to check whether the relocations are patched

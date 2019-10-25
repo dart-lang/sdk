@@ -17,6 +17,7 @@
 #include "vm/hash_map.h"
 #include "vm/object.h"
 #include "vm/reusable_handles.h"
+#include "vm/type_testing_stubs.h"
 #include "vm/v8_snapshot_writer.h"
 
 namespace dart {
@@ -289,6 +290,28 @@ class TraceImageObjectScope {
   const T* stream_;
   intptr_t section_offset_;
   intptr_t start_offset_;
+};
+
+class AssemblyCodeNamer {
+ public:
+  explicit AssemblyCodeNamer(Zone* zone)
+      : zone_(zone),
+        owner_(Object::Handle(zone)),
+        string_(String::Handle(zone)),
+        insns_(Instructions::Handle(zone)),
+        store_(Isolate::Current()->object_store()) {}
+
+  const char* StubNameForType(const AbstractType& type) const;
+
+  const char* AssemblyNameFor(intptr_t code_index, const Code& code);
+
+ private:
+  Zone* const zone_;
+  Object& owner_;
+  String& string_;
+  Instructions& insns_;
+  ObjectStore* const store_;
+  TypeTestingStubNamer namer_;
 };
 
 class AssemblyImageWriter : public ImageWriter {
