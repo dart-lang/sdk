@@ -3521,8 +3521,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       InstanceCreationExpression node, InterfaceType type) {
     if (!_isNonNullable) return;
 
-    if (node.argumentList.arguments.length == 1 &&
-        _isDartCoreList(type) &&
+    if (node.constructorName.name == null &&
+        node.argumentList.arguments.length == 1 &&
+        type.isDartCoreList &&
         _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
@@ -5798,14 +5799,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 : INIT_STATE.INIT_IN_DECLARATION;
       }
     }
-  }
-
-  bool _isDartCoreList(InterfaceType type) {
-    ClassElement element = type.element;
-    if (element == null) {
-      return false;
-    }
-    return element.name == "List" && element.library.isDartCore;
   }
 
   bool _isFunctionType(DartType type) {

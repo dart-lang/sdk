@@ -334,7 +334,13 @@ abstract class Iterator<E> {
 
 class List<E> implements Iterable<E> {
   List([int length]);
-  factory List.from(Iterable elements, {bool growable: true}) => null;
+  external factory List.from(Iterable elements, {bool growable: true});
+  external factory List.filled(int length, E fill, {bool growable = false});
+  external factory List.from(Iterable elements, {bool growable = true});
+  external factory List.of(Iterable<E> elements, {bool growable = true});
+  external factory List.generate(int length, E generator(int index),
+      {bool growable = true});
+  external factory List.unmodifiable(Iterable elements);
 
   E get last => null;
   E operator [](int index) => null;
