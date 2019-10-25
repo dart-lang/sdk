@@ -75,6 +75,7 @@ class TokenStreamRewriter with _TokenStreamMixin {
   /// error token after [token] in the token stream and return [endGroup].
   Token moveSynthetic(Token token, Token endGroup) {
     assert(endGroup.beforeSynthetic != null);
+    if (token == endGroup) return endGroup;
     Token errorToken;
     if (endGroup.next is UnmatchedToken) {
       errorToken = endGroup.next;

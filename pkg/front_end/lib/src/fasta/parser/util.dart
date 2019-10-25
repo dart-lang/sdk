@@ -39,6 +39,9 @@ Token beforeCloseBraceTokenFor(BeginToken left) {
 Token findPreviousNonZeroLengthToken(Token token) {
   while (token.isSynthetic && token.length == 0) {
     Token previous = token.beforeSynthetic;
+    if (previous == token) {
+      throw new StateError("token == token.beforeSynthetic");
+    }
     if (previous == null) {
       break;
     }

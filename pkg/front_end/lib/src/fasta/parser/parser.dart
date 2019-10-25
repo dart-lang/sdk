@@ -2887,9 +2887,16 @@ class Parser {
   Token rewriteSquareBrackets(Token token) {
     Token next = token.next;
     assert(optional('[]', next));
-    Token replacement = link(
-        new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
-        new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
+    Token replacement;
+    if (token.isSynthetic) {
+      replacement = link(
+          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new SyntheticToken(TokenType.CLOSE_SQUARE_BRACKET, next.offset));
+    } else {
+      replacement = link(
+          new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.offset),
+          new Token(TokenType.CLOSE_SQUARE_BRACKET, next.offset + 1));
+    }
     rewriter.replaceTokenFollowing(token, replacement);
     return token;
   }
