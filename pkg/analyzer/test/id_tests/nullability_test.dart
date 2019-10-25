@@ -31,7 +31,7 @@ main(List<String> args) async {
 }
 
 class FlowTestBase {
-  FlowAnalysisResult flowResult;
+  FlowAnalysisDataForTesting flowResult;
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {

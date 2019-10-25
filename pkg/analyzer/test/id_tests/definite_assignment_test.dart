@@ -37,7 +37,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<String>> actualMap) {
     var flowResult =
-        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
+        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
     _DefiniteAssignmentDataExtractor(
             unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);
@@ -45,7 +45,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
 }
 
 class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
-  final FlowAnalysisResult _flowResult;
+  final FlowAnalysisDataForTesting _flowResult;
 
   _DefiniteAssignmentDataExtractor(
       Uri uri, Map<Id, ActualData<String>> actualMap, this._flowResult)

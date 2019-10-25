@@ -28,7 +28,7 @@ main(List<String> args) async {
 }
 
 class FlowTestBase {
-  FlowAnalysisResult flowResult;
+  FlowAnalysisDataForTesting flowResult;
 
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
@@ -59,7 +59,7 @@ class _ReachabilityDataComputer
   void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
     var flowResult =
-        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
+        testingData.uriToFlowAnalysisData[unit.declaredElement.source.uri];
     _ReachabilityDataExtractor(
             unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);
@@ -68,7 +68,7 @@ class _ReachabilityDataComputer
 
 class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
-  final FlowAnalysisResult _flowResult;
+  final FlowAnalysisDataForTesting _flowResult;
 
   _ReachabilityDataExtractor(
       Uri uri,

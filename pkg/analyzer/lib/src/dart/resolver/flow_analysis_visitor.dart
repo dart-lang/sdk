@@ -13,6 +13,21 @@ import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 
+/// Data gathered by flow analysis, retained for testing purposes.
+class FlowAnalysisDataForTesting {
+  /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
+  /// for example because a previous statement always exits.
+  final List<AstNode> unreachableNodes = [];
+
+  /// The list of [FunctionBody]s that don't complete, for example because
+  /// there is a `return` statement at the end of the function body block.
+  final List<FunctionBody> functionBodiesThatDontComplete = [];
+
+  /// The list of [Expression]s representing variable accesses that occur before
+  /// the corresponding variable has been definitely assigned.
+  final List<AstNode> unassignedNodes = [];
+}
+
 /// The helper for performing flow analysis during resolution.
 ///
 /// It contains related precomputed data, result, and non-trivial pieces of
@@ -25,8 +40,8 @@ class FlowAnalysisHelper {
   /// Precomputed sets of potentially assigned variables.
   AssignedVariables<AstNode, PromotableElement> assignedVariables;
 
-  /// The result for post-resolution stages of analysis.
-  final FlowAnalysisResult result;
+  /// The result for post-resolution stages of analysis, for testing only.
+  final FlowAnalysisDataForTesting dataForTesting;
 
   /// The current flow, when resolving a function body, or `null` otherwise.
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
@@ -34,10 +49,10 @@ class FlowAnalysisHelper {
 
   factory FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting) {
     return FlowAnalysisHelper._(TypeSystemTypeOperations(typeSystem),
-        retainDataForTesting ? FlowAnalysisResult() : null);
+        retainDataForTesting ? FlowAnalysisDataForTesting() : null);
   }
 
-  FlowAnalysisHelper._(this._typeOperations, this.result);
+  FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
 
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
@@ -93,8 +108,8 @@ class FlowAnalysisHelper {
     if (flow == null) return;
     if (flow.isReachable) return;
 
-    if (result != null) {
-      result.unreachableNodes.add(node);
+    if (dataForTesting != null) {
+      dataForTesting.unreachableNodes.add(node);
     }
   }
 
@@ -121,7 +136,7 @@ class FlowAnalysisHelper {
       flow.functionExpression_end();
     }
     if (!flow.isReachable) {
-      result?.functionBodiesThatDontComplete?.add(body);
+      dataForTesting?.functionBodiesThatDontComplete?.add(body);
     }
   }
 
@@ -159,7 +174,7 @@ class FlowAnalysisHelper {
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
         var isUnassigned = !flow.isAssigned(element);
         if (isUnassigned) {
-          result?.unassignedNodes?.add(node);
+          dataForTesting?.unassignedNodes?.add(node);
         }
         // Note: in principle we could make this slightly more performant by
         // checking element.isLate earlier, but we would lose the ability to
@@ -250,21 +265,6 @@ class FlowAnalysisHelper {
     }
     return null;
   }
-}
-
-/// The result of performing flow analysis on a unit.
-class FlowAnalysisResult {
-  /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
-  /// for example because a previous statement always exits.
-  final List<AstNode> unreachableNodes = [];
-
-  /// The list of [FunctionBody]s that don't complete, for example because
-  /// there is a `return` statement at the end of the function body block.
-  final List<FunctionBody> functionBodiesThatDontComplete = [];
-
-  /// The list of [Expression]s representing variable accesses that occur before
-  /// the corresponding variable has been definitely assigned.
-  final List<AstNode> unassignedNodes = [];
 }
 
 class TypeSystemTypeOperations
