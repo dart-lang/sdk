@@ -1249,8 +1249,8 @@ void FlowGraph::RenameRecursive(
 
     // 2a. Handle uses:
     // Update the expression stack renaming environment for each use by
-    // removing the renamed value.
-    // For each use of a LoadLocal, StoreLocal, MakeTemp, DropTemps or Constant:
+    // removing the renamed value. For each use of a LoadLocal, StoreLocal,
+    // MakeTemp, DropTemps or Constant (or any expression under OSR),
     // replace it with the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
@@ -1259,18 +1259,23 @@ void FlowGraph::RenameRecursive(
       Definition* reaching_defn = env->RemoveLast();
       Definition* input_defn = v->definition();
       if (input_defn != reaching_defn) {
-        // Under OSR, constants can reside on the expression stack. Just
-        // generate the constant rather than going through a synthetic phi.
-        if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
-          ASSERT(IsCompiledForOsr() && env->length() < osr_variable_count());
-          reaching_defn = GetConstant(input_defn->AsConstant()->value());
+        // Inspect the replacing definition before making the change.
+        if (IsCompiledForOsr()) {
+          // Under OSR, constants can reside on the expression stack. Just
+          // generate the constant rather than going through a synthetic phi.
+          if (input_defn->IsConstant() && reaching_defn->IsPhi()) {
+            ASSERT(env->length() < osr_variable_count());
+            reaching_defn = GetConstant(input_defn->AsConstant()->value());
+          }
+        } else {
+          // Note: constants can only be replaced with other constants.
+          ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
+                 input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
+                 (input_defn->IsConstant() && reaching_defn->IsConstant()));
         }
-        // Note: constants can only be replaced with other constants.
-        ASSERT(input_defn->IsLoadLocal() || input_defn->IsStoreLocal() ||
-               input_defn->IsDropTemps() || input_defn->IsMakeTemp() ||
-               (input_defn->IsConstant() && reaching_defn->IsConstant()));
         // Assert we are not referencing nulls in the initial environment.
         ASSERT(reaching_defn->ssa_temp_index() != -1);
+        // Replace the definition.
         v->set_definition(reaching_defn);
         input_defn = reaching_defn;
       }
