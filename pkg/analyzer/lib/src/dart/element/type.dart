@@ -870,11 +870,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<DartType> _typeArguments = const <DartType>[];
 
   /**
-   * The version of [element] for which members are cached.
-   */
-  int _versionOfCachedMembers;
-
-  /**
    * Cached [ConstructorElement]s - members or raw elements.
    */
   List<ConstructorElement> _constructors;
@@ -915,7 +910,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<PropertyAccessorElement> get accessors {
-    _flushCachedMembersIfStale();
     if (_accessors == null) {
       List<PropertyAccessorElement> accessors = element.accessors;
       List<PropertyAccessorElement> members =
@@ -930,7 +924,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<ConstructorElement> get constructors {
-    _flushCachedMembersIfStale();
     if (_constructors == null) {
       List<ConstructorElement> constructors = element.constructors;
       List<ConstructorElement> members =
@@ -1124,7 +1117,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<MethodElement> get methods {
-    _flushCachedMembersIfStale();
     if (_methods == null) {
       List<MethodElement> methods = element.methods;
       List<MethodElement> members = new List<MethodElement>(methods.length);
@@ -1651,23 +1643,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     return null;
-  }
-
-  /**
-   * Flush cache members if the version of [element] for which members are
-   * cached and the current version of the [element].
-   */
-  void _flushCachedMembersIfStale() {
-    ClassElement element = this.element;
-    if (element is ClassElementImpl) {
-      int currentVersion = element.version;
-      if (_versionOfCachedMembers != currentVersion) {
-        _constructors = null;
-        _accessors = null;
-        _methods = null;
-      }
-      _versionOfCachedMembers = currentVersion;
-    }
   }
 
   List<InterfaceType> _instantiateSuperTypes(List<InterfaceType> defined) {

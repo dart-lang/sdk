@@ -444,11 +444,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   /// of this class have been inferred.
   bool _hasBeenInferred = false;
 
-  /// The version of this element. The version is changed when the element is
-  /// incrementally updated, so that its lists of constructors, accessors and
-  /// methods might be different.
-  int version = 0;
-
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType> Function(ClassElementImpl) linkedMixinInferenceCallback;
 

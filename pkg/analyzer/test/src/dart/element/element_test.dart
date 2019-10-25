@@ -1598,31 +1598,6 @@ class InterfaceTypeImplTest extends AbstractTypeTest {
     expect(methodType.typeArguments, isEmpty);
   }
 
-  void test_getMethod_parameterized_flushCached_whenVersionChanges() {
-    //
-    // class A<E> { E m(E p) {} }
-    //
-    var E = typeParameter('E');
-    var A = class_(name: 'A', typeParameters: [E]);
-    DartType typeE = typeParameterType(E);
-    String methodName = "m";
-    MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeE, [typeE]);
-    A.methods = <MethodElement>[methodM];
-    //
-    // A<I>
-    //
-    InterfaceType typeI = interfaceType(class_(name: 'I'));
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(A);
-    typeAI.typeArguments = <DartType>[typeI];
-    // Methods list is cached.
-    MethodElement method = typeAI.methods.single;
-    expect(typeAI.methods.single, same(method));
-    // Methods list is flushed on version change.
-    A.version++;
-    expect(typeAI.methods.single, isNot(same(method)));
-  }
-
   void test_getMethod_parameterized_usesTypeParameter() {
     //
     // class A<E> { E m(E p) {} }
