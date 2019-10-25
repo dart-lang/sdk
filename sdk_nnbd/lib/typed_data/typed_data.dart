@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// Lists that efficiently handle fixed sized data
 /// (for example, unsigned 8 byte integers) and SIMD numeric types.
 ///
@@ -46,7 +44,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
-  Uint8List asUint8List([int offsetInBytes = 0, int length]);
+  Uint8List asUint8List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Int8List] _view_ of a region of this byte buffer.
@@ -64,7 +62,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
-  Int8List asInt8List([int offsetInBytes = 0, int length]);
+  Int8List asInt8List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Uint8ClampedList] _view_ of a region of this byte buffer.
@@ -82,7 +80,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
-  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int length]);
+  Uint8ClampedList asUint8ClampedList([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Uint16List] _view_ of a region of this byte buffer.
@@ -105,7 +103,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 2` must not be greater than [lengthInBytes].
    */
-  Uint16List asUint16List([int offsetInBytes = 0, int length]);
+  Uint16List asUint16List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Int16List] _view_ of a region of this byte buffer.
@@ -128,7 +126,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 2` must not be greater than [lengthInBytes].
    */
-  Int16List asInt16List([int offsetInBytes = 0, int length]);
+  Int16List asInt16List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Uint32List] _view_ of a region of this byte buffer.
@@ -152,7 +150,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
-  Uint32List asUint32List([int offsetInBytes = 0, int length]);
+  Uint32List asUint32List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Int32List] _view_ of a region of this byte buffer.
@@ -176,7 +174,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
-  Int32List asInt32List([int offsetInBytes = 0, int length]);
+  Int32List asInt32List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Uint64List] _view_ of a region of this byte buffer.
@@ -200,7 +198,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
-  Uint64List asUint64List([int offsetInBytes = 0, int length]);
+  Uint64List asUint64List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Int64List] _view_ of a region of this byte buffer.
@@ -224,7 +222,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
-  Int64List asInt64List([int offsetInBytes = 0, int length]);
+  Int64List asInt64List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Int32x4List] _view_ of a region of this byte buffer.
@@ -248,7 +246,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
-  Int32x4List asInt32x4List([int offsetInBytes = 0, int length]);
+  Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Float32List] _view_ of a region of this byte buffer.
@@ -272,7 +270,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 4` must not be greater than [lengthInBytes].
    */
-  Float32List asFloat32List([int offsetInBytes = 0, int length]);
+  Float32List asFloat32List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Float64List] _view_ of a region of this byte buffer.
@@ -296,7 +294,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 8` must not be greater than [lengthInBytes].
    */
-  Float64List asFloat64List([int offsetInBytes = 0, int length]);
+  Float64List asFloat64List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Float32x4List] _view_ of a region of this byte buffer.
@@ -320,7 +318,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
-  Float32x4List asFloat32x4List([int offsetInBytes = 0, int length]);
+  Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [Float64x2List] _view_ of a region of this byte buffer.
@@ -344,7 +342,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length * 16` must not be greater than [lengthInBytes].
    */
-  Float64x2List asFloat64x2List([int offsetInBytes = 0, int length]);
+  Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]);
 
   /**
    * Creates a [ByteData] _view_ of a region of this byte buffer.
@@ -362,7 +360,7 @@ abstract class ByteBuffer {
    * * `length` must not be negative, and
    * * `offsetInBytes + length` must not be greater than [lengthInBytes].
    */
-  ByteData asByteData([int offsetInBytes = 0, int length]);
+  ByteData asByteData([int offsetInBytes = 0, int? length]);
 }
 
 /**
@@ -475,7 +473,7 @@ abstract class ByteData implements TypedData {
    * the length of [buffer].
    */
   factory ByteData.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asByteData(offsetInBytes, length);
   }
 
@@ -770,7 +768,7 @@ abstract class Int8List implements List<int>, _TypedIntList {
    * the length of [buffer].
    */
   factory Int8List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asInt8List(offsetInBytes, length);
   }
 
@@ -797,7 +795,7 @@ abstract class Int8List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Int8List sublist(int start, [int end]);
+  Int8List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 1;
 }
@@ -843,7 +841,7 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    * the length of [buffer].
    */
   factory Uint8List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8List(offsetInBytes, length);
   }
 
@@ -879,7 +877,7 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Uint8List sublist(int start, [int end]);
+  Uint8List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 1;
 }
@@ -926,7 +924,7 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
    * the length of [buffer].
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
   }
 
@@ -953,7 +951,7 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Uint8ClampedList sublist(int start, [int end]);
+  Uint8ClampedList sublist(int start, [int? end]);
 
   static const int bytesPerElement = 1;
 }
@@ -1003,7 +1001,7 @@ abstract class Int16List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Int16List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asInt16List(offsetInBytes, length);
   }
 
@@ -1030,7 +1028,7 @@ abstract class Int16List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Int16List sublist(int start, [int end]);
+  Int16List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 2;
 }
@@ -1081,7 +1079,7 @@ abstract class Uint16List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Uint16List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asUint16List(offsetInBytes, length);
   }
 
@@ -1108,7 +1106,7 @@ abstract class Uint16List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Uint16List sublist(int start, [int end]);
+  Uint16List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 2;
 }
@@ -1158,7 +1156,7 @@ abstract class Int32List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Int32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32List(offsetInBytes, length);
   }
 
@@ -1185,7 +1183,7 @@ abstract class Int32List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Int32List sublist(int start, [int end]);
+  Int32List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 4;
 }
@@ -1236,7 +1234,7 @@ abstract class Uint32List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Uint32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asUint32List(offsetInBytes, length);
   }
 
@@ -1263,7 +1261,7 @@ abstract class Uint32List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Uint32List sublist(int start, [int end]);
+  Uint32List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 4;
 }
@@ -1313,7 +1311,7 @@ abstract class Int64List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Int64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asInt64List(offsetInBytes, length);
   }
 
@@ -1340,7 +1338,7 @@ abstract class Int64List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Int64List sublist(int start, [int end]);
+  Int64List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 8;
 }
@@ -1391,7 +1389,7 @@ abstract class Uint64List implements List<int>, _TypedIntList {
    * [bytesPerElement].
    */
   factory Uint64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asUint64List(offsetInBytes, length);
   }
 
@@ -1418,7 +1416,7 @@ abstract class Uint64List implements List<int>, _TypedIntList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Uint64List sublist(int start, [int end]);
+  Uint64List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 8;
 }
@@ -1469,7 +1467,7 @@ abstract class Float32List implements List<double>, _TypedFloatList {
    * [bytesPerElement].
    */
   factory Float32List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32List(offsetInBytes, length);
   }
 
@@ -1496,7 +1494,7 @@ abstract class Float32List implements List<double>, _TypedFloatList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Float32List sublist(int start, [int end]);
+  Float32List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 4;
 }
@@ -1540,7 +1538,7 @@ abstract class Float64List implements List<double>, _TypedFloatList {
    * [bytesPerElement].
    */
   factory Float64List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64List(offsetInBytes, length);
   }
 
@@ -1567,7 +1565,7 @@ abstract class Float64List implements List<double>, _TypedFloatList {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Float64List sublist(int start, [int end]);
+  Float64List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 8;
 }
@@ -1610,7 +1608,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    * [bytesPerElement].
    */
   factory Float32x4List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32x4List(offsetInBytes, length);
   }
 
@@ -1645,7 +1643,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Float32x4List sublist(int start, [int end]);
+  Float32x4List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 16;
 }
@@ -1688,7 +1686,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    * [bytesPerElement].
    */
   factory Int32x4List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32x4List(offsetInBytes, length);
   }
 
@@ -1723,7 +1721,7 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Int32x4List sublist(int start, [int end]);
+  Int32x4List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 16;
 }
@@ -1774,7 +1772,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    * [bytesPerElement].
    */
   factory Float64x2List.view(ByteBuffer buffer,
-      [int offsetInBytes = 0, int length]) {
+      [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
   }
 
@@ -1801,7 +1799,7 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    * 0 ≤ `start` ≤ `end` ≤ `this.length`
    * If `end` is equal to `start`, then the returned list is empty.
    */
-  Float64x2List sublist(int start, [int end]);
+  Float64x2List sublist(int start, [int? end]);
 
   static const int bytesPerElement = 16;
 }
