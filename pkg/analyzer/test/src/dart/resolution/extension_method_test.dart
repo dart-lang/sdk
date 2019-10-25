@@ -16,6 +16,7 @@ import 'driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMethodsDeclarationTest);
+    defineReflectiveTests(ExtensionMethodsDeclarationWithNnbdTest);
     defineReflectiveTests(ExtensionMethodsExtendedTypeTest);
     defineReflectiveTests(ExtensionMethodsExternalReferenceTest);
     defineReflectiveTests(ExtensionMethodsInternalReferenceTest);
@@ -103,6 +104,39 @@ class C {}
 extension E1 on C {}
 extension E2 on C {}
 ''');
+  }
+
+  test_this_type_interface() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'int');
+  }
+
+  test_this_type_typeParameter() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+
+  test_this_type_typeParameter_withBound() async {
+    await assertNoErrorsInCode('''
+extension E<T extends Object> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
   }
 
   test_visibility_hidden() async {
@@ -277,6 +311,52 @@ f(p.C c) {
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
     ]);
+  }
+}
+
+/// Tests that show that extension declarations and the members inside them are
+/// resolved correctly.
+@reflectiveTest
+class ExtensionMethodsDeclarationWithNnbdTest extends BaseExtensionMethodsTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.6.0', additionalFeatures: [Feature.non_nullable]);
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_this_type_interface() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'int');
+  }
+
+  test_this_type_typeParameter() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
+  }
+
+  test_this_type_typeParameter_withBound() async {
+    await assertNoErrorsInCode('''
+extension E<T extends Object> on T {
+  void foo() {
+    this;
+  }
+}
+''');
+    assertType(findNode.this_('this;'), 'T');
   }
 }
 

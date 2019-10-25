@@ -3413,8 +3413,7 @@ class ResolverVisitor extends ScopedVisitor {
     // Continue the extension resolution.
     //
     try {
-      DartType extendedType = node.declaredElement.extendedType;
-      typeAnalyzer.thisType = typeSystem.resolveToBound(extendedType);
+      typeAnalyzer.thisType = node.declaredElement.extendedType;
       super.visitExtensionDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
