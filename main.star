@@ -494,6 +494,20 @@ dart_ci_sandbox_builder(
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
+# vm|ast
+dart_vm_extra_builder("vm-kernel-ast-linux-debug-ia32", category="vm|ast|d32")
+dart_vm_extra_builder("vm-kernel-ast-linux-release-ia32", category="vm|ast|r32")
+dart_vm_extra_builder("vm-kernel-ast-linux-debug-x64", category="vm|ast|d")
+dart_vm_extra_builder("vm-kernel-ast-linux-release-simarm", category="vm|ast|psr")
+dart_vm_extra_builder("vm-kernel-ast-linux-release-simarm64", category="vm|ast|psr6")
+dart_vm_extra_builder("vm-kernel-ast-linux-release-x64", category="vm|ast|r")
+dart_vm_extra_builder("vm-kernel-ast-win-debug-x64", category="vm|ast|wd")
+dart_vm_extra_builder("vm-kernel-ast-win-release-x64", category="vm|ast|wr")
+dart_vm_extra_builder("vm-kernel-precomp-ast-linux-debug-x64", category="vm|ast|pd")
+dart_vm_extra_builder("vm-kernel-precomp-ast-linux-release-simarm_x64", category="vm|ast|psr")
+dart_vm_extra_builder("vm-kernel-precomp-ast-linux-release-simarm64", category="vm|ast|psr6")
+dart_vm_extra_builder("vm-kernel-precomp-ast-linux-release-x64", category="vm|ast|pr")
+
 # vm|app-kernel
 dart_vm_extra_builder(
     "app-kernel-linux-debug-x64", category="vm|app-kernel|d64")
@@ -503,11 +517,6 @@ dart_vm_extra_builder(
     "app-kernel-linux-release-x64", category="vm|app-kernel|r64")
 
 # vm|dartkb
-dart_vm_extra_builder("vm-dartkb-linux-debug-simarm64", category="vm|dartkb|sd")
-dart_vm_extra_builder("vm-dartkb-linux-debug-x64", category="vm|dartkb|d")
-dart_vm_extra_builder(
-    "vm-dartkb-linux-product-simarm64", category="vm|dartkb|sp")
-dart_vm_extra_builder("vm-dartkb-linux-product-x64", category="vm|dartkb|p")
 dart_vm_extra_builder(
     "vm-dartkb-linux-release-simarm64", category="vm|dartkb|sr")
 dart_vm_extra_builder("vm-dartkb-linux-release-x64", category="vm|dartkb|r")
@@ -586,10 +595,6 @@ dart_vm_extra_builder(
     "vm-kernel-precomp-mac-release-simarm64",
     category="vm|kernel-precomp|ma",
     dimensions=mac())
-dart_vm_extra_builder(
-    "vm-kernel-precomp-win-release-simarm64",
-    category="vm|kernel-precomp|wa",
-    dimensions=windows())
 dart_vm_extra_builder(
     "vm-kernel-precomp-win-release-x64",
     category="vm|kernel-precomp|wr",
