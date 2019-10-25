@@ -496,7 +496,7 @@
         "gen-kernel-options": [
           "--gen-bytecode",
           "--drop-ast",
-          "--bytecode-options=source-positions"
+          "--bytecode-options=source-positions,annotations"
         ],
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
@@ -506,7 +506,7 @@
         "gen-kernel-options": [
           "--gen-bytecode",
           "--drop-ast",
-          "--bytecode-options=source-positions,local-var-info,debugger-stops"
+          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
         ],
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
@@ -516,7 +516,7 @@
         "gen-kernel-options": [
           "--gen-bytecode",
           "--drop-ast",
-          "--bytecode-options=source-positions,local-var-info,debugger-stops"
+          "--bytecode-options=source-positions,annotations,local-var-info,debugger-stops"
         ],
         "vm-options": ["--enable_interpreter"]
     }},
@@ -526,7 +526,7 @@
         "gen-kernel-options": [
           "--gen-bytecode",
           "--drop-ast",
-          "--bytecode-options=source-positions"
+          "--bytecode-options=source-positions,annotations"
         ],
         "vm-options": ["--enable_interpreter"]
     }},
