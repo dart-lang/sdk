@@ -545,6 +545,9 @@ abstract class Element implements AnalysisTarget {
   /// Return  `true` if this element has an annotation of the form `@mustCallSuper`.
   bool get hasMustCallSuper;
 
+  /// Return  `true` if this element has an annotation of the form `@nonVirtual`.
+  bool get hasNonVirtual;
+
   /// Return `true` if this element has an annotation of the form
   /// `@optionalTypeArgs`.
   bool get hasOptionalTypeArgs;

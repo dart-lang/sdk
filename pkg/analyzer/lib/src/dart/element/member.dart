@@ -401,6 +401,9 @@ abstract class Member implements Element {
   bool get hasMustCallSuper => _baseElement.hasMustCallSuper;
 
   @override
+  bool get hasNonVirtual => _baseElement.hasNonVirtual;
+
+  @override
   bool get hasOptionalTypeArgs => _baseElement.hasOptionalTypeArgs;
 
   @override

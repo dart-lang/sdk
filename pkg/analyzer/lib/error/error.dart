@@ -370,6 +370,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.INVALID_IMMUTABLE_ANNOTATION,
   HintCode.INVALID_LITERAL_ANNOTATION,
   HintCode.INVALID_NON_VIRTUAL_ANNOTATION,
+  HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
   HintCode.INVALID_REQUIRED_NAMED_PARAM,
   HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM,
   // ignore: deprecated_member_use_from_same_package

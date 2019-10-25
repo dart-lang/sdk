@@ -142,6 +142,8 @@ import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
+import 'invalid_override_of_nonVirtual_member_test.dart'
+    as invalid_override_of_nonVirtual_member;
 import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
@@ -455,6 +457,7 @@ main() {
     invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
+    invalid_override_of_nonVirtual_member.main();
     invalid_override.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();

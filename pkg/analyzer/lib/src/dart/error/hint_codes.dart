@@ -370,6 +370,19 @@ class HintCode extends AnalyzerErrorCode {
       correction: "Try removing @nonVirtual.");
 
   /**
+   * This hint is generated anywhere where an instance member annotated with
+   * `@nonVirtual` is overridden in a subclass.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
+  static const HintCode INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER = const HintCode(
+      'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
+      "The member '{0}' is declared non-virtual in '{1}' and can't be "
+          "overridden in subclasses.");
+
+  /**
    * This hint is generated anywhere where `@required` annotates a named
    * parameter with a default value.
    *

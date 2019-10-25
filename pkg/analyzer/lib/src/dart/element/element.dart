@@ -2848,6 +2848,18 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get hasNonVirtual {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isNonVirtual) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get hasOptionalTypeArgs {
     var metadata = this.metadata;
     for (var i = 0; i < metadata.length; i++) {
@@ -6212,6 +6224,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasMustCallSuper => false;
 
   @override
+  bool get hasNonVirtual => false;
+
+  @override
   bool get hasOptionalTypeArgs => false;
 
   @override
@@ -7166,6 +7181,9 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
+  List<ElementAnnotation> get metadata => variable.metadata;
+
+  @override
   DartType get returnType => variable.type;
 
   @override
@@ -7216,6 +7234,9 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   bool get isSetter => true;
+
+  @override
+  List<ElementAnnotation> get metadata => variable.metadata;
 
   @override
   List<ParameterElement> get parameters {

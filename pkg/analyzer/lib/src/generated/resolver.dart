@@ -311,6 +311,37 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     try {
       super.visitFieldDeclaration(node);
+      for (var field in node.fields.variables) {
+        ExecutableElement getOverriddenPropertyAccessor() {
+          final element = field.declaredElement;
+          if (element is PropertyAccessorElement || element is FieldElement) {
+            Name name = new Name(_currentLibrary.source.uri, element.name);
+            Element enclosingElement = element.enclosingElement;
+            if (enclosingElement is ClassElement) {
+              InterfaceType classType = enclosingElement.thisType;
+              var overridden = _inheritanceManager.getMember(classType, name,
+                  forSuper: true);
+              // Check for a setter.
+              if (overridden == null) {
+                Name setterName =
+                    new Name(_currentLibrary.source.uri, '${element.name}=');
+                overridden = _inheritanceManager
+                    .getMember(classType, setterName, forSuper: true);
+              }
+              return overridden;
+            }
+          }
+          return null;
+        }
+
+        final overriddenElement = getOverriddenPropertyAccessor();
+        if (overriddenElement?.hasNonVirtual == true) {
+          _errorReporter.reportErrorForNode(
+              HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+              field.name,
+              [field.name, overriddenElement.enclosingElement.name]);
+        }
+      }
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
@@ -440,17 +471,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDeprecatedMember = _inDeprecatedMember;
     ExecutableElement element = node.declaredElement;
-    bool elementIsOverride() {
-      if (element is ClassMemberElement) {
-        Name name = new Name(_currentLibrary.source.uri, element.name);
-        Element enclosingElement = element.enclosingElement;
-        if (enclosingElement is ClassElement) {
-          InterfaceType classType = enclosingElement.thisType;
-          return _inheritanceManager.getOverridden(classType, name) != null;
-        }
-      }
-      return false;
-    }
+    Element enclosingElement = element?.enclosingElement;
+
+    InterfaceType classType =
+        enclosingElement is ClassElement ? enclosingElement.thisType : null;
+    Name name = Name(_currentLibrary.source.uri, element?.name ?? '');
+
+    bool elementIsOverride() =>
+        element is ClassMemberElement && enclosingElement != null
+            ? _inheritanceManager.getOverridden(classType, name) != null
+            : false;
+    ExecutableElement getConcreteOverriddenElement() =>
+        element is ClassMemberElement && enclosingElement != null
+            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+            : null;
+    ExecutableElement getOverriddenPropertyAccessor() =>
+        element is PropertyAccessorElement && enclosingElement != null
+            ? _inheritanceManager.getMember(classType, name, forSuper: true)
+            : null;
 
     if (element != null && element.hasDeprecated) {
       _inDeprecatedMember = true;
@@ -460,10 +498,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       //checkForOverridingPrivateMember(node);
       _checkForMissingReturn(node.returnType, node.body, element, node);
       _checkForUnnecessaryNoSuchMethod(node);
+
       if (_strictInference && !node.isSetter && !elementIsOverride()) {
         _checkStrictInferenceReturnType(node.returnType, node, node.name.name);
       }
       _checkStrictInferenceInParameters(node.parameters);
+
+      ExecutableElement overriddenElement = getConcreteOverriddenElement();
+      if (overriddenElement == null && (node.isSetter || node.isGetter)) {
+        overriddenElement = getOverriddenPropertyAccessor();
+      }
+
+      if (overriddenElement?.hasNonVirtual == true) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+            node.name,
+            [node.name, overriddenElement.enclosingElement.name]);
+      }
+
       super.visitMethodDeclaration(node);
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
