@@ -457,7 +457,7 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
     case kInstanceConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
-      if (!klass.is_declaration_loaded()) {
+      if (!klass.is_declaration_loaded() && !klass.is_declared_in_bytecode()) {
         FATAL1(
             "Trying to evaluate an instance constant whose references class "
             "%s is not loaded yet.",

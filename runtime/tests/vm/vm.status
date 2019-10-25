@@ -111,6 +111,7 @@ dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != none ]
 dart/appjit*: SkipByDesign # Test needs to run from source
+dart/bytecode_and_ast_mix_test: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
