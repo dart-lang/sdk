@@ -14,6 +14,7 @@ import 'package:kernel/ast.dart'
         InvalidType,
         Member,
         Name,
+        Nullability,
         Procedure,
         ProcedureKind,
         Supertype,
@@ -2015,8 +2016,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  InterfaceType futureType(DartType type) {
-    return new InterfaceType(hierarchy.futureClass, <DartType>[type]);
+  InterfaceType futureType(DartType type, Nullability nullability) {
+    return new InterfaceType(
+        hierarchy.futureClass, <DartType>[type], nullability);
   }
 
   @override

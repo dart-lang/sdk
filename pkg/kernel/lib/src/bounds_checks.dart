@@ -12,6 +12,7 @@ import '../ast.dart'
         InterfaceType,
         InvalidType,
         NamedType,
+        NeverType,
         TypeParameter,
         TypeParameterType,
         TypedefType,
@@ -544,6 +545,9 @@ class VarianceCalculator implements DartTypeVisitor<int> {
 
   @override
   int visitBottomType(BottomType node) => defaultDartType(node);
+
+  @override
+  int visitNeverType(NeverType node) => defaultDartType(node);
 
   @override
   int visitVoidType(VoidType node) => defaultDartType(node);

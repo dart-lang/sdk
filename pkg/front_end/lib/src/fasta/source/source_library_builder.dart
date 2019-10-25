@@ -28,6 +28,8 @@ import 'package:kernel/ast.dart'
         MapLiteral,
         Member,
         Name,
+        NeverType,
+        Nullability,
         Procedure,
         ProcedureKind,
         SetLiteral,
@@ -78,6 +80,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/mixin_application_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
@@ -1034,6 +1037,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         switch (name) {
           case "dynamic":
           case "void":
+          case "Never":
             unserializableExports ??= <String, String>{};
             unserializableExports[name] = null;
             break;
@@ -1152,6 +1156,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+  }
+
+  void addSyntheticDeclarationOfNever() {
+    addBuilder(
+        "Never",
+        new NeverTypeBuilder(
+            const NeverType(Nullability.nonNullable), this, -1),
+        -1);
   }
 
   TypeBuilder addNamedType(Object name, NullabilityBuilder nullabilityBuilder,

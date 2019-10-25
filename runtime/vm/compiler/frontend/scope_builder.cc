@@ -1300,6 +1300,7 @@ void ScopeBuilder::VisitDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kNeverType:
       // those contain nothing.
       return;
     case kInterfaceType:

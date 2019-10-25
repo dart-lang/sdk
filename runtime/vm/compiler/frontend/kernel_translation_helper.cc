@@ -1975,6 +1975,7 @@ void KernelReaderHelper::SkipDartType() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kNeverType:
       // those contain nothing.
       return;
     case kInterfaceType:
@@ -2783,6 +2784,9 @@ void TypeTranslator::BuildTypeInternal() {
     case kBottomType:
       result_ =
           Class::Handle(Z, I->object_store()->null_class()).DeclarationType();
+      break;
+    case kNeverType:
+      UNREACHABLE();
       break;
     case kInterfaceType:
       BuildInterfaceType(false);

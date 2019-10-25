@@ -4382,7 +4382,7 @@ class LoadLibrary extends Expression {
   LoadLibrary(this.import);
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.futureType(const DynamicType());
+    return types.futureType(const DynamicType(), Nullability.legacy);
   }
 
   R accept<R>(ExpressionVisitor<R> v) => v.visitLoadLibrary(this);
@@ -5432,6 +5432,24 @@ abstract class DartType extends Node {
   /// Some types have fixed nullabilities, such as `dynamic`, `invalid-type`,
   /// `void`, or `bottom`.
   DartType withNullability(Nullability nullability);
+
+  /// Checks if the type is potentially nullable.
+  ///
+  /// A type is potentially nullable if it's nullable or if it's nullability is
+  /// undetermined at compile time.
+  bool get isPotentiallyNullable {
+    return nullability == Nullability.nullable ||
+        nullability == Nullability.undetermined;
+  }
+
+  /// Checks if the type is potentially non-nullable.
+  ///
+  /// A type is potentially non-nullable if it's nullable or if it's nullability
+  /// is undetermined at compile time.
+  bool get isPotentiallyNonNullable {
+    return nullability == Nullability.nonNullable ||
+        nullability == Nullability.undetermined;
+  }
 }
 
 /// The type arising from invalid type annotations.
@@ -5487,6 +5505,29 @@ class VoidType extends DartType {
   Nullability get nullability => Nullability.nullable;
 
   VoidType withNullability(Nullability nullability) => this;
+}
+
+class NeverType extends DartType {
+  final Nullability nullability;
+
+  const NeverType(this.nullability);
+
+  int get hashCode {
+    return 485786 ^ ((0x33333333 >> nullability.index) ^ 0x33333333);
+  }
+
+  R accept<R>(DartTypeVisitor<R> v) => v.visitNeverType(this);
+  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) =>
+      v.visitNeverType(this, arg);
+  visitChildren(Visitor v) {}
+
+  bool operator ==(Object other) {
+    return other is NeverType && nullability == other.nullability;
+  }
+
+  NeverType withNullability(Nullability nullability) {
+    return this.nullability == nullability ? this : new NeverType(nullability);
+  }
 }
 
 class BottomType extends DartType {
@@ -5548,6 +5589,7 @@ class InterfaceType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is InterfaceType) {
+      if (nullability != other.nullability) return false;
       if (className != other.className) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
@@ -5564,6 +5606,8 @@ class InterfaceType extends DartType {
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
   }
 
@@ -5617,6 +5661,7 @@ class FunctionType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is FunctionType) {
+      if (nullability != other.nullability) return false;
       if (typeParameters.length != other.typeParameters.length ||
           requiredParameterCount != other.requiredParameterCount ||
           positionalParameters.length != other.positionalParameters.length ||
@@ -5701,6 +5746,7 @@ class FunctionType extends DartType {
       // Remove the type parameters from the scope again.
       _temporaryHashCodeTable.remove(typeParameters[i]);
     }
+    hash = 0x3fffffff & (hash * 31 + nullability.index);
     return hash;
   }
 
@@ -5746,9 +5792,10 @@ class TypedefType extends DartType {
   }
 
   DartType get unaliasOnce {
-    return Substitution.fromTypedefType(this)
-        .substituteType(typedefNode.type)
-        .withNullability(nullability);
+    DartType result =
+        Substitution.fromTypedefType(this).substituteType(typedefNode.type);
+    return result.withNullability(
+        combineNullabilitiesForSubstitution(result.nullability, nullability));
   }
 
   DartType get unalias {
@@ -5758,6 +5805,7 @@ class TypedefType extends DartType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is TypedefType) {
+      if (nullability != other.nullability) return false;
       if (typedefReference != other.typedefReference ||
           typeArguments.length != other.typeArguments.length) {
         return false;
@@ -5775,6 +5823,8 @@ class TypedefType extends DartType {
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
     return hash;
   }
 
@@ -5865,10 +5915,17 @@ class TypeParameterType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) {
-    return other is TypeParameterType && parameter == other.parameter;
+    return other is TypeParameterType &&
+        parameter == other.parameter &&
+        nullability == other.nullability;
   }
 
-  int get hashCode => _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+  int get hashCode {
+    int hash = _temporaryHashCodeTable[parameter] ?? parameter.hashCode;
+    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
+    return hash;
+  }
 
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;

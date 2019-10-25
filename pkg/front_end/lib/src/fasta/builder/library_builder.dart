@@ -153,6 +153,8 @@ abstract class LibraryBuilder implements ModifierBuilder {
 
   void addSyntheticDeclarationOfDynamic();
 
+  void addSyntheticDeclarationOfNever();
+
   /// Lookups the member [name] declared in this library.
   ///
   /// If [required] is `true` and no member is found an internal problem is
@@ -373,6 +375,9 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   void becomeCoreLibrary() {
     if (scope.local["dynamic"] == null) {
       addSyntheticDeclarationOfDynamic();
+    }
+    if (scope.local["Never"] == null) {
+      addSyntheticDeclarationOfNever();
     }
   }
 

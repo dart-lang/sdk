@@ -68,8 +68,8 @@ abstract class LegacyUpperBoundTest {
   Future<void> test_getLegacyLeastUpperBound_expansive() async {
     await parseComponent("""
 class N<T>;
-class C1<T> extends N<N<C1<T>>>;
-class C2<T> extends N<N<C2<N<C2<T>>>>>;
+class C1<T> extends N<N<C1<T*>*>*>;
+class C2<T> extends N<N<C2<N<C2<T*>*>*>*>*>;
 """);
 
     Class N = getClass("N");
@@ -106,9 +106,9 @@ class C2<T> extends N<N<C2<N<C2<T>>>>>;
 class A;
 class B<T> implements A;
 class C<U> implements A;
-class D<T, U> implements B<T>, C<U>;
-class E implements D<int, double>;
-class F implements D<int, bool>;
+class D<T, U> implements B<T*>, C<U*>;
+class E implements D<int*, double*>;
+class F implements D<int*, bool*>;
 """);
 
     Class a = getClass("A");

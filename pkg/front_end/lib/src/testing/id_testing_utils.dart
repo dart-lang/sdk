@@ -413,6 +413,10 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
     sb.write('<bottom>');
   }
 
+  void visitNeverType(NeverType node) {
+    sb.write('Never');
+  }
+
   void visitInterfaceType(InterfaceType node) {
     sb.write(node.classNode.name);
     if (node.typeArguments.isNotEmpty) {

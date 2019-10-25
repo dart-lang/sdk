@@ -1756,8 +1756,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return unevaluated(node, new IsExpression(extract(constant), node.type));
     }
     if (constant is NullConstant) {
-      return makeBoolConstant(node.type == typeEnvironment.nullType ||
-          node.type == typeEnvironment.coreTypes.objectLegacyRawType ||
+      DartType nodeType = node.type;
+      return makeBoolConstant(nodeType == typeEnvironment.nullType ||
+          nodeType is InterfaceType &&
+              nodeType.classNode == typeEnvironment.coreTypes.objectClass ||
           node.type is DynamicType);
     }
     return makeBoolConstant(
@@ -1863,14 +1865,18 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool isSubtype(Constant constant, DartType type) {
     DartType constantType = constant.getType(typeEnvironment);
     if (targetingJavaScript) {
-      if (constantType == typeEnvironment.coreTypes.intLegacyRawType &&
-          type == typeEnvironment.coreTypes.doubleLegacyRawType) {
+      if (constantType is InterfaceType &&
+          constantType.classNode == typeEnvironment.coreTypes.intClass &&
+          type is InterfaceType &&
+          type.classNode == typeEnvironment.coreTypes.doubleClass) {
         // With JS semantics, an integer is also a double.
         return true;
       }
 
-      if (constantType == typeEnvironment.coreTypes.doubleLegacyRawType &&
-          type == typeEnvironment.coreTypes.intLegacyRawType) {
+      if (constantType is InterfaceType &&
+          constantType.classNode == typeEnvironment.coreTypes.doubleClass &&
+          type is InterfaceType &&
+          type.classNode == typeEnvironment.coreTypes.intClass) {
         double value = (constant as DoubleConstant).value;
         if (value.isFinite && value == value.truncateToDouble()) {
           return true;

@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 35;
+  UInt32 formatVersion = 36;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -1242,6 +1242,11 @@ abstract type DartType extends Node {}
 
 type BottomType extends DartType {
   Byte tag = 89;
+}
+
+type NeverType extends DartType {
+  Byte tag = 98;
+  Byte nullability; // Index into the Nullability enum above.
 }
 
 type InvalidType extends DartType {

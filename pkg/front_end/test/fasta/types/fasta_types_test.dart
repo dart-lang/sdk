@@ -75,9 +75,9 @@ class FastaTypesTest extends SubtypeTest<DartType, KernelEnvironment> {
     return environment.kernelFromParsedType(type_parser.parse(text).single);
   }
 
-  bool isSubtypeImpl(DartType subtype, DartType supertype) {
-    return hierarchy.types.isSubtypeOfKernel(
-        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+  IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
+    return hierarchy.types
+        .performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
   KernelEnvironment extend(String typeParameters) {

@@ -394,6 +394,50 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   }
 }
 
+/// Combines nullabilities of types during type substitution.
+///
+/// In a type substitution, for example, when `int` is substituted for `T` in
+/// `List<T?>`, the nullability of the occurrence of the type parameter should
+/// be combined with the nullability of the type that is being substituted for
+/// that type parameter.  In the example above it's the nullability of `T?`
+/// and `int`.  The function computes the nullability for the replacement as
+/// per the following table:
+///
+/// | arg \ var |  !  |  ?  |  *  |  %  |
+/// |-----------|-----|-----|-----|-----|
+/// |     !     |  !  |  ?  |  *  |  !  |
+/// |     ?     | N/A |  ?  |  ?  |  ?  |
+/// |     *     |  *  |  ?  |  *  |  *  |
+/// |     %     | N/A |  ?  |  *  |  %  |
+///
+/// Here `!` denotes `Nullability.nonNullable`, `?` denotes
+/// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
+/// `Nullability.neither`.  The table elements marked with N/A denote the
+/// cases that should yield a type error before the substitution is performed.
+Nullability combineNullabilitiesForSubstitution(Nullability a, Nullability b) {
+  // In the table above we may extend the function given by it, replacing N/A
+  // with whatever is easier to implement.  In this implementation, we extend
+  // the table function as follows:
+  //
+  // | arg \ var |  !  |  ?  |  *  |  %  |
+  // |-----------|-----|-----|-----|-----|
+  // |     !     |  !  |  ?  |  *  |  !  |
+  // |     ?     |  ?  |  ?  |  ?  |  ?  |
+  // |     *     |  *  |  ?  |  *  |  *  |
+  // |     %     |  %  |  ?  |  *  |  %  |
+  //
+
+  if (a == Nullability.nullable || b == Nullability.nullable) {
+    return Nullability.nullable;
+  }
+
+  if (a == Nullability.legacy || b == Nullability.legacy) {
+    return Nullability.legacy;
+  }
+
+  return a;
+}
+
 abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   final _TypeSubstitutor outer;
   bool covariantContext = true;
@@ -441,6 +485,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType visitDynamicType(DynamicType node) => node;
   DartType visitVoidType(VoidType node) => node;
   DartType visitBottomType(BottomType node) => node;
+  DartType visitNeverType(NeverType node) => node;
 
   DartType visitInterfaceType(InterfaceType node) {
     if (node.typeArguments.isEmpty) return node;
@@ -528,51 +573,6 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
       environment = environment.outer;
     }
     return null;
-  }
-
-  /// Combines nullabilities of types during type substitution.
-  ///
-  /// In a type substitution, for example, when `int` is substituted for `T` in
-  /// `List<T?>`, the nullability of the occurrence of the type parameter should
-  /// be combined with the nullability of the type that is being substituted for
-  /// that type parameter.  In the example above it's the nullability of `T?`
-  /// and `int`.  The function computes the nullability for the replacement as
-  /// per the following table:
-  ///
-  /// | arg \ var |  !  |  ?  |  *  |  %  |
-  /// |-----------|-----|-----|-----|-----|
-  /// |     !     |  !  |  ?  |  *  |  !  |
-  /// |     ?     | N/A |  ?  |  ?  |  ?  |
-  /// |     *     |  *  |  ?  |  *  |  *  |
-  /// |     %     | N/A |  ?  |  *  |  %  |
-  ///
-  /// Here `!` denotes `Nullability.nonNullable`, `?` denotes
-  /// `Nullability.nullable`, `*` denotes `Nullability.legacy`, and `%` denotes
-  /// `Nullability.neither`.  The table elements marked with N/A denote the
-  /// cases that should yield a type error before the substitution is performed.
-  static Nullability combineNullabilitiesForSubstitution(
-      Nullability a, Nullability b) {
-    // In the table above we may extend the function given by it, replacing N/A
-    // with whatever is easier to implement.  In this implementation, we extend
-    // the table function as follows:
-    //
-    // | arg \ var |  !  |  ?  |  *  |  %  |
-    // |-----------|-----|-----|-----|-----|
-    // |     !     |  !  |  ?  |  *  |  !  |
-    // |     ?     |  ?  |  ?  |  ?  |  ?  |
-    // |     *     |  *  |  ?  |  *  |  *  |
-    // |     %     |  %  |  ?  |  *  |  %  |
-    //
-
-    if (a == Nullability.nullable || b == Nullability.nullable) {
-      return Nullability.nullable;
-    }
-
-    if (a == Nullability.legacy || b == Nullability.legacy) {
-      return Nullability.legacy;
-    }
-
-    return a;
   }
 
   DartType visitTypeParameterType(TypeParameterType node) {
@@ -795,6 +795,7 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -842,6 +843,7 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   }
 
   bool visitBottomType(BottomType node) => false;
+  bool visitNeverType(NeverType node) => false;
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;

@@ -2601,6 +2601,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitBottomType(BottomType type) => runtimeCall('bottom');
 
   @override
+  js_ast.Expression visitNeverType(NeverType type) => runtimeCall('Never');
+
+  @override
   js_ast.Expression visitInterfaceType(InterfaceType type) {
     var c = type.classNode;
     _declareBeforeUse(c);

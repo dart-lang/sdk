@@ -4502,8 +4502,8 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitLoadLibrary(
       covariant LoadLibraryImpl node, DartType typeContext) {
-    DartType inferredType =
-        inferrer.typeSchemaEnvironment.futureType(const DynamicType());
+    DartType inferredType = inferrer.typeSchemaEnvironment
+        .futureType(const DynamicType(), Nullability.legacy);
     if (node.arguments != null) {
       FunctionType calleeType = new FunctionType([], inferredType);
       inferrer.inferInvocation(
@@ -4515,7 +4515,9 @@ class InferenceVisitor
   ExpressionInferenceResult visitLoadLibraryTearOff(
       LoadLibraryTearOff node, DartType typeContext) {
     DartType inferredType = new FunctionType(
-        [], inferrer.typeSchemaEnvironment.futureType(const DynamicType()));
+        [],
+        inferrer.typeSchemaEnvironment
+            .futureType(const DynamicType(), Nullability.legacy));
     Expression replacement = new StaticGet(node.target)
       ..fileOffset = node.fileOffset;
     return new ExpressionInferenceResult(inferredType, replacement);

@@ -18,6 +18,8 @@ import 'package:kernel/ast.dart'
         ListLiteral,
         Member,
         NamedNode,
+        NeverType,
+        Nullability,
         Procedure,
         Reference,
         StaticGet,
@@ -27,6 +29,7 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -156,6 +159,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
+  }
+
+  void addSyntheticDeclarationOfNever() {
+    addBuilder(
+        "Never",
+        new NeverTypeBuilder(
+            const NeverType(Nullability.nonNullable), this, -1),
+        -1);
   }
 
   void addClass(Class cls) {

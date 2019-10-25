@@ -701,6 +701,8 @@ rewrote
 rhs
 ri
 rightmost
+rb
+rc
 rn
 rnystrom
 role

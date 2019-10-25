@@ -759,7 +759,8 @@ class TypeInferrerImpl implements TypeInferrer {
       target = const ObjectAccessTarget.dynamic();
     } else if (receiverType is InvalidType) {
       target = const ObjectAccessTarget.invalid();
-    } else if (receiverType == coreTypes.functionLegacyRawType &&
+    } else if (receiverType is InterfaceType &&
+        receiverType.classNode == coreTypes.functionClass &&
         name.name == 'call') {
       target = const ObjectAccessTarget.callFunction();
     } else {

@@ -2,11 +2,14 @@
 
 Author: The Dart CFE team.
 
-Status: Draft
+Status: Living document.
 
 
 
 ## CHANGELOG
+
+2019.10.18:
+- Added information about `NeverType`.
 
 2019.10.17:
 - Renamed `Nullability.neither` to `Nullability.undetermined`.
@@ -95,7 +98,7 @@ In the textual representation of Kernel that is commonly used in `.expect` files
 *TODO: Add an example of a .expect file.*
 
 
-####The 'undetermined' Nullability
+#### The 'undetermined' Nullability
 
 `Nullability.undetermined` marks all types that can't be put into any other three categories at compile time and that should be categorized at run time.  The primary use case for `Nullability.undetermined` are type-parameter types with nullable bounds.  Consider the following Dart program:
 
@@ -299,6 +302,11 @@ The plan is to provide an optional desugaring of `late` fields and variables to 
 - `IsSubtypeOf` class is added.  It represents a result of a nullability-aware type check.  Objects of `IsSubtypeOf` can further be queried for whether the checked types are in the subtype relation when the nullability modifiers are taken into account (using `IsSubtypeOf.isSubtypeWhenUsingNullabilities`) or when the modifiers are ignored (using `IsSubtypeOf.isSubtypeWhenIgnoringNullabilities`).
 - `SubtypeTester.performNullabilityAwareSubtypeCheck` method is added.  It takes two types as input and produces a result of type `IsSubtypeOf`.  Using `SubtypeTester.performNullabilityAwareSubtypeCheck` is recommended for performance considerations if a call site needs to differentiate between NNBD and pre-NNBD cases.
 
+#### Type Never
+
+* A new subclass of `DartType` called `NeverType` is added to represent type `Never`.  It is a subtype of all Dart types.  It's different from `BottomType` already present in Kernel; the latter is reserved for other purposes with the addition to the subtyping rules that `BottomType` is a subtype of `NeverType`.
+* `DartTypeVisitor` and `DartTypeVisitor1` visitors are updated to include `visitNeverType` methods.  All implementations of the interfaces of `DartTypeVisitor` and `DartTypeVisitor1` are updated to include implementations of `visitNeverType`.
+
 #### isRequired and isLate flags
 
 - `VariableDeclaration.isRequired` setter and getter are added.
@@ -373,6 +381,10 @@ To save some computations, a single invocation of `performNullabilityAwareSubtyp
 #### Computing TypeParameterType.nullability
 
 As described in section **Nullability of Intersection Types**, objects of `TypeParameterType` implement `.nullability` as a getter, not a field, and the overall nullability value for the type is not serialized in the binary format.  The back ends that implement their own deserialization may need to compute the nullability for `TypeParameterType`s.
+
+#### Implementing visitNeverType
+
+Following the introduction of `NeverType`, all implementors of `DartTypeVisitor` and `DartTypeVisitor1` should implement their new methods, `visitNeverType`.  Reasonable implementations are provided in the CL adding `NeverType`, and they might need to be revisited.
 
 #### Type equality
 

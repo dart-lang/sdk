@@ -65,9 +65,9 @@ general/override_setter_with_field: TypeCheckError
 general/reject_generic_function_types_in_bounds: RuntimeError # Expected
 general/spread_collection: RuntimeError
 general/statements: Crash
-general/type_variable_bound_access: TypeCheckError
 general/type_parameter_type_named_int: RuntimeError # Expected
 general/type_variable_as_super: RuntimeError
+general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: RuntimeError
 general/void_methods: RuntimeError
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
@@ -118,6 +118,7 @@ inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError
 instantiate_to_bound/non_simple_class_parametrized_typedef_cycle: RuntimeError # Expected
 instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError # Expected
 nnbd/nullable_param: RuntimeError
+nnbd/simple_never: RuntimeError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

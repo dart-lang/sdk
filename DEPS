@@ -458,7 +458,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/benchmark_data",
-        "version": "sha1sum:4168b133ab7bce01c91311a8d4f25d4d6cb026f3",
+        "version": "sha1sum:4640fa0bff40726392748d1ad3147e5dd0324ea2",
       }
     ],
     "dep_type": "cipd",

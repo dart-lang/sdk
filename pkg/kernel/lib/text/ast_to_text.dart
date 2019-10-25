@@ -2097,6 +2097,11 @@ class Printer extends Visitor<Null> {
     writeWord('void');
   }
 
+  visitNeverType(NeverType node) {
+    write('Never');
+    writeNullability(node.nullability);
+  }
+
   visitInterfaceType(InterfaceType node) {
     writeClassReferenceFromReference(node.className);
     if (node.typeArguments.isNotEmpty) {

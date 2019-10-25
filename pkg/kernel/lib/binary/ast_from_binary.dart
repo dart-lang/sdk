@@ -2170,6 +2170,9 @@ class BinaryBuilder {
         return const DynamicType();
       case Tag.VoidType:
         return const VoidType();
+      case Tag.NeverType:
+        int nullabilityIndex = readByte();
+        return new NeverType(Nullability.values[nullabilityIndex]);
       case Tag.InterfaceType:
         int nullabilityIndex = readByte();
         return new InterfaceType.byReference(readClassReference(),

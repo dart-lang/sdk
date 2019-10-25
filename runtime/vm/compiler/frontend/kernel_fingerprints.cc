@@ -229,6 +229,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kDynamicType:
     case kVoidType:
     case kBottomType:
+    case kNeverType:
       // those contain nothing.
       break;
       UNIMPLEMENTED();
