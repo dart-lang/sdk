@@ -744,8 +744,6 @@ compiler.''',
                 reportInJson: data["report_in_json"] as bool,
                 resetBrowser: data["reset_browser_configuration"] as bool,
                 skipCompilation: data["skip_compilation"] as bool,
-                useKernelBytecode:
-                    innerConfiguration.compiler == Compiler.dartkb,
                 writeDebugLog: data["write_debug_log"] as bool,
                 writeResults: data["write_results"] as bool,
                 writeLogs: data["write_logs"] as bool,

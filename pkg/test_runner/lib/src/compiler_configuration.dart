@@ -1101,11 +1101,7 @@ abstract class VMKernelCompilerMixin {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
-      if (_configuration.useKernelBytecode) ...[
-        '--gen-bytecode',
-        '--drop-ast',
-        '--bytecode-options=source-positions${_isProduct ? '' : ',local-var-info,debugger-stops'}'
-      ]
+      ..._configuration.genKernelOptions,
     ];
 
     var batchArgs = [if (useAbiVersion != null) useAbiVersion];

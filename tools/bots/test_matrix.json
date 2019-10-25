@@ -446,6 +446,27 @@
         "use-elf": true
     }},
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
+    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
+      "options": {
+        "builder-tag": "ast",
+        "gen-kernel-options": ["--no-gen-bytecode"]
+    }},
+    "dartkp-(linux|mac)-(debug|product|release)-x64-ast": {
+      "options": {
+        "builder-tag": "ast",
+        "gen-kernel-options": ["--no-gen-bytecode"]
+    }},
+    "dartkp-(linux|mac)-(debug|product|release)-simarm64-ast": {
+       "options": {
+        "builder-tag": "ast",
+        "use-blobs": true,
+        "gen-kernel-options": ["--no-gen-bytecode"]
+    }},
+    "dartkp-linux-(debug|product|release)-simarm-crossword-ast": {
+      "options": {
+        "builder-tag": "crossword_ast",
+        "gen-kernel-options": ["--no-gen-bytecode"]
+    }},
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {
       "options": {
         "enable-asserts": true
@@ -469,20 +490,45 @@
         "hot-reload-rollback": true
     }},
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
-    "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
+    "dartkb-interpret-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "builder-tag": "bytecode_interpreter",
+        "gen-kernel-options": [
+          "--gen-bytecode",
+          "--drop-ast",
+          "--bytecode-options=source-positions"
+        ],
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
-    "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
+    "dartkb-interpret-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
+      "options": {
+        "builder-tag": "bytecode_interpreter",
+        "gen-kernel-options": [
+          "--gen-bytecode",
+          "--drop-ast",
+          "--bytecode-options=source-positions,local-var-info,debugger-stops"
+        ],
+        "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
+    }},
+    "dartkb-mixed-(linux|mac|win)-(debug|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
         "builder-tag": "bytecode_mixed",
+        "gen-kernel-options": [
+          "--gen-bytecode",
+          "--drop-ast",
+          "--bytecode-options=source-positions,local-var-info,debugger-stops"
+        ],
         "vm-options": ["--enable_interpreter"]
     }},
-    "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
+    "dartkb-mixed-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
-        "builder-tag": "bytecode_compiler",
-        "vm-options": ["--use_bytecode_compiler"]
+        "builder-tag": "bytecode_mixed",
+        "gen-kernel-options": [
+          "--gen-bytecode",
+          "--drop-ast",
+          "--bytecode-options=source-positions"
+        ],
+        "vm-options": ["--enable_interpreter"]
     }},
     "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
@@ -575,12 +621,8 @@
     },
     {
       "builders": [
-        "vm-dartkb-linux-debug-x64",
         "vm-dartkb-linux-release-x64",
-        "vm-dartkb-linux-product-x64",
-        "vm-dartkb-linux-debug-simarm64",
-        "vm-dartkb-linux-release-simarm64",
-        "vm-dartkb-linux-product-simarm64"
+        "vm-dartkb-linux-release-simarm64"
       ],
       "meta": {
         "description": "This configuration is used by the vm kbc builders."
@@ -620,23 +662,6 @@
           "shards": 4
         },
         {
-          "name": "vm bytecode compiler tests",
-          "arguments": [
-            "-ndartkb-compile-linux-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
-          "name": "vm bytecode compiler co19 tests",
-          "arguments": [
-            "-ndartkb-compile-linux-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 4
-        },
-        {
           "name": "vm interpreter tests",
           "arguments": [
             "-ndartkb-interpret-linux-${mode}-${arch}"
@@ -652,6 +677,92 @@
           ],
           "fileset": "vm-kernel",
           "shards": 4
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-ast-linux-debug-ia32",
+        "vm-kernel-ast-linux-release-ia32",
+        "vm-kernel-ast-linux-debug-x64",
+        "vm-kernel-ast-linux-release-simarm",
+        "vm-kernel-ast-linux-release-simarm64",
+        "vm-kernel-ast-linux-release-x64",
+        "vm-kernel-ast-win-debug-x64",
+        "vm-kernel-ast-win-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm legacy AST-mode (no-bytecode) JIT builders."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--no-bytecode"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartk-${system}-${mode}-${arch}-ast"],
+          "fileset": "vm-kernel",
+          "shards": 8
+        },
+        {
+          "name": "vm co19 tests",
+          "arguments": [
+            "-ndartk-${system}-${mode}-${arch}-ast",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-ast-linux-debug-x64",
+        "vm-kernel-precomp-ast-linux-release-simarm",
+        "vm-kernel-precomp-ast-linux-release-simarm64",
+        "vm-kernel-precomp-ast-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm legacy AST-mode (no-bytecode) AOT builders."
+      },
+      "steps": [
+        {
+          "name": "configure dart",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=${arch}",
+            "--no-bytecode"
+          ]
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-${arch}-ast"],
+          "fileset": "vm-kernel",
+          "shards": 8
         }
       ]
     },
@@ -751,7 +862,6 @@
         "vm-kernel-precomp-linux-release-simarm64",
         "vm-kernel-precomp-linux-release-x64",
         "vm-kernel-precomp-mac-release-simarm64",
-        "vm-kernel-precomp-win-release-simarm64",
         "vm-kernel-precomp-win-release-x64"
       ],
       "meta": {
@@ -2597,6 +2707,62 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-${system}-${mode}-simarm-crossword",
+            "--gen-snapshot=${build_root}/gen_snapshot"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-ast-linux-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for the simarm_x64 architecture in AST mode."
+      },
+      "steps": [
+        {
+          "name": "configure dart for simarm_x64",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "--no-bytecode"
+          ]
+        },
+        {
+          "name": "configure dart for simarm",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "--no-bytecode"
+          ]
+        },
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "dart_precompiled_runtime",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-simarm-crossword-ast",
             "--gen-snapshot=${build_root}/gen_snapshot"
           ],
           "fileset": "vm-kernel",
