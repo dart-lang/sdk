@@ -313,8 +313,6 @@ class BazelWorkspace extends Workspace {
 
       if (folder.getChildAssumingFile(_buildFileName).exists) {
         // Found the BUILD file, denoting a Dart package.
-        List<String> uriParts = (packageUriResolver as BazelPackageUriResolver)
-            ._restoreUriParts(root, '${folder.path}/lib/__fake__.dart');
         return packageRootedHere();
       }
 
