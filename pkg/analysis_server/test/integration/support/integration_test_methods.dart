@@ -90,10 +90,6 @@ abstract class IntegrationTestMixin {
    * pid: int
    *
    *   The process id of the analysis server process.
-   *
-   * sessionId: String (optional)
-   *
-   *   The session id for this session.
    */
   Stream<ServerConnectedParams> onServerConnected;
 

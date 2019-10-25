@@ -249,10 +249,8 @@ class AnalysisServer extends AbstractAnalysisServer {
       });
     });
     searchEngine = new SearchEngineImpl(driverMap.values);
-    Notification notification = new ServerConnectedParams(
-            PROTOCOL_VERSION, io.pid,
-            sessionId: instrumentationService.sessionId)
-        .toNotification();
+    Notification notification =
+        new ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[

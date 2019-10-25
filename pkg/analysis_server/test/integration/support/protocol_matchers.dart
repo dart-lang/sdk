@@ -3506,13 +3506,11 @@ final Matcher isSearchResultsParams = new LazyMatcher(() =>
  * {
  *   "version": String
  *   "pid": int
- *   "sessionId": optional String
  * }
  */
 final Matcher isServerConnectedParams = new LazyMatcher(() =>
     new MatchesJsonObject(
-        "server.connected params", {"version": isString, "pid": isInt},
-        optionalFields: {"sessionId": isString}));
+        "server.connected params", {"version": isString, "pid": isInt}));
 
 /**
  * server.error params
