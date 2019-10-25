@@ -23,18 +23,100 @@ class E<T, S> {}
 class F extends E<B, B> {}
 
 void main() {
-  // dynamic <\: A
-  checkSubtypeFailure(dynamic, A);
-  // A <: dynamic
-  checkProperSubtype(A, dynamic);
-  // A <: void
-  checkProperSubtype(A, dart.wrapType(dart.void_));
-  // Null <\: A
-  checkSubtypeFailure(Null, A);
+  // Top type symmetry.
+  // Object? <: dynamic
+  checkSubtype(nullable(Object), dynamic);
+  // dynamic <: Object?
+  checkSubtype(dynamic, nullable(Object));
+  // Object? <: void
+  checkSubtype(nullable(Object), voidType);
+  // void <: Object?
+  checkSubtype(voidType, nullable(Object));
+  // void <: dynamic
+  checkSubtype(voidType, dynamic);
+  // dynamic <: void
+  checkSubtype(dynamic, voidType);
 
+  // Bottom is subtype of top.
+  // never <: dynamic
+  checkProperSubtype(neverType, dynamic);
+  // never <: void
+  checkProperSubtype(neverType, voidType);
+  // never <: Object?
+  checkProperSubtype(neverType, nullable(Object));
+
+  // Object is between top and bottom.
+  // Object <: Object?
+  checkProperSubtype(Object, nullable(Object));
+  // never <: Object
+  checkProperSubtype(neverType, Object);
+
+  // Null is between top and bottom.
+  // Null <: Object?
+  checkProperSubtype(Null, nullable(Object));
+  // never <: Null
+  checkProperSubtype(neverType, Null);
+
+  // Class is between Object and bottom.
+  // A <: Object
+  checkProperSubtype(A, dynamic);
+  // never <: A
+  checkProperSubtype(neverType, A);
+
+  // Nullable types are a union of T and Null.
+  // A <: A?
+  checkProperSubtype(A, nullable(A));
+  // Null <: A?
+  checkProperSubtype(Null, nullable(A));
+  // A? <: Object?
+  checkProperSubtype(nullable(A), nullable(Object));
+
+  // Legacy types will eventually be migrated to T or T? but until then are
+  // symmetric with both.
+  // Object* <: Object
+  checkSubtype(legacy(Object), Object);
+  // Object <: Object*
+  checkSubtype(Object, legacy(Object));
+  // Object* <: Object?
+  checkSubtype(legacy(Object), nullable(Object));
+  // Object? <: Object*
+  checkSubtype(nullable(Object), legacy(Object));
+  // Null <: Object*
+  checkSubtype(Null, legacy(Object));
+  // never <: Object*
+  checkSubtype(neverType, legacy(Object));
+  // A* <: A
+  checkSubtype(legacy(A), A);
+  // A <: A*
+  checkSubtype(A, legacy(A));
+  // A* <: A?
+  checkSubtype(legacy(A), nullable(A));
+  // A? <: A*
+  checkSubtype(nullable(A), legacy(A));
+  // A* <: Object
+  checkProperSubtype(legacy(A), Object);
+  // A* <: Object?
+  checkProperSubtype(legacy(A), nullable(Object));
+  // Null <: A*
+  checkProperSubtype(Null, legacy(A));
+  // never <: A*
+  checkProperSubtype(neverType, legacy(A));
+
+  // Futures.
+  // Null <: FutureOr<Object?>
+  checkProperSubtype(Null, generic1(FutureOr, nullable(Object)));
+  // Object <: FutureOr<Object?>
+  checkProperSubtype(Object, generic1(FutureOr, nullable(Object)));
+  // Object? <: FutureOr<Object?>
+  checkSubtype(nullable(Object), generic1(FutureOr, nullable(Object)));
+  // Future<Object> <: FutureOr<Object?>
+  checkProperSubtype(
+      generic1(Future, Object), generic1(FutureOr, nullable(Object)));
+  // Future<Object?> <: FutureOr<Object?>
+  checkProperSubtype(
+      generic1(Future, nullable(Object)), generic1(FutureOr, nullable(Object)));
   // FutureOr<Never> <: Future<Never>
-  checkSubtype(generic1(FutureOr, dart.wrapType(dart.never_)),
-      generic1(Future, dart.wrapType(dart.never_)));
+  checkSubtype(generic1(FutureOr, neverType), generic1(Future, neverType));
   // Future<B> <: FutureOr<A>
   checkProperSubtype(generic1(Future, B), generic1(FutureOr, A));
   // B <: <: FutureOr<A>
@@ -42,15 +124,17 @@ void main() {
   // Future<B> <: Future<A>
   checkProperSubtype(generic1(Future, B), generic1(Future, A));
 
-  // B <: A
-  checkProperSubtype(B, A);
+  // Interface subtypes.
   // A <: A
   checkSubtype(A, A);
+  // B <: A
+  checkProperSubtype(B, A);
   // C <: B
   checkProperSubtype(C, B);
   // C <: A
   checkProperSubtype(C, A);
 
+  // Functions.
   // A -> B <: Function
   checkProperSubtype(function1(B, A), Function);
 
@@ -127,6 +211,7 @@ void main() {
   checkProperSubtype(functionGenericArg(generic1(FutureOr, B), B),
       functionGenericArg(generic1(FutureOr, B), A));
 
+  // Generics.
   // D <: D<B>
   checkSubtype(D, generic1(D, B));
   // D<B> <: D
@@ -138,13 +223,12 @@ void main() {
   checkProperSubtype(F, E);
   // F <: E<A, A>
   checkProperSubtype(F, generic2(E, A, A));
-  // // E<B, B> <: E<A, A>
+  // E<B, B> <: E<A, A>
   checkProperSubtype(generic2(E, B, B), E);
-  // // E<B, B> <: E<A, A>
+  // E<B, B> <: E<A, A>
   checkProperSubtype(generic2(E, B, B), generic2(E, A, A));
 
-  // A <: A?
-  checkProperSubtype(A, nullable(A));
+  // Nullable interface subtypes.
   // B <: A?
   checkProperSubtype(B, nullable(A));
   // C <: A?
@@ -154,33 +238,13 @@ void main() {
   // C? <: A?
   checkProperSubtype(nullable(C), nullable(A));
 
-  // A <: Object
-  checkProperSubtype(A, Object);
-  // A* <: Object
-  checkProperSubtype(legacy(A), Object);
-  // dynamic <\: Object
-  checkSubtypeFailure(dynamic, Object);
-  // void <\: Object
-  checkSubtypeFailure(dart.wrapType(dart.void_), Object);
-  // Null <\: Object
-  checkSubtypeFailure(Null, Object);
-  // A? <\: Object
-  checkSubtypeFailure(nullable(A), Object);
-
-  // Null <: FutureOr<A?>
-  checkProperSubtype(Null, generic1(FutureOr, nullable(A)));
-  // Null <: Null
-  checkSubtype(Null, Null);
-  // Null <: A?
-  checkProperSubtype(Null, nullable(A));
-  // Null <: A*
-  checkProperSubtype(Null, legacy(A));
-
+  // Mixed mode.
   // B* <: A
   checkProperSubtype(legacy(B), A);
+  // B* <: A?
+  checkProperSubtype(legacy(B), nullable(A));
   // A* <\: B
   checkSubtypeFailure(legacy(A), B);
-
   // B? <: A*
   checkProperSubtype(nullable(B), legacy(A));
   // B <: A*
@@ -189,4 +253,30 @@ void main() {
   checkSubtypeFailure(A, legacy(B));
   // A? <: B*
   checkSubtypeFailure(nullable(A), legacy(B));
+
+  // Allowed in weak mode.
+  // dynamic <: Object
+  checkSubtypeFailure(dynamic, Object);
+  // void <: Object
+  checkSubtypeFailure(voidType, Object);
+  // Object? <: Object
+  checkSubtypeFailure(nullable(Object), Object);
+  // A? <: Object
+  checkSubtypeFailure(nullable(A), Object);
+  // A? <: A
+  checkSubtypeFailure(nullable(A), A);
+  // Null <: never
+  checkSubtypeFailure(Null, neverType);
+  // Null <: Object
+  checkSubtypeFailure(Null, Object);
+  // Null <: A
+  checkSubtypeFailure(Null, A);
+  // Null <: FutureOr<A>
+  checkSubtypeFailure(Null, generic1(FutureOr, A));
+  // Null <: Future<A>
+  checkSubtypeFailure(Null, generic1(Future, A));
+  // FutureOr<Null> <: Future<Null>
+  checkSubtypeFailure(generic1(FutureOr, Null), generic1(Future, Null));
+  // Null <: Future<A?>
+  checkSubtypeFailure(Null, generic1(Future, nullable(A)));
 }

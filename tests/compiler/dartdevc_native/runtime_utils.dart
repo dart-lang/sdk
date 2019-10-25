@@ -7,6 +7,9 @@ import 'dart:_runtime' as dart;
 
 import 'package:expect/expect.dart';
 
+// The runtime representation of the void type.
+final voidType = dart.wrapType(dart.void_);
+
 // Returns sWrapped<tWrapped> as a wrapped type.
 Type generic1(Type sWrapped, Type tWrapped) {
   var s = dart.unwrapType(sWrapped);

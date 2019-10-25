@@ -4,6 +4,9 @@
 
 import 'dart:_runtime' as dart;
 
+// The runtime representation of the never type.
+final neverType = dart.wrapType(dart.never_);
+
 // Returns tWrapped? as a wrapped type.
 Type nullable(Type tWrapped) {
   var t = dart.unwrapType(tWrapped);
