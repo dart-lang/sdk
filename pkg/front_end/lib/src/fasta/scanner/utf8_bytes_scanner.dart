@@ -91,7 +91,10 @@ class Utf8BytesScanner extends AbstractScanner {
             numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
-    if (containsBomAt(0)) byteOffset += 3;
+    if (containsBomAt(0)) {
+      byteOffset += 3;
+      utf8Slack += 3;
+    }
   }
 
   bool containsBomAt(int offset) {
