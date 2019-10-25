@@ -104,7 +104,11 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
 
   @override
   visitStatement(Statement node) {
-    computeForStatement(node, createStatementId(node));
+    computeForStatement(
+        node,
+        node is ExpressionStatement
+            ? createStatementId(node)
+            : computeDefaultNodeId(node));
     super.visitStatement(node);
   }
 

@@ -175,7 +175,7 @@ class C {
   /*member: C.constructor_initializer:doesNotComplete*/
   C.constructor_initializer()
       : field1 = topLevelFunction(),
-        field2 = /*unreachable*/ 0 /*stmt: unreachable*/ {}
+        field2 = /*unreachable*/ 0 /*unreachable*/ {}
 
   void local_getter(bool b) {
     if (b) {
