@@ -3561,9 +3561,6 @@ abstract class ExecutableElementImpl extends ElementImpl
   /// element.
   List<ParameterElement> _parameters;
 
-  /// The declared return type of this executable element.
-  DartType _declaredReturnType;
-
   /// The inferred return type of this executable element.
   DartType _returnType;
 
@@ -3602,10 +3599,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       return linkedContext.getCodeOffset(linkedNode);
     }
     return super.codeOffset;
-  }
-
-  void set declaredReturnType(DartType returnType) {
-    _declaredReturnType = _checkElementOfType(returnType);
   }
 
   @override
@@ -3734,12 +3727,13 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
+    if (_returnType != null) return _returnType;
+
     if (linkedNode != null) {
-      if (_returnType != null) return _returnType;
       var context = enclosingUnit.linkedContext;
       return _returnType = context.getReturnType(linkedNode);
     }
-    return _returnType ?? _declaredReturnType;
+    return _returnType;
   }
 
   void set returnType(DartType returnType) {
