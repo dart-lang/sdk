@@ -4,7 +4,30 @@
 
 // test w/ `pub run test -N prefer_final_fields`
 
-//ignore_for_file: unused_field, unused_local_variable
+//ignore_for_file: unused_field, unused_local_variable, prefer_expression_function_bodies
+
+class PrefixOps {
+  bool _initialized = false; // LINT
+  int _num = 1; // LINT
+  int _num2 = 1; // OK
+  int _bits = 0xffff; // LINT
+  int getValue() {
+    if (!_initialized) {
+      return 0;
+    }
+    if (-_num  == -1) {
+      return 0;
+    }
+    if (~_bits == 0) {
+      return 0;
+    }
+    if (--_num2  == 0) {
+      return 0;
+    }
+    return 1;
+  }
+}
+
 class FalsePositiveWhenReturn {
   int _value = 0;
   int getValue() {
