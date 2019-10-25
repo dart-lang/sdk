@@ -74,6 +74,16 @@ void f({int? a}) {}
 ''');
   }
 
+  test_class_nullable_named_optional_noDefault_fieldFormal() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(T);
+class C {
+  F? f;
+  C({this.f});
+}
+''');
+  }
+
   test_class_nullable_named_required() async {
     await assertNoErrorsInCode('''
 void f({required int? a}) {}

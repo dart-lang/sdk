@@ -75,7 +75,8 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
     parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
         e.key, e.value.type, ParameterKind.NAMED)));
     return DecoratedType(
-        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters),
+        FunctionTypeImpl.synthetic(returnType.type, typeFormals, parameters,
+            nullabilitySuffix: NullabilitySuffix.star),
         node ?? newNode(),
         typeFormalBounds: typeFormals
             .map((formal) => _decoratedTypeParameterBounds[formal])

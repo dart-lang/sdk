@@ -219,6 +219,7 @@ abstract class AbstractTypeSystemTest {
       element.returnType,
       element.typeParameters,
       element.parameters,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

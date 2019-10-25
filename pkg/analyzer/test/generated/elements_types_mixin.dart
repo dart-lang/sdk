@@ -200,6 +200,7 @@ mixin ElementsTypesMixin {
       element.returnType,
       element.typeParameters,
       element.parameters,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 }

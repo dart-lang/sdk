@@ -1359,6 +1359,7 @@ class GenericInferrer {
       fnType.returnType,
       const [],
       fnType.parameters,
+      nullabilitySuffix: (fnType as TypeImpl).nullabilitySuffix,
     );
     tryMatchSubtypeOf(inferFnType, contextType, origin, covariant: true);
   }
@@ -2901,7 +2902,12 @@ abstract class TypeSystem implements public.TypeSystem {
     // Calculate the LUB of the return type.
     DartType returnType = getLeastUpperBound(f.returnType, g.returnType);
 
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeFormals,
+      parameters,
+      nullabilitySuffix: (f as TypeImpl).nullabilitySuffix,
+    );
   }
 
   /**

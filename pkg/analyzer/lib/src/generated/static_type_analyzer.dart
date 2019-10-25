@@ -2227,6 +2227,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructor.returnType,
       typeParameters,
       constructor.parameters,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 

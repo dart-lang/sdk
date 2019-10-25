@@ -974,7 +974,12 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElement> typeFormals = const [],
     List<ParameterElement> parameters = const [],
   }) {
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeFormals,
+      parameters,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   PropertyAccessorElement _getter(
@@ -1077,6 +1082,7 @@ class _MockSdkElementsBuilder {
       element.returnType,
       element.typeParameters,
       element.parameters,
+      nullabilitySuffix: nullabilitySuffix,
     );
   }
 

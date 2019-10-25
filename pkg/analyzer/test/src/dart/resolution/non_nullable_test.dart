@@ -56,6 +56,20 @@ class X = A with B implements C;
     assertType(findNode.typeName('C;'), 'C');
   }
 
+  test_field_functionTypeAlias() async {
+    await assertNoErrorsInCode('''
+typedef F = T Function<T>(int, T);
+
+class C {
+  F? f;
+}
+''');
+    assertElementTypeString(
+      findElement.field('f').type,
+      'T Function<T>(int, T)?',
+    );
+  }
+
   test_local_getterNullAwareAccess_interfaceType() async {
     await resolveTestCode(r'''
 main() {

@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /// Transforms the given [list] by applying [transform] to all its elements.
 ///
@@ -214,7 +215,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypeImpl.synthetic(this.returnType, this.typeFormals, this.parameters,
       {Element element,
       List<DartType> typeArguments,
-      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
+      @required NullabilitySuffix nullabilitySuffix})
       : typeArguments = typeArguments ?? const <DartType>[],
         nullabilitySuffix = nullabilitySuffix,
         super(element, null);

@@ -4852,6 +4852,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
           nullabilitySuffix: NullabilitySuffix.star,
         );
       }).toList(),
+      nullabilitySuffix: NullabilitySuffix.star,
     );
     return _type;
   }
@@ -6432,7 +6433,8 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
         if (linkedContext.hasInitializer(linkedNode)) {
           _initializer = new FunctionElementImpl('', -1)
             ..isSynthetic = true
-            .._type = FunctionTypeImpl.synthetic(type, [], [])
+            .._type = FunctionTypeImpl.synthetic(type, [], [],
+                nullabilitySuffix: NullabilitySuffix.star)
             ..enclosingElement = this;
         }
       }

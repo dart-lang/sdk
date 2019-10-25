@@ -27,7 +27,10 @@ FreshTypeParameters getFreshTypeParameters(
 
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    map[typeParameters[i]] = new TypeParameterTypeImpl(freshParameters[i]);
+    map[typeParameters[i]] = new TypeParameterTypeImpl(
+      freshParameters[i],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   var substitution = Substitution.fromMap(map);
@@ -117,6 +120,7 @@ class FreshTypeParameters {
           parameter.parameterKind,
         );
       }).toList(),
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
     );
   }
 
@@ -414,8 +418,14 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     if (this.useCounter == before) return type;
 
-    return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
-        element: type.element, typeArguments: typeArguments);
+    return FunctionTypeImpl.synthetic(
+      returnType,
+      typeFormals,
+      parameters,
+      element: type.element,
+      typeArguments: typeArguments,
+      nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+    );
   }
 
   @override
@@ -491,6 +501,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     return new NamedTypeBuilder(
+      type.isNNBD,
       type.element,
       arguments,
       type.nullabilitySuffix,

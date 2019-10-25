@@ -24,7 +24,6 @@ class ThrowWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
-  @failingTest
   test_downward() async {
     await resolveTestCode('''
 void f() {
