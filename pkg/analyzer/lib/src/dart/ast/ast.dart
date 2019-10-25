@@ -5922,7 +5922,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
-      return true;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, this);
     }
@@ -8854,7 +8854,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
-      return true;
+      return parent.operator.type.isIncrementOperator;
     } else if (parent is AssignmentExpression) {
       return identical(parent.leftHandSide, target);
     } else if (parent is ForEachPartsWithIdentifier) {
