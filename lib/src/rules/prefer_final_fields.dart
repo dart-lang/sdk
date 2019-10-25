@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -35,9 +36,7 @@ class MultipleMutable {
   var _label = 'hola mundo! GoodMutable', _offender = 'mumble mumble!'; // LINT
   var _someOther; // LINT
 
-
   MultipleMutable() : _someOther = 5;
-
 
   MultipleMutable(this._someOther);
 
@@ -85,6 +84,19 @@ class NotAssignedInAllConstructors {
 ```
 ''';
 
+bool _containedInFormal(Element element, FormalParameter formal) {
+  final formalField = formal.identifier.staticElement;
+  return formalField is FieldFormalParameterElement &&
+      formalField.field == element;
+}
+
+bool _containedInInitializer(
+        Element element, ConstructorInitializer initializer) =>
+    initializer is ConstructorFieldInitializer &&
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
+            initializer.fieldName) ==
+        element;
+
 class PreferFinalFields extends LintRule implements NodeLintRule {
   PreferFinalFields()
       : super(
@@ -121,7 +133,11 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _addMutatedFieldElement(node.operand);
+    final operator = node.operator;
+    if (operator.type == TokenType.MINUS_MINUS ||
+        operator.type == TokenType.PLUS_PLUS) {
+      _addMutatedFieldElement(node.operand);
+    }
     super.visitPrefixExpression(node);
   }
 
@@ -181,17 +197,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
-}
-
-bool _containedInInitializer(
-        Element element, ConstructorInitializer initializer) =>
-    initializer is ConstructorFieldInitializer &&
-    DartTypeUtilities.getCanonicalElementFromIdentifier(
-            initializer.fieldName) ==
-        element;
-
-bool _containedInFormal(Element element, FormalParameter formal) {
-  final formalField = formal.identifier.staticElement;
-  return formalField is FieldFormalParameterElement &&
-      formalField.field == element;
 }
