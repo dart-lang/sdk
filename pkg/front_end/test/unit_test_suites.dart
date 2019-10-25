@@ -4,7 +4,7 @@
 
 import 'dart:async' show Timer;
 import 'dart:convert' show jsonEncode;
-import 'dart:io' show File, Platform, exit, exitCode;
+import 'dart:io' show File, Platform, exitCode;
 import 'dart:isolate' show Isolate, ReceivePort, SendPort;
 
 import 'package:args/args.dart' show ArgParser;
@@ -96,7 +96,10 @@ class ResultLogger implements Logger {
       TestDescription description, Step step) {}
 
   @override
-  void logSuiteComplete() {}
+  void logSuiteStarted(testing.Suite suite) {}
+
+  @override
+  void logSuiteComplete(testing.Suite suite) {}
 
   handleTestResult(TestDescription testDescription, Result result,
       String fullSuiteName, bool matchedExpectations) {
@@ -252,36 +255,49 @@ main([List<String> arguments = const <String>[]]) async {
   List<String> results = [];
   List<String> logs = [];
   Options options = Options.parse(arguments);
-  Timer timer = Timer(timeoutDuration, () {
-    // TODO(karlklose): use timer for each suite.
-    // TODO(karlklose): report timeout on specific tests
-    print("Error: Test suite timed out!");
-    exit(1);
-  });
   ReceivePort resultsPort = new ReceivePort()
     ..listen((resultEntry) => results.add(resultEntry));
   ReceivePort logsPort = new ReceivePort()
     ..listen((logEntry) => logs.add(logEntry));
-  List<Future> futures = [];
+  List<Future<bool>> futures = [];
   // Run test suites and record the results and possible failure logs.
   for (Suite suite in suites) {
     // Start the test suite in a new isolate.
     ReceivePort exitPort = new ReceivePort();
+    String name = suite.name;
     SuiteConfiguration configuration = SuiteConfiguration(
-        suite.name,
+        name,
         resultsPort.sendPort,
         logsPort.sendPort,
         options.verbose,
         options.configurationName);
-    // TODO(karlklose): Implement --filter to select tests to run
-    // to implement deflaking (dartbug.com/38607).
-    await Isolate.spawn<SuiteConfiguration>(runSuite, configuration,
-        onExit: exitPort.sendPort);
-    futures.add(exitPort.first);
+    Future future = Future<bool>(() async {
+      Stopwatch stopwatch = Stopwatch()..start();
+      print("Running suite $name");
+      // TODO(karlklose): Implement --filter to select tests to run
+      // to implement deflaking (dartbug.com/38607).
+      Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
+          runSuite, configuration,
+          onExit: exitPort.sendPort);
+      bool timedOut = false;
+      Timer timer = Timer(timeoutDuration, () {
+        timedOut = true;
+        print("Suite $name timed out after "
+            "${timeoutDuration.inMilliseconds}ms");
+        isolate.kill(priority: Isolate.immediate);
+      });
+      await exitPort.first;
+      timer.cancel();
+      if (!timedOut) {
+        print(
+            "Suite $name finished (took ${stopwatch.elapsedMilliseconds}ms).");
+      }
+      return timedOut;
+    });
+    futures.add(future);
   }
   // Wait for isolates to terminate and clean up.
-  await Future.wait(futures);
-  timer.cancel();
+  Iterable<bool> timeouts = await Future.wait(futures);
   resultsPort.close();
   logsPort.close();
   // Write results.json and logs.json.
@@ -291,8 +307,14 @@ main([List<String> arguments = const <String>[]]) async {
   await writeLinesToFile(logsJsonUri, logs);
   print("Log files written to ${resultJsonUri.toFilePath()} and"
       " ${logsJsonUri.toFilePath()}");
-  // The testing framework (pkg/testing) sets the exitCode to 1 if any test
-  // failed, so we reset it here to indicate that the test runner was
-  // successful.
-  exitCode = 0;
+  // Return with exit code 1 if at least one suite timed out.
+  bool timeout = timeouts.any((timeout) => timeout);
+  if (timeout) {
+    exitCode = 1;
+  } else {
+    // The testing framework (pkg/testing) sets the exitCode to 1 if any test
+    // failed, so we reset it here to indicate that the test runner was
+    // successful.
+    exitCode = 0;
+  }
 }

@@ -136,6 +136,7 @@ abstract class ChainContext {
     Map<TestDescription, Set<Expectation>> unexpectedOutcomes =
         <TestDescription, Set<Expectation>>{};
     int completed = 0;
+    logger.logSuiteStarted(suite);
     List<Future> futures = <Future>[];
     for (TestDescription description in descriptions) {
       String selector = "${suite.name}/${description.shortName}";
@@ -236,7 +237,7 @@ abstract class ChainContext {
       await doStep(description);
     }
     await Future.wait(futures);
-    logger.logSuiteComplete();
+    logger.logSuiteComplete(suite);
     if (unexpectedResults.isNotEmpty) {
       unexpectedResults.forEach((TestDescription description, Result result) {
         logger.logUnexpectedResult(
