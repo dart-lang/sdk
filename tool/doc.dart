@@ -16,7 +16,8 @@ import 'since.dart';
 
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main([List<String> args]) async {
-  var parser = ArgParser(allowTrailingOptions: true)..addOption('out', abbr: 'o', help: 'Specifies output directory.');
+  var parser = ArgParser(allowTrailingOptions: true)
+    ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
   var options;
   try {
@@ -58,21 +59,32 @@ final pedanticRules = <String>[];
 final effectiveDartRules = <String>[];
 
 /// Sorted list of contributed lint rules.
-final List<LintRule> rules = List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
+final List<LintRule> rules =
+    List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
 
-String get enumerateErrorRules =>
-    rules.where((r) => r.group == Group.errors).map((r) => '${toDescription(r)}').join('\n\n');
+String get enumerateErrorRules => rules
+    .where((r) => r.group == Group.errors)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
 
-String get enumerateGroups =>
-    Group.builtin.map((Group g) => '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>').join('\n');
+String get enumerateGroups => Group.builtin
+    .map((Group g) =>
+        '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>')
+    .join('\n');
 
-String get enumeratePubRules => rules.where((r) => r.group == Group.pub).map((r) => '${toDescription(r)}').join('\n\n');
+String get enumeratePubRules => rules
+    .where((r) => r.group == Group.pub)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
 
-String get enumerateStyleRules =>
-    rules.where((r) => r.group == Group.style).map((r) => '${toDescription(r)}').join('\n\n');
+String get enumerateStyleRules => rules
+    .where((r) => r.group == Group.style)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
 
 Future<String> get pedanticLatestVersion async {
-  var url = 'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
+  var url =
+      'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
   var client = http.Client();
   var req = await client.get(url);
   var parts = req.body.split('package:pedantic/analysis_options.');
@@ -80,7 +92,8 @@ Future<String> get pedanticLatestVersion async {
 }
 
 Future<String> get effectiveDartLatestVersion async {
-  var url = 'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
+  var url =
+      'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib/analysis_options.yaml';
   var client = http.Client();
   var req = await client.get(url);
   var parts = req.body.split('package:effective_dart/analysis_options.');
@@ -190,7 +203,8 @@ ${parser.usage}
 
 String qualify(LintRule r) => r.name.toString() + describeMaturity(r);
 
-String describeMaturity(LintRule r) => r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
+String describeMaturity(LintRule r) =>
+    r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
 
 String toDescription(LintRule r) =>
     '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name)} ${markdownToHtml(r.description)}';
@@ -203,7 +217,8 @@ class CountBadger {
     var lintCount = rules.length;
 
     var client = http.Client();
-    var req = await client.get(Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
+    var req = await client.get(
+        Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
     var bytes = req.bodyBytes;
     await File('$dirPath/count-badge.svg').writeAsBytes(bytes);
   }
@@ -232,7 +247,9 @@ class Generator {
 
   String get since {
     var info = sinceInfo[name];
-    var version = info.sinceDartSdk != null ? '>= ${info.sinceDartSdk}' : '<strong>unreleased</strong>';
+    var version = info.sinceDartSdk != null
+        ? '>= ${info.sinceDartSdk}'
+        : '<strong>unreleased</strong>';
     // todo (pq): consider a footnote explaining that since info is static and "unreleased" tags may be stale.
     return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
@@ -409,7 +426,11 @@ linter:
   rules:
 ''');
 
-    var sortedRules = rules.where((r) => r.maturity != Maturity.deprecated).map((r) => r.name).toList()..sort();
+    var sortedRules = rules
+        .where((r) => r.maturity != Maturity.deprecated)
+        .map((r) => r.name)
+        .toList()
+          ..sort();
     for (String rule in sortedRules) {
       sb.write('    - $rule\n');
     }

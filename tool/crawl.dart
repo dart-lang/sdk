@@ -19,11 +19,15 @@ const _rulePathPrefix = 'https://raw.githubusercontent.com/dart-lang/linter';
 
 const _flutterOptionsUrl =
     'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml';
-const _flutterRepoOptionsUrl = 'https://raw.githubusercontent.com/flutter/flutter/master/analysis_options.yaml';
-const _pedanticOptionsRootUrl = 'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib';
+const _flutterRepoOptionsUrl =
+    'https://raw.githubusercontent.com/flutter/flutter/master/analysis_options.yaml';
+const _pedanticOptionsRootUrl =
+    'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib';
 const _pedanticOptionsUrl = '$_pedanticOptionsRootUrl/analysis_options.yaml';
-const _effectiveDartOptionsRootUrl = 'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib';
-const _effectiveDartOptionsUrl = '$_effectiveDartOptionsRootUrl/analysis_options.yaml';
+const _effectiveDartOptionsRootUrl =
+    'https://raw.githubusercontent.com/tenhobi/effective_dart/master/lib';
+const _effectiveDartOptionsUrl =
+    '$_effectiveDartOptionsRootUrl/analysis_options.yaml';
 const _stagehandOptionsUrl =
     'https://raw.githubusercontent.com/dart-lang/stagehand/master/templates/analysis_options.yaml';
 
@@ -37,11 +41,14 @@ List<String> _pedanticRules;
 List<String> _effectiveDartRules;
 List<String> _stagehandRules;
 
-Future<List<String>> get flutterRules async => _flutterRules ??= await _fetchRules(_flutterOptionsUrl);
+Future<List<String>> get flutterRules async =>
+    _flutterRules ??= await _fetchRules(_flutterOptionsUrl);
 
-Future<List<String>> get flutterRepoRules async => _flutterRepoRules ??= await _fetchRules(_flutterRepoOptionsUrl);
+Future<List<String>> get flutterRepoRules async =>
+    _flutterRepoRules ??= await _fetchRules(_flutterRepoOptionsUrl);
 
-Future<List<String>> get pedanticRules async => _pedanticRules ??= await _fetchPedanticRules();
+Future<List<String>> get pedanticRules async =>
+    _pedanticRules ??= await _fetchPedanticRules();
 
 Future<List<String>> _fetchPedanticRules() async {
   var client = http.Client();
@@ -50,18 +57,22 @@ Future<List<String>> _fetchPedanticRules() async {
   return _fetchRules('$_pedanticOptionsRootUrl/$includedOptions');
 }
 
-Future<List<String>> get effectiveDartRules async => _effectiveDartRules ??= await _fetchEffectiveDartRules();
+Future<List<String>> get effectiveDartRules async =>
+    _effectiveDartRules ??= await _fetchEffectiveDartRules();
 
 Future<List<String>> _fetchEffectiveDartRules() async {
   var client = http.Client();
   var req = await client.get(_effectiveDartOptionsUrl);
-  var includedOptions = req.body.split('include: package:effective_dart/')[1].trim();
+  var includedOptions =
+      req.body.split('include: package:effective_dart/')[1].trim();
   return _fetchRules('$_effectiveDartOptionsRootUrl/$includedOptions');
 }
 
-Future<List<String>> get stagehandRules async => _stagehandRules ??= await _fetchRules(_stagehandOptionsUrl);
+Future<List<String>> get stagehandRules async =>
+    _stagehandRules ??= await _fetchRules(_stagehandOptionsUrl);
 
-Future<int> get latestMinor async => _latestMinor ??= await _readLatestMinorVersion();
+Future<int> get latestMinor async =>
+    _latestMinor ??= await _readLatestMinorVersion();
 
 List<String> _sdkTags;
 
@@ -100,7 +111,8 @@ Iterable<LintRule> get registeredLints {
   return _registeredLints;
 }
 
-Future<String> findSinceDartSdk(String linterVersion) async => await dartSdkForLinter(linterVersion);
+Future<String> findSinceDartSdk(String linterVersion) async =>
+    await dartSdkForLinter(linterVersion);
 
 Future<String> dartSdkForLinter(String version) async {
   var sdkVersions = <String>[];
@@ -143,14 +155,21 @@ Future<int> _readLatestMinorVersion() async {
   var contents = await File('pubspec.yaml').readAsString();
   YamlMap pubspec = loadYamlNode(contents) as YamlMap;
   // 0.1.79 or 0.1.79-dev or 0.1.97+1
-  return int.parse((pubspec['version'] as String).split('.').last.split('-').first.split('+').first);
+  return int.parse((pubspec['version'] as String)
+      .split('.')
+      .last
+      .split('-')
+      .first
+      .split('+')
+      .first);
 }
 
 Future<String> _crawlForVersion(String lint) async {
   var client = http.Client();
   for (int minor = 1; minor < 31; ++minor) {
     var version = '0.1.$minor';
-    var req = await client.get('$_rulePathPrefix/$version/lib/src/rules/$lint.dart');
+    var req =
+        await client.get('$_rulePathPrefix/$version/lib/src/rules/$lint.dart');
     if (req.statusCode == 200) {
       return version;
     }
@@ -161,14 +180,16 @@ Future<String> _crawlForVersion(String lint) async {
 Future<List<String>> rulesForVersion(int minor) async {
   var version = '0.1.$minor';
   if (minor >= 31) {
-    return _sinceMap[version] ??= await _fetchRules('$_repoPathPrefix$version$_allPathSuffix');
+    return _sinceMap[version] ??=
+        await _fetchRules('$_repoPathPrefix$version$_allPathSuffix');
   }
   return null;
 }
 
 Map<String, String> _dartSdkToLinterMap = <String, String>{};
 
-Future<String> linterForDartSdk(String sdk) async => _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
+Future<String> linterForDartSdk(String sdk) async =>
+    _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
 
 Future<String> _fetchLinterForVersion(String version) async {
   var deps = await _fetchDEPSforVersion(version);
@@ -190,7 +211,8 @@ Future<String> _fetchLinterForVersion(String version) async {
 Future<String> _fetchDEPSforVersion(String version) async {
   var client = http.Client();
   //https://raw.githubusercontent.com/dart-lang/sdk/2.1.0-dev.1.0/DEPS
-  var req = await client.get('https://raw.githubusercontent.com/dart-lang/sdk/$version/DEPS');
+  var req = await client
+      .get('https://raw.githubusercontent.com/dart-lang/sdk/$version/DEPS');
   return req.body;
 }
 
