@@ -96,7 +96,7 @@ mixin ElementsTypesMixin {
     List<DartType> typeArguments = const [],
     NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
   }) {
-    return element.instantiate2(
+    return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );

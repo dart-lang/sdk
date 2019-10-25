@@ -1634,7 +1634,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         TypeState(_typeProvider.dynamicType),
       );
     } else if (variableElement is FunctionTypeAliasElement) {
-      var type = variableElement.instantiate2(
+      var type = variableElement.instantiate(
         typeArguments: variableElement.typeParameters
             .map((t) => _typeProvider.dynamicType)
             .toList(),

@@ -4913,7 +4913,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  FunctionType instantiate2({
+  FunctionType instantiate({
     @required List<DartType> typeArguments,
     @required NullabilitySuffix nullabilitySuffix,
   }) {
@@ -4934,6 +4934,18 @@ class GenericTypeAliasElementImpl extends ElementImpl
       type.typeFormals,
       type.parameters,
       element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
+  @deprecated
+  FunctionType instantiate2({
+    @required List<DartType> typeArguments,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
     );

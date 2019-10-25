@@ -58,7 +58,7 @@ DartType instantiateElementTypeToBounds(
       );
     } else if (element is GenericTypeAliasElement) {
       var typeArguments = rules.instantiateTypeFormalsToBounds2(element);
-      return element.instantiate2(
+      return element.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: NullabilitySuffix.star,
       );

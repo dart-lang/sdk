@@ -5839,7 +5839,7 @@ class TypeNameResolver {
         }
       }
       if (element is GenericTypeAliasElementImpl) {
-        type = element.instantiate2(
+        type = element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: _getNullability(node.question != null),
         );
@@ -5855,7 +5855,7 @@ class TypeNameResolver {
         var typeArguments = typeSystem.instantiateTypeFormalsToBounds(
           element.typeParameters,
         );
-        type = element.instantiate2(
+        type = element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: _getNullability(node.question != null),
         );
