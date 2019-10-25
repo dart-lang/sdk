@@ -635,7 +635,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   Uri getPartFileUri(
       Uri parentFileUri, LibraryPart part, UriTranslator uriTranslator) {
-    Uri fileUri = parentFileUri.resolve(part.partUri);
+    Uri fileUri;
+    try {
+      fileUri = parentFileUri.resolve(part.partUri);
+    } on FormatException {
+      return new Uri(
+          scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+          query: Uri.encodeQueryComponent(part.partUri));
+    }
     if (fileUri.scheme == "package") {
       // Part was specified via package URI and the resolve above thus
       // did not go as expected. Translate the package URI to get the

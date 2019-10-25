@@ -540,6 +540,22 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform,
         }
       }
     }
+    if (world["uriToSourcesOnlyIncludes"] != null) {
+      Set<Uri> allowed = {};
+      for (String filename in world["uriToSourcesOnlyIncludes"]) {
+        Uri uri = base.resolve(filename);
+        allowed.add(uri);
+      }
+      for (Uri uri in component.uriToSource.keys) {
+        // null is always there, so allow it implicitly.
+        // Dart scheme uris too.
+        if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
+        if (!allowed.contains(uri)) {
+          throw "Expected no uriToSource for $uri but found "
+              "${component.uriToSource[uri]}";
+        }
+      }
+    }
 
     int nonSyntheticLibraries = countNonSyntheticLibraries(component);
     int nonSyntheticPlatformLibraries =
