@@ -28,6 +28,32 @@ class PrefixOps {
   }
 }
 
+typedef bool Predicate();
+
+class PostfixOps {
+  int _num = 1; // OK
+  int _num2 = 1; // OK
+  String _string = ''; // LINT
+
+  Predicate _predicate = () => false; // LINT
+
+  int getValue() {
+    if (_num--  == -1) {
+      return 0;
+    }
+    if (_num2++  == 1) {
+      return 0;
+    }
+    if (_predicate()) {
+      return 1;
+    }
+    if (_string.length == 1) {
+      return 0;
+    }
+    return 1;
+  }
+}
+
 class FalsePositiveWhenReturn {
   int _value = 0;
   int getValue() {
