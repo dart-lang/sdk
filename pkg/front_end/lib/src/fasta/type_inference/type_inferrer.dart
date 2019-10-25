@@ -53,6 +53,8 @@ import '../fasta_codes.dart'
         templateMixinInferenceNoMatchingClass,
         templateUndefinedMethod;
 
+import '../flow_analysis/flow_analysis.dart';
+
 import '../kernel/expression_generator.dart' show buildIsNull;
 
 import '../kernel/kernel_shadow_ast.dart'
@@ -458,6 +460,9 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final TypePromoter typePromoter;
 
+  final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
+      DartType> flowAnalysis;
+
   final InferenceDataForTesting dataForTesting;
 
   @override
@@ -500,11 +505,23 @@ class TypeInferrerImpl implements TypeInferrer {
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         isTopLevel = topLevel,
-        typePromoter = new TypePromoter(engine.typeSchemaEnvironment);
+        typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
+        // TODO(dmitryas): Pass in the actual assigned variables.
+        flowAnalysis = new FlowAnalysis(
+            new TypeOperationsCfe(engine.typeSchemaEnvironment),
+            new AssignedVariables());
 
   CoreTypes get coreTypes => engine.coreTypes;
 
   bool get isNonNullableByDefault => library.isNonNullableByDefault;
+
+  void registerIfUnreachableForTesting(TreeNode node, {bool isReachable}) {
+    if (dataForTesting == null) return;
+    isReachable ??= flowAnalysis.isReachable;
+    if (!isReachable) {
+      dataForTesting.flowAnalysisResult.unreachableNodes.add(node);
+    }
+  }
 
   @override
   void inferInitializer(InferenceHelper helper, Initializer initializer) {
@@ -1423,6 +1440,8 @@ class TypeInferrerImpl implements TypeInferrer {
   ExpressionInferenceResult inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded,
       {bool isVoidAllowed: false}) {
+    registerIfUnreachableForTesting(expression);
+
     // `null` should never be used as the type context.  An instance of
     // `UnknownType` should be used instead.
     assert(typeContext != null);
@@ -1480,6 +1499,13 @@ class TypeInferrerImpl implements TypeInferrer {
     inferStatement(body);
     closureContext = null;
     this.helper = null;
+    if (dataForTesting != null) {
+      if (!flowAnalysis.isReachable) {
+        dataForTesting.flowAnalysisResult.functionBodiesThatDontComplete
+            .add(body);
+      }
+    }
+    flowAnalysis.finish();
   }
 
   DartType inferInvocation(DartType typeContext, int offset,
@@ -2244,6 +2270,8 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement) {
+    registerIfUnreachableForTesting(statement);
+
     // For full (non-top level) inference, we need access to the
     // ExpressionGeneratorHelper so that we can perform error recovery.
     if (!isTopLevel) assert(helper != null);

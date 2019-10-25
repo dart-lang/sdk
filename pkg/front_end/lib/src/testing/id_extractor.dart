@@ -273,6 +273,24 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   }
 
   @override
+  visitIfStatement(IfStatement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitIfStatement(node);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitTryCatch(node);
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    return super.visitTryFinally(node);
+  }
+
+  @override
   visitDoStatement(DoStatement node) {
     computeForNode(node, createLoopId(node));
     super.visitDoStatement(node);
@@ -467,5 +485,12 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     computeForNode(
         node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitArguments(node);
+  }
+
+  @override
+  visitBlock(Block node) {
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+    return super.visitBlock(node);
   }
 }

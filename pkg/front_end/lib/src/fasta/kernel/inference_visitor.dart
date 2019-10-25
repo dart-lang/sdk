@@ -272,6 +272,7 @@ class InferenceVisitor
 
   @override
   void visitBlock(Block node) {
+    inferrer.registerIfUnreachableForTesting(node);
     for (Statement statement in node.statements) {
       inferrer.inferStatement(statement);
     }
@@ -280,6 +281,7 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitBoolLiteral(
       BoolLiteral node, DartType typeContext) {
+    inferrer.flowAnalysis.booleanLiteral(node, node.value);
     return new ExpressionInferenceResult(
         inferrer.coreTypes.boolRawType(inferrer.library.nonNullable), node);
   }
@@ -324,13 +326,22 @@ class InferenceVisitor
     Expression condition =
         inferrer.ensureAssignableResult(expectedType, conditionResult);
     node.condition = condition..parent = node;
+    inferrer.flowAnalysis.conditional_thenBegin(node.condition);
+    bool isThenReachable = inferrer.flowAnalysis.isReachable;
     ExpressionInferenceResult thenResult = inferrer
         .inferExpression(node.then, typeContext, true, isVoidAllowed: true);
     node.then = thenResult.expression..parent = node;
+    inferrer.registerIfUnreachableForTesting(node.then,
+        isReachable: isThenReachable);
+    inferrer.flowAnalysis.conditional_elseBegin(node.then);
+    bool isOtherwiseReachable = inferrer.flowAnalysis.isReachable;
     ExpressionInferenceResult otherwiseResult = inferrer.inferExpression(
         node.otherwise, typeContext, true,
         isVoidAllowed: true);
     node.otherwise = otherwiseResult.expression..parent = node;
+    inferrer.registerIfUnreachableForTesting(node.otherwise,
+        isReachable: isOtherwiseReachable);
+    inferrer.flowAnalysis.conditional_end(node.condition, node.otherwise);
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(
             thenResult.inferredType, otherwiseResult.inferredType);
@@ -4038,6 +4049,7 @@ class InferenceVisitor
 
   @override
   ExpressionInferenceResult visitRethrow(Rethrow node, DartType typeContext) {
+    inferrer.flowAnalysis.handleExit();
     return new ExpressionInferenceResult(const BottomType(), node);
   }
 
@@ -4058,6 +4070,7 @@ class InferenceVisitor
       inferredType = inferrer.coreTypes.nullType;
     }
     closureContext.handleReturn(inferrer, node, inferredType, node.isArrow);
+    inferrer.flowAnalysis.handleExit();
   }
 
   @override
@@ -4342,6 +4355,7 @@ class InferenceVisitor
         node.expression, const UnknownType(), !inferrer.isTopLevel,
         isVoidAllowed: false);
     node.expression = expressionResult.expression..parent = node;
+    inferrer.flowAnalysis.handleExit();
     return new ExpressionInferenceResult(const BottomType(), node);
   }
 

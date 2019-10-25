@@ -29,11 +29,9 @@ main(List<String> args) async {
       ]),
       skipList: [
         // TODO(dmitryas): Run all reachability tests.
-        'conditional.dart',
+        'assert.dart',
         'do.dart',
-        'early_exit.dart',
         'for.dart',
-        'function_body.dart',
         'never_return_type.dart',
         'switch.dart',
         'try_catch.dart',
@@ -70,6 +68,18 @@ class ReachabilityDataExtractor
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
       this._flowResult)
       : super(compilerResult, actualMap);
+
+  @override
+  Set<_ReachabilityAssertion> computeMemberValue(Id id, Member member) {
+    Set<_ReachabilityAssertion> result = {};
+    if (member.function != null) {
+      if (_flowResult.functionBodiesThatDontComplete
+          .contains(member.function.body)) {
+        result.add(_ReachabilityAssertion.doesNotComplete);
+      }
+    }
+    return result.isEmpty ? null : result;
+  }
 
   @override
   Set<_ReachabilityAssertion> computeNodeValue(Id id, TreeNode node) {

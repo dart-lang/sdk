@@ -10,3 +10,8 @@ int hasReturn() {
 void noReturn() {
   1;
 }
+
+/*member: hasThrow:doesNotComplete*/
+int hasThrow() {
+  throw 42;
+}

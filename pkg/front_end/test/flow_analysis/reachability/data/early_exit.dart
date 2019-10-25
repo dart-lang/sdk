@@ -5,13 +5,46 @@
 /*member: beforeSplitStatement:doesNotComplete*/
 void beforeSplitStatement(bool b, int i) {
   return;
-  /*stmt: unreachable*/ do /*stmt: unreachable*/ {} while (/*unreachable*/ b);
-  /*stmt: unreachable*/ for (;;) /*stmt: unreachable*/ {}
-  /*stmt: unreachable*/ for (var _
-      in /*unreachable*/ []) /*stmt: unreachable*/ {}
-  /*stmt: unreachable*/ if (/*unreachable*/ b) /*stmt: unreachable*/ {}
-  /*stmt: unreachable*/ switch (/*unreachable*/ i) {
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  do /*analyzer.stmt: unreachable*/
+      /*cfe.unreachable*/ {} while (/*unreachable*/ b);
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  for (;;) /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {}
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  /*cfe.iterator: unreachable*/
+  /*cfe.current: unreachable*/
+  /*cfe.moveNext: unreachable*/
+  for (var _ in /*unreachable*/ [])
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {}
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  if (/*unreachable*/ b)
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {}
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  switch (/*unreachable*/ i) {
   }
-  /*stmt: unreachable*/ try /*stmt: unreachable*/ {} finally /*stmt: unreachable*/ {}
-  /*stmt: unreachable*/ while (/*unreachable*/ b) /*stmt: unreachable*/ {}
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  try /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {} finally
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {}
+
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/
+  while (/*unreachable*/ b)
+  /*analyzer.stmt: unreachable*/
+  /*cfe.unreachable*/ {}
 }
