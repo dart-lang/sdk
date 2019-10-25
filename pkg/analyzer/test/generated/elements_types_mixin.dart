@@ -34,58 +34,15 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  FunctionType functionType({
-    List<TypeParameterElement> typeFormals,
-    List<DartType> required,
-    List<DartType> optional,
-    Map<String, DartType> named,
-    DartType returns,
-    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star,
+  FunctionTypeImpl functionType({
+    @required List<TypeParameterElement> typeFormals,
+    @required List<ParameterElement> parameters,
+    @required DartType returnType,
+    @required NullabilitySuffix nullabilitySuffix,
   }) {
-    if (optional != null && named != null) {
-      throw ArgumentError(
-        'Cannot have both optional positional and named parameters.',
-      );
-    }
-
-    var parameters = <ParameterElement>[];
-    if (required != null) {
-      for (var i = 0; i < required.length; ++i) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            'r$i',
-            required[i],
-            ParameterKind.REQUIRED,
-          ),
-        );
-      }
-    }
-    if (optional != null) {
-      for (var i = 0; i < optional.length; ++i) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            'p$i',
-            optional[i],
-            ParameterKind.POSITIONAL,
-          ),
-        );
-      }
-    }
-    if (named != null) {
-      for (var namedEntry in named.entries) {
-        parameters.add(
-          ParameterElementImpl.synthetic(
-            namedEntry.key,
-            namedEntry.value,
-            ParameterKind.NAMED,
-          ),
-        );
-      }
-    }
-
     return FunctionTypeImpl.synthetic(
-      returns ?? typeProvider.voidType,
-      typeFormals ?? const <TypeParameterElement>[],
+      returnType,
+      typeFormals,
       parameters,
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -99,6 +56,45 @@ mixin ElementsTypesMixin {
     return element.instantiate(
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  FunctionTypeImpl functionTypeNone({
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
+    @required DartType returnType,
+  }) {
+    return functionType(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  FunctionTypeImpl functionTypeQuestion({
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
+    @required DartType returnType,
+  }) {
+    return functionType(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  FunctionTypeImpl functionTypeStar({
+    List<TypeParameterElement> typeFormals = const [],
+    List<ParameterElement> parameters = const [],
+    @required DartType returnType,
+  }) {
+    return functionType(
+      typeFormals: typeFormals,
+      parameters: parameters,
+      returnType: returnType,
+      nullabilitySuffix: NullabilitySuffix.star,
     );
   }
 
@@ -157,22 +153,25 @@ mixin ElementsTypesMixin {
     return element;
   }
 
-  ParameterElement namedParameter(String name, {@required DartType type}) {
+  ParameterElement namedParameter({
+    @required String name,
+    @required DartType type,
+  }) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
     return parameter;
   }
 
-  ParameterElement positionalParameter(String name, {@required DartType type}) {
-    var parameter = ParameterElementImpl(name, 0);
+  ParameterElement positionalParameter({String name, @required DartType type}) {
+    var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
     return parameter;
   }
 
-  ParameterElement requiredParameter(String name, {@required DartType type}) {
-    var parameter = ParameterElementImpl(name, 0);
+  ParameterElement requiredParameter({String name, @required DartType type}) {
+    var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
     return parameter;

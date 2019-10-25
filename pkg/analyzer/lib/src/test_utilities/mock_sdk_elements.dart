@@ -34,6 +34,7 @@ class _MockSdkElementsBuilder {
   final NullabilitySuffix nullabilitySuffix;
 
   ClassElementImpl _boolElement;
+  ClassElementImpl _comparableElement;
   ClassElementImpl _completerElement;
   ClassElementImpl _deprecatedElement;
   ClassElementImpl _doubleElement;
@@ -91,6 +92,20 @@ class _MockSdkElementsBuilder {
 
   InterfaceType get boolType {
     return _boolType ??= _interfaceType(boolElement);
+  }
+
+  ClassElementImpl get comparableElement {
+    if (_comparableElement != null) return _comparableElement;
+
+    var tElement = _typeParameter('T');
+    _comparableElement = _class(
+      name: 'Comparable',
+      isAbstract: true,
+      typeParameters: [tElement],
+    );
+    _comparableElement.supertype = objectType;
+
+    return _comparableElement;
   }
 
   ClassElementImpl get completerElement {
@@ -460,6 +475,12 @@ class _MockSdkElementsBuilder {
 
     _numElement = _class(name: 'num', isAbstract: true);
     _numElement.supertype = objectType;
+    _numElement.interfaces = [
+      _interfaceType(
+        comparableElement,
+        typeArguments: [numType],
+      ),
+    ];
 
     _numElement.methods = [
       _method('+', numType, parameters: [
@@ -825,6 +846,7 @@ class _MockSdkElementsBuilder {
 
     coreUnit.types = <ClassElement>[
       boolElement,
+      comparableElement,
       deprecatedElement,
       doubleElement,
       functionElement,

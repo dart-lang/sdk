@@ -241,7 +241,9 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
       var element = elements[i];
       var freshElement = TypeParameterElementImpl(element.name, -1);
       freshElements[i] = freshElement;
-      var freshType = TypeParameterTypeImpl(freshElement);
+      var freshType = freshElement.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       freshElement.type = freshType;
       substitution[element] = freshType;
     }

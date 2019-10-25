@@ -93,11 +93,6 @@ bool _isTop(DartType t) {
  * A type system that implements the type semantics for Dart 2.0.
  */
 class Dart2TypeSystem extends TypeSystem {
-  /// Track types currently being compared via type parameter bounds so that we
-  /// can detect recursion.
-  static Set<TypeComparison> _typeParameterBoundsComparisons =
-      new HashSet<TypeComparison>();
-
   /**
    * False if implicit casts should always be disallowed, otherwise the
    * [FeatureSet] will be used.
@@ -113,8 +108,29 @@ class Dart2TypeSystem extends TypeSystem {
 
   final TypeProvider typeProvider;
 
+  /// The cached instance of `Object?`.
+  InterfaceTypeImpl _objectQuestionCached;
+
+  /// The cached instance of `Object!`.
+  InterfaceTypeImpl _objectNoneCached;
+
+  /// The cached instance of `Null!`.
+  InterfaceTypeImpl _nullNoneCached;
+
   Dart2TypeSystem(this.typeProvider,
       {this.implicitCasts: true, this.strictInference: false});
+
+  InterfaceTypeImpl get _nullNone =>
+      _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get _objectNone =>
+      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get _objectQuestion =>
+      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -579,146 +595,247 @@ class Dart2TypeSystem extends TypeSystem {
         p1.isCovariant && isSubtypeOf(p1.type, p2.type);
   }
 
-  /// Check if [_t1] is a subtype of [_t2].
+  /// Check if [_T0] is a subtype of [_T1].
   ///
-  /// Partially updated to reflect
-  /// https://github.com/dart-lang/language/blob/da5adf7eb5f2d479069d8660ed7ca7b230098510/resources/type-system/subtyping.md
-  ///
-  /// However, it does not correlate 1:1 and does not specialize Null vs Never
-  /// cases. It also is not guaranteed to be exactly accurate vs the "spec"
-  /// because it has slightly different order of operations. These should be
-  /// brought in line or proven equivalent.
+  /// Implements:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
   @override
-  bool isSubtypeOf(DartType _t1, DartType _t2) {
-    var t1 = _t1 as TypeImpl;
-    var t2 = _t2 as TypeImpl;
-
-    // Convert Null to Never? so that NullabilitySuffix can handle more cases.
-    if (t1.isDartCoreNull) {
-      t1 = BottomTypeImpl.instanceNullable;
-    }
-    if (t2.isDartCoreNull) {
-      t2 = BottomTypeImpl.instanceNullable;
-    }
-
-    if (identical(t1, t2)) {
+  bool isSubtypeOf(DartType _T0, DartType _T1) {
+    // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
+    if (identical(_T0, _T1)) {
       return true;
     }
-    // The types are void, dynamic, bottom, interface types, function types,
-    // FutureOr<T> and type parameters.
-    //
-    // We proceed by eliminating these different classes from consideration.
 
     // `?` is treated as a top and a bottom type during inference.
-    if (identical(t1, UnknownInferredType.instance) ||
-        identical(t2, UnknownInferredType.instance)) {
+    if (identical(_T0, UnknownInferredType.instance) ||
+        identical(_T1, UnknownInferredType.instance)) {
       return true;
     }
 
-    // Trivial top case.
-    if (_isTop(t2)) {
+    var T0 = _T0 as TypeImpl;
+    var T1 = _T1 as TypeImpl;
+
+    // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
+    // `Object?`) then `T0 <: T1`.
+    if (identical(T1, DynamicTypeImpl.instance) ||
+        identical(T1, VoidTypeImpl.instance) ||
+        T1.nullabilitySuffix == NullabilitySuffix.question &&
+            T1.isDartCoreObject) {
       return true;
     }
 
-    // Legacy top case. Must be done now to find Object* <: Object.
-    // TODO: handle false positives like FutureOr<Object?>* and T* extends int?.
-    if (t1.nullabilitySuffix == NullabilitySuffix.star &&
-        _isLegacyTop(t2, orTrueTop: false)) {
-      return true;
-    }
-
-    // Having excluded RHS top, this now must be false.
-    if (_isTop(t1)) {
-      return false;
-    }
-
-    // Handle T1? <: T2
-    if (t1.nullabilitySuffix == NullabilitySuffix.question) {
-      if (t2.nullabilitySuffix == NullabilitySuffix.none) {
-        // If T2 is not FutureOr<S2>, then subtype is false.
-        if (!t2.isDartAsyncFutureOr) {
-          return false;
-        }
-
-        // T1? <: FutureOr<S2> is true if S2 is nullable.
-        final s2 = (t2 as InterfaceType).typeArguments[0];
-        if (!isNullable(s2)) {
-          return false;
-        }
-      }
-    }
-
-    // Legacy bottom cases
-    if (_isLegacyBottom(t1, orTrueBottom: true)) {
-      return true;
-    }
-
-    if (_isLegacyBottom(t2, orTrueBottom: true)) {
-      return false;
-    }
-
-    // Handle FutureOr<T> union type.
-    if (t1 is InterfaceTypeImpl && t1.isDartAsyncFutureOr) {
-      var t1TypeArg = t1.typeArguments[0];
-      if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
-        var t2TypeArg = t2.typeArguments[0];
-        // FutureOr<A> <: FutureOr<B> iff A <: B
-        return isSubtypeOf(t1TypeArg, t2TypeArg);
-      }
-
-      // given t1 is Future<A> | A, then:
-      // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
-      var t1Future = typeProvider.futureType2(t1TypeArg);
-      return isSubtypeOf(t1Future, t2) && isSubtypeOf(t1TypeArg, t2);
-    }
-
-    if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
-      // given t2 is Future<A> | A, then:
-      // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
-      var t2TypeArg = t2.typeArguments[0];
-      var t2Future = typeProvider.futureType2(t2TypeArg);
-      return isSubtypeOf(t1, t2Future) || isSubtypeOf(t1, t2TypeArg);
-    }
-
-    // S <: T where S is a type variable
-    //  T is not dynamic or object (handled above)
-    //  True if T == S
-    //  Or true if bound of S is S' and S' <: T
-    if (t1 is TypeParameterTypeImpl) {
-      if (t2 is TypeParameterTypeImpl &&
-          t1.definition == t2.definition &&
-          _typeParameterBoundsSubtype(t1.bound, t2.bound, true)) {
+    // Left Top: if `T0` is `dynamic` or `void`,
+    //   then `T0 <: T1` if `Object? <: T1`.
+    if (identical(T0, DynamicTypeImpl.instance) ||
+        identical(T0, VoidTypeImpl.instance)) {
+      if (isSubtypeOf(_objectQuestion, T1)) {
         return true;
       }
-
-      DartType bound = t1.element.bound;
-      return bound == null
-          ? false
-          : _typeParameterBoundsSubtype(bound, t2, false);
     }
 
-    if (t2 is TypeParameterType) {
+    // Left Bottom: if `T0` is `Never`, then `T0 <: T1`.
+    if (identical(T0, BottomTypeImpl.instance)) {
+      return true;
+    }
+
+    // Right Object: if `T1` is `Object` then:
+    var T1_nullability = T1.nullabilitySuffix;
+    if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreObject) {
+      // * if `T0` is an unpromoted type variable with bound `B`,
+      //   then `T0 <: T1` iff `B <: Object`.
+      // * if `T0` is a promoted type variable `X & S`,
+      //   then `T0 <: T1`iff `S <: Object`.
+      if (T0 is TypeParameterTypeImpl) {
+        var bound = T0.element.bound ?? _objectQuestion;
+        return isSubtypeOf(bound, _objectNone);
+      }
+      // * if `T0` is `FutureOr<S>` for some `S`,
+      //   then `T0 <: T1` iff `S <: Object`
+      var T0_nullability = T0.nullabilitySuffix;
+      if (T0_nullability == NullabilitySuffix.none &&
+          T0 is InterfaceTypeImpl &&
+          T0.isDartAsyncFutureOr) {
+        return isSubtypeOf(T0.typeArguments[0], T1);
+      }
+      // * if `T0` is `S*` for any `S`, then `T0 <: T1` iff `S <: T1`
+      if (T0_nullability == NullabilitySuffix.star) {
+        return isSubtypeOf(
+          T0.withNullability(NullabilitySuffix.none),
+          T1,
+        );
+      }
+      // * if `T0` is `Null`, `dynamic`, `void`, or `S?` for any `S`,
+      //   then the subtyping does not hold, the result is false.
+      if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
+          identical(T0, DynamicTypeImpl.instance) ||
+          identical(T0, VoidTypeImpl.instance) ||
+          T0_nullability == NullabilitySuffix.question) {
+        return false;
+      }
+      // Otherwise `T0 <: T1` is true.
+      return true;
+    }
+
+    // Left Null: if `T0` is `Null` then:
+    var T0_nullability = T0.nullabilitySuffix;
+    if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull) {
+      // * If `T1` is `FutureOr<S>` for some `S`, then the query is true iff
+      // `Null <: S`.
+      if (T1_nullability == NullabilitySuffix.none &&
+          T1 is InterfaceTypeImpl &&
+          T1.isDartAsyncFutureOr) {
+        var S = T1.typeArguments[0];
+        return isSubtypeOf(_nullNone, S);
+      }
+      // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
+      if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
+          T1_nullability == NullabilitySuffix.question ||
+          T1_nullability == NullabilitySuffix.star) {
+        return true;
+      }
+      // * if `T1` is a type variable (promoted or not) the query is false
+      if (T1 is TypeParameterTypeImpl) {
+        return false;
+      }
+      // Otherwise, the query is false.
       return false;
     }
 
-    // We've eliminated void, dynamic, bottom, type parameters, FutureOr,
-    // nullable, and legacy nullable types. The only cases are the combinations
-    // of interface type and function type.
-
-    // A function type can only subtype an interface type if
-    // the interface type is Function
-    if (t1 is FunctionType && t2 is InterfaceType) {
-      return t2.isDartCoreFunction;
+    // Left Legacy if `T0` is `S0*` then:
+    if (T0_nullability == NullabilitySuffix.star) {
+      // * `T0 <: T1` iff `S0 <: T1`.
+      var S0 = T0.withNullability(NullabilitySuffix.none);
+      return isSubtypeOf(S0, T1);
     }
 
-    if (t1 is InterfaceType && t2 is FunctionType) return false;
-
-    // Two interface types
-    if (t1 is InterfaceTypeImpl && t2 is InterfaceTypeImpl) {
-      return _isInterfaceSubtypeOf(t1, t2, null);
+    // Right Legacy `T1` is `S1*` then:
+    //   * `T0 <: T1` iff `T0 <: S1?`.
+    if (T1_nullability == NullabilitySuffix.star) {
+      var S1 = T1.withNullability(NullabilitySuffix.question);
+      return isSubtypeOf(T0, S1);
     }
 
-    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
+    // Left FutureOr: if `T0` is `FutureOr<S0>` then:
+    if (T0_nullability == NullabilitySuffix.none &&
+        T0 is InterfaceTypeImpl &&
+        T0.isDartAsyncFutureOr) {
+      var S0 = T0.typeArguments[0];
+      // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
+      if (isSubtypeOf(S0, T1)) {
+        var FutureS0 = typeProvider.futureElement.instantiate(
+          typeArguments: [S0],
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+        return isSubtypeOf(FutureS0, T1);
+      }
+      return false;
+    }
+
+    // Left Nullable: if `T0` is `S0?` then:
+    //   * `T0 <: T1` iff `S0 <: T1` and `Null <: T1`.
+    if (T0_nullability == NullabilitySuffix.question) {
+      var S0 = T0.withNullability(NullabilitySuffix.none);
+      return isSubtypeOf(S0, T1) && isSubtypeOf(_nullNone, T1);
+    }
+
+    // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
+    //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
+    if (T0 is TypeParameterTypeImpl) {
+      if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
+        var S0 = T0.element.bound ?? _objectQuestion;
+        var S1 = T1.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(S0, S1)) {
+          return true;
+        }
+      }
+
+      var T0_element = T0.element;
+      if (T0_element is TypeParameterMember) {
+        return isSubtypeOf(T0_element.bound, T1);
+      }
+    }
+
+    // Right FutureOr: if `T1` is `FutureOr<S1>` then:
+    if (T1_nullability == NullabilitySuffix.none &&
+        T1 is InterfaceTypeImpl &&
+        T1.isDartAsyncFutureOr) {
+      var S1 = T1.typeArguments[0];
+      // `T0 <: T1` iff any of the following hold:
+      // * either `T0 <: Future<S1>`
+      var FutureS1 = typeProvider.futureElement.instantiate(
+        typeArguments: [S1],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+      if (isSubtypeOf(T0, FutureS1)) {
+        return true;
+      }
+      // * or `T0 <: S1`
+      if (isSubtypeOf(T0, S1)) {
+        return true;
+      }
+      // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
+      // * or `T0` is `X0 & S0` and `S0 <: T1`
+      if (T0 is TypeParameterTypeImpl) {
+        var S0 = T0.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(S0, T1)) {
+          return true;
+        }
+      }
+      // iff
+      return false;
+    }
+
+    // Right Nullable: if `T1` is `S1?` then:
+    if (T1_nullability == NullabilitySuffix.question) {
+      var S1 = T1.withNullability(NullabilitySuffix.none);
+      // `T0 <: T1` iff any of the following hold:
+      // * either `T0 <: S1`
+      if (isSubtypeOf(T0, S1)) {
+        return true;
+      }
+      // * or `T0 <: Null`
+      if (isSubtypeOf(T0, _nullNone)) {
+        return true;
+      }
+      // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
+      // or `T0` is `X0 & S0` and `S0 <: T1`
+      if (T0 is TypeParameterTypeImpl) {
+        var S0 = T0.element.bound ?? _objectQuestion;
+        return isSubtypeOf(S0, T1);
+      }
+      // iff
+      return false;
+    }
+
+    // Super-Interface: `T0` is an interface type with super-interfaces
+    // `S0,...Sn`:
+    //   * and `Si <: T1` for some `i`.
+    if (T0 is InterfaceTypeImpl && T1 is InterfaceTypeImpl) {
+      return _isInterfaceSubtypeOf(T0, T1, null);
+    }
+
+    // Left Promoted Variable: `T0` is a promoted type variable `X0 & S0`
+    //   * and `S0 <: T1`
+    // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
+    //   * and `B0 <: T1`
+    if (T0 is TypeParameterTypeImpl) {
+      var S0 = T0.element.bound ?? _objectQuestion;
+      if (isSubtypeOf(S0, T1)) {
+        return true;
+      }
+    }
+
+    if (T0 is FunctionTypeImpl) {
+      // Function Type/Function: `T0` is a function type and `T1` is `Function`.
+      if (T1.isDartCoreFunction) {
+        return true;
+      }
+      if (T1 is FunctionTypeImpl) {
+        return _isFunctionSubtypeOf(T0, T1);
+      }
+    }
+
+    return false;
   }
 
   /// Given a [type] T that may have an unknown type `?`, returns a type
@@ -1103,20 +1220,6 @@ class Dart2TypeSystem extends TypeSystem {
       );
     }
     return type;
-  }
-
-  bool _typeParameterBoundsSubtype(
-      DartType t1, DartType t2, bool recursionValue) {
-    TypeComparison comparison = TypeComparison(t1, t2);
-    if (_typeParameterBoundsComparisons.contains(comparison)) {
-      return recursionValue;
-    }
-    _typeParameterBoundsComparisons.add(comparison);
-    try {
-      return isSubtypeOf(t1, t2);
-    } finally {
-      _typeParameterBoundsComparisons.remove(comparison);
-    }
   }
 
   /**

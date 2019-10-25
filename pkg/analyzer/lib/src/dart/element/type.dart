@@ -428,7 +428,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             TypeImpl renamed =
                 Substitution.fromPairs(variables, instantiateTypeArgs)
                     .substituteType(e.bound);
-            renamed.appendTo(typeParametersBuffer, visitedTypes);
+            renamed.appendTo(typeParametersBuffer, visitedTypes,
+                withNullability: withNullability);
           }
         }
         typeParametersBuffer.write('>');

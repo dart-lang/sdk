@@ -92,9 +92,11 @@ class SubstituteFromUpperAndLowerBoundsTest extends _Base {
   test_function() async {
     // T Function(T)
     var T = typeParameter('T');
-    var type = functionType(
-      required: [typeParameterType(T)],
-      returns: typeParameterType(T),
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: typeParameterType(T)),
+      ],
+      returnType: typeParameterType(T),
     );
 
     var result = Substitution.fromUpperAndLowerBounds(
@@ -118,7 +120,12 @@ class SubstituteTest extends _Base {
   }
 
   test_function_noSubstitutions() async {
-    var type = functionType(required: [intType], returns: boolType);
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: intType),
+      ],
+      returnType: boolType,
+    );
 
     var T = typeParameter('T');
     _assertIdenticalType(type, {T: intType});
@@ -128,12 +135,12 @@ class SubstituteTest extends _Base {
     // typedef F<T, U> = T Function(U u, bool);
     var T = typeParameter('T');
     var U = typeParameter('U');
-    var type = functionType(
-      required: [
-        typeParameterType(U),
-        boolType,
+    var type = functionTypeStar(
+      parameters: [
+        requiredParameter(type: typeParameterType(U)),
+        requiredParameter(type: boolType),
       ],
-      returns: typeParameterType(T),
+      returnType: typeParameterType(T),
     );
 
     assertElementTypeString(type, 'T Function(U, bool)');
@@ -153,12 +160,12 @@ class SubstituteTest extends _Base {
     // typedef F<T> = T Function<U extends T>(U);
     var T = typeParameter('T');
     var U = typeParameter('U', bound: typeParameterType(T));
-    var type = functionType(
+    var type = functionTypeStar(
       typeFormals: [U],
-      required: [
-        typeParameterType(U),
+      parameters: [
+        requiredParameter(type: typeParameterType(U)),
       ],
-      returns: typeParameterType(T),
+      returnType: typeParameterType(T),
     );
 
     assertElementTypeString(type, 'T Function<U extends T>(U)');
@@ -186,9 +193,9 @@ class SubstituteTest extends _Base {
       typeParameterType(U),
       typeParameterType(V),
     ]);
-    var type = functionType(
+    var type = functionTypeStar(
       typeFormals: [T, U],
-      returns: boolType,
+      returnType: boolType,
     );
 
     assertElementTypeString(

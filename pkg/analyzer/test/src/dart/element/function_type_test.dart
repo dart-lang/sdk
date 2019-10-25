@@ -120,7 +120,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate() {
     // T Function<T>(T x)
     var t = typeParameter('T');
-    var x = requiredParameter('x', type: typeParameterType(t));
+    var x = requiredParameter(name: 'x', type: typeParameterType(t));
     FunctionType f =
         new FunctionTypeImpl.synthetic(typeParameterType(t), [t], [x]);
     FunctionType instantiated = f.instantiate([objectType]);
@@ -148,7 +148,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   test_synthetic_instantiate_share_parameters() {
     // T Function<T>(int x)
     var t = typeParameter('T');
-    var x = requiredParameter('x', type: intType);
+    var x = requiredParameter(name: 'x', type: intType);
     FunctionType f =
         new FunctionTypeImpl.synthetic(typeParameterType(t), [t], [x]);
     FunctionType instantiated = f.instantiate([objectType]);
@@ -162,7 +162,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic_namedParameter() {
-    var p = namedParameter('x', type: objectType);
+    var p = namedParameter(name: 'x', type: objectType);
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
@@ -175,7 +175,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic_normalParameter() {
-    var p = requiredParameter('x', type: objectType);
+    var p = requiredParameter(name: 'x', type: objectType);
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
@@ -189,7 +189,7 @@ class FunctionTypeTest with ElementsTypesMixin {
   }
 
   test_synthetic_optionalParameter() {
-    var p = positionalParameter('x', type: objectType);
+    var p = positionalParameter(name: 'x', type: objectType);
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [], [p]);
     basicChecks(f,
         element: isNull,
@@ -215,8 +215,8 @@ class FunctionTypeTest with ElementsTypesMixin {
     // Map<T, U> Function<U extends T>(T x, U y)
     var t = typeParameter('T');
     var u = typeParameter('U', bound: typeParameterType(t));
-    var x = requiredParameter('x', type: typeParameterType(t));
-    var y = requiredParameter('y', type: typeParameterType(u));
+    var x = requiredParameter(name: 'x', type: typeParameterType(t));
+    var y = requiredParameter(name: 'y', type: typeParameterType(u));
     FunctionType f = new FunctionTypeImpl.synthetic(
         mapOf(typeParameterType(t), typeParameterType(u)), [u], [x, y]);
     FunctionType substituted =
@@ -249,7 +249,7 @@ class FunctionTypeTest with ElementsTypesMixin {
     // dynamic Function<U>(U x)
     var t = typeParameter('T');
     var u = typeParameter('U');
-    var x = requiredParameter('x', type: typeParameterType(u));
+    var x = requiredParameter(name: 'x', type: typeParameterType(u));
     FunctionType f = new FunctionTypeImpl.synthetic(dynamicType, [u], [x]);
     FunctionType substituted =
         f.substitute2([objectType], [typeParameterType(t)]);
