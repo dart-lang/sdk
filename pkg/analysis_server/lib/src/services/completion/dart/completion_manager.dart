@@ -66,12 +66,18 @@ class DartCompletionManager implements CompletionContributor {
   final Set<protocol.ElementKind> includedElementKinds;
 
   /// If [includedElementKinds] is not null, must be also not `null`, and
+  /// will be filled with names of all top-level declarations from all
+  /// included suggestion sets.
+  final Set<String> includedElementNames;
+
+  /// If [includedElementKinds] is not null, must be also not `null`, and
   /// will be filled with tags for suggestions that should be given higher
   /// relevance than other included suggestions.
   final List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags;
 
   DartCompletionManager({
     this.includedElementKinds,
+    this.includedElementNames,
     this.includedSuggestionRelevanceTags,
   });
 
@@ -185,6 +191,7 @@ class DartCompletionManager implements CompletionContributor {
       suggestions = await ranking.rerank(
           probabilityFuture,
           suggestions,
+          includedElementNames,
           includedSuggestionRelevanceTags,
           dartRequest,
           request.result.unit.featureSet);

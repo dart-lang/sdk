@@ -166,13 +166,16 @@ class CompletionHandler
           .toList();
 
       // Now compute items in suggestion sets.
-      List<IncludedSuggestionSet> includedSuggestionSets =
-          includedElementKinds == null || unit == null
-              ? const []
-              : computeIncludedSetList(
-                  server.declarationsTracker,
-                  unit,
-                );
+      List<IncludedSuggestionSet> includedSuggestionSets = [];
+      Set<String> includedElementNames = Set<String>();
+      if (includedElementKinds != null && unit != null) {
+        computeIncludedSetList(
+          server.declarationsTracker,
+          unit,
+          includedSuggestionSets,
+          includedElementNames,
+        );
+      }
 
       // Build a fast lookup for imported symbols so that we can filter out
       // duplicates.

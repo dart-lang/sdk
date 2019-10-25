@@ -109,6 +109,7 @@ class CompletionRanking {
   Future<List<CompletionSuggestion>> rerank(
       Future<Map<String, double>> probabilityFuture,
       List<CompletionSuggestion> suggestions,
+      Set<String> includedElementNames,
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags,
       DartCompletionRequest request,
       FeatureSet featureSet) async {
