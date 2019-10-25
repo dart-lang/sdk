@@ -215,7 +215,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
-  ASSERT(sizeof(id) == sizeof(intptr_t));
+  ASSERT(sizeof(id) <= sizeof(intptr_t));
   return static_cast<intptr_t>(id);
 }
 
@@ -229,7 +229,6 @@ bool OSThread::Compare(ThreadId a, ThreadId b) {
 
 bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   pthread_attr_t attr;
-  // May fail on the main thread.
   if (pthread_getattr_np(pthread_self(), &attr) != 0) {
     return false;
   }

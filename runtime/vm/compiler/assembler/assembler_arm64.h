@@ -1533,6 +1533,7 @@ class Assembler : public AssemblerBase {
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void SetupDartSP();
+  void SetupCSPFromThread(Register thr);
   void RestoreCSP();
 
   void EnterFrame(intptr_t frame_size);
