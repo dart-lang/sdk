@@ -135,24 +135,6 @@ class BottomTypeImpl extends TypeImpl {
 }
 
 /**
- * Type created internally if a circular reference is ever detected.  Behaves
- * like `dynamic`, except that when converted to a string it is displayed as
- * `...`.
- */
-class CircularTypeImpl extends DynamicTypeImpl {
-  CircularTypeImpl() : super._circular();
-
-  @override
-  bool operator ==(Object object) => object is CircularTypeImpl;
-
-  @override
-  void appendTo(StringBuffer buffer, Set<TypeImpl> visitedTypes,
-      {bool withNullability = false}) {
-    buffer.write('...');
-  }
-}
-
-/**
  * The [Type] representing the type `dynamic`.
  */
 class DynamicTypeImpl extends TypeImpl {
@@ -165,11 +147,6 @@ class DynamicTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   DynamicTypeImpl._() : super(new DynamicElementImpl(), Keyword.DYNAMIC.lexeme);
-
-  /**
-   * Constructor used by [CircularTypeImpl].
-   */
-  DynamicTypeImpl._circular() : super(instance.element, Keyword.DYNAMIC.lexeme);
 
   @override
   int get hashCode => 1;
