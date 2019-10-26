@@ -70,6 +70,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   DartType thisType;
 
+  InterfaceType _iterableForSetMapDisambiguationCached;
+  InterfaceType _mapForSetMapDisambiguationCached;
+
   /**
    * The object providing promoted or declared types of variables.
    */
@@ -91,6 +94,31 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
+  }
+
+  InterfaceType get _iterableForSetMapDisambiguation {
+    return _iterableForSetMapDisambiguationCached ??=
+        _typeProvider.iterableElement.instantiate(
+      typeArguments: [
+        _typeProvider.dynamicType,
+      ],
+      nullabilitySuffix: _nonNullableEnabled
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceType get _mapForSetMapDisambiguation {
+    return _mapForSetMapDisambiguationCached ??=
+        _typeProvider.mapElement.instantiate(
+      typeArguments: [
+        _typeProvider.dynamicType,
+        _typeProvider.dynamicType,
+      ],
+      nullabilitySuffix: _nonNullableEnabled
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.star,
+    );
   }
 
   NullabilitySuffix get _noneOrStarSuffix {
@@ -1982,9 +2010,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     bool contextProvidesAmbiguityResolutionClues =
         contextType != null && contextType is! UnknownInferredType;
     bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _typeProvider.iterableObjectType);
+        _typeSystem.isSubtypeOf(contextType, _iterableForSetMapDisambiguation);
     bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(contextType, _typeProvider.mapObjectObjectType);
+        _typeSystem.isSubtypeOf(contextType, _mapForSetMapDisambiguation);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
     } else if ((contextIsMap && !contextIsIterable) || elements.isEmpty) {

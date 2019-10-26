@@ -2674,6 +2674,9 @@ class ResolverVisitor extends ScopedVisitor {
   /// or `null` if not in a [SwitchStatement].
   DartType _enclosingSwitchStatementExpressionType;
 
+  InterfaceType _iterableForSetMapDisambiguationCached;
+  InterfaceType _mapForSetMapDisambiguationCached;
+
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
   /// The [definingLibrary] is the element for the library containing the node
@@ -2764,6 +2767,31 @@ class ResolverVisitor extends ScopedVisitor {
     return _nonNullableEnabled
         ? NullabilitySuffix.none
         : NullabilitySuffix.star;
+  }
+
+  InterfaceType get _iterableForSetMapDisambiguation {
+    return _iterableForSetMapDisambiguationCached ??=
+        typeProvider.iterableElement.instantiate(
+      typeArguments: [
+        typeProvider.dynamicType,
+      ],
+      nullabilitySuffix: _nonNullableEnabled
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceType get _mapForSetMapDisambiguation {
+    return _mapForSetMapDisambiguationCached ??=
+        typeProvider.mapElement.instantiate(
+      typeArguments: [
+        typeProvider.dynamicType,
+        typeProvider.dynamicType,
+      ],
+      nullabilitySuffix: _nonNullableEnabled
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.star,
+    );
   }
 
   /**
@@ -4441,9 +4469,9 @@ class ResolverVisitor extends ScopedVisitor {
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
       bool isIterable = typeSystem.isSubtypeOf(
-          unwrappedContextType, typeProvider.iterableObjectType);
+          unwrappedContextType, _iterableForSetMapDisambiguation);
       bool isMap = typeSystem.isSubtypeOf(
-          unwrappedContextType, typeProvider.mapObjectObjectType);
+          unwrappedContextType, _mapForSetMapDisambiguation);
       if (isIterable && !isMap) {
         return _LiteralResolution(
             _LiteralResolutionKind.set, unwrappedContextType);

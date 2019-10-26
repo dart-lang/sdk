@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapLiteralTest);
+    defineReflectiveTests(MapLiteralWithNnbdTest);
   });
 }
 
@@ -320,5 +323,39 @@ var a = <int>{1 : 2, 3 : 4};
 var a = <num, String>{};
 ''');
     assertType(setOrMapLiteral('{'), 'Map<num, String>');
+  }
+}
+
+@reflectiveTest
+class MapLiteralWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  AstNode setOrMapLiteral(String search) => findNode.setOrMapLiteral(search);
+
+  test_context_noTypeArgs_noEntries() async {
+    await resolveTestCode('''
+Map<String, String> a = {};
+''');
+    assertType(setOrMapLiteral('{'), 'Map<String, String>');
+  }
+
+  test_context_noTypeArgs_noEntries_typeParameterNullable() async {
+    await resolveTestCode('''
+class C<T extends Object?> {
+  Map<String, T> a = {}; // 1
+  Map<String, T>? b = {}; // 2
+  Map<String, T?> c = {}; // 3
+  Map<String, T?>? d = {}; // 4
+}
+''');
+    assertType(setOrMapLiteral('{}; // 1'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 2'), 'Map<String, T>');
+    assertType(setOrMapLiteral('{}; // 3'), 'Map<String, T?>');
+    assertType(setOrMapLiteral('{}; // 4'), 'Map<String, T?>');
   }
 }
